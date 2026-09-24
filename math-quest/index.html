@@ -324,15 +324,16 @@ const OPNAME={add:'Addition',sub:'Subtraction',mul:'Multiplication',div:'Divisio
 const LEVEL_DESC={
  add:['','Sums to 10','Sums to 20','2-digit + 1-digit','2-digit + 2-digit (no carrying)','2-digit + 2-digit (carrying)','3-digit + 2-digit','3-digit + 3-digit','4-digit + 3-digit','4-digit + 4-digit','Adding three numbers'],
  sub:['','Take away within 10','Take away within 20','2-digit − 1-digit','2-digit − 2-digit (no borrowing)','2-digit − 2-digit (borrowing)','3-digit − 2-digit','3-digit − 3-digit','4-digit − 3-digit','4-digit − 4-digit','5-digit − 4-digit'],
- mul:['','×0, ×1, ×2, ×10','×2, ×5, ×10','×2 to ×5 and ×10','Times tables to ×6','Times tables to ×9','Times tables to ×12','Teens × 1-digit','2-digit × 1-digit','2-digit × 2-digit','3-digit × 1-digit'],
- div:['','÷1, ÷2, ÷10','÷2, ÷5, ÷10','÷2 to ÷5 and ÷10','Division facts to ÷6','Division facts to ÷9','Division facts to ÷12','2-digit ÷ 1-digit','3-digit ÷ 1-digit','Dividing by 2-digit numbers','Big numbers ÷ 2-digit']
+ mul:['','Single digits: ×0, ×1, ×2','×2, ×5, ×10','×2 to ×5 and ×10','Times tables to ×6','Times tables to ×9','Times tables to ×12','Teens × 1-digit','2-digit × 1-digit','2-digit × 2-digit','3-digit × 1-digit'],
+ div:['','Single digits: ÷1, ÷2, ÷3','÷2, ÷5, ÷10','÷2 to ÷5 and ÷10','Division facts to ÷6','Division facts to ÷9','Division facts to ÷12','2-digit ÷ 1-digit','3-digit ÷ 1-digit','Dividing by 2-digit numbers','Big numbers ÷ 2-digit']
 };
 const KID_DESC={
  add:['','Adding to 10','Adding to 20','Big + small','2-digit adding','2-digit adding with carrying','3-digit adding','Big 3-digit adding','4-digit adding','Giant adding','Triple adding'],
  sub:['','Take away to 10','Take away to 20','Big − small','2-digit take away','Take away with borrowing','3-digit take away','Big 3-digit take away','4-digit take away','Giant take away','Mega take away'],
- mul:['','Times 0, 1, 2, 10','Times 2, 5, 10','Times 2 to 5','Times tables to 6','Times tables to 9','Times tables to 12','Teens times','2-digit times','2-digit × 2-digit','3-digit times'],
- div:['','Sharing by 1, 2, 10','Sharing by 2, 5, 10','Sharing by 2 to 5','Dividing to 6','Dividing to 9','Dividing to 12','2-digit dividing','3-digit dividing','Dividing by 2-digit numbers','Giant dividing']};
-const GRADE_START={1:{add:1,sub:1,mul:1,div:1},2:{add:3,sub:2,mul:1,div:1},3:{add:5,sub:5,mul:3,div:2},4:{add:6,sub:6,mul:5,div:4},5:{add:7,sub:7,mul:6,div:5},6:{add:8,sub:8,mul:7,div:7}};
+ mul:['','Easy times: 0, 1, 2','Times 2, 5, 10','Times 2 to 5','Times tables to 6','Times tables to 9','Times tables to 12','Teens times','2-digit times','2-digit × 2-digit','3-digit times'],
+ div:['','Easy sharing: 1, 2, 3','Sharing by 2, 5, 10','Sharing by 2 to 5','Dividing to 6','Dividing to 9','Dividing to 12','2-digit dividing','3-digit dividing','Dividing by 2-digit numbers','Giant dividing']};
+// Everyone starts every skill at the easiest level (single digits) and climbs from there.
+const START={add:1,sub:1,mul:1,div:1};const GRADE_START={1:START,2:START,3:START,4:START,5:START,6:START};
 const SKINS=['#ffe0c7','#f5c99b','#d9a066','#a86b3c','#6b4226'];
 const HAIRS=['#2b1d0e','#6a3d1a','#c68642','#f2d16b','#d9480f','#7c5cff','#1c7ed6','#ff6fb5','#e9ecef'];
 const HATS=[
@@ -394,11 +395,11 @@ function newPlayer(name,grade){
   stats:{add:{r:0,w:0},sub:{r:0,w:0},mul:{r:0,w:0},div:{r:0,w:0}},
   missed:{},daily:{},progress:{},
   owned:{hats:HATS.filter(h=>!h.price).map(h=>h.id),robes:ROBES.filter(r=>!r.price).map(r=>r.id),spells:['spark']},
-  welcomed:false,spellStats:{},quizStats:{},hwStats:{},customWords:null,spell:'spark',pets:[],pet:null,eggs:1,time:0,bestStreak:0,battles:0,
+  welcomed:false,startL1:true,spellStats:{},quizStats:{},hwStats:{},customWords:null,spell:'spark',pets:[],pet:null,eggs:1,time:0,bestStreak:0,battles:0,
   recent:{add:[],sub:[],mul:[],div:[]},log:[],lock:null,battle:null,maxL:{add:g.add,sub:g.sub,mul:g.mul,div:g.div},champ:{},pb:{},days:[],quest:null};
 }
 let state=load();
-function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{p.petData=p.petData||{};p.petMs=p.petMs||[];p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL={add:1,sub:1,mul:1,div:1};p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -632,7 +633,7 @@ function genQ(op,L){
   ans=a+b+(c||0);text=c!==undefined?`${a} + ${b} + ${c}`:`${a} + ${b}`;
  }else if(op==='sub'){
   switch(L){
-   case 1:a=rnd(2,10);b=rnd(1,a);break;
+   case 1:a=rnd(2,9);b=rnd(1,a);break;
    case 2:a=rnd(11,20);b=rnd(2,10);break;
    case 3:a=rnd(20,99);b=rnd(2,9);break;
    case 4:{const t1=rnd(2,9),o1=rnd(1,9);a=t1*10+o1;b=rnd(1,t1-1)*10+rnd(0,o1);}break;
@@ -646,7 +647,8 @@ function genQ(op,L){
   ans=a-b;text=`${a} − ${b}`;
  }else if(op==='mul'){
   const sets={1:[0,1,2,10],2:[2,5,10],3:[2,3,4,5,10],4:[2,3,4,5,6],5:[2,3,4,5,6,7,8,9],6:[3,4,6,7,8,9,11,12]};
-  if(L<=6){const f=pick(sets[L]),o=L===6?rnd(2,12):rnd(1,10);[a,b]=Math.random()<.5?[f,o]:[o,f];}
+  if(L===1){const f=pick([0,1,2]),o=rnd(1,4);[a,b]=Math.random()<.5?[f,o]:[o,f];}
+  else if(L<=6){const f=pick(sets[L]),o=L===6?rnd(2,12):rnd(1,10);[a,b]=Math.random()<.5?[f,o]:[o,f];}
   else if(L===7){a=rnd(11,19);b=rnd(2,9);}
   else if(L===8){a=rnd(21,99);b=rnd(3,9);}
   else if(L===9){a=rnd(12,29);b=rnd(11,19);}
@@ -655,7 +657,8 @@ function genQ(op,L){
  }else{
   const sets={1:[1,2,10],2:[2,5,10],3:[2,3,4,5,10],4:[2,3,4,5,6],5:[2,3,4,5,6,7,8,9],6:[3,4,6,7,8,9,11,12]};
   let d,q;
-  if(L<=6){d=pick(sets[L]);q=L===6?rnd(2,12):rnd(1,10);}
+  if(L===1){d=rnd(1,3);q=rnd(1,3);}
+  else if(L<=6){d=pick(sets[L]);q=L===6?rnd(2,12):rnd(1,10);}
   else if(L===7){d=rnd(2,9);q=rnd(11,19);}
   else if(L===8){d=rnd(3,9);q=rnd(21,99);}
   else if(L===9){d=rnd(11,19);q=rnd(3,12);}
@@ -1099,7 +1102,7 @@ function parentCard(p){
 }
 SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go(P()&&P().setup?'map':'profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
- <p class="note">Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level. <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
+ <p class="note">Every child starts every skill at the easiest level (single digits) and moves up from there. Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level. <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${cloudSection()}
  ${state.players.map(parentCard).join('')}
  <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
@@ -1128,7 +1131,7 @@ function refreshParent(anchorId,flash){
  if(b&&flash){b.classList.add('flash');setTimeout(()=>b.classList.remove('flash'),900);}
 }
 function adjLevel(id,op,d){const p=state.players.find(x=>x.id===id);const L=lvl(p,op),to=clamp(L+d,1,10);if(to===L)return;applyLevel(p,op,to);p.recent[op]=[];save();refreshParent(`lv-${id}-${op}`,true);}
-function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;const s=GRADE_START[g];OPS.forEach(o=>{p.skill[o]=s[o]+.5;p.recent[o]=[];});save();refreshParent(`pp-${id}`,true);toast(`Levels set to grade ${g} starting points.`);}
+function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;save();refreshParent(`pp-${id}`,true);toast(`Grade set to ${g}.`);}
 function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}const np=newPlayer(n,+$('#npGrade').value);state.players.push(np);save();refreshParent(null);const c=document.getElementById('pp-'+np.id);if(c){c.scrollIntoView({block:'center',behavior:'smooth'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),900);}}
 function confirmReset(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Reset ${esc(p.name)}?</h2><p>This clears coins, pets, items, map progress and stats. It can't be undone.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doReset('${id}')">Reset</button></div></div>`);}
 function doReset(id){const i=state.players.findIndex(x=>x.id===id);const o=state.players[i];const n=newPlayer(o.name,o.grade);n.id=o.id;state.players[i]=n;save();closeModal();refreshParent(`pp-${id}`,true);}
