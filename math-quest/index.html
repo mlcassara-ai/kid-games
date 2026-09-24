@@ -72,6 +72,9 @@ input,select{font-family:inherit}
 .chip.big{font-size:18px;padding:10px 18px}
 .chip.pic sup{font-size:12px;color:var(--accent);font-weight:700}
 .zmap.champ{box-shadow:0 0 0 5px var(--gold),0 6px 0 rgba(0,0,0,.3)}
+tr.flash td,.pp.flash{animation:flashbg .9s}
+@keyframes flashbg{0%,40%{background:#fff3b0}100%{background:transparent}}
+.pp.flash{animation:flashcard .9s}@keyframes flashcard{0%,40%{box-shadow:0 0 0 4px #ffc83d}100%{box-shadow:none}}
 .pcard.add{background:rgba(255,255,255,.1);color:#fff;border:3px dashed rgba(255,255,255,.4);box-shadow:none}
 .pcard.add .plv{color:#cfc6ff}
 .plus{font-size:64px;height:130px;display:grid;place-items:center}
@@ -1012,10 +1015,10 @@ function daysChart(p){
 function parentCard(p){
  const tot=OPS.reduce((a,o)=>a+p.stats[o].r+p.stats[o].w,0),right=OPS.reduce((a,o)=>a+p.stats[o].r,0);
  const missed=Object.entries(p.missed).sort((a,b)=>((a[1].fixed||0)>=2)-((b[1].fixed||0)>=2)||b[1].n-a[1].n).slice(0,18);
- return `<div class="pp"><div class="pp-head">${heroSVG(p.look,{spell:p.spell})}<div><h3>${esc(p.name)}</h3><div class="muted">Grade ${p.grade} · Hero level ${p.level} · 🪙 ${p.coins}${p.setup?'':' · hasn\'t played yet'}</div></div></div>
+ return `<div class="pp" id="pp-${p.id}"><div class="pp-head">${heroSVG(p.look,{spell:p.spell})}<div><h3>${esc(p.name)}</h3><div class="muted">Grade ${p.grade} · Hero level ${p.level} · 🪙 ${p.coins}${p.setup?'':' · hasn\'t played yet'}</div></div></div>
  <div class="kpis"><div><b>${tot}</b><span>problems answered</span></div><div><b>${tot?Math.round(right/tot*100):0}%</b><span>correct</span></div><div><b>${fmtTime(p.time)}</b><span>time in battles</span></div><div><b>${p.battles}</b><span>battles won</span></div><div><b>${p.bestStreak}</b><span>best streak</span></div></div>
  <div class="tblwrap"><table class="optable"><tr><th>Skill</th><th>Working on now</th><th>Accuracy</th><th>Level</th></tr>
- ${OPS.map(o=>{const s=p.stats[o],n=s.r+s.w,L=lvl(p,o);return `<tr><td><b>${OPNAME[o]}</b></td><td>${LEVEL_DESC[o][L]}</td><td>${n?Math.round(s.r/n*100)+'% <span class="muted">of '+n+'</span>':'—'}</td><td style="white-space:nowrap"><button class="mini" onclick="adjLevel('${p.id}','${o}',-1)">−</button> ${L} <button class="mini" onclick="adjLevel('${p.id}','${o}',1)">+</button></td></tr>`;}).join('')}</table></div>
+ ${OPS.map(o=>{const s=p.stats[o],n=s.r+s.w,L=lvl(p,o);return `<tr id="lv-${p.id}-${o}"><td><b>${OPNAME[o]}</b></td><td>${LEVEL_DESC[o][L]}</td><td>${n?Math.round(s.r/n*100)+'% <span class="muted">of '+n+'</span>':'—'}</td><td style="white-space:nowrap"><button class="mini" onclick="adjLevel('${p.id}','${o}',-1)">−</button> ${L} <button class="mini" onclick="adjLevel('${p.id}','${o}',1)">+</button></td></tr>`;}).join('')}</table></div>
  <h4>Last 7 days</h4>${daysChart(p)}
  ${(p.log||[]).length?`<h4>Level changes</h4><div class="missed">${p.log.slice(0,8).map(l=>`<span class="mf lvlog">${l.to>l.from?'⬆️':'⬇️'} ${OPNAME[l.op]} ${l.from}→${l.to} <em>${l.d.slice(5)}</em></span>`).join('')}</div>`:''}
  <h4>Facts to practice</h4>${missed.length?`<div class="missed">${missed.map(([k,v])=>`<span class="mf ${(v.fixed||0)>=2?'done':''}">${esc(k)} = ${v.a} <em>${(v.fixed||0)>=2?'✓ mastered':'missed '+v.n+'×'}</em></span>`).join('')}</div>`:'<p class="muted">No misses yet!</p>'}
@@ -1032,7 +1035,7 @@ SCREENS.parent=()=>{
  <div class="row" style="justify-content:flex-start"><button class="btn green small" onclick="downloadBackup()">⬇️ Download a backup</button><button class="btn small ghost dark" onclick="changePin()">Change Parent PIN</button><label class="btn small">⬆️ Restore a backup<input type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)"></label></div></div></div>`;
 };
 function changePin(){state.pin=null;save();parentGate();}
-function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save();go('parent');}
+function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save();refreshParent(`pp-${id}`,true);}
 function downloadBackup(){const b=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='math-quest-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();toast('Backup downloaded.');}
 function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;state=s;migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
 function dayStreak(p){let n=0;const d=new Date();if(!p.days.includes(dayKey(d)))d.setDate(d.getDate()-1);while(p.days.includes(dayKey(d))){n++;d.setDate(d.getDate()-1);}return n;}
@@ -1043,13 +1046,21 @@ function continueCard(p){
  const pr=p.progress[z.id]||[];let i=pr.findIndex(x=>!x);const done=i<0;if(i<0)i=5;const m=z.mons[i];
  return `<button class="zone-card ${z.cls} contcard" onclick="startBattle('${z.id}',${i})"><div class="zsub">▶ ${done?'Rematch in':'Keep going in'} ${z.name}</div><h3>${done?'Beat your best time vs':'Next up:'} ${esc(m[0])}${i===5?' (BOSS)':''}</h3><div class="zart">${m[1]}</div></button>`;
 }
-function adjLevel(id,op,d){const p=state.players.find(x=>x.id===id);p.skill[op]=clamp(Math.floor(p.skill[op])+d,1,10)+.3;save();go('parent');}
-function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;const s=GRADE_START[g];OPS.forEach(o=>p.skill[o]=s[o]);save();go('parent');toast(`Levels set to grade ${g} starting points.`);}
-function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}state.players.push(newPlayer(n,+$('#npGrade').value));save();go('parent');}
+/* Re-draw the Parent Corner without jumping: keep the changed row exactly where it was on screen, and flash it. */
+function refreshParent(anchorId,flash){
+ const a=anchorId&&document.getElementById(anchorId);const top=a?a.getBoundingClientRect().top:null;const y=window.scrollY;
+ SCREENS.parent();
+ const b=anchorId&&document.getElementById(anchorId);
+ if(b&&top!==null){window.scrollTo(0,y);window.scrollBy(0,b.getBoundingClientRect().top-top);}else if(b)b.scrollIntoView({block:'center'});else window.scrollTo(0,y);
+ if(b&&flash){b.classList.add('flash');setTimeout(()=>b.classList.remove('flash'),900);}
+}
+function adjLevel(id,op,d){const p=state.players.find(x=>x.id===id);const L=lvl(p,op),to=clamp(L+d,1,10);if(to===L)return;applyLevel(p,op,to);p.recent[op]=[];save();refreshParent(`lv-${id}-${op}`,true);}
+function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;const s=GRADE_START[g];OPS.forEach(o=>{p.skill[o]=s[o]+.5;p.recent[o]=[];});save();refreshParent(`pp-${id}`,true);toast(`Levels set to grade ${g} starting points.`);}
+function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}const np=newPlayer(n,+$('#npGrade').value);state.players.push(np);save();refreshParent(null);const c=document.getElementById('pp-'+np.id);if(c){c.scrollIntoView({block:'center',behavior:'smooth'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),900);}}
 function confirmReset(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Reset ${esc(p.name)}?</h2><p>This clears coins, pets, items, map progress and stats. It can't be undone.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doReset('${id}')">Reset</button></div></div>`);}
-function doReset(id){const i=state.players.findIndex(x=>x.id===id);const o=state.players[i];const n=newPlayer(o.name,o.grade);n.id=o.id;state.players[i]=n;save();closeModal();go('parent');}
+function doReset(id){const i=state.players.findIndex(x=>x.id===id);const o=state.players[i];const n=newPlayer(o.name,o.grade);n.id=o.id;state.players[i]=n;save();closeModal();refreshParent(`pp-${id}`,true);}
 function confirmDelete(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Delete ${esc(p.name)}?</h2><p>This removes the player and all their progress.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doDelete('${id}')">Delete</button></div></div>`);}
-function doDelete(id){state.players=state.players.filter(x=>x.id!==id);if(state.cur===id)state.cur=null;save();closeModal();go('parent');}
+function doDelete(id){state.players=state.players.filter(x=>x.id!==id);if(state.cur===id)state.cur=null;save();closeModal();refreshParent(null);}
 
 /* ================= boot ================= */
 (function(){const s=$('#stars');let h='';for(let i=0;i<70;i++)h+=`<i style="left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${(Math.random()*3).toFixed(2)}s;opacity:${(.3+Math.random()*.6).toFixed(2)}"></i>`;s.innerHTML=h;})();
