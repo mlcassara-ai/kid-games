@@ -494,7 +494,7 @@ function renderCreate(){
  const hats=HATS.filter(h=>ex?ex.owned.hats.includes(h.id):!h.price);
  const robes=ROBES.filter(r=>ex?ex.owned.robes.includes(r.id):!r.price);
  const sw=(bg,on,act)=>`<button class="sw ${on?'on':''}" style="background:${bg}" onclick="${act};renderCreate()"></button>`;
- app.innerHTML=`<div class="page"><h2 class="title">${draft.edit?'Change your look':'Create your hero!'}</h2>
+ app.innerHTML=`<div class="page"><h2 class="title">${draft.id?(draft.edit?`Change ${esc(draft.name)}'s look`:`Create ${esc(draft.name)}'s hero!`):'Create your hero!'}</h2>
  <div class="creator"><div class="preview">${heroSVG(draft.look)}</div>
  <div class="opts">
   <label class="lbl">Boy or girl?</label><div class="chips"><button class="chip big ${draft.look.kind==='boy'?'on':''}" onclick="draft.look.kind='boy';renderCreate()">🧙‍♂️ Boy wizard</button><button class="chip big ${draft.look.kind==='girl'?'on':''}" onclick="draft.look.kind='girl';renderCreate()">🧙‍♀️ Girl wizard</button></div>
@@ -621,24 +621,20 @@ const isVertical=q=>((q.op==='add'||q.op==='sub')&&Math.max(q.a,q.b)>=100)||(q.o
 const fastLimit=q=>3+(String(q.a).length+String(q.b).length+(q.c!==undefined?String(q.c).length:0))*1.3;
 /* Adaptive difficulty: each skill keeps a window of recent answers.
    Mostly right (and mostly quick) -> level up. Struggling -> level down. */
-function adjustSkill(p,op,ok,fast,slip){
+/* Adaptive difficulty (per player, per skill).
+   UP:   5 right in a row at the current level  -> one level harder.
+   DOWN: 3 wrong out of the last 4 at the current level -> one level easier.
+   The count starts over after every level change, so each level needs a few answers
+   before it can move again. Repeats of missed problems and swapped-digit typos don't count. */
+const UP_N=5,DOWN_N=3,DOWN_WIN=4;
+function adjustSkill(p,op,ok,slip){
  p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];
- if(slip)return null; // a near-miss typo doesn't count against a level
- const w=p.recent[op];w.push(ok?(fast?2:1):0);if(w.length>10)w.shift();
+ if(slip)return null;
+ const w=p.recent[op];w.push(ok?1:0);if(w.length>8)w.shift();
  const L=lvl(p,op);
- const last=n=>w.slice(-n);
- const right=a=>a.filter(x=>x>0).length,quick=a=>a.filter(x=>x===2).length;
- let change=0;
- if(L<10&&w.length>=6&&right(last(6))===6&&quick(last(6))>=4)change=1;          // 6 in a row, mostly fast
- else if(L<10&&w.length>=10&&right(w)>=9)change=1;                              // 9 of last 10
- else if(L>1&&w.length>=8&&right(last(8))<=4)change=-1;                         // half or more missed lately
- else if(L>1&&w.length>=3&&right(last(3))===0)change=-1;                        // 3 misses in a row
- if(!change)return null;
- p.recent[op]=[];
- if(change<0){if(B){B.pendingDown[op]=true;}return -1;} // applied between battles, with an explanation
- if(B&&B.pendingDown[op]){delete B.pendingDown[op];return 0;}
- applyLevel(p,op,L+1);
- return 1;
+ if(L<10&&w.length>=UP_N&&w.slice(-UP_N).every(x=>x===1)){applyLevel(p,op,L+1);p.recent[op]=[];return 1;}
+ if(L>1&&w.length>=DOWN_N&&w.slice(-DOWN_WIN).filter(x=>x===0).length>=DOWN_N){applyLevel(p,op,L-1);p.recent[op]=[];return -1;}
+ return null;
 }
 function applyLevel(p,op,to){const L=lvl(p,op);p.skill[op]=clamp(to,1,10)+.5;p.log.unshift({d:dayKey(),op,from:L,to:lvl(p,op)});if(p.log.length>30)p.log.pop();}
 function isSlip(q,given){
@@ -746,9 +742,8 @@ function nextQ(){
   const old=(!B.review.length&&Math.random()<.1)?practiceFact(p,op):null;
   if(old){q=Object.assign({},old,{practice:true});label='⭐ Star problem: +3 coins';}
   else{
-   let L=lvl(p,op);if(B.missRow>=2){L=Math.max(1,L-1);}
+   const L=lvl(p,op);
    let t=0;do{q=genQ(op,L);}while(B.recent.includes(q.text)&&t++<12);
-   if(B.missRow>=2)q.easier=true;
   }
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
@@ -785,7 +780,8 @@ function answer(){
  p.stats[q.op][ok?'r':'w']++;
  const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
  let lvChange=null;const prevL=lvl(p,q.op);
- if(!q.again&&!q.practice&&!q.easier)lvChange=adjustSkill(p,q.op,ok,fast,slip);
+ if(!q.again&&!q.practice)lvChange=adjustSkill(p,q.op,ok,slip);
+ if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${UP_N} right in a row to move back up!`);},900);}
  if(ok){
   B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;
   const mm=p.missed[q.text];if(mm&&(q.practice||q.again))mm.fixed=(mm.fixed||0)+1;
@@ -1028,7 +1024,7 @@ function parentCard(p){
 }
 SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go(P()&&P().setup?'map':'profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
- <p class="note">Difficulty adjusts itself for each skill. Up a level: 6 right in a row (mostly quick) or 9 of the last 10. Down a level: 3 misses in a row, or half of the last 8 missed; this is applied after the battle ends, with a friendly note. Typos where two digits are swapped (like 84 for 48) don't count against them. After 2 misses in a row the next problem is a bit easier. Use − / + to set a level yourself.</p>
+ <p class="note">Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level. <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${state.players.map(parentCard).join('')}
  <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
  <div class="pp"><h3>💾 Saving</h3><p>Everyone's progress saves automatically on this device, and the game picks up where each child left off, even in the middle of a battle.</p>
