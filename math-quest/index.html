@@ -996,7 +996,10 @@ function parentGate(){
  modal(`<div class="mcard"><h2>👪 Parent Corner</h2><p>Enter the Parent PIN.</p><input id="pinIn" class="inp" type="password" inputmode="numeric" maxlength="4" style="max-width:200px;text-align:center" onkeydown="if(event.key==='Enter')checkPin()"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="checkPin()">Open</button></div></div>`);
  setTimeout(()=>{const i=$('#pinIn');if(i)i.focus();},50);
 }
-function setPin(){const a=$('#pin1').value.trim(),b=$('#pin2').value.trim();if(!/^\d{4}$/.test(a)){toast('The PIN needs 4 digits.');return;}if(a!==b){toast("Those don't match. Try again.");return;}state.pin=a;save();closeModal();go('parent');}
+const PIN_KEY='mathquest.pin';
+function keepPin(){if(state.pin){try{localStorage.setItem(PIN_KEY,state.pin);}catch(e){}try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').put(state.pin,'pin');}catch(e){}}}
+async function recallPin(){if(state.pin)return;let p=null;try{p=localStorage.getItem(PIN_KEY);}catch(e){}if(!p&&IDB.db){p=await new Promise(res=>{try{const t=IDB.db.transaction('kv').objectStore('kv').get('pin');t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);}catch(e){res(null);}});}if(p&&/^\d{4}$/.test(p))state.pin=p;}
+function setPin(){const a=$('#pin1').value.trim(),b=$('#pin2').value.trim();if(!/^\d{4}$/.test(a)){toast('The PIN needs 4 digits.');return;}if(a!==b){toast("Those don't match. Try again.");return;}state.pin=a;save();keepPin();closeModal();go('parent');}
 function checkPin(){const i=$('#pinIn');if(i.value.trim()===state.pin){closeModal();go('parent');}else{i.value='';i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');}}
 function oldHoldGate(){
  modal(`<div class="mcard"><h2>👪 Grown-ups only</h2><p>Press and hold the button for 3 seconds.</p>
@@ -1035,13 +1038,13 @@ SCREENS.parent=()=>{
  ${state.players.map(parentCard).join('')}
  <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
  <div class="pp"><h3>💾 Saving</h3><p>Everyone's progress saves automatically on this device, and the game picks up where each child left off, even in the middle of a battle.</p>
- <p><b>On an iPad:</b> tap the Share button, then <b>Add to Home Screen</b>, and have the kids open the game from that icon. Safari can clear saved data for websites that haven't been opened in a while; the Home Screen app keeps it.</p>
+ <p><b>On an iPad or iPhone:</b> tap Share, then <b>Add to Home Screen</b>, and always open the game from that icon. The Home Screen icon keeps its own saved games and PIN, separate from Safari, so playing in Safari and from the icon won't share progress.</p><p><b>Before deleting the Home Screen icon</b>, download a backup: removing the icon also erases what it saved. Restore the backup in the new icon's Parent Corner.</p>
  <div class="row" style="justify-content:flex-start"><button class="btn green small" onclick="downloadBackup()">⬇️ Download a backup</button><button class="btn small ghost dark" onclick="changePin()">Change Parent PIN</button><label class="btn small">⬆️ Restore a backup<input type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)"></label></div></div></div>`;
 };
-function changePin(){state.pin=null;save();parentGate();}
+function changePin(){state.pin=null;try{localStorage.removeItem(PIN_KEY);}catch(e){}try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').delete('pin');}catch(e){}save();parentGate();}
 function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save();refreshParent(`pp-${id}`,true);}
 function downloadBackup(){const b=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='math-quest-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();toast('Backup downloaded.');}
-function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;state=s;migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
+function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;const keep=state.pin;state=s;if(!state.pin)state.pin=keep;migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
 function dayStreak(p){let n=0;const d=new Date();if(!p.days.includes(dayKey(d)))d.setDate(d.getDate()-1);while(p.days.includes(dayKey(d))){n++;d.setDate(d.getDate()-1);}return n;}
 function questBar(p){const q=(p.quest&&p.quest.d===dayKey())?p.quest:{wins:0,done:false};const st=dayStreak(p);
  return `<div class="questbar"><div>🎯 <b>Today's quest:</b> win 3 battles ${q.done?'✅ Done!':`(${Math.min(q.wins,3)}/3) → 🥚`}</div>${st>=2?`<div>🔥 ${st}-day streak</div>`:''}</div>`;}
@@ -1073,7 +1076,7 @@ function doDelete(id){state.players=state.players.filter(x=>x.id!==id);if(state.
  await IDB.open();
  if(!state||!Array.isArray(state.players)){const s=await IDB.get();if(s){try{state=JSON.parse(s);}catch(e){state=null;}}}
  if(!state||!Array.isArray(state.players))state={v:1,players:[newPlayer('Mika',3),newPlayer('Jibreel',5)],cur:null,sound:true};
- migrate();save();go('profiles');
+ await recallPin();migrate();save();keepPin();go('profiles');
 })();
 </script>
 </body>
