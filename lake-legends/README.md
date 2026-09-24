@@ -1,0 +1,45 @@
+# Lake Legends: Deep Drop 🎣
+
+A browser fishing game for kids ages 8–12, set in real San Diego County lakes.
+
+**Play:** open `index.html` in any browser, or play the GitHub Pages version.
+
+## How to play
+- **Stay and fish.** Pick a lake and keep casting as long as you like. After each catch you're right back on the water, and you tap **Leave lake** when you're done.
+- **Dock or boat.** You start free on the dock, where the water is shallow and the fish are small. Rent a boat (6–15 coins, paid once per visit) to fish the whole lake for bigger fish. You can rent one between casts or go back to the dock anytime. Boss fights always include a boat.
+- **Jump right in.** "Let's Fish!" drops you on the dock at Dixon Lake (or the last lake you fished). The big reel button at the bottom does it all: tap it to cast, tap to reel, hold it for big fish. The reel itself spins in the top-right corner so you can see it working, and your coins show in the top-left with a "+5 🪙" pop whenever you earn some. **Bait** (left) changes your bait and **More** (right) has the boat, fish scent, lake rules, sound, how to play, and leaving the lake. Steer with a finger on the water, the mouse, or the arrow keys; on a computer the space bar works the reel.
+- **Grandpa's gift.** You start with Grandpa's old spinner (great for bluegill, crappie and trout, sometimes a small bass, and it never gets lost) and a PB&J for free bread balls (bluegill and carp like it). Your first fish on the spinner earns a "Grandpa would be proud" bonus.
+- **Bait your hook.** Before each cast, the bait picker lets you choose what's on your hook and buy more right there. Live bait comes in packs: worms (12 for 10 coins) and, later, nightcrawlers (10 for 30). Trout dough (40) and crankbaits (80) are bought once, and stink bait, dough balls and the trout swimbait are boss prizes. Each fish decides whether it likes your bait.
+- **Lucky finds.** Sometimes you find something on the dock: a crankbait snagged on a post, or a half-full can of worms.
+- **Live bait gets eaten.** Every time you land a fish on a worm or nightcrawler, there's a 50/50 chance the fish ate it, and a snapped line takes it too. Dough, stink bait, dough balls and lures always stay on the hook. When your hook comes back bare, re-bait before you cast. Almost nothing bites a bare hook!
+- **Bobber rig.** In the Bait picker, turn the bobber on and set how deep your bait hangs (2–20 ft). Your bait sinks to that depth and waits under the float. Nibbles make the bobber bob; when it gets pulled under, tap to set the hook!
+- **Light and weather.** The deeper you go, the darker the water, so faraway fish get hard to see; you can always see a little way around your bait. The weather changes while you fish (☀️ sunny, ☁️ cloudy, 🌧️ rain). When it rains, the water gets murky and you can barely see past your bait, but fish bite a little better.
+- **Watch out for snags.** Sunken logs and branches, old cans and boots lie on the bottom, and weeds grow up through the water. Snag one and you've got junk on your line: no fish will touch your bait until you reel all the way in and clean it off. Snagging wood or weeds costs 2 coins of lost tackle (you never go below 0). Pulling up trash (cans, boots, tires) earns +2 coins for cleaning the lake, and a log might keep your live bait. Snag Shields let you bounce off.
+- **Nibble, nibble, BITE!** Only fish already close to your bait (about one body length away) notice it and swim over; better bait reaches a little farther. Once a fish notices, it follows your bait for a bit, so tap the reel to stop your bait and let it catch up. They nibble 2–4 times first. Wait for **BITE!**, then tap the reel fast to set the hook. Tap too soon and you yank it away; too slow and it spits the hook. Fish that nibble and leave might steal your live bait.
+- **Fish scent (5 coins).** Spray fish attractant on your bait and for 60 seconds more fish gather, notice your bait from farther away, and bite more often. (Real chumming is illegal in San Diego County lakes, so the game uses a legal scent spray instead.)
+- **One fish per hook.** Hooked a little fish? On the way up, a much bigger predator (bass, trout, crappie, catfish) might eat it, and then the big one is yours, plus a food chain bonus.
+- **Reel it in.** Tap-tap-tap the reel. Heavier fish come up slower: each crank brings in less line, they pull back harder between taps, and fish over about 2 pounds make short runs that take line back out. Big fish fight first (hold the reel, and let go when the drag screams), and after you tire them out you still tap them all the way up. Nothing ever zooms to the surface, and fish come in along the line toward you on the dock or boat, not straight up. Take your finger off the reel and the fish pulls line out, swimming deeper and off to the side. Keep your finger on and your thumb slows it down. Let a fish run to the end of your line and it snaps!
+- **Real fishing rules.** Every catch is checked against California's fishing rules and local lake rules: bass must be 12 inches (no minimum for largemouth at Cuyamaca), 5 bass, 5 trout and 5 catfish a day, 25 sunfish and crappie combined, 10-inch crappie at El Capitan, no catch-and-release of trout at Lake Poway (4 a day, plus 10 bluegill), smallmouth released at Cuyamaca, and every sturgeon released. After each catch, tap **Keep & cast** or **Release** (release pays half the coins), and you're fishing again. Short or protected fish must go back. Tap "📋 Lake rules" on any lake to see them.
+- **Catch your limit, meet the boss.** Keep 5 fish in one day at Dixon (up to 10 at Lower Otay) and the lake's boss shows up. Pay a set entry fee (25 coins for Dottie, up to 120 for the Otay Titan) and you get **3 casts** to catch it. If the boss sniffs your bait and swims off, it circles back, so cast again. Before your first cast the bait picker opens, and ⭐ marks the baits that boss likes. Win and you get your fee back doubled plus 50 coins, a special prize bait or gear, and the next lake. Miss on all 3 casts and the boss keeps the fee, but your Fishdex, gear and lakes are safe. Bosses are always photographed and released. Bosses: Dottie (Dixon), Old Whiskers (Poway), Goldie (Jennings), The Dinosaur (Cuyamaca), Big Blue (El Capitan) and The Otay Titan (Lower Otay).
+- **Size badges.** Every species you catch earns 🥉 Bronze. Catch a bigger one for 🥈 Silver (+5 coins) or 🥇 Gold (+15 coins). Each Fishdex card shows the size you need for the next badge.
+- **Rare fish.** About 1 in 20 fish is ✨ rare, a species that's hard to find in that lake. Rare fish pay 1.5× coins.
+- **Spend coins** at the Tackle Shop on bait, a longer line, a stronger line, a faster reel and Snag Shields.
+- **Unlock lakes** by beating bosses, and fill your **Fishdex** with all 15 fish.
+
+## The fish
+There are 14 real species found in San Diego County lakes: bluegill, green sunfish, redear sunfish, black crappie, white crappie, rainbow trout, largemouth bass, smallmouth bass, channel catfish, blue catfish, white catfish, bullhead, common carp and sturgeon.
+
+There's also one legend: **Dottie**, the real giant largemouth bass from Dixon Lake.
+
+## The lakes
+Dixon Lake, Lake Poway, Lake Jennings, Lake Cuyamaca, El Capitan and Lower Otay.
+
+Which fish live in which lake is simplified for the game. It's based on the City of San Diego reservoir species list, San Diego Tourism Authority and Wikipedia.
+
+## Tech
+The whole game is one `index.html` file with no build step and no dependencies. Progress is saved in the browser's localStorage.
+
+All graphics are drawn in code, with no image files. Each fish is painted in field-guide style, with real body proportions, rayed see-through fins, scales, lateral lines and species markings. The paintings are cached as sprites so the game stays smooth. The lake scene has light ripples (caustics), light shafts, drifting specks, chaparral hills with oaks, a wooden dock, an aluminum rental jon boat, pondweed and a pebbly bottom.
+
+## Rules sources
+Game rules are simplified from the [California freshwater sport fishing regulations](https://www.eregulations.com/california/fishing/species-regulations) and [Lake Poway's fishing rules](https://poway.org/420/Fishing). Real rules change, so always check the posted rules at the lake.
