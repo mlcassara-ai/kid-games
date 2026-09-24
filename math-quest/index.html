@@ -58,6 +58,19 @@ input,select{font-family:inherit}
 .pcard svg{width:100px;height:130px}
 .pname{font-size:22px;font-weight:700}
 .plv{font-size:15px;color:var(--muted)}
+.lockgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:12px auto}
+.lockgrid button{font-size:44px;background:#f1edff;border-radius:18px;padding:8px 0;box-shadow:0 4px 0 #cfc6f2}
+.chip.pic{font-size:22px;padding:3px 10px}
+.contcard{width:100%;min-height:110px;margin-bottom:16px}
+.contcard .zart{font-size:70px}
+.mf.done{background:#e8f9ee}.mf.done em{color:#1e9a53}
+.mf.lvlog{background:#f1edff}
+.questbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:rgba(255,255,255,.12);color:#fff;border-radius:16px;padding:10px 16px;margin-bottom:14px;font-size:17px}
+.pbest{margin-top:10px;font-weight:700;color:#1e9a53;font-size:18px}.pbest.dim{color:var(--muted);font-weight:600}
+.downnote{margin-top:12px;background:#fff6e0;border-radius:14px;padding:10px;font-size:16px;color:#6b4a00}
+.lockdots{font-size:28px;letter-spacing:6px;color:var(--accent)}
+.chip.pic sup{font-size:12px;color:var(--accent);font-weight:700}
+.zmap.champ{box-shadow:0 0 0 5px var(--gold),0 6px 0 rgba(0,0,0,.3)}
 .pcard.add{background:rgba(255,255,255,.1);color:#fff;border:3px dashed rgba(255,255,255,.4);box-shadow:none}
 .pcard.add .plv{color:#cfc6ff}
 .plus{font-size:64px;height:130px;display:grid;place-items:center}
@@ -234,6 +247,8 @@ input,select{font-family:inherit}
 .pp h4{margin:18px 0 6px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(150px);background:#241a3d;color:#fff;padding:12px 20px;border-radius:14px;font-weight:600;transition:transform .3s;z-index:60;max-width:90vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.4)}
 #toast.show{transform:translateX(-50%) translateY(0)}
+#toast.top{bottom:auto;top:70px;transform:translateX(-50%) translateY(-200px)}
+#toast.top.show{transform:translateX(-50%) translateY(0)}
 @keyframes bob{50%{transform:translateY(-8px)}}
 @keyframes pulse{50%{transform:translate(-50%,-50%) scale(1.1)}}
 @keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
@@ -266,6 +281,11 @@ const LEVEL_DESC={
  mul:['','×0, ×1, ×2, ×10','×2, ×5, ×10','×2 to ×5 and ×10','Times tables to ×6','Times tables to ×9','Times tables to ×12','Teens × 1-digit','2-digit × 1-digit','2-digit × 2-digit','3-digit × 1-digit'],
  div:['','÷1, ÷2, ÷10','÷2, ÷5, ÷10','÷2 to ÷5 and ÷10','Division facts to ÷6','Division facts to ÷9','Division facts to ÷12','2-digit ÷ 1-digit','3-digit ÷ 1-digit','Dividing by 2-digit numbers','Big numbers ÷ 2-digit']
 };
+const KID_DESC={
+ add:['','Adding to 10','Adding to 20','Big + small','2-digit adding','2-digit adding with carrying','3-digit adding','Big 3-digit adding','4-digit adding','Giant adding','Triple adding'],
+ sub:['','Take away to 10','Take away to 20','Big − small','2-digit take away','Take away with borrowing','3-digit take away','Big 3-digit take away','4-digit take away','Giant take away','Mega take away'],
+ mul:['','Times 0, 1, 2, 10','Times 2, 5, 10','Times 2 to 5','Times tables to 6','Times tables to 9','Times tables to 12','Teens times','2-digit times','2-digit × 2-digit','3-digit times'],
+ div:['','Sharing by 1, 2, 10','Sharing by 2, 5, 10','Sharing by 2 to 5','Dividing to 6','Dividing to 9','Dividing to 12','2-digit dividing','3-digit dividing','Dividing by 2-digit numbers','Giant dividing']};
 const GRADE_START={1:{add:1,sub:1,mul:1,div:1},2:{add:3,sub:2,mul:1,div:1},3:{add:5,sub:5,mul:3,div:2},4:{add:6,sub:6,mul:5,div:4},5:{add:7,sub:7,mul:6,div:5},6:{add:8,sub:8,mul:7,div:7}};
 const SKINS=['#ffe0c7','#f5c99b','#d9a066','#a86b3c','#6b4226'];
 const HAIRS=['#2b1d0e','#6a3d1a','#c68642','#f2d16b','#d9480f','#7c5cff','#1c7ed6','#ff6fb5','#e9ecef'];
@@ -278,7 +298,9 @@ const ROBES=[
  {id:'green',name:'Green',c:'#22b35e',price:0},{id:'orange',name:'Orange',c:'#ff8c1a',price:0},{id:'pink',name:'Pink',c:'#ff5fa2',price:0},
  {id:'shadow',name:'Shadow',c:'#2d2a3e',price:100},{id:'gold',name:'Gold',c:'#f5b700',price:200},
  {id:'galaxy',name:'Galaxy',grad:['#1b1446','#7c5cff','#ff5fa2'],price:300},
- {id:'rainbow',name:'Rainbow',grad:['#ff5a5f','#ffc83d','#2ecc71','#2f8cff','#7c5cff'],price:500}];
+ {id:'rainbow',name:'Rainbow',grad:['#ff5a5f','#ffc83d','#2ecc71','#2f8cff','#7c5cff'],price:500},
+ {id:'ocean',name:'Ocean',grad:['#023e8a','#00b4d8','#90e0ef'],price:700},{id:'lava',name:'Lava',grad:['#6a040f','#e85d04','#ffba08'],price:800},
+ {id:'aurora',name:'Aurora',grad:['#00f5a0','#00d9f5','#7c5cff','#ff5fa2'],price:1200}];
 const SPELLS=[
  {id:'spark',name:'Sparkle Bolt',e:'✨',mult:1,price:0,color:'#ffe066'},
  {id:'fire',name:'Fireball',e:'🔥',mult:1.1,price:150,color:'#ff7a1a'},
@@ -287,7 +309,7 @@ const SPELLS=[
  {id:'bolt',name:'Lightning',e:'⚡',mult:1.35,price:650,color:'#ffd43b'},
  {id:'rainbow',name:'Rainbow Blast',e:'🌈',mult:1.5,price:950,color:'#ff5fa2'},
  {id:'comet',name:'Comet Crash',e:'☄️',mult:1.7,price:1400,color:'#ff9f43'}];
-const PERKS={coins:'+2 coins for every right answer',power:'+15% spell power',shield:'Blocks the first hit in every battle',xp:'+50% XP',lucky:'Double chance to find eggs',heal:'Heals you on every 5-answer streak'};
+const PERKS={coins:'🪙 Extra coins',power:'💥 Stronger spells',shield:'🛡️ Blocks a hit',xp:'✨ Levels up faster',lucky:'🥚 Finds more eggs',heal:'❤️ Heals you on streaks'};
 const PETS=[
  {id:'chick',e:'🐣',name:'Peep',perk:'coins'},{id:'fox',e:'🦊',name:'Ember',perk:'power'},
  {id:'turtle',e:'🐢',name:'Shelly',perk:'shield'},{id:'owl',e:'🦉',name:'Professor Hoot',perk:'xp'},
@@ -295,7 +317,7 @@ const PETS=[
  {id:'penguin',e:'🐧',name:'Waddles',perk:'shield'},{id:'panda',e:'🐼',name:'Bamboo',perk:'heal'},
  {id:'octo',e:'🐙',name:'Inky',perk:'coins'},{id:'rex',e:'🦖',name:'Chomp',perk:'power'},
  {id:'unicorn',e:'🦄',name:'Sparkle',perk:'xp',rare:true},{id:'dragon',e:'🐉',name:'Blaze',perk:'power',rare:true}];
-const EGG_PRICE=120;
+const eggPrice=p=>150+p.pets.length*50;
 const ZONES=[
  {id:'forest',name:'Addition Forest',op:'add',sym:'+',cls:'z-forest',art:'🌳',decor:['🌲','🌳','🍄','🌼','🌿'],
   mons:[['Grumbug','🐛'],['Shroomling','🍄'],['Buzzbee','🐝'],['Twigwolf','🐺'],['Vinesnake','🐍'],['King Mossback','🦍']]},
@@ -312,7 +334,11 @@ const NODE_POS=[[15,80],[34,54],[18,26],[48,32],[66,64],[82,28]];
 /* ================= save / state ================= */
 const SAVE_KEY='mathquest.v1';
 function load(){try{const s=localStorage.getItem(SAVE_KEY);if(s)return JSON.parse(s);}catch(e){}return null;}
-function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));}catch(e){}}
+const IDB={db:null,
+ open(){return new Promise(res=>{try{const r=indexedDB.open('mathquest',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>{IDB.db=r.result;res(true);};r.onerror=()=>res(false);}catch(e){res(false);}});},
+ get(){return new Promise(res=>{if(!IDB.db)return res(null);try{const t=IDB.db.transaction('kv').objectStore('kv').get('state');t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);}catch(e){res(null);}});},
+ put(v){try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').put(v,'state');}catch(e){}}};
+function save(){const j=JSON.stringify(state);try{localStorage.setItem(SAVE_KEY,j);}catch(e){}IDB.put(j);}
 function newPlayer(name,grade){
  const g=GRADE_START[grade]||GRADE_START[3];
  return {id:'p'+Math.random().toString(36).slice(2,10),name,grade,setup:false,
@@ -321,10 +347,11 @@ function newPlayer(name,grade){
   stats:{add:{r:0,w:0},sub:{r:0,w:0},mul:{r:0,w:0},div:{r:0,w:0}},
   missed:{},daily:{},progress:{},
   owned:{hats:HATS.filter(h=>!h.price).map(h=>h.id),robes:ROBES.filter(r=>!r.price).map(r=>r.id),spells:['spark']},
-  spell:'spark',pets:[],pet:null,eggs:1,time:0,bestStreak:0,battles:0};
+  spell:'spark',pets:[],pet:null,eggs:1,time:0,bestStreak:0,battles:0,
+  recent:{add:[],sub:[],mul:[],div:[]},log:[],lock:null,battle:null,maxL:{add:g.add,sub:g.sub,mul:g.mul,div:g.div},champ:{},pb:{},days:[],quest:null};
 }
 let state=load();
-if(!state||!Array.isArray(state.players)){state={v:1,players:[newPlayer('Mika',3),newPlayer('Jibreel',5)],cur:null,sound:true};save();}
+function migrate(){state.players.forEach(p=>{p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -401,7 +428,7 @@ function go(s,arg){curScreen=s;curArg=arg;window.scrollTo(0,0);SCREENS[s](arg);}
 function modal(html){const m=$('#modal');m.innerHTML=html;m.classList.add('show');}
 function closeModal(){const m=$('#modal');m.classList.remove('show');m.innerHTML='';}
 let toastT=null;
-function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+function toast(msg){const t=$('#toast');t.classList.toggle('top',curScreen==='battle');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
 function toggleSound(){state.sound=!state.sound;save();go(curScreen,curArg);}
 function topbar(){
  const p=P();const need=xpNeed(p.level);
@@ -420,17 +447,45 @@ SCREENS.profiles=()=>{
  app.innerHTML=`<div class="page">
  <div class="logo"><div class="logo-top">MATH</div><div class="logo-main">QUEST</div><div class="logo-sub"><span class="floaty">➕</span> Realm of Numbers <span class="floaty">✖️</span></div></div>
  <h2 class="title">Who's playing?</h2>
- <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?'Level '+p.level+' · 🪙 '+p.coins:'New hero!'}</div></button>`).join('')}
+ <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?(petOf(p)?petOf(p).e+' ':'')+'Tap to play'+(p.lock?' 🔒':''):'New hero!'}</div></button>`).join('')}
  <button class="pcard add" onclick="go('create')"><div class="plus">＋</div><div class="pname">New Hero</div><div class="plv">Add a player</div></button></div>
  <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button></div></div>`;
 };
-function choose(id){SFX.tap();state.cur=id;save();const p=P();if(!p.setup)go('create',id);else go('map');}
+const PICS=['🐶','🐱','🦊','🐸','🦄','🐙','🚀','🍕','⚽'];
+function choose(id){
+ SFX.tap();const p=state.players.find(x=>x.id===id);
+ if(p.setup&&p.lock){askLock(p);return;}
+ enter(p);
+}
+let lockTry=[];
+function askLock(p){
+ lockTry=[];const pics=[...PICS].sort(()=>Math.random()-.5);
+ modal(`<div class="mcard"><h2>Hi ${esc(p.name)}! 🔒</h2><p>Tap your ${p.lock.length>1?p.lock.length+' secret pictures in order':'secret picture'}.</p><div class="lockdots" id="lockdots">${p.lock.map(()=>'○').join(' ')}</div><div class="lockgrid" id="lockgrid">${pics.map(e=>`<button onclick="tryLock('${p.id}','${e}')">${e}</button>`).join('')}</div><div class="row"><button class="btn ghost dark small" onclick="closeModal()">That's not me</button></div></div>`);
+}
+function tryLock(id,e){
+ const p=state.players.find(x=>x.id===id);
+ lockTry.push(e);SFX.tap();
+ const dots=$('#lockdots');if(dots)dots.textContent=p.lock.map((_,i)=>i<lockTry.length?'●':'○').join(' ');
+ if(lockTry.length<p.lock.length)return;
+ if(lockTry.join('')===p.lock.join('')){closeModal();enter(p);return;}
+ lockTry=[];if(dots)dots.textContent=p.lock.map(()=>'○').join(' ');
+ SFX.wrong();const g=$('#lockgrid');g.classList.remove('shake-x');void g.offsetWidth;g.classList.add('shake-x');toast('Oops! Try again.');
+}
+function enter(p){
+ state.cur=p.id;save();
+ if(!p.setup){go('create',p.id);return;}
+ go('map');
+ if(p.battle){const b=p.battle,z=ZONES.find(x=>x.id===b.zid);const m=z.mons[b.i];
+  modal(`<div class="mcard"><div class="big-emoji">${m[1]}</div><h2>Welcome back, ${esc(p.name)}!</h2><p>You were in the middle of a battle with <b>${esc(m[0])}</b>. Want to finish it?</p><div class="row"><button class="btn ghost dark" onclick="P().battle=null;save();closeModal()">Not now</button><button class="btn green" onclick="resumeBattle()">Keep fighting ⚔️</button></div></div>`);}
+ else toast(`Welcome back, ${p.name}! 👋`);
+}
+function resumeBattle(){const b=P().battle;closeModal();if(b)startBattle(b.zid,b.i,b);}
 
 /* ---------- create / edit hero ---------- */
 let draft=null;
 SCREENS.create=id=>{
  const ex=id?state.players.find(p=>p.id===id):null;
- draft={id:ex?ex.id:null,name:ex?ex.name:'',grade:ex?ex.grade:3,look:Object.assign({skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:'purple'},ex?ex.look:{}),edit:!!(ex&&ex.setup)};
+ draft={id:ex?ex.id:null,name:ex?ex.name:'',grade:ex?ex.grade:3,look:Object.assign({skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:'purple'},ex?ex.look:{}),edit:!!(ex&&ex.setup),lock:ex&&ex.lock?[...ex.lock]:[]};
  renderCreate();
 };
 function renderCreate(){
@@ -446,17 +501,20 @@ function renderCreate(){
   <label class="lbl">Skin</label><div class="chips">${SKINS.map(c=>sw(c,draft.look.skin===c,`draft.look.skin='${c}'`)).join('')}</div>
   <label class="lbl">Hair</label><div class="chips">${HAIRS.map(c=>sw(c,draft.look.hair===c,`draft.look.hair='${c}'`)).join('')}</div>
   <label class="lbl">Robe</label><div class="chips">${robes.map(r=>sw(r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c,draft.look.robe===r.id,`draft.look.robe='${r.id}'`)).join('')}</div>
+  <label class="lbl">Secret pictures <span class="muted">(optional: tap 2 in order so only you can play as you)</span></label><div class="chips"><button class="chip ${!draft.lock||!draft.lock.length?'on':''}" onclick="draft.lock=[];renderCreate()">${draft.lock&&draft.lock.length?'Clear':'None'}</button>${PICS.map(e=>{const k=(draft.lock||[]).indexOf(e);return `<button class="chip pic ${k>=0?'on':''}" onclick="pickLock('${e}')">${e}${k>=0?`<sup>${k+1}</sup>`:''}</button>`;}).join('')}</div>
   <label class="lbl">Hat</label><div class="chips">${hats.map(h=>`<button class="chip ${draft.look.hat===h.id?'on':''}" onclick="draft.look.hat='${h.id}';renderCreate()">${h.name}</button>`).join('')}</div>
  </div></div>
  <div class="row"><button class="btn ghost" onclick="go(${draft.edit?"'backpack'":"'profiles'"})">Back</button><button class="btn gold big" onclick="finishCreate()">${draft.edit?'Save look ✓':'Start the adventure! ⚔️'}</button></div></div>`;
 }
+function pickLock(e){draft.lock=draft.lock||[];if(draft.lock.length>=2||draft.lock.includes(e))draft.lock=[];draft.lock.push(e);renderCreate();}
 function finishCreate(){
  const name=draft.name.trim();
+ if(draft.lock&&draft.lock.length===1){toast('Pick one more secret picture (or tap Clear).');return;}
  if(!name){const i=$('#nm');i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');i.focus();toast('Give your hero a name!');return;}
  let p=draft.id?state.players.find(x=>x.id===draft.id):null;
  const first=!p||!p.setup;
  if(!p){p=newPlayer(name,draft.grade);state.players.push(p);}
- p.name=name;p.look=Object.assign({},draft.look);p.setup=true;state.cur=p.id;save();
+ p.name=name;p.look=Object.assign({},draft.look);p.lock=draft.lock&&draft.lock.length?[...draft.lock]:null;p.setup=true;state.cur=p.id;save();
  if(draft.edit){go('backpack');return;}
  go('map');
  if(first)modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>Welcome, ${esc(p.name)}!</h2>
@@ -469,26 +527,27 @@ function finishCreate(){
 /* ---------- world map ---------- */
 SCREENS.map=()=>{
  const p=P();
- app.innerHTML=topbar()+`<div class="page"><h2 class="title">🗺️ The Realm of Numbers</h2>
+ app.innerHTML=topbar()+`<div class="page"><h2 class="title">🗺️ The Realm of Numbers</h2>${questBar(p)}${continueCard(p)}
  <div class="zones">${ZONES.map(z=>{
   const locked=zoneLocked(z,p);const pr=p.progress[z.id]||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
   return `<button class="zone-card ${z.cls} ${locked?'locked':''}" onclick="${locked?`toast('${z.lockMsg}')`:`go('zone','${z.id}')`}">
   <div class="op">${z.sym}</div><h3>${z.name}</h3>
   <div class="zsub">${locked?'🔒 '+z.lockMsg:`⭐ ${stars} / 18`}</div>
-  <div class="zlv">${locked?'':(z.op==='mix'?'All four kinds of problems!':LEVEL_DESC[z.op][lvl(p,z.op)])}</div>
+  <div class="zlv">${locked?'':(z.op==='mix'?'All four kinds of problems!':KID_DESC[z.op][lvl(p,z.op)])}</div>
   <div class="zart">${z.art}</div>${pr[5]?'<div class="crowned">👑 Boss beaten</div>':''}</button>`;}).join('')}</div></div>`;
 };
 
 /* ---------- zone ---------- */
 SCREENS.zone=zid=>{
- const z=ZONES.find(x=>x.id===zid);const p=P();const pr=p.progress[z.id]||[];
+ const z=ZONES.find(x=>x.id===zid);const p=P();const champOK=bossesBeaten(p)>=5;const champ=champOK&&p.champOn;const pr=(champ?p.champ:p.progress)[z.id]||[];
  let decor='';for(let i=0;i<16;i++){decor+=`<span class="decor" style="left:${(i*37+9)%96+2}%;top:${(i*53+13)%90+5}%;font-size:${24+(i*7)%22}px">${z.decor[i%z.decor.length]}</span>`;}
  const nodes=z.mons.map((m,i)=>{
   const open=i===0||pr[i-1]>0;const st=pr[i]||0;const next=open&&!st;
   return `<button class="node ${i===5?'boss':''} ${open?'':'locked'} ${st?'done':''} ${next?'next':''}" style="left:${NODE_POS[i][0]}%;top:${NODE_POS[i][1]}%" title="${esc(m[0])}" onclick="${open?`startBattle('${z.id}',${i})`:`toast('Beat the monster before this one first!')`}">${open?m[1]:'🔒'}${next?'<span class="go-tag">GO!</span>':''}${st?`<span class="nstars">${'⭐'.repeat(st)}</span>`:''}</button>`;}).join('');
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('map')">← Map</button><h2 class="title">${z.name}</h2></div>
- <div class="zmap ${z.cls}"><svg class="zpath" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${NODE_POS.map(q=>q.join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>${decor}${nodes}</div>
- <p class="ztip">${z.op==='mix'?'Every kind of problem lives here. Watch out!':'Now practicing: <b>'+LEVEL_DESC[z.op][lvl(p,z.op)]+'</b>'}</p></div>`;
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('map')">← Map</button><h2 class="title">${champ?'👑 ':''}${z.name}</h2></div>
+ ${champOK?`<div class="center" style="margin-bottom:12px"><button class="btn ${champ?'gold':'ghost'} small" onclick="P().champOn=!P().champOn;save();go('zone','${z.id}')">👑 Champion mode: ${champ?'ON':'OFF'}</button>${champ?'<div class="note" style="margin-top:6px">Tougher monsters, no free miss, double coins.</div>':''}</div>`:''}
+ <div class="zmap ${z.cls} ${champ?'champ':''}"><svg class="zpath" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${NODE_POS.map(q=>q.join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>${decor}${nodes}</div>
+ <p class="ztip">${z.op==='mix'?'Every kind of problem lives here. Watch out!':'Now practicing: <b>'+KID_DESC[z.op][lvl(p,z.op)]+'</b>'}</p></div>`;
 };
 
 /* ================= questions ================= */
@@ -542,6 +601,12 @@ function genQ(op,L){
  }
  const q={op,L,a,b,answer:ans,text};if(c!==undefined)q.c=c;return q;
 }
+function practiceFact(p,op){
+ const L=lvl(p,op);
+ const c=Object.values(p.missed).filter(m=>m.q&&m.q.op===op&&(m.fixed||0)<2&&m.q.L<=L+1&&m.q.L>=L-2);
+ if(!c.length)return null;
+ c.sort((x,y)=>y.n-x.n);return pick(c.slice(0,5)).q;
+}
 function pickOp(p,zop){
  if(zop!=='mix')return zop;
  const w=OPS.map(o=>{const s=p.stats[o];return 1+3*(s.w/(s.r+s.w+2));});
@@ -551,7 +616,33 @@ function pickOp(p,zop){
 }
 const isVertical=q=>((q.op==='add'||q.op==='sub')&&Math.max(q.a,q.b)>=100)||(q.op==='mul'&&(q.a>=100||(q.a>=10&&q.b>=10)));
 const fastLimit=q=>3+(String(q.a).length+String(q.b).length+(q.c!==undefined?String(q.c).length:0))*1.3;
-function adjustSkill(p,op,ok,fast){p.skill[op]=clamp(p.skill[op]+(ok?(fast?.2:.1):-.35),1,10.99);}
+/* Adaptive difficulty: each skill keeps a window of recent answers.
+   Mostly right (and mostly quick) -> level up. Struggling -> level down. */
+function adjustSkill(p,op,ok,fast,slip){
+ p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];
+ if(slip)return null; // a near-miss typo doesn't count against a level
+ const w=p.recent[op];w.push(ok?(fast?2:1):0);if(w.length>10)w.shift();
+ const L=lvl(p,op);
+ const last=n=>w.slice(-n);
+ const right=a=>a.filter(x=>x>0).length,quick=a=>a.filter(x=>x===2).length;
+ let change=0;
+ if(L<10&&w.length>=6&&right(last(6))===6&&quick(last(6))>=4)change=1;          // 6 in a row, mostly fast
+ else if(L<10&&w.length>=10&&right(w)>=9)change=1;                              // 9 of last 10
+ else if(L>1&&w.length>=8&&right(last(8))<=4)change=-1;                         // half or more missed lately
+ else if(L>1&&w.length>=3&&right(last(3))===0)change=-1;                        // 3 misses in a row
+ if(!change)return null;
+ p.recent[op]=[];
+ if(change<0){if(B){B.pendingDown[op]=true;}return -1;} // applied between battles, with an explanation
+ if(B&&B.pendingDown[op]){delete B.pendingDown[op];return 0;}
+ applyLevel(p,op,L+1);
+ return 1;
+}
+function applyLevel(p,op,to){const L=lvl(p,op);p.skill[op]=clamp(to,1,10)+.5;p.log.unshift({d:dayKey(),op,from:L,to:lvl(p,op)});if(p.log.length>30)p.log.pop();}
+function isSlip(q,given){
+ const a=String(q.answer),g=String(given);if(q.answer<20||a.length!==g.length)return false;
+ const diff=[];for(let i=0;i<a.length;i++)if(a[i]!==g[i])diff.push(i);
+ return diff.length===2&&diff[1]===diff[0]+1&&a[diff[0]]===g[diff[1]]&&a[diff[1]]===g[diff[0]];
+}
 
 /* ================= hints ================= */
 function dotsHTML(n,cls){let s='';for(let i=0;i<n;i++)s+=`<i class="${cls||''}"></i>`;return s;}
@@ -577,11 +668,11 @@ function hintHTML(q){
    let tip='';if(a+b>10){const big=Math.max(a,b),sm=Math.min(a,b),need=10-big;if(need>0&&need<sm)tip=`<p class="tip">Make a ten! ${big} + ${need} = 10, then 10 + ${sm-need} = ${a+b}</p>`;}
    return `<p>Count them all together:</p><div class="dotbox"><span class="grp">${dotsHTML(a)}</span><span class="plus">+</span><span class="grp">${dotsHTML(b,'o')}</span></div>${tip}`;
   }
-  return `<p>Line up the places. Add the ones first, then the tens, then the hundreds. If a column makes 10 or more, carry the extra to the next column!</p>${colHTML(q)}`;
+  return `<p>Add the ones first. 10 or more? Carry the 1 to the next column!</p>${colHTML(q)}`;
  }
  if(op==='sub'){
   if(a<=20)return `<p>Start with ${a}, then cross out ${b}:</p><div class="dotbox">${Array.from({length:a},(_,i)=>`<i class="${i>=a-b?'x':''}"></i>`).join('')}</div><p>${a-b} are left.</p><p class="tip">Check: ${a-b} + ${b} = ${a} ✓</p>`;
-  return `<p>Subtract the ones first. If the top digit is too small, borrow 1 from the next place (it becomes 10 more).</p>${colHTML(q)}<p class="tip">Check by adding back: ${q.answer} + ${b} = ${a} ✓</p>`;
+  return `<p>Start with the ones. Top number too small? Borrow a ten!</p>${colHTML(q)}<p class="tip">Check by adding back: ${q.answer} + ${b} = ${a} ✓</p>`;
  }
  if(op==='mul'){
   if(a<=12&&b<=12){
@@ -590,29 +681,32 @@ function hintHTML(q){
    let trick='';const other=(x)=>x===a?b:a;
    if(a===9||b===9){const o=other(9);trick=`<p class="tip">9s trick: ${o} × 10 = ${o*10}, minus ${o} = ${o*9}</p>`;}
    else if(a===10||b===10){trick=`<p class="tip">10s trick: just add a zero to ${other(10)}!</p>`;}
-   else if(a===5||b===5){const o=other(5);trick=`<p class="tip">5s trick: half of ${o} × 10 → ${o*10} ÷ 2 = ${o*5}</p>`;}
+   else if(a===5||b===5){trick=`<p class="tip">5s always end in 0 or 5!</p>`;}
    else if(a===2||b===2){trick=`<p class="tip">2s trick: double it! ${other(2)} + ${other(2)} = ${a*b}</p>`;}
    else if(a===4||b===4){const o=other(4);trick=`<p class="tip">4s trick: double, then double again: ${o} → ${o*2} → ${o*4}</p>`;}
-   return `<p>${rows} rows of ${cols}:</p>${arrayHTML(rows,cols)}<p>Skip count by ${cols}: ${Array.from({length:rows},(_,i)=>(i+1)*cols).join(', ')}</p>${trick}`;
+   return `${a*b<=40?`<p>${rows} rows of ${cols}:</p>${arrayHTML(rows,cols)}`:''}<p>Count by ${cols}s:<br><b>${Array.from({length:rows},(_,i)=>(i+1)*cols).join(', ')}</b></p>${trick}`;
   }
   const split=b>12?'b':'a';const big=split==='a'?a:b,oth=split==='a'?b:a;const parts=placeParts(big);
-  return `<p>Break the big number into parts, multiply each part, then add them up:</p>
+  return `<p>Split it up, then add:</p>
   <p><b>${big} = ${parts.join(' + ')}</b></p>
   ${parts.map(x=>`<p>${x} × ${oth} = ${x*oth}</p>`).join('')}
   <p>${parts.map(x=>x*oth).join(' + ')} = <b>${a*b}</b></p>`;
  }
  const qn=q.answer;
- if(b<=12&&qn<=12)return `<p>Think: <b>${b} × ? = ${a}</b></p><p>Skip count by ${b} until you reach ${a}:<br>${Array.from({length:qn},(_,i)=>(i+1)*b).join(', ')}</p><p>That's ${qn} jumps!</p>${arrayHTML(qn,b)}`;
+ if(b<=12&&qn<=12)return `<p>Think: <b>${b} × ? = ${a}</b></p><p>Skip count by ${b} until you reach ${a}:<br>${Array.from({length:qn},(_,i)=>(i+1)*b).join(', ')}</p><p>That's ${qn} jumps!</p>${a<=40?arrayHTML(qn,b):''}`;
  const parts=placeParts(qn);
  return `<p>Think: <b>${b} × ? = ${a}</b></p><p>Try the pieces:</p>${parts.map(x=>`<p>${b} × ${x} = ${b*x}</p>`).join('')}<p>${parts.map(x=>b*x).join(' + ')} = ${a}, so the answer is ${parts.join(' + ')} = <b>${qn}</b></p>`;
 }
 
 /* ================= battle ================= */
 let B=null,fbOpen=false;
-function startBattle(zid,i){
+function startBattle(zid,i,resume){
  const z=ZONES.find(x=>x.id===zid);const p=P();const isBoss=i===5;
- const mhp=isBoss?300:110+i*15;
- B={z,i,isBoss,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false};
+ const champ=!!(p.champOn&&bossesBeaten(p)>=5);
+ const mhp=Math.round((isBoss?200:110+i*15)*(champ?1.4:1));
+ B={z,i,isBoss,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{}};
+ if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
+ p.last={zid,i};
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
  renderBattle();
  banner((isBoss?'👑 BOSS: ':'⚔️ ')+B.name+'!');
@@ -621,7 +715,7 @@ function startBattle(zid,i){
 function renderBattle(){
  const p=P();const pet=petOf(p);
  app.innerHTML=`<div class="battle ${B.z.cls}">
- <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname">${B.isBoss?'👑 ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
+ <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname">${B.champ?'👑 Champion ':''}${B.isBoss?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
  <div class="bmain"><div class="arena" id="arena">
   <div class="fighter hero" id="heroF"><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div><div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf">${pet.e}</div>`:''}</div>
   <div class="fighter mon ${B.isBoss?'boss':''}" id="monF"><div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div></div>
@@ -642,11 +736,22 @@ function nextQ(){
  const p=P();let q=null;
  B.review.forEach(r=>r.wait--);
  const due=B.review.findIndex(r=>r.wait<=0);
- if(due>=0){q=B.review.splice(due,1)[0].q;q.again=true;}
- else{const op=pickOp(p,B.z.op);let t=0;do{q=genQ(op,lvl(p,op));}while(B.recent.includes(q.text)&&t++<12);}
+ let label='';
+ if(due>=0){q=B.review.splice(due,1)[0].q;q.again=true;label='⭐ Bonus try! Get it for +3 coins';}
+ else{
+  const op=pickOp(p,B.z.op);
+  const old=(!B.review.length&&Math.random()<.1)?practiceFact(p,op):null;
+  if(old){q=Object.assign({},old,{practice:true});label='⭐ Star problem: +3 coins';}
+  else{
+   let L=lvl(p,op);if(B.missRow>=2){L=Math.max(1,L-1);}
+   let t=0;do{q=genQ(op,L);}while(B.recent.includes(q.text)&&t++<12);
+   if(B.missRow>=2)q.easier=true;
+  }
+ }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
- $('#qlabel').textContent=q.again?'🔁 Try this one again!':'';
+ p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown};save();
+ $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
  showQ();
 }
@@ -672,22 +777,27 @@ function press(k){
 }
 function answer(){
  const p=P(),q=B.q,secs=(performance.now()-B.t0)/1000;
- const ok=parseInt(B.input,10)===q.answer;const fast=secs<fastLimit(q);
+ const ok=parseInt(B.input,10)===q.answer;const fast=secs<fastLimit(q);const slip=!ok&&isSlip(q,B.input);
  B.busy=true;
  p.stats[q.op][ok?'r':'w']++;
  const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
- if(!q.again)adjustSkill(p,q.op,ok,fast);
+ let lvChange=null;const prevL=lvl(p,q.op);
+ if(!q.again&&!q.practice&&!q.easier)lvChange=adjustSkill(p,q.op,ok,fast,slip);
  if(ok){
-  B.right++;B.streak++;B.best=Math.max(B.best,B.streak);
+  B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;
+  const mm=p.missed[q.text];if(mm&&(q.practice||q.again))mm.fixed=(mm.fixed||0)+1;
+  if(lvChange===1){const nl=prevL+1;const isNew=nl>(p.maxL[q.op]||0);if(isNew)p.maxL[q.op]=nl;
+   setTimeout(()=>{if(isNew){banner(`⭐ NEW LEVEL! ${OPNAME[q.op]} ${nl}`);SFX.level();toast(`New challenge: ${KID_DESC[q.op][nl]}`);}else toast(`👍 Back up to ${OPNAME[q.op]} level ${nl}!`);},700);}
+  if(q.again||q.practice){B.coins+=3;p.coins+=3;}
   const perk=petPerk(p),spell=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
   let dmg=20*spell.mult*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
-  if(fast)dmg*=1.4;dmg=Math.round(dmg);
+  const crit=fast&&B.streak>=2;if(crit)dmg*=1.4;dmg=Math.round(dmg);
   const c=5+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;
   B.xp+=Math.round(10*(perk==='xp'?1.5:1));
   save();SFX.correct();$('#qcard').classList.add('right');
-  castSpell(spell,fast,()=>{
+  castSpell(spell,crit,()=>{
    B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();
-   floatText('#monS',(fast?'CRITICAL! ':'')+'-'+dmg,fast?'#ffe066':'#fff');
+   floatText('#monS',(crit?'SUPER HIT! ':'')+'-'+dmg,crit?'#ffe066':'#fff');
    $('#monS').animate([{transform:'translateX(0)'},{transform:'translateX(14px) rotate(8deg)'},{transform:'translateX(-8px)'},{transform:'none'}],{duration:350});
    if(perk==='heal'&&B.streak%5===0&&B.hhp<B.hmax){const h=Math.min(20,B.hmax-B.hhp);B.hhp+=h;floatText('#heroS','+'+h+' ❤️','#8dffb0');}
    if([3,5,10,15,20].includes(B.streak))banner(B.streak>=10?`🔥 UNSTOPPABLE x${B.streak}!`:`🔥 COMBO x${B.streak}!`);
@@ -696,13 +806,13 @@ function answer(){
    else setTimeout(nextQ,450);
   });
  }else{
-  B.wrong++;B.streak=0;
-  const m=p.missed[q.text]||{n:0,a:q.answer,op:q.op};m.n++;m.last=dayKey();p.missed[q.text]=m;
+  B.wrong++;B.streak=0;B.missRow=(B.missRow||0)+1;
+  const m=p.missed[q.text]||{n:0,a:q.answer,op:q.op};m.n++;m.last=dayKey();m.fixed=0;m.q={op:q.op,L:q.L,a:q.a,b:q.b,c:q.c,answer:q.answer,text:q.text};p.missed[q.text]=m;
   const keys=Object.keys(p.missed);if(keys.length>250){keys.sort((x,y)=>p.missed[x].n-p.missed[y].n).slice(0,50).forEach(k=>delete p.missed[k]);}
   if(!q.again)B.review.push({q:Object.assign({},q),wait:3});
   save();SFX.wrong();
   const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
-  monsterAttack(()=>showFeedback(q,B.input));
+  const said=B.input;monsterAttack(()=>showFeedback(q,said,slip));
  }
  updateBars();
 }
@@ -727,25 +837,31 @@ function floatText(sel,txt,color){
  el.style.left=(r.left-a.left+r.width/2)+'px';el.style.top=(r.top-a.top)+'px';arena.appendChild(el);
  el.animate([{transform:'translate(-50%,0) scale(.6)',opacity:0},{transform:'translate(-50%,-20px) scale(1.2)',opacity:1,offset:.25},{transform:'translate(-50%,-70px) scale(1)',opacity:0}],{duration:1100,easing:'ease-out'}).onfinish=()=>el.remove();
 }
+let bannerAt=0;
 function banner(txt){
+ const now=performance.now(),wait=Math.max(0,bannerAt-now);bannerAt=now+wait+1150;
+ if(wait>0){setTimeout(()=>{bannerAt-=1150;banner(txt);},wait);return;}
  const arena=$('#arena');if(!arena)return;
  const el=document.createElement('div');el.className='banner';el.textContent=txt;arena.appendChild(el);
  el.animate([{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{transform:'translate(-50%,-50%) scale(1.1)',opacity:1,offset:.2},{transform:'translate(-50%,-50%) scale(1)',opacity:1,offset:.8},{transform:'translate(-50%,-70%) scale(1)',opacity:0}],{duration:1300}).onfinish=()=>el.remove();
 }
 function monsterAttack(done){
- const dmg=B.isBoss?rnd(20,26):rnd(13,20);
+ const dmg=Math.round((B.isBoss?rnd(20,26):rnd(13,20))*(B.champ?1.5:1));
  $('#monS').animate([{transform:'none'},{transform:'translateX(-70px) scale(1.15)'},{transform:'none'}],{duration:450,easing:'ease-in-out'});
  setTimeout(()=>{
   if(!B)return;
-  if(B.shield){B.shield=false;floatText('#heroS','🛡️ Blocked!','#9fe7ff');}
+  if(!B.grace&&!B.champ){B.grace=true;floatText('#heroS','💨 Missed you!','#9fe7ff');}
+  else if(B.shield){B.shield=false;floatText('#heroS','🛡️ Blocked!','#9fe7ff');}
   else{B.hhp=Math.max(0,B.hhp-dmg);SFX.hurt();floatText('#heroS','-'+dmg,'#ff8a8a');
    $('#heroS').animate([{filter:'none'},{filter:'brightness(2) sepia(1) hue-rotate(-50deg) saturate(5)'},{filter:'none'}],{duration:400});
    $('#arena').animate([{transform:'none'},{transform:'translate(-6px,3px)'},{transform:'translate(6px,-3px)'},{transform:'none'}],{duration:300});}
   updateBars();setTimeout(done,550);
  },230);
 }
-function showFeedback(q,said){
+function showFeedback(q,said,slip){
  fbOpen=true;
+ if(slip){
+  modal(`<div class="mcard"><div class="fb-title">So close! 🤏</div><div class="fb-ans">${q.text} = <b>${q.answer}</b></div><div class="fb-you">You said ${esc(said)}. Two digits got flipped around!</div><div class="row"><button class="btn green big" onclick="closeFeedback()">OK ➜</button></div></div>`);return;}
  modal(`<div class="mcard"><div class="fb-title">${pick(['So close! 💪','Nice try! 🙂','Let\'s figure it out! 🧠','Almost! ✨'])}</div>
  <div class="fb-ans">${q.text} = <b>${q.answer}</b></div><div class="fb-you">You said ${esc(said)}</div>
  <div class="hint">${hintHTML(q)}</div>
@@ -756,29 +872,41 @@ function closeFeedback(){
  if(B.hhp<=0){B.over=true;loseBattle();}else nextQ();
 }
 function endBattleBook(){
- const p=P();p.time+=Math.round((Date.now()-B.start)/1000);p.bestStreak=Math.max(p.bestStreak,B.best);
+ const p=P();p.battle=null;p.time+=Math.round((Date.now()-B.start)/1000);p.bestStreak=Math.max(p.bestStreak,B.best);
+ B.downs=Object.keys(B.pendingDown||{}).filter(op=>lvl(p,op)>1);B.downs.forEach(op=>applyLevel(p,op,lvl(p,op)-1));B.pendingDown={};
+ const d=dayKey();if(!p.days.includes(d)){p.days.push(d);if(p.days.length>60)p.days.shift();}
  const up=addXP(p,B.xp);return up;
 }
+function fmtClock(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function downsNote(){if(!B||!B.downs||!B.downs.length)return '';return `<div class="downnote">🎯 ${B.downs.map(op=>`<b>${OPNAME[op]}</b> will be a bit easier next time (${KID_DESC[op][lvl(P(),op)]})`).join('<br>🎯 ')}.<br>Get 6 right in a row to move back up!</div>`;}
 function addXP(p,x){let up=false;p.xp+=x;while(p.xp>=xpNeed(p.level)){p.xp-=xpNeed(p.level);p.level++;up=true;}return up;}
 function winBattle(){
  const p=P();SFX.win();
  const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const stars=B.wrong<=1?3:B.wrong<=3?2:1;
- const pr=p.progress[B.z.id]=p.progress[B.z.id]||[0,0,0,0,0,0];const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
- let bonus=B.isBoss?100:25+B.i*5;if(!first)bonus=Math.round(bonus/2);
+ const store=B.champ?p.champ:p.progress;
+ const pr=store[B.z.id]=store[B.z.id]||[0,0,0,0,0,0];const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
+ let bonus=B.isBoss?100:25+B.i*5;if(!first)bonus=Math.round(bonus/2);if(B.champ)bonus*=2;
+ const secs=Math.round((Date.now()-B.start)/1000),key=(B.champ?'c-':'')+B.z.id+'-'+B.i,old=p.pb[key];
+ const newBest=!old||secs<old.t;if(newBest)p.pb[key]={t:secs,streak:Math.max(B.best,old?old.streak:0)};else if(B.best>old.streak)old.streak=B.best;
+ const bestLine=old?(newBest?`<div class="pbest">⏱ ${fmtClock(secs)} · NEW PERSONAL BEST!</div>`:`<div class="pbest dim">⏱ ${fmtClock(secs)} · your best is ${fmtClock(old.t)}</div>`):'';
+ const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
+ let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(p.pets.length<PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
  p.coins+=bonus;B.coins+=bonus;B.xp+=B.isBoss?60:20;
- const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.5:.25);const egg=Math.random()<chance;if(egg)p.eggs++;
+ const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1);const egg=Math.random()<chance;if(egg)p.eggs++;
  p.battles++;const up=endBattleBook();save();
  const z=B.z.id,i=B.i;
  setTimeout(()=>{
   modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You beat <b>${esc(B.name)}</b>!${B.best>=3?` Best streak: 🔥${B.best}`:''}</p>
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
-  <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>
-  ${up?`<div class="lvup">⬆️ LEVEL UP! You're level ${p.level}! Max HP is now ${heroMax(p)}.</div>`:''}
-  ${B.isBoss&&first?`<p><b>👑 You freed ${B.z.name}!</b>${B.z.id!=='tower'&&bossesBeaten(p)===2?' The Chaos Tower is now open!':''}</p>`:''}
+  <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>${bestLine}
+  ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${p.pets.length<PETS.length||p.eggs?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
+  ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${downsNote()}
+  ${B.isBoss&&first&&!B.champ?`<p><b>👑 You freed ${B.z.name}!</b>${B.z.id!=='tower'&&bossesBeaten(p)===2?' The Chaos Tower is now open!':''}${bossesBeaten(p)===5?' <br>🏆 You beat every boss! <b>Champion mode</b> is now open on every world.':''}</p>`:''}
+  ${B.isBoss&&first&&B.champ?`<p><b>👑 CHAMPION of ${B.z.name}!</b></p>`:''}
   <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button>
   ${i<5?`<button class="btn green" onclick="startBattle('${z}',${i+1})">Next battle ⚔️</button>`:''}
-  ${egg?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`);
+  ${egg||questDone?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`);
   if(up)setTimeout(SFX.level,400);
  },750);
 }
@@ -786,7 +914,7 @@ function loseBattle(){
  endBattleBook();save();const z=B.z.id,i=B.i;
  modal(`<div class="mcard"><div class="big-emoji">😵‍💫</div><h2>${esc(B.name)} won this time!</h2>
  <p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned. Every hero gets knocked down sometimes. Try again!</p>
- <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button><button class="btn green" onclick="startBattle('${z}',${i})">Try again 💪</button></div></div>`);
+  ${downsNote()}<div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button><button class="btn green" onclick="startBattle('${z}',${i})">Try again 💪</button></div></div>`);
 }
 function fleeBattle(){
  if(!B||B.over){go('zone',B?B.z.id:'forest');return;}
@@ -813,7 +941,7 @@ SCREENS.backpack=()=>{
   <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}
-   <button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${EGG_PRICE}</button></div>
+   ${p.pets.length<PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="items">${PETS.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,PERKS[x.perk]):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${x.rare?'✨ Rare':'Hatch to find'}</small></div>`;}).join('')}</div></div>
   <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell')).join('')}</div></div>
   <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
@@ -838,8 +966,8 @@ function buyItem(kind,id){
  save();SFX.coin();closeModal();go('backpack');toast(`You got ${it.name}!`);
 }
 function buyEgg(){
- const p=P();if(p.coins<EGG_PRICE){toast(`You need ${EGG_PRICE-p.coins} more coins for an egg!`);return;}
- p.coins-=EGG_PRICE;p.eggs++;save();SFX.coin();go('backpack');toast('You got an egg! 🥚');
+ const p=P();const price=eggPrice(p);if(p.coins<price){toast(`You need ${price-p.coins} more coins for an egg!`);return;}
+ p.coins-=price;p.eggs++;save();SFX.coin();go('backpack');toast('You got an egg! 🥚');
 }
 function hatchEgg(){
  const p=P();if(p.eggs<1)return;
@@ -858,6 +986,13 @@ function hatchEgg(){
 
 /* ================= parent corner ================= */
 function parentGate(){
+ if(!state.pin){modal(`<div class="mcard"><h2>👪 Set a Parent PIN</h2><p>Grown-ups: pick a 4-digit PIN. You'll need it to open the Parent Corner.</p><input id="pin1" class="inp" inputmode="numeric" maxlength="4" placeholder="New PIN" style="max-width:200px;text-align:center"><br><input id="pin2" class="inp" inputmode="numeric" maxlength="4" placeholder="Type it again" style="max-width:200px;text-align:center;margin-top:8px"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="setPin()">Save PIN</button></div></div>`);return;}
+ modal(`<div class="mcard"><h2>👪 Parent Corner</h2><p>Enter the Parent PIN.</p><input id="pinIn" class="inp" type="password" inputmode="numeric" maxlength="4" style="max-width:200px;text-align:center" onkeydown="if(event.key==='Enter')checkPin()"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="checkPin()">Open</button></div></div>`);
+ setTimeout(()=>{const i=$('#pinIn');if(i)i.focus();},50);
+}
+function setPin(){const a=$('#pin1').value.trim(),b=$('#pin2').value.trim();if(!/^\d{4}$/.test(a)){toast('The PIN needs 4 digits.');return;}if(a!==b){toast("Those don't match. Try again.");return;}state.pin=a;save();closeModal();go('parent');}
+function checkPin(){const i=$('#pinIn');if(i.value.trim()===state.pin){closeModal();go('parent');}else{i.value='';i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');}}
+function oldHoldGate(){
  modal(`<div class="mcard"><h2>👪 Grown-ups only</h2><p>Press and hold the button for 3 seconds.</p>
  <button class="btn hold" id="holdBtn"><span id="holdFill"></span><b>Hold me</b></button>
  <div class="row"><button class="btn ghost dark small" onclick="closeModal()">Cancel</button></div></div>`);
@@ -877,23 +1012,38 @@ function daysChart(p){
 }
 function parentCard(p){
  const tot=OPS.reduce((a,o)=>a+p.stats[o].r+p.stats[o].w,0),right=OPS.reduce((a,o)=>a+p.stats[o].r,0);
- const missed=Object.entries(p.missed).sort((a,b)=>b[1].n-a[1].n).slice(0,15);
+ const missed=Object.entries(p.missed).sort((a,b)=>((a[1].fixed||0)>=2)-((b[1].fixed||0)>=2)||b[1].n-a[1].n).slice(0,18);
  return `<div class="pp"><div class="pp-head">${heroSVG(p.look,{spell:p.spell})}<div><h3>${esc(p.name)}</h3><div class="muted">Grade ${p.grade} · Hero level ${p.level} · 🪙 ${p.coins}${p.setup?'':' · hasn\'t played yet'}</div></div></div>
  <div class="kpis"><div><b>${tot}</b><span>problems answered</span></div><div><b>${tot?Math.round(right/tot*100):0}%</b><span>correct</span></div><div><b>${fmtTime(p.time)}</b><span>time in battles</span></div><div><b>${p.battles}</b><span>battles won</span></div><div><b>${p.bestStreak}</b><span>best streak</span></div></div>
  <div class="tblwrap"><table class="optable"><tr><th>Skill</th><th>Working on now</th><th>Accuracy</th><th>Level</th></tr>
  ${OPS.map(o=>{const s=p.stats[o],n=s.r+s.w,L=lvl(p,o);return `<tr><td><b>${OPNAME[o]}</b></td><td>${LEVEL_DESC[o][L]}</td><td>${n?Math.round(s.r/n*100)+'% <span class="muted">of '+n+'</span>':'—'}</td><td style="white-space:nowrap"><button class="mini" onclick="adjLevel('${p.id}','${o}',-1)">−</button> ${L} <button class="mini" onclick="adjLevel('${p.id}','${o}',1)">+</button></td></tr>`;}).join('')}</table></div>
  <h4>Last 7 days</h4>${daysChart(p)}
- <h4>Facts to practice</h4>${missed.length?`<div class="missed">${missed.map(([k,v])=>`<span class="mf">${esc(k)} = ${v.a} <em>missed ${v.n}×</em></span>`).join('')}</div>`:'<p class="muted">No misses yet!</p>'}
+ ${(p.log||[]).length?`<h4>Level changes</h4><div class="missed">${p.log.slice(0,8).map(l=>`<span class="mf lvlog">${l.to>l.from?'⬆️':'⬇️'} ${OPNAME[l.op]} ${l.from}→${l.to} <em>${l.d.slice(5)}</em></span>`).join('')}</div>`:''}
+ <h4>Facts to practice</h4>${missed.length?`<div class="missed">${missed.map(([k,v])=>`<span class="mf ${(v.fixed||0)>=2?'done':''}">${esc(k)} = ${v.a} <em>${(v.fixed||0)>=2?'✓ mastered':'missed '+v.n+'×'}</em></span>`).join('')}</div>`:'<p class="muted">No misses yet!</p>'}
  <div class="row" style="justify-content:flex-start;align-items:center"><label>Grade <select class="sel" onchange="setGrade('${p.id}',this.value)">${[1,2,3,4,5,6].map(g=>`<option ${g==p.grade?'selected':''}>${g}</option>`).join('')}</select></label>
- <button class="btn small danger" onclick="confirmReset('${p.id}')">Reset progress</button><button class="btn small danger" onclick="confirmDelete('${p.id}')">Delete player</button></div></div>`;
+ ${p.lock?`<span>🔒 Secret pictures on</span><button class="btn small ghost dark" onclick="clearLock('${p.id}')">Turn off lock</button>`:''}<button class="btn small danger" onclick="confirmReset('${p.id}')">Reset progress</button><button class="btn small danger" onclick="confirmDelete('${p.id}')">Delete player</button></div></div>`;
 }
 SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go(P()&&P().setup?'map':'profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
- <p class="note">The game adjusts difficulty on its own: fast right answers move a child up, and misses move them down. Use − / + to set a level yourself.</p>
+ <p class="note">Difficulty adjusts itself for each skill. Up a level: 6 right in a row (mostly quick) or 9 of the last 10. Down a level: 3 misses in a row, or half of the last 8 missed; this is applied after the battle ends, with a friendly note. Typos where two digits are swapped (like 84 for 48) don't count against them. After 2 misses in a row the next problem is a bit easier. Use − / + to set a level yourself.</p>
  ${state.players.map(parentCard).join('')}
  <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
- <p class="note">Progress is saved in this browser on this device.</p></div>`;
+ <div class="pp"><h3>💾 Saving</h3><p>Everyone's progress saves automatically on this device, and the game picks up where each child left off, even in the middle of a battle.</p>
+ <p><b>On an iPad:</b> tap the Share button, then <b>Add to Home Screen</b>, and have the kids open the game from that icon. Safari can clear saved data for websites that haven't been opened in a while; the Home Screen app keeps it.</p>
+ <div class="row" style="justify-content:flex-start"><button class="btn green small" onclick="downloadBackup()">⬇️ Download a backup</button><button class="btn small ghost dark" onclick="changePin()">Change Parent PIN</button><label class="btn small">⬆️ Restore a backup<input type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)"></label></div></div></div>`;
 };
+function changePin(){state.pin=null;save();parentGate();}
+function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save();go('parent');}
+function downloadBackup(){const b=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='math-quest-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();toast('Backup downloaded.');}
+function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;state=s;migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
+function dayStreak(p){let n=0;const d=new Date();if(!p.days.includes(dayKey(d)))d.setDate(d.getDate()-1);while(p.days.includes(dayKey(d))){n++;d.setDate(d.getDate()-1);}return n;}
+function questBar(p){const q=(p.quest&&p.quest.d===dayKey())?p.quest:{wins:0,done:false};const st=dayStreak(p);
+ return `<div class="questbar"><div>🎯 <b>Today's quest:</b> win 3 battles ${q.done?'✅ Done!':`(${Math.min(q.wins,3)}/3) → 🥚`}</div>${st>=2?`<div>🔥 ${st}-day streak</div>`:''}</div>`;}
+function continueCard(p){
+ const l=p.last;if(!l)return '';const z=ZONES.find(x=>x.id===l.zid);if(!z||zoneLocked(z,p))return '';
+ const pr=p.progress[z.id]||[];let i=pr.findIndex(x=>!x);const done=i<0;if(i<0)i=5;const m=z.mons[i];
+ return `<button class="zone-card ${z.cls} contcard" onclick="startBattle('${z.id}',${i})"><div class="zsub">▶ ${done?'Rematch in':'Keep going in'} ${z.name}</div><h3>${done?'Beat your best time vs':'Next up:'} ${esc(m[0])}${i===5?' (BOSS)':''}</h3><div class="zart">${m[1]}</div></button>`;
+}
 function adjLevel(id,op,d){const p=state.players.find(x=>x.id===id);p.skill[op]=clamp(Math.floor(p.skill[op])+d,1,10)+.3;save();go('parent');}
 function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;const s=GRADE_START[g];OPS.forEach(o=>p.skill[o]=s[o]);save();go('parent');toast(`Levels set to grade ${g} starting points.`);}
 function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}state.players.push(newPlayer(n,+$('#npGrade').value));save();go('parent');}
@@ -904,7 +1054,13 @@ function doDelete(id){state.players=state.players.filter(x=>x.id!==id);if(state.
 
 /* ================= boot ================= */
 (function(){const s=$('#stars');let h='';for(let i=0;i<70;i++)h+=`<i style="left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${(Math.random()*3).toFixed(2)}s;opacity:${(.3+Math.random()*.6).toFixed(2)}"></i>`;s.innerHTML=h;})();
-go('profiles');
+(async function boot(){
+ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+ await IDB.open();
+ if(!state||!Array.isArray(state.players)){const s=await IDB.get();if(s){try{state=JSON.parse(s);}catch(e){state=null;}}}
+ if(!state||!Array.isArray(state.players))state={v:1,players:[newPlayer('Mika',3),newPlayer('Jibreel',5)],cur:null,sound:true};
+ migrate();save();go('profiles');
+})();
 </script>
 </body>
 </html>
