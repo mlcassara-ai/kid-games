@@ -78,7 +78,7 @@
   .sidebtn.show { display:flex; }
   .sidebtn span { font-size:1.6em; line-height:1.1; }
   .sidebtn small { font-size:.68em; font-weight:bold; }
-  #baitBtn { left:.8em; } #optBtn { right:.8em; }
+  #baitBtn { left:.8em; } #optBtn { right:.8em; } #trollBtn { right:.8em; bottom:6.4em; }
   .tagline { color:#fff; font-weight:bold; font-size:1.2em; text-shadow:0 1px 3px #0b3a57; margin:.8em 0 1.4em; }
   #baitBar .lbl { width:100%; text-align:center; color:#fff; font-weight:bold; text-shadow:0 1px 3px #000; font-size:.95em; }
   .chip { font:inherit; font-size:.85em; font-weight:bold; border:none; border-radius:2em; padding:.4em .75em; background:rgba(255,250,240,.92); color:var(--ink); cursor:pointer; touch-action:manipulation; }
@@ -128,6 +128,7 @@
   <div id="optSheet"></div>
   <button class="sidebtn" id="baitBtn" aria-label="Bait"><span id="baitIcon">🥄</span><small id="baitLbl">Bait</small></button>
   <button class="sidebtn" id="optBtn" aria-label="More options"><span>☰</span><small>More</small></button>
+  <button class="sidebtn" id="trollBtn" aria-label="Troll"><span id="trollIcon">🚤</span><small id="trollLbl">Troll</small></button>
   <!-- Reel control: the whole bottom strip -->
   <button id="reelBtn" aria-label="Reel"><span id="reelLabel">TAP TO CAST</span></button>
   <!-- Reel animation: always in the same spot, top right -->
@@ -816,6 +817,7 @@ function reelPress(){
   btnHeld = true; reelBtn.classList.add("down");
   const T = trip;
   if (T.nibble){ setHook(); return; }
+  if (T.phase === "troll"){ if (T.strike) trollHook(); return; }
   if (T.phase === "ready") doCast();
   else if (T.phase === "drop") startReel("Reeling up!");
   else if (T.phase === "reel" && !T.autoUp) crank();
@@ -901,6 +903,7 @@ let uiSheet = null;
 function openSheet(which){ uiSheet = uiSheet === which ? null : which; SFX.click(); if (uiSheet === "bait") renderBaitBar(); if (uiSheet === "opt") renderOptions(); }
 $("baitBtn").onclick = () => openSheet("bait");
 $("optBtn").onclick = () => openSheet("opt");
+$("trollBtn").onclick = () => { SFX.click(); if (trip && trip.phase === "troll") stopTroll(); else startTroll(); };
 function renderOptions(){
   const box = $("optSheet"); box.innerHTML = "";
   const add = (label, fn, dis) => { const b = document.createElement("button"); b.className = "chip"; b.innerHTML = label; b.disabled = !!dis;
@@ -1253,6 +1256,7 @@ function updateHud(){
   if (!trip) return;
   const parts = [weatherIcon() + " ⬇ " + Math.max(0, Math.round(trip.hook.y / PPF)) + " ft"];
   parts.push(trip.boss ? "⚔️ " + trip.boss.def.name + " · 🎣 " + (BOSS_CASTS - trip.boss.left + 1) + "/" + BOSS_CASTS : "🧺 " + dayCount(trip.lake.id) + "/" + DAY_LIMIT[trip.lake.id]);
+  if (trip.phase === "troll") parts.push("🚤");
   if (trip.bobber) parts.push("🔴 " + Math.round(trip.bobDepthPx / PPF) + " ft");
   if (scentOn()) parts.push("🧴 " + scentLeft() + "s");
   if (upVal("guard")) parts.push("🛡️" + trip.shields);
@@ -1431,6 +1435,88 @@ function steer(hk, dt, k = 1){
   else if (pointerX !== null){ hk.x += (pointerX - hk.x) * Math.min(1, dt*7*k); }
   hk.x = clamp(hk.x, 12, W-12);
 }
+function checkSnags(T, hk){
+  for (const s of T.snags){
+    if (s.hitT > 0 || !hitSnag(s, hk.x, hk.y)) continue;
+    s.hitT = 1.2;
+    if (T.shields > 0){ T.shields--; SFX.shield(); pop(hk.x, hk.y-20, "🛡️ Shield!", "#9fe6ff"); hk.x += (hk.x < s.x ? -30 : 30); }
+    else if (!T.fouled){
+      SFX.snag();
+      if (T.caught.length){ const f = T.caught.pop(); T.chain = null; T.tired = false; T.lost++; f.x = hk.x; f.baseY = hk.y + 30; f.dir = Math.random()<.5?-1:1; f.speed = 90; f.fleeT = 2; T.fish.push(f); }
+      T.fouled = s.type; T.phase = "reel"; T.pending = 0;
+      const cost = JUNK[s.type].trash ? 0 : Math.min(2, S.coins);   // wood and weeds cost tackle; trash pays you to clean it up
+      if (cost){ S.coins -= cost; save(); showCoins(); }
+      pop(hk.x, hk.y-24, JUNK[s.type].icon + " Snagged!" + (cost ? " \u2212" + cost + " 🪙" : "") + " Reel all the way in.", "#ffb3a8", 17);
+    }
+  }
+}
+
+// ---- Trolling: the boat idles along, the lure trails behind, fish strike as you pass ----
+const TROLL_LURES = ["spinner", "crank", "swim"];
+const TROLL_SHAPE = { bass:1.15, trout:1.1, sun:.6, cat:.04, carp:.04, sturgeon:0 };   // bottom feeders almost never chase a moving lure
+function trollInterest(T, f){
+  let c = interest(T, f) * (TROLL_SHAPE[f.sp.shape] ?? .6);
+  if (f.trophy) c *= .35;                              // the big ones are wary: trophies mostly come from a good cast
+  return Math.min(1, c);
+}
+function startTroll(){
+  const T = trip; if (!T || T.phase !== "ready" || T.mode !== "boat" || T.boss) return;
+  if (!TROLL_LURES.includes(curBait(T))){ toast("Trolling needs a lure: 🥄 spinner, 🐠 crankbait or 🐟 swimbait. Tap Bait!", 2800); uiSheet = "bait"; renderBaitBar(); return; }
+  uiSheet = null; T.phase = "troll"; T.trollSpd = 52; T.strike = null;
+  T.hook.x = T.tipX + 40; T.hook.y = 0; SFX.splash();
+  pop(T.tipX + 40, -20, "🚤 Trolling! Hold to raise your lure, let go to let it sink.", "#fff", 15);
+}
+function stopTroll(){
+  const T = trip; if (!T || T.phase !== "troll") return;
+  T.strike = null; T.phase = "reel"; T.pending = 0; pop(T.hook.x, T.hook.y - 20, "Reeling in", "#fff", 15);
+}
+function trollHook(){
+  const T = trip, st = T.strike; if (!st) return;
+  T.strike = null; st.f.nibbling = false;
+  pop(T.hook.x, T.hook.y - 60, "Got it!", "#bff5c8", 20);
+  T.phase = "reel"; T.pending = 0;
+  hookFish(st.f);
+}
+function updateTroll(dt){
+  const T = trip, hk = T.hook, spd = T.trollSpd;
+  if (visit) visit.scroll = (visit.scroll || 0) + spd * dt;
+  // lure depth: hold to raise it, let go and it sinks; the deeper it runs, the farther back it trails
+  const floor = Math.min(T.maxY, T.bottom - 6);
+  if (btnHeld) hk.y = Math.max(PPF * 1.5, hk.y - 95 * dt); else hk.y = Math.min(floor, hk.y + 42 * dt);
+  hk.x = lerp(hk.x, Math.min(W - 110, T.tipX + 45 + hk.y * .12), Math.min(1, dt * 2));
+  T.upSpeed = btnHeld ? 95 : 0;
+  // snags and weeds slide past too
+  for (const s of T.snags){ s.x += spd * dt; if (s.x > W + 80){ s.x = -80 - rand(0, 220); s.hitT = 0; } }
+  // fish that drift off one side are replaced by new fish ahead of the boat
+  for (let i = 0; i < T.fish.length; i++){
+    const f = T.fish[i]; if (!f.respawn) continue;
+    const nf = spawnFishFor(T.lake, rand(90, T.bottom - 15), null, false); nf.x = -80 - rand(0, 120); T.fish[i] = nf;
+  }
+  // strike!
+  if (T.strike){
+    const st = T.strike, f = st.f; st.t += dt;
+    f.dir = -1; f.x = lerp(f.x, hk.x + f.L * .42, Math.min(1, dt * 10)); f.baseY = f.y = lerp(f.y, hk.y + 4, Math.min(1, dt * 10));
+    if (st.t > .95){ T.strike = null; f.nibbling = false; f.sniffT = 4; f.fleeT = 1.5; f.dir = 1; pop(hk.x, hk.y - 40, "Missed it! It threw the hook.", "#ffd0c8", 15); }
+    return;
+  }
+  if (T.fouled){ T.phase = "reel"; return; }
+  for (const f of T.fish){
+    if (f.sniffT > 0 || f.fleeT > 0 || f.nibbling) continue;
+    const c = trollInterest(T, f); if (c <= 0) continue;
+    const mx = f.x - f.L * .42 * (f.dir > 0 ? -1 : 1), dx = hk.x - f.x, dy = hk.y - f.baseY;
+    const reach = f.L * (1 + c) * (scentOn() ? 1.4 : 1) + 20;
+    if (Math.hypot(dx, dy) > reach) continue;
+    // it sees the flash and chases: swim against the drift toward the lure
+    f.dir = dx > 0 ? 1 : -1; f.x += Math.sign(dx) * Math.min(Math.abs(dx), (spd + 70 + 60 * c) * dt) - spd * dt * .2;
+    f.baseY += clamp(dy, -120, 120) * dt * 2;
+    if (hitFish(f, hk.x, hk.y)){
+      if (Math.random() < c){ T.strike = { f, t:0 }; f.nibbling = true; T.jig = 2.6; SFX.bite(); pop(hk.x, hk.y - 44, "STRIKE! TAP NOW!", "#ffe38a", 22); }
+      else { f.sniffT = 3.5; f.fleeT = 1; pop(hk.x + 20, hk.y - 20, "It followed... then turned away", "rgba(255,255,255,.85)", 13); }
+      break;
+    }
+  }
+  checkSnags(T, hk);
+}
 function updateFishing(dt){
   const T = trip; T.t += dt;
   const hk = T.hook;
@@ -1459,6 +1545,8 @@ function updateFishing(dt){
     }
     if (f.boss && !attracted && !(f.fleeT > 0) && !T.caught.length && Math.abs(hk.x - f.x) > 80) f.dir = hk.x > f.x ? 1 : -1;   // the boss circles back
     if (!attracted) f.x += f.dir * f.speed * (f.fleeT > 0 ? 2.5 : 1) * dt;
+    if (T.phase === "troll" && !f.nibbling) f.x += T.trollSpd * dt;           // the boat is moving, so the fish slide past
+    if (T.phase === "troll" && f.x > W + 90){ f.respawn = true; }
     f.y = f.baseY + Math.sin(T.t*1.3 + f.phase) * (attracted ? 2 : 6);
     if (f.x > W + 90) f.x = -90; if (f.x < -90) f.x = W + 90;
     if (Math.random() < .002 && !f.boss && !attracted) f.dir *= -1;
@@ -1486,6 +1574,7 @@ function updateFishing(dt){
     if (c >= 1){ hk.y = 0; T.phase = "drop"; T.bobX = hk.x; pointerX = null; SFX.splash(); pop(hk.x, -10, T.bobber ? "Plunk!" : "Splash!", "#fff", 18); }
   }
   else if (T.phase === "fight"){ updateFight(dt); }
+  else if (T.phase === "troll"){ updateTroll(dt); }
   else if ((T.phase === "drop" || T.phase === "reel") && T.nibble){ updateNibble(dt); }
   else if (T.phase === "drop" || T.phase === "reel"){
     steer(hk, dt, T.phase === "drop" && !T.bobber ? 1 : 0);    // you steer the bait on the way down; once reeling, the line pulls it toward you
@@ -1547,20 +1636,7 @@ function updateFishing(dt){
         }
       } else T.spoolT = 0;
     }
-    // snags
-    for (const s of T.snags){
-      if (s.hitT > 0 || !hitSnag(s, hk.x, hk.y)) continue;
-      s.hitT = 1.2;
-      if (T.shields > 0){ T.shields--; SFX.shield(); pop(hk.x, hk.y-20, "🛡️ Shield!", "#9fe6ff"); hk.x += (hk.x < s.x ? -30 : 30); }
-      else if (!T.fouled){
-        SFX.snag();
-        if (T.caught.length){ const f = T.caught.pop(); T.chain = null; T.tired = false; T.lost++; f.x = hk.x; f.baseY = hk.y + 30; f.dir = Math.random()<.5?-1:1; f.speed = 90; f.fleeT = 2; T.fish.push(f); }
-        T.fouled = s.type; T.phase = "reel"; T.pending = 0;
-        const cost = JUNK[s.type].trash ? 0 : Math.min(2, S.coins);   // wood and weeds cost tackle; trash pays you to clean it up
-        if (cost){ S.coins -= cost; save(); showCoins(); }
-        pop(hk.x, hk.y-24, JUNK[s.type].icon + " Snagged!" + (cost ? " \u2212" + cost + " 🪙" : "") + " Reel all the way in.", "#ffb3a8", 17);
-      }
-    }
+    checkSnags(T, hk);
     // fish
     if (T.phase === "drop" || T.phase === "reel"){
       for (const f of T.fish){
@@ -1583,9 +1659,10 @@ function updateFishing(dt){
     T.doneT += dt; if (T.doneT > .7) finishTrip();
   }
   // camera
-  const target = hk.y - H*.38;
+  const target = hk.y - H*(T.phase === "troll" ? .7 : .38);          // trolling: keep the boat and shore in view
   T.camY = lerp(T.camY, Math.max(-220, target), Math.min(1, dt*5));
   // reel sounds + reel icon spin
+  if (T.phase === "troll" && btnHeld){ reelSound(8, 1700, .08, dt); T.reelAng += 200*dt; }
   if (T.phase === "drop"){ reelSound(-T.upSpeed/PPF*1.8, 3300, .07, dt); T.spoolAng -= -T.upSpeed*dt*1.4; }
   else if (T.phase === "reel" && T.upSpeed > 1){ reelSound(T.upSpeed/PPF*1.4, 1700, .11, dt); T.reelAng += T.upSpeed*dt*1.2; T.spoolAng += T.upSpeed*dt*.8; }
   else if (T.phase === "reel" && T.upSpeed < -1){ if (T.surge > 0) reelSound(40, 4200, .1, dt); else reelSound(9, 3900, .05, dt); T.spoolAng += T.upSpeed*dt*1.5; }
@@ -1985,14 +2062,24 @@ function shoreArt(L){
   c.fillStyle = "rgba(90,80,60,.5)"; for (let i = 0; i < 30; i++){ c.beginPath(); c.ellipse(prand(i, 41)*W, B - 2, 2 + prand(i, 42)*3, 1.4, 0, 0, 7); c.fill(); }
   shoreCache[L.id] = c0; return c0;
 }
-function drawShore(L, surf, t){
-  ctx.drawImage(shoreArt(L), 0, surf - SHORE_H, W, SHORE_H);
-  if (L.id === "jennings"){                            // the ranch windmill turns in the breeze
-    const hx = 410, hy = surf - 64, a = t * 2.2;
+function drawShore(L, surf, t, scroll){
+  // while trolling the shore slides by; tiles alternate normal / mirrored so the edges always match
+  const img = shoreArt(L), P = W * 2, o = ((scroll || 0) * .25) % P;
+  const spots = [];                                    // where each copy sits: [x, mirrored]
+  for (const k of [-1, 0]){ spots.push([o + k*P, false]); spots.push([o + W + k*P, true]); }
+  for (const [x, m] of spots){
+    if (x > W || x + W < 0) continue;
+    if (!m) ctx.drawImage(img, x, surf - SHORE_H, W, SHORE_H);
+    else { ctx.save(); ctx.translate(x + W, 0); ctx.scale(-1, 1); ctx.drawImage(img, 0, surf - SHORE_H, W, SHORE_H); ctx.restore(); }
+  }
+  if (L.id === "jennings") for (const [x, m] of spots){ // the ranch windmill turns in the breeze
+    const hx = x + (m ? W - 410 : 410), hy = surf - 64, a = t * 2.2;
+    if (hx < -20 || hx > W + 20) continue;
     ctx.strokeStyle = "#9aa0a6"; ctx.lineWidth = 1.3;
     for (let k = 0; k < 8; k++){ const b = a + k*Math.PI/4; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + Math.cos(b)*9, hy + Math.sin(b)*9); ctx.stroke(); }
     ctx.fillStyle = "#7d8288"; ctx.beginPath(); ctx.arc(hx, hy, 2, 0, 7); ctx.fill();
-    ctx.fillStyle = "#8b8f95"; ctx.beginPath(); ctx.moveTo(hx + 2, hy); ctx.lineTo(hx + 14, hy - 3); ctx.lineTo(hx + 14, hy + 3); ctx.fill();
+    const tail = m ? -1 : 1;
+    ctx.fillStyle = "#8b8f95"; ctx.beginPath(); ctx.moveTo(hx + 2*tail, hy); ctx.lineTo(hx + 14*tail, hy - 3); ctx.lineTo(hx + 14*tail, hy + 3); ctx.fill();
   }
   if (L.id === "otay"){                                // a rowing crew glides by, far out on the lake
     const x = ((t * 9) % (W + 80)) - 40;
@@ -2074,7 +2161,7 @@ function drawRod(ax, feet){
 function renderScene(T, idle){
   const L = T.lake, camY = T.camY, bottomY = T.bottom;
   const sy = wy => wy - camY;
-  const surf = sy(0);
+  const surf = sy(0), so = T === trip && visit ? (visit.scroll || 0) : 0;
   // water: brighter near the surface, fading to deep green-blue
   const g = ctx.createLinearGradient(0, surf, 0, sy(L.depth * PPF));
   g.addColorStop(0, mixHex(L.water[0], "#e8f6f2", .18)); g.addColorStop(.08, L.water[0]); g.addColorStop(.55, mixHex(L.water[0], L.water[1], .6)); g.addColorStop(1, L.water[1]);
@@ -2087,7 +2174,7 @@ function renderScene(T, idle){
       ctx.save();
       const fade = ctx.createLinearGradient(0, surf, 0, surf + depthPx);
       ctx.globalAlpha = (layer ? .16 : .12) * (1 - .8*cloudAmt());
-      ctx.translate((T.t * (layer ? -9 : 7)) % 128, (surf + T.t * (layer ? 4 : -3)) % 128);
+      ctx.translate((T.t * (layer ? -9 : 7) + so) % 128, (surf + T.t * (layer ? 4 : -3)) % 128);
       ctx.fillStyle = causticPat; ctx.scale(layer ? 1.6 : 1.1, layer ? 1.2 : .9);
       ctx.fillRect(-256, (top - ((surf + T.t * (layer ? 4 : -3)) % 128)) / (layer ? 1.2 : .9) - 10, W * 2 + 512, depthPx);
       ctx.restore();
@@ -2104,19 +2191,31 @@ function renderScene(T, idle){
   // sky + shore
   if (surf > 0){
     drawSky(surf, T.t, L);
-    drawShore(L, surf, T.t);
+    const scroll = T === trip && visit ? (visit.scroll || 0) : 0;
+    drawShore(L, surf, T.t, scroll);
     // reflection band just under the surface
     const rf = ctx.createLinearGradient(0, surf, 0, surf + 26);
     rf.addColorStop(0, "rgba(70,95,60,.35)"); rf.addColorStop(1, "rgba(70,95,60,0)");
     ctx.fillStyle = rf; ctx.fillRect(0, surf, W, 26);
     let ax, feet;
     if (T.mode === "dock"){ drawDock(surf, T.t); ax = 150; feet = surf - 14; }
-    else { const bx = W/2 + 20, by = surf + Math.sin(T.t*2)*1.5; drawBoat(bx, by); ax = bx - 13; feet = by - 14; }
+    else {
+      const bx = W/2 + 20, by = surf + Math.sin(T.t*2)*1.5, trolling = T.phase === "troll";
+      if (trolling){                                          // foamy wake trailing off the stern
+        ctx.strokeStyle = "rgba(255,255,255,.6)"; ctx.lineWidth = 1.5;
+        for (let k = 0; k < 5; k++){ const x = bx + 60 + k*26 + (T.t*40 % 26); ctx.globalAlpha = .7 - k*.13; ctx.beginPath(); ctx.moveTo(x, surf + 2); ctx.quadraticCurveTo(x + 10, surf + 5 + k, x + 20, surf + 3); ctx.stroke(); }
+        ctx.globalAlpha = 1;
+      }
+      drawBoat(bx, by);
+      ctx.fillStyle = "#3a4046"; ctx.fillRect(bx + 50, by - 24, 9, 11); ctx.fillStyle = "#c9302c"; ctx.fillRect(bx + 50, by - 24, 9, 3);   // little outboard motor
+      ctx.fillStyle = "#2a2f33"; ctx.fillRect(bx + 53, by - 13, 3, trolling ? 16 : 12);
+      ax = bx - 13; feet = by - 14;
+    }
     drawAngler(ax, feet, surf);
     drawRod(ax, feet);
     // surface: bright waterline + moving glints
     ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.fillRect(0, surf, W, 1.2);
-    ctx.fillStyle = "rgba(255,255,255,.35)"; for (let i = 0; i < 14; i++){ const x = (i*37 + T.t*(10 + i%3*5)) % (W + 30) - 15; ctx.fillRect(x, surf + 2 + (i%4)*3, 8 + (i%3)*6, 1.2); }
+    ctx.fillStyle = "rgba(255,255,255,.35)"; for (let i = 0; i < 14; i++){ const x = (i*37 + T.t*(10 + i%3*5) + scroll) % (W + 30) - 15; ctx.fillRect(x, surf + 2 + (i%4)*3, 8 + (i%3)*6, 1.2); }
   }
   if (!idle && surf > 0){
     const shade = .3*cloudAmt() + .25*rainAmt();
@@ -2125,7 +2224,7 @@ function renderScene(T, idle){
   // light rays (fade under clouds)
   ctx.save(); ctx.globalAlpha = .09 * (1 - .8*cloudAmt());
   for (let i=0;i<6;i++){
-    const x = i*95 - 30 + Math.sin(T.t*.4+i)*18, rg = ctx.createLinearGradient(0, surf, 0, surf + 460);
+    const x = ((i*95 + so*.5) % 570) - 60 + Math.sin(T.t*.4+i)*18, rg = ctx.createLinearGradient(0, surf, 0, surf + 460);
     rg.addColorStop(0, "rgba(255,255,240,1)"); rg.addColorStop(1, "rgba(255,255,240,0)");
     ctx.fillStyle = rg; ctx.beginPath(); ctx.moveTo(x, surf); ctx.lineTo(x+30 + i%2*16, surf); ctx.lineTo(x+150, surf+460); ctx.lineTo(x+70, surf+460); ctx.fill();
   }
@@ -2144,9 +2243,9 @@ function renderScene(T, idle){
     for (let x=0; x<=W; x+=12) ctx.lineTo(x, by2 + Math.sin(x*.05)*5 + Math.sin(x*.13)*3);
     ctx.lineTo(W, H + 100); ctx.fill();
     ctx.strokeStyle = "rgba(255,240,200,.12)"; ctx.lineWidth = 1;          // sand ripples
-    for (let r = 0; r < 5; r++){ ctx.beginPath(); for (let x=0; x<=W; x+=10){ const yy = by2 + 10 + r*9 + Math.sin(x*.08 + r)*2.5; x ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy); } ctx.stroke(); }
+    for (let r = 0; r < 5; r++){ ctx.beginPath(); for (let x=0; x<=W; x+=10){ const yy = by2 + 10 + r*9 + Math.sin((x - so)*.08 + r)*2.5; x ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy); } ctx.stroke(); }
     for (let i=0;i<26;i++){                                             // pebbles and rocks
-      const px = prand(i,3)*W, py = by2 + 6 + prand(i,5)*34, rx = 3 + prand(i,7)*(i < 5 ? 16 : 7), ry = rx * (.55 + prand(i,8)*.2);
+      const px = ((prand(i,3)*(W + 60) + so) % (W + 60)) - 30, py = by2 + 6 + prand(i,5)*34, rx = 3 + prand(i,7)*(i < 5 ? 16 : 7), ry = rx * (.55 + prand(i,8)*.2);
       const pg = ctx.createRadialGradient(px - rx*.3, py - ry*.4, 1, px, py, rx);
       pg.addColorStop(0, prand(i,9) < .5 ? "#9a917f" : "#8a7a62"); pg.addColorStop(1, "#4a4133");
       ctx.fillStyle = pg; ctx.beginPath(); ctx.ellipse(px, py, rx, ry, 0, 0, 7); ctx.fill();
@@ -2315,6 +2414,9 @@ function syncReelBtn(){
   $("optSheet").classList.toggle("show", ready && uiSheet === "opt");
   $("baitBtn").classList.toggle("show", ready);
   $("optBtn").classList.toggle("show", ready);
+  const canTroll = !!(show && T.mode === "boat" && !T.boss && (T.phase === "ready" || (T.phase === "troll" && !T.strike)));
+  $("trollBtn").classList.toggle("show", canTroll);
+  if (canTroll){ const on = T.phase === "troll"; $("trollIcon").textContent = on ? "🛑" : "🚤"; $("trollLbl").textContent = on ? "Stop" : "Troll"; }
   $("reelGfx").classList.toggle("show", !!show);
   $("btnMute").style.display = state === "fishing" ? "none" : "";
   if (!show) return;
@@ -2322,6 +2424,7 @@ function syncReelBtn(){
   if (T.phase === "ready" || T.phase === "cast"){ mode = "cast"; label = T.phase === "cast" ? "" : "TAP TO CAST"; }
   else if (T.nibble){ const b = T.nibble.stage === "bite"; mode = b ? "tap danger" : "out"; label = b ? "SET THE HOOK!" : "WAIT..."; }
   else if (T.phase === "drop"){ mode = "out"; label = "TAP TO STOP"; }
+  else if (T.phase === "troll"){ mode = T.strike ? "tap danger" : "hold"; label = T.strike ? "STRIKE! TAP!" : btnHeld ? "LURE UP..." : "HOLD = LURE UP"; }
   else if (T.phase === "fight"){ mode = "fight" + (T.fight && T.fight.tension > 80 ? " danger" : ""); label = T.fight && T.fight.tension > 80 ? "LET GO!" : "HOLD!"; }
   else if (T.autoUp){ mode = "auto"; label = "REELING IN!"; }
   else if (T.caught.length){ mode = "tap"; label = "TAP TAP TAP!"; }
