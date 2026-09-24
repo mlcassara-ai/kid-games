@@ -116,6 +116,32 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .famcode{font-size:24px;font-weight:700;letter-spacing:2px;background:#f1edff;border-radius:12px;padding:10px;margin:8px 0;word-break:break-word;color:var(--accent)}
 .famcode.small{font-size:17px;padding:3px 8px}
 .famlink{font-size:13px;word-break:break-all;background:#f6f3ff;border-radius:10px;padding:8px;color:#4c3f78}
+.battle.z-forest{background:linear-gradient(180deg,#3f8f2c,#1f4a18)}
+.battle.z-caves{background:linear-gradient(180deg,#22203a,#110e22)}
+.battle.z-volcano{background:linear-gradient(180deg,#1a0f0d,#3a120c)}
+.battle.z-castle{background:linear-gradient(180deg,#3c3458,#1c1630)}
+.battle.z-tower{background:linear-gradient(180deg,#3b2a8a,#0b0826)}
+.battle.z-spell{background:linear-gradient(180deg,#8a6a2a,#4a3614)}
+.battle.z-quiz{background:linear-gradient(180deg,#f1f6ff,#9bb3e8)}
+.battle.z-hw{background:linear-gradient(180deg,#4c9a3a,#23501b)}
+.battle .bhud{background:rgba(0,0,0,.35);position:relative;z-index:2}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-500px)}}
+.scene-svg .drift{animation:drift 70s linear infinite}.scene-svg .drift.slow{animation-duration:120s}
+@keyframes twk{50%{opacity:.25}}.scene-svg .twk{animation:twk 2.8s ease-in-out infinite}.scene-svg .twk.slow{animation-duration:5s}
+@keyframes flutter{0%{transform:translate(0,0)}25%{transform:translate(40px,-20px)}50%{transform:translate(90px,5px)}75%{transform:translate(40px,25px)}100%{transform:translate(0,0)}}
+.scene-svg .flutter{animation:flutter 12s ease-in-out infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:0}10%{opacity:1}100%{transform:translateY(220px);opacity:0}}.scene-svg .drip{animation:drip 4s ease-in infinite}
+@keyframes glowp{50%{opacity:.7}}.scene-svg .glow{animation:glowp 3s ease-in-out infinite}
+@keyframes flick{0%,100%{transform:scale(1)}50%{transform:scale(1.12,.9)}}.scene-svg .flick{animation:flick .35s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes ember{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translate(20px,-260px);opacity:0}}.scene-svg .ember{animation:ember 6s linear infinite}
+@keyframes lava{50%{opacity:.75}}.scene-svg .lavaglow,.scene-svg .lavaflow{animation:lava 2.2s ease-in-out infinite}
+@keyframes smoke{0%{transform:translateY(0);opacity:.9}100%{transform:translateY(-40px);opacity:.2}}.scene-svg .smoke{animation:smoke 4s ease-out infinite}
+@keyframes bat{0%{transform:translate(0,0)}50%{transform:translate(-120px,20px)}100%{transform:translate(0,0)}}.scene-svg .bat{animation:bat 9s ease-in-out infinite}
+@keyframes fog{from{transform:translateX(0)}to{transform:translateX(200px)}}.scene-svg .fog{animation:fog 20s ease-in-out infinite alternate}
+@keyframes spin{to{transform:rotate(360deg)}}.scene-svg .spin{animation:spin 30s linear infinite}
+@keyframes floaty{50%{transform:translateY(-12px)}}.scene-svg .float{animation:floaty 5s ease-in-out infinite}
+@keyframes leaf{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(-80px,420px) rotate(540deg)}}.scene-svg .leaf{animation:leaf 9s linear infinite;transform-box:fill-box;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.scene-svg *{animation:none!important}}
 .pcard.add{background:rgba(255,255,255,.1);color:#fff;border:3px dashed rgba(255,255,255,.4);box-shadow:none}
 .pcard.add .plv{color:#cfc6ff}
 .plus{font-size:64px;height:130px;display:grid;place-items:center}
@@ -172,7 +198,12 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .streak{font-weight:700;color:#ffe066;font-size:18px;white-space:nowrap}
 .bmain{flex:1;display:flex;flex-direction:column;min-height:0}
 .arena{position:relative;flex:1 1 auto;min-height:160px;display:flex;justify-content:space-between;align-items:flex-end;padding:8px 7% 14px}
-.arena::after{content:'';position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.25));pointer-events:none}
+.arena{overflow:hidden}
+.arena::after{content:'';position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.18));pointer-events:none;z-index:0}
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none}
+.scene-svg{width:100%;height:100%;display:block}
+.zscene{z-index:0}.zmap .zpath{z-index:1}.zmap .node{z-index:2}
+.hpnum{text-shadow:0 1px 3px #000,0 0 6px rgba(0,0,0,.6)}
 .fighter{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:1}
 .hp{width:clamp(110px,26vw,200px);height:16px;background:rgba(0,0,0,.4);border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,.7)}
 .hp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#2ecc71,#a6f36b);transition:width .4s}
@@ -604,7 +635,7 @@ SCREENS.map=()=>{
 /* ---------- zone ---------- */
 SCREENS.zone=zid=>{
  const z=findZone(zid);const p=P();const champOK=bossesBeaten(p)>=5&&z.op!=='spell';const champ=champOK&&p.champOn;const pr=(champ?p.champ:p.progress)[z.id]||[];
- let decor='';for(let i=0;i<16;i++){decor+=`<span class="decor" style="left:${(i*37+9)%96+2}%;top:${(i*53+13)%90+5}%;font-size:${24+(i*7)%22}px">${z.decor[i%z.decor.length]}</span>`;}
+ let decor=`<div class="scene zscene">${sceneSVG(z.id)}</div>`;for(let i=0;i<0;i++){decor+=`<span class="decor" style="left:${(i*37+9)%96+2}%;top:${(i*53+13)%90+5}%;font-size:${24+(i*7)%22}px">${z.decor[i%z.decor.length]}</span>`;}
  const nodes=z.mons.map((m,i)=>{
   const open=i===0||pr[i-1]>0;const st=pr[i]||0;const next=open&&!st;
   return `<button class="node ${i===5?'boss':''} ${open?'':'locked'} ${st?'done':''} ${next?'next':''}" style="left:${NODE_POS[i][0]}%;top:${NODE_POS[i][1]}%" title="${esc(m[0])}" onclick="${open?`startBattle('${z.id}',${i})`:`toast('Beat the monster before this one first!')`}">${open?m[1]:'🔒'}${next?'<span class="go-tag">GO!</span>':''}${st?`<span class="nstars">${'⭐'.repeat(st)}</span>`:''}</button>`;}).join('');
@@ -779,7 +810,7 @@ function renderBattle(){
  const p=P();const pet=petOf(p);
  app.innerHTML=`<div class="battle ${B.z.cls} ${B.mode!=='math'?'questmode':''}">
  <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname">${B.champ?'👑 Champion ':''}${B.isBoss?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
- <div class="bmain"><div class="arena" id="arena">
+ <div class="bmain"><div class="arena" id="arena"><div class="scene">${sceneSVG(B.z.id)}</div>
   <div class="fighter hero" id="heroF"><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div><div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf">${pet.e}</div>`:''}</div>
   <div class="fighter mon ${B.isBoss?'boss':''}" id="monF"><div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div></div>
  </div>
@@ -1553,6 +1584,133 @@ function cloudBoot(){
  if(cloud.code)syncNow();
  setInterval(()=>{if(cloud.code&&document.visibilityState==='visible')syncNow();},45000);
  document.addEventListener('visibilitychange',()=>{if(cloud.code)syncNow();});
+}
+
+/* ================= biome scenery (drawn in SVG, no image files) ================= */
+function rng(seed){return ()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const SC={
+ cloud:(x,y,s,o)=>`<g opacity="${o||.9}" transform="translate(${x},${y}) scale(${s})"><ellipse cx="0" cy="0" rx="42" ry="16" fill="#fff"/><ellipse cx="-24" cy="4" rx="26" ry="12" fill="#fff"/><ellipse cx="22" cy="-8" rx="26" ry="16" fill="#fff"/><ellipse cx="34" cy="5" rx="24" ry="10" fill="#fff"/></g>`,
+ pine:(x,y,h,c,c2)=>`<g transform="translate(${x},${y})"><rect x="-4" y="-10" width="8" height="14" fill="#5b3b1f"/><path d="M0 ${-h} L${h*.32} ${-h*.55} L${h*.16} ${-h*.55} L${h*.42} ${-h*.2} L${h*.2} ${-h*.2} L${h*.5} ${-8} L${-h*.5} ${-8} L${-h*.2} ${-h*.2} L${-h*.42} ${-h*.2} L${-h*.16} ${-h*.55} L${-h*.32} ${-h*.55} Z" fill="${c}"/><path d="M0 ${-h} L${-h*.32} ${-h*.55} L${-h*.16} ${-h*.55} L${-h*.42} ${-h*.2} L${-h*.2} ${-h*.2} L${-h*.5} ${-8} L0 -8 Z" fill="${c2}" opacity=".5"/></g>`,
+ oak:(x,y,s,c,c2)=>`<g transform="translate(${x},${y}) scale(${s})"><path d="M-7 0 L-5 -48 Q0 -52 5 -48 L7 0 Z" fill="#6b4423"/><path d="M-5 -30 L-22 -46 M4 -36 L18 -52" stroke="#6b4423" stroke-width="5" stroke-linecap="round"/><circle cx="-24" cy="-62" r="24" fill="${c}"/><circle cx="20" cy="-66" r="26" fill="${c}"/><circle cx="-2" cy="-86" r="30" fill="${c}"/><circle cx="-12" cy="-94" r="14" fill="${c2}" opacity=".6"/><circle cx="16" cy="-78" r="10" fill="${c2}" opacity=".5"/></g>`,
+ rock:(x,y,w,h,c,d,hl)=>`<g transform="translate(${x},${y})"><path d="M${-w/2} 0 Q${-w/2} ${-h*.7} ${-w*.2} ${-h} Q${w*.15} ${-h*1.08} ${w*.42} ${-h*.62} Q${w/2} ${-h*.3} ${w/2} 0 Z" fill="${c}"/><path d="M${-w/2} 0 Q${-w*.1} ${-h*.3} ${w/2} 0 Z" fill="${d}"/><path d="M${-w*.28} ${-h*.72} Q${-w*.05} ${-h*.95} ${w*.18} ${-h*.82}" stroke="${hl}" stroke-width="${Math.max(2,w*.05)}" fill="none" stroke-linecap="round" opacity=".7"/></g>`,
+ bush:(x,y,s,c,c2)=>`<g transform="translate(${x},${y}) scale(${s})"><circle cx="-18" cy="-12" r="16" fill="${c}"/><circle cx="4" cy="-20" r="20" fill="${c}"/><circle cx="24" cy="-10" r="15" fill="${c}"/><circle cx="-2" cy="-26" r="8" fill="${c2}" opacity=".5"/></g>`,
+ tufts:(r,n,y0,y1,c)=>{let s='';for(let i=0;i<n;i++){const x=r()*800,y=y0+r()*(y1-y0),h=6+r()*10;s+=`<path d="M${x-5} ${y} Q${x-3} ${y-h} ${x-6} ${y-h-2} M${x} ${y} Q${x} ${y-h-3} ${x+1} ${y-h-5} M${x+5} ${y} Q${x+4} ${y-h} ${x+7} ${y-h-1}" stroke="${c}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;}return s;},
+ stars:(r,n,h,cls)=>{let s='';for(let i=0;i<n;i++){const x=r()*800,y=r()*h,rad=.6+r()*1.6;s+=`<circle class="${cls||'twk'}" style="animation-delay:${(r()*4).toFixed(2)}s" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rad.toFixed(1)}" fill="#fff"/>`;}return s;},
+ crystal:(x,y,s,c,c2)=>`<g class="glow" transform="translate(${x},${y}) scale(${s})"><path d="M0 0 L-8 -30 L0 -52 L8 -30 Z" fill="${c}"/><path d="M0 0 L0 -52 L8 -30 Z" fill="${c2}"/><path d="M-6 0 L-22 -22 L-16 -36 L-10 -18 Z" fill="${c}" opacity=".85"/><path d="M6 0 L20 -18 L18 -30 L10 -14 Z" fill="${c2}" opacity=".85"/></g>`,
+ torch:(x,y)=>`<g transform="translate(${x},${y})"><rect x="-3" y="0" width="6" height="26" fill="#5b3b1f"/><path d="M-6 0 L6 0 L4 -4 L-4 -4 Z" fill="#888"/><g class="flick"><path d="M0 -26 Q9 -12 4 -4 Q0 0 -4 -4 Q-9 -12 0 -26 Z" fill="#ffb13d"/><path d="M0 -18 Q4 -9 1 -5 Q-2 -4 -2 -7 Q-4 -11 0 -18 Z" fill="#fff3b0"/></g><circle cx="0" cy="-12" r="26" fill="#ffb13d" opacity=".18"/></g>`
+};
+function sceneSVG(id){
+ const r=rng({forest:7,caves:11,volcano:23,castle:31,tower:43,spell:53,quiz:61,hw:71}[id]||5);
+ let d='',b='';
+ if(id==='forest'){
+  d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc3f0"/><stop offset=".75" stop-color="#d7f2fb"/></linearGradient><linearGradient id="sc-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ccf4f"/><stop offset="1" stop-color="#3f8f2c"/></linearGradient><radialGradient id="sc-sun"><stop offset="0" stop-color="#fffbe0"/><stop offset=".5" stop-color="#fff2a0" stop-opacity=".6"/><stop offset="1" stop-color="#fff2a0" stop-opacity="0"/></radialGradient>`;
+  b=`<rect width="800" height="400" fill="url(#sc-sky)"/><circle cx="600" cy="165" r="60" fill="url(#sc-sun)"/><circle cx="600" cy="165" r="22" fill="#fff6c2"/>
+  <g class="drift">${SC.cloud(120,60,1)}${SC.cloud(420,40,.8)}${SC.cloud(900,80,1.1)}${SC.cloud(1200,50,.9)}</g>
+  <path d="M0 235 Q90 175 190 215 T390 205 T590 200 T800 215 V400 H0Z" fill="#a8dca0"/>
+  <path d="M0 262 Q120 215 250 250 T520 240 T800 250 V400 H0Z" fill="#86c77a"/>
+  ${[...Array(16)].map((_,i)=>SC.pine(i*52+r()*20,268+r()*8,60+r()*40,'#2f7d4a','#1d5a33')).join('')}
+  ${SC.oak(40,300,1.1,'#3e9d4f','#8fd67c')}${SC.oak(760,302,1.2,'#3e9d4f','#8fd67c')}${SC.oak(250,285,.7,'#48a857','#8fd67c')}${SC.oak(560,286,.75,'#48a857','#8fd67c')}
+  <path d="M0 290 Q200 276 400 286 T800 282 V400 H0Z" fill="url(#sc-gr)"/>
+  <path d="M250 400 Q330 330 400 312 Q470 330 560 400 Z" fill="#c9a86a" opacity=".55"/>
+  ${SC.bush(110,318,1.1,'#2e8a3e','#8fd67c')}${SC.bush(700,322,1.2,'#2e8a3e','#8fd67c')}
+  ${SC.rock(40,380,90,58,'#8c929b','#6b717a','#c7ccd3')}${SC.rock(765,385,110,70,'#8c929b','#6b717a','#c7ccd3')}${SC.rock(185,345,40,26,'#9aa0a8','#737980','#d0d4da')}${SC.rock(640,352,50,30,'#9aa0a8','#737980','#d0d4da')}
+  <g transform="translate(150,370)"><rect x="-3" y="-14" width="6" height="14" fill="#f4e6cf"/><path d="M-14 -12 Q0 -30 14 -12 Z" fill="#e5484d"/><circle cx="-5" cy="-19" r="2.5" fill="#fff"/><circle cx="5" cy="-16" r="2" fill="#fff"/></g>
+  <g transform="translate(610,378) scale(.8)"><rect x="-3" y="-14" width="6" height="14" fill="#f4e6cf"/><path d="M-14 -12 Q0 -30 14 -12 Z" fill="#e5484d"/><circle cx="-5" cy="-19" r="2.5" fill="#fff"/></g>
+  ${[...Array(22)].map(()=>{const x=r()*800,y=305+r()*90;return `<circle cx="${x}" cy="${y}" r="${2+r()*2}" fill="${pick(['#ffd43b','#ff8fc0','#fff','#b197fc'])}"/>`;}).join('')}
+  ${SC.tufts(r,40,300,400,'#2f7d2a')}
+  <g class="flutter"><path d="M200 200 q-8 -8 -12 0 q4 6 12 0 q8 -8 12 0 q-4 6 -12 0" fill="#ff9f43"/></g><g class="flutter" style="animation-delay:-3s"><path d="M560 170 q-6 -6 -9 0 q3 5 9 0 q6 -6 9 0 q-3 5 -9 0" fill="#74c0fc"/></g>`;
+ }
+ else if(id==='caves'){
+  d=`<radialGradient id="sc-cv" cx=".5" cy=".6" r=".8"><stop offset="0" stop-color="#4b3f8f"/><stop offset="1" stop-color="#140f2e"/></radialGradient><linearGradient id="sc-fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4470"/><stop offset="1" stop-color="#22203a"/></linearGradient><radialGradient id="sc-glow"><stop offset="0" stop-color="#7fe3ff" stop-opacity=".45"/><stop offset="1" stop-color="#7fe3ff" stop-opacity="0"/></radialGradient>`;
+  b=`<rect width="800" height="400" fill="url(#sc-cv)"/>
+  <path d="M0 0 H800 V60 Q700 90 620 70 Q540 110 450 80 Q360 120 280 85 Q180 110 100 80 Q40 95 0 70 Z" fill="#1c1640"/>
+  ${[...Array(14)].map((_,i)=>{const x=i*60+r()*30,h=30+r()*70,w=10+r()*16;return `<path d="M${x-w} 60 L${x} ${60+h} L${x+w} 60 Z" fill="${i%2?'#2a2356':'#332a66'}"/><circle class="drip" style="animation-delay:${(r()*5).toFixed(1)}s" cx="${x}" cy="${60+h}" r="2.4" fill="#9fe7ff"/>`;}).join('')}
+  <path d="M0 250 Q80 220 160 240 L200 200 L240 245 Q330 225 420 245 L470 190 L520 248 Q620 225 700 245 L740 210 L800 240 V400 H0 Z" fill="#2c2655"/>
+  <circle cx="120" cy="300" r="90" fill="url(#sc-glow)"/><circle cx="690" cy="300" r="100" fill="url(#sc-glow)"/>
+  <path d="M0 290 Q200 275 400 285 T800 280 V400 H0Z" fill="url(#sc-fl)"/>
+  ${SC.crystal(80,330,1.3,'#7fe3ff','#c3f4ff')}${SC.crystal(140,318,.8,'#b197fc','#e5dbff')}${SC.crystal(700,335,1.5,'#b197fc','#e5dbff')}${SC.crystal(760,318,.9,'#7fe3ff','#c3f4ff')}${SC.crystal(300,300,.5,'#7fe3ff','#c3f4ff')}${SC.crystal(520,298,.55,'#ff8fc0','#ffd6e8')}
+  ${[...Array(6)].map((_,i)=>{const x=[30,210,360,470,600,780][i],h=30+r()*40,w=14+r()*10;return `<path d="M${x-w} ${400-r()*30} L${x} ${340-h*.5} L${x+w} ${400-r()*30} Z" fill="#3a3370"/>`;}).join('')}
+  ${SC.rock(230,390,70,34,'#4f4a7a','#37335a','#7c77aa')}${SC.rock(590,395,80,40,'#4f4a7a','#37335a','#7c77aa')}
+  ${[...Array(10)].map(()=>`<circle class="twk" style="animation-delay:${(r()*3).toFixed(1)}s" cx="${r()*800}" cy="${120+r()*140}" r="${1+r()*1.5}" fill="#9fe7ff"/>`).join('')}`;
+ }
+ else if(id==='volcano'){
+  d=`<linearGradient id="sc-vs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a0d0d"/><stop offset=".55" stop-color="#b3261e"/><stop offset=".85" stop-color="#ff8a3d"/></linearGradient><linearGradient id="sc-lava" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff5a1f"/><stop offset=".5" stop-color="#ffd43b"/><stop offset="1" stop-color="#ff5a1f"/></linearGradient><linearGradient id="sc-vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b2622"/><stop offset="1" stop-color="#1a0f0d"/></linearGradient>`;
+  b=`<rect width="800" height="400" fill="url(#sc-vs)"/>
+  <g class="drift slow" opacity=".45">${SC.cloud(100,70,1.4,.5)}${SC.cloud(500,50,1.2,.4)}${SC.cloud(900,80,1.3,.5)}</g>
+  <path d="M0 250 L90 190 L150 225 L230 170 L300 230 L0 260Z M560 235 L640 180 L700 215 L800 170 L800 260Z" fill="#4a1c16"/>
+  <g transform="translate(400,290) scale(.82) translate(-400,-290)"><path d="M250 290 L360 120 Q400 104 440 120 L560 290 Z" fill="#3b1a14"/><path d="M362 124 Q400 100 438 124 Q420 132 400 128 Q380 132 362 124Z" fill="#ffd43b"/>
+  <path class="lavaflow" d="M392 126 Q380 180 398 220 Q410 250 396 290 L414 290 Q428 250 418 214 Q404 176 410 126 Z" fill="url(#sc-lava)"/>
+  <g class="smoke"><circle cx="400" cy="100" r="18" fill="#6b5a57" opacity=".6"/><circle cx="386" cy="78" r="22" fill="#6b5a57" opacity=".45"/><circle cx="412" cy="54" r="26" fill="#6b5a57" opacity=".3"/></g></g>
+  <path d="M0 292 Q200 280 400 290 T800 285 V400 H0Z" fill="url(#sc-vg)"/>
+  <path d="M0 360 Q120 340 260 356 Q380 372 470 352 Q600 330 800 350 L800 372 Q600 352 470 374 Q380 392 260 378 Q120 362 0 382 Z" fill="url(#sc-lava)" class="lavaglow"/>
+  ${[...Array(8)].map(()=>{const x=r()*800,y=300+r()*20;return `<path d="M${x} ${y} l${6+r()*10} ${4+r()*6} l${-4} ${6}" stroke="#ff7a1f" stroke-width="2" fill="none" opacity=".8"/>`;}).join('')}
+  ${SC.rock(40,330,100,60,'#2d2020','#1a1111','#5a3c36')}${SC.rock(760,335,110,66,'#2d2020','#1a1111','#5a3c36')}${SC.rock(180,305,40,24,'#352524','#1f1414','#6a4640')}${SC.rock(640,308,46,26,'#352524','#1f1414','#6a4640')}
+  ${[...Array(18)].map(()=>`<circle class="ember" style="animation-delay:${(r()*6).toFixed(1)}s;animation-duration:${(4+r()*4).toFixed(1)}s" cx="${r()*800}" cy="${300+r()*80}" r="${1.2+r()*1.8}" fill="${pick(['#ffd43b','#ff8a3d','#ff5a1f'])}"/>`).join('')}`;
+ }
+ else if(id==='castle'){
+  d=`<linearGradient id="sc-ns" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140c2e"/><stop offset="1" stop-color="#4b2a7a"/></linearGradient><pattern id="sc-brick" width="40" height="20" patternUnits="userSpaceOnUse"><rect width="40" height="20" fill="#5a5270"/><path d="M0 0 H40 M0 10 H40 M20 0 V10 M0 10 V20 M40 10 V20" stroke="#433c58" stroke-width="2"/></pattern>`;
+  b=`<rect width="800" height="400" fill="url(#sc-ns)"/>${SC.stars(r,60,220)}
+  <circle cx="610" cy="175" r="26" fill="#fff6d6"/><circle cx="601" cy="169" r="5" fill="#e8dcb0"/><circle cx="618" cy="184" r="3" fill="#e8dcb0"/>
+  <g transform="translate(400,300) scale(.52) translate(-400,-300)"><g fill="#231a3d"><rect x="300" y="130" width="200" height="170"/><rect x="270" y="90" width="50" height="210"/><rect x="480" y="90" width="50" height="210"/><rect x="375" y="60" width="50" height="100"/>
+  <path d="M265 90 L295 40 L325 90Z M475 90 L505 40 L535 90Z M370 60 L400 16 L430 60Z"/>
+  ${[270,282,294,306].map(x=>`<rect x="${x}" y="82" width="8" height="10"/>`).join('')}${[480,492,504,516].map(x=>`<rect x="${x}" y="82" width="8" height="10"/>`).join('')}${[300,320,340,360,440,460,480].map(x=>`<rect x="${x}" y="120" width="12" height="12"/>`).join('')}</g>
+  ${[[288,140],[500,140],[390,90],[340,190],[440,190]].map(([x,y])=>`<rect class="twk slow" x="${x}" y="${y}" width="12" height="18" rx="6" fill="#ffd43b"/>`).join('')}
+  <path d="M400 16 L400 0 M400 2 L420 8 L400 12" stroke="#ff5a5f" stroke-width="3" fill="#ff5a5f"/></g>
+  <path d="M0 250 Q150 230 300 250 T600 245 T800 250 V300 H0Z" fill="#2b2146" opacity=".8"/>
+  <rect x="0" y="290" width="800" height="110" fill="url(#sc-brick)"/><rect x="0" y="290" width="800" height="110" fill="#1a1230" opacity=".35"/>
+  <rect x="0" y="286" width="800" height="8" fill="#6d6488"/>
+  ${SC.torch(60,300)}${SC.torch(740,300)}
+  <g transform="translate(170,258)"><rect x="-2" y="0" width="4" height="42" fill="#4a3a2a"/><path d="M2 2 H32 V34 L17 26 L2 34 Z" fill="#7c5cff"/><path d="M10 14 l7 -7 l7 7 l-7 7z" fill="#ffd43b"/></g>
+  <g transform="translate(600,258)"><rect x="-2" y="0" width="4" height="42" fill="#4a3a2a"/><path d="M2 2 H32 V34 L17 26 L2 34 Z" fill="#ef4444"/><path d="M10 14 l7 -7 l7 7 l-7 7z" fill="#ffd43b"/></g>
+  <g class="bat"><path d="M620 110 q10 -10 18 0 q8 -10 18 0 q-8 -2 -18 6 q-10 -8 -18 -6z" fill="#0d0820"/></g><g class="bat" style="animation-delay:-4s"><path d="M200 150 q8 -8 14 0 q6 -8 14 0 q-6 -2 -14 5 q-8 -7 -14 -5z" fill="#0d0820"/></g>
+  <rect class="fog" x="-200" y="330" width="1200" height="60" fill="#c9b8ff" opacity=".12"/>`;
+ }
+ else if(id==='tower'){
+  d=`<radialGradient id="sc-neb1" cx=".3" cy=".3" r=".6"><stop offset="0" stop-color="#c93fa6" stop-opacity=".7"/><stop offset="1" stop-color="#c93fa6" stop-opacity="0"/></radialGradient><radialGradient id="sc-neb2" cx=".75" cy=".45" r=".5"><stop offset="0" stop-color="#16c2c9" stop-opacity=".6"/><stop offset="1" stop-color="#16c2c9" stop-opacity="0"/></radialGradient><linearGradient id="sc-plat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f7cff"/><stop offset="1" stop-color="#3b2a8a"/></linearGradient>`;
+  b=`<rect width="800" height="400" fill="#0b0826"/><rect width="800" height="400" fill="url(#sc-neb1)"/><rect width="800" height="400" fill="url(#sc-neb2)"/>${SC.stars(r,90,400)}
+  <circle cx="660" cy="175" r="30" fill="#ff9f43"/><ellipse cx="660" cy="175" rx="50" ry="10" fill="none" stroke="#ffd8a8" stroke-width="4" transform="rotate(-18 660 175)"/>
+  <circle cx="150" cy="170" r="16" fill="#74c0fc"/><circle cx="145" cy="165" r="4" fill="#a5d8ff"/>
+  <g class="spin" style="transform-origin:400px 205px"><path d="M400 205 m-60 0 a60 60 0 1 1 120 0 a45 45 0 1 1 -90 0 a30 30 0 1 1 60 0 a15 15 0 1 1 -30 0" fill="none" stroke="#e5dbff" stroke-width="5" opacity=".45"/></g>
+  <g class="float"><path d="M60 250 L140 250 L120 275 L80 275Z" fill="#5b48c9"/><rect x="60" y="244" width="80" height="8" rx="3" fill="#b197fc"/></g>
+  <g class="float" style="animation-delay:-2s"><path d="M650 230 L740 230 L715 258 L675 258Z" fill="#5b48c9"/><rect x="650" y="224" width="90" height="8" rx="3" fill="#b197fc"/></g>
+  <path d="M-20 300 L820 300 L760 400 L40 400 Z" fill="url(#sc-plat)"/><path d="M-20 300 L820 300" stroke="#e5dbff" stroke-width="4"/>
+  ${[...Array(9)].map((_,i)=>`<path d="M${60+i*85} 300 L${50+i*90} 400" stroke="#e5dbff" stroke-width="1.5" opacity=".25"/>`).join('')}
+  ${SC.crystal(40,300,1,'#16c2c9','#aef6f8')}${SC.crystal(770,300,1.1,'#e04ab8','#ffc9ee')}
+  ${[...Array(10)].map(()=>`<text class="float" style="animation-delay:${(-r()*6).toFixed(1)}s" x="${r()*800}" y="${40+r()*200}" font-size="${14+r()*14}" fill="#e5dbff" opacity=".35" font-family="sans-serif">${pick(['+','−','×','÷','='])}</text>`).join('')}`;
+ }
+ else if(id==='spell'){
+  d=`<linearGradient id="sc-as" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb86b"/><stop offset=".8" stop-color="#ffe8c2"/></linearGradient><linearGradient id="sc-ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c7a24a"/><stop offset="1" stop-color="#8a6a2a"/></linearGradient>`;
+  b=`<rect width="800" height="400" fill="url(#sc-as)"/><circle cx="620" cy="185" r="34" fill="#fff1c9" opacity=".9"/>
+  <path d="M0 250 Q140 200 280 240 T560 232 T800 240 V400 H0Z" fill="#e8b26a"/>
+  ${SC.oak(90,295,1.1,'#e8590c','#ffa94d')}${SC.oak(720,298,1.2,'#d9480f','#ffc078')}${SC.oak(260,282,.7,'#f08c00','#ffd43b')}${SC.oak(560,283,.75,'#e8590c','#ffa94d')}
+  <path d="M0 290 Q200 278 400 288 T800 282 V400 H0Z" fill="url(#sc-ag)"/>
+  <g transform="translate(400,330)"><path d="M-110 0 Q-55 -22 0 -6 Q55 -22 110 0 L110 14 Q55 -8 0 8 Q-55 -8 -110 14Z" fill="#fff8e7" opacity=".85"/><path d="M0 -6 L0 8" stroke="#c7a24a" stroke-width="2"/></g>
+  ${[...Array(14)].map(()=>`<text class="float" style="animation-delay:${(-r()*6).toFixed(1)}s" x="${r()*800}" y="${60+r()*200}" font-size="${18+r()*18}" font-weight="700" fill="${pick(['#7c5cff','#e8590c','#2f8cff','#e64980'])}" opacity=".55" font-family="sans-serif">${pick('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''))}</text>`).join('')}
+  ${[...Array(18)].map(()=>`<ellipse class="leaf" style="animation-delay:${(-r()*8).toFixed(1)}s" cx="${r()*800}" cy="${-10}" rx="5" ry="3" fill="${pick(['#e8590c','#f08c00','#ffd43b'])}"/>`).join('')}
+  ${SC.rock(50,380,80,44,'#a08a6a','#7a6848','#d8c8a8')}${SC.rock(760,385,90,50,'#a08a6a','#7a6848','#d8c8a8')}${SC.tufts(r,30,300,400,'#8a6a2a')}`;
+ }
+ else if(id==='quiz'){
+  d=`<linearGradient id="sc-qs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86a8e7"/><stop offset="1" stop-color="#e0f7ff"/></linearGradient>`;
+  b=`<rect width="800" height="400" fill="url(#sc-qs)"/>
+  <g class="drift slow">${SC.cloud(100,90,1.3)}${SC.cloud(460,60,1)}${SC.cloud(820,110,1.2)}</g>
+  <g transform="translate(400,300) scale(.68) translate(-400,-300)">${[140,250,550,660].map(x=>`<g><rect x="${x-14}" y="140" width="28" height="160" fill="#fff" stroke="#d0d7f0" stroke-width="3"/><rect x="${x-22}" y="130" width="44" height="12" fill="#f1f3ff" stroke="#d0d7f0" stroke-width="2"/>${[0,1,2].map(k=>`<line x1="${x-6+k*6}" y1="146" x2="${x-6+k*6}" y2="296" stroke="#e3e8f8" stroke-width="2"/>`).join('')}</g>`).join('')}
+  <path d="M110 128 L400 70 L690 128 Z" fill="#fff" stroke="#d0d7f0" stroke-width="3"/></g>
+  <path d="M-40 300 Q60 270 160 300 Q260 275 360 300 Q460 272 560 300 Q660 276 760 300 Q820 285 860 300 V400 H-40Z" fill="#fff"/><path d="M-40 330 Q80 305 200 330 Q320 310 440 332 Q560 310 680 330 Q780 318 860 332 V400 H-40Z" fill="#f1f6ff"/>
+  ${[...Array(8)].map(()=>`<text class="float" style="animation-delay:${(-r()*6).toFixed(1)}s" x="${r()*800}" y="${40+r()*200}" font-size="${20+r()*18}" font-weight="700" fill="#7f7fd5" opacity=".4" font-family="sans-serif">?</text>`).join('')}`;
+ }
+ else if(id==='hw'){
+  d=`<linearGradient id="sc-js" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fe3c6"/><stop offset=".8" stop-color="#e6fbe0"/></linearGradient>`;
+  const palm=(x,y,s)=>`<g transform="translate(${x},${y}) scale(${s})"><path d="M-4 0 Q-10 -60 4 -120 L10 -120 Q0 -60 6 0Z" fill="#8a5a2b"/>${[-60,-20,20,60,100,140].map(a=>`<path d="M7 -120 q40 -20 70 10 q-40 -8 -70 -10z" fill="#2b8a3e" transform="rotate(${a} 7 -120)"/>`).join('')}</g>`;
+  b=`<rect width="800" height="400" fill="url(#sc-js)"/><path d="M560 250 L640 150 Q660 140 680 150 L760 250Z" fill="#6c8a5a"/><g class="smoke" style="transform-origin:660px 140px"><circle cx="660" cy="130" r="12" fill="#fff" opacity=".6"/></g>
+  <path d="M0 250 Q160 210 320 245 T640 240 T800 250 V400 H0Z" fill="#6cc27a"/>
+  ${palm(90,300,1.1)}${palm(730,305,1.2)}${palm(260,285,.7)}
+  <path d="M0 290 Q200 278 400 288 T800 282 V400 H0Z" fill="#4c9a3a"/>
+  <path d="M-10 350 Q200 330 400 346 Q600 360 810 338 L810 360 Q600 382 400 366 Q200 350 -10 372Z" fill="#4dabf7" opacity=".8"/>
+  ${[...Array(10)].map(()=>{const x=r()*800,y=300+r()*90;return `<path d="M${x} ${y} q-14 -18 -26 -10 q14 2 26 10 q-6 -22 6 -30 q2 16 -6 30 q14 -18 26 -10 q-14 2 -26 10z" fill="#2f9e44"/>`;}).join('')}
+  ${SC.rock(40,390,80,44,'#8c929b','#6b717a','#c7ccd3')}${SC.rock(770,392,90,50,'#8c929b','#6b717a','#c7ccd3')}`;
+ }
+ else return '';
+ return `<svg class="scene-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>${d}</defs>${b}</svg>`;
 }
 
 /* ================= boot ================= */
