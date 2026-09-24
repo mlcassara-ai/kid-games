@@ -355,11 +355,11 @@ function newPlayer(name,grade){
   stats:{add:{r:0,w:0},sub:{r:0,w:0},mul:{r:0,w:0},div:{r:0,w:0}},
   missed:{},daily:{},progress:{},
   owned:{hats:HATS.filter(h=>!h.price).map(h=>h.id),robes:ROBES.filter(r=>!r.price).map(r=>r.id),spells:['spark']},
-  spell:'spark',pets:[],pet:null,eggs:1,time:0,bestStreak:0,battles:0,
+  welcomed:false,spell:'spark',pets:[],pet:null,eggs:1,time:0,bestStreak:0,battles:0,
   recent:{add:[],sub:[],mul:[],div:[]},log:[],lock:null,battle:null,maxL:{add:g.add,sub:g.sub,mul:g.mul,div:g.div},champ:{},pb:{},days:[],quest:null};
 }
 let state=load();
-function migrate(){state.players.forEach(p=>{if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.players.forEach(p=>{if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -436,7 +436,7 @@ function go(s,arg){curScreen=s;curArg=arg;window.scrollTo(0,0);SCREENS[s](arg);}
 function modal(html){const m=$('#modal');m.innerHTML=html;m.classList.add('show');}
 function closeModal(){const m=$('#modal');m.classList.remove('show');m.innerHTML='';}
 let toastT=null;
-function toast(msg){const t=$('#toast');t.classList.toggle('top',curScreen==='battle');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+function toast(msg){const t=$('#toast');t.classList.toggle('top',curScreen==='battle'||curScreen==='create');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
 function toggleSound(){state.sound=!state.sound;save();go(curScreen,curArg);}
 function topbar(){
  const p=P();const need=xpNeed(p.level);
@@ -483,6 +483,7 @@ function enter(p){
  state.cur=p.id;save();
  if(!p.setup){go('create',p.id);return;}
  go('map');
+ if(!p.welcomed){welcomeIfNew(p);return;}
  if(p.battle){const b=p.battle,z=ZONES.find(x=>x.id===b.zid);const m=z.mons[b.i];
   modal(`<div class="mcard"><div class="big-emoji">${m[1]}</div><h2>Welcome back, ${esc(p.name)}!</h2><p>You were in the middle of a battle with <b>${esc(m[0])}</b>. Want to finish it?</p><div class="row"><button class="btn ghost dark" onclick="P().battle=null;save();closeModal()">Not now</button><button class="btn green" onclick="resumeBattle()">Keep fighting ⚔️</button></div></div>`);}
  else toast(`Welcome back, ${p.name}! 👋`);
@@ -493,7 +494,8 @@ function resumeBattle(){const b=P().battle;closeModal();if(b)startBattle(b.zid,b
 let draft=null;
 SCREENS.create=id=>{
  const ex=id?state.players.find(p=>p.id===id):null;
- draft={id:ex?ex.id:null,name:ex?ex.name:'',grade:ex?ex.grade:3,look:Object.assign({skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:'purple'},ex?ex.look:{}),edit:!!(ex&&ex.setup),lock:ex&&ex.lock?[...ex.lock]:[]};
+ draft={id:ex?ex.id:null,name:ex?ex.name:'',grade:ex?ex.grade:3,look:Object.assign({skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:'purple'},ex?ex.look:{}),edit:!!(ex&&ex.setup&&ex.welcomed),lock:ex&&ex.lock?[...ex.lock]:[]};
+ draft.saved=ex&&ex.setup?heroSnap():null;
  renderCreate();
 };
 function renderCreate(){
@@ -513,21 +515,32 @@ function renderCreate(){
   <label class="lbl">Secret pictures <span class="muted">(optional: tap 2 in order so only you can play as you)</span></label><div class="chips"><button class="chip ${!draft.lock||!draft.lock.length?'on':''}" onclick="draft.lock=[];renderCreate()">${draft.lock&&draft.lock.length?'Clear':'None'}</button>${PICS.map(e=>{const k=(draft.lock||[]).indexOf(e);return `<button class="chip pic ${k>=0?'on':''}" onclick="pickLock('${e}')">${e}${k>=0?`<sup>${k+1}</sup>`:''}</button>`;}).join('')}</div>
   <label class="lbl">Hat</label><div class="chips">${hats.map(h=>`<button class="chip ${draft.look.hat===h.id?'on':''}" onclick="draft.look.hat='${h.id}';renderCreate()">${h.name}</button>`).join('')}</div>
  </div></div>
- <div class="row"><button class="btn ghost" onclick="go(${draft.edit?"'backpack'":"'profiles'"})">Back</button><button class="btn gold big" onclick="finishCreate()">${draft.edit?'Save look ✓':'Start the adventure! ⚔️'}</button></div></div>`;
+ <div class="row"><button class="btn ghost" onclick="leaveCreate()">← Back</button><button class="btn green big" onclick="saveHero('save')">💾 Save${heroDirty()?'':'d ✓'}</button><button class="btn gold big" onclick="saveHero('${draft.edit?'done':'start'}')">${draft.edit?'Done ✓':'Start the adventure! ⚔️'}</button></div></div>`;
 }
 function pickLock(e){draft.lock=draft.lock||[];if(draft.lock.length>=2||draft.lock.includes(e))draft.lock=[];draft.lock.push(e);renderCreate();}
-function finishCreate(){
+function heroSnap(){return JSON.stringify({n:draft.name.trim(),l:draft.look,k:draft.lock||[],g:draft.grade});}
+function heroDirty(){return draft.saved!==heroSnap();}
+function saveHero(mode){
  const name=draft.name.trim();
- if(draft.look.kind!=='boy'&&draft.look.kind!=='girl'){toast('Pick a boy or girl wizard first!');return;}
- if(draft.lock&&draft.lock.length===1){toast('Pick one more secret picture (or tap Clear).');return;}
- if(!name){const i=$('#nm');i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');i.focus();toast('Give your hero a name!');return;}
+ if(draft.look.kind!=='boy'&&draft.look.kind!=='girl'){toast('Pick a boy or girl wizard first!');return false;}
+ if(draft.lock&&draft.lock.length===1){toast('Pick one more secret picture (or tap Clear).');return false;}
+ if(!name){const i=$('#nm');i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');i.focus();toast('Give your hero a name!');return false;}
  let p=draft.id?state.players.find(x=>x.id===draft.id):null;
- const first=!p||!p.setup;
- if(!p){p=newPlayer(name,draft.grade);state.players.push(p);}
- p.name=name;p.look=Object.assign({},draft.look);p.lock=draft.lock&&draft.lock.length?[...draft.lock]:null;p.setup=true;state.cur=p.id;save();
- if(draft.edit){go('backpack');return;}
- go('map');
- if(first)modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>Welcome, ${esc(p.name)}!</h2>
+ if(!p){p=newPlayer(name,draft.grade);p.welcomed=false;state.players.push(p);}
+ p.name=name;p.look=JSON.parse(JSON.stringify(draft.look));p.lock=draft.lock&&draft.lock.length?[...draft.lock]:null;p.setup=true;state.cur=p.id;save();
+ draft.id=p.id;draft.name=name;draft.saved=heroSnap();
+ if(mode==='save'){SFX.coin();toast('Saved! ✓');renderCreate();return true;}
+ if(mode==='done'){go('backpack');return true;}
+ go('map');welcomeIfNew(p);return true;
+}
+function leaveCreate(){
+ const back=()=>{const p=draft.id&&state.players.find(x=>x.id===draft.id);go(draft.edit?'backpack':'profiles');};
+ if(!heroDirty()){back();return;}
+ modal(`<div class="mcard"><h2>Save your hero?</h2><p>You changed your hero but didn't save yet.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Keep editing</button><button class="btn danger" onclick="closeModal();draft.saved=heroSnap();leaveCreate()">Don't save</button><button class="btn green" onclick="closeModal();if(saveHero('save'))leaveCreate()">💾 Save</button></div></div>`);
+}
+function welcomeIfNew(p){
+ if(p.welcomed)return;p.welcomed=true;save();
+ modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>Welcome, ${esc(p.name)}!</h2>
  <p>Number Monsters have taken over the Realm of Numbers. Only a math hero can stop them!</p>
  <div class="hint" style="text-align:left">✅ Right answers cast spells at the monster.<br>⚡ Answer fast for a <b>CRITICAL</b> hit!<br>🔥 Keep a streak going for extra power.<br>💡 Wrong answers let the monster hit back, but you'll see the trick to solve it.</div>
  <p><b>🥚 You found a mystery egg!</b> Hatch it in your backpack.</p>
