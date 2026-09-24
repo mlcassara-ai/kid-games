@@ -39,7 +39,7 @@ Which fish live in which lake is simplified for the game. It's based on the City
 ## Tech
 The whole game is one `index.html` file with no build step and no dependencies. Progress is saved in the browser's localStorage.
 
-All graphics are drawn in code, with no image files. Each fish is painted in field-guide style, with real body proportions, rayed see-through fins, scales, lateral lines and species markings. The paintings are cached as sprites so the game stays smooth. The lake scene has light ripples (caustics), light shafts, drifting specks, chaparral hills with oaks, a wooden dock, an aluminum rental jon boat, pondweed and a pebbly bottom.
+All graphics are drawn in code, with no image files. Each fish is painted in field-guide style, with real body proportions, rayed see-through fins, scales, lateral lines and species markings. The paintings are cached as sprites so the game stays smooth. The lake scene has light ripples (caustics), light shafts, drifting specks, chaparral hills with oaks, a wooden dock, an aluminum rental jon boat, pondweed and a pebbly bottom. Every lake has its own shore: granite boulders and an avocado grove at Dixon, Mt. Woodson (with Potato Chip Rock) at Poway, golden hills with a barn and a spinning windmill at Jennings, pine forest and Stonewall Peak at Cuyamaca, the huge granite dome and dam at El Capitan, and Otay Mountain, palm trees and the Olympic training center (with a rowing crew) at Lower Otay.
 
 ## Rules sources
 Game rules are simplified from the [California freshwater sport fishing regulations](https://www.eregulations.com/california/fishing/species-regulations) and [Lake Poway's fishing rules](https://poway.org/420/Fishing). Real rules change, so always check the posted rules at the lake.

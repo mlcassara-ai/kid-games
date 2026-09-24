@@ -1853,36 +1853,157 @@ const causticTile = (() => {                      // shimmering light network on
 let causticPat = null;
 const SPECKS = Array.from({ length: 70 }, (_, i) => ({ x: prand(i, 11) * W, y: prand(i, 12) * (H + 60), r: .6 + prand(i, 13) * 1.4, v: 2 + prand(i, 14) * 6, a: .12 + prand(i, 15) * .25 }));
 function hillLine(x, seed, amp, base){ return base - (Math.sin(x*.009 + seed)*amp + Math.sin(x*.023 + seed*2)*amp*.45 + Math.sin(x*.061 + seed*3)*amp*.18); }
-function drawShore(L, surf, t){
-  const seed = L.depth * .13;
-  // far mountains (hazy blue)
-  ctx.fillStyle = "rgba(122,146,168,.85)"; ctx.beginPath(); ctx.moveTo(0, surf);
-  for (let x = 0; x <= W; x += 12) ctx.lineTo(x, hillLine(x, seed, 26, surf - 78));
-  ctx.lineTo(W, surf); ctx.fill();
-  // chaparral hills: olive-brown with shrub texture
-  const hg = ctx.createLinearGradient(0, surf - 70, 0, surf);
-  hg.addColorStop(0, shade(L.hills, .05)); hg.addColorStop(1, shade(L.hills, -.25));
-  ctx.fillStyle = hg; ctx.beginPath(); ctx.moveTo(0, surf);
-  for (let x = 0; x <= W; x += 10) ctx.lineTo(x, hillLine(x, seed + 4, 18, surf - 38));
-  ctx.lineTo(W, surf); ctx.fill();
-  for (let i = 0; i < 90; i++){
-    const x = prand(i, 21) * W, top = hillLine(x, seed + 4, 18, surf - 38), y = top + 4 + prand(i, 22) * (surf - top - 6);
-    ctx.fillStyle = prand(i, 23) < .5 ? "rgba(52,70,38,.55)" : "rgba(95,105,60,.5)";
-    ctx.beginPath(); ctx.ellipse(x, y, 2 + prand(i, 24)*3, 1.5 + prand(i, 25)*2, 0, 0, 7); ctx.fill();
+// ---------- each lake has its own shore: mountains, trees, flowers and landmarks ----------
+const SHORE_H = 230;                              // shore art covers this many px above the waterline
+const SCENES = {
+  dixon:    { sky:["#5aa3dc","#a9d4f0","#e4f2fb"], far:"#7f97ab", hills:"#6b8f4e", sand:"#b9a57c", tree:"oak",  flowers:["#f39a2a","#f7c948"], seed:3 },
+  poway:    { sky:["#5aa0d8","#acd3ee","#e8f2f8"], far:"#8497a6", hills:"#8a9a5a", sand:"#c2ac80", tree:"oak",  flowers:["#8a6fd1","#f7f2e8"], seed:7 },
+  jennings: { sky:["#62a8dd","#b4d8ee","#f0efe2"], far:"#8f9aa6", hills:"#c3a15a", sand:"#c9b184", tree:"oak",  flowers:["#f2d23a","#f5e27a"], seed:11 },
+  cuyamaca: { sky:["#3f8fd6","#9ccbf0","#e2f1fb"], far:"#6d88a0", hills:"#5f8a4a", sand:"#a89a78", tree:"pine", flowers:["#7b5fd0","#f4f4f4","#c86bd6"], seed:15 },
+  elcap:    { sky:["#6aa6d4","#c2d9e6","#f3eadb"], far:"#9a9aa2", hills:"#a58a5a", sand:"#c8ae82", tree:"scrub",flowers:["#e6c33a"], seed:19 },
+  otay:     { sky:["#78acd4","#c6dceb","#f1eee6"], far:"#8c8aa0", hills:"#b09a6a", sand:"#cdb58a", tree:"palm", flowers:["#f0d43a","#f7e46a"], seed:23 }
+};
+const shoreCache = {};
+function shoreArt(L){
+  if (shoreCache[L.id]) return shoreCache[L.id];
+  const sc = SCENES[L.id] || SCENES.dixon, S2 = 2, c0 = document.createElement("canvas");
+  c0.width = W * S2; c0.height = SHORE_H * S2;
+  const c = c0.getContext("2d"); c.scale(S2, S2);
+  const B = SHORE_H, seed = sc.seed;
+  const ridge = (x, sd, amp, base) => hillLine(x, sd, amp, base);
+  const fillRidge = (fill, sd, amp, base, step = 8) => { c.fillStyle = fill; c.beginPath(); c.moveTo(0, B); for (let x = 0; x <= W; x += step) c.lineTo(x, ridge(x, sd, amp, base)); c.lineTo(W, B); c.fill(); };
+  const haze = (col, a) => { const [r,g,b] = hexRgb(col); return `rgba(${r},${g},${b},${a})`; };
+
+  // --- far layer: each lake's own mountain skyline
+  if (L.id === "poway"){                                   // Mt. Woodson, with Potato Chip Rock near the top
+    fillRidge(haze(sc.far, .75), seed, 14, B - 70);
+    c.fillStyle = haze("#8a8e98", .92); c.beginPath(); c.moveTo(20, B - 40);
+    c.bezierCurveTo(110, B - 110, 150, B - 150, 220, B - 175, 270, B - 168); c.bezierCurveTo(320, B - 160, 400, B - 100, 520, B - 40); c.lineTo(520, B); c.lineTo(20, B); c.fill();
+    for (let i = 0; i < 40; i++){ const x = 150 + prand(i, 5)*250, y = B - 150 + prand(i, 6)*80 + Math.abs(x - 270)*.35, r = 1.6 + prand(i, 7)*2.6;   // boulder-covered slopes
+      c.fillStyle = "rgba(70,70,75,.25)"; c.beginPath(); c.ellipse(x + .8, y + .8, r, r*.7, 0, 0, 7); c.fill();
+      c.fillStyle = "rgba(205,200,190,.6)"; c.beginPath(); c.ellipse(x, y, r, r*.7, 0, 0, 7); c.fill(); }
+    c.fillStyle = "#8d8a86"; c.beginPath(); c.moveTo(262, B - 170); c.lineTo(290, B - 176); c.lineTo(291, B - 173); c.lineTo(263, B - 166); c.fill();   // the "chip"
+  } else if (L.id === "elcap"){                             // El Capitan's big granite dome
+    fillRidge(haze(sc.far, .7), seed, 18, B - 80);
+    const dg = c.createLinearGradient(0, B - 185, 0, B - 40); dg.addColorStop(0, "#c9c2b4"); dg.addColorStop(1, "#8f8474");
+    c.fillStyle = dg; c.beginPath(); c.moveTo(40, B - 40);
+    c.bezierCurveTo(70, B - 150, 150, B - 190, 220, B - 186); c.bezierCurveTo(290, B - 182, 340, B - 120, 370, B - 40); c.fill();
+    c.strokeStyle = "rgba(90,80,70,.35)"; c.lineWidth = 1.4;
+    for (let i = 0; i < 9; i++){ const x = 90 + i*28; c.beginPath(); c.moveTo(x, B - 160 + Math.abs(x - 215)*.4); c.quadraticCurveTo(x + 6, B - 100, x - 4, B - 45); c.stroke(); }
+    c.fillStyle = "rgba(255,255,255,.18)"; c.beginPath(); c.ellipse(190, B - 165, 40, 12, -.2, 0, 7); c.fill();
+  } else if (L.id === "cuyamaca"){                          // Cuyamaca Peak and pointy Stonewall Peak
+    fillRidge(haze(sc.far, .85), seed, 30, B - 95);
+    c.fillStyle = haze("#7c8a96", .95); c.beginPath(); c.moveTo(250, B - 70); c.lineTo(318, B - 168); c.lineTo(332, B - 172); c.lineTo(400, B - 70); c.fill();
+    c.fillStyle = "rgba(60,70,80,.25)"; c.beginPath(); c.moveTo(250, B - 70); c.lineTo(318, B - 168); c.lineTo(322, B - 70); c.fill();
+    c.fillStyle = "rgba(230,230,225,.5)"; c.beginPath(); c.moveTo(310, B - 158); c.lineTo(318, B - 168); c.lineTo(332, B - 172); c.lineTo(340, B - 160); c.lineTo(326, B - 150); c.fill();
+  } else if (L.id === "otay"){                              // rugged Otay Mountain ridge
+    fillRidge(haze(sc.far, .6), seed + 2, 22, B - 105);
+    c.fillStyle = haze("#7f7a92", .88); c.beginPath(); c.moveTo(0, B - 60);
+    for (let x = 0; x <= W; x += 6) c.lineTo(x, B - 95 - Math.sin(x*.012 + 1)*38 - Math.abs(Math.sin(x*.07))*10 - prand(x, 3)*4);
+    c.lineTo(W, B); c.lineTo(0, B); c.fill();
+  } else {
+    fillRidge(haze(sc.far, .85), seed, 26, B - 78);
   }
-  // oaks along the shore
-  for (let i = 0; i < 9; i++){
-    const x = prand(i, 31) * W, y = surf - 6 - prand(i, 32) * 6, r = 6 + prand(i, 33) * 7;
-    ctx.fillStyle = "#2f4a2a"; for (let k = 0; k < 4; k++){ ctx.beginPath(); ctx.arc(x + (k - 1.5) * r*.55, y - r*.4 - (k % 2) * r*.35, r*.7, 0, 7); ctx.fill(); }
-    ctx.fillStyle = "rgba(120,150,80,.35)"; ctx.beginPath(); ctx.arc(x - r*.2, y - r*.8, r*.45, 0, 7); ctx.fill();
+
+  // --- near hills with their own color and texture
+  const hg = c.createLinearGradient(0, B - 75, 0, B); hg.addColorStop(0, shade(sc.hills, .06)); hg.addColorStop(1, shade(sc.hills, -.25));
+  c.fillStyle = hg; c.beginPath(); c.moveTo(0, B);
+  for (let x = 0; x <= W; x += 8) c.lineTo(x, ridge(x, seed + 4, 18, B - 38));
+  c.lineTo(W, B); c.fill();
+  const onHill = (i, k) => { const x = prand(i, k) * W, top = ridge(x, seed + 4, 18, B - 38); return [x, top + 3 + prand(i, k + 1) * (B - top - 7)]; };
+  for (let i = 0; i < 110; i++){                          // grass / shrub texture
+    const [x, y] = onHill(i, 21);
+    c.fillStyle = prand(i, 23) < .5 ? "rgba(52,70,38,.45)" : shade(sc.hills, -.18);
+    c.beginPath(); c.ellipse(x, y, 1.6 + prand(i, 24)*3, 1.2 + prand(i, 25)*1.6, 0, 0, 7); c.fill();
   }
-  // sandy/rocky shoreline strip
-  ctx.fillStyle = "#b9a57c"; ctx.fillRect(0, surf - 4, W, 4);
-  ctx.fillStyle = "rgba(90,80,60,.5)"; for (let i = 0; i < 30; i++){ ctx.beginPath(); ctx.ellipse(prand(i, 41)*W, surf - 2, 2 + prand(i, 42)*3, 1.4, 0, 0, 7); ctx.fill(); }
+  // wildflower patches
+  for (let i = 0; i < 140; i++){
+    const [x, y] = onHill(i, 61); if (prand(i, 63) < .35) continue;
+    c.fillStyle = sc.flowers[i % sc.flowers.length]; c.globalAlpha = .75 + prand(i, 64)*.25;
+    c.beginPath(); c.arc(x, y, .9 + prand(i, 65)*1.1, 0, 7); c.fill();
+  }
+  c.globalAlpha = 1;
+
+  // --- landmarks (drawn before shoreline trees so trees sit in front)
+  const cabin = (x, y, w, h, wall, roof) => {
+    c.fillStyle = wall; c.fillRect(x - w/2, y - h, w, h);
+    c.fillStyle = roof; c.beginPath(); c.moveTo(x - w/2 - 3, y - h); c.lineTo(x, y - h - h*.7); c.lineTo(x + w/2 + 3, y - h); c.fill();
+    c.fillStyle = "rgba(40,30,20,.6)"; c.fillRect(x - 2, y - h*.6, 4, h*.6); c.fillStyle = "#cfe6f2"; c.fillRect(x + w*.18, y - h*.75, 4, 3);
+  };
+  if (L.id === "dixon"){
+    cabin(300, B - 8, 26, 12, "#c9b48a", "#9c3b2e");                      // bait shop
+    c.strokeStyle = "#ddd"; c.lineWidth = 1; c.beginPath(); c.moveTo(322, B - 8); c.lineTo(322, B - 34); c.stroke();
+    c.fillStyle = "#3b6fb5"; c.fillRect(322, B - 34, 8, 5);                // flag
+    for (let i = 0; i < 18; i++){ const x = 40 + prand(i, 71)*400, y = ridge(x, seed + 4, 18, B - 38) + 6 + prand(i, 72)*14;   // big granite boulders
+      c.fillStyle = "#b5ada0"; c.beginPath(); c.ellipse(x, y, 3 + prand(i, 73)*5, 2.2 + prand(i, 74)*3, 0, 0, 7); c.fill();
+      c.fillStyle = "rgba(255,255,255,.25)"; c.beginPath(); c.ellipse(x - 1, y - 1, 2, 1.2, 0, 0, 7); c.fill(); }
+    for (let r = 0; r < 4; r++) for (let k = 0; k < 8; k++){ const x = 365 + k*11 + r*5 + prand(r*9 + k, 75)*3, y = ridge(x, seed + 4, 18, B - 38) + 5 + r*5;   // avocado grove in rows
+      c.fillStyle = "rgba(0,0,0,.15)"; c.beginPath(); c.ellipse(x + 1, y + 2.2, 3.4, 1, 0, 0, 7); c.fill();
+      c.fillStyle = "#2d4f2c"; c.beginPath(); c.arc(x, y, 3, 0, 7); c.fill(); c.fillStyle = "#4b7040"; c.beginPath(); c.arc(x - .8, y - 1, 1.5, 0, 7); c.fill(); }
+  }
+  if (L.id === "poway"){
+    c.fillStyle = "#f2efe6"; c.fillRect(330, B - 20, 22, 2); for (let k = 0; k < 4; k++) c.fillRect(331 + k*6.5, B - 20, 1.5, 12);   // gazebo
+    c.fillStyle = "#6b4a33"; c.beginPath(); c.moveTo(327, B - 20); c.lineTo(341, B - 29); c.lineTo(355, B - 20); c.fill();
+  }
+  if (L.id === "jennings"){
+    c.fillStyle = "#a33a2c"; c.fillRect(350, B - 30, 30, 16); c.fillStyle = "#7c2a20"; c.beginPath(); c.moveTo(346, B - 30); c.lineTo(365, B - 42); c.lineTo(384, B - 30); c.fill();   // red barn
+    c.strokeStyle = "#f2e6d0"; c.lineWidth = 1; c.strokeRect(360, B - 24, 10, 10); c.beginPath(); c.moveTo(360, B - 24); c.lineTo(370, B - 14); c.moveTo(370, B - 24); c.lineTo(360, B - 14); c.stroke();
+    c.strokeStyle = "#8b8f95"; c.lineWidth = 1.2; c.beginPath(); c.moveTo(402, B - 14); c.lineTo(410, B - 62); c.lineTo(418, B - 14); c.moveTo(404, B - 30); c.lineTo(416, B - 30); c.moveTo(406, B - 46); c.lineTo(414, B - 46); c.stroke();   // windmill tower (blades spin live)
+    [[440, "#e8e3d4"], [458, "#e2743a"]].forEach(([x, col]) => { c.fillStyle = col; c.beginPath(); c.moveTo(x, B - 8); c.lineTo(x + 8, B - 20); c.lineTo(x + 16, B - 8); c.fill(); });   // campground tents
+  }
+  if (L.id === "cuyamaca"){
+    cabin(385, B - 8, 28, 13, "#7a4f2e", "#4b3a2e");                      // log cabin store
+    c.strokeStyle = "rgba(60,35,20,.5)"; c.lineWidth = .8; for (let k = 0; k < 4; k++){ c.beginPath(); c.moveTo(371, B - 10 - k*3); c.lineTo(399, B - 10 - k*3); c.stroke(); }
+  }
+  if (L.id === "elcap"){
+    c.fillStyle = "#cfcac0"; c.beginPath(); c.moveTo(380, B - 4); c.lineTo(392, B - 36); c.lineTo(W, B - 36); c.lineTo(W, B - 4); c.fill();   // the dam
+    c.fillStyle = "rgba(0,0,0,.12)"; for (let k = 0; k < 5; k++) c.fillRect(398 + k*16, B - 36, 2, 32);
+  }
+  if (L.id === "otay"){
+    [[330, 34], [368, 24], [396, 40]].forEach(([x, w]) => { c.fillStyle = "#eef0f0"; c.fillRect(x, B - 15, w, 10); c.fillStyle = "#9fb3c2"; c.fillRect(x, B - 17, w, 2); c.fillStyle = "#6b8aa6"; for (let k = 3; k < w - 3; k += 6) c.fillRect(x + k, B - 12, 3, 3); });   // training center
+    ["#d33a3a", "#f2f2f2", "#2f5fb3"].forEach((col, k) => { c.strokeStyle = "#ccc"; c.lineWidth = .8; c.beginPath(); c.moveTo(444 + k*8, B - 6); c.lineTo(444 + k*8, B - 30); c.stroke(); c.fillStyle = col; c.fillRect(444 + k*8, B - 30, 6, 4); });
+  }
+
+  // --- trees along the shore, in each lake's own style
+  const oak = (x, y, r, col) => { c.fillStyle = col; for (let k = 0; k < 4; k++){ c.beginPath(); c.arc(x + (k - 1.5) * r*.55, y - r*.4 - (k % 2) * r*.35, r*.7, 0, 7); c.fill(); }
+    c.fillStyle = "rgba(140,170,90,.3)"; c.beginPath(); c.arc(x - r*.2, y - r*.8, r*.45, 0, 7); c.fill(); };
+  const pine = (x, y, h) => { c.fillStyle = "#4a3524"; c.fillRect(x - 1, y - h*.2, 2, h*.2);
+    for (let k = 0; k < 4; k++){ const w = h*(.32 - k*.06), yy = y - h*.15 - k*h*.2; c.fillStyle = k % 2 ? "#23462e" : "#2b5236"; c.beginPath(); c.moveTo(x - w, yy); c.lineTo(x, yy - h*.34); c.lineTo(x + w, yy); c.fill(); } };
+  const palm = (x, y, h) => { c.strokeStyle = "#7a6248"; c.lineWidth = 2; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 4, y - h*.5, x + 2, y - h); c.stroke();
+    c.strokeStyle = "#3f6b3a"; c.lineWidth = 1.6; for (let k = 0; k < 7; k++){ const a = -Math.PI + k*Math.PI/6; c.beginPath(); c.moveTo(x + 2, y - h); c.quadraticCurveTo(x + 2 + Math.cos(a)*8, y - h - 5, x + 2 + Math.cos(a)*13, y - h + 4 + Math.abs(Math.sin(a))*2); c.stroke(); } };
+  const scrub = (x, y, r) => { c.fillStyle = "#6a6a3e"; c.beginPath(); c.ellipse(x, y - r*.4, r, r*.55, 0, 0, 7); c.fill(); c.fillStyle = "rgba(160,150,90,.35)"; c.beginPath(); c.ellipse(x - r*.3, y - r*.6, r*.5, r*.25, 0, 0, 7); c.fill(); };
+  if (L.id === "cuyamaca"){ for (let i = 0; i < 26; i++){ const x = prand(i, 81)*W; if (x > 366 && x < 404) continue; pine(x, B - 4 - prand(i, 82)*14, 18 + prand(i, 83)*20); } }
+  else if (L.id === "otay"){ for (let i = 0; i < 4; i++) palm(40 + i*52 + prand(i, 91)*20, B - 5, 26 + prand(i, 92)*10); for (let i = 0; i < 10; i++) scrub(prand(i, 93)*W, B - 5, 3 + prand(i, 94)*3); }
+  else if (L.id === "elcap"){ for (let i = 0; i < 16; i++){ const x = prand(i, 95)*370; scrub(x, B - 5 - prand(i, 96)*8, 3 + prand(i, 97)*4); } oak(60, B - 6, 9, "#3a4f2c"); }
+  else {
+    const n = L.id === "jennings" ? 6 : 9, col = L.id === "jennings" ? "#3f5230" : "#2f4a2a";
+    for (let i = 0; i < n; i++){ const x = prand(i + seed, 31)*W; if (L.id === "jennings" && x > 340 && x < 430) continue; oak(x, B - 6 - prand(i, 32)*6, 6 + prand(i, 33)*7, col); }
+    if (L.id === "poway") for (let i = 0; i < 3; i++){ const x = 30 + i*140 + prand(i, 34)*40; c.fillStyle = "#e9e4da"; c.fillRect(x - 1, B - 30, 2, 24); oak(x, B - 24, 9, "#5b7a3e"); }   // sycamores
+  }
+  // shoreline strip
+  c.fillStyle = sc.sand; c.fillRect(0, B - 4, W, 4);
+  c.fillStyle = "rgba(90,80,60,.5)"; for (let i = 0; i < 30; i++){ c.beginPath(); c.ellipse(prand(i, 41)*W, B - 2, 2 + prand(i, 42)*3, 1.4, 0, 0, 7); c.fill(); }
+  shoreCache[L.id] = c0; return c0;
 }
-function drawSky(surf, t){
+function drawShore(L, surf, t){
+  ctx.drawImage(shoreArt(L), 0, surf - SHORE_H, W, SHORE_H);
+  if (L.id === "jennings"){                            // the ranch windmill turns in the breeze
+    const hx = 410, hy = surf - 64, a = t * 2.2;
+    ctx.strokeStyle = "#9aa0a6"; ctx.lineWidth = 1.3;
+    for (let k = 0; k < 8; k++){ const b = a + k*Math.PI/4; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + Math.cos(b)*9, hy + Math.sin(b)*9); ctx.stroke(); }
+    ctx.fillStyle = "#7d8288"; ctx.beginPath(); ctx.arc(hx, hy, 2, 0, 7); ctx.fill();
+    ctx.fillStyle = "#8b8f95"; ctx.beginPath(); ctx.moveTo(hx + 2, hy); ctx.lineTo(hx + 14, hy - 3); ctx.lineTo(hx + 14, hy + 3); ctx.fill();
+  }
+  if (L.id === "otay"){                                // a rowing crew glides by, far out on the lake
+    const x = ((t * 9) % (W + 80)) - 40;
+    ctx.fillStyle = "#f2f2f2"; ctx.fillRect(x, surf + 3, 26, 1.6);
+    ctx.fillStyle = "#c33"; for (let k = 0; k < 4; k++) ctx.fillRect(x + 4 + k*5, surf, 2, 3);
+  }
+}
+function drawSky(surf, t, L){
+  const sc = SCENES[L && L.id] || SCENES.dixon;
   const sk = ctx.createLinearGradient(0, surf - 240, 0, surf);
-  sk.addColorStop(0, "#5aa3dc"); sk.addColorStop(.7, "#a9d4f0"); sk.addColorStop(1, "#e4f2fb");
+  sk.addColorStop(0, sc.sky[0]); sk.addColorStop(.7, sc.sky[1]); sk.addColorStop(1, sc.sky[2]);
   ctx.fillStyle = sk; ctx.fillRect(0, 0, W, surf);
   // sun with glow
   const sx = 395, sy0 = surf - 170, gl = ctx.createRadialGradient(sx, sy0, 4, sx, sy0, 70);
@@ -1982,7 +2103,7 @@ function renderScene(T, idle){
   }
   // sky + shore
   if (surf > 0){
-    drawSky(surf, T.t);
+    drawSky(surf, T.t, L);
     drawShore(L, surf, T.t);
     // reflection band just under the surface
     const rf = ctx.createLinearGradient(0, surf, 0, surf + 26);
