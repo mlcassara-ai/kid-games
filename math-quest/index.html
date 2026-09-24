@@ -103,6 +103,19 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .wordbox summary{cursor:pointer;font-weight:600;color:var(--accent);margin:8px 0}
 .ta{font-size:16px;resize:vertical;min-height:120px}
 .qlist{margin:4px 0 8px;padding-left:20px}
+.qcard{position:relative}
+.hintbtn{position:absolute;top:-14px;right:-8px;background:#fff6d6;border:3px solid var(--gold);border-radius:999px;padding:4px 10px;font-size:15px;font-weight:700;color:#6b4a00;box-shadow:0 3px 0 rgba(0,0,0,.2);z-index:2;white-space:nowrap}
+.hintbtn.off{background:#eee;border-color:#ccc;color:#888}
+.hintbtn small{font-weight:600}
+.dimbulb{filter:grayscale(1);opacity:.35}
+.hintcard .pethead{display:flex;align-items:center;gap:12px;text-align:left}
+.bigpet{font-size:54px;animation:bob 1.6s ease-in-out infinite}
+.choices .gone{opacity:.3;text-decoration:line-through}
+.petpick{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}
+.petpick .item{cursor:pointer}
+.famcode{font-size:24px;font-weight:700;letter-spacing:2px;background:#f1edff;border-radius:12px;padding:10px;margin:8px 0;word-break:break-word;color:var(--accent)}
+.famcode.small{font-size:17px;padding:3px 8px}
+.famlink{font-size:13px;word-break:break-all;background:#f6f3ff;border-radius:10px;padding:8px;color:#4c3f78}
 .pcard.add{background:rgba(255,255,255,.1);color:#fff;border:3px dashed rgba(255,255,255,.4);box-shadow:none}
 .pcard.add .plv{color:#cfc6ff}
 .plus{font-size:64px;height:130px;display:grid;place-items:center}
@@ -371,7 +384,8 @@ const IDB={db:null,
  open(){return new Promise(res=>{try{const r=indexedDB.open('mathquest',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>{IDB.db=r.result;res(true);};r.onerror=()=>res(false);}catch(e){res(false);}});},
  get(){return new Promise(res=>{if(!IDB.db)return res(null);try{const t=IDB.db.transaction('kv').objectStore('kv').get('state');t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);}catch(e){res(null);}});},
  put(v){try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').put(v,'state');}catch(e){}}};
-function save(){const j=JSON.stringify(state);try{localStorage.setItem(SAVE_KEY,j);}catch(e){}IDB.put(j);}
+function saveLocal(){const j=JSON.stringify(state);try{localStorage.setItem(SAVE_KEY,j);}catch(e){}IDB.put(j);}
+function save(){stampChanges(false);saveLocal();scheduleSync();}
 function newPlayer(name,grade){
  const g=GRADE_START[grade]||GRADE_START[3];
  return {id:'p'+Math.random().toString(36).slice(2,10),name,grade,setup:false,
@@ -384,7 +398,7 @@ function newPlayer(name,grade){
   recent:{add:[],sub:[],mul:[],div:[]},log:[],lock:null,battle:null,maxL:{add:g.add,sub:g.sub,mul:g.mul,div:g.div},champ:{},pb:{},days:[],quest:null};
 }
 let state=load();
-function migrate(){state.players.forEach(p=>{p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{p.petData=p.petData||{};p.petMs=p.petMs||[];p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -482,7 +496,7 @@ SCREENS.profiles=()=>{
  <h2 class="title">Who's playing?</h2>
  <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?(petOf(p)?petOf(p).e+' ':'')+'Tap to play'+(p.lock?' 🔒':''):'New hero!'}</div></button>`).join('')}
  <button class="pcard add" onclick="go('create')"><div class="plus">＋</div><div class="pname">New Hero</div><div class="plv">Add a player</div></button></div>
- <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button></div></div>`;
+ <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button><div class="note" id="cloudBadge" style="margin-top:8px">${cloudBadgeText()}</div></div></div>`;
 };
 const PICS=['🐶','🐱','🦊','🐸','🦄','🐙','🚀','🍕','⚽'];
 function choose(id){
@@ -583,6 +597,7 @@ SCREENS.map=()=>{
   <div class="zsub">${locked?'🔒 '+z.lockMsg:`⭐ ${stars} / 18`}</div>
   <div class="zlv">${locked?'':(z.op==='mix'?'All four kinds of problems!':KID_DESC[z.op][lvl(p,z.op)])}</div>
   <div class="zart">${z.art}</div>${pr[5]?'<div class="crowned">👑 Boss beaten</div>':''}</button>`;}).join('')}</div></div>`;
+ if(petMilestones(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))offerPet();},600);
 };
 
 /* ---------- zone ---------- */
@@ -765,7 +780,7 @@ function renderBattle(){
   <div class="fighter hero" id="heroF"><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div><div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf">${pet.e}</div>`:''}</div>
   <div class="fighter mon ${B.isBoss?'boss':''}" id="monF"><div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div></div>
  </div>
- <div class="bctrl"><div class="qcard" id="qcard"><div class="qlabel" id="qlabel"></div><div class="qtext" id="qtext">Get ready…</div></div>
+ <div class="bctrl"><div class="qcard" id="qcard"><button class="hintbtn" id="hintBtn" onclick="useHint()"></button><div class="qlabel" id="qlabel"></div><div class="qtext" id="qtext">Get ready…</div></div>
  <div class="qpad">${B.mode!=='math'?'':`<div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="press('${n}')">${n}</button>`).join('')}<button class="del" onclick="press('del')">⌫</button><button onclick="press('0')">0</button><button class="go" onclick="press('go')">✓</button></div>`}</div></div></div></div>`;
  updateBars();
 }
@@ -801,6 +816,7 @@ function nextQ(){
  showQ();
 }
 function showQ(){
+ updateHintBtn();
  if(B.mode!=='math'){questShowQ();return;}
  const q=B.q,inp=B.input||'?';
  if(isVertical(q)){
@@ -829,17 +845,17 @@ function answer(){
  p.stats[q.op][ok?'r':'w']++;
  const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
  let lvChange=null;const prevL=lvl(p,q.op);
- if(!q.again&&!q.practice)lvChange=adjustSkill(p,q.op,ok,slip);
+ if(!q.again&&!q.practice&&!q.hinted)lvChange=adjustSkill(p,q.op,ok,slip);
  if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${UP_N} right in a row to move back up!`);},900);}
  if(ok){
-  B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;
+  B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);
   const mm=p.missed[q.text];if(mm&&(q.practice||q.again))mm.fixed=(mm.fixed||0)+1;
   if(lvChange===1){const nl=prevL+1;const isNew=nl>(p.maxL[q.op]||0);if(isNew)p.maxL[q.op]=nl;
    setTimeout(()=>{if(isNew){banner(`⭐ NEW LEVEL! ${OPNAME[q.op]} ${nl}`);SFX.level();toast(`New challenge: ${KID_DESC[q.op][nl]}`);}else toast(`👍 Back up to ${OPNAME[q.op]} level ${nl}!`);},700);}
   if(q.again||q.practice){B.coins+=3;p.coins+=3;}
   const perk=petPerk(p),spell=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
   let dmg=20*spell.mult*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
-  const crit=fast&&B.streak>=2;if(crit)dmg*=1.4;dmg=Math.round(dmg);
+  const crit=fast&&B.streak>=2&&!q.hinted;if(crit)dmg*=1.4;dmg=Math.round(dmg);
   const c=5+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;
   B.xp+=Math.round(10*(perk==='xp'?1.5:1));
   save();SFX.correct();$('#qcard').classList.add('right');
@@ -952,7 +968,7 @@ function winBattle(){
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>${bestLine}
   ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${p.pets.length<PETS.length||p.eggs?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
-  ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${downsNote()}
+  ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${petMilestones(p).length?`<button class="btn gold" style="margin-top:10px" onclick="offerPet()">🎁 Choose your new pet buddy!</button>`:''}${downsNote()}
   ${B.isBoss&&first&&!B.champ?`<p><b>👑 You freed ${B.z.name}!</b>${B.z.id!=='tower'&&bossesBeaten(p)===2?' The Chaos Tower is now open!':''}${bossesBeaten(p)===5?' <br>🏆 You beat every boss! <b>Champion mode</b> is now open on every world.':''}</p>`:''}
   ${B.isBoss&&first&&B.champ?`<p><b>👑 CHAMPION of ${B.z.name}!</b></p>`:''}
   <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button>
@@ -996,7 +1012,7 @@ SCREENS.backpack=()=>{
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}
    ${p.pets.length<PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
-   <div class="items">${PETS.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,PERKS[x.perk]):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${x.rare?'✨ Rare':'Hatch to find'}</small></div>`;}).join('')}</div></div>
+   <div class="items">${PETS.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${x.rare?'✨ Rare':'Hatch to find'}</small></div>`;}).join('')}</div></div>
   <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell')).join('')}</div></div>
   <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
   <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
@@ -1028,7 +1044,7 @@ function hatchEgg(){
  const pool=PETS.filter(x=>!p.pets.includes(x.id));p.eggs--;
  if(!pool.length){p.coins+=100;save();go('backpack');toast('You have every pet! The egg turned into 🪙 100.');return;}
  const w=[];pool.forEach(x=>{for(let i=0;i<(x.rare?1:3);i++)w.push(x);});
- const pet=pick(w);p.pets.push(pet.id);if(!p.pet)p.pet=pet.id;save();
+ const pet=pick(w);p.pets.push(pet.id);if(!p.pet)p.pet=pet.id;petData(p,pet.id);save();
  modal(`<div class="mcard"><div class="egg" id="egg">🥚</div><h2 id="hT">Hatching…</h2><div id="hR"></div></div>`);
  [0,400,800,1200].forEach(t=>setTimeout(()=>tone(600+t/4,.08,'triangle',.08),t));
  setTimeout(()=>{
@@ -1047,7 +1063,7 @@ function parentGate(){
 const PIN_KEY='mathquest.pin';
 function keepPin(){if(state.pin){try{localStorage.setItem(PIN_KEY,state.pin);}catch(e){}try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').put(state.pin,'pin');}catch(e){}}}
 async function recallPin(){if(state.pin)return;let p=null;try{p=localStorage.getItem(PIN_KEY);}catch(e){}if(!p&&IDB.db){p=await new Promise(res=>{try{const t=IDB.db.transaction('kv').objectStore('kv').get('pin');t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);}catch(e){res(null);}});}if(p&&/^\d{4}$/.test(p))state.pin=p;}
-function setPin(){const a=$('#pin1').value.trim(),b=$('#pin2').value.trim();if(!/^\d{4}$/.test(a)){toast('The PIN needs 4 digits.');return;}if(a!==b){toast("Those don't match. Try again.");return;}state.pin=a;save();keepPin();closeModal();go('parent');}
+function setPin(){const a=$('#pin1').value.trim(),b=$('#pin2').value.trim();if(!/^\d{4}$/.test(a)){toast('The PIN needs 4 digits.');return;}if(a!==b){toast("Those don't match. Try again.");return;}state.pin=a;state.pinUpd=Date.now();save();keepPin();closeModal();go('parent');}
 function checkPin(){const i=$('#pinIn');if(i.value.trim()===state.pin){closeModal();go('parent');}else{i.value='';i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');}}
 function oldHoldGate(){
  modal(`<div class="mcard"><h2>👪 Grown-ups only</h2><p>Press and hold the button for 3 seconds.</p>
@@ -1084,6 +1100,7 @@ function parentCard(p){
 SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go(P()&&P().setup?'map':'profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
  <p class="note">Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level. <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
+ ${cloudSection()}
  ${state.players.map(parentCard).join('')}
  <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
  <div class="pp"><h3>💾 Saving</h3><p>Everyone's progress saves automatically on this device, and the game picks up where each child left off, even in the middle of a battle.</p>
@@ -1093,7 +1110,7 @@ SCREENS.parent=()=>{
 function changePin(){state.pin=null;try{localStorage.removeItem(PIN_KEY);}catch(e){}try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').delete('pin');}catch(e){}save();parentGate();}
 function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save();refreshParent(`pp-${id}`,true);}
 function downloadBackup(){const b=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='math-quest-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();toast('Backup downloaded.');}
-function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;const keep=state.pin;state=s;if(!state.pin)state.pin=keep;migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
+function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;const keep=state.pin;state=s;if(!state.pin)state.pin=keep;state.family=cloud.code;state.players.forEach(p=>p.upd=Date.now());migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
 function dayStreak(p){let n=0;const d=new Date();if(!p.days.includes(dayKey(d)))d.setDate(d.getDate()-1);while(p.days.includes(dayKey(d))){n++;d.setDate(d.getDate()-1);}return n;}
 function questBar(p){const q=(p.quest&&p.quest.d===dayKey())?p.quest:{wins:0,done:false};const st=dayStreak(p);
  return `<div class="questbar"><div>🎯 <b>Today's quest:</b> win 3 battles ${q.done?'✅ Done!':`(${Math.min(q.wins,3)}/3) → 🥚`}</div>${st>=2?`<div>🔥 ${st}-day streak</div>`:''}</div>`;}
@@ -1116,7 +1133,7 @@ function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name
 function confirmReset(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Reset ${esc(p.name)}?</h2><p>This clears coins, pets, items, map progress and stats. It can't be undone.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doReset('${id}')">Reset</button></div></div>`);}
 function doReset(id){const i=state.players.findIndex(x=>x.id===id);const o=state.players[i];const n=newPlayer(o.name,o.grade);n.id=o.id;state.players[i]=n;save();closeModal();refreshParent(`pp-${id}`,true);}
 function confirmDelete(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Delete ${esc(p.name)}?</h2><p>This removes the player and all their progress.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doDelete('${id}')">Delete</button></div></div>`);}
-function doDelete(id){state.players=state.players.filter(x=>x.id!==id);if(state.cur===id)state.cur=null;save();closeModal();refreshParent(null);}
+function doDelete(id){state.deleted=state.deleted||{};state.deleted[id]=Date.now();state.players=state.players.filter(x=>x.id!==id);if(state.cur===id)state.cur=null;save();closeModal();refreshParent(null);}
 
 /* ================= school quests: spelling, quizzes, homework ================= */
 const CONTENT=window.MQ_CONTENT||{kids:{},byGrade:{},quizzes:{}};
@@ -1197,7 +1214,7 @@ function questPadHTML(){
   return `<div class="kbd">${rows.map((r,k)=>`<div class="krow">${[...r].map(c=>`<button onclick="press('${c}')">${c}</button>`).join('')}${k===2&&apos?`<button onclick="press('\\'')">'</button>`:''}</div>`).join('')}
   <div class="krow"><button class="wide" onclick="sayWord()">🔊</button><button class="wide del" onclick="press('del')">⌫</button><button class="wide go" onclick="press('go')">✓</button></div></div>`;
  }
- if(q.type==='choice')return `<div class="choices">${q.choices.map((c,k)=>`<button onclick="press('c${k}')"><b>${'ABCD'[k]}</b> ${esc(c)}</button>`).join('')}</div>`;
+ if(q.type==='choice')return `<div class="choices">${q.choices.map((c,k)=>q.hidden&&q.hidden.includes(k)?`<button class="gone" disabled><b>${'ABCD'[k]}</b> ${esc(c)}</button>`:`<button onclick="press('c${k}')"><b>${'ABCD'[k]}</b> ${esc(c)}</button>`).join('')}</div>`;
  const extra=[...new Set([...q.answer.replace(/[0-9]/g,'')])].filter(c=>'./R:$,-'.includes(c.toUpperCase())).map(c=>c.toUpperCase());
  return `<div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="press('${n}')">${n}</button>`).join('')}<button class="del" onclick="press('del')">⌫</button><button onclick="press('0')">0</button><button class="go" onclick="press('go')">✓</button>${extra.map(c=>`<button class="xk" onclick="press('${c}')">${c==='R'?'R (remainder)':c}</button>`).join('')}</div>`;
 }
@@ -1222,7 +1239,7 @@ function questAnswer(){
  B.busy=true;const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
  if(q.type==='word'){const k=q.word.toLowerCase();const st=p.spellStats[k]=p.spellStats[k]||{r:0,w:0,s:0};if(ok){st.r++;st.s++;}else{st.w++;st.s=0;}st.last=dk;}
  if(ok){
-  if(!q.tries)B.firstTry++;B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.done++;
+  if(!q.tries)B.firstTry++;B.right++;petCharge(p);B.streak++;B.best=Math.max(B.best,B.streak);B.done++;
   const c=5+(q.tries?3:0);B.coins+=c;p.coins+=c;B.xp+=10;save();SFX.correct();$('#qcard').classList.add('right');
   const spell=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
   castSpell(spell,B.streak>=3,()=>{
@@ -1265,7 +1282,7 @@ function questWin(){
   modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You got <b>${B.firstTry} of ${B.total}</b> right on the first try!</p>
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>
-  ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}
+  ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${petMilestones(p).length?`<button class="btn gold" style="margin-top:10px" onclick="offerPet()">🎁 Choose your new pet buddy!</button>`:''}
   <div class="row"><button class="btn ghost dark" onclick="${back}">Back</button>${next}${egg?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`);
   if(up)setTimeout(SFX.level,400);
  },750);
@@ -1311,6 +1328,230 @@ function saveWords(id){
 }
 function clearWords(id){const p=state.players.find(x=>x.id===id);p.customWords=null;save();refreshParent(`pp-${id}`,true);}
 
+/* ================= pet buddies: earned at levels, limited hints ================= */
+const PET_LEVELS=[2,4,6,8,10];
+const HINT_CHARGE=8;                       // right answers to earn back one hint
+const PET_STAGES=[{n:'Baby',xp:0,max:1},{n:'Big',xp:15,max:2},{n:'Grown-up',xp:45,max:3}];
+function petData(p,id){p.petData=p.petData||{};if(!p.petData[id])p.petData[id]={xp:0,hints:1,charge:0};return p.petData[id];}
+function petStage(pd){let s=PET_STAGES[0];PET_STAGES.forEach(x=>{if(pd.xp>=x.xp)s=x;});return s;}
+function petMeter(pd){const st=petStage(pd);let m='';for(let i=0;i<st.max;i++)m+=i<pd.hints?'💡':'<span class="dimbulb">💡</span>';return m;}
+function petMilestones(p){p.petMs=p.petMs||[];const due=PET_LEVELS.filter(l=>p.level>=l&&!p.petMs.includes(l));p.pendingPets=due.length;return due;}
+function petCharge(p){
+ const pet=petOf(p);if(!pet)return;const pd=petData(p,pet.id);const st=petStage(pd);
+ pd.xp+=.25;
+ if(pd.hints<st.max){pd.charge++;if(pd.charge>=HINT_CHARGE){pd.charge=0;pd.hints++;setTimeout(()=>toast(`${pet.e} ${pet.name} has a new hint for you! 💡`),600);}}
+ const st2=petStage(pd);if(st2.max>st.max){pd.hints=Math.min(st2.max,pd.hints+1);setTimeout(()=>{banner(`${pet.e} ${pet.name} grew up!`);toast(`${pet.name} is now ${st2.n} and can hold ${st2.max} hints!`);},900);}
+ updateHintBtn();
+}
+function updateHintBtn(){
+ const b=$('#hintBtn');if(!b||!B)return;const p=P();const pet=petOf(p);
+ if(!pet){b.innerHTML='🐾 Hint';b.classList.add('off');return;}
+ const pd=petData(p,pet.id);
+ b.classList.toggle('off',pd.hints<=0);
+ b.innerHTML=`${pet.e} Hint ${pd.hints>0?petMeter(pd):`<small>${pd.charge}/${HINT_CHARGE}</small>`}`;
+}
+function useHint(){
+ if(!B||B.busy||B.over||fbOpen||!B.q)return;
+ const p=P();const pet=petOf(p);
+ if(!pet){toast('Earn a pet buddy at hero level 2 and it will give you hints! 🐾');return;}
+ const pd=petData(p,pet.id);
+ if(B.q.hinted){toast(`${pet.name} already helped with this one!`);return;}
+ if(pd.hints<=0){toast(`${pet.e} ${pet.name} is resting. ${HINT_CHARGE-pd.charge} more right answers for a new hint!`);return;}
+ pd.hints--;pd.xp+=1;B.q.hinted=true;save();SFX.coin();
+ let body=hintFor(B.q);
+ modal(`<div class="mcard hintcard"><div class="pethead"><span class="bigpet">${pet.e}</span><div><b>${esc(pet.name)} says:</b><div class="muted">${pd.hints} hint${pd.hints===1?'':'s'} left</div></div></div><div class="hint">${body}</div><button class="btn green big" onclick="closeModal()">Thanks, ${esc(pet.name)}!</button></div>`);
+ updateHintBtn();
+}
+function hintFor(q){
+ if(q.type==='word'){
+  const first=q.word[0].toLowerCase();if(!B.input.startsWith(first))B.input=first;showQ();setTimeout(()=>say(q.word,.45),300);
+  return `<p>It starts with <b style="font-size:28px">${esc(first)}</b> and has <b>${q.word.length}</b> letters.</p><p>Listen to it slowly… 🐢</p>`;
+ }
+ if(q.type==='choice'){
+  const wrong=[0,1,2,3].filter(i=>i!==q.answer&&i<q.choices.length).sort(()=>Math.random()-.5).slice(0,2);q.hidden=wrong;
+  $('.bctrl .qpad').innerHTML=questPadHTML();
+  return `<p>I crossed out <b>two wrong answers</b> for you! ✂️</p>`;
+ }
+ if(q.type==='hw'){
+  if(q.hint)return `<p>${esc(q.hint)}</p>`;
+  const n=parseFloat(normAns(q.answer));
+  if(!isNaN(n)&&/^[\d.]+$/.test(normAns(q.answer))){const lo=Math.floor(n*.8),hi=Math.ceil(n*1.2);return `<p>The answer is somewhere between <b>${lo}</b> and <b>${hi}</b>.</p><p>Read it again slowly and find the numbers you need.</p>`;}
+  return `<p>Read the problem again slowly and underline the numbers. What is it asking you to find?</p>`;
+ }
+ return mathNudge(q);
+}
+function mathNudge(q){
+ const {op,a,b,c}=q;const d=(n,i)=>Math.floor(n/Math.pow(10,i))%10;
+ if(op==='add'){
+  if(c===undefined&&a+b<=20)return `<p>Count all the dots:</p><div class="dotbox"><span class="grp">${dotsHTML(a)}</span><span class="plus">+</span><span class="grp">${dotsHTML(b,'o')}</span></div>`;
+  const s=d(a,0)+d(b,0)+(c!==undefined?d(c,0):0);
+  return `<p>Start with the <b>ones</b>: ${d(a,0)} + ${d(b,0)}${c!==undefined?' + '+d(c,0):''} = <b>${s}</b>.</p><p>${s>=10?`Write the ${s%10} and carry the 1 to the tens!`:`Write the ${s}, then add the tens.`}</p>`;
+ }
+ if(op==='sub'){
+  if(a<=20)return `<p>Start at <b>${a}</b> and count back <b>${b}</b>.</p><p>Or think: ${b} + ? = ${a}</p>`;
+  if(q.answer<10)return `<p>These numbers are close together!</p><p>Start at <b>${b}</b> and count up to <b>${a}</b>. How many steps?</p>`;
+  const ao=d(a,0),bo=d(b,0);
+  return ao>=bo?`<p>Start with the <b>ones</b>: ${ao} − ${bo} = <b>${ao-bo}</b>. Now do the tens!</p>`:`<p>Ones: ${ao} is smaller than ${bo}, so <b>borrow a ten</b>: ${ao+10} − ${bo} = <b>${ao+10-bo}</b>.</p><p>Remember the tens went down by 1!</p>`;
+ }
+ if(op==='mul'){
+  if(a<=12&&b<=12){
+   if(a===0||b===0)return `<p>Zero groups of anything is… nothing at all!</p>`;
+   if(a===1||b===1)return `<p>One group of a number is just that number!</p>`;
+   if(a===10||b===10)return `<p>Times 10? Put a zero on the end of ${a===10?b:a}!</p>`;
+   const big=Math.max(a,b),small=Math.min(a,b);
+   const shown=Math.max(1,Math.min(3,small-1));
+   return `<p>Count by <b>${big}s</b>, ${small} times in all:</p><p><b>${Array.from({length:shown},(_,i)=>big*(i+1)).join(', ')}, …</b> keep going!</p>`;
+  }
+  const split=b>12?'b':'a';const big=split==='a'?a:b,oth=split==='a'?b:a;const parts=placeParts(big);
+  if(parts.length===1){const z=String(big).match(/0+$/)[0];return `<p>${big} × ${oth} is like <b>${big/Math.pow(10,z.length)} × ${oth}</b>…</p><p>…then put <b>${z.length===1?'a zero':z.length+' zeros'}</b> on the end!</p>`;}
+  return `<p>Split <b>${big}</b> into ${parts.join(' + ')}.</p><p>First: ${parts[0]} × ${oth} = <b>${parts[0]*oth}</b>. Now do the other part${parts.length>2?'s':''} and add!</p>`;
+ }
+ const qn=q.answer;
+ const shown=Math.max(1,Math.min(2,qn-1));
+ return `<p>Think: <b>${b} × ? = ${a}</b></p><p>Count by ${b}s: <b>${Array.from({length:shown},(_,i)=>b*(i+1)).join(', ')}, …</b> How many jumps to get to ${a}?</p>`;
+}
+function offerPet(){
+ const p=P();const due=petMilestones(p);if(!due.length)return;
+ const pool=PETS.filter(x=>!p.pets.includes(x.id));
+ if(!pool.length){p.petMs.push(due[0]);p.eggs++;p.coins+=100;save();toast('You have every pet! You got 100 coins instead. 🪙');return;}
+ const w=[];pool.forEach(x=>{for(let i=0;i<(x.rare?(due[0]>=8?2:0):3);i++)w.push(x);});
+ const opts=[];const src=w.length?w:pool;while(opts.length<Math.min(3,pool.length)){const x=pick(src);if(!opts.includes(x))opts.push(x);}
+ SFX.level();
+ modal(`<div class="mcard"><div class="big-emoji">🎁</div><h2>Level ${due[0]} reward!</h2><p>A new pet buddy wants to join you. Pets give you <b>hints</b> 💡 when a problem is tricky!</p>
+ <div class="petpick">${opts.map(x=>`<button class="item" onclick="takePet('${x.id}',${due[0]})"><div class="ie">${x.e}</div><div>${esc(x.name)}</div><small>${PERKS[x.perk]}</small>${x.rare?'<small>✨ Rare</small>':''}</button>`).join('')}</div>
+ <p class="muted">Tap the one you want!</p></div>`);
+}
+function takePet(id,lvl){
+ const p=P();if(!p.pets.includes(id))p.pets.push(id);p.petMs=p.petMs||[];if(!p.petMs.includes(lvl))p.petMs.push(lvl);
+ p.pet=id;const pd=petData(p,id);pd.hints=petStage(pd).max;save();closeModal();
+ const x=PETS.find(q=>q.id===id);toast(`${x.e} ${x.name} joined your team!`);SFX.win();
+ if(petMilestones(p).length)setTimeout(offerPet,600);else if(curScreen==='backpack'||curScreen==='map')go(curScreen,curArg);
+}
+
+/* ================= online save (Firebase, family code) ================= */
+const FB={key:'AIzaSyDisxs0uEXvWrlOp8VchKOz0abxPDKIWpI',project:'kid-games-dc068'};
+const FAM_KEY='mathquest.family',AUTH_KEY='mathquest.auth';
+const cloud={code:null,status:'off',last:0,busy:false,again:false,timer:null};
+const FAM_WORDS=('TIGER PANDA ROCKET COMET MANGO LEMON MAPLE CEDAR RIVER OCEAN CANYON DESERT MEADOW FOREST PLANET GALAXY '+
+ 'DRAGON UNICORN PIRATE KNIGHT WIZARD CASTLE BRIDGE TUNNEL HARBOR ISLAND VOLCANO GLACIER THUNDER RAINBOW SUNSET SUNRISE '+
+ 'PENGUIN DOLPHIN OTTER BEAVER FALCON EAGLE PARROT TOUCAN GIRAFFE ZEBRA HIPPO KOALA LLAMA BISON MOOSE WALRUS '+
+ 'PEPPER GINGER COCOA WAFFLE PICKLE MUFFIN CRACKER PRETZEL NOODLE TACO BURRITO NACHO PEACH PLUM CHERRY BERRY '+
+ 'ROBOT GADGET ROCKETS LASER MAGNET PUZZLE MARBLE KITE YOYO DRUM FLUTE GUITAR PIANO VIOLIN TRUMPET BANJO '+
+ 'SILVER GOLDEN COPPER CRIMSON VIOLET INDIGO AMBER CORAL JADE RUBY ONYX PEARL TOPAZ OPAL COBALT SCARLET '+
+ 'SNOWY SUNNY STORMY WINDY CLOUDY FROSTY BREEZY MISTY LUCKY HAPPY JOLLY BRAVE CLEVER SWIFT MIGHTY GENTLE '+
+ 'SOCCER HOCKEY TENNIS SKATER SURFER HIKER CAMPER SAILOR ARCHER BAKER BUILDER RANGER SCOUT PILOT CAPTAIN EXPLORER').split(' ');
+const famId=code=>'f_'+String(code).toLowerCase().replace(/[^a-z0-9]/g,'');
+const normCode=code=>String(code||'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-|-$/g,'');
+function genCode(){const w=()=>FAM_WORDS[Math.floor(crypto.getRandomValues(new Uint32Array(1))[0]/4294967296*FAM_WORDS.length)];return `${w()}-${w()}-${w()}-${w()}-${String(crypto.getRandomValues(new Uint32Array(1))[0]%90+10)}`;}
+function famUrl(code){return `https://firestore.googleapis.com/v1/projects/${FB.project}/databases/(default)/documents/families/${famId(code)}`;}
+function storeAuth(a){try{localStorage.setItem(AUTH_KEY,JSON.stringify(a));}catch(e){}}
+async function fbToken(){
+ let a=null;try{a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');}catch(e){}
+ if(a&&a.exp>Date.now()+120000)return a.id;
+ if(a&&a.refresh){try{const r=await fetch(`https://securetoken.googleapis.com/v1/token?key=${FB.key}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(a.refresh)});
+  if(r.ok){const j=await r.json();a={id:j.id_token,refresh:j.refresh_token,exp:Date.now()+(+j.expires_in)*1000};storeAuth(a);return a.id;}}catch(e){}}
+ const r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB.key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({returnSecureToken:true})});
+ if(!r.ok)throw new Error('auth '+r.status);const j=await r.json();a={id:j.idToken,refresh:j.refreshToken,exp:Date.now()+(+j.expiresIn)*1000};storeAuth(a);return a.id;
+}
+async function cloudGet(code){
+ const t=await fbToken();const r=await fetch(famUrl(code),{headers:{Authorization:'Bearer '+t},cache:'no-store'});
+ if(r.status===404)return null;if(!r.ok)throw new Error('get '+r.status);
+ const j=await r.json();const s=j.fields&&j.fields.data&&j.fields.data.stringValue;return s?JSON.parse(s):null;
+}
+async function cloudPut(code,obj){
+ const t=await fbToken();
+ const body={fields:{data:{stringValue:JSON.stringify(obj)},updated:{integerValue:String(Date.now())},v:{integerValue:'1'}}};
+ const r=await fetch(famUrl(code),{method:'PATCH',headers:{Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ if(!r.ok)throw new Error('put '+r.status);
+}
+const cloudPayload=()=>({v:1,players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},upd:Date.now()});
+
+/* each player remembers when it last changed, so the newest copy of each kid wins */
+const HASH=new Map();
+function stampChanges(init){state.players.forEach(p=>{const h=JSON.stringify(p,(k,v)=>k==='upd'?undefined:v);if(!init&&HASH.has(p.id)&&HASH.get(p.id)!==h)p.upd=Date.now();if(!init&&!HASH.has(p.id)&&!p.upd)p.upd=Date.now();HASH.set(p.id,h);});}
+function mergeStates(remote,joining,keepId){
+ const del=Object.assign({},remote.deleted||{},state.deleted||{});
+ const map=new Map(),order=[];
+ (remote.players||[]).forEach(p=>{map.set(p.id,p);order.push(p.id);});
+ state.players.forEach(p=>{const r=map.get(p.id);if(!r){map.set(p.id,p);order.push(p.id);}else if(p.id===keepId||(p.upd||0)>(r.upd||0))map.set(p.id,p);});
+ let list=order.map(id=>map.get(id)).filter(p=>!(del[p.id]&&del[p.id]>=(p.upd||0)));
+ if(joining){const score=p=>(p.setup?1e9:0)+(p.level||1)*1e5+(p.battles||0)*10+((p.upd||0)/1e13);const best={};
+  list.forEach(p=>{const k=(p.name||'').trim().toLowerCase();if(!best[k]||score(p)>score(best[k]))best[k]=p;});list=list.filter(p=>best[(p.name||'').trim().toLowerCase()]===p);}
+ const before=JSON.stringify(state.players);
+ state.players=list;state.deleted=del;
+ if(remote.pin&&(!state.pin||(remote.pinUpd||0)>(state.pinUpd||0))){state.pin=remote.pin;state.pinUpd=remote.pinUpd||0;}
+ if(state.cur&&!state.players.find(p=>p.id===state.cur))state.cur=null;
+ migrate();stampChanges(true);saveLocal();keepPin();
+ return before!==JSON.stringify(state.players);
+}
+function scheduleSync(){if(!cloud.code)return;clearTimeout(cloud.timer);cloud.timer=setTimeout(syncNow,3000);}
+async function syncNow(){
+ if(!cloud.code)return;if(cloud.busy){cloud.again=true;return;}
+ cloud.busy=true;let changed=false;
+ try{const remote=await cloudGet(cloud.code);
+  if(remote)changed=mergeStates(remote,false,curScreen==='battle'||curScreen==='create'?state.cur:null);
+  await cloudPut(cloud.code,cloudPayload());cloud.status='ok';cloud.last=Date.now();}
+ catch(e){cloud.status='offline';}
+ cloud.busy=false;updateCloudBadge();
+ if(changed&&['profiles','map','parent','backpack','quests','zone'].includes(curScreen)&&!$('#modal.show'))go(curScreen,curArg);
+ if(cloud.again){cloud.again=false;scheduleSync();}
+}
+function updateCloudBadge(){const e=$('#cloudBadge');if(e)e.innerHTML=cloudBadgeText();}
+function cloudBadgeText(){
+ if(!cloud.code)return '';
+ if(cloud.status==='ok')return `☁️ Saved online ${agoText(cloud.last)}`;
+ if(cloud.status==='offline')return '☁️ Offline — will save online when connected';
+ return '☁️ Connecting…';
+}
+function agoText(t){const s=Math.round((Date.now()-t)/1000);return s<60?'just now':s<3600?Math.round(s/60)+' min ago':Math.round(s/3600)+' h ago';}
+function setFamily(code){cloud.code=code;try{if(code)localStorage.setItem(FAM_KEY,code);else localStorage.removeItem(FAM_KEY);}catch(e){}state.family=code||null;saveLocal();}
+async function createFamily(){
+ const code=genCode();
+ try{await fbToken();setFamily(code);stampChanges(false);state.players.forEach(p=>{p.upd=p.upd||Date.now();});await cloudPut(code,cloudPayload());cloud.status='ok';cloud.last=Date.now();
+  refreshParent('cloudbox',true);showFamilyCode();}
+ catch(e){setFamily(null);toast("Couldn't reach the online save. Check the internet and try again.");}
+}
+async function joinFamily(raw,fromLink){
+ const code=normCode(raw);if(famId(code).length<16){toast('That family code looks too short.');return;}
+ try{const remote=await cloudGet(code);if(!remote){toast('No family found with that code. Check the spelling.');return;}
+  setFamily(code);mergeStates(remote,true,null);await cloudPut(code,cloudPayload());cloud.status='ok';cloud.last=Date.now();
+  closeModal();toast('✅ This device is now joined to your family!');
+  if(fromLink){history.replaceState(null,'',location.pathname);go('profiles');}else refreshParent('cloudbox',true);}
+ catch(e){toast("Couldn't reach the online save. Check the internet and try again.");}
+}
+function leaveFamily(){
+ modal(`<div class="mcard"><h2>Stop online save on this device?</h2><p>Progress stays on this device, but it won't share with your other devices anymore. You can join again with the family code.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="setFamily(null);cloud.status='off';closeModal();refreshParent('cloudbox',true)">Stop</button></div></div>`);
+}
+function familyLink(){return location.origin+location.pathname+'?family='+encodeURIComponent(cloud.code);}
+function showFamilyCode(){
+ modal(`<div class="mcard"><div class="big-emoji">☁️</div><h2>Online save is on!</h2><p>Your family code:</p><div class="famcode">${esc(cloud.code)}</div>
+ <p>On another iPad, phone or computer, open this link once (text or AirDrop it), or type the code in that device's Parent Corner:</p>
+ <div class="famlink">${esc(familyLink())}</div>
+ <div class="row"><button class="btn small" onclick="copyText(familyLink())">📋 Copy link</button><button class="btn green" onclick="closeModal()">Done</button></div>
+ <p class="muted">Keep the code private: anyone with it can see and change the kids' game progress.</p></div>`);
+}
+function copyText(t){try{navigator.clipboard.writeText(t).then(()=>toast('Copied! 📋'),()=>toast(t));}catch(e){toast(t);}}
+function cloudSection(){
+ if(!cloud.code)return `<div class="pp" id="cloudbox"><h3>☁️ Online save</h3><p>Turn this on to save the kids' progress online, so they can play on any device (iPad, phone, computer, Safari or the Home Screen icon) and never lose it. Only first names and game progress are saved.</p>
+ <div class="row" style="justify-content:flex-start"><button class="btn green" onclick="createFamily()">Turn on online save</button></div>
+ <p style="margin-top:14px"><b>Already turned on on another device?</b> Type the family code here:</p>
+ <div class="row" style="justify-content:flex-start"><input id="joinCode" class="inp" style="max-width:320px;text-transform:uppercase" placeholder="TIGER-PLUM-ROCKET-KITE-42" autocapitalize="characters"><button class="btn" onclick="joinFamily($('#joinCode').value)">Join</button></div></div>`;
+ return `<div class="pp" id="cloudbox"><h3>☁️ Online save is on</h3><p id="cloudBadge">${cloudBadgeText()}</p>
+ <p>Family code: <b class="famcode small">${esc(cloud.code)}</b></p>
+ <div class="row" style="justify-content:flex-start"><button class="btn small" onclick="showFamilyCode()">Show code &amp; link for another device</button><button class="btn small ghost dark" onclick="syncNow()">Sync now</button><button class="btn small danger" onclick="leaveFamily()">Stop on this device</button></div></div>`;
+}
+function cloudBoot(){
+ let code=null;try{code=localStorage.getItem(FAM_KEY);}catch(e){}code=code||state.family||null;
+ if(code)cloud.code=code,cloud.status='connecting';
+ const q=new URLSearchParams(location.search).get('family');
+ if(q){const c=normCode(q);
+  if(c!==cloud.code)setTimeout(()=>modal(`<div class="mcard"><div class="big-emoji">☁️</div><h2>Join your family's online save?</h2><p>This device will share Math Quest progress with your other devices.</p><div class="famcode">${esc(c)}</div><div class="row"><button class="btn ghost dark" onclick="closeModal();history.replaceState(null,'',location.pathname)">Not now</button><button class="btn green" onclick="joinFamily('${c}',true)">Join</button></div></div>`),400);
+  else history.replaceState(null,'',location.pathname);}
+ if(cloud.code)syncNow();
+ setInterval(()=>{if(cloud.code&&document.visibilityState==='visible')syncNow();},45000);
+ document.addEventListener('visibilitychange',()=>{if(cloud.code)syncNow();});
+}
+
 /* ================= boot ================= */
 (function(){const s=$('#stars');let h='';for(let i=0;i<70;i++)h+=`<i style="left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${(Math.random()*3).toFixed(2)}s;opacity:${(.3+Math.random()*.6).toFixed(2)}"></i>`;s.innerHTML=h;})();
 (async function boot(){
@@ -1318,7 +1559,7 @@ function clearWords(id){const p=state.players.find(x=>x.id===id);p.customWords=n
  await IDB.open();
  if(!state||!Array.isArray(state.players)){const s=await IDB.get();if(s){try{state=JSON.parse(s);}catch(e){state=null;}}}
  if(!state||!Array.isArray(state.players))state={v:1,players:[newPlayer('Mika',3),newPlayer('Jibreel',5)],cur:null,sound:true};
- await recallPin();migrate();save();keepPin();go('profiles');
+ await recallPin();migrate();stampChanges(true);saveLocal();keepPin();go('profiles');cloudBoot();
 })();
 </script>
 </body>
