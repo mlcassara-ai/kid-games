@@ -69,6 +69,7 @@ input,select{font-family:inherit}
 .pbest{margin-top:10px;font-weight:700;color:#1e9a53;font-size:18px}.pbest.dim{color:var(--muted);font-weight:600}
 .downnote{margin-top:12px;background:#fff6e0;border-radius:14px;padding:10px;font-size:16px;color:#6b4a00}
 .lockdots{font-size:28px;letter-spacing:6px;color:var(--accent)}
+.chip.big{font-size:18px;padding:10px 18px}
 .chip.pic sup{font-size:12px;color:var(--accent);font-weight:700}
 .zmap.champ{box-shadow:0 0 0 5px var(--gold),0 6px 0 rgba(0,0,0,.3)}
 .pcard.add{background:rgba(255,255,255,.1);color:#fff;border:3px dashed rgba(255,255,255,.4);box-shadow:none}
@@ -342,7 +343,7 @@ function save(){const j=JSON.stringify(state);try{localStorage.setItem(SAVE_KEY,
 function newPlayer(name,grade){
  const g=GRADE_START[grade]||GRADE_START[3];
  return {id:'p'+Math.random().toString(36).slice(2,10),name,grade,setup:false,
-  look:{skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:'purple'},
+  look:{kind:/jibreel/i.test(name)?'boy':(/mika/i.test(name)?'girl':null),skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:/jibreel/i.test(name)?'blue':'purple'},
   level:1,xp:0,coins:0,skill:{add:g.add,sub:g.sub,mul:g.mul,div:g.div},
   stats:{add:{r:0,w:0},sub:{r:0,w:0},mul:{r:0,w:0},div:{r:0,w:0}},
   missed:{},daily:{},progress:{},
@@ -351,7 +352,7 @@ function newPlayer(name,grade){
   recent:{add:[],sub:[],mul:[],div:[]},log:[],lock:null,battle:null,maxL:{add:g.add,sub:g.sub,mul:g.mul,div:g.div},champ:{},pb:{},days:[],quest:null};
 }
 let state=load();
-function migrate(){state.players.forEach(p=>{p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.players.forEach(p=>{if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -388,7 +389,7 @@ function heroSVG(look,opts){
  const r=ROBES.find(x=>x.id===look.robe)||ROBES[0];let defs='',robe=r.c;
  if(r.grad){defs=`<linearGradient id="rg${u}" x1="0" y1="0" x2="1" y2="1">${r.grad.map((c,i)=>`<stop offset="${i/(r.grad.length-1)}" stop-color="${c}"/>`).join('')}</linearGradient>`;robe=`url(#rg${u})`;}
  const sp=SPELLS.find(s=>s.id===opts.spell)||SPELLS[0];
- const skin=look.skin,hair=look.hair;
+ const skin=look.skin,hair=look.hair,boy=look.kind==='boy';
  let hat='';
  switch(look.hat){
   case 'wizard':hat=`<path d="M31 35 Q50 41 69 35 L57 5 Q52 -3 47 6 Z" fill="${robe}" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="50" cy="35" rx="23" ry="5" fill="${robe}" stroke="${O}" stroke-width="2.5"/><path d="M51 16 l2 4 4.5 .6-3.3 3 .9 4.4-4.1-2.2-4.1 2.2.9-4.4-3.3-3 4.5-.6z" fill="#ffe066"/>`;break;
@@ -411,12 +412,12 @@ function heroSVG(look,opts){
 <path d="M38 66 Q27 78 28 90" fill="none" stroke="${O}" stroke-width="11" stroke-linecap="round"/><path d="M38 66 Q27 78 28 90" fill="none" stroke="${robe}" stroke-width="7" stroke-linecap="round"/>
 <path d="M62 66 Q73 73 79 84" fill="none" stroke="${O}" stroke-width="11" stroke-linecap="round"/><path d="M62 66 Q73 73 79 84" fill="none" stroke="${robe}" stroke-width="7" stroke-linecap="round"/>
 <circle cx="28" cy="92" r="5" fill="${skin}" stroke="${O}" stroke-width="2"/><circle cx="81" cy="86" r="5" fill="${skin}" stroke="${O}" stroke-width="2"/>
-<path d="M32 47 Q31 27 50 27 Q69 27 68 47 L69 58 Q60 52 50 52 Q40 52 31 58 Z" fill="${hair}" stroke="${O}" stroke-width="2"/>
+${boy?`<circle cx="34.5" cy="48" r="3.6" fill="${skin}" stroke="${O}" stroke-width="2"/><circle cx="65.5" cy="48" r="3.6" fill="${skin}" stroke="${O}" stroke-width="2"/><path d="M34 44 Q32 27 50 27 Q68 27 66 44 Q60 36 50 36 Q40 36 34 44 Z" fill="${hair}" stroke="${O}" stroke-width="2"/>`:`<path d="M32 47 Q31 27 50 27 Q69 27 68 47 L69 58 Q60 52 50 52 Q40 52 31 58 Z" fill="${hair}" stroke="${O}" stroke-width="2"/>`}
 <circle cx="50" cy="46" r="16" fill="${skin}" stroke="${O}" stroke-width="2.5"/>
-<path d="M34 43 Q37 29 50 30 Q63 29 66 43 Q58 36 50 38 Q42 36 34 43 Z" fill="${hair}"/>
+${boy?`<path d="M34.5 42 L36 30 L41 35 L44 28 L48.5 34 L52 27.5 L55.5 34 L60 29 L62 35 L66 31 L65.5 42 Q58 36.5 50 37.5 Q42 36.5 34.5 42 Z" fill="${hair}" stroke="${O}" stroke-width="1.5" stroke-linejoin="round"/><path d="M40.5 42.3 L47 41.2 M53 41.2 L59.5 42.3" stroke="${O}" stroke-width="1.8" stroke-linecap="round"/>`:`<path d="M34 43 Q37 29 50 30 Q63 29 66 43 Q58 36 50 38 Q42 36 34 43 Z" fill="${hair}"/><path d="M41.3 45.2 L39.8 44 M58.7 45.2 L60.2 44" stroke="${O}" stroke-width="1.4" stroke-linecap="round"/>`}
 <ellipse cx="44" cy="47" rx="2.4" ry="3" fill="${O}"/><ellipse cx="56" cy="47" rx="2.4" ry="3" fill="${O}"/>
 <circle cx="44.9" cy="46" r=".95" fill="#fff"/><circle cx="56.9" cy="46" r=".95" fill="#fff"/>
-<circle cx="39.5" cy="52.5" r="2.6" fill="#ff8fa3" opacity=".55"/><circle cx="60.5" cy="52.5" r="2.6" fill="#ff8fa3" opacity=".55"/>
+<circle cx="39.5" cy="52.5" r="2.6" fill="#ff8fa3" opacity="${boy?.3:.55}"/><circle cx="60.5" cy="52.5" r="2.6" fill="#ff8fa3" opacity="${boy?.3:.55}"/>
 <path d="M46 54 Q50 58 54 54" stroke="${O}" stroke-width="2" fill="none" stroke-linecap="round"/>
 ${hat}</svg>`;
 }
@@ -496,6 +497,7 @@ function renderCreate(){
  app.innerHTML=`<div class="page"><h2 class="title">${draft.edit?'Change your look':'Create your hero!'}</h2>
  <div class="creator"><div class="preview">${heroSVG(draft.look)}</div>
  <div class="opts">
+  <label class="lbl">Boy or girl?</label><div class="chips"><button class="chip big ${draft.look.kind==='boy'?'on':''}" onclick="draft.look.kind='boy';renderCreate()">🧙‍♂️ Boy wizard</button><button class="chip big ${draft.look.kind==='girl'?'on':''}" onclick="draft.look.kind='girl';renderCreate()">🧙‍♀️ Girl wizard</button></div>
   <label class="lbl">Hero name</label><input id="nm" class="inp" maxlength="16" value="${esc(draft.name)}" placeholder="Type a name" oninput="draft.name=this.value">
   ${draft.id?'':`<label class="lbl">School grade</label><div class="chips">${[1,2,3,4,5,6].map(g=>`<button class="chip ${draft.grade===g?'on':''}" onclick="draft.grade=${g};renderCreate()">${g}</button>`).join('')}</div>`}
   <label class="lbl">Skin</label><div class="chips">${SKINS.map(c=>sw(c,draft.look.skin===c,`draft.look.skin='${c}'`)).join('')}</div>
@@ -509,6 +511,7 @@ function renderCreate(){
 function pickLock(e){draft.lock=draft.lock||[];if(draft.lock.length>=2||draft.lock.includes(e))draft.lock=[];draft.lock.push(e);renderCreate();}
 function finishCreate(){
  const name=draft.name.trim();
+ if(draft.look.kind!=='boy'&&draft.look.kind!=='girl'){toast('Pick a boy or girl wizard first!');return;}
  if(draft.lock&&draft.lock.length===1){toast('Pick one more secret picture (or tap Clear).');return;}
  if(!name){const i=$('#nm');i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');i.focus();toast('Give your hero a name!');return;}
  let p=draft.id?state.players.find(x=>x.id===draft.id):null;
