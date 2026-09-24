@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kid Games</title>
+<meta name="description" content="Free browser games for kids: fishing, science and more. No downloads, no ads.">
+<style>
+  :root { --ink:#0f2a3d; --paper:#fffaf0; --sky1:#7cc6e8; --sky2:#1d5f86; --gold:#f5b82e; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; font-family:"Trebuchet MS", system-ui, sans-serif; color:var(--ink);
+         background:linear-gradient(180deg, var(--sky1), var(--sky2)); }
+  header { text-align:center; padding:2.2em 1em 1em; color:#fff; }
+  h1 { margin:0; font-size:2.4em; text-shadow:0 3px 0 rgba(0,0,0,.2); }
+  header p { margin:.4em 0 0; font-size:1.1em; opacity:.95; }
+  main { max-width:760px; margin:0 auto; padding:1em 16px 3em; display:grid; gap:1em; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); }
+  a.card { display:block; text-decoration:none; color:inherit; background:var(--paper); border-radius:1.2em; padding:1.3em;
+           box-shadow:0 .35em 0 rgba(0,0,0,.18); transition:transform .12s; }
+  a.card:hover, a.card:focus { transform:translateY(-3px); }
+  .icon { font-size:3em; line-height:1; }
+  h2 { margin:.3em 0 .2em; font-size:1.4em; }
+  .card p { margin:0 0 .8em; line-height:1.4; }
+  .ages { display:inline-block; background:#e6f2f8; border-radius:1em; padding:.15em .7em; font-size:.85em; font-weight:bold; }
+  .play { display:inline-block; margin-left:.4em; background:#3fa34d; color:#fff; border-radius:1em; padding:.15em .8em; font-size:.85em; font-weight:bold; }
+  footer { text-align:center; color:#fff; opacity:.85; padding:0 1em 2em; font-size:.9em; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎮 Kid Games</h1>
+  <p>Free games you can play in any browser. No downloads, no ads.</p>
+</header>
+<main>
+  <a class="card" href="lake-legends/">
+    <div class="icon">🎣</div>
+    <h2>Lake Legends</h2>
+    <p>Fish real San Diego County lakes, fill your Fishdex, and take on the boss fish of each lake.</p>
+    <span class="ages">Ages 8–12</span><span class="play">Play ▶</span>
+  </a>
+  <a class="card" href="https://mlcassara-ai.github.io/molecule-lab/">
+    <div class="icon">🧪</div>
+    <h2>Molecule Lab</h2>
+    <p>Build molecules, steal and share electrons, and see what heat really does. Seven games plus printables.</p>
+    <span class="ages">Science</span><span class="play">Play ▶</span>
+  </a>
+</main>
+<footer>More games coming soon.</footer>
+</body>
+</html>
