@@ -79,6 +79,30 @@ input,select{font-family:inherit}
 tr.flash td,.pp.flash{animation:flashbg .9s}
 @keyframes flashbg{0%,40%{background:#fff3b0}100%{background:transparent}}
 .pp.flash{animation:flashcard .9s}@keyframes flashcard{0%,40%{box-shadow:0 0 0 4px #ffc83d}100%{box-shadow:none}}
+.z-spell{background:linear-gradient(160deg,#f7b733,#fc4a1a)}
+.z-quiz{background:linear-gradient(160deg,#7f7fd5,#86a8e7 50%,#91eae4)}
+.z-hw{background:linear-gradient(160deg,#56ab2f,#a8e063)}
+.questmode #heroF .hp,.questmode #hhpn{visibility:hidden}
+.spellq{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.lboxes{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.lbox{width:clamp(24px,5.5vw,38px);height:clamp(34px,6.5vh,48px);border-bottom:4px solid #cfc6f2;font-size:clamp(22px,4.5vh,34px);font-weight:700;color:var(--accent);display:grid;place-items:center;text-transform:lowercase}
+.lbox.on{border-color:var(--accent)}
+.kbd{width:min(620px,98vw);margin:8px auto calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px}
+.krow{display:flex;gap:5px;justify-content:center}
+.krow button{flex:1;max-width:56px;font-size:clamp(18px,3.2vh,26px);font-weight:700;padding:clamp(8px,1.6vh,14px) 0;border-radius:10px;background:#fff;color:var(--ink);box-shadow:0 3px 0 #b9b0d9}
+.krow button.wide{max-width:none;flex:1.5}.krow .go{background:var(--good);color:#fff;box-shadow:0 3px 0 #1e9a53}.krow .del{background:#ffe1e2}
+.quizq{font-size:clamp(18px,3.2vh,24px);font-weight:600;letter-spacing:0;line-height:1.3;text-align:left}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:min(620px,96vw);margin:10px auto calc(12px + env(safe-area-inset-bottom))}
+@media(max-width:560px){.choices{grid-template-columns:1fr}}
+.choices button{background:#fff;color:var(--ink);border-radius:14px;padding:12px;font-size:18px;font-weight:600;text-align:left;box-shadow:0 4px 0 #b9b0d9;min-height:56px}
+.choices b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;margin-right:6px;font-size:15px}
+.hwq{font-size:clamp(26px,5vh,44px)}.hwq.long{font-size:clamp(17px,2.8vh,22px);font-weight:600;letter-spacing:0;text-align:left}
+.pad .xk{grid-column:span 3;background:#eef6ff;font-size:20px}
+.spellans{font-size:44px;font-weight:700;letter-spacing:4px;margin:8px 0;color:#1e9a53}.spellans .bad{color:var(--bad);text-decoration:underline}
+.mf.new{background:#f1edff}
+.wordbox summary{cursor:pointer;font-weight:600;color:var(--accent);margin:8px 0}
+.ta{font-size:16px;resize:vertical;min-height:120px}
+.qlist{margin:4px 0 8px;padding-left:20px}
 .pcard.add{background:rgba(255,255,255,.1);color:#fff;border:3px dashed rgba(255,255,255,.4);box-shadow:none}
 .pcard.add .plv{color:#cfc6ff}
 .plus{font-size:64px;height:130px;display:grid;place-items:center}
@@ -269,6 +293,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -355,11 +380,11 @@ function newPlayer(name,grade){
   stats:{add:{r:0,w:0},sub:{r:0,w:0},mul:{r:0,w:0},div:{r:0,w:0}},
   missed:{},daily:{},progress:{},
   owned:{hats:HATS.filter(h=>!h.price).map(h=>h.id),robes:ROBES.filter(r=>!r.price).map(r=>r.id),spells:['spark']},
-  welcomed:false,spell:'spark',pets:[],pet:null,eggs:1,time:0,bestStreak:0,battles:0,
+  welcomed:false,spellStats:{},quizStats:{},hwStats:{},customWords:null,spell:'spark',pets:[],pet:null,eggs:1,time:0,bestStreak:0,battles:0,
   recent:{add:[],sub:[],mul:[],div:[]},log:[],lock:null,battle:null,maxL:{add:g.add,sub:g.sub,mul:g.mul,div:g.div},champ:{},pb:{},days:[],quest:null};
 }
 let state=load();
-function migrate(){state.players.forEach(p=>{if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.players.forEach(p=>{p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -550,8 +575,8 @@ function welcomeIfNew(p){
 /* ---------- world map ---------- */
 SCREENS.map=()=>{
  const p=P();
- app.innerHTML=topbar()+`<div class="page"><h2 class="title">🗺️ The Realm of Numbers</h2>${questBar(p)}${continueCard(p)}
- <div class="zones">${ZONES.map(z=>{
+ app.innerHTML=topbar()+`<div class="page"><h2 class="title">🗺️ The Realm of Numbers</h2>${questBar(p)}${continueCard(p)}${schoolCards(p)}
+ <h2 class="title" style="margin-top:26px">🔢 Math Worlds</h2><div class="zones">${ZONES.map(z=>{
   const locked=zoneLocked(z,p);const pr=p.progress[z.id]||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
   return `<button class="zone-card ${z.cls} ${locked?'locked':''}" onclick="${locked?`toast('${z.lockMsg}')`:`go('zone','${z.id}')`}">
   <div class="op">${z.sym}</div><h3>${z.name}</h3>
@@ -562,7 +587,7 @@ SCREENS.map=()=>{
 
 /* ---------- zone ---------- */
 SCREENS.zone=zid=>{
- const z=ZONES.find(x=>x.id===zid);const p=P();const champOK=bossesBeaten(p)>=5;const champ=champOK&&p.champOn;const pr=(champ?p.champ:p.progress)[z.id]||[];
+ const z=findZone(zid);const p=P();const champOK=bossesBeaten(p)>=5&&z.op!=='spell';const champ=champOK&&p.champOn;const pr=(champ?p.champ:p.progress)[z.id]||[];
  let decor='';for(let i=0;i<16;i++){decor+=`<span class="decor" style="left:${(i*37+9)%96+2}%;top:${(i*53+13)%90+5}%;font-size:${24+(i*7)%22}px">${z.decor[i%z.decor.length]}</span>`;}
  const nodes=z.mons.map((m,i)=>{
   const open=i===0||pr[i-1]>0;const st=pr[i]||0;const next=open&&!st;
@@ -570,7 +595,7 @@ SCREENS.zone=zid=>{
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('map')">← Map</button><h2 class="title">${champ?'👑 ':''}${z.name}</h2></div>
  ${champOK?`<div class="center" style="margin-bottom:12px"><button class="btn ${champ?'gold':'ghost'} small" onclick="P().champOn=!P().champOn;save();go('zone','${z.id}')">👑 Champion mode: ${champ?'ON':'OFF'}</button>${champ?'<div class="note" style="margin-top:6px">Tougher monsters, no free miss, double coins.</div>':''}</div>`:''}
  <div class="zmap ${z.cls} ${champ?'champ':''}"><svg class="zpath" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${NODE_POS.map(q=>q.join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>${decor}${nodes}</div>
- <p class="ztip">${z.op==='mix'?'Every kind of problem lives here. Watch out!':'Now practicing: <b>'+KID_DESC[z.op][lvl(p,z.op)]+'</b>'}</p></div>`;
+ <p class="ztip">${z.op==='spell'?`${esc(spellTitle(p))}: ${spellList(p).length} words · ${spellList(p).filter(x=>learned(p,x.w)).length} learned. Each battle uses about 6 words; the boss uses all of them!`:z.op==='mix'?'Every kind of problem lives here. Watch out!':'Now practicing: <b>'+KID_DESC[z.op][lvl(p,z.op)]+'</b>'}</p></div>`;
 };
 
 /* ================= questions ================= */
@@ -720,10 +745,11 @@ function hintHTML(q){
 /* ================= battle ================= */
 let B=null,fbOpen=false;
 function startBattle(zid,i,resume){
+ if(zid==='spell'){startSpell(i);return;}
  const z=ZONES.find(x=>x.id===zid);const p=P();const isBoss=i===5;
  const champ=!!(p.champOn&&bossesBeaten(p)>=5);
  const mhp=Math.round((isBoss?200:110+i*15)*(champ?1.4:1));
- B={z,i,isBoss,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{}};
+ B={z,i,isBoss,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math'};
  if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
  p.last={zid,i};
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
@@ -733,14 +759,14 @@ function startBattle(zid,i,resume){
 }
 function renderBattle(){
  const p=P();const pet=petOf(p);
- app.innerHTML=`<div class="battle ${B.z.cls}">
+ app.innerHTML=`<div class="battle ${B.z.cls} ${B.mode!=='math'?'questmode':''}">
  <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname">${B.champ?'👑 Champion ':''}${B.isBoss?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
  <div class="bmain"><div class="arena" id="arena">
   <div class="fighter hero" id="heroF"><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div><div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf">${pet.e}</div>`:''}</div>
   <div class="fighter mon ${B.isBoss?'boss':''}" id="monF"><div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div></div>
  </div>
  <div class="bctrl"><div class="qcard" id="qcard"><div class="qlabel" id="qlabel"></div><div class="qtext" id="qtext">Get ready…</div></div>
- <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="press('${n}')">${n}</button>`).join('')}<button class="del" onclick="press('del')">⌫</button><button onclick="press('0')">0</button><button class="go" onclick="press('go')">✓</button></div></div></div></div>`;
+ <div class="qpad">${B.mode!=='math'?'':`<div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="press('${n}')">${n}</button>`).join('')}<button class="del" onclick="press('del')">⌫</button><button onclick="press('0')">0</button><button class="go" onclick="press('go')">✓</button></div>`}</div></div></div></div>`;
  updateBars();
 }
 function updateBars(){
@@ -752,6 +778,7 @@ function updateBars(){
 }
 function nextQ(){
  if(!B||B.over||curScreen!=='battle')return;
+ if(B.mode!=='math'){questNextQ();return;}
  const p=P();let q=null;
  B.review.forEach(r=>r.wait--);
  const due=B.review.findIndex(r=>r.wait<=0);
@@ -774,6 +801,7 @@ function nextQ(){
  showQ();
 }
 function showQ(){
+ if(B.mode!=='math'){questShowQ();return;}
  const q=B.q,inp=B.input||'?';
  if(isVertical(q)){
   const nums=q.c!==undefined?[q.a,q.b,q.c]:[q.a,q.b];const sym=q.op==='add'?'+':q.op==='sub'?'−':'×';
@@ -788,6 +816,7 @@ function press(k){
  if(!B||curScreen!=='battle'||B.over)return;
  if(fbOpen){if(k==='go')closeFeedback();return;}
  if(B.busy)return;
+ if(B.mode!=='math'){questPress(k);return;}
  if(k==='del')B.input=B.input.slice(0,-1);
  else if(k==='go'){if(B.input)answer();return;}
  else if(B.input.length<7)B.input=B.input==='0'?k:B.input+k;
@@ -869,7 +898,8 @@ function monsterAttack(done){
  $('#monS').animate([{transform:'none'},{transform:'translateX(-70px) scale(1.15)'},{transform:'none'}],{duration:450,easing:'ease-in-out'});
  setTimeout(()=>{
   if(!B)return;
-  if(!B.grace&&!B.champ){B.grace=true;floatText('#heroS','💨 Missed you!','#9fe7ff');}
+  if(B.mode!=='math'){floatText('#heroS','💨 Dodged!','#9fe7ff');}
+  else if(!B.grace&&!B.champ){B.grace=true;floatText('#heroS','💨 Missed you!','#9fe7ff');}
   else if(B.shield){B.shield=false;floatText('#heroS','🛡️ Blocked!','#9fe7ff');}
   else{B.hhp=Math.max(0,B.hhp-dmg);SFX.hurt();floatText('#heroS','-'+dmg,'#ff8a8a');
    $('#heroS').animate([{filter:'none'},{filter:'brightness(2) sepia(1) hue-rotate(-50deg) saturate(5)'},{filter:'none'}],{duration:400});
@@ -878,6 +908,7 @@ function monsterAttack(done){
  },230);
 }
 function showFeedback(q,said,slip){
+ if(B.mode!=='math'){questFeedback(q,said);return;}
  fbOpen=true;
  if(slip){
   modal(`<div class="mcard"><div class="fb-title">So close! 🤏</div><div class="fb-ans">${q.text} = <b>${q.answer}</b></div><div class="fb-you">You said ${esc(said)}. Two digits got flipped around!</div><div class="row"><button class="btn green big" onclick="closeFeedback()">OK ➜</button></div></div>`);return;}
@@ -900,6 +931,7 @@ function fmtClock(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function downsNote(){if(!B||!B.downs||!B.downs.length)return '';return `<div class="downnote">🎯 ${B.downs.map(op=>`<b>${OPNAME[op]}</b> will be a bit easier next time (${KID_DESC[op][lvl(P(),op)]})`).join('<br>🎯 ')}.<br>Get 6 right in a row to move back up!</div>`;}
 function addXP(p,x){let up=false;p.xp+=x;while(p.xp>=xpNeed(p.level)){p.xp-=xpNeed(p.level);p.level++;up=true;}return up;}
 function winBattle(){
+ if(B.mode!=='math'){questWin();return;}
  const p=P();SFX.win();
  const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const stars=B.wrong<=1?3:B.wrong<=3?2:1;
@@ -936,13 +968,16 @@ function loseBattle(){
   ${downsNote()}<div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button><button class="btn green" onclick="startBattle('${z}',${i})">Try again 💪</button></div></div>`);
 }
 function fleeBattle(){
- if(!B||B.over){go('zone',B?B.z.id:'forest');return;}
+ if(!B||B.over){if(B&&B.backTo)go(B.backTo,B.backArg);else go('zone',B?B.z.id:'forest');return;}
  modal(`<div class="mcard"><div class="big-emoji">🏃</div><h2>Run away?</h2><p>You'll keep the coins you earned in this battle.</p>
  <div class="row"><button class="btn green" onclick="closeModal()">Keep fighting!</button><button class="btn ghost dark" onclick="doFlee()">Run away</button></div></div>`);
 }
-function doFlee(){closeModal();fbOpen=false;B.over=true;endBattleBook();save();go('zone',B.z.id);}
+function doFlee(){closeModal();fbOpen=false;B.over=true;endBattleBook();save();if(B.backTo)go(B.backTo,B.backArg);else go('zone',B.z.id);}
 document.addEventListener('keydown',e=>{
  if(curScreen!=='battle'||!B)return;
+ if(B.mode!=='math'&&B.q&&B.q.type==='choice'){if(/^[1-4]$/.test(e.key)){press('c'+(+e.key-1));e.preventDefault();}else if(e.key==='Enter'){press('go');e.preventDefault();}return;}
+ if(B.mode!=='math'&&B.q&&B.q.type==='word'&&/^[a-zA-Z']$/.test(e.key)){press(e.key.toLowerCase());e.preventDefault();return;}
+ if(B.mode==='hw'&&/^[./:$,\-rR]$/.test(e.key)){press(e.key==='r'?'R':e.key);e.preventDefault();return;}
  if(/^[0-9]$/.test(e.key)){press(e.key);e.preventDefault();}
  else if(e.key==='Backspace'){press('del');e.preventDefault();}
  else if(e.key==='Enter'){press('go');e.preventDefault();}
@@ -1039,6 +1074,7 @@ function parentCard(p){
  <div class="kpis"><div><b>${tot}</b><span>problems answered</span></div><div><b>${tot?Math.round(right/tot*100):0}%</b><span>correct</span></div><div><b>${fmtTime(p.time)}</b><span>time in battles</span></div><div><b>${p.battles}</b><span>battles won</span></div><div><b>${p.bestStreak}</b><span>best streak</span></div></div>
  <div class="tblwrap"><table class="optable"><tr><th>Skill</th><th>Working on now</th><th>Accuracy</th><th>Level</th></tr>
  ${OPS.map(o=>{const s=p.stats[o],n=s.r+s.w,L=lvl(p,o);return `<tr id="lv-${p.id}-${o}"><td><b>${OPNAME[o]}</b></td><td>${LEVEL_DESC[o][L]}</td><td>${n?Math.round(s.r/n*100)+'% <span class="muted">of '+n+'</span>':'—'}</td><td style="white-space:nowrap"><button class="mini" onclick="adjLevel('${p.id}','${o}',-1)">−</button> ${L} <button class="mini" onclick="adjLevel('${p.id}','${o}',1)">+</button></td></tr>`;}).join('')}</table></div>
+ ${parentSchool(p)}
  <h4>Last 7 days</h4>${daysChart(p)}
  ${(p.log||[]).length?`<h4>Level changes</h4><div class="missed">${p.log.slice(0,8).map(l=>`<span class="mf lvlog">${l.to>l.from?'⬆️':'⬇️'} ${OPNAME[l.op]} ${l.from}→${l.to} <em>${l.d.slice(5)}</em></span>`).join('')}</div>`:''}
  <h4>Facts to practice</h4>${missed.length?`<div class="missed">${missed.map(([k,v])=>`<span class="mf ${(v.fixed||0)>=2?'done':''}">${esc(k)} = ${v.a} <em>${(v.fixed||0)>=2?'✓ mastered':'missed '+v.n+'×'}</em></span>`).join('')}</div>`:'<p class="muted">No misses yet!</p>'}
@@ -1062,7 +1098,7 @@ function dayStreak(p){let n=0;const d=new Date();if(!p.days.includes(dayKey(d)))
 function questBar(p){const q=(p.quest&&p.quest.d===dayKey())?p.quest:{wins:0,done:false};const st=dayStreak(p);
  return `<div class="questbar"><div>🎯 <b>Today's quest:</b> win 3 battles ${q.done?'✅ Done!':`(${Math.min(q.wins,3)}/3) → 🥚`}</div>${st>=2?`<div>🔥 ${st}-day streak</div>`:''}</div>`;}
 function continueCard(p){
- const l=p.last;if(!l)return '';const z=ZONES.find(x=>x.id===l.zid);if(!z||zoneLocked(z,p))return '';
+ const l=p.last;if(!l)return '';const z=findZone(l.zid);if(!z||zoneLocked(z,p))return '';
  const pr=p.progress[z.id]||[];let i=pr.findIndex(x=>!x);const done=i<0;if(i<0)i=5;const m=z.mons[i];
  return `<button class="zone-card ${z.cls} contcard" onclick="startBattle('${z.id}',${i})"><div class="zsub">▶ ${done?'Rematch in':'Keep going in'} ${z.name}</div><h3>${done?'Beat your best time vs':'Next up:'} ${esc(m[0])}${i===5?' (BOSS)':''}</h3><div class="zart">${m[1]}</div></button>`;
 }
@@ -1081,6 +1117,199 @@ function confirmReset(id){const p=state.players.find(x=>x.id===id);modal(`<div c
 function doReset(id){const i=state.players.findIndex(x=>x.id===id);const o=state.players[i];const n=newPlayer(o.name,o.grade);n.id=o.id;state.players[i]=n;save();closeModal();refreshParent(`pp-${id}`,true);}
 function confirmDelete(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Delete ${esc(p.name)}?</h2><p>This removes the player and all their progress.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doDelete('${id}')">Delete</button></div></div>`);}
 function doDelete(id){state.players=state.players.filter(x=>x.id!==id);if(state.cur===id)state.cur=null;save();closeModal();refreshParent(null);}
+
+/* ================= school quests: spelling, quizzes, homework ================= */
+const CONTENT=window.MQ_CONTENT||{kids:{},byGrade:{},quizzes:{}};
+const SPELL_ZONE={id:'spell',name:'Spelling Grove',op:'spell',sym:'Aa',cls:'z-spell',art:'📜',decor:['📜','✏️','🔤','📖','🍃'],
+ mons:[['Letter Bug','🐞'],['Typo Toad','🐸'],['Scrambler','🦝'],['Vowel Vole','🐭'],['Quill Parrot','🦜'],['Grand Owl of Words','🦉']]};
+const findZone=id=>id==='spell'?SPELL_ZONE:ZONES.find(x=>x.id===id);
+function kidData(p){const k=(p.name||'').toLowerCase().trim();const byG=CONTENT.byGrade||{};return (CONTENT.kids||{})[k]||byG[p.grade<=3?'3':'5']||byG['3']||{};}
+function spellList(p){if(p.customWords&&p.customWords.length)return p.customWords;const s=kidData(p).spelling;return (s&&s.words)||[];}
+function spellTitle(p){if(p.customWords&&p.customWords.length)return 'Words added in the Parent Corner';const s=kidData(p).spelling;return (s&&s.title)||'Spelling words';}
+function quizList(p){return (kidData(p).quizzes||[]).map(id=>Object.assign({id},(CONTENT.quizzes||{})[id])).filter(q=>q.questions&&q.questions.length);}
+function hwList(p){return (kidData(p).homework||[]).filter(h=>h.problems&&h.problems.length);}
+const wordStat=(p,w)=>p.spellStats[w.toLowerCase()]||{r:0,w:0,s:0};
+const learned=(p,w)=>wordStat(p,w).s>=2;
+
+/* speech */
+function pickVoice(){try{const vs=speechSynthesis.getVoices()||[];return vs.find(v=>/en[-_]US/i.test(v.lang)&&/Samantha|Google US|Aria|Jenny|Ava|Allison/i.test(v.name))||vs.find(v=>/en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;}catch(e){return null;}}
+function say(text,rate){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=rate||.8;const v=pickVoice();if(v)u.voice=v;speechSynthesis.speak(u);}catch(e){}}
+try{if(window.speechSynthesis)speechSynthesis.onvoiceschanged=()=>{};}catch(e){}
+function sayWord(){if(B&&B.q&&B.q.type==='word')say(B.q.word,.75);}
+function saySentence(){if(B&&B.q&&B.q.type==='word')say(B.q.sentence?`${B.q.word}. ${B.q.sentence}`:B.q.word,.8);}
+
+/* starting quest battles */
+function questBattle(opt){
+ const p=P();
+ B={mode:opt.mode,z:opt.z,i:opt.i||0,isBoss:!!opt.isBoss,name:opt.name,emoji:opt.emoji,items:opt.items,queue:opt.items.map(x=>Object.assign({tries:0},x)),total:opt.items.length,done:0,
+  mhp:opt.items.length*10,mmax:opt.items.length*10,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,firstTry:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,
+  shield:false,start:Date.now(),recent:[],over:false,missRow:0,grace:true,champ:false,pendingDown:{},qid:opt.qid,backTo:opt.backTo,backArg:opt.backArg};
+ p.battle=null;save();
+ closeModal();fbOpen=false;curScreen='battle';curArg=null;
+ renderBattle();
+ banner((B.isBoss?'👑 BOSS: ':'⚔️ ')+B.name+'!');
+ setTimeout(nextQ,900);
+}
+function startSpell(i){
+ const p=P();const words=spellList(p);
+ if(!words.length){toast('No spelling words yet. A grown-up can add them in the Parent Corner.');return;}
+ const isBoss=i===5;let pickd;
+ if(isBoss)pickd=words.slice(0,20);
+ else{pickd=[...words].map(x=>({x,k:(learned(p,x.w)?10:0)+wordStat(p,x.w).s*2-wordStat(p,x.w).w+Math.random()*3})).sort((a,b)=>a.k-b.k).slice(0,Math.min(6,words.length)).map(o=>o.x);}
+ pickd=pickd.map(x=>({type:'word',word:x.w,sentence:x.s||''})).sort(()=>Math.random()-.5);
+ questBattle({mode:'spell',z:SPELL_ZONE,i,isBoss,name:SPELL_ZONE.mons[i][0],emoji:SPELL_ZONE.mons[i][1],items:pickd,backTo:'zone',backArg:'spell'});
+}
+function startQuest(kind,id){
+ const p=P();
+ if(kind==='quiz'){const qz=quizList(p).find(x=>x.id===id);if(!qz)return;
+  const items=qz.questions.map((x,k)=>({type:'choice',text:x.q,choices:x.c,answer:x.a,why:x.why||'',key:k})).sort(()=>Math.random()-.5);
+  questBattle({mode:'quiz',z:{id:'quiz',name:qz.title,cls:'z-quiz'},name:'Riddle Genie',emoji:'🧞',items,qid:id,backTo:'quests',backArg:'quiz'});}
+ else{const hw=hwList(p).find(x=>x.id===id);if(!hw)return;
+  const items=hw.problems.map((x,k)=>({type:'hw',text:String(x.q),answer:String(x.a),hint:x.hint||'',key:k}));
+  questBattle({mode:'hw',z:{id:'hw',name:hw.title,cls:'z-hw'},name:'Homework-a-saurus',emoji:'🦖',items,qid:id,backTo:'quests',backArg:'hw'});}
+}
+
+/* question flow */
+function questNextQ(){
+ if(!B.queue.length){B.over=true;setTimeout(winBattle,300);return;}
+ const it=B.queue.shift();B.q=it;B.input='';B.t0=performance.now();B.busy=false;
+ $('#qlabel').textContent=it.tries?'⭐ Try this one again!':(B.mode==='spell'?`Word ${B.done+1} of ${B.total}`:`Question ${B.done+1} of ${B.total}`);
+ $('#qcard').classList.remove('right');
+ $('.bctrl .qpad').innerHTML=questPadHTML();
+ showQ();
+ if(it.type==='word'&&state.sound)setTimeout(sayWord,350);
+}
+function questShowQ(){
+ const q=B.q,inp=B.input;
+ if(q.type==='word'){
+  const n=Math.max(q.word.length,inp.length);let boxes='';for(let k=0;k<n;k++)boxes+=`<span class="lbox ${k<inp.length?'on':''}">${esc(inp[k]||'')}</span>`;
+  $('#qtext').innerHTML=`<div class="spellq"><button class="btn small" onclick="sayWord()">🔊 Hear the word</button> <button class="btn small ghost dark" onclick="saySentence()">💬 In a sentence</button></div><div class="lboxes">${boxes}</div>`;
+ }else if(q.type==='choice'){
+  $('#qtext').innerHTML=`<div class="quizq">${esc(q.text)}</div>`;
+ }else{
+  $('#qtext').innerHTML=`<div class="hwq ${q.text.length>18?'long':''}">${esc(q.text)}</div><div>= <span class="ansbox">${esc(inp||'?')}</span></div>`;
+ }
+}
+function questPadHTML(){
+ const q=B.q;if(!q)return '';
+ if(q.type==='word'){
+  const rows=['qwertyuiop','asdfghjkl','zxcvbnm'];const apos=/'/.test(q.word);
+  return `<div class="kbd">${rows.map((r,k)=>`<div class="krow">${[...r].map(c=>`<button onclick="press('${c}')">${c}</button>`).join('')}${k===2&&apos?`<button onclick="press('\\'')">'</button>`:''}</div>`).join('')}
+  <div class="krow"><button class="wide" onclick="sayWord()">🔊</button><button class="wide del" onclick="press('del')">⌫</button><button class="wide go" onclick="press('go')">✓</button></div></div>`;
+ }
+ if(q.type==='choice')return `<div class="choices">${q.choices.map((c,k)=>`<button onclick="press('c${k}')"><b>${'ABCD'[k]}</b> ${esc(c)}</button>`).join('')}</div>`;
+ const extra=[...new Set([...q.answer.replace(/[0-9]/g,'')])].filter(c=>'./R:$,-'.includes(c.toUpperCase())).map(c=>c.toUpperCase());
+ return `<div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="press('${n}')">${n}</button>`).join('')}<button class="del" onclick="press('del')">⌫</button><button onclick="press('0')">0</button><button class="go" onclick="press('go')">✓</button>${extra.map(c=>`<button class="xk" onclick="press('${c}')">${c==='R'?'R (remainder)':c}</button>`).join('')}</div>`;
+}
+function questPress(k){
+ const q=B.q;if(!q)return;
+ if(q.type==='choice'){if(/^c[0-3]$/.test(k)){B.input=String(+k[1]);questAnswer();}return;}
+ if(k==='del'){B.input=B.input.slice(0,-1);}
+ else if(k==='go'){if(B.input)questAnswer();return;}
+ else if(q.type==='word'){if(/^[a-z']$/i.test(k)&&B.input.length<24)B.input+=k.toLowerCase();else return;}
+ else{if(/^[0-9./:$,\-R]$/i.test(k)&&B.input.length<14)B.input+=k.toUpperCase()==='R'?' R ':k;else return;}
+ SFX.tap();showQ();
+}
+const normAns=s=>String(s).toLowerCase().replace(/[\s,$]/g,'').replace(/^0+(?=\d)/,'');
+function questCorrect(q,inp){
+ if(q.type==='word')return inp.trim().toLowerCase()===q.word.toLowerCase();
+ if(q.type==='choice')return +inp===q.answer;
+ const a=normAns(q.answer),g=normAns(inp);if(a===g)return true;
+ const na=parseFloat(a),ng=parseFloat(g);return /^-?[\d.]+$/.test(a)&&/^-?[\d.]+$/.test(g)&&!isNaN(na)&&Math.abs(na-ng)<1e-9;
+}
+function questAnswer(){
+ const p=P(),q=B.q,said=B.input;const ok=questCorrect(q,said);
+ B.busy=true;const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
+ if(q.type==='word'){const k=q.word.toLowerCase();const st=p.spellStats[k]=p.spellStats[k]||{r:0,w:0,s:0};if(ok){st.r++;st.s++;}else{st.w++;st.s=0;}st.last=dk;}
+ if(ok){
+  if(!q.tries)B.firstTry++;B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.done++;
+  const c=5+(q.tries?3:0);B.coins+=c;p.coins+=c;B.xp+=10;save();SFX.correct();$('#qcard').classList.add('right');
+  const spell=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
+  castSpell(spell,B.streak>=3,()=>{
+   B.mhp=Math.max(0,B.mmax-B.done*10);SFX.hit();floatText('#monS','-10','#fff');
+   $('#monS').animate([{transform:'translateX(0)'},{transform:'translateX(14px) rotate(8deg)'},{transform:'none'}],{duration:350});
+   if([3,5,10].includes(B.streak))banner(`🔥 COMBO x${B.streak}!`);
+   updateBars();
+   if(B.done>=B.total){B.over=true;setTimeout(winBattle,500);}else setTimeout(nextQ,450);
+  });
+ }else{
+  B.wrong++;B.streak=0;q.tries++;q.said=said;
+  B.queue.splice(Math.min(2,B.queue.length),0,q);
+  save();SFX.wrong();const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
+  monsterAttack(()=>showFeedback(q,said,false));
+ }
+ updateBars();
+}
+function spellDiff(word,said){
+ let out='';for(let k=0;k<word.length;k++){const bad=said[k]!==word[k].toLowerCase()&&said[k]!==word[k];out+=`<span class="${bad?'bad':''}">${esc(word[k])}</span>`;}return out;
+}
+function questFeedback(q,said){
+ fbOpen=true;
+ let body='';
+ if(q.type==='word')body=`<div class="fb-title">Almost! Let's look at it 👀</div><div class="spellans">${spellDiff(q.word,said)}</div><div class="fb-you">You wrote: <b>${esc(said)}</b></div>${q.sentence?`<div class="hint">${esc(q.sentence)}</div>`:''}<div class="row"><button class="btn small" onclick="say(B.q.word,.7)">🔊 Hear it</button></div><p class="tip">The red letters are the tricky part. This word will come back soon!</p>`;
+ else if(q.type==='choice')body=`<div class="fb-title">Nice try! 🙂</div><div class="hint" style="font-size:20px"><b>${esc(q.choices[q.answer])}</b></div>${q.why?`<p>${esc(q.why)}</p>`:''}<p class="tip">This question will come back soon!</p>`;
+ else body=`<div class="fb-title">So close! 💪</div><div class="fb-ans">${esc(q.text)} = <b>${esc(q.answer)}</b></div><div class="fb-you">You said ${esc(said)}</div>${q.hint?`<div class="hint">${esc(q.hint)}</div>`:''}<p class="tip">This one will come back soon!</p>`;
+ modal(`<div class="mcard">${body}<button class="btn green big" onclick="closeFeedback()">Got it! ➜</button></div>`);
+}
+function questWin(){
+ const p=P();SFX.win();
+ const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
+ const miss=B.total-B.firstTry;const stars=miss<=1?3:miss<=3?2:1;let first=false,next='';
+ if(B.mode==='spell'){const pr=p.progress.spell=p.progress.spell||[0,0,0,0,0,0];first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);if(B.i<5)next=`<button class="btn green" onclick="startSpell(${B.i+1})">Next battle ⚔️</button>`;}
+ else{const store=B.mode==='quiz'?p.quizStats:p.hwStats;const s=store[B.qid]=store[B.qid]||{best:0,tries:0,stars:0};first=!s.tries;s.tries++;const pct=Math.round(B.firstTry/B.total*100);s.last=pct;s.best=Math.max(s.best,pct);s.stars=Math.max(s.stars,stars);s.d=dayKey();}
+ let bonus=B.isBoss?100:30;if(!first)bonus=Math.round(bonus/2);p.coins+=bonus;B.coins+=bonus;B.xp+=B.isBoss?60:25;
+ const egg=Math.random()<(B.isBoss&&first?1:.15);if(egg)p.eggs++;
+ p.battles++;const up=endBattleBook();save();
+ const back=B.backTo==='zone'?`closeModal();go('zone','spell')`:`closeModal();go('quests','${B.backArg}')`;
+ setTimeout(()=>{
+  modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You got <b>${B.firstTry} of ${B.total}</b> right on the first try!</p>
+  <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
+  <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>
+  ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}
+  <div class="row"><button class="btn ghost dark" onclick="${back}">Back</button>${next}${egg?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`);
+  if(up)setTimeout(SFX.level,400);
+ },750);
+}
+
+/* screens */
+function schoolCards(p){
+ const words=spellList(p),lw=words.filter(x=>learned(p,x.w)).length,qz=quizList(p),hw=hwList(p);
+ const pr=p.progress.spell||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
+ return `<h2 class="title" style="margin-top:10px">📚 School Quests</h2><div class="zones">
+ <button class="zone-card z-spell" onclick="go('zone','spell')"><div class="op">Aa</div><h3>Spelling Grove</h3><div class="zsub">${words.length?`${lw} of ${words.length} words learned`:'No words yet'}</div><div class="zlv">⭐ ${stars} / 18 · ${esc(spellTitle(p))}</div><div class="zart">📜</div></button>
+ <button class="zone-card z-quiz" onclick="go('quests','quiz')"><div class="op">?</div><h3>Knowledge Quests</h3><div class="zsub">${qz.length?`${qz.length} quiz${qz.length>1?'zes':''}`:'No quizzes yet'}</div><div class="zlv">${qz.map(x=>esc(x.title)).join(', ')}</div><div class="zart">🧞</div></button>
+ <button class="zone-card z-hw" onclick="go('quests','hw')"><div class="op">📝</div><h3>Homework Quest</h3><div class="zsub">${hw.length?`${hw.length} assignment${hw.length>1?'s':''}`:'No homework yet'}</div><div class="zlv">${hw.length?esc(hw[hw.length-1].title):'Coming soon!'}</div><div class="zart">🦖</div></button></div>`;
+}
+SCREENS.quests=kind=>{
+ const p=P();const list=kind==='quiz'?quizList(p):hwList(p);const store=kind==='quiz'?p.quizStats:p.hwStats;
+ const title=kind==='quiz'?'🧞 Knowledge Quests':'🦖 Homework Quest';
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('map')">← Map</button><h2 class="title">${title}</h2></div>
+ ${list.length?`<div class="zones">${list.slice().reverse().map(x=>{const s=store[x.id];const n=kind==='quiz'?x.questions.length:x.problems.length;
+  return `<button class="zone-card ${kind==='quiz'?'z-quiz':'z-hw'}" onclick="startQuest('${kind}','${x.id}')"><h3>${esc(x.title)}</h3><div class="zsub">${n} ${kind==='quiz'?'questions':'problems'}${x.note?' · '+esc(x.note):''}</div><div class="zlv">${s?`Best: ${s.best}% first try · ${'⭐'.repeat(s.stars)}`:'Not tried yet · GO!'}</div><div class="zart">${x.emoji||(kind==='quiz'?'📚':'📝')}</div></button>`;}).join('')}</div>`
+ :`<div class="pp center"><div class="big-emoji">${kind==='quiz'?'📚':'📝'}</div><h3>Nothing here yet!</h3><p class="muted">${kind==='quiz'?'Quizzes about what you are learning at school will show up here.':'Your homework problems will show up here when a grown-up adds them.'}</p></div>`}</div>`;
+};
+
+/* parent corner: school section */
+function parentSchool(p){
+ const words=spellList(p);
+ const chips=words.map(x=>{const st=wordStat(p,x.w);const cls=st.s>=2?'done':(st.w>0?'':'new');return `<span class="mf ${cls}">${esc(x.w)} <em>${st.s>=2?'✓ learned':(st.w>0?`missed ${st.w}×`:'new')}</em></span>`;}).join('');
+ const qs=quizList(p).map(x=>{const s=p.quizStats[x.id];return `<li>${x.emoji||'📚'} ${esc(x.title)}: ${s?`best ${s.best}% first try (${s.tries} tr${s.tries>1?'ies':'y'})`:'not tried yet'}</li>`;}).join('');
+ const hs=hwList(p).map(x=>{const s=p.hwStats[x.id];return `<li>📝 ${esc(x.title)}: ${s?`best ${s.best}% first try (${s.tries} tr${s.tries>1?'ies':'y'})`:'not done yet'}</li>`;}).join('');
+ const typed=(p.customWords||[]).map(x=>x.s?`${x.w} - ${x.s}`:x.w).join('\n');
+ return `<h4>📚 School quests</h4>
+ <div><b>Spelling:</b> ${esc(spellTitle(p))}</div><div class="missed" style="margin:6px 0">${chips||'<span class="muted">No words yet.</span>'}</div>
+ <details class="wordbox"><summary>✏️ Type this week's spelling words</summary><p class="muted">One word per line. Add a sentence after a dash if you like: <i>because - I stayed in because it rained.</i></p>
+ <textarea id="words-${p.id}" rows="6" class="inp ta">${esc(typed)}</textarea>
+ <div class="row" style="justify-content:flex-start"><button class="btn green small" onclick="saveWords('${p.id}')">Save words</button>${p.customWords&&p.customWords.length?`<button class="btn small ghost dark" onclick="clearWords('${p.id}')">Use the built-in list instead</button>`:''}</div></details>
+ <div style="margin-top:8px"><b>Quizzes:</b><ul class="qlist">${qs||'<li class="muted">None yet</li>'}</ul></div>
+ <div><b>Homework:</b><ul class="qlist">${hs||'<li class="muted">None yet</li>'}</ul></div>`;
+}
+function saveWords(id){
+ const p=state.players.find(x=>x.id===id);const t=$('#words-'+id).value;
+ const list=t.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.split(/\s+[-–—]\s+/);return {w:m[0].replace(/[^A-Za-z'\-]/g,''),s:(m[1]||'').trim()};}).filter(x=>x.w);
+ p.customWords=list.length?list:null;p.progress.spell=[0,0,0,0,0,0];save();refreshParent(`pp-${id}`,true);toast(list.length?`Saved ${list.length} words for ${p.name}.`:'Cleared.');
+}
+function clearWords(id){const p=state.players.find(x=>x.id===id);p.customWords=null;save();refreshParent(`pp-${id}`,true);}
 
 /* ================= boot ================= */
 (function(){const s=$('#stars');let h='';for(let i=0;i<70;i++)h+=`<i style="left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${(Math.random()*3).toFixed(2)}s;opacity:${(.3+Math.random()*.6).toFixed(2)}"></i>`;s.innerHTML=h;})();
