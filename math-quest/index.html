@@ -280,6 +280,9 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .wl span{margin-top:8%;display:flex;flex-direction:column;align-items:center;font-size:min(30px,7vw);line-height:1}
 .wl small{font-size:12px;font-weight:700;color:#3b2b6b}
 .petf .pav{font-size:inherit}
+.tiertag{display:inline-block;color:#fff !important;font-weight:700 !important;border-radius:10px;padding:1px 8px;font-size:12px}
+.tierh{margin:12px 0 6px;font-size:17px}
+.egg.glowegg{filter:drop-shadow(0 0 18px var(--gc)) drop-shadow(0 0 36px var(--gc))}
 .impact{position:absolute;font-size:72px;pointer-events:none;z-index:5;filter:drop-shadow(0 0 6px #ff3b3b) drop-shadow(0 0 14px #ff3b3b)}
 @media (orientation:landscape) and (max-height:560px){
  .spellbar{top:4px;gap:4px}.spellbar button{padding:4px 7px;font-size:12px}.spellbar button small{display:none}}
@@ -440,14 +443,32 @@ const SPELLS=[
  {id:'rainbow',name:'Rainbow Blast',e:'🌈',mult:1.5,price:950,color:'#ff5fa2'},
  {id:'comet',name:'Comet Crash',e:'☄️',mult:1.7,price:1400,color:'#ff9f43'}];
 const PERKS={coins:'🪙 Extra coins',power:'💥 Stronger spells',shield:'🛡️ Blocks a hit',xp:'✨ Levels up faster',lucky:'🥚 Finds more eggs',heal:'❤️ Heals you on streaks'};
+const PET_TIERS={common:{n:'Common',c:'#6bbf59',odds:60,mult:1},rare:{n:'Rare',c:'#3a8dde',odds:24,mult:1.1},epic:{n:'Epic',c:'#a855f7',odds:12,mult:1.2},legend:{n:'Legendary',c:'#f59e0b',odds:4,mult:1.35}};
+const TIER_ORDER=['common','rare','epic','legend'];
 const PETS=[
- {id:'chick',e:'🐣',name:'Peep',perk:'coins'},{id:'fox',e:'🦊',name:'Ember',perk:'power'},
- {id:'turtle',e:'🐢',name:'Shelly',perk:'shield'},{id:'owl',e:'🦉',name:'Professor Hoot',perk:'xp'},
- {id:'cat',e:'🐱',name:'Whiskers',perk:'lucky'},{id:'pup',e:'🐶',name:'Biscuit',perk:'heal'},
- {id:'penguin',e:'🐧',name:'Waddles',perk:'shield'},{id:'panda',e:'🐼',name:'Bamboo',perk:'heal'},
- {id:'octo',e:'🐙',name:'Inky',perk:'coins'},{id:'rex',e:'🦖',name:'Chomp',perk:'power'},
- {id:'unicorn',e:'🦄',name:'Sparkle',perk:'xp',rare:true},{id:'dragon',e:'🐉',name:'Blaze',perk:'power',rare:true}];
-const eggPrice=p=>150+p.pets.length*50;
+ {id:'chick',e:'🐣',name:'Peep',perk:'coins',tier:'common'},{id:'fox',e:'🦊',name:'Ember',perk:'power',tier:'common'},
+ {id:'turtle',e:'🐢',name:'Shelly',perk:'shield',tier:'common'},{id:'cat',e:'🐱',name:'Whiskers',perk:'lucky',tier:'common'},
+ {id:'pup',e:'🐶',name:'Biscuit',perk:'heal',tier:'common'},{id:'penguin',e:'🐧',name:'Waddles',perk:'shield',tier:'common'},
+ {id:'bunny',e:'🐰',name:'Hops',perk:'xp',tier:'common'},{id:'hamster',e:'🐹',name:'Nibbles',perk:'coins',tier:'common'},
+ {id:'frog',e:'🐸',name:'Hopper',perk:'lucky',tier:'common'},{id:'pig',e:'🐷',name:'Truffle',perk:'heal',tier:'common'},
+ {id:'koala',e:'🐨',name:'Cuddles',perk:'shield',tier:'common'},{id:'duck',e:'🦆',name:'Quackers',perk:'coins',tier:'common'},
+ {id:'mouse',e:'🐭',name:'Squeak',perk:'xp',tier:'common'},{id:'snail',e:'🐌',name:'Zoom',perk:'power',tier:'common'},
+ {id:'owl',e:'🦉',name:'Professor Hoot',perk:'xp',tier:'rare'},{id:'panda',e:'🐼',name:'Bamboo',perk:'heal',tier:'rare'},
+ {id:'octo',e:'🐙',name:'Inky',perk:'coins',tier:'rare'},{id:'rex',e:'🦖',name:'Chomp',perk:'power',tier:'rare'},
+ {id:'hedgehog',e:'🦔',name:'Spike',perk:'shield',tier:'rare'},{id:'raccoon',e:'🦝',name:'Bandit',perk:'lucky',tier:'rare'},
+ {id:'otter',e:'🦦',name:'Splash',perk:'heal',tier:'rare'},{id:'sloth',e:'🦥',name:'Snooze',perk:'xp',tier:'rare'},
+ {id:'parrot',e:'🦜',name:'Rio',perk:'coins',tier:'rare'},{id:'dolphin',e:'🐬',name:'Echo',perk:'power',tier:'rare'},
+ {id:'monkey',e:'🐵',name:'Banana',perk:'lucky',tier:'rare'},{id:'bee',e:'🐝',name:'Buzzy',perk:'power',tier:'rare'},
+ {id:'lion',e:'🦁',name:'Leo',perk:'power',tier:'epic'},{id:'tiger',e:'🐯',name:'Stripes',perk:'power',tier:'epic'},
+ {id:'shark',e:'🦈',name:'Finn',perk:'shield',tier:'epic'},{id:'wolf',e:'🐺',name:'Luna',perk:'heal',tier:'epic'},
+ {id:'flamingo',e:'🦩',name:'Rosie',perk:'lucky',tier:'epic'},{id:'peacock',e:'🦚',name:'Jewel',perk:'coins',tier:'epic'},
+ {id:'whale',e:'🐳',name:'Bubbles',perk:'xp',tier:'epic'},{id:'eagle',e:'🦅',name:'Skye',perk:'power',tier:'epic'},
+ {id:'unicorn',e:'🦄',name:'Sparkle',perk:'xp',tier:'legend'},{id:'dragon',e:'🐉',name:'Blaze',perk:'power',tier:'legend'},
+ {id:'skydragon',e:'🐲',name:'Zephyr',perk:'lucky',tier:'legend'},{id:'titan',e:'🦕',name:'Titan',perk:'shield',tier:'legend'},
+ {id:'butterfly',e:'🦋',name:'Aurora',perk:'heal',tier:'legend'},{id:'bigwhale',e:'🐋',name:'Atlas',perk:'coins',tier:'legend'}];
+PETS.forEach(x=>{x.rare=x.tier!=='common';});
+const tierTag=x=>`<small class="tiertag" style="background:${PET_TIERS[x.tier].c}">${x.tier==='legend'?'🌟 ':x.tier==='epic'?'💜 ':x.tier==='rare'?'✨ ':''}${PET_TIERS[x.tier].n}</small>`;
+const eggPrice=p=>Math.min(900,150+p.pets.length*30);
 const ZONES=[
  {id:'forest',name:'Addition Forest',op:'add',sym:'+',cls:'z-forest',art:'🌳',decor:['🌲','🌳','🍄','🌼','🌿'],
   mons:[['Grumbug','🐛'],['Shroomling','🍄'],['Buzzbee','🐝'],['Twigwolf','🐺'],['Vinesnake','🐍'],['King Mossback','🦍']]},
@@ -931,7 +952,7 @@ function usePetMove(){
  const x0=r.left-a.left,y0=r.top-a.top,x1=m.left-a.left+m.width/2-32,y1=m.top-a.top+m.height/2-32;
  el.animate([{transform:`translate(${x0}px,${y0}px) scale(1)`},{transform:`translate(${(x0+x1)/2}px,${Math.min(y0,y1)-90}px) scale(1.3) rotate(-20deg)`},{transform:`translate(${x1}px,${y1}px) scale(1.4)`},{transform:`translate(${x0}px,${y0}px) scale(1)`}],{duration:1100,easing:'ease-in-out'}).onfinish=()=>{el.remove();if(pf)pf.style.visibility='';};
  setTimeout(()=>{
-  if(!B)return;const base=[0,35,42,50][PET_STAGES.indexOf(petStage(pd))]||35;const dmg=Math.round(base*(happy?1.25:1));
+  if(!B)return;const base=[0,35,42,50][PET_STAGES.indexOf(petStage(pd))]||35;const dmg=Math.round(base*(happy?1.25:1)*((PET_TIERS[pet.tier]||{}).mult||1));
   B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();burst(x1+32,y1+32,'#ffd84a',14);floatText('#monS',`${happy?'😊 ':''}-${dmg}`,'#ffe066');
   $('#monS').animate([{transform:'none'},{transform:'translateX(20px) rotate(12deg)'},{transform:'none'}],{duration:400});
   pd.xp+=.5;updateBars();
@@ -1197,7 +1218,8 @@ SCREENS.backpack=()=>{
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}
    ${p.pets.length<PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
-   <div class="items">${PETS.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${x.rare?'✨ Rare':'Hatch to find'}</small></div>`;}).join('')}</div></div>
+   <div class="muted" style="margin-bottom:6px">Pets found: <b>${p.pets.length} / ${PETS.length}</b></div>
+   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}</div>
   <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell')).join('')}</div></div>
   <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
   <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
@@ -1224,19 +1246,32 @@ function buyEgg(){
  const p=P();const price=eggPrice(p);if(p.coins<price){toast(`You need ${price-p.coins} more coins for an egg!`);return;}
  p.coins-=price;p.eggs++;save();SFX.coin();go('backpack');toast('You got an egg! 🥚');
 }
+function rollEggPet(p){
+ let r=Math.random()*100,t='common';for(const k of TIER_ORDER){r-=PET_TIERS[k].odds;if(r<0){t=k;break;}}
+ const idx=TIER_ORDER.indexOf(t);const tries=[t,...TIER_ORDER.slice(0,idx).reverse()];
+ if(t==='common')tries.push('rare');else if(t==='rare')tries.push('epic');
+ for(const k of tries){const pool=PETS.filter(x=>x.tier===k&&!p.pets.includes(x.id));if(pool.length)return pick(pool);}
+ return null;
+}
 function hatchEgg(){
- const p=P();if(p.eggs<1)return;
- const pool=PETS.filter(x=>!p.pets.includes(x.id));p.eggs--;
- if(!pool.length){p.coins+=100;save();go('backpack');toast('You have every pet! The egg turned into 🪙 100.');return;}
- const w=[];pool.forEach(x=>{for(let i=0;i<(x.rare?1:3);i++)w.push(x);});
- const pet=pick(w);p.pets.push(pet.id);if(!p.pet)p.pet=pet.id;petData(p,pet.id);save();
+ const p=P();if(p.eggs<1)return;p.eggs--;
+ if(p.pets.length>=PETS.length){p.coins+=100;save();go('backpack');toast('You have every pet! The egg turned into 🪙 100.');return;}
+ const pet=rollEggPet(p);let prize='';
+ if(pet){p.pets.push(pet.id);if(!p.pet)p.pet=pet.id;petData(p,pet.id);}
+ else{const a=pick(PET_FOODS),b=pick(PET_FOODS);p.pantry[a.id]=(p.pantry[a.id]||0)+1;p.pantry[b.id]=(p.pantry[b.id]||0)+1;p.coins+=40;prize=`${a.e}${b.e}`;}
+ save();
  modal(`<div class="mcard"><div class="egg" id="egg">🥚</div><h2 id="hT">Hatching…</h2><div id="hR"></div></div>`);
- [0,400,800,1200].forEach(t=>setTimeout(()=>tone(600+t/4,.08,'triangle',.08),t));
+ const big=pet&&(pet.tier==='epic'||pet.tier==='legend');
+ [0,400,800,1200].concat(big?[1500,1800]:[]).forEach(t=>setTimeout(()=>tone(600+t/4,.08,'triangle',.08),t));
  setTimeout(()=>{
-  const e=$('#egg');if(!e)return;e.textContent=pet.e;e.classList.add('hatched');SFX.win();
-  $('#hT').textContent=`${pet.rare?'✨ RARE! ✨ ':''}You got ${pet.name}!`;
-  $('#hR').innerHTML=`<p>Pet power: <b>${PERKS[pet.perk]}</b></p><div class="row"><button class="btn ghost dark" onclick="closeModal();go('backpack')">OK</button><button class="btn green" onclick="P().pet='${pet.id}';save();closeModal();go('backpack')">Take ${esc(pet.name)} along!</button></div>`;
- },1700);
+  const e=$('#egg');if(!e)return;
+  if(!pet){e.textContent='🍬';e.classList.add('hatched');SFX.coin();$('#hT').textContent='A snack egg!';
+   $('#hR').innerHTML=`<p>No new pet this time, but it had treats inside: <b>${prize}</b> and 🪙 40!</p><p class="muted">The rarest pets are still out there… keep trying! 🌟</p><div class="row"><button class="btn green" onclick="closeModal();go('backpack')">OK</button></div>`;return;}
+  e.textContent=pet.e;e.classList.add('hatched');if(big){e.classList.add('glowegg');e.style.setProperty('--gc',PET_TIERS[pet.tier].c);}SFX.win();
+  $('#hT').innerHTML=`${pet.tier==='legend'?'🌟 LEGENDARY! 🌟<br>':pet.tier==='epic'?'💜 EPIC! 💜<br>':pet.tier==='rare'?'✨ Rare! ✨<br>':''}You got ${esc(pet.name)}!`;
+  $('#hR').innerHTML=`${tierTag(pet)}<p>Pet power: <b>${PERKS[pet.perk]}</b></p><p class="muted">Pets found: ${p.pets.length} / ${PETS.length}</p><div class="row"><button class="btn ghost dark" onclick="closeModal();go('backpack')">OK</button><button class="btn green" onclick="P().pet='${pet.id}';save();closeModal();go('backpack')">Take ${esc(pet.name)} along!</button></div>`;
+  if(big)for(let i=0;i<3;i++)setTimeout(SFX.coin,300+i*180);
+ },big?2300:1700);
 }
 
 /* ================= pet home: care, pet shop, daily spin ================= */
@@ -1249,7 +1284,11 @@ const PET_GEAR=[{id:'bow',e:'🎀',name:'Bow',price:80,pos:'top'},{id:'shades',e
  {id:'tophat',e:'🎩',name:'Top Hat',price:150,pos:'top'},{id:'party',e:'🥳',name:'Party Hat',price:100,pos:'top',show:'🎉'},
  {id:'flower',e:'🌸',name:'Flower',price:90,pos:'top'},{id:'crown',e:'👑',name:'Crown',price:400,pos:'top'}];
 const PET_MOVES={chick:'Peck Attack',fox:'Fire Tail',turtle:'Shell Spin',owl:'Wing Gust',cat:'Pounce',pup:'Bark Blast',penguin:'Belly Slide',
- panda:'Bamboo Bonk',octo:'Ink Squirt',rex:'Mega Chomp',unicorn:'Rainbow Horn',dragon:'Dragon Flame'};
+ panda:'Bamboo Bonk',octo:'Ink Squirt',rex:'Mega Chomp',unicorn:'Rainbow Horn',dragon:'Dragon Flame',
+ bunny:'Bunny Kick',hamster:'Cheek Cannon',frog:'Tongue Snap',pig:'Mud Splat',koala:'Eucalyptus Toss',duck:'Quack Attack',mouse:'Cheese Blast',snail:'Slime Zoom',
+ hedgehog:'Spike Roll',raccoon:'Sneaky Swipe',otter:'Splash Wave',sloth:'Sleepy Slam',parrot:'Squawk Blast',dolphin:'Sonic Splash',monkey:'Banana Bomb',bee:'Honey Sting',
+ lion:'Mighty Roar',tiger:'Tiger Claw',shark:'Shark Bite',wolf:'Moon Howl',flamingo:'Pink Tornado',peacock:'Feather Dazzle',whale:'Water Spout',eagle:'Sky Dive',
+ skydragon:'Storm Breath',titan:'Earthquake Stomp',butterfly:'Aurora Wings',bigwhale:'Tidal Crash'};
 const MOOD_HOURS=8,MOOD_MAX=5;
 function petMood(pd){
  const now=Date.now();if(!pd.t){pd.t=now;pd.food=3;pd.joy=3;}
@@ -1706,13 +1745,13 @@ function mathNudge(q){
 }
 function offerPet(){
  const p=P();const due=petMilestones(p);if(!due.length)return;
- const pool=PETS.filter(x=>!p.pets.includes(x.id));
- if(!pool.length){p.petMs.push(due[0]);p.eggs++;p.coins+=100;save();toast('You have every pet! You got 100 coins instead. 🪙');return;}
- const w=[];pool.forEach(x=>{for(let i=0;i<(x.rare?(due[0]>=8?2:0):3);i++)w.push(x);});
+ const pool=PETS.filter(x=>!p.pets.includes(x.id)&&(x.tier==='common'||(x.tier==='rare'&&due[0]>=6)));
+ if(!pool.length){p.petMs.push(due[0]);p.eggs++;save();toast(`Level ${due[0]} reward: a mystery egg! 🥚 Hatch it in your backpack.`);return;}
+ const w=[];pool.forEach(x=>{for(let i=0;i<(x.tier==='rare'?1:3);i++)w.push(x);});
  const opts=[];const src=w.length?w:pool;while(opts.length<Math.min(3,pool.length)){const x=pick(src);if(!opts.includes(x))opts.push(x);}
  SFX.level();
  modal(`<div class="mcard"><div class="big-emoji">🎁</div><h2>Level ${due[0]} reward!</h2><p>A new pet buddy wants to join you. Pets give you <b>hints</b> 💡 when a problem is tricky!</p>
- <div class="petpick">${opts.map(x=>`<button class="item" onclick="takePet('${x.id}',${due[0]})"><div class="ie">${x.e}</div><div>${esc(x.name)}</div><small>${PERKS[x.perk]}</small>${x.rare?'<small>✨ Rare</small>':''}</button>`).join('')}</div>
+ <div class="petpick">${opts.map(x=>`<button class="item" onclick="takePet('${x.id}',${due[0]})"><div class="ie">${x.e}</div><div>${esc(x.name)}</div><small>${PERKS[x.perk]}</small>${x.tier!=='common'?tierTag(x):''}</button>`).join('')}</div>
  <p class="muted">Tap the one you want!</p></div>`);
 }
 function takePet(id,lvl){
