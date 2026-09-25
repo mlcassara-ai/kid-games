@@ -233,6 +233,26 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 }
 .proj{position:absolute;left:0;top:0;font-size:42px;pointer-events:none;z-index:4;filter:drop-shadow(0 0 10px #fff)}
 .proj.crit{font-size:58px}
+.proj.mine{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 18px #ffd84a)}
+.proj.big{font-size:96px;filter:drop-shadow(0 0 16px #ffb000) drop-shadow(0 0 30px #ff4b00)}
+.proj.foe{font-size:46px;filter:drop-shadow(0 0 8px rgba(255,80,80,.9))}
+.trail{position:absolute;width:14px;height:14px;border-radius:50%;pointer-events:none;z-index:3}
+.mana{display:flex;gap:4px;justify-content:center;min-height:16px}
+.mana i{width:14px;height:14px;border-radius:50%;background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.6);transition:background .3s,box-shadow .3s}
+.mana i.on{background:radial-gradient(circle at 35% 35%,#fff,#7fe3ff 40%,#3a7bff);box-shadow:0 0 8px #7fe3ff}
+.spellbar{position:absolute;left:50%;top:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:5}
+.spellbar button{font:inherit;font-weight:700;font-size:clamp(12px,1.8vh,15px);padding:6px 9px;border-radius:14px;background:rgba(255,255,255,.93);color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.3);white-space:nowrap;line-height:1.1}
+.spellbar button small{display:block;font-size:11px;color:#6a5fa0}
+.spellbar button.off{opacity:.45;filter:grayscale(.7)}
+.spellbar button.ready{animation:glowbtn 1.2s ease-in-out infinite}
+@keyframes glowbtn{0%,100%{box-shadow:0 3px 0 rgba(0,0,0,.3),0 0 0 #ffe066}50%{box-shadow:0 3px 0 rgba(0,0,0,.3),0 0 14px #ffe066}}
+.fighter.hero .bubble{position:absolute;left:50%;bottom:-6px;width:clamp(120px,24vh,200px);height:clamp(120px,24vh,200px);transform:translateX(-50%);border-radius:50%;border:3px solid rgba(140,220,255,.9);background:radial-gradient(circle,rgba(140,220,255,.05) 55%,rgba(140,220,255,.4));box-shadow:0 0 18px rgba(140,220,255,.8);pointer-events:none;display:none;animation:bpulse 1.6s ease-in-out infinite}
+.fighter.hero.shielded .bubble{display:block}
+@keyframes bpulse{0%,100%{opacity:.75}50%{opacity:1}}
+.impact{position:absolute;font-size:72px;pointer-events:none;z-index:5;filter:drop-shadow(0 0 6px #ff3b3b) drop-shadow(0 0 14px #ff3b3b)}
+@media (orientation:landscape) and (max-height:560px){
+ .spellbar{top:4px;gap:4px}.spellbar button{padding:4px 7px;font-size:12px}.spellbar button small{display:none}}
+@media (prefers-reduced-motion:reduce){.spellbar button.ready,.fighter.hero .bubble{animation:none}}
 .spark{position:absolute;width:12px;height:12px;border-radius:50%;pointer-events:none;z-index:4}
 .floatnum{position:absolute;font-weight:700;font-size:32px;pointer-events:none;text-shadow:0 3px 0 rgba(0,0,0,.6);z-index:5;white-space:nowrap}
 .banner{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-size:clamp(26px,5vw,44px);font-weight:700;color:#ffe066;text-shadow:0 4px 0 #5a2a00,0 0 20px rgba(0,0,0,.5);white-space:nowrap;pointer-events:none;z-index:6}
@@ -798,8 +818,8 @@ function startBattle(zid,i,resume){
  const z=ZONES.find(x=>x.id===zid);const p=P();const isBoss=i===5;
  const champ=!!(p.champOn&&bossesBeaten(p)>=5);
  const mhp=Math.round((isBoss?200:110+i*15)*(champ?1.4:1));
- B={z,i,isBoss,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math'};
- if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
+ B={z,i,isBoss,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false};
+ if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
  p.last={zid,i};
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
  renderBattle();
@@ -810,8 +830,8 @@ function renderBattle(){
  const p=P();const pet=petOf(p);
  app.innerHTML=`<div class="battle ${B.z.cls} ${B.mode!=='math'?'questmode':''}">
  <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname">${B.champ?'👑 Champion ':''}${B.isBoss?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
- <div class="bmain"><div class="arena" id="arena"><div class="scene">${sceneSVG(B.z.id)}</div>
-  <div class="fighter hero" id="heroF"><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div><div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf">${pet.e}</div>`:''}</div>
+ <div class="bmain"><div class="arena" id="arena"><div class="scene">${sceneSVG(B.z.id)}</div>${B.mode==='math'?`<div class="spellbar" id="spellbar">${SPECIALS.map(x=>`<button id="sp-${x.id}" onclick="useSpecial('${x.id}')">${x.e} ${x.n}<small>${x.cost} charges</small></button>`).join('')}</div>`:''}
+  <div class="fighter hero" id="heroF"><div class="bubble"></div><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div>${B.mode==='math'?'<div class="mana" id="mana" title="Spell charges"></div>':''}<div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf">${pet.e}</div>`:''}</div>
   <div class="fighter mon ${B.isBoss?'boss':''}" id="monF"><div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div></div>
  </div>
  <div class="bctrl"><div class="qcard" id="qcard"><button class="hintbtn" id="hintBtn" onclick="useHint()"></button><div class="qlabel" id="qlabel"></div><div class="qtext" id="qtext">Get ready…</div></div>
@@ -824,6 +844,46 @@ function updateBars(){
  $('#hhpn').textContent=`❤️ ${B.hhp} / ${B.hmax}`;$('#mhpn').textContent=`${B.mhp} / ${B.mmax}`;
  $('#streak').textContent=B.streak>=2?`🔥 ${B.streak} streak`:'';
  $('#bcoins').textContent='🪙 '+P().coins;
+ updateMana();
+}
+const MAX_CHARGE=6;
+const SPECIALS=[{id:'fire',e:'🔥',n:'Big Fireball',cost:3},{id:'shield',e:'🛡️',n:'Shield',cost:2},{id:'heal',e:'💚',n:'Heal',cost:4}];
+function updateMana(){
+ const m=$('#mana');if(!m||!B||B.mode!=='math')return;
+ let h='';for(let i=0;i<MAX_CHARGE;i++)h+=`<i class="${i<(B.charge||0)?'on':''}"></i>`;m.innerHTML=h;
+ $('#heroF').classList.toggle('shielded',!!B.shieldUp);
+ SPECIALS.forEach(x=>{const b=$('#sp-'+x.id);if(!b)return;const ok=(B.charge||0)>=x.cost&&!(x.id==='shield'&&B.shieldUp)&&!(x.id==='heal'&&B.hhp>=B.hmax);b.classList.toggle('off',!ok);b.classList.toggle('ready',ok);});
+}
+function useSpecial(id){
+ if(!B||B.mode!=='math'||B.over||fbOpen)return;
+ const x=SPECIALS.find(s=>s.id===id);
+ if(B.busy){return;}
+ if((B.charge||0)<x.cost){toast(`${x.e} ${x.n} needs ${x.cost} charges. Get ${x.cost-(B.charge||0)} more right! ⚡`);return;}
+ if(id==='shield'&&B.shieldUp){toast('🛡️ Your shield is already up!');return;}
+ if(id==='heal'&&B.hhp>=B.hmax){toast('💚 You already have full health!');return;}
+ B.charge-=x.cost;B.busy=true;const p=P();
+ const resume=()=>{updateBars();if(!B||B.over)return;B.busy=false;B.t0=performance.now();p.battle&&(p.battle.charge=B.charge,p.battle.shieldUp=B.shieldUp,p.battle.mhp=B.mhp,p.battle.hhp=B.hhp);save();};
+ if(id==='fire'){
+  banner('🔥 BIG FIREBALL!');SFX.correct();
+  castSpell({e:'🔥',color:'#ff7a00'},true,()=>{
+   const dmg=Math.round(50*(petPerk(p)==='power'?1.15:1));
+   B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();floatText('#monS','BOOM! -'+dmg,'#ffb000');
+   $('#monS').animate([{transform:'none'},{transform:'translateX(24px) rotate(14deg) scale(.9)'},{transform:'translateX(-10px)'},{transform:'none'}],{duration:500});
+   $('#arena').animate([{transform:'none'},{transform:'translate(5px,-3px)'},{transform:'translate(-5px,3px)'},{transform:'none'}],{duration:300});
+   if(B.mhp<=0){B.over=true;updateBars();setTimeout(winBattle,500);return;}
+   resume();
+  },'big');
+ }else if(id==='shield'){
+  B.shieldUp=true;SFX.coin();floatText('#heroS','🛡️ Shield up!','#9fe7ff');resume();
+ }else{
+  const h=Math.min(30,B.hmax-B.hhp);B.hhp+=h;SFX.coin();floatText('#heroS','+'+h+' ❤️','#8dffb0');
+  $('#heroS').animate([{filter:'none'},{filter:'brightness(1.6) drop-shadow(0 0 16px #8dffb0)'},{filter:'none'}],{duration:700});resume();
+ }
+}
+function addCharge(){
+ if(!B||B.mode!=='math')return;const before=B.charge||0;B.charge=Math.min(MAX_CHARGE,before+1);
+ if(B.charge>before){const s=SPECIALS.find(x=>x.cost===B.charge);if(s)setTimeout(()=>floatText('#mana',`⚡ ${s.n} ready!`,'#7fe3ff'),450);}
+ updateMana();
 }
 function nextQ(){
  if(!B||B.over||curScreen!=='battle')return;
@@ -844,7 +904,7 @@ function nextQ(){
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
- p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown};save();
+ p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
  showQ();
@@ -882,7 +942,7 @@ function answer(){
  if(!q.again&&!q.practice&&!q.hinted)lvChange=adjustSkill(p,q.op,ok,slip);
  if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${UP_N} right in a row to move back up!`);},900);}
  if(ok){
-  B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);
+  B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();
   const mm=p.missed[q.text];if(mm&&(q.practice||q.again))mm.fixed=(mm.fixed||0)+1;
   if(lvChange===1){const nl=prevL+1;const isNew=nl>(p.maxL[q.op]||0);if(isNew)p.maxL[q.op]=nl;
    setTimeout(()=>{if(isNew){banner(`⭐ NEW LEVEL! ${OPNAME[q.op]} ${nl}`);SFX.level();toast(`New challenge: ${KID_DESC[q.op][nl]}`);}else toast(`👍 Back up to ${OPNAME[q.op]} level ${nl}!`);},700);}
@@ -914,13 +974,19 @@ function answer(){
  }
  updateBars();
 }
-function castSpell(spell,crit,done){
+function castSpell(spell,crit,done,kind){
  const arena=$('#arena'),a=arena.getBoundingClientRect(),h=$('#heroS').getBoundingClientRect(),m=$('#monS').getBoundingClientRect();
- const el=document.createElement('div');el.className='proj'+(crit?' crit':'');el.textContent=spell.e;arena.appendChild(el);
- const x0=h.right-a.left-30,y0=h.top-a.top+h.height*.2,x1=m.left-a.left+m.width/2-24,y1=m.top-a.top+m.height/2-24;
- $('#heroS').animate([{transform:'none'},{transform:'translateY(-12px) rotate(-6deg)'},{transform:'none'}],{duration:300});
- const an=el.animate([{transform:`translate(${x0}px,${y0}px) scale(.5) rotate(0deg)`},{transform:`translate(${(x0+x1)/2}px,${Math.min(y0,y1)-50}px) scale(1.1) rotate(200deg)`},{transform:`translate(${x1}px,${y1}px) scale(1.5) rotate(360deg)`}],{duration:430,easing:'ease-in'});
- an.onfinish=()=>{el.remove();burst(x1+24,y1+24,spell.color,crit?14:9);done();};
+ const big=kind==='big',sz=big?96:crit?58:42;
+ const el=document.createElement('div');el.className='proj mine'+(crit?' crit':'')+(big?' big':'');el.textContent=spell.e;arena.appendChild(el);
+ const x0=h.right-a.left-30,y0=h.top-a.top+h.height*.2,x1=m.left-a.left+m.width/2-sz/2,y1=m.top-a.top+m.height/2-sz/2;
+ const mx=(x0+x1)/2,my=Math.min(y0,y1)-(big?80:50),dur=big?750:480;
+ $('#heroS').animate([{transform:'none'},{transform:'translateY(-14px) rotate(-8deg)'},{transform:'none'}],{duration:300});
+ const an=el.animate([{transform:`translate(${x0}px,${y0}px) scale(.4) rotate(0deg)`},{transform:`translate(${mx}px,${my}px) scale(1.1) rotate(200deg)`},{transform:`translate(${x1}px,${y1}px) scale(1.5) rotate(360deg)`}],{duration:dur,easing:'ease-in'});
+ const t0=performance.now();
+ const tr=setInterval(()=>{if(!el.isConnected){clearInterval(tr);return;}const r=el.getBoundingClientRect();const d=document.createElement('div');d.className='trail';d.style.background=Math.random()<.5?spell.color:'#fff';d.style.boxShadow='0 0 10px '+spell.color;
+  d.style.left=(r.left-a.left+r.width/2-7)+'px';d.style.top=(r.top-a.top+r.height/2-7)+'px';arena.appendChild(d);
+  d.animate([{transform:'scale(1)',opacity:.9},{transform:'scale(.1)',opacity:0}],{duration:400}).onfinish=()=>d.remove();},35);
+ an.onfinish=()=>{clearInterval(tr);el.remove();burst(x1+sz/2,y1+sz/2,spell.color,big?22:crit?14:9);done();};
 }
 function burst(x,y,color,n){
  const arena=$('#arena');if(!arena)return;
@@ -943,19 +1009,45 @@ function banner(txt){
  const el=document.createElement('div');el.className='banner';el.textContent=txt;arena.appendChild(el);
  el.animate([{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{transform:'translate(-50%,-50%) scale(1.1)',opacity:1,offset:.2},{transform:'translate(-50%,-50%) scale(1)',opacity:1,offset:.8},{transform:'translate(-50%,-70%) scale(1)',opacity:0}],{duration:1300}).onfinish=()=>el.remove();
 }
+const ATK={'🐛':['shot','🟢','Goo spit'],'🍄':['shot','🟤','Spore puff'],'🐝':['melee','🗡️','Sting'],'🐺':['melee','🦷','Wolf bite'],'🐍':['melee','🦷','Snake bite'],'🦍':['shot','🪨','Boulder toss'],
+ '🦇':['melee','💨','Swoop'],'🕷️':['shot','🕸️','Web shot'],'🐌':['shot','💧','Slime'],'👻':['rain','🧊','Icicles'],'🦂':['melee','🗡️','Tail sting'],'🦑':['shot','🌊','Tidal wave'],
+ '🔥':['shot','🔥','Fireball'],'🦎':['shot','🔥','Fire breath'],'🦀':['melee','✂️','Claw pinch'],'🦖':['rain','🪨','Rock slide'],'👺':['shot','🔥','Fireball'],'🐉':['rain','☄️','Meteor storm'],
+ '💀':['shot','🦴','Bone throw'],'🤖':['shot','⚡','Laser zap'],'🧟':['melee','✋','Zombie grab'],'🧙‍♀️':['shot','🧪','Potion toss'],'🧌':['melee','🪵','Club smash'],'🧛':['rain','🦇','Bat swarm'],
+ '👾':['shot','👾','Pixel blast'],'👽':['shot','🟢','Ray gun'],'🛸':['rain','⚡','Tractor beam'],'🐙':['shot','⚫','Ink blast'],'🐲':['rain','🔥','Fire rain'],
+ '🐞':['melee','💥','Beetle bonk'],'🐸':['melee','👅','Tongue lash'],'🦝':['melee','💢','Scratch'],'🐭':['melee','🦷','Nibble'],'🦜':['shot','🪶','Feather dart'],'🦉':['rain','🪶','Feather storm'],'🧞':['shot','🌪️','Whirlwind']};
+function attackOf(emoji){const a=ATK[emoji];return a?{t:a[0],e:a[1],n:a[2]}:{t:'shot',e:'💥',n:'Attack'};}
 function monsterAttack(done){
  const dmg=Math.round((B.isBoss?rnd(20,26):rnd(13,20))*(B.champ?1.5:1));
- $('#monS').animate([{transform:'none'},{transform:'translateX(-70px) scale(1.15)'},{transform:'none'}],{duration:450,easing:'ease-in-out'});
- setTimeout(()=>{
+ const atk=attackOf(B.emoji);
+ const hit=()=>{
   if(!B)return;
   if(B.mode!=='math'){floatText('#heroS','💨 Dodged!','#9fe7ff');}
+  else if(B.shieldUp){B.shieldUp=false;SFX.coin();floatText('#heroS','🛡️ Shield blocked it!','#9fe7ff');}
   else if(!B.grace&&!B.champ){B.grace=true;floatText('#heroS','💨 Missed you!','#9fe7ff');}
-  else if(B.shield){B.shield=false;floatText('#heroS','🛡️ Blocked!','#9fe7ff');}
-  else{B.hhp=Math.max(0,B.hhp-dmg);SFX.hurt();floatText('#heroS','-'+dmg,'#ff8a8a');
+  else if(B.shield){B.shield=false;floatText('#heroS','🐾 Pet blocked it!','#9fe7ff');}
+  else{B.hhp=Math.max(0,B.hhp-dmg);SFX.hurt();floatText('#heroS',atk.n+'! -'+dmg,'#ff8a8a');
    $('#heroS').animate([{filter:'none'},{filter:'brightness(2) sepia(1) hue-rotate(-50deg) saturate(5)'},{filter:'none'}],{duration:400});
    $('#arena').animate([{transform:'none'},{transform:'translate(-6px,3px)'},{transform:'translate(6px,-3px)'},{transform:'none'}],{duration:300});}
-  updateBars();setTimeout(done,550);
- },230);
+  updateBars();setTimeout(done,650);
+ };
+ const arena=$('#arena');if(!arena){hit();return;}
+ const a=arena.getBoundingClientRect(),h=$('#heroS').getBoundingClientRect(),m=$('#monS').getBoundingClientRect();
+ const hx=h.left-a.left+h.width/2-23,hy=h.top-a.top+h.height*.4-23;
+ const mkp=(txt,cls)=>{const el=document.createElement('div');el.className='proj foe '+(cls||'');el.textContent=txt;arena.appendChild(el);return el;};
+ if(atk.t==='melee'){
+  $('#monS').animate([{transform:'none'},{transform:`translateX(${-(m.left-h.right)*.55}px) scale(1.2)`},{transform:'none'}],{duration:520,easing:'ease-in-out'});
+  setTimeout(()=>{const el=document.createElement('div');el.className='impact';el.textContent=atk.e;el.style.left=(hx-8)+'px';el.style.top=(hy-8)+'px';arena.appendChild(el);
+   el.animate([{transform:'scale(.3)',opacity:0},{transform:'scale(1.3)',opacity:1,offset:.3},{transform:'scale(1)',opacity:0}],{duration:850}).onfinish=()=>el.remove();hit();},260);
+ }else if(atk.t==='rain'){
+  $('#monS').animate([{transform:'none'},{transform:'translateY(-18px) scale(1.12)'},{transform:'none'}],{duration:450});
+  for(let i=0;i<5;i++){const el=mkp(atk.e);const x=hx+(i-2)*28+rnd(-8,8);
+   el.animate([{transform:`translate(${x}px,-60px) rotate(0deg)`},{transform:`translate(${x+10}px,${hy+10}px) rotate(160deg)`}],{duration:520,delay:i*70,easing:'ease-in',fill:'backwards'}).onfinish=()=>{el.remove();if(i===0)burst(hx+23,hy+30,'#ff8a8a',8);};}
+  setTimeout(hit,560);
+ }else{
+  $('#monS').animate([{transform:'none'},{transform:'translateX(-24px) scale(1.12)'},{transform:'none'}],{duration:380});
+  const el=mkp(atk.e);const x0=m.left-a.left,y0=m.top-a.top+m.height*.3;
+  el.animate([{transform:`translate(${x0}px,${y0}px) scale(.5) rotate(0deg)`},{transform:`translate(${(x0+hx)/2}px,${Math.min(y0,hy)-45}px) scale(1.1) rotate(-180deg)`},{transform:`translate(${hx}px,${hy}px) scale(1.3) rotate(-360deg)`}],{duration:500,easing:'ease-in'}).onfinish=()=>{el.remove();burst(hx+23,hy+23,'#ff8a8a',9);hit();};
+ }
 }
 function showFeedback(q,said,slip){
  if(B.mode!=='math'){questFeedback(q,said);return;}
