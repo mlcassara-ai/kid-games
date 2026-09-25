@@ -240,7 +240,8 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .mana{display:flex;gap:4px;justify-content:center;min-height:16px}
 .mana i{width:14px;height:14px;border-radius:50%;background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.6);transition:background .3s,box-shadow .3s}
 .mana i.on{background:radial-gradient(circle at 35% 35%,#fff,#7fe3ff 40%,#3a7bff);box-shadow:0 0 8px #7fe3ff}
-.spellbar{position:absolute;left:50%;top:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:5}
+.spellbar{position:absolute;left:50%;top:8px;transform:translateX(-50%);display:flex;gap:6px;z-index:5;max-width:98%;flex-wrap:wrap;justify-content:center}
+@media(max-width:420px){.topbar .iconbtn{width:33px;height:33px;font-size:15px}.topbar{gap:4px;padding:8px 6px}.coins{padding:4px 7px;font-size:13px}}
 .spellbar button{font:inherit;font-weight:700;font-size:clamp(12px,1.8vh,15px);padding:6px 9px;border-radius:14px;background:rgba(255,255,255,.93);color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.3);white-space:nowrap;line-height:1.1}
 .spellbar button small{display:block;font-size:11px;color:#6a5fa0}
 .spellbar button.off{opacity:.45;filter:grayscale(.7)}
@@ -249,9 +250,40 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .fighter.hero .bubble{position:absolute;left:50%;bottom:-6px;width:clamp(120px,24vh,200px);height:clamp(120px,24vh,200px);transform:translateX(-50%);border-radius:50%;border:3px solid rgba(140,220,255,.9);background:radial-gradient(circle,rgba(140,220,255,.05) 55%,rgba(140,220,255,.4));box-shadow:0 0 18px rgba(140,220,255,.8);pointer-events:none;display:none;animation:bpulse 1.6s ease-in-out infinite}
 .fighter.hero.shielded .bubble{display:block}
 @keyframes bpulse{0%,100%{opacity:.75}50%{opacity:1}}
+.pav{position:relative;display:inline-block;line-height:1}
+.pav .pe{display:inline-block}
+.pav .pacc{position:absolute;left:50%;transform:translateX(-50%);font-size:.55em;pointer-events:none}
+.pav .pacc.top{top:-.52em;font-size:.48em}.pav .pacc.eyes{top:.22em;font-size:.5em}
+.pav.big{font-size:clamp(110px,22vw,170px)}
+.pethome{display:grid;grid-template-columns:minmax(260px,1fr) 2fr;gap:16px;align-items:start}
+@media(max-width:760px){.pethome{grid-template-columns:1fr}}
+.phcard{text-align:center;position:sticky;top:70px}
+@media(max-width:760px){.phcard{position:static}}
+.phstage{position:relative;padding:40px 0 6px;background:radial-gradient(ellipse at 50% 90%,#e3ffe9 0,#f6f3ff 60%);border-radius:18px;cursor:pointer;overflow:hidden;min-height:220px;user-select:none;-webkit-user-select:none}
+.phstage .pav{animation:bob 2s ease-in-out infinite}
+.bubblesay{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#fff;border-radius:14px;padding:5px 12px;font-weight:600;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis}
+.phfx{position:absolute;bottom:40%;font-size:40px;pointer-events:none}
+.phstats{text-align:left;display:flex;flex-direction:column;gap:6px;margin-top:10px;font-size:15px}
+.pxp{height:14px;background:#eee;border-radius:8px;overflow:hidden}.pxp i{display:block;height:100%;background:linear-gradient(90deg,#ff9ce0,#b99cff)}
+.mood{display:flex;justify-content:space-between;align-items:center;font-weight:600}.mood span:last-child{font-size:20px;letter-spacing:1px}
+.pethome h4{margin:14px 0 8px;color:#6a5fa0}
+.homecards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:520px){.homecards{grid-template-columns:1fr}}
+.hcard{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.95);border-radius:18px;padding:10px 14px;text-align:left;color:var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.hcard .pav{font-size:46px}.hcard b{font-size:18px;display:block}.hcard small{color:#6a5fa0;font-size:14px}
+.hcard.glow{animation:glowbtn 1.2s ease-in-out infinite;box-shadow:0 4px 0 rgba(0,0,0,.2),0 0 18px #ffe066}
+.spincard{text-align:center}
+.wheelwrap{position:relative;width:min(300px,72vw);height:min(300px,72vw);margin:10px auto 16px}
+.wptr{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:34px;color:#e0245e;z-index:2;text-shadow:0 2px 0 #fff}
+.wheel{width:100%;height:100%;border-radius:50%;border:6px solid #fff;box-shadow:0 0 0 4px #b99cff,0 6px 16px rgba(0,0,0,.3);position:relative}
+.wl{position:absolute;inset:0;display:flex;justify-content:center}
+.wl span{margin-top:8%;display:flex;flex-direction:column;align-items:center;font-size:min(30px,7vw);line-height:1}
+.wl small{font-size:12px;font-weight:700;color:#3b2b6b}
+.petf .pav{font-size:inherit}
 .impact{position:absolute;font-size:72px;pointer-events:none;z-index:5;filter:drop-shadow(0 0 6px #ff3b3b) drop-shadow(0 0 14px #ff3b3b)}
 @media (orientation:landscape) and (max-height:560px){
  .spellbar{top:4px;gap:4px}.spellbar button{padding:4px 7px;font-size:12px}.spellbar button small{display:none}}
+@media(max-width:520px){.spellbar{gap:4px;top:5px;flex-wrap:nowrap}.spellbar button{padding:6px 7px;font-size:12px}.spellbar button small{display:none}}
 @media (prefers-reduced-motion:reduce){.spellbar button.ready,.fighter.hero .bubble{animation:none}}
 .spark{position:absolute;width:12px;height:12px;border-radius:50%;pointer-events:none;z-index:4}
 .floatnum{position:absolute;font-weight:700;font-size:32px;pointer-events:none;text-shadow:0 3px 0 rgba(0,0,0,.6);z-index:5;white-space:nowrap}
@@ -447,10 +479,10 @@ function newPlayer(name,grade){
   missed:{},daily:{},progress:{},
   owned:{hats:HATS.filter(h=>!h.price).map(h=>h.id),robes:ROBES.filter(r=>!r.price).map(r=>r.id),spells:['spark']},
   welcomed:false,startL1:true,spellStats:{},quizStats:{},hwStats:{},customWords:null,spell:'spark',pets:[],pet:null,eggs:1,time:0,bestStreak:0,battles:0,
-  recent:{add:[],sub:[],mul:[],div:[]},log:[],lock:null,battle:null,maxL:{add:g.add,sub:g.sub,mul:g.mul,div:g.div},champ:{},pb:{},days:[],quest:null};
+  recent:{add:[],sub:[],mul:[],div:[]},log:[],lock:null,battle:null,maxL:{add:g.add,sub:g.sub,mul:g.mul,div:g.div},champ:{},pb:{},days:[],quest:null,pantry:{},toys:[],petGear:[],spinDay:null};
 }
 let state=load();
-function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL={add:1,sub:1,mul:1,div:1};p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL={add:1,sub:1,mul:1,div:1};p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -537,6 +569,7 @@ function topbar(){
  <div class="coins">🪙 ${p.coins}</div>
  <button class="iconbtn" title="World map" onclick="go('map')">🗺️</button>
  <button class="iconbtn" title="Backpack &amp; shop" onclick="go('backpack')">🎒${p.eggs?'<b class="dot"></b>':''}</button>
+ <button class="iconbtn" title="Pet home" onclick="go('pethome')">🐾${spinReady(p)?'<b class="dot"></b>':''}</button>
  <button class="iconbtn" title="Sound" onclick="toggleSound()">${state.sound?'🔊':'🔇'}</button>
  <button class="iconbtn" title="Switch player" onclick="go('profiles')">👥</button></div>`;
 }
@@ -641,7 +674,7 @@ function welcomeIfNew(p){
 /* ---------- world map ---------- */
 SCREENS.map=()=>{
  const p=P();
- app.innerHTML=topbar()+`<div class="page"><h2 class="title">🗺️ The Realm of Numbers</h2>${questBar(p)}${continueCard(p)}${schoolCards(p)}
+ app.innerHTML=topbar()+`<div class="page"><h2 class="title">🗺️ The Realm of Numbers</h2>${questBar(p)}${homeCards(p)}${continueCard(p)}${schoolCards(p)}
  <h2 class="title" style="margin-top:26px">🔢 Math Worlds</h2><div class="zones">${ZONES.map(z=>{
   const locked=zoneLocked(z,p);const pr=p.progress[z.id]||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
   return `<button class="zone-card ${z.cls} ${locked?'locked':''}" onclick="${locked?`toast('${z.lockMsg}')`:`go('zone','${z.id}')`}">
@@ -650,7 +683,12 @@ SCREENS.map=()=>{
   <div class="zlv">${locked?'':(z.op==='mix'?'All four kinds of problems!':KID_DESC[z.op][lvl(p,z.op)])}</div>
   <div class="zart">${z.art}</div>${pr[5]?'<div class="crowned">👑 Boss beaten</div>':''}</button>`;}).join('')}</div></div>`;
  if(petMilestones(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))offerPet();},600);
+ else if(spinReady(p)&&p.spinShown!==dayKey()&&!$('#modal.show')){p.spinShown=dayKey();saveLocal();setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))openSpin();},700);}
 };
+function homeCards(p){const pet=petOf(p);let petLine='';
+ if(pet){const pd=petMood(petData(p,pet.id));petLine=pd.food<=1?`${esc(pet.name)} is hungry!`:pd.joy<=1?`${esc(pet.name)} wants to play!`:`${pips(pd.food,'🍗')} ${pips(pd.joy,'💖')}`;}
+ return `<div class="homecards"><button class="hcard" onclick="go('pethome')">${pet?petAvatar(p,pet):'<span class="pav"><span class="pe">🥚</span></span>'}<div><b>${pet?esc(pet.name)+"'s Home":'Pet Home'}</b><small>${pet?petLine:'Hatch a pet to start!'}</small></div></button>
+ <button class="hcard ${spinReady(p)?'glow':''}" onclick="openSpin()"><span class="pav"><span class="pe">🎡</span></span><div><b>Daily Spin</b><small>${spinReady(p)?'Ready! Tap to spin':'Come back tomorrow'}</small></div></button></div>`;}
 
 /* ---------- zone ---------- */
 SCREENS.zone=zid=>{
@@ -818,8 +856,8 @@ function startBattle(zid,i,resume){
  const z=ZONES.find(x=>x.id===zid);const p=P();const isBoss=i===5;
  const champ=!!(p.champOn&&bossesBeaten(p)>=5);
  const mhp=Math.round((isBoss?200:110+i*15)*(champ?1.4:1));
- B={z,i,isBoss,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false};
- if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
+ B={z,i,isBoss,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0};
+ if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
  p.last={zid,i};
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
  renderBattle();
@@ -830,8 +868,8 @@ function renderBattle(){
  const p=P();const pet=petOf(p);
  app.innerHTML=`<div class="battle ${B.z.cls} ${B.mode!=='math'?'questmode':''}">
  <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname">${B.champ?'👑 Champion ':''}${B.isBoss?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
- <div class="bmain"><div class="arena" id="arena"><div class="scene">${sceneSVG(B.z.id)}</div>${B.mode==='math'?`<div class="spellbar" id="spellbar">${SPECIALS.map(x=>`<button id="sp-${x.id}" onclick="useSpecial('${x.id}')">${x.e} ${x.n}<small>${x.cost} charges</small></button>`).join('')}</div>`:''}
-  <div class="fighter hero" id="heroF"><div class="bubble"></div><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div>${B.mode==='math'?'<div class="mana" id="mana" title="Spell charges"></div>':''}<div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf">${pet.e}</div>`:''}</div>
+ <div class="bmain"><div class="arena" id="arena"><div class="scene">${sceneSVG(B.z.id)}</div>${B.mode==='math'?`<div class="spellbar" id="spellbar">${SPECIALS.map(x=>`<button id="sp-${x.id}" onclick="useSpecial('${x.id}')">${x.e} ${x.n}<small>${x.cost} charges</small></button>`).join('')}${pet&&petMovesMax(petData(p,pet.id))?`<button id="sp-pet" onclick="usePetMove()">${pet.e} ${PET_MOVES[pet.id]||'Pet Attack'}<small id="spPetN"></small></button>`:''}</div>`:''}
+  <div class="fighter hero" id="heroF"><div class="bubble"></div><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div>${B.mode==='math'?'<div class="mana" id="mana" title="Spell charges"></div>':''}<div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf" id="petF">${petAvatar(p,pet)}</div>`:''}</div>
   <div class="fighter mon ${B.isBoss?'boss':''}" id="monF"><div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div></div>
  </div>
  <div class="bctrl"><div class="qcard" id="qcard"><button class="hintbtn" id="hintBtn" onclick="useHint()"></button><div class="qlabel" id="qlabel"></div><div class="qtext" id="qtext">Get ready…</div></div>
@@ -847,11 +885,12 @@ function updateBars(){
  updateMana();
 }
 const MAX_CHARGE=6;
-const SPECIALS=[{id:'fire',e:'🔥',n:'Big Fireball',cost:3},{id:'shield',e:'🛡️',n:'Shield',cost:2},{id:'heal',e:'💚',n:'Heal',cost:4}];
+const SPECIALS=[{id:'fire',e:'🔥',n:'Fireball',cost:3},{id:'shield',e:'🛡️',n:'Shield',cost:2},{id:'heal',e:'💚',n:'Heal',cost:4}];
 function updateMana(){
  const m=$('#mana');if(!m||!B||B.mode!=='math')return;
  let h='';for(let i=0;i<MAX_CHARGE;i++)h+=`<i class="${i<(B.charge||0)?'on':''}"></i>`;m.innerHTML=h;
  $('#heroF').classList.toggle('shielded',!!B.shieldUp);
+ const pb=$('#sp-pet');if(pb){const p=P(),pet=petOf(p);const left=pet?petMovesMax(petData(p,pet.id))-(B.petUses||0):0;pb.classList.toggle('off',left<=0);pb.classList.toggle('ready',left>0);$('#spPetN').textContent=left>0?`${left} left · free!`:'used up';}
  SPECIALS.forEach(x=>{const b=$('#sp-'+x.id);if(!b)return;const ok=(B.charge||0)>=x.cost&&!(x.id==='shield'&&B.shieldUp)&&!(x.id==='heal'&&B.hhp>=B.hmax);b.classList.toggle('off',!ok);b.classList.toggle('ready',ok);});
 }
 function useSpecial(id){
@@ -880,6 +919,26 @@ function useSpecial(id){
   $('#heroS').animate([{filter:'none'},{filter:'brightness(1.6) drop-shadow(0 0 16px #8dffb0)'},{filter:'none'}],{duration:700});resume();
  }
 }
+function usePetMove(){
+ if(!B||B.mode!=='math'||B.over||fbOpen||B.busy)return;
+ const p=P(),pet=petOf(p);if(!pet)return;const pd=petData(p,pet.id);const max=petMovesMax(pd);
+ if((B.petUses||0)>=max){toast(`${pet.e} ${pet.name} is tired. ${max} move${max>1?'s':''} per battle!`);return;}
+ B.petUses=(B.petUses||0)+1;B.busy=true;const happy=petHappy(pd);const mv=PET_MOVES[pet.id]||'Pet Attack';
+ banner(`${pet.e} ${mv.toUpperCase()}!`);tone(660,.1,'triangle',.1);
+ const arena=$('#arena'),a=arena.getBoundingClientRect(),pf=$('#petF'),m=$('#monS').getBoundingClientRect();
+ const r=pf?pf.getBoundingClientRect():$('#heroS').getBoundingClientRect();
+ const el=document.createElement('div');el.className='proj mine';el.style.fontSize='64px';el.textContent=pet.e;arena.appendChild(el);if(pf)pf.style.visibility='hidden';
+ const x0=r.left-a.left,y0=r.top-a.top,x1=m.left-a.left+m.width/2-32,y1=m.top-a.top+m.height/2-32;
+ el.animate([{transform:`translate(${x0}px,${y0}px) scale(1)`},{transform:`translate(${(x0+x1)/2}px,${Math.min(y0,y1)-90}px) scale(1.3) rotate(-20deg)`},{transform:`translate(${x1}px,${y1}px) scale(1.4)`},{transform:`translate(${x0}px,${y0}px) scale(1)`}],{duration:1100,easing:'ease-in-out'}).onfinish=()=>{el.remove();if(pf)pf.style.visibility='';};
+ setTimeout(()=>{
+  if(!B)return;const base=[0,35,42,50][PET_STAGES.indexOf(petStage(pd))]||35;const dmg=Math.round(base*(happy?1.25:1));
+  B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();burst(x1+32,y1+32,'#ffd84a',14);floatText('#monS',`${happy?'😊 ':''}-${dmg}`,'#ffe066');
+  $('#monS').animate([{transform:'none'},{transform:'translateX(20px) rotate(12deg)'},{transform:'none'}],{duration:400});
+  pd.xp+=.5;updateBars();
+  if(B.mhp<=0){B.over=true;setTimeout(winBattle,700);return;}
+  setTimeout(()=>{if(!B||B.over)return;B.busy=false;B.t0=performance.now();if(p.battle){p.battle.petUses=B.petUses;p.battle.mhp=B.mhp;}save();updateMana();},600);
+ },560);
+}
 function addCharge(){
  if(!B||B.mode!=='math')return;const before=B.charge||0;B.charge=Math.min(MAX_CHARGE,before+1);
  if(B.charge>before){const s=SPECIALS.find(x=>x.cost===B.charge);if(s)setTimeout(()=>floatText('#mana',`⚡ ${s.n} ready!`,'#7fe3ff'),450);}
@@ -904,7 +963,7 @@ function nextQ(){
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
- p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp};save();
+ p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
  showQ();
@@ -1134,7 +1193,7 @@ SCREENS.backpack=()=>{
   <div class="bp-stats"><b style="font-size:20px">${esc(p.name)}</b><br>Level ${p.level} · ❤️ ${heroMax(p)} HP<br>Spell: ${sp.e} ${sp.name}<br>${pet?`Pet: ${pet.e} ${pet.name}<br><small>${PERKS[pet.perk]}</small>`:'No pet yet'}</div>
   <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>
  <div>
-  <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>
+  <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(pet.name)}'s home (feed, play &amp; pet shop)</button>`:''}
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}
    ${p.pets.length<PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
@@ -1179,6 +1238,115 @@ function hatchEgg(){
   $('#hR').innerHTML=`<p>Pet power: <b>${PERKS[pet.perk]}</b></p><div class="row"><button class="btn ghost dark" onclick="closeModal();go('backpack')">OK</button><button class="btn green" onclick="P().pet='${pet.id}';save();closeModal();go('backpack')">Take ${esc(pet.name)} along!</button></div>`;
  },1700);
 }
+
+/* ================= pet home: care, pet shop, daily spin ================= */
+const PET_FOODS=[{id:'apple',e:'🍎',name:'Apple',price:10,food:1,xp:2,joy:0},{id:'carrot',e:'🥕',name:'Carrot',price:10,food:1,xp:2,joy:0},
+ {id:'cookie',e:'🍪',name:'Cookie',price:25,food:1,xp:4,joy:1},{id:'sushi',e:'🍣',name:'Sushi',price:40,food:2,xp:7,joy:0},
+ {id:'icecream',e:'🍦',name:'Ice Cream',price:50,food:1,xp:8,joy:2},{id:'cake',e:'🎂',name:'Party Cake',price:90,food:3,xp:15,joy:2}];
+const PET_TOYS=[{id:'ball',e:'⚽',name:'Ball',price:60},{id:'yarn',e:'🧶',name:'Yarn',price:60},{id:'kite',e:'🪁',name:'Kite',price:120},
+ {id:'blocks',e:'🧸',name:'Teddy',price:150},{id:'drum',e:'🥁',name:'Drum',price:200},{id:'rocket',e:'🚀',name:'Toy Rocket',price:350}];
+const PET_GEAR=[{id:'bow',e:'🎀',name:'Bow',price:80,pos:'top'},{id:'shades',e:'🕶️',name:'Sunglasses',price:120,pos:'eyes'},
+ {id:'tophat',e:'🎩',name:'Top Hat',price:150,pos:'top'},{id:'party',e:'🥳',name:'Party Hat',price:100,pos:'top',show:'🎉'},
+ {id:'flower',e:'🌸',name:'Flower',price:90,pos:'top'},{id:'crown',e:'👑',name:'Crown',price:400,pos:'top'}];
+const PET_MOVES={chick:'Peck Attack',fox:'Fire Tail',turtle:'Shell Spin',owl:'Wing Gust',cat:'Pounce',pup:'Bark Blast',penguin:'Belly Slide',
+ panda:'Bamboo Bonk',octo:'Ink Squirt',rex:'Mega Chomp',unicorn:'Rainbow Horn',dragon:'Dragon Flame'};
+const MOOD_HOURS=8,MOOD_MAX=5;
+function petMood(pd){
+ const now=Date.now();if(!pd.t){pd.t=now;pd.food=3;pd.joy=3;}
+ const steps=Math.floor((now-pd.t)/(MOOD_HOURS*3600e3));
+ if(steps>0){pd.food=Math.max(0,pd.food-steps);pd.joy=Math.max(0,pd.joy-steps);pd.t+=steps*MOOD_HOURS*3600e3;}
+ return pd;
+}
+const petHappy=pd=>{petMood(pd);return pd.food>=3&&pd.joy>=3;};
+function petSays(pd,pet){petMood(pd);
+ if(pd.food===0)return `I'm soooo hungry! 🍽️`;if(pd.food<=1)return `My tummy is rumbling…`;
+ if(pd.joy===0)return `I'm bored. Can we play? 🥺`;if(pd.joy<=1)return `Play with me!`;
+ if(pd.food>=5&&pd.joy>=5)return `Best day EVER! I love you! 💖`;
+ return pick([`Let's go fight some monsters!`,`You're the best wizard!`,`I'm ready for math! 🧠`,`Pat me! Pat me!`]);}
+function petAvatar(p,pet,cls){const pd=petData(p,pet.id);const g=PET_GEAR.find(x=>x.id===pd.acc);
+ return `<span class="pav ${cls||''}"><span class="pe">${pet.e}</span>${g?`<span class="pacc ${g.pos}">${g.show||g.e}</span>`:''}</span>`;}
+function pips(n,e){let s='';for(let i=0;i<MOOD_MAX;i++)s+=i<n?e:`<span class="dimbulb">${e}</span>`;return s;}
+function petMovesMax(pd){const st=petStage(pd);return st.n==='Baby'?0:st.n==='Big'?1:st.n==='Grown-up'?2:3;}
+function petGain(p,pet,xp){const pd=petData(p,pet.id);const st=petStage(pd);pd.xp+=xp;const st2=petStage(pd);
+ if(st2!==st){pd.hints=Math.min(st2.max,pd.hints+1);setTimeout(()=>{SFX.level();modal(`<div class="mcard"><div class="big-emoji">${pet.e}</div><h2>${esc(pet.name)} grew up!</h2><p>${esc(pet.name)} is now <b>${st2.n}</b>!</p>${petMovesMax(pd)?`<p>In math battles, ${esc(pet.name)} can use <b>🐾 ${PET_MOVES[pet.id]||'Pet Attack'}</b> ${petMovesMax(pd)} time${petMovesMax(pd)>1?'s':''} per battle!</p>`:''}<button class="btn green big" onclick="closeModal()">Yay!</button></div>`);},500);}}
+SCREENS.pethome=()=>{
+ const p=P();const pet=petOf(p);
+ if(!pet){app.innerHTML=topbar()+`<div class="page"><h2 class="title">🏠 Pet Home</h2><div class="panel" style="text-align:center"><div style="font-size:70px">🥚</div><p>You don't have a pet yet!</p><p class="muted">Hatch an egg in your backpack, or reach hero level 2.</p><button class="btn gold" onclick="go('backpack')">🎒 Go to backpack</button></div></div>`;return;}
+ const pd=petMood(petData(p,pet.id));const st=petStage(pd);const nx=PET_STAGES[PET_STAGES.indexOf(st)+1];
+ const pct=nx?Math.min(100,(pd.xp-st.xp)/(nx.xp-st.xp)*100):100;const today=dayKey();pd.played=pd.played||{};
+ const pantry=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0);
+ const shopItem=(kind,it,owned,eq,sub)=>`<button class="item ${eq?'eq':''} ${!owned&&p.coins<it.price?'need':''}" onclick="petShop('${kind}','${it.id}')"><div class="ie">${it.e}</div><div>${it.name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${kind==='food'?`🪙 ${it.price}`:owned?(eq?'✓ Wearing':kind==='toy'?'✓ Yours':'Wear'):'🪙 '+it.price}</div></button>`;
+ app.innerHTML=topbar()+`<div class="page"><h2 class="title">🏠 ${esc(pet.name)}'s Home</h2>
+ <div class="pethome">
+  <div class="panel phcard">
+   <div class="phstage" id="phStage" onclick="patPet()">${petAvatar(p,pet,'big')}<div class="bubblesay" id="petSay">${esc(petSays(pd,pet))}</div></div>
+   <div class="muted" style="margin-top:4px">Tap ${esc(pet.name)} to give a pat!</div>
+   <div class="phstats">
+    <div><b>${st.n}</b> ${esc(pet.name)} · ${PERKS[pet.perk]}</div>
+    <div class="pxp"><i style="width:${pct}%"></i></div><div class="muted">${nx?`${Math.floor(pd.xp)} / ${nx.xp} pet XP to become <b>${nx.n}</b>`:'Fully grown! 🌟'}</div>
+    <div class="mood"><span>Tummy</span><span>${pips(pd.food,'🍗')}</span></div>
+    <div class="mood"><span>Happy</span><span>${pips(pd.joy,'💖')}</span></div>
+    <div class="muted">${petMovesMax(pd)?`🐾 Battle move: <b>${PET_MOVES[pet.id]||'Pet Attack'}</b> (${petMovesMax(pd)}× per battle)${petHappy(pd)?' · 😊 Happy bonus: extra strong!':''}`:`🐾 When ${esc(pet.name)} becomes <b>Big</b>, it learns a battle move!`}</div>
+   </div>
+  </div>
+  <div>
+   <div class="panel"><h3>🍽️ Feed ${esc(pet.name)}</h3>${pantry.length?`<div class="items">${pantry.map(f=>`<button class="item" onclick="feedPet('${f.id}')"><div class="ie">${f.e}</div><div>${f.name}</div><small>You have ${p.pantry[f.id]}</small><div class="ip" style="color:#1e9a53">Feed</div></button>`).join('')}</div>`:`<p class="muted">Your food bag is empty. Buy some snacks below! 👇</p>`}</div>
+   <div class="panel"><h3>🎾 Play</h3>${p.toys.length?`<div class="items">${PET_TOYS.filter(t=>p.toys.includes(t.id)).map(t=>{const done=pd.played[t.id]===today;return `<button class="item ${done?'need':''}" onclick="playPet('${t.id}')"><div class="ie">${t.e}</div><div>${t.name}</div><div class="ip" style="color:${done?'#999':'#1e9a53'}">${done?'Played today':'Play!'}</div></button>`;}).join('')}</div>`:`<p class="muted">No toys yet. Get one in the Pet Shop! Each toy can be played with once a day.</p>`}</div>
+   <div class="panel"><h3>🛒 Pet Shop</h3><p class="muted" style="margin-top:0">You have 🪙 ${p.coins}</p>
+    <h4>Snacks</h4><div class="items">${PET_FOODS.map(f=>shopItem('food',f,false,false,`+${f.xp} pet XP${f.joy?' · 💖':''}`)).join('')}</div>
+    <h4>Toys</h4><div class="items">${PET_TOYS.map(t=>shopItem('toy',t,p.toys.includes(t.id),false)).join('')}</div>
+    <h4>Outfits</h4><div class="items">${PET_GEAR.map(g=>shopItem('gear',g,p.petGear.includes(g.id),pd.acc===g.id)).join('')}${pd.acc?`<button class="item" onclick="petShop('gear','')"><div class="ie">🚫</div><div>Nothing</div><div class="ip">Take off</div></button>`:''}</div>
+   </div>
+  </div>
+ </div></div>`;
+ save();
+};
+function petFx(txt){const s=$('#phStage');if(!s)return;const el=document.createElement('div');el.className='phfx';el.textContent=txt;el.style.left=(30+Math.random()*40)+'%';s.appendChild(el);
+ el.animate([{transform:'translateY(0) scale(.6)',opacity:0},{transform:'translateY(-20px) scale(1.2)',opacity:1,offset:.25},{transform:'translateY(-90px) scale(1)',opacity:0}],{duration:1200,easing:'ease-out'}).onfinish=()=>el.remove();}
+function petBounce(){const e=$('#phStage .pav');if(e)e.animate([{transform:'none'},{transform:'translateY(-24px) scale(1.1)'},{transform:'none'},{transform:'translateY(-10px)'},{transform:'none'}],{duration:700});}
+function sayPet(t){const b=$('#petSay');if(b)b.textContent=t;}
+function patPet(){const p=P(),pet=petOf(p);if(!pet)return;const pd=petMood(petData(p,pet.id));
+ petFx('💕');petBounce();tone(880,.08,'sine',.08);setTimeout(()=>tone(1175,.1,'sine',.08),90);
+ const now=Date.now();if(!pd.patT||now-pd.patT>15*60e3){pd.patT=now;if(pd.joy<MOOD_MAX)pd.joy++;petGain(p,pet,.5);save();setTimeout(()=>go('pethome'),700);}
+ else sayPet(pick(['Hehe, that tickles!','Purr… 😊','More pats please!','I love you!']));}
+function feedPet(id){const p=P(),pet=petOf(p);const f=PET_FOODS.find(x=>x.id===id);const pd=petMood(petData(p,pet.id));
+ if(!(p.pantry[id]>0))return;if(pd.food>=MOOD_MAX){sayPet(`I'm too full! Maybe later. 😋`);petBounce();return;}
+ p.pantry[id]--;pd.food=Math.min(MOOD_MAX,pd.food+f.food);pd.joy=Math.min(MOOD_MAX,pd.joy+f.joy);petGain(p,pet,f.xp);save();SFX.coin();
+ petFx(f.e);setTimeout(()=>petFx('😋'),250);petBounce();setTimeout(()=>{if(curScreen==='pethome')go('pethome');toast(`${pet.e} ${pet.name} loved the ${f.name}! +${f.xp} pet XP`);},800);}
+function playPet(id){const p=P(),pet=petOf(p);const t=PET_TOYS.find(x=>x.id===id);const pd=petMood(petData(p,pet.id));pd.played=pd.played||{};const today=dayKey();
+ if(pd.played[id]===today){sayPet(`We already played with the ${t.name} today. Try tomorrow!`);return;}
+ pd.played[id]=today;pd.joy=Math.min(MOOD_MAX,pd.joy+2);petGain(p,pet,3);save();SFX.win();
+ const s=$('#phStage');if(s){const el=document.createElement('div');el.className='phfx';el.textContent=t.e;el.style.left='10%';s.appendChild(el);
+  el.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate(120px,-80px) rotate(360deg)',opacity:1},{transform:'translate(240px,0) rotate(720deg)',opacity:0}],{duration:1000}).onfinish=()=>el.remove();}
+ petBounce();setTimeout(()=>petFx('💖'),400);setTimeout(()=>{if(curScreen==='pethome')go('pethome');toast(`${pet.e} ${pet.name} had fun with the ${t.name}! +3 pet XP`);},1100);}
+function petShop(kind,id){const p=P(),pet=petOf(p);const pd=pet&&petData(p,pet.id);
+ if(kind==='gear'&&(id===''||p.petGear.includes(id))){pd.acc=id||null;save();SFX.tap();go('pethome');return;}
+ if(kind==='toy'&&p.toys.includes(id)){toast('You already have that toy! Play with it above. 🎾');return;}
+ const it=(kind==='food'?PET_FOODS:kind==='toy'?PET_TOYS:PET_GEAR).find(x=>x.id===id);
+ if(p.coins<it.price){toast(`You need ${it.price-p.coins} more coins. Win battles to earn more! 🪙`);return;}
+ p.coins-=it.price;
+ if(kind==='food')p.pantry[id]=(p.pantry[id]||0)+1;else if(kind==='toy')p.toys.push(id);else{p.petGear.push(id);pd.acc=id;}
+ save();SFX.coin();go('pethome');toast(kind==='food'?`${it.e} ${it.name} added to your food bag!`:kind==='toy'?`${it.e} You got the ${it.name}!`:`${pet.e} ${pet.name} looks great in the ${it.name}!`);}
+/* ---------- daily spin ---------- */
+const SPIN_PRIZES=[{t:'coins',n:10,e:'🪙',l:'10',w:18,c:'#ffd84a'},{t:'food',id:'apple',e:'🍎',l:'Apple',w:14,c:'#ff8a8a'},{t:'coins',n:25,e:'🪙',l:'25',w:16,c:'#7fe3ff'},
+ {t:'food',id:'cookie',e:'🍪',l:'Cookie',w:12,c:'#ffb86b'},{t:'coins',n:50,e:'💰',l:'50',w:9,c:'#8dffb0'},{t:'food',id:'cake',e:'🎂',l:'Cake',w:6,c:'#ff9ce0'},
+ {t:'coins',n:100,e:'💎',l:'100',w:4,c:'#b99cff'},{t:'egg',e:'🥚',l:'Egg!',w:3,c:'#fff3b0'}];
+const spinReady=p=>p.setup&&p.spinDay!==dayKey();
+function openSpin(){const p=P();if(!spinReady(p)){toast('Come back tomorrow for another spin! 🎡');return;}
+ const n=SPIN_PRIZES.length,seg=360/n;
+ const grad=SPIN_PRIZES.map((s,i)=>`${s.c} ${i*seg}deg ${(i+1)*seg}deg`).join(',');
+ const labels=SPIN_PRIZES.map((s,i)=>`<div class="wl" style="transform:rotate(${i*seg+seg/2}deg)"><span>${s.e}<small>${s.l}</small></span></div>`).join('');
+ modal(`<div class="mcard spincard"><h2>🎡 Daily Spin!</h2><p>One free spin every day.</p><div class="wheelwrap"><div class="wptr">▼</div><div class="wheel" id="wheel" style="background:conic-gradient(${grad})">${labels}</div></div>
+ <div id="spinOut"><button class="btn gold big" id="spinBtn" onclick="doSpin()">SPIN!</button></div></div>`);}
+function doSpin(){const p=P();if(!spinReady(p))return;const b=$('#spinBtn');if(b)b.disabled=true;
+ const tot=SPIN_PRIZES.reduce((a,s)=>a+s.w,0);let r=Math.random()*tot,k=0;for(;k<SPIN_PRIZES.length-1;k++){r-=SPIN_PRIZES[k].w;if(r<0)break;}
+ const pr=SPIN_PRIZES[k];p.spinDay=dayKey();
+ if(pr.t==='coins')p.coins+=pr.n;else if(pr.t==='food')p.pantry[pr.id]=(p.pantry[pr.id]||0)+1;else p.eggs++;save();
+ const seg=360/SPIN_PRIZES.length,end=360*5+(360-(k*seg+seg/2))+rnd(-12,12);
+ const w=$('#wheel');let ticks=0;const tk=setInterval(()=>{if(ticks++>22){clearInterval(tk);return;}tone(500+ticks*20,.03,'square',.04);},110);
+ w.animate([{transform:'rotate(0deg)'},{transform:`rotate(${end}deg)`}],{duration:3200,easing:'cubic-bezier(.15,.7,.2,1)',fill:'forwards'}).onfinish=()=>{
+  clearInterval(tk);SFX.win();const f=pr.t==='food'&&PET_FOODS.find(x=>x.id===pr.id);
+  $('#spinOut').innerHTML=`<div class="big-emoji" style="font-size:60px">${pr.e}</div><h2>${pr.t==='coins'?`You won ${pr.n} coins!`:pr.t==='egg'?'A MYSTERY EGG! 🎉':`You won a ${f.name}!`}</h2>${pr.t==='food'?`<p class="muted">It's in your pet's food bag.</p>`:pr.t==='egg'?`<p class="muted">Hatch it in your backpack!</p>`:''}<div class="row"><button class="btn green big" onclick="closeModal();go(curScreen,curArg)">Awesome!</button></div>`;};}
 
 /* ================= parent corner ================= */
 function parentGate(){
@@ -1457,7 +1625,7 @@ function clearWords(id){const p=state.players.find(x=>x.id===id);p.customWords=n
 /* ================= pet buddies: earned at levels, limited hints ================= */
 const PET_LEVELS=[2,4,6,8,10];
 const HINT_CHARGE=8;                       // right answers to earn back one hint
-const PET_STAGES=[{n:'Baby',xp:0,max:1},{n:'Big',xp:15,max:2},{n:'Grown-up',xp:45,max:3}];
+const PET_STAGES=[{n:'Baby',xp:0,max:1},{n:'Big',xp:15,max:2},{n:'Grown-up',xp:45,max:3},{n:'Legendary',xp:120,max:3}];
 function petData(p,id){p.petData=p.petData||{};if(!p.petData[id])p.petData[id]={xp:0,hints:1,charge:0};return p.petData[id];}
 function petStage(pd){let s=PET_STAGES[0];PET_STAGES.forEach(x=>{if(pd.xp>=x.xp)s=x;});return s;}
 function petMeter(pd){const st=petStage(pd);let m='';for(let i=0;i<st.max;i++)m+=i<pd.hints?'💡':'<span class="dimbulb">💡</span>';return m;}
