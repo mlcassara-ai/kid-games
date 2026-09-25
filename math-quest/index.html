@@ -345,6 +345,15 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .iconbtn.tbi .dot{top:-6px;right:-6px;width:15px;height:15px;border:2px solid #fff;background:#ff3b3b}
 @media(max-width:520px){.iconbtn.tbi{width:40px;height:40px;border-radius:12px}.iconbtn.tbi svg{border-radius:10px}}
 @media(max-width:420px){.topbar .iconbtn.tbi{width:36px;height:36px;border-radius:10px}.topbar .iconbtn.tbi svg{border-radius:8px}}
+.giftwho{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.giftwho .item{cursor:pointer;min-width:110px}.giftwho .lbface,.giftwho .lbface svg{width:64px;height:64px}
+.giftopts{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}.giftopts .item{cursor:pointer}
+.giftpanel{background:linear-gradient(120deg,#fff6d6,#ffe3f1)}
+.giftbox{font-size:110px;line-height:1.1;cursor:pointer;animation:giftwig 1s ease-in-out infinite;display:inline-block;margin:6px 0}
+.giftbox.opened{animation:giftpop .6s ease-out;filter:drop-shadow(0 0 20px #ffd84a)}
+@keyframes giftwig{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg) scale(1.05)}75%{transform:rotate(8deg) scale(1.05)}}
+@keyframes giftpop{0%{transform:scale(.3)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+.giftfly{animation:giftpop .6s ease-out}
 .impact{position:absolute;font-size:72px;pointer-events:none;z-index:5;filter:drop-shadow(0 0 6px #ff3b3b) drop-shadow(0 0 14px #ff3b3b)}
 @media (orientation:landscape) and (max-height:560px){
  .spellbar{top:4px;gap:4px;flex-wrap:nowrap}.spellbar button{padding:4px 7px;font-size:12px}.spellbar button small{display:none}}
@@ -911,6 +920,7 @@ SCREENS.map=()=>{
   <div class="zlv">${locked?'':(z.op==='mix'?'Add, subtract, times and divide!':KID_DESC[z.op][lvl(p,z.op)])}</div>
   <div class="zart">${z.art}</div>${pr[5]?'<div class="crowned">👑 Boss beaten</div>':''}</button>`;}).join('')}</div></div>`;
  if(petMilestones(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))offerPet();},600);
+ else if(pendingGifts(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map')showGift();},650);
  else if(spinReady(p)&&p.spinShown!==dayKey()&&!$('#modal.show')){p.spinShown=dayKey();saveLocal();setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))openSpin();},700);}
 };
 function homeCards(p){const pet=petOf(p);let petLine='';
@@ -1470,6 +1480,7 @@ SCREENS.backpack=()=>{
   <div class="bp-stats"><b style="font-size:20px">${esc(p.name)}</b><br>Level ${p.level} · ❤️ ${heroMax(p)} HP<br>Spell: ${sp.e} ${sp.name}<br>${pet?`Pet: ${pet.e} ${pet.name}<br><small>${PERKS[pet.perk]}</small>`:'No pet yet'}</div>
   <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>
  <div>
+  ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
   <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(pet.name)}'s home (feed, play &amp; pet shop)</button>`:''}
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}
@@ -1657,7 +1668,7 @@ const BIOMES={
  temple:{c:[38,29],g:'#f0d49c',g2:'#e9cd94',zone:'temple',bl:['🌵','🏺'],de:['🐚','🌾']}};
 const NPCS=[
  {id:'school',x:18,y:15,e:'🏫',n:'School'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
- {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''}];
+ {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'}];
 let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildWorld(){
@@ -1720,6 +1731,7 @@ SCREENS.world=()=>{
  setTimeout(()=>{const h=$('#whelp');if(h)h.classList.add('fade');},5000);
  cancelAnimationFrame(W.raf);W.raf=requestAnimationFrame(wFrame);
  if(petMilestones(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='world'&&!$('#modal.show'))offerPet();},600);
+ else if(pendingGifts(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='world')showGift();},650);
  else if(spinReady(p)&&p.spinShown!==dayKey()&&!$('#modal.show')){p.spinShown=dayKey();saveLocal();setTimeout(()=>{if(curScreen==='world'&&!$('#modal.show'))openSpin();},700);}
 };
 function wResize(){const cv=$('#wcv');if(!cv)return;const box=$('#world').getBoundingClientRect();const dpr=window.devicePixelRatio||1;
@@ -1806,6 +1818,7 @@ function wNpc(id){const p=P();
  if(id==='pets'){go('pethome');return;}
  if(id==='spin'){openSpin();return;}
  if(id==='board'){go('leaders');return;}
+ if(id==='mail'){if(!showGift())openGift();return;}
  if(id==='fountain'){toast('⛲ You toss a coin in the fountain and make a wish!');return;}
  modal(`<div class="mcard"><div class="big-emoji">🧙</div><h2>Elder Wiz says…</h2><p style="font-size:18px">"${esc(pick(ELDER_TIPS))}"</p>${questBar(p).replace('questbar','questbar dark')}<button class="btn green big" onclick="closeModal()">Thanks!</button></div>`);}
 function wChestOpen(k){const p=P();return !!(p.chests&&p.chests.d===dayKey()&&p.chests.open.includes(k));}
@@ -1846,7 +1859,8 @@ const BOARDS=[
  {id:'streak',e:'🔥',n:'Best streak',v:p=>p.bestStreak||0},
  {id:'bosses',e:'👑',n:'Bosses beaten',v:p=>bossesBeaten(p),of:()=>ZONES.length},
  {id:'treasure',e:'🎁',n:'Treasures found',v:p=>p.treasures||0},
- {id:'wild',e:'🗡️',n:'Wild monsters beaten',v:p=>p.wild||0}];
+ {id:'wild',e:'🗡️',n:'Wild monsters beaten',v:p=>p.wild||0},
+ {id:'gifts',e:'💝',n:'Kindest gift giver',v:p=>p.giftsGiven||0}];
 SCREENS.leaders=()=>{
  const ps=state.players.filter(p=>p.setup);const me=P();const medal=['🥇','🥈','🥉'];
  const face=p=>`<span class="lbface">${heroSVG(p.look,{head:true})}</span>`;
@@ -1857,6 +1871,79 @@ SCREENS.leaders=()=>{
   return `<div class="panel lbcard"><h3>${bd.e} ${bd.n}</h3>${rows.map((r,i)=>{if(r.v!==last){rank=i;last=r.v;}return `<div class="lbrow ${r.p.id===me.id?'me':''}"><span class="lbm">${r.v>0?(medal[rank]||'·'):'·'}</span>${face(r.p)}<span class="lbn">${esc(r.p.name)}</span><b>${r.v}${bd.of?` <small>/ ${bd.of()}</small>`:''}</b></div>`;}).join('')}</div>`;}).join('')}</div>
  <p class="ztip">Everyone gets better by practicing. Keep going! 💪</p></div>`;
 };
+
+/* ================= gifts between family players ================= */
+const GIFTS_PER_DAY=2,GIFT_COINS=[10,25,50];
+function giftsLeft(p){return p.giftsSent&&p.giftsSent.d===dayKey()?Math.max(0,GIFTS_PER_DAY-p.giftsSent.n):GIFTS_PER_DAY;}
+function giftLabel(g){if(g.kind==='coins')return `🪙 ${g.qty} coins`;if(g.kind==='egg')return '🥚 a mystery egg';if(g.kind==='food'){const f=PET_FOODS.find(x=>x.id===g.item);return f?`${f.e} a ${f.name}`:'a snack';}return '❤️';}
+function pendingGifts(p){return Object.values(state.gifts||{}).filter(g=>g.to===p.id&&!g.claimed).sort((a,b)=>a.t-b.t);}
+function giftFriends(p){return state.players.filter(x=>x.setup&&x.id!==p.id);}
+function openGift(){
+ const p=P();const fr=giftFriends(p);
+ if(!fr.length){toast('You need another family player to send gifts to!');return;}
+ const left=giftsLeft(p);
+ if(!left){modal(`<div class="mcard"><div class="big-emoji">📮</div><h2>No gifts left today</h2><p>You can send <b>${GIFTS_PER_DAY} gifts a day</b>. Come back tomorrow to send more!</p><button class="btn green big" onclick="closeModal()">OK</button></div>`);return;}
+ const face=x=>`<span class="lbface">${heroSVG(x.look,{head:true})}</span>`;
+ modal(`<div class="mcard"><div class="big-emoji">🎁</div><h2>Send a gift!</h2><p>Who is it for? <span class="muted">(${left} gift${left>1?'s':''} left today)</span></p>
+ <div class="giftwho">${fr.map(x=>`<button class="item" onclick="giftPick('${x.id}')">${face(x)}<div>${esc(x.name)}</div></button>`).join('')}</div>
+ <button class="btn ghost dark" onclick="closeModal()">Cancel</button></div>`);
+}
+function giftPick(toId){
+ const p=P();const to=state.players.find(x=>x.id===toId);if(!to)return;
+ const foods=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0);
+ const opt=(kind,item,qty,icon,name,sub,ok)=>`<button class="item ${ok?'':'need'}" onclick="${ok?`giftConfirm('${toId}','${kind}','${item}',${qty})`:`toast('${sub}')`}"><div class="ie">${icon}</div><div>${name}</div><small>${sub}</small></button>`;
+ modal(`<div class="mcard"><h2>A gift for ${esc(to.name)}</h2><p class="muted">Pick something to give. It comes out of your own things!</p>
+ <h4 style="margin:10px 0 6px">🪙 Coins <span class="muted">(you have ${p.coins})</span></h4><div class="items giftopts">${GIFT_COINS.map(c=>opt('coins','',c,'🪙',`${c} coins`,p.coins>=c?'Give':`You need ${c} coins`,p.coins>=c)).join('')}</div>
+ <h4 style="margin:10px 0 6px">🍪 Pet snacks</h4>${foods.length?`<div class="items giftopts">${foods.map(f=>opt('food',f.id,1,f.e,f.name,`You have ${p.pantry[f.id]}`,true)).join('')}</div>`:'<p class="muted">No snacks in your bag. Buy some in the Pet Shop!</p>'}
+ <h4 style="margin:10px 0 6px">🥚 Eggs</h4><div class="items giftopts">${opt('egg','',1,'🥚','Mystery egg',p.eggs?`You have ${p.eggs}`:'You have no eggs',p.eggs>0)}</div>
+ <div class="row"><button class="btn ghost dark" onclick="openGift()">← Back</button></div></div>`);
+}
+function giftConfirm(toId,kind,item,qty){
+ const to=state.players.find(x=>x.id===toId);const g={kind,item,qty};
+ modal(`<div class="mcard"><div class="big-emoji">🎁</div><h2>Send ${giftLabel(g)} to ${esc(to.name)}?</h2><p class="muted">${esc(to.name)} will get it the next time they play.</p>
+ <div class="row"><button class="btn ghost dark" onclick="giftPick('${toId}')">No</button><button class="btn gold big" onclick="giftSend('${toId}','${kind}','${item}',${qty})">Send it! 🎁</button></div></div>`);
+}
+function giftSend(toId,kind,item,qty){
+ const p=P();const to=state.players.find(x=>x.id===toId);if(!to||!giftsLeft(p))return closeModal();
+ if(kind==='coins'){if(p.coins<qty)return giftPick(toId);p.coins-=qty;}
+ else if(kind==='food'){if(!(p.pantry[item]>0))return giftPick(toId);p.pantry[item]--;}
+ else if(kind==='egg'){if(p.eggs<1)return giftPick(toId);p.eggs--;}
+ else return;
+ p.giftsSent=p.giftsSent&&p.giftsSent.d===dayKey()?{d:dayKey(),n:p.giftsSent.n+1}:{d:dayKey(),n:1};
+ p.giftsGiven=(p.giftsGiven||0)+1;
+ state.gifts=state.gifts||{};const id='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+ state.gifts[id]={id,from:p.id,fromName:p.name,to:toId,kind,item:item||null,qty,t:Date.now(),claimed:false};
+ save();SFX.win();
+ modal(`<div class="mcard"><div class="big-emoji giftfly">🎁</div><h2>Gift sent!</h2><p>${esc(to.name)} will find ${giftLabel({kind,item,qty})} waiting next time they play. That was really kind! 💖</p><p class="muted">Gifts left today: ${giftsLeft(p)}</p><button class="btn green big" onclick="closeModal();go(curScreen,curArg)">Yay!</button></div>`);
+}
+let giftShowing=false;
+function showGift(){
+ const p=P();if(!p||giftShowing||$('#modal.show'))return false;const g=pendingGifts(p)[0];if(!g)return false;giftShowing=true;
+ if(g.kind==='thanks'){g.claimed=true;g.ct=Date.now();save();SFX.coin();
+  modal(`<div class="mcard"><div class="big-emoji">💌</div><h2>${esc(g.fromName)} says THANK YOU!</h2><p style="font-size:18px">"Thanks for ${esc(g.item||'the gift')}! ❤️"</p><button class="btn green big" onclick="giftDone()">You're welcome! 😊</button></div>`);return true;}
+ SFX.level();
+ modal(`<div class="mcard"><h2>📬 You got a gift from ${esc(g.fromName)}!</h2><div class="giftbox" id="giftBox" onclick="giftOpen('${g.id}')">🎁</div><p class="muted">Tap the present to open it!</p><button class="btn gold big" onclick="giftOpen('${g.id}')">Open it!</button></div>`);
+ return true;
+}
+function giftOpen(id){
+ const p=P();const g=state.gifts&&state.gifts[id];if(!g||g.claimed||g.to!==p.id)return;
+ g.claimed=true;g.ct=Date.now();
+ if(g.kind==='coins')p.coins+=g.qty;else if(g.kind==='egg')p.eggs++;else if(g.kind==='food')p.pantry[g.item]=(p.pantry[g.item]||0)+1;
+ p.giftsGot=(p.giftsGot||0)+1;save();SFX.win();
+ const icon=g.kind==='coins'?'🪙':g.kind==='egg'?'🥚':(PET_FOODS.find(x=>x.id===g.item)||{e:'🎁'}).e;
+ const b=$('#giftBox');if(b){b.textContent=icon;b.classList.add('opened');}
+ const where=g.kind==='egg'?'Hatch it in your backpack!':g.kind==='food'?"It's in your pet's food bag.":'';
+ setTimeout(()=>{const m=$('#modal .mcard');if(!m)return;m.innerHTML=`<div class="giftbox opened">${icon}</div><h2>${giftLabel(g)}!</h2><p>From <b>${esc(g.fromName)}</b> 💖</p>${where?`<p class="muted">${where}</p>`:''}
+  <div class="row"><button class="btn ghost dark" onclick="giftDone()">OK</button><button class="btn green big" onclick="giftThanks('${g.id}')">Say thanks ❤️</button></div>`;},700);
+}
+function giftThanks(id){const p=P();const g=state.gifts[id];if(g&&!g.thanked){g.thanked=true;const tid='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+ state.gifts[tid]={id:tid,from:p.id,fromName:p.name,to:g.from,kind:'thanks',item:giftLabel(g).replace(/^\S+ /,'').replace(/^a /,'the '),qty:0,t:Date.now(),claimed:false};save();toast(`❤️ Thank-you sent to ${g.fromName}!`);}
+ giftDone();}
+function giftDone(){giftShowing=false;closeModal();setTimeout(()=>{if(!showGift()&&['world','map','backpack','pethome'].includes(curScreen)&&curScreen!=='world')go(curScreen,curArg);},250);}
+function mergeGifts(remote){const a=state.gifts||{},b=(remote&&remote.gifts)||{};const out={};
+ for(const id of new Set([...Object.keys(a),...Object.keys(b)])){const x=a[id],y=b[id];const g=Object.assign({},y||{},x||{});if((x&&x.claimed)||(y&&y.claimed)){g.claimed=true;g.ct=Math.max((x&&x.ct)||0,(y&&y.ct)||0);}if((x&&x.thanked)||(y&&y.thanked))g.thanked=true;out[id]=g;}
+ const old=Date.now()-45*864e5;for(const id in out){if(out[id].claimed&&(out[id].ct||out[id].t)<old)delete out[id];}
+ state.gifts=out;}
 
 /* ================= parent corner ================= */
 function parentGate(){
@@ -2269,7 +2356,7 @@ async function cloudPut(code,obj){
  const r=await fetch(famUrl(code),{method:'PATCH',headers:{Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify(body)});
  if(!r.ok)throw new Error('put '+r.status);
 }
-const cloudPayload=()=>({v:1,players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},upd:Date.now()});
+const cloudPayload=()=>({v:1,gifts:state.gifts||{},players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},upd:Date.now()});
 
 /* each player remembers when it last changed, so the newest copy of each kid wins */
 const HASH=new Map();
@@ -2282,12 +2369,12 @@ function mergeStates(remote,joining,keepId){
  let list=order.map(id=>map.get(id)).filter(p=>!(del[p.id]&&del[p.id]>=(p.upd||0)));
  if(joining){const score=p=>(p.setup?1e9:0)+(p.level||1)*1e5+(p.battles||0)*10+((p.upd||0)/1e13);const best={};
   list.forEach(p=>{const k=(p.name||'').trim().toLowerCase();if(!best[k]||score(p)>score(best[k]))best[k]=p;});list=list.filter(p=>best[(p.name||'').trim().toLowerCase()]===p);}
- const before=JSON.stringify(state.players);
- state.players=list;state.deleted=del;
+ const before=JSON.stringify(state.players)+JSON.stringify(state.gifts||{});
+ state.players=list;state.deleted=del;mergeGifts(remote);
  if(remote.pin&&(!state.pin||(remote.pinUpd||0)>(state.pinUpd||0))){state.pin=remote.pin;state.pinUpd=remote.pinUpd||0;}
  if(state.cur&&!state.players.find(p=>p.id===state.cur))state.cur=null;
  migrate();stampChanges(true);saveLocal();keepPin();
- return before!==JSON.stringify(state.players);
+ return before!==JSON.stringify(state.players)+JSON.stringify(state.gifts||{});
 }
 function scheduleSync(){if(!cloud.code)return;clearTimeout(cloud.timer);cloud.timer=setTimeout(syncNow,3000);}
 async function syncNow(){
@@ -2299,6 +2386,7 @@ async function syncNow(){
  catch(e){cloud.status='offline';}
  cloud.busy=false;updateCloudBadge();
  if(changed&&['profiles','map','parent','backpack','quests','zone'].includes(curScreen)&&!$('#modal.show'))go(curScreen,curArg);
+ if(changed&&state.cur&&['world','map','backpack','pethome'].includes(curScreen))setTimeout(showGift,400);
  if(cloud.again){cloud.again=false;scheduleSync();}
 }
 function updateCloudBadge(){const e=$('#cloudBadge');if(e)e.innerHTML=cloudBadgeText();}
