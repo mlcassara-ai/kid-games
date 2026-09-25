@@ -339,6 +339,12 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .lbface svg{width:40px;height:40px;display:block}
 .explore-btn{display:flex;gap:10px;margin-bottom:14px}
 .explore-btn .btn{flex:1}
+.iconbtn.tbi{background:none;padding:0;width:48px;height:48px;border:2px solid rgba(255,255,255,.9);border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+.iconbtn.tbi svg{width:100%;height:100%;display:block;border-radius:12px}
+.iconbtn.tbi:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.4)}
+.iconbtn.tbi .dot{top:-6px;right:-6px;width:15px;height:15px;border:2px solid #fff;background:#ff3b3b}
+@media(max-width:520px){.iconbtn.tbi{width:40px;height:40px;border-radius:12px}.iconbtn.tbi svg{border-radius:10px}}
+@media(max-width:420px){.topbar .iconbtn.tbi{width:36px;height:36px;border-radius:10px}.topbar .iconbtn.tbi svg{border-radius:8px}}
 .impact{position:absolute;font-size:72px;pointer-events:none;z-index:5;filter:drop-shadow(0 0 6px #ff3b3b) drop-shadow(0 0 14px #ff3b3b)}
 @media (orientation:landscape) and (max-height:560px){
  .spellbar{top:4px;gap:4px;flex-wrap:nowrap}.spellbar button{padding:4px 7px;font-size:12px}.spellbar button small{display:none}}
@@ -750,17 +756,50 @@ function closeModal(){const m=$('#modal');m.classList.remove('show');m.innerHTML
 let toastT=null;
 function toast(msg){const t=$('#toast');t.classList.toggle('top',curScreen==='battle'||curScreen==='create');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
 function toggleSound(){state.sound=!state.sound;save();go(curScreen,curArg);}
+const TB_ICONS={
+map:`<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16b3a6"/><rect y="40" width="64" height="24" rx="0" fill="#0f9a8e" opacity=".35"/>
+ <path d="M10 16 L24 11 L40 17 L54 12 V48 L40 53 L24 47 L10 52Z" fill="#fff7dc" stroke="#7a4a1c" stroke-width="2.5" stroke-linejoin="round"/>
+ <path d="M24 11 V47 M40 17 V53" stroke="#e3cfa0" stroke-width="2"/>
+ <path d="M15 42 Q22 30 30 34 T44 24" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="4 4" stroke-linecap="round"/>
+ <path d="M44 20 l6 6 M50 20 l-6 6" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
+ <path d="M16 20 q3 -4 6 0 q-3 5 -6 0" fill="#4caf50"/><circle cx="34" cy="44" r="3" fill="#2f8cff"/></svg>`,
+bag:`<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#ff8c1a"/><rect y="40" width="64" height="24" fill="#e0700a" opacity=".35"/>
+ <path d="M23 16 Q23 8 32 8 Q41 8 41 16" fill="none" stroke="#5a2d0c" stroke-width="4" stroke-linecap="round"/>
+ <rect x="14" y="15" width="36" height="41" rx="11" fill="#d93a3a" stroke="#5a2d0c" stroke-width="2.5"/>
+ <path d="M14 27 Q32 33 50 27" fill="none" stroke="#5a2d0c" stroke-width="2.5"/>
+ <rect x="20" y="34" width="24" height="16" rx="5" fill="#ff6b6b" stroke="#5a2d0c" stroke-width="2.5"/>
+ <rect x="29" y="30" width="6" height="8" rx="2" fill="#ffc83d" stroke="#5a2d0c" stroke-width="2"/>
+ <circle cx="44" cy="20" r="2.5" fill="#ffe066"/></svg>`,
+pet:`<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#ff5fa2"/><rect y="46" width="64" height="18" fill="#4caf50"/>
+ <path d="M8 30 L32 10 L56 30Z" fill="#b5341f" stroke="#5a2d0c" stroke-width="2.5" stroke-linejoin="round"/>
+ <rect x="13" y="28" width="38" height="24" fill="#ffb347" stroke="#5a2d0c" stroke-width="2.5"/>
+ <path d="M24 52 V42 Q32 32 40 42 V52Z" fill="#5a2d0c"/>
+ <g fill="#fff"><ellipse cx="32" cy="22" rx="4.2" ry="3.6"/><circle cx="26.5" cy="17.5" r="1.9"/><circle cx="30" cy="15" r="1.9"/><circle cx="34" cy="15" r="1.9"/><circle cx="37.5" cy="17.5" r="1.9"/></g>
+ <path d="M45 44 c0-3 4-3 4 0 c0-3 4-3 4 0 c0 3 -4 5 -4 6 c0 -1 -4 -3 -4 -6z" fill="#ff3b6b" stroke="#fff" stroke-width="1"/></svg>`,
+sound:`<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#7c5cff"/><rect y="40" width="64" height="24" fill="#6244e0" opacity=".35"/>
+ <path d="M12 26 H22 L34 15 V49 L22 38 H12Z" fill="#fff" stroke="#2b2250" stroke-width="2.5" stroke-linejoin="round"/>
+ <path d="M40 24 Q46 32 40 40" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M45 18 Q55 32 45 46" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>`,
+mute:`<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#8a8aa3"/>
+ <path d="M12 26 H22 L34 15 V49 L22 38 H12Z" fill="#fff" stroke="#2b2250" stroke-width="2.5" stroke-linejoin="round"/>
+ <path d="M40 25 l14 14 M54 25 l-14 14" stroke="#ff5a5f" stroke-width="5" stroke-linecap="round"/></svg>`,
+players:`<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#2f8cff"/><rect y="40" width="64" height="24" fill="#1c6fd6" opacity=".35"/>
+ <path d="M6 56 Q8 40 22 40 Q36 40 38 56Z" fill="#ffc83d" stroke="#2b2250" stroke-width="2.5"/><circle cx="22" cy="28" r="10" fill="#ffe0c7" stroke="#2b2250" stroke-width="2.5"/>
+ <path d="M12 26 Q14 15 22 16 Q31 15 32 26 Q26 20 12 26Z" fill="#6a3d1a"/>
+ <path d="M28 56 Q30 42 43 42 Q56 42 58 56Z" fill="#2ecc71" stroke="#2b2250" stroke-width="2.5"/><circle cx="43" cy="31" r="9" fill="#d9a066" stroke="#2b2250" stroke-width="2.5"/>
+ <path d="M34 30 Q35 19 43 20 Q52 20 52 30 Q49 24 34 30Z" fill="#2b1d0e"/>
+ <circle cx="19" cy="29" r="1.4" fill="#2b2250"/><circle cx="25" cy="29" r="1.4" fill="#2b2250"/><circle cx="40" cy="32" r="1.3" fill="#2b2250"/><circle cx="46" cy="32" r="1.3" fill="#2b2250"/></svg>`};
+
 function topbar(){
  const p=P();const need=xpNeed(p.level);
  return `<div class="topbar">
  <button class="tb-hero" title="Backpack" onclick="go('backpack')">${heroSVG(p.look,{spell:p.spell})}</button>
  <div class="tb-info"><div class="tb-name">${esc(p.name)}<span class="lv">Lv ${p.level}</span></div><div class="xpbar"><i style="width:${Math.min(100,p.xp/need*100)}%"></i></div></div>
  <div class="coins">🪙 ${p.coins}</div>
- <button class="iconbtn" title="Explore the world" onclick="go('world')">🗺️</button>
- <button class="iconbtn" title="Backpack &amp; shop" onclick="go('backpack')">🎒${p.eggs?'<b class="dot"></b>':''}</button>
- <button class="iconbtn" title="Pet home" onclick="go('pethome')">🐾${spinReady(p)?'<b class="dot"></b>':''}</button>
- <button class="iconbtn" title="Sound" onclick="toggleSound()">${state.sound?'🔊':'🔇'}</button>
- <button class="iconbtn" title="Switch player" onclick="go('profiles')">👥</button></div>`;
+ <button class="iconbtn tbi" title="Explore the world" aria-label="Explore the world" onclick="go('world')">${TB_ICONS.map}</button>
+ <button class="iconbtn tbi" title="Backpack &amp; shop" aria-label="Backpack and shop" onclick="go('backpack')">${TB_ICONS.bag}${p.eggs?'<b class="dot"></b>':''}</button>
+ <button class="iconbtn tbi" title="Pet home" aria-label="Pet home" onclick="go('pethome')">${TB_ICONS.pet}${spinReady(p)?'<b class="dot"></b>':''}</button>
+ <button class="iconbtn tbi" title="Sound" aria-label="Sound on or off" onclick="toggleSound()">${state.sound?TB_ICONS.sound:TB_ICONS.mute}</button>
+ <button class="iconbtn tbi" title="Switch player" aria-label="Switch player" onclick="go('profiles')">${TB_ICONS.players}</button></div>`;
 }
 
 /* ---------- profiles ---------- */
