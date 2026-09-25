@@ -283,9 +283,15 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .tiertag{display:inline-block;color:#fff !important;font-weight:700 !important;border-radius:10px;padding:1px 8px;font-size:12px}
 .tierh{margin:12px 0 6px;font-size:17px}
 .egg.glowegg{filter:drop-shadow(0 0 18px var(--gc)) drop-shadow(0 0 36px var(--gc))}
+.gang{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:0;pointer-events:none}
+.bk{display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.95}
+.bk .bks{font-size:clamp(30px,6vh,54px);line-height:1;animation:bob 2.3s ease-in-out infinite;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35))}
+.bk:nth-child(2) .bks{animation-delay:.4s}
+.minihp{width:clamp(40px,8vh,64px);height:7px;background:rgba(0,0,0,.4);border-radius:5px;overflow:hidden;border:1px solid rgba(255,255,255,.7)}
+.minihp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff5a5f,#ffb13d);transition:width .4s}
 .impact{position:absolute;font-size:72px;pointer-events:none;z-index:5;filter:drop-shadow(0 0 6px #ff3b3b) drop-shadow(0 0 14px #ff3b3b)}
 @media (orientation:landscape) and (max-height:560px){
- .spellbar{top:4px;gap:4px}.spellbar button{padding:4px 7px;font-size:12px}.spellbar button small{display:none}}
+ .spellbar{top:4px;gap:4px;flex-wrap:nowrap}.spellbar button{padding:4px 7px;font-size:12px}.spellbar button small{display:none}}
 @media(max-width:520px){.spellbar{gap:4px;top:5px;flex-wrap:nowrap}.spellbar button{padding:6px 7px;font-size:12px}.spellbar button small{display:none}}
 @media (prefers-reduced-motion:reduce){.spellbar button.ready,.fighter.hero .bubble{animation:none}}
 .spark{position:absolute;width:12px;height:12px;border-radius:50%;pointer-events:none;z-index:4}
@@ -877,21 +883,50 @@ function startBattle(zid,i,resume){
  const z=ZONES.find(x=>x.id===zid);const p=P();const isBoss=i===5;
  const champ=!!(p.champOn&&bossesBeaten(p)>=5);
  const mhp=Math.round((isBoss?200:110+i*15)*(champ?1.4:1));
- B={z,i,isBoss,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0};
- if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
+ const foes=[{n:z.mons[i][0],e:z.mons[i][1],hp:mhp,max:mhp}].concat(resume?[]:gangFor(p,z,i,isBoss,champ));
+ B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0};
+ if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
+ if(resume&&B.foes&&B.foes[B.ti]){const f=B.foes[B.ti];B.name=f.n;B.emoji=f.e;B.mmax=f.max;B.foes[B.ti].hp=B.mhp;}
  p.last={zid,i};
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
  renderBattle();
- banner((isBoss?'👑 BOSS: ':'⚔️ ')+B.name+'!');
+ banner(B.foes.length>1?`⚔️ GANG OF ${B.foes.length}!`:(isBoss?'👑 BOSS: ':'⚔️ ')+B.name+'!');
+ if(B.foes.length>1&&!resume)setTimeout(()=>toast(`${B.foes.map(f=>f.e).join(' ')} Beat all ${B.foes.length} to win! Wrong answers mean they ALL attack!`),900);
  setTimeout(nextQ,900);
+}
+/* gangs: after a world's boss is beaten, monsters sometimes team up */
+function gangFor(p,z,i,isBoss,champ){
+ const beaten=(p.progress[z.id]||[])[5]>0;if(!beaten&&!champ)return [];
+ let n=0;const r=Math.random();
+ if(champ)n=isBoss?1:(r<.5?2:1);
+ else if(isBoss)n=r<.3?1:0;
+ else if(p.level>=10&&r<.15)n=2;else if(r<.45)n=1;
+ const pool=[0,1,2,3,4].filter(k=>k!==i);const out=[];
+ for(let k=0;k<n&&pool.length;k++){const j=pool.splice(Math.floor(Math.random()*pool.length),1)[0];const hp=Math.round((110+j*15)*.6*(champ?1.4:1));out.push({n:z.mons[j][0],e:z.mons[j][1],hp,max:hp});}
+ return out;
+}
+function foesHTML(){
+ const bk=(B.foes||[]).map((f,k)=>({f,k})).filter(o=>o.k!==B.ti&&o.f.hp>0);
+ return `<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div>${bk.length?`<div class="gang">${bk.map(o=>`<div class="bk" data-k="${o.k}"><div class="minihp"><i></i></div><span class="bks">${o.f.e}</span></div>`).join('')}</div>`:''}`;
+}
+function nextFoe(cont){
+ if(!B||!B.foes||B.foes.length<2)return false;
+ B.foes[B.ti].hp=0;const nx=B.foes.findIndex(f=>f.hp>0);if(nx<0)return false;
+ const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(540deg)',opacity:0}],{duration:600,fill:'forwards'});
+ floatText('#monS','KO! 💫','#ffe066');B.coins+=10;P().coins+=10;SFX.win();
+ setTimeout(()=>{if(!B)return;B.ti=nx;const f=B.foes[nx];B.name=f.n;B.emoji=f.e;B.mhp=f.hp;B.mmax=f.max;
+  const mf=$('#monF');if(mf){mf.innerHTML=foesHTML();$('#monS').animate([{transform:'translateX(60px) scale(.6)',opacity:0},{transform:'none',opacity:1}],{duration:400});}
+  const bn=$('#bname');if(bn)bn.textContent=`${B.champ?'👑 Champion ':''}${B.name}`;
+  const left=B.foes.filter(x=>x.hp>0).length;banner(`${f.e} ${f.n} steps up!${left>1?` (${left} left)`:''}`);updateBars();save();cont&&cont();},750);
+ return true;
 }
 function renderBattle(){
  const p=P();const pet=petOf(p);
  app.innerHTML=`<div class="battle ${B.z.cls} ${B.mode!=='math'?'questmode':''}">
- <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname">${B.champ?'👑 Champion ':''}${B.isBoss?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
+ <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname" id="bname">${B.champ?'👑 Champion ':''}${B.isBoss&&B.ti===0?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
  <div class="bmain"><div class="arena" id="arena"><div class="scene">${sceneSVG(B.z.id)}</div>${B.mode==='math'?`<div class="spellbar" id="spellbar">${SPECIALS.map(x=>`<button id="sp-${x.id}" onclick="useSpecial('${x.id}')">${x.e} ${x.n}<small>${x.cost} charges</small></button>`).join('')}${pet&&petMovesMax(petData(p,pet.id))?`<button id="sp-pet" onclick="usePetMove()">${pet.e} ${PET_MOVES[pet.id]||'Pet Attack'}<small id="spPetN"></small></button>`:''}</div>`:''}
   <div class="fighter hero" id="heroF"><div class="bubble"></div><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div>${B.mode==='math'?'<div class="mana" id="mana" title="Spell charges"></div>':''}<div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf" id="petF">${petAvatar(p,pet)}</div>`:''}</div>
-  <div class="fighter mon ${B.isBoss?'boss':''}" id="monF"><div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div></div>
+  <div class="fighter mon ${B.isBoss&&B.ti===0?'boss':''}" id="monF">${B.mode==='math'?foesHTML():`<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div>`}</div>
  </div>
  <div class="bctrl"><div class="qcard" id="qcard"><button class="hintbtn" id="hintBtn" onclick="useHint()"></button><div class="qlabel" id="qlabel"></div><div class="qtext" id="qtext">Get ready…</div></div>
  <div class="qpad">${B.mode!=='math'?'':`<div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="press('${n}')">${n}</button>`).join('')}<button class="del" onclick="press('del')">⌫</button><button onclick="press('0')">0</button><button class="go" onclick="press('go')">✓</button></div>`}</div></div></div></div>`;
@@ -901,6 +936,8 @@ function updateBars(){
  if(!$('#hhp'))return;
  $('#hhp').style.width=(B.hhp/B.hmax*100)+'%';$('#mhp').style.width=(B.mhp/B.mmax*100)+'%';
  $('#hhpn').textContent=`❤️ ${B.hhp} / ${B.hmax}`;$('#mhpn').textContent=`${B.mhp} / ${B.mmax}`;
+ if(B.foes&&B.foes[B.ti])B.foes[B.ti].hp=B.mhp;
+ document.querySelectorAll('.bk').forEach(el=>{const f=B.foes[+el.dataset.k];if(f)el.querySelector('.minihp i').style.width=(f.hp/f.max*100)+'%';});
  $('#streak').textContent=B.streak>=2?`🔥 ${B.streak} streak`:'';
  $('#bcoins').textContent='🪙 '+P().coins;
  updateMana();
@@ -930,7 +967,7 @@ function useSpecial(id){
    B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();floatText('#monS','BOOM! -'+dmg,'#ffb000');
    $('#monS').animate([{transform:'none'},{transform:'translateX(24px) rotate(14deg) scale(.9)'},{transform:'translateX(-10px)'},{transform:'none'}],{duration:500});
    $('#arena').animate([{transform:'none'},{transform:'translate(5px,-3px)'},{transform:'translate(-5px,3px)'},{transform:'none'}],{duration:300});
-   if(B.mhp<=0){B.over=true;updateBars();setTimeout(winBattle,500);return;}
+   if(B.mhp<=0){updateBars();if(nextFoe(resume))return;B.over=true;setTimeout(winBattle,500);return;}
    resume();
   },'big');
  }else if(id==='shield'){
@@ -956,7 +993,7 @@ function usePetMove(){
   B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();burst(x1+32,y1+32,'#ffd84a',14);floatText('#monS',`${happy?'😊 ':''}-${dmg}`,'#ffe066');
   $('#monS').animate([{transform:'none'},{transform:'translateX(20px) rotate(12deg)'},{transform:'none'}],{duration:400});
   pd.xp+=.5;updateBars();
-  if(B.mhp<=0){B.over=true;setTimeout(winBattle,700);return;}
+  if(B.mhp<=0){if(nextFoe(()=>{if(!B||B.over)return;B.busy=false;B.t0=performance.now();save();updateMana();}))return;B.over=true;setTimeout(winBattle,700);return;}
   setTimeout(()=>{if(!B||B.over)return;B.busy=false;B.t0=performance.now();if(p.battle){p.battle.petUses=B.petUses;p.battle.mhp=B.mhp;}save();updateMana();},600);
  },560);
 }
@@ -984,7 +1021,7 @@ function nextQ(){
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
- p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses};save();
+ p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
  showQ();
@@ -1040,7 +1077,7 @@ function answer(){
    if(perk==='heal'&&B.streak%5===0&&B.hhp<B.hmax){const h=Math.min(20,B.hmax-B.hhp);B.hhp+=h;floatText('#heroS','+'+h+' ❤️','#8dffb0');}
    if([3,5,10,15,20].includes(B.streak))banner(B.streak>=10?`🔥 UNSTOPPABLE x${B.streak}!`:`🔥 COMBO x${B.streak}!`);
    updateBars();
-   if(B.mhp<=0){B.over=true;setTimeout(winBattle,500);}
+   if(B.mhp<=0){if(!nextFoe(()=>setTimeout(nextQ,250))){B.over=true;setTimeout(winBattle,500);}}
    else setTimeout(nextQ,450);
   });
  }else{
@@ -1097,15 +1134,23 @@ const ATK={'🐛':['shot','🟢','Goo spit'],'🍄':['shot','🟤','Spore puff']
  '🐞':['melee','💥','Beetle bonk'],'🐸':['melee','👅','Tongue lash'],'🦝':['melee','💢','Scratch'],'🐭':['melee','🦷','Nibble'],'🦜':['shot','🪶','Feather dart'],'🦉':['rain','🪶','Feather storm'],'🧞':['shot','🌪️','Whirlwind']};
 function attackOf(emoji){const a=ATK[emoji];return a?{t:a[0],e:a[1],n:a[2]}:{t:'shot',e:'💥',n:'Attack'};}
 function monsterAttack(done){
- const dmg=Math.round((B.isBoss?rnd(20,26):rnd(13,20))*(B.champ?1.5:1));
+ const others=B.mode==='math'&&B.foes?B.foes.filter((f,k)=>k!==B.ti&&f.hp>0):[];
+ const one=()=>(B.isBoss&&B.ti===0?rnd(20,26):rnd(13,20))*(B.champ?1.5:1);
+ let dmg=one();others.forEach(()=>dmg+=rnd(13,20)*(B.champ?1.5:1));if(others.length)dmg*=.6;dmg=Math.round(dmg);
  const atk=attackOf(B.emoji);
+ if(others.length){const ar=$('#arena'),aa=ar&&ar.getBoundingClientRect(),hh=$('#heroS').getBoundingClientRect();
+  document.querySelectorAll('.bk').forEach((el,k)=>{const f=B.foes[+el.dataset.k];if(!f||f.hp<=0||!ar)return;const r=el.getBoundingClientRect();const t=attackOf(f.e);
+   const pj=document.createElement('div');pj.className='proj foe';pj.textContent=t.e;ar.appendChild(pj);
+   const x0=r.left-aa.left,y0=r.top-aa.top,x1=hh.left-aa.left+hh.width/2-23+(k*20-10),y1=hh.top-aa.top+hh.height*.35;
+   pj.animate([{transform:`translate(${x0}px,${y0}px) scale(.5)`},{transform:`translate(${(x0+x1)/2}px,${Math.min(y0,y1)-60}px) scale(1)`},{transform:`translate(${x1}px,${y1}px) scale(1.2)`}],{duration:520,delay:80+k*90,easing:'ease-in',fill:'backwards'}).onfinish=()=>pj.remove();
+   el.animate([{transform:'none'},{transform:'translateX(-14px) scale(1.15)'},{transform:'none'}],{duration:380,delay:k*90});});}
  const hit=()=>{
   if(!B)return;
   if(B.mode!=='math'){floatText('#heroS','💨 Dodged!','#9fe7ff');}
   else if(B.shieldUp){B.shieldUp=false;SFX.coin();floatText('#heroS','🛡️ Shield blocked it!','#9fe7ff');}
   else if(!B.grace&&!B.champ){B.grace=true;floatText('#heroS','💨 Missed you!','#9fe7ff');}
   else if(B.shield){B.shield=false;floatText('#heroS','🐾 Pet blocked it!','#9fe7ff');}
-  else{B.hhp=Math.max(0,B.hhp-dmg);SFX.hurt();floatText('#heroS',atk.n+'! -'+dmg,'#ff8a8a');
+  else{B.hhp=Math.max(0,B.hhp-dmg);SFX.hurt();floatText('#heroS',(others.length?'Gang attack!':atk.n+'!')+' -'+dmg,'#ff8a8a');
    $('#heroS').animate([{filter:'none'},{filter:'brightness(2) sepia(1) hue-rotate(-50deg) saturate(5)'},{filter:'none'}],{duration:400});
    $('#arena').animate([{transform:'none'},{transform:'translate(-6px,3px)'},{transform:'translate(6px,-3px)'},{transform:'none'}],{duration:300});}
   updateBars();setTimeout(done,650);
@@ -1165,12 +1210,13 @@ function winBattle(){
  const bestLine=old?(newBest?`<div class="pbest">⏱ ${fmtClock(secs)} · NEW PERSONAL BEST!</div>`:`<div class="pbest dim">⏱ ${fmtClock(secs)} · your best is ${fmtClock(old.t)}</div>`):'';
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
  let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(p.pets.length<PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
- p.coins+=bonus;B.coins+=bonus;B.xp+=B.isBoss?60:20;
+ const gangN=(B.foes||[]).length;if(gangN>1)bonus+=25*(gangN-1);
+ p.coins+=bonus;B.coins+=bonus;B.xp+=(B.isBoss?60:20)+(gangN>1?15*(gangN-1):0);
  const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1);const egg=Math.random()<chance;if(egg)p.eggs++;
  p.battles++;const up=endBattleBook();save();
  const z=B.z.id,i=B.i;
  setTimeout(()=>{
-  modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You beat <b>${esc(B.name)}</b>!${B.best>=3?` Best streak: 🔥${B.best}`:''}</p>
+  modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You beat ${(B.foes||[]).length>1?`<b>the whole gang</b> ${B.foes.map(f=>f.e).join('')}`:`<b>${esc(B.name)}</b>`}!${B.best>=3?` Best streak: 🔥${B.best}`:''}</p>
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>${bestLine}
   ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${p.pets.length<PETS.length||p.eggs?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
