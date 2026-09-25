@@ -1,0 +1,2036 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Castle Quest</title>
+<meta name="theme-color" content="#7cc4f5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Castle Quest">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2d2a4a; --sky1:#8fd0ff; --sky2:#e6f6ff; --paper:#fffdf6; --red:#ff5a5f; --redd:#c93338; --blue:#4a90ff; --blued:#2a62c9;
+  --green:#35c16f; --greend:#1f8a4b; --gold:#ffc83d; --goldd:#c78c00; --muted:#6f6a8a; --line:#2d2a4a;
+  --r:18px; --shadow:0 4px 0 rgba(45,42,74,.9);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;}
+body{font-family:'Fredoka',ui-rounded,'SF Pro Rounded',system-ui,sans-serif;color:var(--ink);background:linear-gradient(180deg,var(--sky1),var(--sky2) 70%);overscroll-behavior:none;}
+button{font-family:inherit;color:inherit;cursor:pointer}
+input{font-family:inherit}
+.screen{display:none;min-height:100vh;min-height:100dvh}
+.screen.on{display:block}
+#scr-game.on{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+
+/* buttons */
+.btn{border:3px solid var(--line);border-radius:14px;padding:10px 16px;font-size:17px;font-weight:600;background:#fff;box-shadow:var(--shadow);transition:transform .08s, box-shadow .08s;user-select:none;-webkit-user-select:none}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(45,42,74,.9)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.big{font-size:22px;padding:14px 22px;border-radius:18px}
+.btn.small{font-size:15px;padding:6px 12px;border-radius:12px}
+.btn.icon{width:44px;height:44px;padding:0;font-size:20px;display:inline-flex;align-items:center;justify-content:center}
+.btn.red{background:var(--red);color:#fff}
+.btn.blue{background:var(--blue);color:#fff}
+.btn.green{background:var(--green);color:#fff}
+.btn.gold{background:var(--gold)}
+.btn.white{background:#fff}
+.btn.wide{width:100%}
+
+/* home */
+.home-wrap{max-width:560px;margin:0 auto;padding:24px 16px 60px;text-align:center}
+.title-art{height:150px;display:flex;justify-content:center}
+.title-art svg{height:150px;width:auto;overflow:visible}
+.title{font-size:54px;margin:4px 0 0;letter-spacing:1px;color:#fff;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink)}
+.tag{margin:6px 0 20px;font-size:18px;color:var(--ink);font-weight:500}
+.home-btns{display:flex;flex-direction:column;gap:14px;max-width:340px;margin:0 auto}
+.sub{margin:32px 0 10px;font-size:24px}
+.games-list{display:flex;flex-direction:column;gap:12px;text-align:left}
+.gcard{background:var(--paper);border:3px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;position:relative}
+.gcard .gp{display:flex;gap:4px;font-size:26px}
+.gcard .gp span{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid;background:#fff}
+.gcard .gp span.out{opacity:.35}
+.gcard .gi{flex:1;min-width:0}
+.gcard .gi b{display:block;font-size:17px}
+.gcard .gi small{color:var(--muted);font-size:14px}
+.gcard .st{font-size:14px;font-weight:600;padding:4px 10px;border-radius:999px;border:2px solid var(--line);white-space:nowrap}
+.st.yours{background:var(--gold);animation:pulse 1.2s infinite}
+.st.wait{background:#eee}
+.st.done{background:#d6f5e3}
+.gcard .x{position:absolute;top:-10px;right:-10px;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+.empty-note{color:var(--muted);text-align:center}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+
+/* pages */
+.page{max-width:640px;margin:0 auto;padding:16px 16px 60px}
+.page-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.page-head h2{margin:0;font-size:28px}
+.card{background:var(--paper);border:3px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px;margin:14px 0}
+.card h3{margin:0 0 10px;font-size:20px}
+.mode-pick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mode-card{border:3px solid var(--line);border-radius:16px;background:#fff;padding:12px;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:var(--shadow)}
+.mode-card .mi{font-size:34px}
+.mode-card b{font-size:18px}
+.mode-card small{color:var(--muted);font-size:13px}
+.mode-card.on{background:#fff4c2;outline:4px solid var(--gold)}
+.slot{border-left-width:12px}
+.slot-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.slot-head .dot{width:22px;height:22px;border-radius:50%;border:3px solid var(--line)}
+.slot-head b{font-size:20px}
+.seg{display:flex;border:3px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.seg button{flex:1;border:0;background:transparent;padding:9px 6px;font-size:16px;font-weight:600;border-right:2px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--gold)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.lbl{font-size:14px;color:var(--muted);font-weight:600;margin:10px 0 4px}
+.inp{width:100%;font-size:18px;padding:10px 12px;border:3px solid var(--line);border-radius:12px;background:#fff}
+.inp.code{text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.avs{display:flex;flex-wrap:wrap;gap:6px}
+.avs button{width:42px;height:42px;font-size:24px;border-radius:12px;border:2px solid #ccc;background:#fff;padding:0}
+.avs button.on{border:3px solid var(--line);background:#fff4c2}
+.hint{color:var(--muted);font-size:14px;margin:8px 0 0}
+.err{color:var(--redd);font-weight:600;min-height:1em}
+
+/* game */
+.topbar{display:flex;align-items:center;gap:8px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));background:var(--paper);border-bottom:3px solid var(--line);flex-wrap:nowrap}
+.turnchip{display:flex;align-items:center;gap:6px;font-weight:700;font-size:17px;padding:4px 12px 4px 4px;border-radius:999px;border:3px solid var(--line);min-width:0;overflow:hidden;white-space:nowrap}
+.turnchip .av{font-size:22px;width:34px;height:34px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.turnchip span.nm{overflow:hidden;text-overflow:ellipsis}
+.round{font-weight:600;color:var(--muted);font-size:15px;white-space:nowrap}
+.gold{font-weight:700;font-size:18px;margin-left:auto;white-space:nowrap}
+.gold small{color:var(--greend);font-size:14px}
+.endturn{white-space:nowrap}
+.scores{display:flex;gap:8px;padding:6px 10px;background:rgba(255,255,255,.6);border-bottom:2px solid rgba(45,42,74,.25);overflow-x:auto}
+.sc{display:flex;align-items:center;gap:5px;font-weight:600;font-size:15px;padding:2px 10px 2px 3px;border-radius:999px;border:2px solid;background:#fff;white-space:nowrap}
+.sc .av{font-size:18px}
+.sc.out{opacity:.35;text-decoration:line-through}
+.sc.now{box-shadow:0 0 0 3px var(--gold)}
+.banner{display:none;text-align:center;font-weight:700;padding:8px;font-size:16px;background:var(--gold);border-bottom:3px solid var(--line)}
+.banner.on{display:block}
+.banner.wait{background:#e9e6ff}
+.mapwrap{flex:1;overflow:auto;position:relative;background:#86c95d;touch-action:pan-x pan-y}
+#mapInner{position:relative}
+#mapInner svg{display:block}
+.gbody{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
+.zoom{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
+.panel{background:var(--paper);border-top:3px solid var(--line);padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));max-height:46vh;overflow:auto}
+.panel .ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.panel .ph h3{margin:0;font-size:21px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;border:2px solid var(--line);border-radius:999px;padding:2px 10px;background:#fff}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.troops{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.troop{display:flex;align-items:center;gap:4px;font-size:18px;font-weight:700;background:#fff;border:2px solid #d8d3ea;border-radius:12px;padding:3px 10px}
+.troop small{font-size:12px;color:var(--muted);font-weight:500}
+.recruit{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.rbtn{border:3px solid var(--line);border-radius:14px;background:#fff;padding:6px 4px;display:flex;flex-direction:column;align-items:center;box-shadow:0 3px 0 var(--line);line-height:1.15}
+.rbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.rbtn .e{font-size:28px}
+.rbtn b{font-size:14px}
+.rbtn small{font-size:13px;font-weight:600}
+.rbtn .st2{font-size:11px;color:var(--muted)}
+.rbtn:disabled{opacity:.4}
+.phint{color:var(--muted);font-size:14px;margin:8px 0 0}
+.panel .acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(30,25,60,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.on{display:flex}
+.modal-box{background:var(--paper);border:4px solid var(--line);border-radius:24px;box-shadow:0 6px 0 var(--line);width:100%;max-width:480px;max-height:92vh;overflow:auto;padding:18px;position:relative}
+.modal-box h2{margin:0 0 8px;font-size:26px;text-align:center}
+.modal-box .center{text-align:center}
+.mbtns{display:flex;gap:10px;margin-top:16px}
+.mbtns .btn{flex:1}
+.srow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:2px dashed #e2ddf2}
+.srow .e{font-size:28px;width:36px;text-align:center}
+.srow .n{flex:1;font-weight:600}
+.srow .n small{display:block;color:var(--muted);font-weight:500;font-size:12px}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:40px;height:40px;border-radius:12px;border:3px solid var(--line);background:#fff;font-size:22px;font-weight:700;padding:0}
+.step span{min-width:28px;text-align:center;font-size:20px;font-weight:700}
+.step .all{width:auto;padding:0 8px;font-size:14px}
+.herotog{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;border:3px solid var(--line);border-radius:14px;background:#fff;cursor:pointer}
+.herotog.on{background:#fff4c2}
+.herotog .box{width:28px;height:28px;border:3px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;background:#fff}
+.meter{margin-top:12px;border:3px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;position:relative;height:34px}
+.meter i{position:absolute;left:0;top:0;bottom:0;transition:width .25s}
+.meter b{position:relative;display:block;text-align:center;line-height:28px;font-size:16px}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:start;margin:10px 0}
+.vs .side{border:3px solid var(--line);border-radius:14px;padding:8px;background:#fff;min-height:110px}
+.vs .side h4{margin:0 0 6px;font-size:15px;text-align:center}
+.vs .mid{font-size:30px;align-self:center}
+.units{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;font-size:24px}
+.units span{display:inline-block;transition:transform .2s,opacity .3s}
+.units span.hit{transform:scale(1.5) rotate(-15deg)}
+.units span.dead{opacity:.12;transform:scale(.7)}
+.units span.fight{transform:scale(1.35)}
+.result{text-align:center;font-size:24px;font-weight:700;margin:8px 0;min-height:32px}
+.bonus{text-align:center;font-weight:600;color:var(--greend)}
+.loglist{max-height:50vh;overflow:auto;text-align:left;margin:8px 0}
+.loglist div{padding:6px 4px;border-bottom:2px dashed #e2ddf2;font-size:15px}
+.big-emoji{font-size:64px;text-align:center;line-height:1.1}
+.helpbox h3{margin:14px 0 4px}
+.helpbox p,.helpbox li{font-size:16px;line-height:1.4}
+.helpbox table{border-collapse:collapse;width:100%;font-size:15px}
+.helpbox td,.helpbox th{border-bottom:2px dashed #e2ddf2;padding:5px;text-align:center}
+.codebox{font-size:22px;font-weight:700;text-align:center;letter-spacing:1px;background:#fff;border:3px dashed var(--line);border-radius:14px;padding:10px;margin:10px 0;word-break:break-all}
+.menu-list{display:flex;flex-direction:column;gap:10px}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:14px;font-weight:600;z-index:60;transition:transform .25s;max-width:90vw;text-align:center}
+.toast.on{transform:translateX(-50%) translateY(0)}
+
+/* map svg bits */
+.c-hit{cursor:pointer}
+.c-name{font-weight:700;font-size:14px;fill:#2d2a4a;stroke:#fff;stroke-width:4px;paint-order:stroke;stroke-linejoin:round;pointer-events:none}
+.c-badge text{font-weight:700;font-size:15px;fill:#fff;pointer-events:none}
+.sel-ring{animation:spin 6s linear infinite;transform-box:fill-box;transform-origin:center}
+.tgt-ring{animation:throb 1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes throb{0%,100%{opacity:.55}50%{opacity:1}}
+
+@media (min-width:980px) and (orientation:landscape){
+  .gbody{flex-direction:row}
+  .panel{width:370px;flex:none;max-height:none;border-top:0;border-left:3px solid var(--line)}
+  .recruit{grid-template-columns:repeat(2,1fr)}
+}
+.warn{background:#fff0c9;border:2px solid #e0a800;border-radius:12px;padding:6px 10px;font-size:14px;font-weight:600;margin-top:10px;text-align:center}
+@media (max-width:640px){
+  .title{font-size:44px}
+  .round{display:none}
+  .btn.endturn{padding:8px 10px;font-size:15px}
+  .turnchip{font-size:15px}
+  .gold{font-size:16px}
+  .recruit{grid-template-columns:repeat(4,1fr);gap:5px}
+  .rbtn{padding:4px 2px;border-radius:12px}
+  .rbtn .e{font-size:22px}
+  .rbtn b{font-size:12px}
+  .rbtn .st2{display:none}
+  .panel{max-height:40vh;padding:8px 10px}
+  .panel .ph h3{font-size:18px}
+  .chip{font-size:12px;padding:1px 8px}
+  .stats{gap:5px;margin:6px 0}
+  .troop{font-size:16px;padding:2px 8px}
+  .phint{font-size:13px}
+}
+@media (max-width:400px){ .turnchip span.nm{max-width:70px} }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HOME -->
+  <section id="scr-home" class="screen">
+    <div class="home-wrap">
+      <div class="title-art" id="titleArt"></div>
+      <h1 class="title">Castle Quest</h1>
+      <p class="tag">Build an army, hatch dragons, conquer the land!</p>
+      <div class="home-btns">
+        <button class="btn big red" id="btnNew">⚔️ New Game</button>
+        <button class="btn big blue" id="btnJoin">🔗 Join a Game</button>
+        <button class="btn big white" id="btnHelp">📖 How to Play</button>
+      </div>
+      <h2 class="sub" id="myGamesH">My Games</h2>
+      <div id="myGames" class="games-list"></div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section id="scr-setup" class="screen">
+    <div class="page">
+      <div class="page-head"><button class="btn small white" data-go="home">← Back</button><h2>New Game</h2></div>
+      <div class="card">
+        <h3>How will you play?</h3>
+        <div class="mode-pick">
+          <button class="mode-card" data-mode="local"><span class="mi">📱</span><b>One device</b><small>Take turns passing it around</small></button>
+          <button class="mode-card" data-mode="online"><span class="mi">🌐</span><b>Online</b><small>Everyone plays on their own device</small></button>
+        </div>
+      </div>
+      <div id="slotCards"></div>
+      <div class="card">
+        <h3>How long?</h3>
+        <div class="seg" id="lenSeg">
+          <button data-len="short">Short</button><button data-len="normal">Normal</button><button data-len="long">Long</button>
+        </div>
+        <p class="hint" id="lenHint"></p>
+      </div>
+      <p class="err" id="setupErr"></p>
+      <button class="btn big red wide" id="btnStart">🏰 Start the Quest!</button>
+    </div>
+  </section>
+
+  <!-- JOIN -->
+  <section id="scr-join" class="screen">
+    <div class="page">
+      <div class="page-head"><button class="btn small white" data-go="home">← Back</button><h2>Join a Game</h2></div>
+      <div class="card" id="joinCodeCard">
+        <h3>Type the game code</h3>
+        <input id="joinCode" class="inp code" placeholder="DRAGON-PICKLE-TOWER-42" autocapitalize="characters" autocomplete="off" spellcheck="false">
+        <p class="err" id="joinErr"></p>
+        <button class="btn blue wide" id="btnFind">Find Game</button>
+      </div>
+      <div id="joinSlots"></div>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="scr-game" class="screen">
+    <header class="topbar">
+      <button class="btn icon white" id="btnMenu" aria-label="Menu">☰</button>
+      <div class="turnchip" id="turnChip"></div>
+      <div class="round" id="roundBox"></div>
+      <div class="gold" id="goldBox"></div>
+      <button class="btn red endturn" id="btnEnd">End Turn ➜</button>
+    </header>
+    <div class="scores" id="scores"></div>
+    <div class="banner" id="banner"></div>
+    <div class="gbody">
+      <div class="mapwrap" id="mapWrap"><div id="mapInner"></div></div>
+      <div class="zoom"><button class="btn icon white" id="zIn" aria-label="Zoom in">＋</button><button class="btn icon white" id="zOut" aria-label="Zoom out">－</button></div>
+      <div class="panel" id="panel"></div>
+    </div>
+  </section>
+
+  <div id="modal" class="modal"><div class="modal-box" id="modalBox"></div></div>
+  <div id="toast" class="toast"></div>
+</div>
+<script>
+/* ===== Castle Quest engine (pure logic, no DOM) ===== */
+var CQ = (function () {
+  'use strict';
+
+  // ---------- constants ----------
+  var UNITS = {
+    s: { key: 's', name: 'Squire', plural: 'Squires', emoji: '🗡️', cost: 3, atk: 2, def: 2 },
+    a: { key: 'a', name: 'Archer', plural: 'Archers', emoji: '🏹', cost: 4, atk: 2, def: 4 },
+    k: { key: 'k', name: 'Knight', plural: 'Knights', emoji: '🐴', cost: 6, atk: 5, def: 3 },
+    d: { key: 'd', name: 'Dragon', plural: 'Dragons', emoji: '🐉', cost: 14, atk: 9, def: 8, fly: true }
+  };
+  var UK = ['s', 'a', 'k', 'd'];
+  var SIZES = {
+    village: { income: 2, label: 'Village' },
+    castle: { income: 3, label: 'Castle' },
+    fortress: { income: 5, label: 'Fortress', roost: true }
+  };
+  var HOME_INCOME = 5;
+  var WALL_COST = [8, 12];          // cost to go to level 1, level 2
+  var WALL_BONUS = [0, 0.25, 0.5];
+  var POW = 1.6;                    // combat sharpness
+  var MAX_HERO = 4;
+  var COLORS = [
+    { key: 'red', name: 'Red', main: '#e5484d', light: '#ffb3b5', dark: '#a8262b' },
+    { key: 'blue', name: 'Blue', main: '#3b82f6', light: '#b3d1ff', dark: '#1d4ea8' },
+    { key: 'green', name: 'Green', main: '#22a55b', light: '#aef0c6', dark: '#136b39' }
+  ];
+  var AVATARS = ['🧙', '🧝', '🦸', '🧚', '🤴', '👸', '🥷', '🧛', '🦄', '🐱', '🐶', '🦊', '🐸', '🐼', '🦁', '🤖'];
+  var AI_NAMES = ['Sir Grumblebeard', 'Lady Pickles', 'Baron Wobble', 'Queen Snorkel', 'Duke Noodle', 'Count Crumpet'];
+  var AI_AVATARS = ['🤖', '👹', '🧌', '🐲', '👺', '🦹'];
+
+  // ---------- rng ----------
+  function hashStr(str) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (var i = 0; i < str.length; i++) {
+      var ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    return h1 >>> 0;
+  }
+  function rngFrom(seed) {
+    var a = typeof seed === 'number' ? seed >>> 0 : hashStr(String(seed));
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function ri(rng, lo, hi) { return lo + Math.floor(rng() * (hi - lo + 1)); }
+  function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+  function shuffle(rng, arr) {
+    for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+    return arr;
+  }
+
+  // ---------- geometry ----------
+  function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  function segDist(p, a, b) {
+    var dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy;
+    var t = L ? ((p.x - a.x) * dx + (p.y - a.y) * dy) / L : 0;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+  }
+  function segInter(p1, p2, p3, p4) {
+    var d = (p4.y - p3.y) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.y - p1.y);
+    if (d === 0) return null;
+    var ua = ((p4.x - p3.x) * (p1.y - p3.y) - (p4.y - p3.y) * (p1.x - p3.x)) / d;
+    var ub = ((p2.x - p1.x) * (p1.y - p3.y) - (p2.y - p1.y) * (p1.x - p3.x)) / d;
+    if (ua < 0 || ua > 1 || ub < 0 || ub > 1) return null;
+    return { x: p1.x + ua * (p2.x - p1.x), y: p1.y + ua * (p2.y - p1.y), ang: Math.atan2(p4.y - p3.y, p4.x - p3.x) };
+  }
+  function inPoly(p, poly) {
+    var inside = false;
+    for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      var xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
+      if (((yi > p.y) !== (yj > p.y)) && (p.x < (xj - xi) * (p.y - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
+  function polyDist(p, pts, closed) {
+    var m = Infinity;
+    for (var i = 0; i < pts.length - 1; i++) m = Math.min(m, segDist(p, pts[i], pts[i + 1]));
+    if (closed) m = Math.min(m, segDist(p, pts[pts.length - 1], pts[0]));
+    return m;
+  }
+
+  // ---------- names ----------
+  var PRE = ['Honey', 'Moss', 'Pebble', 'Sugar', 'Thistle', 'Muffin', 'Clover', 'Bramble', 'Pudding', 'Sprinkle', 'Willow', 'Bubble', 'Cinder', 'Frost', 'Maple', 'Button', 'Puddle', 'Sunny', 'Acorn', 'Marble', 'Toffee', 'Fern', 'Biscuit', 'Wiggle', 'Pumpkin', 'Cocoa', 'Minty', 'Daisy', 'Nutmeg', 'Sparkle'];
+  var SUF = ['keep', 'hold', 'ton', 'burg', 'gate', 'spire', 'haven', 'crest', 'moor', 'dale', 'watch', 'tower', 'ford', 'wick'];
+  var FORT_SUF = [' Citadel', ' Stronghold', ' Dragonroost', ' Fortress'];
+
+  // ---------- map generation ----------
+  function genMap(seed, n) {
+    var best = null;
+    for (var attempt = 0; attempt < 40; attempt++) {
+      var rng = rngFrom(seed + ':map:' + attempt);
+      var m = tryMap(rng, n);
+      if (!m) continue;
+      if (!best || m.score < best.score) best = m;
+      if (best.score < 0.6 && attempt > 8) break;
+    }
+    if (!best) throw new Error('map generation failed');
+    var rng2 = rngFrom(seed + ':deco');
+    addDeco(rng2, best);
+    delete best.score;
+    return best;
+  }
+
+  function tryMap(rng, n) {
+    var W = n === 2 ? 1000 : 1100, H = n === 2 ? 660 : 820, N = n === 2 ? 13 : 19;
+    var water = { rivers: [], lakes: [] };
+    if (n === 2) {
+      var rx = W / 2 + ri(rng, -40, 40), pts = [];
+      for (var i = 0; i <= 8; i++) pts.push({ x: rx + (i === 0 || i === 8 ? 0 : ri(rng, -70, 70)), y: -30 + i * (H + 60) / 8 });
+      water.rivers.push(pts);
+    } else {
+      var cx = W / 2 + ri(rng, -30, 30), cy = H * 0.47 + ri(rng, -20, 20), R = ri(rng, 62, 80), lake = [];
+      for (var k = 0; k < 18; k++) { var an = k / 18 * Math.PI * 2, rr = R * (0.8 + rng() * 0.35); lake.push({ x: cx + Math.cos(an) * rr * 1.25, y: cy + Math.sin(an) * rr }); }
+      water.lakes.push({ pts: lake, cx: cx, cy: cy, r: R * 1.4 });
+      var pts2 = [{ x: cx, y: cy - R * 0.6 }], yy = cy - R * 0.6, xx = cx;
+      var steps = 5;
+      for (var s = 1; s <= steps; s++) { yy = cy - R * 0.6 - s * (cy - R * 0.6 + 30) / steps; xx = cx + (s === steps ? ri(rng, -20, 20) : ri(rng, -60, 60)); pts2.push({ x: xx, y: yy }); }
+      water.rivers.push(pts2);
+      // second little river from lake to bottom-left or right edge? keep one extra stream to the east
+      var side = rng() < 0.5 ? -1 : 1, pts3 = [{ x: cx + side * R * 1.1, y: cy + R * 0.2 }];
+      for (var s2 = 1; s2 <= 5; s2++) pts3.push({ x: cx + side * (R * 1.1 + s2 * (W / 2 - R * 1.1 + 30) / 5), y: cy + R * 0.2 + (s2 === 5 ? ri(rng, 40, 120) : ri(rng, -30, 70)) * (s2 / 5) + ri(rng, -25, 25) });
+      water.rivers.push(pts3);
+    }
+    function waterDist(p) {
+      var d = Infinity;
+      water.rivers.forEach(function (r) { d = Math.min(d, polyDist(p, r, false) - 16); });
+      water.lakes.forEach(function (l) { d = Math.min(d, inPoly(p, l.pts) ? -1 : polyDist(p, l.pts, true)); });
+      return d;
+    }
+    var anchors = n === 2
+      ? [{ x: W * 0.09, y: H * 0.5 }, { x: W * 0.91, y: H * 0.5 }]
+      : [{ x: W * 0.11, y: H * 0.16 }, { x: W * 0.89, y: H * 0.16 }, { x: W * 0.5, y: H * 0.9 }];
+    var castles = [];
+    anchors.forEach(function (a) {
+      castles.push({ x: a.x + ri(rng, -20, 20), y: a.y + ri(rng, -30, 30), home: true });
+    });
+    for (var h = 0; h < castles.length; h++) if (waterDist(castles[h]) < 50) return null;
+    var minD = n === 2 ? 150 : 160, tries = 0;
+    while (castles.length < N && tries < 4000) {
+      tries++;
+      var p = { x: ri(rng, 55, W - 55), y: ri(rng, 55, H - 55) };
+      if (waterDist(p) < 48) continue;
+      var ok = true;
+      for (var c = 0; c < castles.length; c++) if (dist(p, castles[c]) < minD) { ok = false; break; }
+      if (ok) castles.push(p);
+    }
+    if (castles.length < N) return null;
+    castles.forEach(function (c, i) { c.id = i; });
+
+    // edges: Gabriel graph
+    var edges = [];
+    for (var i2 = 0; i2 < castles.length; i2++) for (var j = i2 + 1; j < castles.length; j++) {
+      var A = castles[i2], B = castles[j], mid = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 }, r = dist(A, B) / 2, good = true;
+      if (r * 2 > 330) continue;
+      for (var q = 0; q < castles.length; q++) {
+        if (q === i2 || q === j) continue;
+        if (dist(mid, castles[q]) < r * 1.02) { good = false; break; }
+        if (segDist(castles[q], A, B) < 42) { good = false; break; }
+      }
+      if (good) edges.push({ a: i2, b: j, len: r * 2 });
+    }
+    // classify crossings
+    var land = [], cross = [];
+    edges.forEach(function (e) {
+      var A = castles[e.a], B = castles[e.b], hit = null, lakeHit = false;
+      water.rivers.forEach(function (rv) {
+        for (var s = 0; s < rv.length - 1; s++) { var x = segInter(A, B, rv[s], rv[s + 1]); if (x) hit = x; }
+      });
+      water.lakes.forEach(function (l) {
+        for (var s = 0; s < l.pts.length; s++) if (segInter(A, B, l.pts[s], l.pts[(s + 1) % l.pts.length])) lakeHit = true;
+        if (segDist({ x: l.cx, y: l.cy }, A, B) < l.r * 0.75) lakeHit = true;
+      });
+      if (lakeHit) { e.lake = true; cross.push(e); }
+      else if (hit) { e.hit = hit; cross.push(e); }
+      else land.push(e);
+    });
+    // union find
+    var par = castles.map(function (_, i) { return i; });
+    function f(x) { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; }
+    function u(a, b) { a = f(a); b = f(b); if (a === b) return false; par[a] = b; return true; }
+    land.forEach(function (e) { e.type = 'road'; u(e.a, e.b); });
+    var bridges = [], cand = cross.filter(function (e) { return !e.lake; }).sort(function (x, y) { return x.len - y.len; });
+    // connect components, spreading bridges apart
+    cand.forEach(function (e) {
+      if (f(e.a) !== f(e.b)) {
+        var far = bridges.every(function (b) { return dist(b.hit, e.hit) > 120; });
+        if (far || bridges.length > 4) { u(e.a, e.b); e.type = 'bridge'; bridges.push(e); }
+      }
+    });
+    cand.forEach(function (e) { if (!e.type && f(e.a) !== f(e.b)) { u(e.a, e.b); e.type = 'bridge'; bridges.push(e); } });
+    var want = n === 2 ? 3 : 4;
+    cand.forEach(function (e) {
+      if (e.type || bridges.length >= want) return;
+      if (bridges.every(function (b) { return dist(b.hit, e.hit) > 170; })) { e.type = 'bridge'; bridges.push(e); }
+    });
+    if (n === 2 && bridges.length < 2) return null;
+    var root = f(0);
+    for (var z = 0; z < castles.length; z++) if (f(z) !== root) return null;
+    cross.forEach(function (e) { if (!e.type) e.type = e.len < 400 ? 'fly' : null; });
+    var allE = land.concat(cross).filter(function (e) { return e.type; });
+
+    // adjacency & distances
+    var adj = castles.map(function () { return []; });
+    allE.forEach(function (e) { if (e.type !== 'fly') { adj[e.a].push(e.b); adj[e.b].push(e.a); } });
+    var homes = castles.filter(function (c) { return c.home; }).map(function (c) { return c.id; });
+    var hd = homes.map(function (h) { return bfs(adj, h); });
+    // homes must be >= 3 hops apart
+    for (var a1 = 0; a1 < homes.length; a1++) for (var b1 = a1 + 1; b1 < homes.length; b1++) if (hd[a1][homes[b1]] < 3) return null;
+    // each home needs 2+ neighbors
+    for (var hh = 0; hh < homes.length; hh++) if (adj[homes[hh]].length < 2) return null;
+
+    // sizes
+    var others = castles.filter(function (c) { return !c.home; });
+    others.forEach(function (c) {
+      var ds = hd.map(function (d) { return d[c.id]; });
+      c.minH = Math.min.apply(null, ds); c.spread = Math.max.apply(null, ds) - c.minH;
+    });
+    var nf = n === 2 ? 2 : 3;
+    var fc = others.slice().sort(function (x, y) { return (y.minH - y.spread * 1.2) - (x.minH - x.spread * 1.2) + (rng() - 0.5) * 0.6; });
+    var forts = [];
+    fc.forEach(function (c) { if (forts.length < nf && c.minH >= 2 && forts.every(function (o) { return dist(o, c) > 260; })) forts.push(c); });
+    forts.forEach(function (c) { c.size = 'fortress'; });
+    others.forEach(function (c) {
+      if (c.size) return;
+      c.size = c.minH <= 1 ? 'village' : (rng() < 0.5 ? 'castle' : 'village');
+    });
+    castles.forEach(function (c) { if (c.home) c.size = 'castle'; });
+
+    // fairness score: weighted value reachable per home
+    var vals = hd.map(function (d) {
+      var s = 0;
+      others.forEach(function (c) { s += (c.size === 'fortress' ? 5 : c.size === 'castle' ? 3 : 2) / Math.pow(1 + d[c.id], 1.5); });
+      return s;
+    });
+    var near = hd.map(function (d) { return others.filter(function (c) { return d[c.id] === 1; }).length; });
+    var score = (Math.max.apply(null, vals) - Math.min.apply(null, vals)) + (Math.max.apply(null, near) - Math.min.apply(null, near)) * 0.4;
+    var hopD = [];
+    for (var a2 = 0; a2 < homes.length; a2++) for (var b2 = a2 + 1; b2 < homes.length; b2++) hopD.push(hd[a2][homes[b2]]);
+    score += (Math.max.apply(null, hopD) - Math.min.apply(null, hopD)) * 0.5;
+
+    // names
+    var pre = shuffle(rng, PRE.slice()), used = {};
+    castles.forEach(function (c, i) {
+      var nm;
+      do { nm = pre[i % pre.length] + (c.size === 'fortress' ? pick(rng, FORT_SUF) : pick(rng, SUF)); } while (used[nm]);
+      used[nm] = 1; c.name = nm;
+    });
+
+    // neutral garrisons
+    castles.forEach(function (c) {
+      c.x = Math.round(c.x); c.y = Math.round(c.y);
+      if (c.home) { c.g = { s: 3, a: 1, k: 0, d: 0 }; c.walls = 1; c.treasure = 0; return; }
+      var far = c.minH >= 3 ? 1 : 0;
+      if (c.size === 'village') c.g = { s: ri(rng, 1, 2) + far, a: c.minH >= 2 && rng() < 0.5 ? 1 : 0, k: 0, d: 0 };
+      else if (c.size === 'castle') c.g = { s: ri(rng, 2, 3), a: ri(rng, 1, 2) + far, k: 0, d: 0 };
+      else c.g = { s: 2, a: 3, k: 1 + far, d: 0 };
+      c.walls = c.size === 'fortress' ? 1 : 0;
+      c.treasure = c.size === 'fortress' ? 12 : (rng() < 0.35 ? ri(rng, 5, 10) : 0);
+    });
+
+    return {
+      w: W, h: H, water: water, score: score,
+      castles: castles.map(function (c) { return { id: c.id, x: c.x, y: c.y, name: c.name, size: c.size, home: !!c.home, g: c.g, walls: c.walls, treasure: c.treasure }; }),
+      edges: allE.map(function (e) {
+        var o = { a: e.a, b: e.b, t: e.type };
+        if (e.type === 'bridge') o.br = { x: Math.round(e.hit.x), y: Math.round(e.hit.y), ang: +(Math.atan2(castles[e.b].y - castles[e.a].y, castles[e.b].x - castles[e.a].x)).toFixed(3) };
+        return o;
+      }),
+      homes: homes
+    };
+  }
+
+  function addDeco(rng, map) {
+    var deco = [], tries = 0, target = map.castles.length * 7;
+    function waterD(p) {
+      var d = Infinity;
+      map.water.rivers.forEach(function (r) { d = Math.min(d, polyDist(p, r, false) - 16); });
+      map.water.lakes.forEach(function (l) { d = Math.min(d, inPoly(p, l.pts) ? -1 : polyDist(p, l.pts, true)); });
+      return d;
+    }
+    while (deco.length < target && tries < 3000) {
+      tries++;
+      var p = { x: ri(rng, 15, map.w - 15), y: ri(rng, 15, map.h - 15) };
+      if (waterD(p) < 14) continue;
+      var bad = false;
+      for (var i = 0; i < map.castles.length; i++) if (dist(p, map.castles[i]) < 62) { bad = true; break; }
+      if (bad) continue;
+      for (var e = 0; e < map.edges.length; e++) {
+        var E = map.edges[e]; if (E.t === 'fly') continue;
+        if (segDist(p, map.castles[E.a], map.castles[E.b]) < 20) { bad = true; break; }
+      }
+      if (bad) continue;
+      for (var d = 0; d < deco.length; d++) if (dist(p, deco[d]) < 26) { bad = true; break; }
+      if (bad) continue;
+      var r = rng(), t = r < 0.45 ? 'tree' : r < 0.62 ? 'pine' : r < 0.74 ? 'hill' : r < 0.86 ? 'flower' : r < 0.94 ? 'rock' : 'mush';
+      deco.push({ x: p.x, y: p.y, t: t, s: +(0.8 + rng() * 0.45).toFixed(2) });
+    }
+    deco.sort(function (a, b) { return a.y - b.y; });
+    map.deco = deco;
+  }
+
+  function bfs(adj, start) {
+    var d = adj.map(function () { return Infinity; }); d[start] = 0; var q = [start];
+    while (q.length) { var x = q.shift(); adj[x].forEach(function (y) { if (d[y] === Infinity) { d[y] = d[x] + 1; q.push(y); } }); }
+    return d;
+  }
+
+  // ---------- helpers on game ----------
+  function zero() { return { s: 0, a: 0, k: 0, d: 0 }; }
+  function cnt(u) { return u.s + u.a + u.k + u.d; }
+  function copyU(u) { return { s: u.s || 0, a: u.a || 0, k: u.k || 0, d: u.d || 0 }; }
+  function income(g, cid) { var c = g.map.castles[cid]; return c.home ? HOME_INCOME : SIZES[c.size].income; }
+  function canRoost(g, cid) { var c = g.map.castles[cid]; return c.home || c.size === 'fortress'; }
+  function neighbors(g, cid, flyOK) {
+    var out = [];
+    g.map.edges.forEach(function (e) {
+      if (e.t === 'fly' && !flyOK) return;
+      if (e.a === cid) out.push({ id: e.b, t: e.t });
+      else if (e.b === cid) out.push({ id: e.a, t: e.t });
+    });
+    return out;
+  }
+  function edgeType(g, a, b) {
+    for (var i = 0; i < g.map.edges.length; i++) { var e = g.map.edges[i]; if ((e.a === a && e.b === b) || (e.a === b && e.b === a)) return e.t; }
+    return null;
+  }
+  function avail(g, cid) { var c = g.cs[cid], o = zero(); UK.forEach(function (k) { o[k] = Math.max(0, c.u[k] - c.m[k]); }); return o; }
+  function castlesOf(g, slot) { var r = []; g.cs.forEach(function (c, i) { if (c.owner === slot) r.push(i); }); return r; }
+  function incomeOf(g, slot) { return castlesOf(g, slot).reduce(function (s, c) { return s + income(g, c); }, 0); }
+  function activeSlots(g) { var r = []; g.slots.forEach(function (s, i) { if (s.kind !== 'empty') r.push(i); }); return r; }
+  function aliveSlots(g) { return activeSlots(g).filter(function (i) { return g.slots[i].alive; }); }
+  function power(u) { return UK.reduce(function (s, k) { return s + u[k] * (UNITS[k].atk + UNITS[k].def); }, 0); }
+  function armyPower(g, slot) { return castlesOf(g, slot).reduce(function (s, c) { return s + power(g.cs[c].u); }, 0); }
+  function slotName(g, i) { return i < 0 ? 'Neutral' : g.slots[i].name; }
+  function log(g, slot, text, kind) {
+    g.log.push({ r: g.round, s: slot, t: text, k: kind || '', n: ++g.logN });
+    if (g.log.length > 80) g.log.splice(0, g.log.length - 80);
+  }
+
+  // ---------- new game ----------
+  function newGame(opts) {
+    var seed = opts.seed || String(Date.now()) + Math.random();
+    var slots = opts.slots.map(function (s, i) {
+      return { kind: s.kind, level: s.level || 'normal', name: s.name || (s.kind === 'ai' ? AI_NAMES[i] : COLORS[i].name + ' Player'), avatar: s.avatar || (s.kind === 'ai' ? AI_AVATARS[i] : AVATARS[i]), hero: s.hero || '', color: i, alive: s.kind !== 'empty', remote: !!s.remote };
+    });
+    var act = []; slots.forEach(function (s, i) { if (s.kind !== 'empty') act.push(i); });
+    if (act.length < 2) throw new Error('Need at least 2 players');
+    var map = genMap(seed, act.length);
+    // shuffle home assignment so slot 0 isn't always top-left
+    var rng = rngFrom(seed + ':homes'), hs = shuffle(rng, map.homes.slice());
+    var cs = map.castles.map(function (c) { return { owner: -1, u: copyU(c.g), m: zero(), walls: c.walls, treasure: c.treasure }; });
+    var heroes = slots.map(function () { return null; });
+    act.forEach(function (slot, i) {
+      var h = hs[i]; cs[h].owner = slot; map.castles[h].homeOf = slot;
+      heroes[slot] = { c: h, lvl: 1, wins: 0, moved: false, name: slots[slot].hero || heroName(rng, slots[slot]) };
+    });
+    map.castles.forEach(function (c) { delete c.g; delete c.walls; delete c.treasure; });
+    var g = {
+      v: 1, id: opts.id || '', code: opts.code || '', mode: opts.mode || 'local', seed: seed, created: Date.now(),
+      slots: slots, map: map, cs: cs, heroes: heroes, gold: slots.map(function (s) { return s.kind === 'empty' ? 0 : 5; }),
+      turn: act[0], round: 1, maxRounds: opts.maxRounds || (act.length === 2 ? 20 : 25), bn: 0, log: [], logN: 0,
+      winner: null, over: false, ver: 1, claims: {}
+    };
+    log(g, -1, 'The quest begins! Capture castles to grow your kingdom.', 'round');
+    startTurn(g, g.turn);
+    return g;
+  }
+  var HERO_T = ['the Brave', 'the Bold', 'the Clever', 'the Mighty', 'the Swift', 'the Kind'];
+  function heroName(rng, s) { return 'Hero ' + pick(rng, HERO_T); }
+
+  function startTurn(g, slot) {
+    g.cs.forEach(function (c) { if (c.owner === slot) c.m = zero(); });
+    if (g.heroes[slot]) g.heroes[slot].moved = false;
+    var inc = incomeOf(g, slot);
+    if (g.slots[slot].kind === 'ai' && g.slots[slot].level === 'hard') inc += 2;
+    g.gold[slot] += inc;
+    g.turnStart = { slot: slot, inc: inc, logN: g.logN };
+  }
+
+  // ---------- actions ----------
+  function canAct(g, slot) { return !g.over && g.turn === slot; }
+
+  function recruit(g, slot, cid, key) {
+    if (!canAct(g, slot)) return { ok: false, msg: 'Not your turn' };
+    var c = g.cs[cid], U = UNITS[key];
+    if (!U || c.owner !== slot) return { ok: false, msg: 'Not your castle' };
+    if (key === 'd' && !canRoost(g, cid)) return { ok: false, msg: 'Dragons can only hatch at a Fortress or your Home castle' };
+    if (g.gold[slot] < U.cost) return { ok: false, msg: 'Not enough gold' };
+    g.gold[slot] -= U.cost; c.u[key]++; c.m[key]++;
+    return { ok: true };
+  }
+  function wallCost(g, cid) { var w = g.cs[cid].walls; return w >= 2 ? null : WALL_COST[w]; }
+  function upgradeWalls(g, slot, cid) {
+    if (!canAct(g, slot)) return { ok: false, msg: 'Not your turn' };
+    var c = g.cs[cid], cost = wallCost(g, cid);
+    if (c.owner !== slot) return { ok: false, msg: 'Not your castle' };
+    if (cost == null) return { ok: false, msg: 'Walls are already as strong as they get' };
+    if (g.gold[slot] < cost) return { ok: false, msg: 'Not enough gold' };
+    g.gold[slot] -= cost; c.walls++;
+    return { ok: true };
+  }
+
+  // can an army of `counts` travel from a to b?
+  function canTravel(g, a, b, counts) {
+    var t = edgeType(g, a, b);
+    if (!t) return false;
+    if (t === 'fly') return counts.d > 0 && counts.s + counts.a + counts.k === 0;
+    return true;
+  }
+  function targets(g, cid) {
+    // all neighbors incl. fly (UI filters)
+    return neighbors(g, cid, true);
+  }
+
+  // battle strengths
+  function atkStr(key, heroLvl) { return UNITS[key].atk + (heroLvl || 0); }
+  function defStr(key, heroLvl, walls) { return (UNITS[key].def + (heroLvl || 0)) * (1 + WALL_BONUS[walls || 0]); }
+
+  function fight(rng, att, aHero, def, dHero, walls, record) {
+    var A = [], D = [], duels = [];
+    UK.forEach(function (k) { for (var i = 0; i < att[k]; i++) A.push(k); for (var j = 0; j < def[k]; j++) D.push(k); });
+    // defenders line up weakest first; attackers random
+    D.sort(function (x, y) { return UNITS[x].def - UNITS[y].def; });
+    while (A.length && D.length) {
+      var ai = Math.floor(rng() * A.length), dk = D[0], ak = A[ai];
+      var sa = Math.pow(atkStr(ak, aHero), POW), sd = Math.pow(defStr(dk, dHero, walls), POW);
+      var aw = rng() < sa / (sa + sd);
+      if (record) duels.push({ a: ak, d: dk, w: aw ? 'a' : 'd' });
+      if (aw) D.shift(); else A.splice(ai, 1);
+    }
+    var aL = zero(), dL = zero();
+    A.forEach(function (k) { aL[k]++; }); D.forEach(function (k) { dL[k]++; });
+    return { win: A.length > 0, aLeft: aL, dLeft: dL, duels: duels };
+  }
+
+  function defenderInfo(g, cid) {
+    var c = g.cs[cid], dHero = 0;
+    if (c.owner >= 0 && g.heroes[c.owner] && g.heroes[c.owner].c === cid) dHero = g.heroes[c.owner].lvl;
+    return { u: c.u, hero: dHero, walls: c.walls };
+  }
+
+  function winChance(g, slot, from, to, counts, withHero, runs) {
+    runs = runs || 400;
+    var d = defenderInfo(g, to);
+    if (cnt(d.u) === 0) return 1;
+    if (cnt(counts) === 0) return 0;
+    var hl = withHero && g.heroes[slot] ? g.heroes[slot].lvl : 0, w = 0, rng = Math.random;
+    for (var i = 0; i < runs; i++) if (fight(rng, counts, hl, d.u, d.hero, d.walls, false).win) w++;
+    return w / runs;
+  }
+
+  function nearestOwned(g, slot, fromCid, except) {
+    var adj = g.map.castles.map(function () { return []; });
+    g.map.edges.forEach(function (e) { adj[e.a].push(e.b); adj[e.b].push(e.a); });
+    var d = bfs(adj, fromCid), best = -1;
+    g.cs.forEach(function (c, i) { if (c.owner === slot && i !== except && (best < 0 || d[i] < d[best])) best = i; });
+    return best;
+  }
+
+  function heroFlee(g, slot, lostCid) {
+    var h = g.heroes[slot]; if (!h) return null;
+    var dest = nearestOwned(g, slot, lostCid, lostCid);
+    if (dest < 0) { g.heroes[slot] = null; return null; }
+    h.c = dest; return dest;
+  }
+
+  function move(g, slot, from, to, counts, withHero) {
+    if (!canAct(g, slot)) return { ok: false, msg: 'Not your turn' };
+    counts = copyU(counts || {});
+    var src = g.cs[from];
+    if (src.owner !== slot) return { ok: false, msg: 'Not your castle' };
+    var av = avail(g, from);
+    for (var i = 0; i < UK.length; i++) if (counts[UK[i]] < 0 || counts[UK[i]] > av[UK[i]]) return { ok: false, msg: 'Those troops already moved this turn' };
+    var hero = g.heroes[slot];
+    withHero = !!(withHero && hero && hero.c === from && !hero.moved);
+    if (cnt(counts) === 0 && !withHero) return { ok: false, msg: 'Pick some troops to send' };
+    var t = edgeType(g, from, to);
+    if (!t) return { ok: false, msg: 'No road between those castles' };
+    if (t === 'fly' && !(counts.d > 0 && counts.s + counts.a + counts.k === 0)) return { ok: false, msg: 'Only dragons can fly over the water' };
+    var dst = g.cs[to], M = g.map.castles;
+    if (dst.owner === slot) {
+      UK.forEach(function (k) { src.u[k] -= counts[k]; dst.u[k] += counts[k]; dst.m[k] += counts[k]; });
+      if (withHero) { hero.c = to; hero.moved = true; }
+      return { ok: true, kind: 'move' };
+    }
+    if (cnt(counts) === 0) return { ok: false, msg: 'Your hero needs troops to attack' };
+    // attack
+    var prev = dst.owner, d = defenderInfo(g, to);
+    var rng = rngFrom(g.seed + ':b:' + (g.bn++));
+    var hl = withHero ? hero.lvl : 0;
+    var before = { att: copyU(counts), def: copyU(dst.u), aHero: hl, dHero: d.hero, walls: d.walls };
+    var res = cnt(dst.u) === 0 ? { win: true, aLeft: copyU(counts), dLeft: zero(), duels: [] } : fight(rng, counts, hl, dst.u, d.hero, d.walls, true);
+    UK.forEach(function (k) { src.u[k] -= counts[k]; });
+    var out = { ok: true, kind: 'battle', win: res.win, from: from, to: to, prev: prev, before: before, duels: res.duels, aLeft: res.aLeft, dLeft: res.dLeft, treasure: 0, heroFled: null, eliminated: null };
+    var nm = g.slots[slot].name;
+    if (res.win) {
+      dst.owner = slot; dst.u = copyU(res.aLeft); dst.m = copyU(res.aLeft);
+      if (prev >= 0 && d.hero) { out.heroFled = heroFlee(g, prev, to); out.defHeroName = g.heroes[prev] ? g.heroes[prev].name : null; }
+      if (withHero) { hero.c = to; hero.moved = true; hero.wins++; lvlUp(hero, out); }
+      if (dst.treasure) { g.gold[slot] += dst.treasure; out.treasure = dst.treasure; dst.treasure = 0; }
+      log(g, slot, nm + ' captured ' + M[to].name + (prev >= 0 ? ' from ' + slotName(g, prev) : '') + '!' + (out.treasure ? ' Found ' + out.treasure + ' gold!' : ''), 'capture');
+      if (prev >= 0 && castlesOf(g, prev).length === 0) {
+        g.slots[prev].alive = false; g.heroes[prev] = null; out.eliminated = prev;
+        log(g, prev, slotName(g, prev) + ' has lost every castle and is out of the quest!', 'out');
+      }
+    } else {
+      dst.u = copyU(res.dLeft); UK.forEach(function (k) { dst.m[k] = Math.min(dst.m[k], dst.u[k]); });
+      if (withHero) { hero.moved = true; /* hero retreats home to `from` */ out.heroRetreat = from; }
+      if (prev >= 0 && d.hero) { g.heroes[prev].wins++; lvlUp(g.heroes[prev], {}); }
+      log(g, slot, nm + ' attacked ' + M[to].name + (prev >= 0 ? ' (' + slotName(g, prev) + ')' : '') + ' but was driven back.', prev >= 0 ? 'defend' : 'fail');
+    }
+    checkWin(g);
+    return out;
+  }
+  function lvlUp(h, out) {
+    var nl = Math.min(MAX_HERO, 1 + Math.floor(h.wins / 2));
+    if (nl > h.lvl) { h.lvl = nl; out.levelUp = nl; }
+  }
+
+  function checkWin(g) {
+    if (g.over) return;
+    var alive = aliveSlots(g);
+    if (alive.length === 1) { g.over = true; g.winner = alive[0]; log(g, alive[0], g.slots[alive[0]].name + ' rules the whole land! 👑', 'win'); }
+  }
+  function standings(g) {
+    return aliveSlots(g).map(function (s) { return { slot: s, castles: castlesOf(g, s).length, power: armyPower(g, s), gold: g.gold[s] }; })
+      .sort(function (a, b) { return b.castles - a.castles || b.power - a.power || b.gold - a.gold; });
+  }
+  function endTurn(g, slot) {
+    if (!canAct(g, slot)) return { ok: false, msg: 'Not your turn' };
+    var order = activeSlots(g), idx = order.indexOf(slot), next = null, wrapped = false;
+    for (var i = 1; i <= order.length; i++) {
+      var j = (idx + i) % order.length; if (j <= idx) wrapped = true;
+      if (g.slots[order[j]].alive) { next = order[j]; break; }
+    }
+    if (wrapped) {
+      if (g.round >= g.maxRounds) {
+        var st = standings(g); g.over = true;
+        if (st.length > 1 && st[0].castles === st[1].castles && st[0].power === st[1].power) { g.winner = -1; log(g, -1, 'Time is up! It\'s a tie!', 'win'); }
+        else { g.winner = st[0].slot; log(g, st[0].slot, 'Time is up! ' + g.slots[st[0].slot].name + ' wins with ' + st[0].castles + ' castles! 👑', 'win'); }
+        g.ver++;
+        return { ok: true, over: true };
+      }
+      g.round++;
+      log(g, -1, 'Round ' + g.round + ' of ' + g.maxRounds, 'round');
+    }
+    g.turn = next;
+    startTurn(g, next);
+    return { ok: true, next: next };
+  }
+
+  // ---------- AI ----------
+  var AI_LV = {
+    easy: { thr: 0.9, spend: 0.5, guard: 1, wallsOn: false, dragons: false, blunder: 0.35, bonus: 0 },
+    normal: { thr: 0.66, spend: 1, guard: 1, wallsOn: true, dragons: true, blunder: 0.05, bonus: 0 },
+    hard: { thr: 0.56, spend: 1, guard: 1, wallsOn: true, dragons: true, blunder: 0, bonus: 2 }
+  };
+  function enemyThreat(g, slot, cid) {
+    var t = 0;
+    neighbors(g, cid, true).forEach(function (n) {
+      var o = g.cs[n.id].owner; if (o < 0 || o === slot) return;
+      var u = g.cs[n.id].u;
+      if (n.t === 'fly') t += u.d * UNITS.d.atk; else UK.forEach(function (k) { t += u[k] * UNITS[k].atk; });
+    });
+    return t;
+  }
+  function defValue(g, cid) { var c = g.cs[cid]; return UK.reduce(function (s, k) { return s + c.u[k] * UNITS[k].def; }, 0) * (1 + WALL_BONUS[c.walls]); }
+
+  function aiTurn(g, slot) {
+    var P = AI_LV[g.slots[slot].level] || AI_LV.normal, rng = rngFrom(g.seed + ':ai:' + g.round + ':' + slot + ':' + g.bn);
+    var events = [];
+    // 1) attacks
+    for (var loop = 0; loop < 25 && !g.over; loop++) {
+      var best = null;
+      castlesOf(g, slot).forEach(function (cid) {
+        var av = avail(g, cid); if (cnt(av) === 0) return;
+        var threat = enemyThreat(g, slot, cid);
+        neighbors(g, cid, true).forEach(function (n) {
+          var tc = g.cs[n.id]; if (tc.owner === slot) return;
+          var send = copyU(av);
+          if (n.t === 'fly') { send = { s: 0, a: 0, k: 0, d: av.d }; if (!send.d) return; }
+          // keep a guard if threatened (don't strip home)
+          if (threat > 0 && n.t !== 'fly') {
+            var keepA = Math.min(send.a, Math.max(P.guard, Math.ceil(threat / 8)));
+            send.a -= keepA;
+            if (cnt(send) === 0) return;
+          }
+          if (cnt(send) === 0) return;
+          var h = g.heroes[slot], wh = !!(h && h.c === cid && !h.moved);
+          var ch = winChance(g, slot, cid, n.id, send, wh, 120);
+          var val = income(g, n.id) + tc.treasure / 3 + (tc.owner >= 0 ? 2 : 0) + (g.map.castles[n.id].home ? 3 : 0);
+          if (tc.owner >= 0 && g.slots[slot].level === 'hard' && g.slots[tc.owner].kind === 'human') val += 1;
+          var score = val * ch - cnt(send) * 0.05;
+          if (ch >= P.thr && (!best || score > best.score)) best = { from: cid, to: n.id, send: send, wh: wh, score: score };
+        });
+      });
+      if (!best) break;
+      if (rng() < P.blunder) break;
+      var r = move(g, slot, best.from, best.to, best.send, best.wh);
+      if (r.ok) events.push(r); else break;
+    }
+    if (g.over) return events;
+    // 2) consolidate interior troops toward the frontier
+    var mine = castlesOf(g, slot), isMine = {};
+    mine.forEach(function (c) { isMine[c] = true; });
+    var adj = g.map.castles.map(function () { return []; });
+    g.map.edges.forEach(function (e) { if (e.t !== 'fly' && isMine[e.a] && isMine[e.b]) { adj[e.a].push(e.b); adj[e.b].push(e.a); } });
+    var frontier = mine.filter(function (c) { return neighbors(g, c, false).some(function (n) { return g.cs[n.id].owner !== slot; }); });
+    var fd = g.map.castles.map(function () { return Infinity; }), q = [];
+    frontier.forEach(function (c) { fd[c] = 0; q.push(c); });
+    while (q.length) { var x = q.shift(); adj[x].forEach(function (y) { if (fd[y] === Infinity) { fd[y] = fd[x] + 1; q.push(y); } }); }
+    mine.forEach(function (c) {
+      if (fd[c] === 0 || fd[c] === Infinity) return;
+      var av = avail(g, c); if (cnt(av) === 0) return;
+      var nx = adj[c].filter(function (y) { return fd[y] < fd[c]; })[0];
+      if (nx == null) return;
+      var h = g.heroes[slot], wh = !!(h && h.c === c && !h.moved);
+      move(g, slot, c, nx, av, wh);
+    });
+    // 3) walls on threatened home/fortress
+    if (P.wallsOn) {
+      mine.forEach(function (c) {
+        var mc = g.map.castles[c];
+        if ((mc.home || mc.size === 'fortress') && enemyThreat(g, slot, c) > defValue(g, c) * 0.6) {
+          var wc = wallCost(g, c); if (wc != null && g.gold[slot] >= wc + 3) upgradeWalls(g, slot, c);
+        }
+      });
+    }
+    // 4) recruit
+    var budget = Math.floor(g.gold[slot] * P.spend), spent = 0, guardN = 0;
+    while (g.gold[slot] >= 3 && spent + 3 <= budget && guardN++ < 40) {
+      mine = castlesOf(g, slot);
+      var fr = mine.filter(function (c) { return neighbors(g, c, true).some(function (n) { return g.cs[n.id].owner !== slot; }); });
+      if (!fr.length) fr = mine;
+      // most threatened castle that is under-defended
+      var worst = null;
+      fr.forEach(function (c) { var th = enemyThreat(g, slot, c), dv = defValue(g, c); if (th > dv * 0.9 && (!worst || th - dv > worst.gap)) worst = { c: c, gap: th - dv }; });
+      var key, where;
+      if (worst) { where = worst.c; key = 'a'; }
+      else {
+        // pick frontier castle next to the juiciest target
+        var bt = null;
+        fr.forEach(function (c) { neighbors(g, c, true).forEach(function (n) { var t = g.cs[n.id]; if (t.owner === slot) return; var v = income(g, n.id) - defValue(g, n.id) * 0.1 + rng() * 0.5; if (!bt || v > bt.v) bt = { c: c, v: v }; }); });
+        where = bt ? bt.c : fr[0];
+        if (P.dragons && canRoost(g, where) && g.gold[slot] >= UNITS.d.cost && rng() < 0.6) key = 'd';
+        else if (g.gold[slot] >= UNITS.k.cost && rng() < 0.65) key = 'k';
+        else key = g.gold[slot] >= 4 && rng() < 0.4 ? 'a' : 's';
+      }
+      if (g.gold[slot] < UNITS[key].cost) key = 's';
+      var before = g.gold[slot];
+      if (!recruit(g, slot, where, key).ok) break;
+      spent += before - g.gold[slot];
+    }
+    return events;
+  }
+
+  // run consecutive AI turns until a human's turn or game over
+  function runAI(g, maxTurns) {
+    var n = 0, events = [];
+    while (!g.over && g.slots[g.turn].kind === 'ai' && n++ < (maxTurns || 10)) {
+      var s = g.turn;
+      var ev = aiTurn(g, s);
+      events = events.concat(ev);
+      if (!g.over) endTurn(g, s);
+    }
+    return events;
+  }
+
+  // ---------- migration ----------
+  function migrate(g) {
+    if (!g) return g;
+    if (!g.claims) g.claims = {};
+    if (g.logN == null) g.logN = g.log ? g.log.length : 0;
+    return g;
+  }
+
+  return {
+    UNITS: UNITS, UK: UK, SIZES: SIZES, COLORS: COLORS, AVATARS: AVATARS, WALL_BONUS: WALL_BONUS, HOME_INCOME: HOME_INCOME,
+    rngFrom: rngFrom, hashStr: hashStr, genMap: genMap, newGame: newGame, recruit: recruit, upgradeWalls: upgradeWalls, wallCost: wallCost,
+    move: move, endTurn: endTurn, winChance: winChance, avail: avail, neighbors: neighbors, edgeType: edgeType, canTravel: canTravel,
+    castlesOf: castlesOf, incomeOf: incomeOf, income: income, canRoost: canRoost, activeSlots: activeSlots, aliveSlots: aliveSlots,
+    standings: standings, armyPower: armyPower, power: power, cnt: cnt, zero: zero, copyU: copyU, aiTurn: aiTurn, runAI: runAI,
+    migrate: migrate, slotName: slotName, atkStr: atkStr, defStr: defStr, targets: targets
+  };
+})();
+if (typeof module !== 'undefined') module.exports = CQ;
+
+</script>
+<script>
+/* ===== Castle Quest online (Firebase REST, no SDK) ===== */
+var NET = (function () {
+  'use strict';
+  var API = 'AIzaSyDisxs0uEXvWrlOp8VchKOz0abxPDKIWpI', PID = 'kid-games-dc068';
+  var AUTH_KEY = 'castlequest.auth';
+  var BASE = 'https://firestore.googleapis.com/v1/projects/' + PID + '/databases/(default)/documents/families/';
+
+  function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+
+  var tokP = null;
+  function token() {
+    if (tokP) return tokP;
+    tokP = (async function () {
+      var a = lsGet(AUTH_KEY);
+      if (a && a.idToken && a.exp > Date.now() + 60000) return a.idToken;
+      if (a && a.refreshToken) {
+        try {
+          var r = await fetch('https://securetoken.googleapis.com/v1/token?key=' + API, {
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(a.refreshToken)
+          });
+          if (r.ok) {
+            var j = await r.json();
+            a = { idToken: j.id_token, refreshToken: j.refresh_token, exp: Date.now() + (+j.expires_in) * 1000 };
+            lsSet(AUTH_KEY, a); return a.idToken;
+          }
+        } catch (e) { }
+      }
+      var r2 = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + API, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ returnSecureToken: true })
+      });
+      if (!r2.ok) throw new Error('auth ' + r2.status);
+      var j2 = await r2.json();
+      a = { idToken: j2.idToken, refreshToken: j2.refreshToken, exp: Date.now() + (+j2.expiresIn) * 1000 };
+      lsSet(AUTH_KEY, a); return a.idToken;
+    })();
+    tokP.then(function () { setTimeout(function () { tokP = null; }, 5 * 60000); }, function () { tokP = null; });
+    return tokP;
+  }
+
+  function docId(code) { return 'cq_' + code; }
+
+  // returns {data, updateTime} or null if missing
+  async function get(code) {
+    var t = await token();
+    var r = await fetch(BASE + docId(code), { headers: { Authorization: 'Bearer ' + t } });
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('get ' + r.status);
+    var j = await r.json();
+    var data = JSON.parse(j.fields.data.stringValue);
+    return { data: data, updateTime: j.updateTime };
+  }
+
+  // write with optimistic concurrency. updateTime null => must not exist yet.
+  // returns {ok:true, updateTime} | {conflict:true}
+  async function put(code, data, updateTime) {
+    var t = await token();
+    var q = updateTime ? '?currentDocument.updateTime=' + encodeURIComponent(updateTime) : '?currentDocument.exists=false';
+    var body = { fields: { data: { stringValue: JSON.stringify(data) }, updated: { integerValue: String(Date.now()) }, v: { integerValue: '1' } } };
+    var r = await fetch(BASE + docId(code) + q, {
+      method: 'PATCH', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    if (r.ok) { var j = await r.json(); return { ok: true, updateTime: j.updateTime }; }
+    if (r.status === 400 || r.status === 409 || r.status === 404 || r.status === 412) {
+      var txt = ''; try { txt = await r.text(); } catch (e) { }
+      if (/FAILED_PRECONDITION|ALREADY_EXISTS|NOT_FOUND|precondition/i.test(txt) || r.status !== 400) return { conflict: true };
+      throw new Error('put 400 ' + txt.slice(0, 200));
+    }
+    throw new Error('put ' + r.status);
+  }
+
+  var WORDS = ['DRAGON', 'PICKLE', 'TOWER', 'MUFFIN', 'ROCKET', 'WAFFLE', 'CASTLE', 'KNIGHT', 'PONY', 'TIGER', 'CANDY', 'BANANA', 'COMET', 'PIRATE', 'WIZARD', 'TACO', 'PANDA', 'LEMON', 'MAGIC', 'OTTER', 'PENGUIN', 'COOKIE', 'GIANT', 'FROG', 'SHIELD', 'CROWN', 'BUBBLE', 'NINJA', 'ROBOT', 'SUNNY', 'CLOUD', 'JELLY', 'TURTLE', 'PUMPKIN', 'VIOLIN', 'MARBLE', 'ACORN', 'BADGER', 'NOODLE', 'GRAPE'];
+  function newCode() {
+    var a = new Uint32Array(5); (window.crypto || window.msCrypto).getRandomValues(a);
+    return WORDS[a[0] % WORDS.length] + '-' + WORDS[a[1] % WORDS.length] + '-' + WORDS[a[2] % WORDS.length] + '-' + WORDS[a[3] % WORDS.length] + '-' + (10 + a[4] % 90);
+  }
+  function cleanCode(s) {
+    s = String(s || '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return s;
+  }
+  return { get: get, put: put, newCode: newCode, cleanCode: cleanCode, token: token };
+})();
+
+</script>
+<script>
+/* ===== Castle Quest UI ===== */
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var U = CQ.UNITS, UK = CQ.UK, COLORS = CQ.COLORS;
+  var INK = '#2d2a4a';
+  var NEUTRAL = { main: '#9a95b5', dark: '#5e5a78', light: '#dedbee', name: 'Neutral' };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function col(slot) { return slot >= 0 ? COLORS[slot] : NEUTRAL; }
+
+  // ---------- storage ----------
+  var KEY = 'castlequest.v1';
+  var S = { store: null, cur: null, sel: null, zoom: null, pollT: null, homeT: null, modalOpen: false, busy: false, queue: [] };
+  function freshStore() { return { device: rid(16), profile: {}, games: {}, muted: false, setup: null }; }
+  function rid(n) { var a = new Uint8Array(n), s = ''; crypto.getRandomValues(a); for (var i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz0123456789'[a[i] % 36]; return s; }
+  function loadLS() { try { var j = JSON.parse(localStorage.getItem(KEY)); return j && j.device ? j : null; } catch (e) { return null; } }
+  var idbP = null;
+  function idb() {
+    if (idbP) return idbP;
+    idbP = new Promise(function (res) {
+      try {
+        var r = indexedDB.open('castlequest', 1);
+        r.onupgradeneeded = function () { r.result.createObjectStore('kv'); };
+        r.onsuccess = function () { res(r.result); }; r.onerror = function () { res(null); };
+      } catch (e) { res(null); }
+    });
+    return idbP;
+  }
+  function idbGet() { return idb().then(function (db) { if (!db) return null; return new Promise(function (res) { try { var q = db.transaction('kv').objectStore('kv').get('state'); q.onsuccess = function () { res(q.result || null); }; q.onerror = function () { res(null); }; } catch (e) { res(null); } }); }); }
+  function idbPut(v) { idb().then(function (db) { if (!db) return; try { db.transaction('kv', 'readwrite').objectStore('kv').put(v, 'state'); } catch (e) { } }); }
+  var saveT = null;
+  function save() {
+    // trim finished games beyond 20
+    var ids = Object.keys(S.store.games);
+    var done = ids.filter(function (id) { return S.store.games[id].g.over; }).sort(function (a, b) { return (S.store.games[a].touched || 0) - (S.store.games[b].touched || 0); });
+    while (done.length > 20) delete S.store.games[done.shift()];
+    try { localStorage.setItem(KEY, JSON.stringify(S.store)); } catch (e) { }
+    clearTimeout(saveT); saveT = setTimeout(function () { idbPut(JSON.parse(JSON.stringify(S.store))); }, 400);
+  }
+
+  // ---------- sound ----------
+  var AC = null;
+  function tone(freqs, dur, type, vol) {
+    if (S.store && S.store.muted) return;
+    try {
+      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+      var t = AC.currentTime;
+      freqs.forEach(function (f, i) {
+        var o = AC.createOscillator(), g = AC.createGain();
+        o.type = type || 'triangle'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t + i * dur); g.gain.exponentialRampToValueAtTime(vol || 0.15, t + i * dur + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + (i + 1) * dur);
+        o.connect(g); g.connect(AC.destination); o.start(t + i * dur); o.stop(t + (i + 1) * dur + 0.05);
+      });
+    } catch (e) { }
+  }
+  var SFX = {
+    tap: function () { tone([660], 0.06, 'sine', 0.08); },
+    coin: function () { tone([988, 1319], 0.08, 'square', 0.06); },
+    clash: function () { tone([180 + Math.random() * 80], 0.07, 'sawtooth', 0.07); },
+    win: function () { tone([523, 659, 784, 1047], 0.12, 'triangle', 0.15); },
+    lose: function () { tone([392, 330, 262], 0.16, 'triangle', 0.13); },
+    turn: function () { tone([784, 988, 1175], 0.13, 'sine', 0.16); }
+  };
+
+  // ---------- screens ----------
+  function show(id) {
+    $$('.screen').forEach(function (s) { s.classList.toggle('on', s.id === 'scr-' + id); });
+    if (id !== 'game') { stopPoll(); S.cur = null; document.title = 'Castle Quest'; }
+    if (id === 'home') { renderHome(); startHomePoll(); } else stopHomePoll();
+    window.scrollTo(0, 0);
+  }
+  function toast(msg, ms) {
+    var t = $('#toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on'); }, ms || 2200);
+  }
+  // modal queue so things never stack on top of each other
+  function modal(html, onMount, opts) {
+    return new Promise(function (resolve) {
+      S.queue.push({ html: html, onMount: onMount, resolve: resolve, opts: opts || {} });
+      if (!S.modalOpen) nextModal();
+    });
+  }
+  function nextModal() {
+    var m = S.queue.shift();
+    if (!m) { S.modalOpen = false; $('#modal').classList.remove('on'); return; }
+    S.modalOpen = true;
+    var box = $('#modalBox'); box.innerHTML = m.html; $('#modal').classList.add('on'); box.scrollTop = 0;
+    var closed = false;
+    function close(v) { if (closed) return; closed = true; m.resolve(v); nextModal(); }
+    $$('[data-close]', box).forEach(function (b) { b.onclick = function () { SFX.tap(); close(b.getAttribute('data-close')); }; });
+    if (m.onMount) m.onMount(box, close);
+  }
+  function closeAllModals() { S.queue = []; S.modalOpen = false; $('#modal').classList.remove('on'); }
+
+  // ---------- art ----------
+  function castleSVG(size, home, owner) {
+    var c = col(owner), W = '#f6ecd6', roof = c.main, sw = 'stroke="' + INK + '" stroke-width="2.5" stroke-linejoin="round"';
+    function tower(x, y, w, h) {
+      return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" fill="' + W + '" ' + sw + '/>' +
+        '<path d="M' + (x - 3) + ' ' + y + ' L' + (x + w / 2) + ' ' + (y - h * 0.55) + ' L' + (x + w + 3) + ' ' + y + ' Z" fill="' + roof + '" ' + sw + '/>' +
+        '<rect x="' + (x + w / 2 - 2.5) + '" y="' + (y + 8) + '" width="5" height="8" rx="2.5" fill="' + INK + '"/>';
+    }
+    function flag(x, y, big) {
+      var L = big ? 20 : 15;
+      return '<line x1="' + x + '" y1="' + y + '" x2="' + x + '" y2="' + (y - L) + '" stroke="' + INK + '" stroke-width="2"/>' +
+        '<path d="M' + x + ' ' + (y - L) + ' L' + (x + (big ? 18 : 13)) + ' ' + (y - L + (big ? 5 : 4)) + ' L' + x + ' ' + (y - L + (big ? 10 : 8)) + ' Z" fill="' + roof + '" stroke="' + INK + '" stroke-width="1.5" stroke-linejoin="round"/>';
+    }
+    function wall(x, y, w, h) {
+      var s = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" fill="' + W + '" ' + sw + '/>';
+      for (var i = x + 2; i < x + w - 4; i += 9) s += '<rect x="' + i + '" y="' + (y - 6) + '" width="6" height="7" fill="' + W + '" ' + sw + '/>';
+      s += '<path d="M' + (-7) + ' ' + (y + h) + ' L-7 ' + (y + h - 10) + ' A7 7 0 0 1 7 ' + (y + h - 10) + ' L7 ' + (y + h) + ' Z" fill="#8a5a35" ' + sw + '/>';
+      return s;
+    }
+    var s = '', sc = 1;
+    if (size === 'village' && !home) {
+      s += '<ellipse cx="0" cy="19" rx="28" ry="7" fill="rgba(0,0,0,.18)"/>';
+      s += tower(6, -10, 13, 28) + flag(12.5, -25);
+      s += '<rect x="-20" y="0" width="28" height="18" rx="2" fill="' + W + '" ' + sw + '/>';
+      s += '<path d="M-24 1 L-6 -16 L12 1 Z" fill="' + roof + '" ' + sw + '/>';
+      s += '<rect x="-10" y="7" width="7" height="11" rx="3" fill="#8a5a35" ' + sw.replace('2.5', '2') + '/>';
+      s += '<rect x="-18" y="5" width="5" height="5" fill="#ffe28a" stroke="' + INK + '" stroke-width="1.5"/>';
+    } else {
+      sc = home ? 1.2 : size === 'fortress' ? 1.2 : 1.05;
+      s += '<ellipse cx="0" cy="20" rx="' + (size === 'fortress' ? 44 : 38) + '" ry="8" fill="rgba(0,0,0,.18)"/>';
+      if (size === 'fortress' || home) s += tower(-11, -30, 22, 34) + flag(0, -48.7, true);
+      s += wall(-24, -4, 48, 22);
+      s += tower(-37, -18, 16, 36) + tower(21, -18, 16, 36);
+      if (!(size === 'fortress' || home)) s += flag(29, -37.8);
+      if (home) s += '<text x="0" y="-66" text-anchor="middle" font-size="18">👑</text>';
+    }
+    return '<g transform="scale(' + sc + ')">' + s + '</g>';
+  }
+  function smoothPath(pts, closed) {
+    var p = pts.slice(); if (closed) { p = [pts[pts.length - 1]].concat(pts, [pts[0], pts[1]]); } else { p = [pts[0]].concat(pts, [pts[pts.length - 1]]); }
+    var d = 'M' + p[1].x.toFixed(1) + ' ' + p[1].y.toFixed(1);
+    for (var i = 1; i < p.length - 2; i++) {
+      var p0 = p[i - 1], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2];
+      d += ' C' + (p1.x + (p2.x - p0.x) / 6).toFixed(1) + ' ' + (p1.y + (p2.y - p0.y) / 6).toFixed(1) + ' ' + (p2.x - (p3.x - p1.x) / 6).toFixed(1) + ' ' + (p2.y - (p3.y - p1.y) / 6).toFixed(1) + ' ' + p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
+    }
+    return d + (closed ? ' Z' : '');
+  }
+  function decoSVG(d) {
+    var s = '<g transform="translate(' + d.x + ' ' + d.y + ') scale(' + d.s + ')">';
+    if (d.t === 'tree') s += '<ellipse cx="0" cy="13" rx="12" ry="4" fill="rgba(0,0,0,.15)"/><rect x="-3" y="2" width="6" height="11" rx="2" fill="#8a5a35"/><circle cx="0" cy="-6" r="12" fill="#3fa34d" stroke="' + INK + '" stroke-width="2"/><circle cx="-4" cy="-10" r="4" fill="#6cc76a"/>';
+    else if (d.t === 'pine') s += '<ellipse cx="0" cy="14" rx="10" ry="3.5" fill="rgba(0,0,0,.15)"/><rect x="-2.5" y="6" width="5" height="8" fill="#7a4e2d"/><path d="M0 -22 L12 0 L-12 0 Z M0 -12 L14 8 L-14 8 Z" fill="#2f8f5b" stroke="' + INK + '" stroke-width="2" stroke-linejoin="round"/>';
+    else if (d.t === 'hill') s += '<path d="M-24 12 L-4 -18 L6 -4 L12 -12 L26 12 Z" fill="#a39e94" stroke="' + INK + '" stroke-width="2" stroke-linejoin="round"/><path d="M-9 -10 L-4 -18 L1 -11 L-2 -9 L-5 -12 Z" fill="#fff"/>';
+    else if (d.t === 'flower') s += '<circle cx="-5" cy="0" r="3.5" fill="#ff8fb8"/><circle cx="4" cy="-3" r="3.5" fill="#ffe066"/><circle cx="2" cy="5" r="3.5" fill="#fff"/><circle cx="-5" cy="0" r="1.2" fill="#b0306a"/>';
+    else if (d.t === 'rock') s += '<ellipse cx="0" cy="2" rx="10" ry="7" fill="#b9b4ab" stroke="' + INK + '" stroke-width="2"/><ellipse cx="-3" cy="-1" rx="3" ry="2" fill="#ddd8cf"/>';
+    else if (d.t === 'mush') s += '<rect x="-2.5" y="-2" width="5" height="8" rx="2" fill="#f7efe0" stroke="' + INK + '" stroke-width="1.5"/><path d="M-9 0 A9 8 0 0 1 9 0 Z" fill="#ff5a5f" stroke="' + INK + '" stroke-width="1.5"/><circle cx="-3" cy="-4" r="1.6" fill="#fff"/><circle cx="3" cy="-3" r="1.3" fill="#fff"/>';
+    return s + '</g>';
+  }
+  function staticMap(g) {
+    var m = g.map, s = '', rng = CQ.rngFrom(g.seed + ':art');
+    s += '<defs><radialGradient id="vig" cx="50%" cy="50%" r="75%"><stop offset="70%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#1d4a1a" stop-opacity=".25"/></radialGradient></defs>';
+    s += '<rect x="0" y="0" width="' + m.w + '" height="' + m.h + '" fill="#9bd770"/>';
+    for (var i = 0; i < 45; i++) s += '<ellipse cx="' + Math.round(rng() * m.w) + '" cy="' + Math.round(rng() * m.h) + '" rx="' + Math.round(40 + rng() * 90) + '" ry="' + Math.round(25 + rng() * 50) + '" fill="' + (rng() < 0.5 ? '#8fcf63' : '#a8df80') + '" opacity=".7"/>';
+    // water
+    m.water.lakes.forEach(function (l) {
+      var d = smoothPath(l.pts, true);
+      s += '<path d="' + d + '" fill="#62b9f2" stroke="#3d8fd1" stroke-width="10" stroke-linejoin="round"/>';
+      s += '<path d="' + d + '" fill="none" stroke="#9fd8ff" stroke-width="3" stroke-dasharray="14 18" transform="translate(0 0)"/>';
+    });
+    m.water.rivers.forEach(function (r) {
+      var d = smoothPath(r, false);
+      s += '<path d="' + d + '" fill="none" stroke="#3d8fd1" stroke-width="40" stroke-linecap="round"/>';
+      s += '<path d="' + d + '" fill="none" stroke="#62b9f2" stroke-width="31" stroke-linecap="round"/>';
+      s += '<path d="' + d + '" fill="none" stroke="#a6dcff" stroke-width="3" stroke-dasharray="12 22" stroke-linecap="round"/>';
+    });
+    m.water.lakes.forEach(function (l) { s += '<path d="' + smoothPath(l.pts, true) + '" fill="#62b9f2" stroke="none"/>'; });
+    // roads
+    var C = m.castles;
+    m.edges.forEach(function (e) { if (e.t === 'fly') return; s += '<line x1="' + C[e.a].x + '" y1="' + C[e.a].y + '" x2="' + C[e.b].x + '" y2="' + C[e.b].y + '" stroke="#b98f58" stroke-width="14" stroke-linecap="round"/>'; });
+    m.edges.forEach(function (e) { if (e.t === 'fly') return; s += '<line x1="' + C[e.a].x + '" y1="' + C[e.a].y + '" x2="' + C[e.b].x + '" y2="' + C[e.b].y + '" stroke="#efd6a0" stroke-width="8" stroke-linecap="round"/>'; });
+    // bridges
+    m.edges.forEach(function (e) {
+      if (e.t !== 'bridge') return;
+      var b = e.br, a = b.ang * 180 / Math.PI;
+      s += '<g transform="translate(' + b.x + ' ' + b.y + ') rotate(' + a.toFixed(1) + ')">' +
+        '<rect x="-30" y="-11" width="60" height="22" rx="4" fill="#b07a45" stroke="' + INK + '" stroke-width="2.5"/>';
+      for (var k = -24; k <= 24; k += 8) s += '<line x1="' + k + '" y1="-10" x2="' + k + '" y2="10" stroke="#7a4e2d" stroke-width="2"/>';
+      s += '<line x1="-30" y1="-13" x2="30" y2="-13" stroke="' + INK + '" stroke-width="3" stroke-linecap="round"/><line x1="-30" y1="13" x2="30" y2="13" stroke="' + INK + '" stroke-width="3" stroke-linecap="round"/></g>';
+    });
+    m.deco.forEach(function (d) { s += decoSVG(d); });
+    s += '<rect x="0" y="0" width="' + m.w + '" height="' + m.h + '" fill="url(#vig)" pointer-events="none"/>';
+    return s;
+  }
+
+  // ---------- game helpers ----------
+  function E() { return S.cur ? S.store.games[S.cur] : null; }
+  function G() { var e = E(); return e ? e.g : null; }
+  function mySlots(e) {
+    var g = e.g;
+    return CQ.activeSlots(g).filter(function (i) {
+      if (g.slots[i].kind !== 'human') return false;
+      if (!e.online) return true;
+      return g.claims[i] && g.claims[i].token === S.store.device;
+    });
+  }
+  function canMove(e) { e = e || E(); if (!e) return false; var g = e.g; return !g.over && mySlots(e).indexOf(g.turn) >= 0; }
+  function viewer(e) { var g = e.g; if (canMove(e)) return g.turn; var m = mySlots(e); return m.length ? m[0] : g.turn; }
+  function applyClaims(g) {
+    Object.keys(g.claims || {}).forEach(function (k) {
+      var c = g.claims[k], i = +k; if (!c || !g.slots[i]) return;
+      if (c.name) g.slots[i].name = c.name;
+      if (c.avatar) g.slots[i].avatar = c.avatar;
+      if (c.hero && g.heroes[i]) g.heroes[i].name = c.hero;
+    });
+  }
+  function bump(e) { e.g.ver++; e.touched = Date.now(); save(); if (e.online) schedulePush(e); }
+  function whoName(g, i) { var s = g.slots[i]; if (s.kind === 'human' && s.remote && !(g.claims && g.claims[i])) return COLORS[i].name + ' (not joined yet)'; return s.name; }
+
+  // ---------- HOME ----------
+  function renderHome() {
+    $('#titleArt').innerHTML = '<svg viewBox="-110 -110 220 150">' + castleSVG('fortress', true, 0) + '<text x="62" y="-58" font-size="54" transform="scale(-1 1) translate(-124 0)">🐉</text><text x="-95" y="-40" font-size="28">☁️</text></svg>';
+    var ids = Object.keys(S.store.games).sort(function (a, b) {
+      var ea = S.store.games[a], eb = S.store.games[b];
+      var ya = canMove(ea) ? 1 : 0, yb = canMove(eb) ? 1 : 0;
+      if (ya !== yb) return yb - ya;
+      if (ea.g.over !== eb.g.over) return ea.g.over ? 1 : -1;
+      return (eb.touched || 0) - (ea.touched || 0);
+    });
+    $('#myGamesH').style.display = ids.length ? '' : 'none';
+    var h = ids.map(function (id) {
+      var e = S.store.games[id], g = e.g, act = CQ.activeSlots(g);
+      var ps = act.map(function (i) { return '<span class="' + (g.slots[i].alive ? '' : 'out') + '" style="border-color:' + COLORS[i].main + '">' + esc(g.slots[i].avatar) + '</span>'; }).join('');
+      var st;
+      if (g.over) st = '<span class="st done">' + (g.winner >= 0 ? '🏆 ' + esc(g.slots[g.winner].name) : 'Tie') + '</span>';
+      else if (canMove(e)) st = '<span class="st yours">Your turn!</span>';
+      else st = '<span class="st wait">' + esc(g.slots[g.turn].kind === 'ai' ? 'Computer…' : 'Waiting for ' + whoName(g, g.turn)) + '</span>';
+      var names = act.map(function (i) { return esc(g.slots[i].name); }).join(' vs ');
+      return '<div class="gcard" data-id="' + esc(id) + '"><div class="gp">' + ps + '</div><div class="gi"><b>' + names + '</b><small>' + (e.online ? '🌐 Online · ' : '📱 This device · ') + (g.over ? 'Finished' : 'Round ' + g.round + ' of ' + g.maxRounds) + '</small></div>' + st + '<button class="x" data-del="' + esc(id) + '" aria-label="Remove">✕</button></div>';
+    }).join('');
+    $('#myGames').innerHTML = h || '';
+    $$('#myGames .gcard').forEach(function (c) {
+      c.onclick = function (ev) {
+        if (ev.target.closest('[data-del]')) return;
+        SFX.tap(); openGame(c.getAttribute('data-id'));
+      };
+    });
+    $$('#myGames [data-del]').forEach(function (b) {
+      b.onclick = function () {
+        var id = b.getAttribute('data-del'), e = S.store.games[id];
+        modal('<h2>Remove this game?</h2><p class="center">' + (e.online ? 'It stays online for the other players. You can re-join with the code <b>' + esc(e.code) + '</b>.' : 'This game will be gone for good.') + '</p><div class="mbtns"><button class="btn white" data-close="no">Keep it</button><button class="btn red" data-close="yes">Remove</button></div>')
+          .then(function (v) { if (v === 'yes') { delete S.store.games[id]; save(); renderHome(); } });
+      };
+    });
+  }
+  function startHomePoll() {
+    stopHomePoll();
+    var tick = function () {
+      Object.keys(S.store.games).forEach(function (id) {
+        var e = S.store.games[id]; if (!e.online || e.g.over) return;
+        NET.get(e.code).then(function (r) { if (r) { var ch = merge(e, r); if (ch) { save(); if ($('#scr-home').classList.contains('on')) renderHome(); } } }).catch(function () { });
+      });
+    };
+    tick(); S.homeT = setInterval(tick, 45000);
+  }
+  function stopHomePoll() { clearInterval(S.homeT); S.homeT = null; }
+
+  // ---------- SETUP ----------
+  var HERO_NAMES = ['Sir Sparkles', 'Captain Crumbs', 'Lady Lightning', 'Sir Snuggles', 'Princess Pow', 'Brave Biscuit', 'Duke Dazzle', 'Knight Nugget', 'Lady Moonbeam', 'Sir Zoom'];
+  var setup = null;
+  function newSetup() {
+    var last = S.store.setup;
+    if (last) { setup = JSON.parse(JSON.stringify(last)); return; }
+    var p = S.store.profile || {};
+    setup = {
+      mode: 'local', len: 'normal',
+      slots: [
+        { kind: 'human', name: p.name || '', avatar: p.avatar || '🧙', hero: p.hero || '', where: 'here' },
+        { kind: 'ai', level: 'easy', name: '', avatar: '🧝', hero: '', where: 'there' },
+        { kind: 'empty', level: 'normal', name: '', avatar: '🦸', hero: '', where: 'there' }
+      ]
+    };
+  }
+  function renderSetup() {
+    $$('.mode-card').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === setup.mode); });
+    var h = setup.slots.map(function (s, i) {
+      var c = COLORS[i];
+      var x = '<div class="card slot" style="border-left-color:' + c.main + '"><div class="slot-head"><span class="dot" style="background:' + c.main + '"></span><b>' + c.name + ' Kingdom</b></div>';
+      x += '<div class="seg" data-kind="' + i + '"><button data-v="human" class="' + (s.kind === 'human' ? 'on' : '') + '">🙂 Player</button><button data-v="ai" class="' + (s.kind === 'ai' ? 'on' : '') + '">🤖 Computer</button><button data-v="empty" class="' + (s.kind === 'empty' ? 'on' : '') + '">— Empty</button></div>';
+      if (s.kind === 'ai') {
+        x += '<div class="lbl">How tough?</div><div class="seg" data-level="' + i + '"><button data-v="easy" class="' + (s.level === 'easy' ? 'on' : '') + '">😊 Easy</button><button data-v="normal" class="' + (s.level === 'normal' ? 'on' : '') + '">😐 Normal</button><button data-v="hard" class="' + (s.level === 'hard' ? 'on' : '') + '">😈 Hard</button></div>';
+      }
+      if (s.kind === 'human') {
+        if (setup.mode === 'online') {
+          x += '<div class="lbl">Who plays this kingdom?</div><div class="seg" data-where="' + i + '"><button data-v="here" class="' + (s.where === 'here' ? 'on' : '') + '">📱 Someone here</button><button data-v="there" class="' + (s.where === 'there' ? 'on' : '') + '">🔗 Invite someone</button></div>';
+        }
+        if (setup.mode === 'local' || s.where === 'here') {
+          x += '<div class="lbl">Name</div><input class="inp" data-name="' + i + '" maxlength="14" placeholder="Your name" value="' + esc(s.name) + '">';
+          x += '<div class="lbl">Pick your face</div><div class="avs" data-av="' + i + '">' + CQ.AVATARS.map(function (a) { return '<button class="' + (s.avatar === a ? 'on' : '') + '">' + a + '</button>'; }).join('') + '</div>';
+          x += '<div class="lbl">Name your hero</div><input class="inp" data-hero="' + i + '" maxlength="18" placeholder="' + HERO_NAMES[i * 3 % HERO_NAMES.length] + '" value="' + esc(s.hero) + '">';
+        } else {
+          x += '<p class="hint">You\'ll get a link to send them. They pick their own name when they join.</p>';
+        }
+      }
+      return x + '</div>';
+    }).join('');
+    $('#slotCards').innerHTML = h;
+    $$('#lenSeg button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-len') === setup.len); });
+    var n = setup.slots.filter(function (s) { return s.kind !== 'empty'; }).length;
+    var R = roundsFor(n || 2, setup.len);
+    $('#lenHint').textContent = R + ' rounds. If nobody has conquered everyone by then, whoever has the most castles wins.';
+    // wire
+    $$('[data-kind]').forEach(function (seg) { var i = +seg.getAttribute('data-kind'); $$('button', seg).forEach(function (b) { b.onclick = function () { SFX.tap(); setup.slots[i].kind = b.getAttribute('data-v'); renderSetup(); }; }); });
+    $$('[data-level]').forEach(function (seg) { var i = +seg.getAttribute('data-level'); $$('button', seg).forEach(function (b) { b.onclick = function () { SFX.tap(); setup.slots[i].level = b.getAttribute('data-v'); renderSetup(); }; }); });
+    $$('[data-where]').forEach(function (seg) { var i = +seg.getAttribute('data-where'); $$('button', seg).forEach(function (b) { b.onclick = function () { SFX.tap(); setup.slots[i].where = b.getAttribute('data-v'); renderSetup(); }; }); });
+    $$('[data-name]').forEach(function (inp) { inp.oninput = function () { setup.slots[+inp.getAttribute('data-name')].name = inp.value; }; });
+    $$('[data-hero]').forEach(function (inp) { inp.oninput = function () { setup.slots[+inp.getAttribute('data-hero')].hero = inp.value; }; });
+    $$('[data-av]').forEach(function (box) { var i = +box.getAttribute('data-av'); $$('button', box).forEach(function (b) { b.onclick = function () { SFX.tap(); setup.slots[i].avatar = b.textContent; $$('button', box).forEach(function (x) { x.classList.toggle('on', x === b); }); }; }); });
+    $('#setupErr').textContent = '';
+  }
+  function roundsFor(n, len) { var t = n === 2 ? { short: 14, normal: 20, long: 30 } : { short: 18, normal: 25, long: 35 }; return t[len] || t.normal; }
+
+  async function startGame() {
+    var sl = setup.slots, act = sl.filter(function (s) { return s.kind !== 'empty'; });
+    var err = '';
+    if (act.length < 2) err = 'You need at least 2 kingdoms (players or computers).';
+    else if (!sl.some(function (s) { return s.kind === 'human' && (setup.mode === 'local' || s.where === 'here'); })) err = 'At least one player needs to be playing on this device.';
+    else {
+      var names = {};
+      sl.forEach(function (s, i) {
+        if (s.kind === 'human' && (setup.mode === 'local' || s.where === 'here')) {
+          var nm = (s.name || '').trim(); if (!nm) err = 'Type a name for the ' + COLORS[i].name + ' player.';
+          if (names[nm.toLowerCase()]) err = 'Two players have the same name.'; names[nm.toLowerCase()] = 1;
+        }
+      });
+    }
+    if (err) { $('#setupErr').textContent = err; return; }
+    S.store.setup = JSON.parse(JSON.stringify(setup));
+    var first = sl.find(function (s) { return s.kind === 'human' && (setup.mode === 'local' || s.where === 'here'); });
+    S.store.profile = { name: first.name.trim(), avatar: first.avatar, hero: first.hero };
+    var opts = {
+      mode: setup.mode, maxRounds: roundsFor(act.length, setup.len),
+      slots: sl.map(function (s, i) {
+        var here = setup.mode === 'local' || s.where === 'here';
+        if (s.kind === 'human') return { kind: 'human', name: here ? s.name.trim() : COLORS[i].name + ' Player', avatar: here ? s.avatar : '❔', hero: here ? (s.hero.trim() || HERO_NAMES[i * 3 % HERO_NAMES.length]) : HERO_NAMES[(i * 3 + 1) % HERO_NAMES.length], remote: !here };
+        return { kind: s.kind, level: s.level };
+      })
+    };
+    $('#btnStart').disabled = true;
+    try {
+      if (setup.mode === 'local') {
+        var id = 'L' + rid(10); opts.id = id;
+        var g = CQ.newGame(opts);
+        S.store.games[id] = { g: g, online: false, touched: Date.now(), seen: 0, setup: S.store.setup };
+        save(); await openGame(id, true);
+      } else {
+        var code, res, g2;
+        for (var t = 0; t < 4; t++) {
+          code = NET.newCode(); opts.code = code; opts.id = 'cq_' + code;
+          g2 = CQ.newGame(opts);
+          sl.forEach(function (s, i) { if (s.kind === 'human' && s.where === 'here') g2.claims[i] = { token: S.store.device, name: s.name.trim(), avatar: s.avatar, hero: g2.heroes[i].name }; });
+          // computer may move first
+          if (g2.slots[g2.turn].kind === 'ai') { CQ.runAI(g2, 3); g2.ver++; }
+          res = await NET.put(code, g2, null);
+          if (res.ok) break;
+        }
+        if (!res || !res.ok) throw new Error('Could not create the game');
+        var id2 = 'cq_' + code;
+        S.store.games[id2] = { g: g2, online: true, code: code, ut: res.updateTime, touched: Date.now(), seen: g2.logN, pushed: g2.ver, setup: S.store.setup };
+        save();
+        await openGame(id2, true);
+        if (sl.some(function (s) { return s.kind === 'human' && s.where === 'there'; })) showInvite();
+      }
+    } catch (e) {
+      $('#setupErr').textContent = 'Could not start the online game. Check the internet and try again. (' + e.message + ')';
+    } finally { $('#btnStart').disabled = false; }
+  }
+
+  // ---------- JOIN ----------
+  var joinState = null;
+  async function findGame(code) {
+    code = NET.cleanCode(code);
+    $('#joinErr').textContent = ''; $('#joinSlots').innerHTML = '';
+    if (!code || code.length < 8) { $('#joinErr').textContent = 'That code looks too short.'; return; }
+    if (S.store.games['cq_' + code] && mySlots(S.store.games['cq_' + code]).length) { openGame('cq_' + code); return; }
+    $('#btnFind').disabled = true;
+    try {
+      var r = await NET.get(code);
+      if (!r) { $('#joinErr').textContent = 'Couldn\'t find a game with that code. Check the spelling!'; return; }
+      joinState = { code: code, r: r };
+      renderJoinSlots();
+    } catch (e) { $('#joinErr').textContent = 'Couldn\'t reach the internet. Try again in a moment.'; }
+    finally { $('#btnFind').disabled = false; }
+  }
+  function renderJoinSlots() {
+    var g = CQ.migrate(joinState.r.data), mine = [];
+    var h = '<div class="card"><h3>Pick your kingdom</h3>';
+    CQ.activeSlots(g).forEach(function (i) {
+      var s = g.slots[i], c = COLORS[i], cl = g.claims[i];
+      h += '<div class="srow"><span class="e" style="border-bottom:4px solid ' + c.main + '">' + esc(cl ? cl.avatar : s.kind === 'ai' ? s.avatar : '❔') + '</span><div class="n">' + c.name + ' Kingdom<small>';
+      if (s.kind === 'ai') h += '🤖 Computer (' + s.level + ')</small></div>';
+      else if (cl) { if (cl.token === S.store.device) mine.push(i); h += esc(cl.name) + (cl.token === S.store.device ? ' — that\'s you!' : '') + '</small></div>'; }
+      else h += 'Open — waiting for a player</small></div><button class="btn blue small" data-claim="' + i + '">Join as ' + c.name + '</button>';
+      h += '</div>';
+    });
+    h += '</div>';
+    if (mine.length) h += '<button class="btn green big wide" id="btnOpenJoined">Open the game ➜</button>';
+    else h += '<button class="btn white wide" id="btnWatch">👀 Just watch</button>';
+    $('#joinSlots').innerHTML = h;
+    $$('[data-claim]').forEach(function (b) { b.onclick = function () { claimForm(+b.getAttribute('data-claim')); }; });
+    var o = $('#btnOpenJoined'); if (o) o.onclick = function () { adoptJoined(); };
+    var w = $('#btnWatch'); if (w) w.onclick = function () { adoptJoined(); };
+  }
+  function adoptJoined() {
+    var code = joinState.code, r = joinState.r, id = 'cq_' + code;
+    var e = S.store.games[id];
+    if (!e) { e = S.store.games[id] = { g: CQ.migrate(r.data), online: true, code: code, ut: r.updateTime, touched: Date.now(), seen: r.data.logN || 0, pushed: r.data.ver }; }
+    else merge(e, r);
+    save(); openGame(id);
+  }
+  function claimForm(i) {
+    var p = S.store.profile || {}, av = p.avatar || '🧝', c = COLORS[i];
+    var h = '<h2>Join as ' + c.name + '</h2><div class="lbl">Your name</div><input class="inp" id="cfName" maxlength="14" value="' + esc(p.name || '') + '" placeholder="Your name">' +
+      '<div class="lbl">Pick your face</div><div class="avs" id="cfAv">' + CQ.AVATARS.map(function (a) { return '<button class="' + (a === av ? 'on' : '') + '">' + a + '</button>'; }).join('') + '</div>' +
+      '<div class="lbl">Name your hero</div><input class="inp" id="cfHero" maxlength="18" value="' + esc(p.hero || '') + '" placeholder="' + HERO_NAMES[(i * 3 + 1) % HERO_NAMES.length] + '">' +
+      '<p class="err" id="cfErr"></p><div class="mbtns"><button class="btn white" data-close="x">Cancel</button><button class="btn blue" id="cfGo">Join!</button></div>';
+    modal(h, function (box, close) {
+      $$('#cfAv button', box).forEach(function (b) { b.onclick = function () { av = b.textContent; $$('#cfAv button', box).forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
+      $('#cfGo', box).onclick = async function () {
+        var nm = $('#cfName', box).value.trim(), hero = $('#cfHero', box).value.trim() || HERO_NAMES[(i * 3 + 1) % HERO_NAMES.length];
+        if (!nm) { $('#cfErr', box).textContent = 'Type your name.'; return; }
+        $('#cfGo', box).disabled = true;
+        try {
+          for (var t = 0; t < 6; t++) {
+            var r = await NET.get(joinState.code), g = CQ.migrate(r.data);
+            if (g.claims[i] && g.claims[i].token !== S.store.device) { $('#cfErr', box).textContent = 'Someone just took that kingdom! Pick another.'; joinState.r = r; renderJoinSlots(); $('#cfGo', box).disabled = false; return; }
+            g.claims[i] = { token: S.store.device, name: nm, avatar: av, hero: hero };
+            applyClaims(g);
+            var res = await NET.put(joinState.code, g, r.updateTime);
+            if (res.ok) { joinState.r = { data: g, updateTime: res.updateTime }; break; }
+          }
+          S.store.profile = { name: nm, avatar: av, hero: hero }; save();
+          close('ok'); adoptJoined();
+        } catch (e) { $('#cfErr', box).textContent = 'Couldn\'t reach the internet. Try again.'; $('#cfGo', box).disabled = false; }
+      };
+    });
+  }
+
+  // ---------- ONLINE SYNC ----------
+  function unionClaims(into, from) {
+    into.claims = into.claims || {};
+    Object.keys(from.claims || {}).forEach(function (k) { if (!into.claims[k]) into.claims[k] = from.claims[k]; });
+    applyClaims(into);
+  }
+  // returns true if the visible game changed
+  function merge(e, r) {
+    var remote = CQ.migrate(r.data), local = e.g, changed = false;
+    if (remote.ver > local.ver) {
+      unionClaims(remote, local); e.g = remote; e.pushed = remote.ver; changed = true;
+      if (JSON.stringify(remote.claims) !== JSON.stringify(r.data.claims)) schedulePush(e, 50);
+    } else {
+      var before = JSON.stringify(local.claims);
+      unionClaims(local, remote);
+      if (JSON.stringify(local.claims) !== before) changed = true;
+      if (remote.ver < local.ver || JSON.stringify(local.claims) !== JSON.stringify(remote.claims || {})) schedulePush(e, 50);
+    }
+    e.ut = r.updateTime;
+    return changed;
+  }
+  var pushT = {};
+  function schedulePush(e, ms) {
+    clearTimeout(pushT[e.code]);
+    pushT[e.code] = setTimeout(function () { push(e); }, ms == null ? 1200 : ms);
+  }
+  async function push(e) {
+    if (e.pushing) { e.again = true; return; }
+    e.pushing = true; setSync('saving');
+    try {
+      for (var t = 0; t < 6; t++) {
+        var res = await NET.put(e.code, e.g, e.ut);
+        if (res.ok) { e.ut = res.updateTime; e.pushed = e.g.ver; break; }
+        var r = await NET.get(e.code);
+        var ch = merge(e, r);
+        if (ch && e === E()) rerender();
+        if (e.g.ver <= r.data.ver && JSON.stringify(e.g.claims) === JSON.stringify(r.data.claims)) break;
+      }
+      setSync('ok');
+    } catch (err) {
+      setSync('off'); clearTimeout(pushT[e.code]); pushT[e.code] = setTimeout(function () { push(e); }, 10000);
+    } finally {
+      e.pushing = false; save();
+      if (e.again) { e.again = false; schedulePush(e, 100); }
+    }
+  }
+  var syncState = 'ok';
+  function setSync(s) { syncState = s; var el = $('#syncBadge'); if (el) el.innerHTML = syncHTML(); }
+  function syncHTML() { return syncState === 'off' ? '⚠️ Offline — will retry' : syncState === 'saving' ? '☁️ Saving…' : '☁️ Saved'; }
+  function startPoll() {
+    stopPoll();
+    S.pollT = setInterval(function () { pollNow(); }, 10000);
+  }
+  function stopPoll() { clearInterval(S.pollT); S.pollT = null; }
+  var lastFullPoll = 0;
+  async function pollNow(force) {
+    var e = E(); if (!e || !e.online || e.pushing) return;
+    // when it's my turn, only check occasionally (for new joiners)
+    if (!force && canMove(e) && Date.now() - lastFullPoll < 45000) return;
+    lastFullPoll = Date.now();
+    try {
+      var wasMine = canMove(e), r = await NET.get(e.code);
+      if (!r || E() !== e) return;
+      setSync('ok');
+      var ch = merge(e, r);
+      if (ch) {
+        save(); rerender();
+        if (!wasMine && canMove(e)) yourTurnAlert(e);
+        else if (e.g.over) gameOverCheck();
+      }
+      maybeRunRemoteAI(e);
+    } catch (err) { setSync('off'); }
+  }
+  function maybeRunRemoteAI(e) {
+    // if the saved game is stuck on a computer's turn, any player's device can play it
+    var g = e.g; if (g.over || g.slots[g.turn].kind !== 'ai' || !mySlots(e).length) return;
+    var n0 = g.logN; CQ.runAI(g, 3); bump(e); rerender(); schedulePush(e, 10);
+    if (canMove(e)) yourTurnAlert(e, n0);
+  }
+  function yourTurnAlert(e) {
+    if (S.turnAlertUp) return;
+    S.turnAlertUp = true;
+    SFX.turn();
+    document.title = '🔔 Your turn! – Castle Quest';
+    if (navigator.vibrate) try { navigator.vibrate([80, 60, 80]); } catch (x) { }
+    showSinceSeen(e, true).then(function () { S.turnAlertUp = false; });
+  }
+  function showSinceSeen(e, isTurn) {
+    var g = e.g, items = g.log.filter(function (l) { return l.n > (e.seen || 0); });
+    e.seen = g.logN; save();
+    var me = viewer(e);
+    if (!items.length && !isTurn) return Promise.resolve();
+    var h = '<div class="big-emoji">' + esc(g.slots[me].avatar) + '</div><h2>' + (isTurn ? 'Your turn, ' + esc(g.slots[me].name) + '!' : 'What happened') + '</h2>';
+    if (items.length) h += '<p class="center">Here\'s what happened since your last look:</p><div class="loglist">' + items.map(logLine).join('') + '</div>';
+    h += '<div class="mbtns"><button class="btn green" data-close="ok">Let\'s go! ⚔️</button></div>';
+    return modal(h);
+  }
+  function logLine(l) {
+    var ic = l.k === 'capture' ? '🏰' : l.k === 'defend' ? '🛡️' : l.k === 'fail' ? '💨' : l.k === 'out' ? '💀' : l.k === 'win' ? '🏆' : l.k === 'round' ? '🔔' : '•';
+    var c = l.s >= 0 ? COLORS[l.s].main : '#999';
+    return '<div style="border-left:5px solid ' + c + ';padding-left:8px">' + ic + ' ' + esc(l.t) + '</div>';
+  }
+
+  // ---------- GAME SCREEN ----------
+  async function openGame(id, fresh) {
+    var e = S.store.games[id]; if (!e) return;
+    S.cur = id; S.sel = null; S.zoom = null; e.touched = Date.now();
+    CQ.migrate(e.g); applyClaims(e.g);
+    show('game'); S.cur = id;
+    buildMap();
+    rerender();
+    fitMap(true);
+    if (e.online) { startPoll(); pollNow(true); }
+    var g = e.g;
+    if (!e.online && !g.over && g.slots[g.turn].kind === 'ai') { await runComputer(); }
+    if (g.over) { gameOverCheck(); return; }
+    if (fresh) { e.seen = g.logN; save(); return; }
+    if (e.online) { if (canMove(e)) yourTurnAlert(e); else showSinceSeen(e, false); }
+    else { if ((e.seen || 0) > 0 && humansHere(e) > 1) handoff(e); e.seen = g.logN; save(); }
+  }
+  function humansHere(e) { return mySlots(e).length; }
+  function buildMap() {
+    var g = G(), m = g.map;
+    $('#mapInner').innerHTML = '<svg id="mapSvg" viewBox="0 0 ' + m.w + ' ' + m.h + '" xmlns="http://www.w3.org/2000/svg"><g id="stat">' + staticMap(g) + '</g><g id="dyn"></g></svg>';
+    $('#mapSvg').addEventListener('click', onMapClick);
+  }
+  function fitMap(center) {
+    var g = G(); if (!g) return;
+    var wrap = $('#mapWrap'), cw = wrap.clientWidth, ch = wrap.clientHeight;
+    var fit = Math.min(cw / g.map.w, ch / g.map.h);
+    if (S.zoom == null) S.zoom = Math.max(fit, Math.min(0.62, cw / g.map.w * 1.8));
+    var svg = $('#mapSvg'); svg.setAttribute('width', Math.round(g.map.w * S.zoom)); svg.setAttribute('height', Math.round(g.map.h * S.zoom));
+    // center wrapper when smaller than view
+    var inner = $('#mapInner');
+    inner.style.marginLeft = Math.max(0, (cw - g.map.w * S.zoom) / 2) + 'px';
+    inner.style.marginTop = Math.max(0, (ch - g.map.h * S.zoom) / 2) + 'px';
+    if (center) {
+      var e = E(), slot = viewer(e), hc = CQ.castlesOf(g, slot)[0];
+      var h = g.heroes[slot]; if (h) hc = h.c;
+      if (hc != null) { var c = g.map.castles[hc]; wrap.scrollLeft = c.x * S.zoom - cw / 2; wrap.scrollTop = c.y * S.zoom - ch / 2; }
+    }
+  }
+  function ensureVisible(cid) {
+    var wrap = $('#mapWrap'), c = G().map.castles[cid], x = c.x * S.zoom, y = c.y * S.zoom, pad = 70;
+    var sl = wrap.scrollLeft, st = wrap.scrollTop, w = wrap.clientWidth, h = wrap.clientHeight;
+    var nl = x < sl + pad ? x - pad : x > sl + w - pad ? x - w + pad : sl;
+    var nt = y < st + pad ? y - pad : y > st + h - pad ? y - h + pad : st;
+    if (nl !== sl || nt !== st) try { wrap.scrollTo({ left: nl, top: nt, behavior: 'smooth' }); } catch (e) { wrap.scrollLeft = nl; wrap.scrollTop = nt; }
+  }
+  function zoomBy(f) {
+    var wrap = $('#mapWrap'), g = G(), cx = (wrap.scrollLeft + wrap.clientWidth / 2) / S.zoom, cy = (wrap.scrollTop + wrap.clientHeight / 2) / S.zoom;
+    var fit = Math.min(wrap.clientWidth / g.map.w, wrap.clientHeight / g.map.h);
+    S.zoom = Math.max(Math.min(fit, 0.5), Math.min(2, S.zoom * f));
+    fitMap(false);
+    wrap.scrollLeft = cx * S.zoom - wrap.clientWidth / 2; wrap.scrollTop = cy * S.zoom - wrap.clientHeight / 2;
+  }
+
+  function rerender() { if (!G()) return; renderTop(); renderDyn(); renderPanel(); if (S.zoom != null) fitMap(false); }
+  function renderTop() {
+    var e = E(), g = e.g, t = g.turn, c = COLORS[t], v = viewer(e);
+    $('#turnChip').style.background = c.light;
+    $('#turnChip').innerHTML = '<span class="av">' + esc(g.slots[t].avatar) + '</span><span class="nm">' + (g.over ? 'Game over' : esc(g.slots[t].name) + (canMove(e) ? '' : '\'s turn')) + '</span>';
+    $('#roundBox').textContent = 'Round ' + g.round + '/' + g.maxRounds;
+    var inc = CQ.incomeOf(g, v);
+    $('#goldBox').innerHTML = '💰 ' + g.gold[v] + ' <small>+' + inc + '</small>';
+    $('#btnEnd').style.display = canMove(e) ? '' : 'none';
+    var sc = CQ.activeSlots(g).map(function (i) {
+      return '<span class="sc ' + (g.slots[i].alive ? '' : 'out') + (i === t && !g.over ? ' now' : '') + '" style="border-color:' + COLORS[i].main + '"><span class="av">' + esc(g.slots[i].avatar) + '</span>' + esc(whoName(g, i)) + ' · 🏰' + CQ.castlesOf(g, i).length + '</span>';
+    }).join('');
+    if (e.online) sc += '<span class="sc" id="syncBadge" style="border-color:#ccc;margin-left:auto">' + syncHTML() + '</span>';
+    $('#scores').innerHTML = sc;
+    var b = $('#banner');
+    if (g.over) { b.className = 'banner on'; b.textContent = g.winner >= 0 ? '🏆 ' + g.slots[g.winner].name + ' won the quest!' : '🤝 It\'s a tie!'; }
+    else if (canMove(e)) { b.className = 'banner'; document.title = (e.online ? '🔔 Your turn! – ' : '') + 'Castle Quest'; }
+    else { b.className = 'banner on wait'; b.textContent = g.slots[t].kind === 'ai' ? '🤖 The computer is thinking…' : '⏳ Waiting for ' + whoName(g, t) + ' to play…'; document.title = 'Castle Quest'; }
+  }
+  function renderDyn() {
+    var e = E(), g = e.g, m = g.map, C = m.castles, s = '', mine = canMove(e), sel = S.sel, tg = targetsFor(sel);
+    // highlighted routes
+    if (tg) tg.forEach(function (t) {
+      var a = C[sel], b = C[t.id];
+      if (t.t === 'fly') s += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="#7fd3ff" stroke-width="6" stroke-dasharray="4 12" stroke-linecap="round"/>';
+      else s += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="#fff3a8" stroke-width="10" stroke-linecap="round" opacity=".9"/>';
+    });
+    C.forEach(function (c, i) {
+      var st = g.cs[i], o = st.owner, cc = col(o), n = CQ.cnt(st.u);
+      s += '<g class="c-hit" data-c="' + i + '" transform="translate(' + c.x + ' ' + c.y + ')"><circle r="48" fill="transparent"/>';
+      if (sel === i) s += '<circle class="sel-ring" r="52" fill="rgba(255,236,120,.35)" stroke="#ffcf33" stroke-width="5" stroke-dasharray="12 8"/>';
+      var t = tg && tg.filter(function (x) { return x.id === i; })[0];
+      if (t) { var rc = t.t === 'fly' ? '#35b4ff' : o === g.turn ? '#2fbf6a' : '#ff4a50'; s += '<circle class="tgt-ring" r="50" fill="' + rc + '" fill-opacity=".18" stroke="' + rc + '" stroke-width="5"/>'; }
+      s += castleSVG(c.size, c.home, o);
+      s += '<text class="c-name" y="' + (c.size === 'village' && !c.home ? 42 : 46) + '" text-anchor="middle">' + esc(c.name) + '</text>';
+      s += '<g class="c-badge" transform="translate(33 14)"><circle r="15" fill="' + cc.main + '" stroke="' + INK + '" stroke-width="2.5"/><text y="5.5" text-anchor="middle">' + n + '</text></g>';
+      if (st.treasure) s += '<text x="30" y="-30" font-size="20" text-anchor="middle">💰</text>';
+      if (c.home && c.homeOf != null && o !== c.homeOf) s += '';
+      s += '</g>';
+    });
+    // heroes on top
+    g.heroes.forEach(function (h, i) {
+      if (!h) return; var c = C[h.c];
+      s += '<g transform="translate(' + (c.x - 34) + ' ' + (c.y - 30) + ')" pointer-events="none"><circle r="16" fill="#fff" stroke="' + COLORS[i].main + '" stroke-width="4"/><text y="6.5" font-size="19" text-anchor="middle">' + esc(g.slots[i].avatar) + '</text>' +
+        '<g transform="translate(12 12)"><circle r="8.5" fill="#ffc83d" stroke="' + INK + '" stroke-width="2"/><text y="4" font-size="11" font-weight="700" text-anchor="middle" fill="' + INK + '">' + h.lvl + '</text></g></g>';
+    });
+    $('#dyn').innerHTML = s;
+  }
+  function targetsFor(cid) {
+    var e = E(), g = e.g;
+    if (cid == null || !canMove(e) || g.cs[cid].owner !== g.turn) return null;
+    var av = CQ.avail(g, cid), h = g.heroes[g.turn], heroHere = h && h.c === cid && !h.moved;
+    if (!CQ.cnt(av) && !heroHere) return null;
+    return CQ.neighbors(g, cid, true).filter(function (n) {
+      var own = g.cs[n.id].owner === g.turn;
+      if (n.t === 'fly') return av.d > 0;
+      if (!CQ.cnt(av)) return own; // hero alone can only walk to own castles
+      return true;
+    });
+  }
+  function onMapClick(ev) {
+    var el = ev.target.closest('[data-c]'); if (!el) { S.sel = null; renderDyn(); renderPanel(); return; }
+    var i = +el.getAttribute('data-c'), e = E(), g = e.g;
+    SFX.tap();
+    var tg = targetsFor(S.sel);
+    if (tg && tg.some(function (t) { return t.id === i; })) { sendDialog(S.sel, i); return; }
+    S.sel = S.sel === i ? null : i;
+    renderDyn(); renderPanel(); fitMap(false);
+    if (S.sel != null) ensureVisible(S.sel);
+  }
+
+  function troopsHTML(g, cid, showRest) {
+    var st = g.cs[cid], av = CQ.avail(g, cid);
+    var h = UK.filter(function (k) { return st.u[k] > 0; }).map(function (k) {
+      var rest = st.u[k] - av[k];
+      return '<span class="troop">' + U[k].emoji + ' ' + st.u[k] + (showRest && rest > 0 ? ' <small>(' + rest + ' resting 💤)</small>' : '') + '</span>';
+    }).join('');
+    return h || '<span class="troop"><small>No troops</small></span>';
+  }
+  function renderPanel() {
+    var e = E(), g = e.g, P = $('#panel'), me = canMove(e), t = g.turn, i = S.sel;
+    if (i == null) {
+      if (g.over) P.innerHTML = '<p class="phint">The quest is over. Tap ☰ for the menu.</p>';
+      else if (me) P.innerHTML = '<div class="ph"><h3>' + esc(g.slots[t].avatar) + ' ' + esc(g.slots[t].name) + '\'s turn</h3><span class="chip">💰 ' + g.gold[t] + ' gold</span></div><p class="phint">Tap one of your <b style="color:' + COLORS[t].dark + '">' + COLORS[t].name.toLowerCase() + '</b> castles to build troops or send an army. When you\'re done, tap <b>End Turn</b>.</p>';
+      else P.innerHTML = '<p class="phint">Tap any castle to peek inside.</p>';
+      return;
+    }
+    var c = g.map.castles[i], st = g.cs[i], o = st.owner, cc = col(o);
+    var h = '<div class="ph"><h3>' + esc(c.name) + '</h3><span class="chip" style="background:' + cc.light + '">' + (o >= 0 ? esc(g.slots[o].avatar) + ' ' + esc(g.slots[o].name) : '🏳️ Neutral') + '</span></div>';
+    h += '<div class="stats"><span class="chip">' + (c.home ? '👑 Home castle' : CQ.SIZES[c.size].label) + '</span><span class="chip">💰 +' + CQ.income(g, i) + '/turn</span><span class="chip">🧱 Walls ' + st.walls + '/2' + (st.walls ? ' (+' + Math.round(CQ.WALL_BONUS[st.walls] * 100) + '% defense)' : '') + '</span>' + (CQ.canRoost(g, i) ? '<span class="chip">🥚 Dragon nest</span>' : '') + (st.treasure ? '<span class="chip">💰 Treasure: ' + st.treasure + '</span>' : '') + '</div>';
+    h += '<div class="troops">' + troopsHTML(g, i, o === t);
+    g.heroes.forEach(function (hr, s) { if (hr && hr.c === i) h += '<span class="troop" style="border-color:' + COLORS[s].main + '">' + esc(g.slots[s].avatar) + ' ' + esc(hr.name) + ' <small>⭐' + hr.lvl + ' (+' + hr.lvl + ' to every troop)</small></span>'; });
+    h += '</div>';
+    if (me && o === t) {
+      h += '<div class="recruit">' + UK.map(function (k) {
+        var u = U[k], dis = g.gold[t] < u.cost || (k === 'd' && !CQ.canRoost(g, i));
+        return '<button class="rbtn" data-rec="' + k + '"' + (dis ? ' disabled' : '') + '><span class="e">' + u.emoji + '</span><b>' + u.name + '</b><small>💰 ' + u.cost + '</small><span class="st2">⚔️' + u.atk + ' 🛡️' + u.def + (k === 'd' ? (CQ.canRoost(g, i) ? ' ✈️' : ' · nest only') : '') + '</span></button>';
+      }).join('') + '</div>';
+      var wc = CQ.wallCost(g, i);
+      h += '<div class="acts">' + (wc != null ? '<button class="btn small gold" id="btnWalls"' + (g.gold[t] < wc ? ' disabled' : '') + '>🧱 Stronger walls (💰 ' + wc + ')</button>' : '') + '</div>';
+      var tg = targetsFor(i);
+      h += '<p class="phint">' + (tg && tg.length ? '👉 Tap a <b>glowing</b> castle to send troops there. ' : '') + 'New troops can march next turn.</p>';
+    } else if (me && o !== t) {
+      h += '<p class="phint">To attack, tap one of your castles next to it first.</p>';
+    }
+    P.innerHTML = h;
+    $$('[data-rec]', P).forEach(function (b) {
+      b.onclick = function () {
+        var r = CQ.recruit(g, t, i, b.getAttribute('data-rec'));
+        if (!r.ok) { toast(r.msg); return; }
+        SFX.coin(); bump(e); rerender();
+      };
+    });
+    var bw = $('#btnWalls', P); if (bw) bw.onclick = function () { var r = CQ.upgradeWalls(g, t, i); if (!r.ok) { toast(r.msg); return; } SFX.coin(); bump(e); rerender(); };
+  }
+
+  // ---------- SEND / ATTACK ----------
+  function sendDialog(from, to) {
+    var e = E(), g = e.g, t = g.turn, av = CQ.avail(g, from), et = CQ.edgeType(g, from, to), fly = et === 'fly';
+    var dst = g.cs[to], attack = dst.owner !== t, h = g.heroes[t], heroHere = !!(h && h.c === from && !h.moved);
+    var counts = CQ.copyU(av); if (fly) counts = { s: 0, a: 0, k: 0, d: av.d };
+    var withHero = heroHere && attack;
+    var C = g.map.castles;
+    var title = attack ? '⚔️ Attack ' + esc(C[to].name) + '!' : '➡️ Move to ' + esc(C[to].name);
+    function body() {
+      var x = '<h2>' + title + '</h2>';
+      if (fly) x += '<p class="center hint">🌊 Only dragons can fly across the water!</p>';
+      if (attack) {
+        var d = g.cs[to], dh = null; g.heroes.forEach(function (hr, s) { if (hr && hr.c === to) dh = { hr: hr, s: s }; });
+        x += '<div class="vs"><div class="side"><h4>Your army</h4><div class="units">' + unitsRow(counts) + (withHero ? '<span>' + esc(g.slots[t].avatar) + '</span>' : '') + '</div></div><div class="mid">⚔️</div><div class="side"><h4>' + (d.owner >= 0 ? esc(g.slots[d.owner].name) : 'Neutral') + '</h4><div class="units">' + (unitsRow(d.u) || '<small>empty!</small>') + (dh ? '<span>' + esc(g.slots[dh.s].avatar) + '</span>' : '') + '</div>' + (d.walls ? '<div class="center hint">🧱 +' + Math.round(CQ.WALL_BONUS[d.walls] * 100) + '% walls</div>' : '') + '</div></div>';
+      }
+      UK.forEach(function (k) {
+        if (!av[k] || (fly && k !== 'd')) return;
+        x += '<div class="srow"><span class="e">' + U[k].emoji + '</span><div class="n">' + U[k].plural + '<small>⚔️' + U[k].atk + ' 🛡️' + U[k].def + ' · ' + av[k] + ' ready</small></div><div class="step"><button data-dn="' + k + '">−</button><span>' + counts[k] + '</span><button data-up="' + k + '">+</button><button class="all" data-all="' + k + '">All</button></div></div>';
+      });
+      if (heroHere) x += '<div class="herotog ' + (withHero ? 'on' : '') + '" id="heroTog"><span class="box">' + (withHero ? '✓' : '') + '</span><span style="font-size:26px">' + esc(g.slots[t].avatar) + '</span><div><b>Bring ' + esc(h.name) + '</b><div class="hint" style="margin:0">+' + h.lvl + ' power to every troop' + (attack ? '. Wins make your hero level up!' : '') + '</div></div></div>';
+      if (attack) {
+        var ch = CQ.cnt(counts) ? CQ.winChance(g, t, from, to, counts, withHero, 500) : 0, pct = Math.round(ch * 100);
+        var colr = ch >= 0.75 ? '#35c16f' : ch >= 0.45 ? '#ffc83d' : '#ff5a5f';
+        var word = !CQ.cnt(counts) ? 'Pick some troops!' : ch >= 0.9 ? 'Easy win! ' : ch >= 0.75 ? 'Great chance! ' : ch >= 0.5 ? 'Good chance ' : ch >= 0.3 ? 'Risky… ' : 'Very risky! ';
+        x += '<div class="meter"><i style="width:' + pct + '%;background:' + colr + '"></i><b>' + word + (CQ.cnt(counts) ? pct + '% to win' : '') + '</b></div>';
+      }
+      var left = CQ.cnt(g.cs[from].u) - CQ.cnt(counts);
+      if (left === 0 && (CQ.cnt(counts) > 0)) x += '<div class="warn">⚠️ ' + esc(C[from].name) + ' will be left with no guards!</div>';
+      var ok = CQ.cnt(counts) > 0 || (!attack && withHero);
+      x += '<div class="mbtns"><button class="btn white" data-close="x">Cancel</button><button class="btn ' + (attack ? 'red' : 'green') + '" id="sdGo"' + (ok ? '' : ' disabled') + '>' + (attack ? '⚔️ Attack!' : '➡️ Move') + '</button></div>';
+      return x;
+    }
+    modal(body(), function (box, close) {
+      function wire() {
+        $$('[data-dn]', box).forEach(function (b) { b.onclick = function () { var k = b.getAttribute('data-dn'); if (counts[k] > 0) counts[k]--; SFX.tap(); re(); }; });
+        $$('[data-up]', box).forEach(function (b) { b.onclick = function () { var k = b.getAttribute('data-up'); if (counts[k] < av[k]) counts[k]++; SFX.tap(); re(); }; });
+        $$('[data-all]', box).forEach(function (b) { b.onclick = function () { var k = b.getAttribute('data-all'); counts[k] = counts[k] === av[k] ? 0 : av[k]; SFX.tap(); re(); }; });
+        var ht = $('#heroTog', box); if (ht) ht.onclick = function () { withHero = !withHero; SFX.tap(); re(); };
+        $('[data-close]', box).onclick = function () { close('x'); };
+        $('#sdGo', box).onclick = function () {
+          var r = CQ.move(g, t, from, to, counts, withHero);
+          if (!r.ok) { toast(r.msg); return; }
+          close('ok'); bump(e);
+          if (r.kind === 'battle') { S.sel = r.win ? to : from; battleView(r).then(afterAction); }
+          else { SFX.tap(); S.sel = to; rerender(); }
+        };
+      }
+      function re() { box.innerHTML = body(); wire(); }
+      wire();
+    });
+  }
+  function unitsRow(u) { var s = ''; UK.forEach(function (k) { for (var i = 0; i < u[k]; i++) s += '<span>' + U[k].emoji + '</span>'; }); return s; }
+
+  function battleView(r) {
+    var g = G(), t = g.turn, C = g.map.castles, b = r.before;
+    function row(u, side) { var s = ''; var order = side === 'd' ? UK.slice().sort(function (x, y) { return U[x].def - U[y].def; }) : UK; order.forEach(function (k) { for (var i = 0; i < u[k]; i++) s += '<span data-k="' + k + '">' + U[k].emoji + '</span>'; }); return s; }
+    var defName = r.prev >= 0 ? g.slots[r.prev].name : 'Neutral';
+    var h = '<h2>Battle for ' + esc(C[r.to].name) + '!</h2><div class="vs"><div class="side" style="border-color:' + COLORS[t].main + '"><h4>' + esc(g.slots[t].name) + (b.aHero ? ' + ⭐' + b.aHero : '') + '</h4><div class="units" id="bA">' + row(b.att, 'a') + '</div></div><div class="mid">⚔️</div><div class="side" style="border-color:' + col(r.prev).main + '"><h4>' + esc(defName) + (b.dHero ? ' + ⭐' + b.dHero : '') + (b.walls ? ' 🧱' : '') + '</h4><div class="units" id="bD">' + (row(b.def, 'd') || '<small>nobody home!</small>') + '</div></div></div>' +
+      '<div class="result" id="bRes"></div><div id="bBonus"></div><div class="mbtns"><button class="btn white" id="bSkip">Skip ⏩</button></div>';
+    return modal(h, function (box, close) {
+      var A = $('#bA', box), D = $('#bD', box), i = 0, fast = false, delay = Math.max(140, Math.min(480, 3600 / Math.max(1, r.duels.length)));
+      function alive(el, k) { return $$('span[data-k="' + k + '"]:not(.dead)', el)[0]; }
+      function finish() {
+        // make sure final state shows
+        $$('span', A).forEach(function (s) { s.classList.remove('fight'); }); $$('span', D).forEach(function (s) { s.classList.remove('fight'); });
+        var res = $('#bRes', box);
+        res.innerHTML = r.win ? '🎉 Victory! ' + esc(C[r.to].name) + ' is yours!' : '💨 Driven back!';
+        res.style.color = r.win ? '#1f8a4b' : '#c93338';
+        var bonus = [];
+        if (r.treasure) bonus.push('💰 You found ' + r.treasure + ' gold of treasure!');
+        if (r.levelUp) bonus.push('⭐ ' + esc(g.heroes[t] ? g.heroes[t].name : 'Your hero') + ' reached level ' + r.levelUp + '!');
+        if (r.heroFled != null && r.prev >= 0) bonus.push('🏃 ' + esc(g.slots[r.prev].name) + '\'s hero ran away to ' + esc(C[r.heroFled].name) + '.');
+        if (r.eliminated != null) bonus.push('💀 ' + esc(g.slots[r.eliminated].name) + ' has no castles left!');
+        if (!r.win && b.aHero) bonus.push('🏃 Your hero made it safely back to ' + esc(C[r.from].name) + '.');
+        $('#bBonus', box).innerHTML = bonus.map(function (x) { return '<p class="bonus">' + x + '</p>'; }).join('');
+        r.win ? SFX.win() : SFX.lose();
+        var bs = $('#bSkip', box); bs.textContent = 'Continue ➜'; bs.className = 'btn ' + (r.win ? 'green' : 'blue'); bs.onclick = function () { close('ok'); };
+      }
+      function step() {
+        if (i >= r.duels.length) { finish(); return; }
+        var d = r.duels[i++], a = alive(A, d.a), df = alive(D, d.d);
+        if (a) a.classList.add('fight'); if (df) df.classList.add('fight');
+        SFX.clash();
+        setTimeout(function () {
+          if (a) a.classList.remove('fight'); if (df) df.classList.remove('fight');
+          var loser = d.w === 'a' ? df : a; if (loser) { loser.classList.add('hit'); setTimeout(function () { loser.classList.remove('hit'); loser.classList.add('dead'); }, fast ? 0 : delay * 0.35); }
+          setTimeout(step, fast ? 0 : delay * 0.55);
+        }, fast ? 0 : delay * 0.45);
+      }
+      $('#bSkip', box).onclick = function () { fast = true; };
+      setTimeout(step, 350);
+    });
+  }
+  function afterAction() { rerender(); gameOverCheck(); }
+
+  // ---------- END TURN ----------
+  async function endTurn() {
+    var e = E(), g = e.g; if (!canMove(e) || S.busy) return;
+    if (g.gold[g.turn] >= 6) {
+      var v = await modal('<h2>End your turn?</h2><p class="center">You still have <b>💰 ' + g.gold[g.turn] + ' gold</b>. You can save it for next turn, or build troops first.</p><div class="mbtns"><button class="btn white" data-close="no">Keep playing</button><button class="btn red" data-close="yes">End Turn</button></div>');
+      if (v !== 'yes') return;
+    }
+    S.busy = true;
+    var prev = g.turn;
+    CQ.endTurn(g, prev); S.sel = null; bump(e);
+    rerender();
+    if (!g.over && g.slots[g.turn].kind === 'ai') await runComputer();
+    S.busy = false;
+    e.seen = g.logN; save();
+    if (e.online) { push(e); }
+    rerender();
+    if (g.over) { gameOverCheck(); return; }
+    if (!e.online && canMove(e) && humansHere(e) > 1 && g.turn !== prev) handoff(e);
+  }
+  async function runComputer() {
+    var e = E(), g = e.g, n0 = g.logN;
+    rerender();
+    await new Promise(function (r) { setTimeout(r, 700); });
+    CQ.runAI(g, 3); bump(e); rerender();
+    var items = g.log.filter(function (l) { return l.n > n0 && l.k !== 'round'; });
+    if (items.length) await modal('<div class="big-emoji">🤖</div><h2>The computer played</h2><div class="loglist">' + items.map(logLine).join('') + '</div><div class="mbtns"><button class="btn blue" data-close="ok">OK</button></div>');
+  }
+  function handoff(e) {
+    var g = e.g, s = g.slots[g.turn], c = COLORS[g.turn];
+    SFX.turn();
+    return modal('<div class="big-emoji">' + esc(s.avatar) + '</div><h2 style="color:' + c.dark + '">' + esc(s.name) + '\'s turn!</h2><p class="center">Pass the device to <b>' + esc(s.name) + '</b>.<br>You have 💰 ' + g.gold[g.turn] + ' gold (+' + g.turnStart.inc + ' this turn).</p><div class="mbtns"><button class="btn green big" data-close="ok">I\'m ready! ⚔️</button></div>');
+  }
+  var shownOver = {};
+  function gameOverCheck() {
+    var e = E(); if (!e) return; var g = e.g; if (!g.over || shownOver[S.cur + g.ver]) return;
+    shownOver[S.cur + g.ver] = true;
+    var st = CQ.standings(g), w = g.winner;
+    var h = '<div class="big-emoji">🏆</div><h2>' + (w >= 0 ? esc(g.slots[w].avatar) + ' ' + esc(g.slots[w].name) + ' wins!' : 'It\'s a tie!') + '</h2>' +
+      '<div class="loglist">' + CQ.activeSlots(g).map(function (i) { return '<div style="border-left:5px solid ' + COLORS[i].main + ';padding-left:8px">' + esc(g.slots[i].avatar) + ' <b>' + esc(g.slots[i].name) + '</b> — 🏰 ' + CQ.castlesOf(g, i).length + ' castles' + (g.slots[i].alive ? '' : ' (out)') + '</div>'; }).join('') + '</div>' +
+      '<div class="mbtns"><button class="btn white" data-close="home">🏠 Home</button>' + (!e.online ? '<button class="btn green" data-close="again">🔁 Play again</button>' : '<button class="btn white" data-close="map">🗺️ See map</button>') + '</div>';
+    if (w >= 0 && mySlots(e).indexOf(w) >= 0) SFX.win();
+    modal(h).then(function (v) {
+      if (v === 'home') show('home');
+      else if (v === 'again') { setup = JSON.parse(JSON.stringify(e.setup || S.store.setup)); setup.mode = 'local'; startGame(); }
+    });
+  }
+
+  // ---------- MENU / INVITE / HELP ----------
+  function showMenu() {
+    var e = E();
+    var h = '<h2>Menu</h2><div class="menu-list">' +
+      '<button class="btn white" data-close="home">🏠 Home</button>' +
+      (e && e.online ? '<button class="btn blue" data-close="invite">🔗 Invite link &amp; code</button>' : '') +
+      '<button class="btn white" data-close="help">📖 How to Play</button>' +
+      '<button class="btn white" data-close="sound">' + (S.store.muted ? '🔇 Sound is off' : '🔊 Sound is on') + '</button>' +
+      '<button class="btn white" data-close="x">Close</button></div>';
+    modal(h).then(function (v) {
+      if (v === 'home') show('home');
+      else if (v === 'invite') showInvite();
+      else if (v === 'help') showHelp();
+      else if (v === 'sound') { S.store.muted = !S.store.muted; save(); toast(S.store.muted ? 'Sound off' : 'Sound on'); }
+    });
+  }
+  function inviteURL(code) { return location.origin + location.pathname + '?game=' + encodeURIComponent(code); }
+  function showInvite() {
+    var e = E(); if (!e || !e.online) return;
+    var url = inviteURL(e.code);
+    var h = '<h2>Invite players</h2><p class="center">Send this link to the other players. They open it and pick their kingdom.</p><div class="codebox">' + esc(e.code) + '</div><p class="center hint" style="word-break:break-all">' + esc(url) + '</p>' +
+      '<div class="mbtns"><button class="btn blue" id="cpy">📋 Copy link</button>' + (navigator.share ? '<button class="btn green" id="shr">📤 Share</button>' : '') + '</div><div class="mbtns"><button class="btn white" data-close="x">Done</button></div>';
+    modal(h, function (box) {
+      $('#cpy', box).onclick = function () {
+        var done = function () { toast('Link copied!'); };
+        if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, function () { fallbackCopy(url); done(); }); else { fallbackCopy(url); done(); }
+      };
+      var sh = $('#shr', box); if (sh) sh.onclick = function () { navigator.share({ title: 'Castle Quest', text: 'Join my Castle Quest game! Code: ' + e.code, url: url }).catch(function () { }); };
+    });
+  }
+  function fallbackCopy(t) { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) { } ta.remove(); }
+  function showHelp() {
+    var rows = UK.map(function (k) { var u = U[k]; return '<tr><td style="font-size:24px">' + u.emoji + '</td><td><b>' + u.name + '</b></td><td>💰' + u.cost + '</td><td>⚔️' + u.atk + '</td><td>🛡️' + u.def + '</td></tr>'; }).join('');
+    var h = '<h2>How to Play</h2><div class="helpbox">' +
+      '<h3>🎯 The goal</h3><p>Take over castles until you rule the land! If time runs out, whoever has the most castles wins.</p>' +
+      '<h3>🔁 Your turn</h3><ol><li>You get <b>gold</b> from every castle you own.</li><li>Tap your castle to <b>build troops</b> or stronger <b>walls</b>.</li><li>Tap a glowing castle next door to <b>move</b> or <b>attack</b>.</li><li>Tap <b>End Turn</b>.</li></ol>' +
+      '<p>Each army can march one road per turn. New troops rest 💤 until your next turn.</p>' +
+      '<h3>⚔️ Troops</h3><table><tr><th></th><th>Troop</th><th>Cost</th><th>Attack</th><th>Defend</th></tr>' + rows + '</table>' +
+      '<p>⚔️ Attack matters when you charge in. 🛡️ Defend matters when you guard a castle. Archers are great guards; Knights are great attackers.</p>' +
+      '<p>🐉 <b>Dragons</b> hatch only at a castle with a 🥚 dragon nest (Fortresses and Home castles). They can fly over rivers and lakes where there\'s no bridge (the dotted blue lines)!</p>' +
+      '<h3>⭐ Your hero</h3><p>Your hero adds their level to every troop they travel with. Win battles to level up (up to ⭐4). Heroes never die. If they lose, they run away to safety.</p>' +
+      '<h3>🏰 Castles</h3><p>Villages give 💰2, Castles 💰3, Fortresses 💰5, and your Home 💰5 each turn. 🧱 Walls make defenders stronger. 💰 on the map means hidden treasure. Capture it to grab the gold!</p>' +
+      '<h3>🤖 Computer players</h3><p>😊 Easy is gentle. 😐 Normal plays smart. 😈 Hard plays smart <i>and</i> gets 2 bonus gold every turn.</p>' +
+      '</div><div class="mbtns"><button class="btn green" data-close="x">Got it!</button></div>';
+    return modal(h);
+  }
+
+  // ---------- boot ----------
+  function wire() {
+    $('#btnNew').onclick = function () { SFX.tap(); newSetup(); renderSetup(); show('setup'); };
+    $('#btnJoin').onclick = function () { SFX.tap(); $('#joinSlots').innerHTML = ''; $('#joinErr').textContent = ''; show('join'); };
+    $('#btnHelp').onclick = function () { SFX.tap(); showHelp(); };
+    $$('[data-go]').forEach(function (b) { b.onclick = function () { SFX.tap(); show(b.getAttribute('data-go')); }; });
+    $$('.mode-card').forEach(function (b) {
+      b.onclick = function () {
+        SFX.tap(); setup.mode = b.getAttribute('data-mode');
+        renderSetup();
+      };
+    });
+    $$('#lenSeg button').forEach(function (b) { b.onclick = function () { SFX.tap(); setup.len = b.getAttribute('data-len'); renderSetup(); }; });
+    $('#btnStart').onclick = startGame;
+    $('#btnFind').onclick = function () { findGame($('#joinCode').value); };
+    $('#joinCode').onkeydown = function (ev) { if (ev.key === 'Enter') findGame($('#joinCode').value); };
+    $('#btnEnd').onclick = function () { SFX.tap(); endTurn(); };
+    $('#btnMenu').onclick = function () { SFX.tap(); showMenu(); };
+    $('#zIn').onclick = function () { zoomBy(1.25); };
+    $('#zOut').onclick = function () { zoomBy(0.8); };
+    window.addEventListener('resize', function () { if (G()) fitMap(false); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { if (E() && E().online) pollNow(true); } });
+    window.addEventListener('online', function () { var e = E(); if (e && e.online && e.pushed < e.g.ver) push(e); });
+  }
+  async function boot() {
+    S.store = loadLS();
+    if (!S.store) { var fromIdb = await idbGet(); S.store = fromIdb && fromIdb.device ? fromIdb : freshStore(); }
+    S.store.games = S.store.games || {};
+    Object.keys(S.store.games).forEach(function (id) { CQ.migrate(S.store.games[id].g); });
+    save();
+    wire();
+    // unpushed online games
+    Object.keys(S.store.games).forEach(function (id) { var e = S.store.games[id]; if (e.online && (e.pushed || 0) < e.g.ver) schedulePush(e, 500); });
+    var q = new URLSearchParams(location.search), code = q.get('game');
+    if (code) {
+      history.replaceState(null, '', location.pathname);
+      code = NET.cleanCode(code);
+      if (S.store.games['cq_' + code]) { show('home'); openGame('cq_' + code); return; }
+      show('join'); $('#joinCode').value = code; findGame(code); return;
+    }
+    show('home');
+  }
+  window.CQUI = { S: S, openGame: openGame, rerender: rerender, push: push };
+  boot();
+})();
+
+</script>
+</body>
+</html>
