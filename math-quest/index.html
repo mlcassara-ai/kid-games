@@ -303,7 +303,36 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .cafe .cafe-head{display:flex;gap:10px;align-items:flex-end;margin-bottom:8px}.rosa{width:120px;flex:none}.rosa-svg{width:100%;height:auto;display:block;animation:bob 2.4s ease-in-out infinite}
 .cafe-bubble{background:#fff;border:3px solid #ffa94d;border-radius:18px;padding:10px 14px;font-size:17px;line-height:1.4;color:var(--ink);flex:1;position:relative;margin-bottom:20px}.cafe-bubble::before{content:'';position:absolute;left:-16px;bottom:18px;border:8px solid transparent;border-right:10px solid #ffa94d}.cafe-bubble .nm{display:block;color:#c05621;font-size:14px}
 .cafe-steps{display:flex;gap:8px;justify-content:center;margin:0 0 12px}.cafe-steps span{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:20px;opacity:.55}.cafe-steps span.on{background:#ffd43b;opacity:1;box-shadow:0 0 0 3px #fff}.cafe-steps span.done{background:#8ce99a;opacity:1}
-.cafe-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:14px;align-items:start}@media(max-width:760px){.cafe-grid{grid-template-columns:1fr}.cafe-grid>div:first-child{order:2}}
+.room{min-height:calc(100dvh - 60px)}
+.lib-room{background:linear-gradient(rgba(62,39,20,.55),rgba(62,39,20,.55)),repeating-linear-gradient(0deg,#6d4323 0 12px,transparent 12px 96px),repeating-linear-gradient(90deg,#e03131 0 14px,#1c7ed6 14px 26px,#2f9e44 26px 42px,#f08c00 42px 52px,#7048e8 52px 68px,#fcc419 68px 78px,#0c8599 78px 94px),#8b5a2b;background-attachment:fixed}
+.lib-head{display:flex;gap:10px;align-items:flex-end;margin-bottom:10px}.hoot{width:120px;flex:none}.hoot-svg{width:100%;height:auto;display:block;animation:bob 2.8s ease-in-out infinite}.hoot-eyes{animation:blink 4s infinite;transform-origin:100px 86px}@keyframes blink{0%,94%,100%{transform:none}97%{transform:scaleY(.1)}}
+.lib-bubble{border-color:#b08900}.lib-bubble::before{border-right-color:#b08900}.lib-bubble .nm{color:#8d5a2b}
+.shelf{background:#6d4323;border-radius:16px;padding:14px 12px 0;box-shadow:inset 0 0 0 6px #5a361b}.shelf-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:flex-end;padding-bottom:12px;border-bottom:14px solid #4a2c15;margin-bottom:14px}
+.lbook{--bc:#1c7ed6;width:112px;height:170px;border:0;border-radius:6px 6px 3px 3px;background:linear-gradient(90deg,rgba(0,0,0,.25),transparent 12%,transparent 88%,rgba(0,0,0,.25)),var(--bc);color:#fff;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 6px;box-shadow:0 4px 0 rgba(0,0,0,.35);cursor:default;opacity:.55;filter:saturate(.5)}
+.lbook .be{font-size:34px}.lbook .bt{font-weight:800;font-size:14px;line-height:1.15;text-align:center}.lbook .bs{font-size:13px;background:rgba(0,0,0,.25);border-radius:10px;padding:2px 7px}
+.lbook.read{opacity:1;filter:none;cursor:pointer}.lbook.next{opacity:1;filter:none;cursor:pointer;animation:bookGlow 1.6s ease-in-out infinite;transform:translateY(-6px)}@keyframes bookGlow{50%{box-shadow:0 4px 0 rgba(0,0,0,.35),0 0 0 4px #ffe066,0 0 22px #ffe066}}
+.story{background:#fffdf5;color:var(--ink);border-radius:18px;padding:16px 20px;max-width:760px;margin:0 auto;box-shadow:0 6px 0 rgba(0,0,0,.2)}.story p{font-size:21px;line-height:1.65;margin:0 0 12px}
+.story-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.story-top h2{margin:0;flex:1;font-size:26px;color:#8d5a2b}.story-e{font-size:40px}
+.story details{background:#fff9db;border-radius:12px;padding:8px 12px;margin-bottom:12px}.story details summary{font-weight:700;cursor:pointer;color:#8d5a2b}.story details p{font-size:17px}
+.lib-qn{font-weight:800;color:#8d5a2b;font-size:14px;text-transform:uppercase;letter-spacing:1px}.lib-q{font-size:23px;font-weight:700;margin:6px 0 12px}
+.lib-choices{display:grid;gap:9px}.lchoice{display:flex;align-items:center;gap:12px;text-align:left;font:inherit;font-size:19px;font-weight:600;background:#f3f0ff;color:var(--ink);border:3px solid transparent;border-radius:14px;padding:11px 14px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+.lchoice .ll{flex:none;width:32px;height:32px;border-radius:50%;background:#7048e8;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.lchoice.right{background:#d3f9d8;border-color:#2f9e44}.lchoice.right .ll{background:#2f9e44}.lchoice.wrong{background:#ffe3e3;border-color:#e03131}.lchoice.wrong .ll{background:#e03131}
+.lib-why{margin-top:12px;background:#e7f5ff;border-radius:12px;padding:10px 12px;font-size:17px;line-height:1.45}.lib .row{margin-top:14px}.lib-room .zhead .title{color:#fff}
+@media(max-width:760px){.hoot{width:90px}.lbook{width:96px;height:150px}.story{padding:12px 14px}.story p{font-size:18px}.lib-q{font-size:20px}.lchoice{font-size:17px}}
+
+.cafe-room{background:linear-gradient(#ffe8cc 0,#ffd8a8 58%,#c9a27a 58%,#c9a27a 59.2%,transparent 59.2%),repeating-conic-gradient(#fff4e6 0 25%,#e8d5bd 0 50%) 0 0/56px 56px;background-attachment:fixed}
+.cafe-room .zhead .title{color:#7a3e0e;text-shadow:none}.cafe-room .zhead .btn.ghost{background:rgba(122,62,14,.12);color:#7a3e0e;border-color:rgba(122,62,14,.3)}
+.cafe .cafe-head{align-items:flex-end}.cafe-stage{position:relative;width:170px;flex:none;height:150px}
+.cafe-stage .rosa{position:absolute;left:25px;bottom:22px;width:120px}
+.counter{position:absolute;left:0;right:0;bottom:0;height:46px;background:linear-gradient(#e9ecef,#adb5bd);border:3px solid #868e96;border-radius:10px 10px 4px 4px;display:flex;gap:4px;justify-content:center;align-items:flex-start;padding-top:3px;box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.counter .pan{background:#495057;border-radius:5px;padding:1px 3px;display:flex;font-size:15px;line-height:1.2}.counter .pan i{font-style:normal}
+.counter .steam{position:absolute;top:-16px;left:40px;color:#fff;font-size:18px;opacity:0;animation:steam 2.6s ease-in-out infinite}.counter .steam.s2{left:100px;animation-delay:1.3s}
+@keyframes steam{0%{transform:translateY(6px);opacity:0}40%{opacity:.8}100%{transform:translateY(-26px);opacity:0}}
+.cafe-steps span{background:rgba(122,62,14,.15);opacity:.8}.cafe-steps span.on{background:#ffd43b;box-shadow:0 0 0 3px #e8590c}
+.cafe-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;align-items:start}
+.cafe-left{background:rgba(255,255,255,.7);border-radius:20px;padding:12px;display:grid;gap:10px}.cafe-right{min-width:0}.cafe-grid>*{min-width:0}.plate-row>svg{flex:0 1 auto;min-width:0;max-width:100%}.cafe-right .cafe-tray{margin-top:0}
+@media(max-width:760px){.cafe-grid{grid-template-columns:1fr}.cafe-stage{width:130px;height:124px}.cafe-stage .rosa{width:92px;left:19px}.counter .pan{font-size:12px}.cafe-bubble{font-size:15px;padding:8px 11px}.cafe-plate{width:min(300px,62vw)}.cafe-cup{width:54px;height:80px;font-size:26px}.cafe-left{padding:8px}.plate-row{gap:6px}}
 .cafe .goals{display:grid;gap:6px}.cafe .goal{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:7px 10px;font-weight:700;border:2px solid #ffe8cc;color:var(--ink)}.cafe .goal .ck{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e9ecef;color:#fff;font-size:14px}.cafe .goal.done{border-color:#8ce99a}.cafe .goal.done .ck{background:#2f9e44}.cafe .goal .gn{margin-left:auto}
 .cafe-meter{margin-top:10px;background:#fff;border-radius:14px;padding:10px 12px;color:var(--ink)}.cafe-meter .bar{height:18px;border-radius:10px;background:#f1f3f5;overflow:hidden;display:flex;margin:6px 0}.cafe-meter .bar i{display:block;height:100%}.cafe-meter small{color:#6b5a3a;font-size:14px}
 .plate-row{display:flex;gap:10px;align-items:center;justify-content:center}.cafe-plate{width:min(330px,72vw);height:auto}.pl-pop{animation:plpop .35s cubic-bezier(.2,1.6,.4,1)}@keyframes plpop{from{transform:scale(.2);opacity:0}}
@@ -2178,7 +2207,7 @@ const BIOMES={
  reef:{c:[31,24],g:'#9fe0e8',g2:'#94d6df',zone:'reef',bl:['🌿','🪨'],de:['🐚','💧']}};
 const NPCS=[
  {id:'school',x:18,y:15,e:'🏫',n:'School'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
- {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'}];
+ {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'},{id:'library',x:24,y:19,e:'📚',n:'Library'}];
 let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildWorld(){
@@ -2549,7 +2578,7 @@ function fnt(p){p.fountain=p.fountain||{t:0,need:rnd(1,15),seen:[]};if(p.fountai
 const FOUNT_HINTS=['The water sparkles…','You hear a tiny giggle from the water…','The fountain gurgles happily.','Bubbles rise to the top…','Did the fountain just… snicker?','Plip! The coin sinks and glows.','Something is chuckling down there…','The water ripples in a funny way.'];
 function fountainOpen(){const p=P();const f=fnt(p);
  modal(`<div class="mcard fountain"><div class="fnt-pool" id="fntPool"><span class="fnt-e">⛲</span></div><h2>The Wishing Fountain</h2><p id="fntMsg" class="fnt-msg">Toss in a coin and make a wish…</p>
- <div class="row"><button class="btn gold" onclick="fountainToss(1)">Toss 🪙 1</button><button class="btn gold" onclick="fountainToss(5)">Toss 🪙 5</button></div>
+ <div class="row"><button class="btn gold" onclick="fountainToss(1)">Toss 🪙 1</button><button class="btn gold" onclick="fountainToss(2)">Toss 🪙 2</button></div>
  <p class="muted" id="fntCoins">You have 🪙 ${p.coins}${f.seen.length?` · 🤣 ${f.seen.length} of ${DAD_JOKES.length} jokes found`:''}</p><button class="btn ghost dark small" onclick="closeModal()">Walk away</button></div>`);}
 let fntBusy=false;
 function fountainToss(n){const p=P();const f=fnt(p);if(fntBusy||!$('#fntMsg'))return;
@@ -2635,30 +2664,31 @@ function rosaSVG(){return `<svg class="rosa-svg" viewBox="0 0 200 210" aria-labe
 <path d="M79 80 q7 -5 14 0 M107 80 q7 -5 14 0" stroke="#6b3e26" stroke-width="3" fill="none" stroke-linecap="round"/>
 <circle cx="78" cy="104" r="7" fill="#ff8fab" opacity=".5"/><circle cx="122" cy="104" r="7" fill="#ff8fab" opacity=".5"/>
 <path class="rosa-mouth" d="M86 108 Q100 122 114 108 Q100 114 86 108Z" fill="#c2255c"/></svg>`;}
-function cafePlateSVG(){const P0=CAFE.plate;const pos={veg:[[74,72],[108,108],[56,118]],fruit:[[226,72],[192,108],[244,118]],grain:[[74,228],[108,192],[56,182]],prot:[[226,228],[192,192],[244,182]]};
- let em='';for(const g in pos)P0[g].forEach((f,i)=>{const [x,y]=pos[g][i];em+=`<text x="${x}" y="${y+12}" font-size="34" text-anchor="middle" class="pl-pop">${f}</text>`;});
- return `<svg class="cafe-plate" viewBox="0 0 300 300"><circle cx="150" cy="150" r="146" fill="#e9ecef"/><circle cx="150" cy="150" r="132" fill="#fff" stroke="#dee2e6" stroke-width="3"/>
- <path d="M150 150 L150 18 A132 132 0 0 0 18 150 Z" fill="#ebfbee"/><path d="M150 150 L18 150 A132 132 0 0 0 150 282 Z" fill="#fff4e6"/><path d="M150 150 L150 282 A132 132 0 0 0 282 150 Z" fill="#fff9db"/><path d="M150 150 L282 150 A132 132 0 0 0 150 18 Z" fill="#ffe3e3"/>
- <line x1="150" y1="18" x2="150" y2="282" stroke="#ced4da" stroke-width="3"/><line x1="18" y1="150" x2="282" y2="150" stroke="#ced4da" stroke-width="3"/>
- <text x="96" y="42" font-size="12" font-weight="800" fill="#2b8a3e" text-anchor="middle">VEGGIES</text><text x="204" y="42" font-size="12" font-weight="800" fill="#c92a2a" text-anchor="middle">FRUITS</text>
- <text x="96" y="266" font-size="12" font-weight="800" fill="#d9480f" text-anchor="middle">GRAINS</text><text x="204" y="266" font-size="12" font-weight="800" fill="#e67700" text-anchor="middle">PROTEIN</text>${em}</svg>`;}
+function cafePlateSVG(){const P0=CAFE.plate;const ctr={veg:[92,104],fruit:[208,104],grain:[92,200],prot:[208,200]};const lay=[[],[[0,0]],[[-20,-10],[20,10]],[[-24,-12],[24,-12],[0,22]]];
+ let em='';for(const g in ctr){const n=P0[g].length;P0[g].forEach((f,i)=>{const [dx,dy]=lay[n][i];em+=`<text x="${ctr[g][0]+dx}" y="${ctr[g][1]+dy+12}" font-size="${n>2?30:36}" text-anchor="middle" class="pl-pop">${f}</text>`;});}
+ return `<svg class="cafe-plate" viewBox="0 0 300 300"><defs><radialGradient id="plg" cx=".45" cy=".4"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9edf2"/></radialGradient></defs>
+ <ellipse cx="150" cy="158" rx="146" ry="142" fill="rgba(0,0,0,.18)"/><circle cx="150" cy="150" r="146" fill="url(#plg)" stroke="#cfd6de" stroke-width="2"/><circle cx="150" cy="150" r="126" fill="#fff" stroke="#e3e8ee" stroke-width="3"/>
+ <path d="M150 150 L150 24 A126 126 0 0 0 24 150 Z" fill="#ebfbee"/><path d="M150 150 L24 150 A126 126 0 0 0 150 276 Z" fill="#fff4e6"/><path d="M150 150 L150 276 A126 126 0 0 0 276 150 Z" fill="#fff9db"/><path d="M150 150 L276 150 A126 126 0 0 0 150 24 Z" fill="#ffe3e3"/>
+ <line x1="150" y1="24" x2="150" y2="276" stroke="#dde3ea" stroke-width="4"/><line x1="24" y1="150" x2="276" y2="150" stroke="#dde3ea" stroke-width="4"/>
+ <text x="92" y="62" font-size="12" font-weight="800" fill="#2b8a3e" text-anchor="middle" letter-spacing="1">VEGGIES</text><text x="208" y="62" font-size="12" font-weight="800" fill="#c92a2a" text-anchor="middle" letter-spacing="1">FRUITS</text>
+ <text x="92" y="252" font-size="12" font-weight="800" fill="#d9480f" text-anchor="middle" letter-spacing="1">GRAINS</text><text x="208" y="252" font-size="12" font-weight="800" fill="#e67700" text-anchor="middle" letter-spacing="1">PROTEIN</text>${em}</svg>`;}
 function cafeDone(){const P0=CAFE.plate;return {fv:(P0.veg.length?1:0)+(P0.fruit.length?1:0),pr:P0.prot.length>0,gr:P0.grain.length>0,dr:!!(CAFE.drink&&CAFE.drink[2])};}
 SCREENS.cafe=()=>{const p=P();const today=dayKey();
- const head=(say)=>`<div class="cafe-head"><div class="rosa">${rosaSVG()}</div><div class="cafe-bubble"><b class="nm">Ms. Rosa, the Lunch Lady</b><div>${say}</div></div></div>`;
+ const head=(say)=>`<div class="cafe-head"><div class="cafe-stage"><div class="rosa">${rosaSVG()}</div><div class="counter"><span class="pan"><i>🥦</i><i>🥕</i></span><span class="pan"><i>🍝</i><i>🍗</i></span><span class="pan"><i>🍎</i><i>🍇</i></span><b class="steam">〰</b><b class="steam s2">〰</b></div></div><div class="cafe-bubble"><b class="nm">Ms. Rosa, the Lunch Lady</b><div>${say}</div></div></div>`;
  const back=`<div class="zhead"><button class="btn ghost small" onclick="CAFE=null;go('world')">← Explore</button><h2 class="title">🍱 The Cafeteria</h2></div>`;
- if(p.cafe&&p.cafe.d===today&&p.cafe.done&&(!CAFE||CAFE.step!==5)){app.innerHTML=topbar()+`<div class="page cafe">${back}${head(`Thanks for lunch today, ${esc(p.name)}! The kitchen is closed now. Come back <b>tomorrow</b> for a brand new lunch order! 🍎`)}${p.lunchTray?'<div class="cafe-card center">🍱 Your <b>Lunch Tray power-up</b> is ready for your next battle!</div>':''}</div>`;return;}
+ if(p.cafe&&p.cafe.d===today&&p.cafe.done&&(!CAFE||CAFE.step!==5)){app.innerHTML=topbar()+`<div class="room cafe-room"><div class="page cafe">${back}${head(`Thanks for lunch today, ${esc(p.name)}! The kitchen is closed now. Come back <b>tomorrow</b> for a brand new lunch order! 🍎`)}${p.lunchTray?'<div class="cafe-card center">🍱 Your <b>Lunch Tray power-up</b> is ready for your next battle!</div>':''}</div></div>`;return;}
  if(!CAFE)cafeStart();const C=CAFE;const dots=`<div class="cafe-steps">${['🍽️','🧮','💵','📖','⚡'].map((e,i)=>`<span class="${i<C.step?'done':i===C.step?'on':''}">${e}</span>`).join('')}</div>`;
  let body='';
  if(C.step===0){const d=cafeDone();const ok=d.fv===2&&d.pr&&d.gr&&d.dr;
   const goal=(done,t,n)=>`<div class="goal ${done?'done':''}"><span class="ck">✓</span>${t}<span class="gn">${n}</span></div>`;
   const cols=[['#51cf66',C.plate.veg.length],['#ff6b6b',C.plate.fruit.length],['#ffa94d',C.plate.grain.length],['#fcc419',C.plate.prot.length],['#74c0fc',C.drink&&C.drink[2]?1:0]];const tot=cols.reduce((s,c)=>s+c[1],0)||1;
   body=`${head(`Hi ${esc(p.name)}! Today's lunch order: build a plate that's <b>½ fruits &amp; veggies</b>, with some <b>protein</b> and some <b>grains</b>. Don't forget a healthy drink! 🥛`)}${dots}
-  <div class="cafe-grid"><div><div class="goals">${goal(d.fv===2,'½ plate fruits &amp; veggies',`${d.fv} / 2`)}${goal(d.pr,'Protein',d.pr?'✓':'')}${goal(d.gr,'Grains',d.gr?'✓':'')}${goal(d.dr,'A healthy drink',d.dr?'✓':'')}</div>
+  <div class="cafe-grid"><div class="cafe-left"><div class="plate-row">${cafePlateSVG()}<div class="cafe-cup"><span>${C.drink?C.drink[0]:'?'}</span><small>DRINK</small></div></div>
+   <div class="goals">${goal(d.fv===2,'🥦🍎 ½ fruits &amp; veggies',`${d.fv}/2`)}${goal(d.pr,'🍗 Protein','')}${goal(d.gr,'🍞 Grains','')}${goal(d.dr,'🥛 Healthy drink','')}</div></div>
+   <div class="cafe-right"><div class="cafe-tray"><h3>🍽️ Today's lunch line <small>(tap to add)</small></h3><div class="cafe-foods">${C.foods.map((f,i)=>`<button class="cfood ${C.plate[f[2]]&&C.plate[f[2]].includes(f[0])?'used':''}" onclick="cafeAdd(${i})"><span>${f[0]}</span>${f[1]}<small>${f[2]==='treat'?'treat':CAFE_GROUP[f[2]]}</small></button>`).join('')}</div>
+   <div class="cafe-foods drinks">${CAFE_DRINKS.map((dd,i)=>`<button class="cfood ${C.drink===dd?'used':''}" onclick="cafeDrink(${i})"><span>${dd[0]}</span>${dd[1]}<small>drink</small></button>`).join('')}</div></div>
    <div class="cafe-meter"><b>🌈 Balance meter</b><div class="bar">${cols.map(c=>`<i style="width:${c[1]/tot*100}%;background:${c[0]}"></i>`).join('')}</div><small>${C.msg||(ok?'🌟 Perfect balance! Lots of colors = lots of vitamins!':'Tap foods on the lunch line to fill your plate!')}</small></div>
-   <div class="row" style="margin-top:10px"><button class="btn ${ok?'green':'ghost dark'} big" ${ok?'':'disabled'} onclick="cafeServe()">🍽️ Serve my lunch!</button>${tot>1?`<button class="btn ghost dark small" onclick="cafeStart();go('cafe')">↺ Start over</button>`:''}</div></div>
-   <div><div class="plate-row">${cafePlateSVG()}<div class="cafe-cup"><span>${C.drink?C.drink[0]:'?'}</span><small>DRINK</small></div></div>
-   <div class="cafe-tray"><h3>🍽️ Today's lunch line (tap to add)</h3><div class="cafe-foods">${C.foods.map((f,i)=>`<button class="cfood ${C.plate[f[2]]&&C.plate[f[2]].includes(f[0])?'used':''}" onclick="cafeAdd(${i})"><span>${f[0]}</span>${f[1]}<small>${f[2]==='treat'?'treat':CAFE_GROUP[f[2]]}</small></button>`).join('')}</div>
-   <div class="cafe-foods drinks">${CAFE_DRINKS.map((d,i)=>`<button class="cfood ${C.drink===d?'used':''}" onclick="cafeDrink(${i})"><span>${d[0]}</span>${d[1]}<small>drink</small></button>`).join('')}</div></div></div></div>`;}
+   <div class="row" style="margin-top:10px"><button class="btn ${ok?'green':'ghost dark'} big" ${ok?'':'disabled'} onclick="cafeServe()">🍽️ Serve my lunch!</button>${tot>1?`<button class="btn ghost dark small" onclick="cafeStart();go('cafe')">↺ Start over</button>`:''}</div></div></div>`;}
  else if(C.step<=4){const q=C.qs[C.step-1];const lab=['','🧮 Math bite','💵 Lunch line money','📖 Read the menu','⚡ Fuel for heroes'][C.step];
   const say=['','Now a little lunchroom math!','Time to pay at the register!','Can you read today\'s menu board?','One last question about food and energy!'][C.step];
   let qh='';if(q.kind==='num'){qh=`${q.menu?`<div class="cafe-menu">${q.menu.map(m=>`<div><span>${m.e} ${m.n}</span><span>$${cents2(m.pr/100)}</span></div>`).join('')}</div>`:''}<div class="cafe-q">${esc(q.q)}</div><div class="cafe-ans">${q.pre}<span class="ansbox">${esc(C.input||'?')}</span>${q.post}</div>
@@ -2666,7 +2696,7 @@ SCREENS.cafe=()=>{const p=P();const today=dayKey();
   else qh=`${q.read?`<div class="cafe-read">${esc(q.read)}</div>`:''}<div class="cafe-q">${esc(q.q)}</div><div class="cafe-mc">${q.c.map((c,i)=>`<button class="btn big ${C.picked===i?(i===q.a?'green':'red'):''}" onclick="cafePick(${i})">${esc(c)}</button>`).join('')}</div>`;
   body=`${head(C.msg||say)}${dots}<div class="cafe-card"><div class="cafe-lab">${lab}</div>${qh}</div>`;}
  else{body=`${head(`What a wonderful lunch, ${esc(p.name)}! You earned ${C.stars} lunch star${C.stars===1?'':'s'}! ⭐`)}${dots}<div class="cafe-reward"><div class="big-emoji">🍱</div><div><b style="font-size:21px">Lunch Tray power-up earned!</b><br>Your next battle starts with a <b>🛡️ shield</b> and <b>+20 ❤️</b>.<br>${C.treat?`Ms. Rosa also made your pet a treat: <b>${C.treat}</b> 🐾<br>`:''}🪙 +${C.coins} coins · ${'⭐'.repeat(C.stars)}${'☆'.repeat(4-C.stars)}</div></div><div class="row"><button class="btn gold big" onclick="CAFE=null;go('world')">Back to the village 🏡</button></div>`;}
- app.innerHTML=topbar()+`<div class="page cafe">${back}${body}</div>`;
+ app.innerHTML=topbar()+`<div class="room cafe-room"><div class="page cafe">${back}${body}</div></div>`;
  if(C.sayNow){const t=C.sayNow;C.sayNow=null;setTimeout(()=>say(t.replace(/<[^>]+>/g,''),.95),200);}
 };
 function cafeAdd(i){const C=CAFE;const f=C.foods[i];SFX.tap();
@@ -2691,6 +2721,137 @@ function cafeNext(){const C=CAFE;C.step++;C.tries=0;C.input='';C.picked=null;
  if(C.step>4){const p=P();C.step=5;C.coins=15+5*C.stars;p.coins+=C.coins;p.lunchTray=true;const f=pick(PET_FOODS);p.pantry[f.id]=(p.pantry[f.id]||0)+1;C.treat=`${f.e} ${f.name}`;p.cafe={d:dayKey(),done:true,stars:C.stars};save();SFX.win();C.msg='';setTimeout(()=>{if(CAFE===C)go('cafe');},500);return;}
  go('cafe');}
 
+const STORIES=[
+{id:'a1',lv:'A',e:'🐢',t:'The Brave Little Turtle',p:['Tia the turtle lived at the edge of a big pond. All her friends swam across the pond to play on the warm rocks. But Tia stayed on the shore. The water looked deep, and she was scared.','One day, the frogs said, "Come on, Tia! You can do it!" Tia took a deep breath. She paddled slowly, one little kick at a time. Her heart was pounding.','At last, Tia climbed onto the warm rocks. Everyone cheered! Tia smiled a big turtle smile. She was still a little scared, but she was very proud.'],
+ q:[['What is the main idea of the story?',['Turtles are slow swimmers','Being brave means trying even when you are scared','Frogs are good at cheering','Rocks get warm in the sun'],1,'Tia was scared but tried anyway. That is what being brave means.'],
+  ['Who cheered for Tia before she swam?',['The fish','Her mom','The frogs','The ducks'],2,'The story says, "One day, the frogs said, Come on, Tia!"'],
+  ['How did Tia feel at the end?',['Proud','Angry','Bored','Sleepy'],0,'"She was very proud."']]},
+{id:'a2',lv:'A',e:'🌱',t:'Sam\'s Garden',p:['Sam planted tiny tomato seeds in his backyard. Every morning he gave them water. Every evening he checked for sprouts. For days, nothing happened.','"Maybe they will never grow," Sam sighed. But he kept watering. After two weeks, tiny green leaves poked out of the dirt!','By summer, Sam had more tomatoes than his family could eat. He put them in a basket and shared them with all his neighbors.'],
+ q:[['What lesson does the story teach?',['Tomatoes are red','Being patient and working hard pays off','Gardens are messy','Neighbors like baskets'],1,'Sam kept watering even when nothing grew, and it paid off.'],
+  ['How long did it take for the seeds to sprout?',['Two days','Two weeks','Two months','One year'],1,'"After two weeks, tiny green leaves poked out."'],
+  ['Why did Sam share his tomatoes?',['He did not like tomatoes','He had more than his family could eat','His mom told him to','They were rotten'],1,'"Sam had more tomatoes than his family could eat."']]},
+{id:'a3',lv:'A',e:'🍂',t:'Why Do Leaves Change Color?',p:['In spring and summer, most leaves are green. They are green because of something inside them called chlorophyll. Chlorophyll helps the tree make food from sunlight.','In the fall, the days get shorter and cooler. Trees stop making as much food, and the green chlorophyll fades away.','When the green is gone, we can see the yellow and orange colors that were hiding in the leaves all along!'],
+ q:[['What is this passage mostly about?',['How to rake leaves','Why leaves change color in the fall','Which trees are tallest','How to grow a tree'],1,'The whole passage explains why leaves change color.'],
+  ['What makes leaves green?',['Rain','Chlorophyll','Dirt','Wind'],1,'"They are green because of something inside them called chlorophyll."'],
+  ['The yellow and orange colors were…',['painted on by people','hiding in the leaves all along','made by the wind','only in winter'],1,'"The yellow and orange colors that were hiding in the leaves all along!"']]},
+{id:'a4',lv:'A',e:'🧤',t:'The Lost Mitten',p:['Maya came home from the park with only one red mitten. "Oh no!" she said. "Grandma knitted these for me."','Maya and her dad walked back to the park. They looked by the swings. They looked by the slide. Then Maya heard a tiny whimper under the bench.','A little puppy was curled up on her red mitten, keeping warm! A lady ran up. "That\'s my puppy, Biscuit!" she said. "Thank you for finding him." Maya smiled. Her mitten had helped a puppy stay warm.'],
+ q:[['What was Maya\'s problem at the start?',['She was hungry','She lost one of her mittens','Her dad was lost','It was raining'],1,'She came home "with only one red mitten."'],
+  ['Where did Maya find the mitten?',['By the swings','On the slide','Under the bench','In her pocket'],2,'She heard a whimper "under the bench."'],
+  ['Why did Maya smile at the end?',['Her mitten had helped a puppy stay warm','She got a new puppy','She won a prize','Her grandma came'],0,'"Her mitten had helped a puppy stay warm."']]},
+{id:'a5',lv:'A',e:'🐝',t:'Honeybees at Work',p:['Honeybees are very busy insects. They fly from flower to flower to collect a sweet juice called nectar.','Back at the hive, the bees turn the nectar into honey. They store the honey in little wax rooms called cells.','When a bee finds a great patch of flowers, it does a special wiggle dance! The dance tells the other bees which way to fly to find the flowers.'],
+ q:[['What is this passage mostly about?',['How honeybees work and make honey','Why flowers are pretty','How to catch a bee','Bears that eat honey'],0,'The passage tells what honeybees do all day.'],
+  ['What is nectar?',['A kind of wax','A sweet juice from flowers','A bee\'s home','A dance'],1,'"A sweet juice called nectar."'],
+  ['Why do bees do a wiggle dance?',['To stay warm','To show off','To tell other bees where the flowers are','To scare birds'],2,'"The dance tells the other bees which way to fly."']]},
+{id:'a6',lv:'A',e:'🦊',t:'The Fox and the Grapes',p:['One hot day, a hungry fox saw juicy purple grapes hanging from a vine. "Those look delicious," he said.','The fox jumped as high as he could, but the grapes were too high. He jumped again and again. He could not reach them.','Finally the fox walked away with his nose in the air. "I did not want those grapes anyway," he said. "I am sure they are sour."'],
+ q:[['Why did the fox say the grapes were sour?',['He tasted them','He was pretending he did not want what he could not get','The farmer told him','They were green'],1,'He could not reach them, so he pretended he did not want them.'],
+  ['What was the fox\'s problem?',['The grapes were too high to reach','He was too full','It was raining','A bird ate the grapes'],0,'"The grapes were too high."'],
+  ['This story is a fable. What is a fable?',['A true news story','A short story with a lesson, often with talking animals','A poem about food','A science book'],1,'Fables are short stories with a lesson, like this one.']]},
+{id:'a7',lv:'A',e:'🍋',t:'The Lemonade Stand',p:['Leo and his sister Ana set up a lemonade stand. They wanted to raise money for the animal shelter. On the first day, only two people stopped.','"Nobody can see us," said Ana. So they made a big, bright sign. Leo baked cookies to sell too.','The next day, a long line of people came! Leo and Ana sold every cup. They gave all the money to the animal shelter, and the shelter workers gave them a big thank-you card.'],
+ q:[['Why did Leo and Ana have a lemonade stand?',['To buy toys','To raise money for the animal shelter','Because they were thirsty','For a school test'],1,'"They wanted to raise money for the animal shelter."'],
+  ['What did they change to get more customers?',['They lowered the price','They made a big sign and added cookies','They moved to the beach','They sang songs'],1,'"They made a big, bright sign. Leo baked cookies to sell too."'],
+  ['What is the main idea?',['Lemonade is sour','Working together and trying new ideas can help others','Signs are hard to make','Cookies are better than lemonade'],1,'They worked as a team and changed their plan to help the shelter.']]},
+{id:'a8',lv:'A',e:'🐙',t:'Octopus Tricks',p:['An octopus has eight long arms covered in suckers. The suckers help it grab food and hold on to rocks.','An octopus is a master of hiding. It can change the color of its skin in a flash to match the rocks and sand around it.','If a hungry shark comes too close, the octopus has one more trick. It squirts a cloud of dark ink and zooms away while the shark cannot see!'],
+ q:[['What is this passage mostly about?',['How sharks hunt','The amazing tricks an octopus uses','Where to find rocks','How to swim fast'],1,'It describes the octopus and its tricks.'],
+  ['How many arms does an octopus have?',['Six','Eight','Ten','Four'],1,'"An octopus has eight long arms."'],
+  ['Why does an octopus squirt ink?',['To make art','To escape from danger','To eat','To clean the water'],1,'It squirts ink "and zooms away while the shark cannot see."']]},
+{id:'a9',lv:'A',e:'🪁',t:'Grandpa\'s Kite',p:['Nora and Grandpa built a kite out of paper and sticks. They painted it with bright stars. Then they ran to the hill to fly it.','The kite went up… and crashed down. It crashed again and again. Nora wanted to quit. "Let\'s think," said Grandpa. "Maybe it needs a longer tail to keep it steady."','They tied on a longer tail made of ribbons. This time the kite climbed high into the sky and danced with the wind. "We did it!" Nora shouted.'],
+ q:[['What is the lesson of the story?',['Kites are easy','Don\'t give up; think of a new way to solve a problem','Grandpas are tall','Stars are pretty'],1,'They kept trying and fixed the problem with a longer tail.'],
+  ['What did they add to fix the kite?',['More paint','A longer tail','Heavier sticks','A motor'],1,'"They tied on a longer tail made of ribbons."'],
+  ['How did Nora feel when the kite kept crashing?',['Excited','Like she wanted to quit','Hungry','Sleepy'],1,'"Nora wanted to quit."']]},
+{id:'a10',lv:'A',e:'🦉',t:'Animals of the Night',p:['While you sleep, some animals are just waking up! Animals that are awake at night are called nocturnal animals.','Owls are nocturnal. They have huge eyes that help them see in the dark. Bats are nocturnal too. They make tiny squeaks and listen for the echoes to find bugs to eat.','Raccoons come out at night to look for food. Their little paws can open lids and even door handles!'],
+ q:[['What does nocturnal mean?',['Awake during the day','Awake at night','Lives in water','Very tiny'],1,'"Animals that are awake at night are called nocturnal animals."'],
+  ['How do bats find bugs in the dark?',['With big eyes','By listening for echoes of their squeaks','By smelling flowers','With flashlights'],1,'"They make tiny squeaks and listen for the echoes."'],
+  ['What is this passage mostly about?',['Animals that are active at night','How to open doors','Why people sleep','Daytime birds'],0,'It describes several nocturnal animals.']]},
+{id:'b1',lv:'B',e:'⛸️',t:'The Science of Ice Skating',p:['Have you ever wondered why ice skaters can glide so smoothly? The secret is a tiny layer of water. When a skate blade presses on the ice and slides, friction warms the surface and creates a very thin, slippery layer between the blade and the ice.','Skate blades are also special. They are narrow and have a slight curve, called a rocker, so only a small part of the blade touches the ice at once. The blade also has two sharp edges that grip the ice, which lets skaters turn, stop, and push off.','Great skaters combine this science with balance and practice. Spins, jumps, and quick stops take thousands of hours of training. Every fall teaches the body something new about balance.'],
+ q:[['What is the main idea of the passage?',['Ice is cold','Science and practice both help skaters glide, turn and balance','Skates are expensive','Skating was invented in winter'],1,'The passage explains the science of skating and how practice builds skill.'],
+  ['What is the "rocker" on a skate blade?',['A sharp edge','A slight curve in the blade','The boot','A kind of jump'],1,'"They are narrow and have a slight curve, called a rocker."'],
+  ['What can you infer the author thinks about falling?',['Falling means you should quit','Falls are part of learning','Only beginners fall','Falls make ice melt'],1,'"Every fall teaches the body something new about balance."']]},
+{id:'b2',lv:'B',e:'🤖',t:'Maria\'s Robot',p:['For the science fair, Maria built a robot that was supposed to sort red and blue blocks. At home it worked perfectly. But on the morning of the fair, the robot dropped every block on the floor.','Maria wanted to hide under the table. Instead, she took a deep breath and started testing one part at a time. She discovered that the bright gym lights were confusing the robot\'s color sensor. She built a small cardboard shade over the sensor, and the robot began sorting again.','Maria did not win first place. But the judges gave her a special award for problem-solving. "You showed us what real engineers do," one judge said. "They find the problem and fix it."'],
+ q:[['What is the theme of the story?',['Robots are dangerous','Mistakes can be solved by staying calm and testing ideas','Science fairs are unfair','Lights are too bright'],1,'Maria stayed calm, found the problem and fixed it.'],
+  ['What was causing the robot to fail?',['A dead battery','The bright gym lights confused the color sensor','The blocks were too heavy','A broken wheel'],1,'"The bright gym lights were confusing the robot\'s color sensor."'],
+  ['Why did the judge say Maria acted like a real engineer?',['She won first place','She found the problem and fixed it','She built the biggest robot','She used cardboard'],1,'"They find the problem and fix it."']]},
+{id:'b3',lv:'B',e:'🦋',t:'The Great Monarch Journey',p:['Every fall, millions of monarch butterflies fly from Canada and the United States all the way to the mountains of Mexico. Some travel nearly 3,000 miles, farther than any other butterfly.','Amazingly, the butterflies that make the trip south have never been there before. The monarchs that return north in spring are their children and grandchildren. Scientists believe monarchs use the sun and Earth\'s magnetic field to find their way.','Monarchs need a plant called milkweed. It is the only plant their caterpillars eat. As milkweed disappears from fields and roadsides, people are planting it in gardens and schoolyards to help the monarchs survive.'],
+ q:[['What is this passage mostly about?',['How to raise caterpillars','The monarch butterfly\'s long migration and how people help','Mountains in Mexico','Why butterflies are orange'],1,'It describes the journey and why milkweed matters.'],
+  ['Why is milkweed important to monarchs?',['It is the only plant their caterpillars eat','It shows them the way south','It keeps them warm','It is their home in Mexico'],0,'"It is the only plant their caterpillars eat."'],
+  ['What is surprising about the butterflies that fly south?',['They are the biggest','They have never been to Mexico before','They fly at night only','They travel in cars'],1,'"The butterflies that make the trip south have never been there before."']]},
+{id:'b4',lv:'B',e:'🐺',t:'The Boy Who Cried Wolf',p:['A shepherd boy was bored watching the village sheep. To have some fun, he shouted, "Wolf! Wolf!" The villagers dropped their work and ran up the hill to help. There was no wolf, and the boy laughed at them.','A few days later, he did it again. Again the villagers came running, and again there was no wolf. They walked back down the hill, grumbling and annoyed.','Then one evening, a real wolf crept out of the forest. "Wolf! Wolf!" the boy cried, terrified. But this time, no one came. They thought he was tricking them again.'],
+ q:[['What is the moral of this fable?',['Wolves are dangerous','If you lie, people may not believe you even when you tell the truth','Sheep need fences','Villagers are lazy'],1,'After his lies, no one believed him when the wolf was real.'],
+  ['Why did the boy first shout "Wolf!"?',['He saw a wolf','He was bored and wanted to have fun','A sheep was lost','He was hungry'],1,'"To have some fun, he shouted, Wolf! Wolf!"'],
+  ['Which word best describes the villagers after the second trick?',['Grateful','Annoyed','Sleepy','Excited'],1,'They walked back "grumbling and annoyed."']]},
+{id:'b5',lv:'B',e:'🌋',t:'How Volcanoes Form',p:['Deep beneath Earth\'s surface, it is so hot that some rock melts into a thick liquid called magma. Magma is lighter than the solid rock around it, so it slowly rises upward.','When magma finds a crack in Earth\'s crust, it can push its way out. Once it reaches the surface, it is called lava. Over many eruptions, lava and ash pile up and harden, building a mountain called a volcano.','Some volcanoes erupt gently, with rivers of glowing lava. Others explode violently, blasting ash high into the sky. Scientists called volcanologists study volcanoes to help warn people before an eruption.'],
+ q:[['What is the difference between magma and lava?',['Magma is cold, lava is hot','Magma is underground; it is called lava once it reaches the surface','They are different colors','Lava is rock, magma is ash'],1,'"Once it reaches the surface, it is called lava."'],
+  ['Why does magma rise?',['It is lighter than the rock around it','Wind pulls it up','Scientists pump it','It is frozen'],0,'"Magma is lighter than the solid rock around it, so it slowly rises."'],
+  ['Why do volcanologists study volcanoes?',['To collect lava for art','To help warn people before an eruption','To build new mountains','To make them erupt'],1,'"To help warn people before an eruption."']]},
+{id:'b6',lv:'B',e:'⚽',t:'The New Kid',p:['On his first day at a new school, Jonah ate lunch alone. At recess he stood by the wall, watching a soccer game and wishing he knew someone.','Then a girl named Ava jogged over. "We need one more player," she said. "Want to join?" Jonah scored a goal that day, but what he remembered most was that someone had noticed him.','A month later, a new student sat alone in the cafeteria, staring at her tray. Jonah remembered how that felt. He picked up his lunch, walked over, and said, "Want to sit with us?"'],
+ q:[['What is the theme of the story?',['Soccer is the best sport','One act of kindness can spread to others','New schools are scary forever','Lunch is important'],1,'Ava was kind to Jonah, and later Jonah was kind to someone else.'],
+  ['What did Jonah remember most about his first day?',['Scoring a goal','That someone noticed him','The cafeteria food','His teacher\'s name'],1,'"What he remembered most was that someone had noticed him."'],
+  ['Why did Jonah invite the new student to sit with him?',['His teacher made him','He remembered how it felt to be alone','She had extra food','She was on his team'],1,'"Jonah remembered how that felt."']]},
+{id:'b7',lv:'B',e:'🪸',t:'Coral Reefs in Trouble',p:['Coral reefs look like colorful underwater gardens, but corals are actually tiny animals. Millions of them live together and build hard skeletons that form a reef. Reefs are home to about one quarter of all ocean species, even though they cover less than one percent of the ocean floor.','Corals get their bright colors and much of their food from tiny algae that live inside them. When ocean water becomes too warm, corals push the algae out. The corals turn white, which is called bleaching. If the water stays warm too long, the corals can die.','Scientists and volunteers are working to protect reefs. Some grow baby corals in underwater nurseries and replant them. Others study which corals can survive warmer water.'],
+ q:[['What is the main idea of the passage?',['Coral reefs are important, are in danger, and people are working to help them','Corals are plants','Oceans are cold','Fish like colors'],0,'The passage explains what reefs are, the danger, and how people help.'],
+  ['What causes coral bleaching?',['Too many fish','Water that is too warm','Sunscreen only','Strong waves'],1,'"When ocean water becomes too warm, corals push the algae out."'],
+  ['Based on the passage, corals are…',['rocks','tiny animals','seaweed','shells left by crabs'],1,'"Corals are actually tiny animals."']]},
+{id:'b8',lv:'B',e:'⛰️',t:'The Stonecutter',p:['A stonecutter worked hard every day chipping rocks from a mountain. One day he saw a rich man in a fine carriage. "I wish I were rich," he said, and magically, he became rich.','Soon he noticed the sun was even more powerful, so he wished to be the sun. But a cloud covered the sun, so he wished to be a cloud. Then the wind pushed the cloud away, and nothing could move the mountain, so he wished to be the mountain.','As the mountain, he felt something chipping at his side. It was a stonecutter. "Then the stonecutter is the most powerful of all," he said. He wished to be himself again, and he was finally happy.'],
+ q:[['What is the lesson of this folk tale?',['Be happy with who you are','Mountains are strong','Always wish for money','Clouds are stronger than the sun'],0,'After trying to be everything else, he was happiest as himself.'],
+  ['Why did he want to become a cloud?',['A cloud covered the sun','He liked rain','The wind told him to','He was tired'],0,'"A cloud covered the sun, so he wished to be a cloud."'],
+  ['What made him realize a stonecutter was powerful?',['A stonecutter was chipping at the mountain','The king told him','He read a book','The sun disappeared'],0,'"He felt something chipping at his side. It was a stonecutter."']]},
+{id:'b9',lv:'B',e:'🍭',t:'An Accidental Invention',p:['In 1905, an eleven-year-old boy named Frank Epperson mixed powdered soda with water on his porch. He stirred it with a wooden stick and then forgot about it overnight.','That night, the temperature dropped below freezing. In the morning, Frank found the drink frozen solid with the stick standing straight up. He pulled it out and licked it. It was delicious!','Years later, Frank began selling his frozen treats on sticks. At first he called them "Epsicles," but his children called them "Pop\'s sicles." The name stuck, and today we call them Popsicles.'],
+ q:[['What is this passage mostly about?',['How a boy accidentally invented the Popsicle','How to make soda','Why winter is cold','Frank\'s children'],0,'It tells how the Popsicle was invented by accident.'],
+  ['What caused the drink to freeze?',['He put it in a freezer','The temperature dropped below freezing overnight','He added ice','It was summer'],1,'"That night, the temperature dropped below freezing."'],
+  ['Where did the name "Popsicle" come from?',['A contest','His children called them "Pop\'s sicles"','A store owner','The word "soda"'],1,'"His children called them Pop\'s sicles. The name stuck."']]},
+{id:'b10',lv:'B',e:'🏃',t:'Training for the Big Race',p:['Kai wanted to run the town\'s 5K race, but on his first practice he could only jog for five minutes before he was out of breath. Instead of giving up, he made a plan: run a little farther each week.','Week by week, Kai added a few more minutes. Some days were hard, and one week his knee hurt, so he rested and walked instead. His coach reminded him that rest is part of training too.','On race day, Kai did not finish first. But he ran the whole 5K without stopping, something he could not have imagined two months earlier. He crossed the finish line with the biggest smile in town.'],
+ q:[['What is the theme of the story?',['Winning is all that matters','Steady practice and patience help you reach big goals','Running hurts','Coaches are strict'],1,'Kai improved a little at a time and reached his goal.'],
+  ['What did Kai do when his knee hurt?',['He quit','He rested and walked instead','He ran faster','He bought new shoes'],1,'"He rested and walked instead."'],
+  ['Why was Kai smiling if he did not win?',['He got a prize for last place','He reached his own goal of running the whole race','He saw his friends','The race was short'],1,'He "ran the whole 5K without stopping."']]}];
+/* ================= the Library: Professor Hoot's reading comprehension ================= */
+const LIB_PER_DAY=2;let LIB=null;
+function libBand(p){return (p.grade||3)<=3?'A':'B';}
+function libState(p){p.lib=p.lib||{done:{},day:null,n:0};if(p.lib.day!==dayKey()){p.lib.day=dayKey();p.lib.n=0;}return p.lib;}
+function libShelf(p){const L=libState(p);const band=STORIES.filter(s=>s.lv===libBand(p));const fresh=band.filter(s=>!L.done[s.id]);
+ const order=fresh.length?fresh:band.slice().sort((a,b)=>(L.done[a.id].d||'').localeCompare(L.done[b.id].d||''));return {band,next:order.slice(0,Math.max(0,LIB_PER_DAY-L.n)),L};}
+function hootSVG(){return `<svg class="hoot-svg" viewBox="0 0 200 220" aria-label="Professor Hoot the librarian owl">
+<ellipse cx="100" cy="150" rx="66" ry="64" fill="#8d5a2b"/><ellipse cx="100" cy="162" rx="44" ry="46" fill="#f3d9b1"/>${[0,1,2].map(r=>[0,1,2].map(c=>`<path d="M${80+c*20} ${140+r*18} q10 8 20 0" stroke="#d9b98a" stroke-width="3" fill="none"/>`).join('')).join('')}
+<path d="M36 128 Q14 170 44 196 Q48 160 56 140Z" fill="#6f4520"/><path d="M164 128 Q186 170 156 196 Q152 160 144 140Z" fill="#6f4520"/>
+<ellipse cx="100" cy="82" rx="66" ry="58" fill="#8d5a2b"/><path d="M44 44 L58 70 L70 40Z M156 44 L142 70 L130 40Z" fill="#6f4520"/>
+<circle cx="74" cy="84" r="26" fill="#fff"/><circle cx="126" cy="84" r="26" fill="#fff"/>
+<g class="hoot-eyes"><circle cx="76" cy="86" r="12" fill="#2b2250"/><circle cx="124" cy="86" r="12" fill="#2b2250"/><circle cx="80" cy="81" r="4" fill="#fff"/><circle cx="128" cy="81" r="4" fill="#fff"/></g>
+<circle cx="74" cy="84" r="27" fill="none" stroke="#b08900" stroke-width="4"/><circle cx="126" cy="84" r="27" fill="none" stroke="#b08900" stroke-width="4"/><path d="M101 84 H99" stroke="#b08900" stroke-width="4"/>
+<path d="M92 104 L100 120 L108 104Z" fill="#f59f00"/>
+<path d="M84 128 L100 136 L116 128 L116 144 L100 136 L84 144Z" fill="#c92a2a"/><circle cx="100" cy="136" r="4" fill="#a61e1e"/>
+<g transform="translate(58,168) rotate(-8)"><rect width="84" height="46" rx="4" fill="#1c7ed6"/><rect x="40" y="0" width="4" height="46" fill="#1864ab"/><rect x="6" y="6" width="30" height="34" fill="#fff" opacity=".85"/><rect x="48" y="6" width="30" height="34" fill="#fff" opacity=".85"/></g>
+<path d="M70 210 l-8 8 M78 210 l0 10 M86 210 l8 8 M114 210 l-8 8 M122 210 l0 10 M130 210 l8 8" stroke="#f59f00" stroke-width="4" stroke-linecap="round"/></svg>`;}
+function libHead(say){return `<div class="lib-head"><div class="hoot">${hootSVG()}</div><div class="cafe-bubble lib-bubble"><b class="nm">Professor Hoot, the Librarian</b><div>${say}</div></div></div>`;}
+SCREENS.library=()=>{const p=P();const back=`<div class="zhead"><button class="btn ghost small" onclick="LIB=null;go('world')">← Explore</button><h2 class="title">📚 The Library</h2></div>`;
+ const wrap=b=>{app.innerHTML=topbar()+`<div class="room lib-room"><div class="page lib">${back}${b}</div></div>`;};
+ if(!LIB){const {band,next,L}=libShelf(p);const cols=['#e03131','#1c7ed6','#2f9e44','#f08c00','#7048e8','#0c8599','#c2255c','#5c940d','#e8590c','#364fc7'];
+  const books=band.map((s,i)=>{const d=L.done[s.id];const isNext=next.includes(s);return `<button class="lbook ${d?'read':''} ${isNext?'next':''}" style="--bc:${cols[i%cols.length]}" ${isNext||d?`onclick="libOpen('${s.id}',${isNext?1:0})"`:''}><span class="be">${s.e}</span><span class="bt">${esc(s.t)}</span><span class="bs">${d?'⭐'.repeat(d.best)+'☆'.repeat(3-d.best):isNext?'✨ NEW':'🔒'}</span></button>`;}).join('');
+  const say=next.length?`Hoo-hoo! Welcome, ${esc(p.name)}! Pick a <b>✨ NEW</b> story from the shelf. Read it carefully, then answer 3 questions. You can read <b>${LIB_PER_DAY} new stories</b> each day.`:`Wonderful reading today, ${esc(p.name)}! New stories arrive <b>tomorrow</b>. You can re-read any story with a ⭐ for practice.`;
+  wrap(`${libHead(say)}<div class="shelf"><div class="shelf-row">${books}</div></div>`);return;}
+ const S=LIB.s,C=LIB;
+ if(C.stage==='read'){wrap(`${libHead(C.practice?'Practice reading! Take your time.':'Read the story carefully. Then tap <b>I\'m ready for the questions!</b>')}
+  <div class="story"><div class="story-top"><span class="story-e">${S.e}</span><h2>${esc(S.t)}</h2><button class="btn small" onclick="libRead()">🔊 Read it to me</button></div>${S.p.map(x=>`<p>${esc(x)}</p>`).join('')}
+  <div class="row"><button class="btn green big" onclick="LIB.stage='q';LIB.i=0;LIB.tries=0;go('library')">I'm ready for the questions! ➜</button></div></div>`);return;}
+ if(C.stage==='q'){const qq=C.qs[C.i];
+  wrap(`${libHead(C.msg||`Question ${C.i+1} of 3. You can look back at the story any time!`)}
+  <div class="story q"><details ${C.look?'open':''} ontoggle="LIB.look=this.open"><summary>📖 Look back at the story: ${esc(S.t)}</summary>${S.p.map(x=>`<p>${esc(x)}</p>`).join('')}</details>
+  <div class="lib-qn">Question ${C.i+1} of 3</div><div class="lib-q">${esc(qq.q)}</div>
+  <div class="lib-choices">${qq.c.map((c,k)=>`<button class="lchoice ${C.picked===k?(k===qq.a?'right':'wrong'):''} ${C.reveal&&k===qq.a?'right':''}" onclick="libPick(${k})"><span class="ll">${'ABCD'[k]}</span>${esc(c)}</button>`).join('')}</div>
+  ${C.why?`<div class="lib-why">${C.why}</div>`:''}${C.nextBtn?`<div class="row"><button class="btn green big" onclick="libNext()">${C.i<2?'Next question ➜':'See my stars! ⭐'}</button></div>`:''}</div>`);return;}
+ const st=C.stars;wrap(`${libHead(st===3?`Hoo-ray! A perfect score, ${esc(p.name)}! You really understood that story!`:st>=2?`Great reading, ${esc(p.name)}! You understood the story well.`:`Good effort, ${esc(p.name)}! Every story makes you a stronger reader.`)}
+  <div class="cafe-reward lib-reward"><div class="big-emoji">📚</div><div><b style="font-size:21px">${esc(S.t)}</b><br><span style="font-size:28px">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</span><br>${C.practice?'Practice read: great job! 🦉':`🪙 +${C.coins} coins · 📚 +${C.pts} reading points`}</div></div>
+  <div class="row"><button class="btn gold big" onclick="LIB=null;go('library')">Back to the shelf 📚</button><button class="btn ghost dark" onclick="LIB=null;go('world')">Back to the village 🏡</button></div>`);};
+function libOpen(id,isNew){const s=STORIES.find(x=>x.id===id);const shuf=q=>{const idx=[0,1,2,3].sort(()=>Math.random()-.5);return {q:q[0],c:idx.map(i=>q[1][i]),a:idx.indexOf(q[2]),why:q[3]};};
+ LIB={s,stage:'read',practice:!isNew,qs:s.q.map(shuf),i:0,tries:0,stars:0,picked:null,msg:'',why:'',look:false};SFX.tap();go('library');}
+function libRead(){if(!LIB)return;say(LIB.s.t+'. '+LIB.s.p.join(' '),.9);}
+function libPick(k){const C=LIB,qq=C.qs[C.i];if(C.nextBtn)return;C.picked=k;const p=P();
+ if(k===qq.a){SFX.correct();if(C.tries===0)C.stars++;C.msg=pick(['Hoo-hoo! Correct!','Wise answer!','Yes! You found it!','Excellent reading!']);C.why='✅ '+esc(qq.why);C.nextBtn=true;save();}
+ else{SFX.wrong();C.tries++;save();if(C.tries>=2){C.reveal=true;C.msg='Let\'s look at the right answer together.';C.why='💡 '+esc(qq.why);C.nextBtn=true;}else{C.msg='Hmm, not quite. Tap <b>📖 Look back at the story</b> and try again!';}}
+ go('library');}
+function libNext(){const C=LIB;C.i++;C.tries=0;C.picked=null;C.reveal=false;C.why='';C.msg='';C.nextBtn=false;C.look=false;
+ if(C.i<3){go('library');return;}
+ const p=P();C.stage='done';
+ if(!C.practice){const L=libState(p);L.n++;const prev=L.done[C.s.id];L.done[C.s.id]={best:Math.max(C.stars,prev?prev.best:0),d:dayKey()};C.coins=10+5*C.stars;C.pts=5+10*C.stars;p.coins+=C.coins;
+  const w=wkOf(p);w.readPts=(w.readPts||0)+C.pts;w.stories=(w.stories||0)+1;p.readLog=p.readLog||[];p.readLog.push({d:dayKey(),t:C.s.t,s:C.stars});if(p.readLog.length>40)p.readLog.shift();}
+ save();SFX.win();go('library');}
 function wFight(m){if(m&&m.principal){principalMeet();return;}if(!W||curScreen!=='world'||$('#modal.show'))return;W.path=[];W.mobs=W.mobs.filter(o=>o!==m);const b=m.b;setTimeout(()=>{if(W)wSpawn(b);},20000);
  SFX.tap();startBattle(m.zid,0,null,{wild:true,n:m.n,e:m.e});}
 function wGate(zid){const z=ZONES.find(x=>x.id===zid);const p=P();if(zoneLocked(z,p)){toast('🔒 '+z.lockMsg);return;}p.wpos={x:W.hx,y:W.hy};save();SFX.tap();go('zone',zid);}
@@ -2702,6 +2863,7 @@ function wNpc(id){const p=P();
  if(id==='spin'){openSpin();return;}
  if(id==='board'){go('leaders');return;}
  if(id==='cafe'){p&&(p.wpos={x:W.hx,y:W.hy});CAFE=null;go('cafe');return;}
+ if(id==='library'){p&&(p.wpos={x:W.hx,y:W.hy});LIB=null;go('library');return;}
  if(id==='mail'){if(!showGift())openGift();return;}
  if(id==='fountain'){fountainOpen();return;}
  modal(`<div class="mcard"><div class="big-emoji">🧙</div><h2>Elder Wiz says…</h2><p style="font-size:18px">"${esc(pick(ELDER_TIPS))}"</p>${questBar(p).replace('questbar','questbar dark')}<button class="btn green big" onclick="closeModal()">Thanks!</button></div>`);}
@@ -2749,8 +2911,8 @@ function wkStats(p,wk){
  days.forEach(k=>{const d=p.daily&&p.daily[k];if(d){r+=d.r||0;wr+=d.w||0;}if(d&&((d.r||0)+(d.w||0))>0)pd++;});
  const t0=new Date(wk+'T00:00:00').getTime(),t1=t0+7*864e5;
  const gifts=Object.values(state.gifts||{}).filter(g=>g&&g.from===p.id&&g.kind!=='thanks'&&g.t>=t0&&g.t<t1).length;
- return {r,w:wr,days:pd,acc:r+wr>=30?Math.round(r/(r+wr)*100):0,pts:w.pts||0,lv:w.lv||0,cb:w.cb||0,bs:w.bs||0,boss:w.boss||0,chest:w.chest||0,pet:w.pet||0,words:w.words||0,gifts};}
-const pl_=(n,w)=>`${n} ${n===1?w:(/(s|sh|ch|x)$/.test(w)?w+'es':w+'s')}`;
+ return {r,w:wr,days:pd,acc:r+wr>=30?Math.round(r/(r+wr)*100):0,pts:w.pts||0,lv:w.lv||0,cb:w.cb||0,bs:w.bs||0,boss:w.boss||0,chest:w.chest||0,pet:w.pet||0,words:w.words||0,gifts,readPts:w.readPts||0,stories:w.stories||0};}
+const pl_=(n,w)=>`${n} ${n===1?w:(/(s|sh|ch|x)$/.test(w)?w+'es':/[^aeiou]y$/.test(w)?w.slice(0,-1)+'ies':w+'s')}`;
 const STAR_CATS=[
  {id:'champ',e:'👑',n:'Math Champion',v:s=>s.pts,d:s=>`${s.pts} champion points`},
  {id:'improved',e:'📈',n:'Most Improved',v:s=>s.lv,d:s=>`Reached ${pl_(s.lv,'new level')}!`},
@@ -2758,6 +2920,7 @@ const STAR_CATS=[
  {id:'streak',e:'🔥',n:'Longest Streak',v:s=>s.bs,d:s=>`${s.bs} right in a row!`},
  {id:'boss',e:'🛡️',n:'Brave Boss Fighter',v:s=>s.boss,d:s=>`Beat ${pl_(s.boss,'boss')}`},
  {id:'sharp',e:'🎯',n:'Sharpshooter',v:s=>s.acc,d:s=>`${s.acc}% right this week`},
+ {id:'bookworm',e:'📚',n:'Bookworm',v:s=>s.stories,d:s=>`Read ${pl_(s.stories,'story')} in the Library`},
  {id:'speller',e:'📜',n:'Super Speller',v:s=>s.words,d:s=>`Learned ${pl_(s.words,'new word')}`},
  {id:'kind',e:'🎁',n:'Kindest Heart',v:s=>s.gifts,d:s=>`Sent ${pl_(s.gifts,'gift')} to family`},
  {id:'worker',e:'📅',n:'Hardest Worker',v:s=>s.days,d:s=>`Practiced ${pl_(s.days,'day')}`},
@@ -2767,7 +2930,7 @@ const STAR_CATS=[
 const STAR_EFFORT={id:'effort',e:'🌱',n:'Great Effort',d:()=>'Played this week!'};
 const catOf=id=>STAR_CATS.find(c=>c.id===id)||STAR_EFFORT;
 function ceremony(wk){
- const pl=state.players.filter(p=>p.setup).map(p=>({p,s:wkStats(p,wk)})).filter(x=>x.s.r+x.s.w>0).sort((a,b)=>a.p.id<b.p.id?-1:1);
+ const pl=state.players.filter(p=>p.setup).map(p=>({p,s:wkStats(p,wk)})).filter(x=>x.s.r+x.s.w+x.s.stories>0).sort((a,b)=>a.p.id<b.p.id?-1:1);
  if(!pl.length)return null;
  const max={};STAR_CATS.forEach(c=>max[c.id]=Math.max(0,...pl.map(x=>c.v(x.s))));
  const won={};pl.forEach(x=>won[x.p.id]=[]);const left=STAR_CATS.filter(c=>max[c.id]>0);
@@ -2821,10 +2984,12 @@ SCREENS.leaders=(tab)=>{
   const champ=st.map(x=>{const best=Math.max(0,...Object.entries(x.p.wkHist||{}).filter(([k])=>k<wk).map(([,w])=>w.pts||0));return {p:x.p,v:x.s.pts,d:x.s.pts-(x.l.pts||0),tag:x.s.pts>0&&x.s.pts>best&&best>0?'new best!':''};}).sort((a,b)=>b.v-a.v);
   const bb=st.map(x=>{const lr=soFar(x.p);return {p:x.p,v:lr>0?Math.round((x.s.r-lr)/lr*100):(x.s.r>0?100:0),first:!lr&&x.s.r>0};}).sort((a,b)=>b.v-a.v);
   const pdays=st.map(x=>({p:x.p,v:x.s.days})).sort((a,b)=>b.v-a.v);
+  const rdg=st.map(x=>({p:x.p,v:x.s.readPts,n:x.s.stories})).sort((a,b)=>b.v-a.v);
   const top=champ[0];
   body=`${top&&top.v>0?`<div class="lbhero"><div class="lbcrown">👑</div>${face(top.p)}<div><div style="opacity:.9">This week's Math Champion (so far)</div><b style="font-size:26px">${esc(top.p.name)}</b><div>${top.v} champion points</div></div></div>`:''}${goal}
   <div class="lbgrid">${board('👑','Math Champion','Points depend on how hard each problem is <b>for your grade</b>. Only the first 150 answers each day count.',champ,r=>`${r.v}${r.d>0?`<small class="up">▲ ${r.d} vs last week</small>`:''}`)}
   ${board('📈','Beat Your Best','How much better you did than your own last week.',bb,r=>r.first?'new!':r.v>0?'+'+r.v+'%':'<span class="muted" style="font-weight:600">keep going!</span>','Compared with the same days last week. No "last place" here, only the top 3 get medals.')}
+  ${board('📚','Reading Champion','Read stories in the <b>Library</b>. Each story gives 5 points + 10 for every ⭐ (first try right). Stories match your grade.',rdg,r=>`${r.v}<small class="up" style="color:#868e96">${pl_(r.n,'story')}</small>`)}
   ${board('📅','Practice Days','Showing up counts more than marathon sessions.',pdays,r=>pl_(r.v,'day'))}</div>`;
  }else{
   const rows=ps.map(p=>({p,t:trophyOf(p)}));
@@ -2988,6 +3153,7 @@ SCREENS.parent=()=>{
  <p class="note">Every child starts every skill at the easiest level (single digits) and moves up from there. Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level. <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${cloudSection()}
  ${state.players.map(parentCard).join('')}
+ ${(()=>{const rows=[];state.players.forEach(pl=>(pl.readLog||[]).slice(-6).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · "${esc(v.t)}" · ${'⭐'.repeat(v.s)}${'☆'.repeat(3-v.s)} (${v.s}/3 right on the first try)</li>`)));return rows.length?`<div class="pp"><h3>📚 Library reading</h3><p class="note">Professor Hoot gives 2 new stories a day with 3 multiple-choice questions each (main idea, details, lesson). Grades 1-3 get shorter stories, grades 4+ get longer ones.</p><ul>${rows.join('')}</ul></div>`:'';})()}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.kindVisits||[]).slice(-8).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · ${v.kind==='spell'?`spelling "${esc(v.what)}"`:v.kind==='math'?`math: ${esc(v.what)}`:`blessing vs ${esc(v.what)} (was losing)`}</li>`)));state.players.forEach(pl=>(pl.principalVisits||[]).slice(-4).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · 🎓 Principal Wise visit: ${esc(v.t)}</li>`)));return rows.length?`<div class="pp"><h3>✨ Kind Teacher &amp; 🎓 Principal visits</h3><p class="note">She appears at most once a day per child, only when they are truly stuck. These show where each child needed help.</p><ul>${rows.join('')}</ul></div>`:'';})()}
  <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
  <div class="pp"><h3>💾 Saving</h3><p>Everyone's progress saves automatically on this device, and the game picks up where each child left off, even in the middle of a battle.</p>
