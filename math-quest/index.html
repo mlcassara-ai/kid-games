@@ -1340,7 +1340,7 @@ SCREENS.zone=zid=>{
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">${ROUNDS[cr].m} ${z.name}</h2></div>
  ${roundTabs(p,z)}
  <div class="zmap ${z.cls} r${cr}"><svg class="zpath" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${NODE_POS.map(q=>q.join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>${decor}${nodes}</div>
- <p class="ztip">${z.op==='spell'?`${esc(spellTitle(p))}: ${spellList(p).length} words · ${spellList(p).filter(x=>learned(p,x.w)).length} learned. Each battle uses about 6 words; the boss uses all of them!`:z.op==='mix'?'Every kind of problem lives here. Watch out!':'Now practicing: <b>'+KID_DESC[z.op][lvl(p,z.op)]+'</b>'}</p></div>`;
+ <p class="ztip">${z.op==='spell'?`${esc(spellTitle(p))}: ${spellList(p).length} words · ${spellList(p).filter(x=>learned(p,x.w)).length} learned. Each battle uses about 6 words; the boss uses 20!${bankPacks(p).length?` 📚 Bonus word packs: ${packsOpen(p)} of ${bankPacks(p).length} open (learn 15 words in a pack to open the next).`:''}`:z.op==='mix'?'Every kind of problem lives here. Watch out!':'Now practicing: <b>'+KID_DESC[z.op][lvl(p,z.op)]+'</b>'}</p></div>`;
 };
 
 /* ================= questions ================= */
@@ -3129,7 +3129,7 @@ function roundPrize(p,r,z,B){
  const title=z.op==='spell'?`${ROUNDS[r].n} Speller`:`${ROUNDS[r].n} Hero of ${z.name}`;
  return `<div class="rdone"><div class="rdm">${ROUNDS[r].m}</div><b>${ROUNDS[r].n.toUpperCase()} ROUND COMPLETE!</b><div>You are now a <b>${esc(title)}</b>!</div>${lines.length?`<div class="rprize">${lines.join('<br>')}</div>`:''}${r<5?`<div class="rnext">${ROUNDS[r+1].m} <b>${ROUNDS[r+1].n}</b> round unlocked!</div>`:'<div class="rnext">👑 You conquered every round! 👑</div>'}</div>`;
 }
-function checkSpellSig(p){const sig=spellList(p).map(x=>x.w).join('|');if(!sig)return;if(p.spellSig===undefined){p.spellSig=sig;return;}
+function checkSpellSig(p){const sig=spellSchool(p).map(x=>x.w).join('|');if(!sig)return;if(p.spellSig===undefined){p.spellSig=sig;return;}
  if(p.spellSig!==sig){p.spellSig=sig;p.progress.spell=[0,0,0,0,0,0];if(p.rounds)delete p.rounds.spell;if(p.roundSel)delete p.roundSel.spell;save();setTimeout(()=>toast('📜 New spelling words! Starting again at Bronze 🥉'),300);}}
 function spellRound(){return B&&B.mode==='spell'?(B.round||1):0;}
 
@@ -3222,7 +3222,12 @@ const SPELL_ZONE={id:'spell',name:'Spelling Grove',op:'spell',sym:'Aa',cls:'z-sp
  mons:[['Letter Bug','🐞'],['Typo Toad','🐸'],['Scrambler','🦝'],['Vowel Vole','🐭'],['Quill Parrot','🦜'],['Grand Owl of Words','🦉']]};
 const findZone=id=>id==='spell'?SPELL_ZONE:ZONES.find(x=>x.id===id);
 function kidData(p){const k=(p.name||'').toLowerCase().trim();const byG=CONTENT.byGrade||{};return (CONTENT.kids||{})[k]||byG[p.grade<=3?'3':'5']||byG['3']||{};}
-function spellList(p){if(p.customWords&&p.customWords.length)return p.customWords;const s=kidData(p).spelling;return (s&&s.words)||[];}
+function spellSchool(p){if(p.customWords&&p.customWords.length)return p.customWords;const s=kidData(p).spelling;return (s&&s.words)||[];}
+const BANK_PACK=20,BANK_UNLOCK=15;
+function bankPacks(p){const bank=((CONTENT.wordBank||{})[(p.grade||3)<=3?'3':'5'])||[];const have=new Set(spellSchool(p).map(x=>x.w.toLowerCase()));const list=bank.filter(x=>!have.has(x.w.toLowerCase()));const out=[];for(let i=0;i<list.length;i+=BANK_PACK)out.push(list.slice(i,i+BANK_PACK));return out;}
+function packsOpen(p){const pk=bankPacks(p);let n=pk.length?1:0;while(n<pk.length&&pk[n-1].filter(x=>learned(p,x.w)).length>=Math.min(BANK_UNLOCK,pk[n-1].length))n++;return n;}
+function spellBank(p){return bankPacks(p).slice(0,packsOpen(p)).flat();}
+function spellList(p){return spellSchool(p).concat(spellBank(p));}
 function spellTitle(p){if(p.customWords&&p.customWords.length)return 'Words added in the Parent Corner';const s=kidData(p).spelling;return (s&&s.title)||'Spelling words';}
 function quizList(p){return (kidData(p).quizzes||[]).map(id=>Object.assign({id},(CONTENT.quizzes||{})[id])).filter(q=>q.questions&&q.questions.length);}
 function hwList(p){return (kidData(p).homework||[]).filter(h=>h.problems&&h.problems.length);}
@@ -3253,9 +3258,10 @@ function startSpell(i){
  const p=P();const words=spellList(p);
  if(!words.length){toast('No spelling words yet. A grown-up can add them in the Parent Corner.');return;}
  checkSpellSig(p);const round=curRound(p,'spell');
- const isBoss=i===5;let pickd;
- if(isBoss)pickd=round>=5?words.slice():words.slice(0,20);
- else{pickd=[...words].map(x=>({x,k:(learned(p,x.w)?10:0)+wordStat(p,x.w).s*2-wordStat(p,x.w).w+Math.random()*3})).sort((a,b)=>a.k-b.k).slice(0,Math.min(6,words.length)).map(o=>o.x);}
+ const po=packsOpen(p);if(p.spellPacks===undefined)p.spellPacks=po;else if(po>p.spellPacks){p.spellPacks=po;save();setTimeout(()=>toast(`📚 New word pack unlocked! Pack ${po} of ${bankPacks(p).length}`),300);}
+ const isBoss=i===5;const school=new Set(spellSchool(p).map(x=>x.w));
+ const ranked=[...words].map(x=>({x,k:(learned(p,x.w)?10:0)+wordStat(p,x.w).s*2-wordStat(p,x.w).w+(school.has(x.w)?0:2)+Math.random()*3})).sort((a,b)=>a.k-b.k).map(o=>o.x);
+ let pickd=ranked.slice(0,Math.min(isBoss?(round>=5?30:20):6,words.length));
  pickd=pickd.map(x=>({type:'word',word:x.w,sentence:x.s||''})).sort(()=>Math.random()-.5);
  questBattle({mode:'spell',z:SPELL_ZONE,i,isBoss,name:SPELL_ZONE.mons[i][0],emoji:SPELL_ZONE.mons[i][1],items:pickd,backTo:'zone',backArg:'spell',round});
 }
