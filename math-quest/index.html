@@ -2312,7 +2312,8 @@ const BIOMES={
  mesa:{c:[53,18],g:'#e0a070',g2:'#d89868',zone:'mesa',bl:['🌵','🪨'],de:['📏','🦴']},
  summit:{c:[52,29],g:'#eef4fb',g2:'#e4ecf6',zone:'summit',bl:['🌲','🏔️'],de:['❄️','📖']},
  garden:{c:[31,11],g:'#b8e39a',g2:'#afdb90',zone:'garden',bl:['🌷','🌳'],de:['🌼','🐝']},
- reef:{c:[31,24],g:'#9fe0e8',g2:'#94d6df',zone:'reef',bl:['🌿','🪨'],de:['🐚','💧']}};
+ reef:{c:[31,24],g:'#9fe0e8',g2:'#94d6df',zone:'reef',bl:['🌿','🪨'],de:['🐚','💧']},
+ haunt:{c:[14,24],g:'#5a4a7e',g2:'#524373',zone:'haunt',overlay:true,rad:3.2,bl:['🪦'],de:['🎃','🕸️']}};
 const NPCS=[
  {id:'school',x:18,y:15,e:'🌀',n:'Quest Portal'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
  {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'},{id:'library',x:24,y:19,e:'📚',n:'Library'},{id:'build',x:26,y:17,e:'🏗️',n:'Builder'}];
@@ -2320,7 +2321,7 @@ let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildWorld(){
  const r=wrng(20260925);const T=[];
- const keys=Object.keys(BIOMES);
+ const keys=Object.keys(BIOMES).filter(k=>!BIOMES[k].overlay);
  for(let y=0;y<WROWS;y++){T[y]=[];for(let x=0;x<WCOLS;x++){
   let best=null,bd=1e9;for(const k of keys){const c=BIOMES[k].c;const d=Math.hypot((x-c[0])*1,(y-c[1])*1.15)*(k==='village'?.8:1)+r()*1.2;if(d<bd){bd=d;best=k;}}
   const edge=x===0||y===0||x===WCOLS-1||y===WROWS-1;
@@ -2335,7 +2336,7 @@ function buildWorld(){
  for(let y=vc[1]-4;y<=vc[1]+3;y++)for(let x=vc[0]-5;x<=vc[0]+5;x++){const t=T[y][x];t.plaza=true;t.path=false;t.block=false;t.o=null;}
  // decor
  for(let y=1;y<WROWS-1;y++)for(let x=1;x<WCOLS-1;x++){const t=T[y][x];if(t.path||t.plaza)continue;const B=BIOMES[t.b];const v=r();
-  const nearGate=Object.values(BIOMES).some(bb=>bb.zone&&Math.abs(bb.c[0]-x)<=1&&Math.abs(bb.c[1]-y)<=1);if(nearGate)continue;
+  const nearGate=Object.values(BIOMES).some(bb=>bb.zone&&!bb.overlay&&Math.abs(bb.c[0]-x)<=1&&Math.abs(bb.c[1]-y)<=1);if(nearGate)continue;
   if(v<.17){t.o=B.bl[Math.floor(r()*B.bl.length)];t.block=true;}else if(v<.25){t.o=B.de[Math.floor(r()*B.de.length)];t.deco=true;}}
  // lakes
  for(const [cx,cy,rad] of [[14,11,2.2],[45,23,2],[46,11,1.6],[35,28,1.4]])for(let y=0;y<WROWS;y++)for(let x=0;x<WCOLS;x++){const t=T[y][x];if(!t.path&&!t.plaza&&Math.hypot(x-cx,y-cy)<rad){t.water=true;t.block=true;t.o=null;}}
@@ -2348,6 +2349,13 @@ function buildWorld(){
   if(t.b!==k||t.block||t.path||t.gate||t.plaza)continue;if(Math.hypot(x-BIOMES[k].c[0],y-BIOMES[k].c[1])<3)continue;
   const nb=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const u=T[y+dy][x+dx];return u&&!u.block;});if(!nb)continue;
   t.chest=k;t.block=true;t.o=null;chests.push({id:k,x,y});break;}}
+ // overlay patches (event worlds): stamped last so the rest of the map stays exactly the same
+ for(const k of Object.keys(BIOMES)){const B=BIOMES[k];if(!B.overlay)continue;const [cx,cy]=B.c;
+  for(let y=1;y<WROWS-1;y++)for(let x=1;x<WCOLS-1;x++){const t=T[y][x];if(t.water||t.plaza||t.gate||t.npc||t.chest)continue;const d=Math.hypot(x-cx,(y-cy)*1.1);if(d>B.rad)continue;
+   t.b=k;t.o=null;t.block=false;t.deco=false;if(t.path||d<1.5)continue;const v=(x*7+y*13)%11;if(v===0){t.o=B.bl[0];t.block=true;}else if(v<=3){t.o=B.de[v%B.de.length];t.deco=true;}}
+  const lay=(x,y)=>{const t=T[y]&&T[y][x];if(t&&!t.water&&!t.gate&&!t.npc&&!t.chest&&!t.plaza){t.path=true;t.block=false;t.o=null;t.deco=false;}};
+  const vc2=BIOMES.village.c;let x=vc2[0]-6,y=vc2[1]+3;while(x>cx){lay(x,y);x--;}lay(x,y);while(y<cy-1){y++;lay(x,y);}
+  const g=T[cy][cx];g.gate=B.zone;g.block=true;g.o=null;g.water=false;g.b=k;gates[B.zone]=B.c;}
  W={T,gates,chests,mobs:[],hx:vc[0],hy:vc[1]+2,px:vc[0],py:vc[1]+3,moving:false,path:[],raf:0,spr:{},lastBiome:null,mobT:0,drawX:null,drawY:null,heroImg:null,dir:1,t0:performance.now()};
  wSpawnAll();
 }
@@ -2436,7 +2444,7 @@ function wFrame(now){
   if(t.gate){const z=ZONES.find(zz=>zz.id===t.gate);const lock=zoneLocked(z,P());const s=ts*1.5;
    items.push({y,draw:()=>{ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.8,ts*.8,ts*.3,0,0,7);ctx.fill();
     ctx.drawImage(wSprite(lock?'🔒':z.art,Math.round(ts*1.3)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.25+Math.sin(now/500)*2,s,s);
-    wLabel(ctx,z.name,sx+ts/2,sy-ts*.55,'#fff','rgba(40,20,80,.85)');}});}
+    wLabel(ctx,z.name+(z.event&&lock?(eventSoon()?' · Opens Oct 18':' · Closed'):''),sx+ts/2,sy-ts*.55,'#fff',z.event?'rgba(200,80,0,.9)':'rgba(40,20,80,.85)');}});}
   if(t.plaza&&!t.npc){const dc=plazaDecor(x,y);if(dc)items.push({y:y-.01,draw:()=>ctx.drawImage(wSprite(dc,Math.round(ts*.7)),sx+ts*.15,sy+ts*.05,ts*.7,ts*.7)});}
   if(t.npc){const n=NPCS.find(q=>q.id===t.npc);const s=ts*(n.id==='fountain'?1.2:1.05);items.push({y,draw:()=>{ctx.drawImage(wSprite(n.e,Math.round(ts*.95)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.1,s,s);if(n.n){const vb=VIL.find(v=>v.npc===n.id);const vl=vb?vLv(P(),vb.id):0;wLabel(ctx,n.n+(vl?' '+'★'.repeat(vl):''),sx+ts/2,sy-ts*.18,'#3b2b6b','rgba(255,255,255,.9)');}}});}
   if(t.chest){const done=wChestOpen(t.chest);items.push({y,draw:()=>{ctx.globalAlpha=done?.45:1;const bob=done?0:Math.sin(now/300)*2;ctx.drawImage(wSprite(done?'📦':'🎁',Math.round(ts*.75)),sx+ts*.1,sy+ts*.05+bob,ts*.8,ts*.8);ctx.globalAlpha=1;
