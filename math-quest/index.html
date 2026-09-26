@@ -1120,7 +1120,8 @@ function startBattle(zid,i,resume,opts){
  const champ=false;
  const wild=!!((opts&&opts.wild)||(resume&&resume.wild));
  const round=wild?1:((resume&&resume.round)||curRound(p,zid));const RM=RMUL[round]||RMUL[1];
- const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp);
+ const tired=wild?0:Math.min(3,((p.tired||{})[tiredKey(zid,round,i)])||0);
+ const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.12*tired));
  const foes=[{n:wild&&opts?opts.n:z.mons[i][0],e:wild&&opts?opts.e:z.mons[i][1],hp:mhp,max:mhp}].concat(resume||wild?[]:gangFor(p,z,i,isBoss,round));
  B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0,round};
  if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
@@ -1129,7 +1130,8 @@ function startBattle(zid,i,resume,opts){
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
  renderBattle();
  banner((B.round>1?ROUNDS[B.round].m+' ':'')+(B.foes.length>1?`GANG OF ${B.foes.length}!`:B.wild?`🌿 A wild ${B.name}!`:(isBoss?'BOSS: ':'⚔️ ')+B.name+'!'));
- if(B.foes.length>1&&!resume)setTimeout(()=>toast(`${B.foes.map(f=>f.e).join(' ')} Beat all ${B.foes.length} to win! Wrong answers mean they ALL attack!`),900);
+ if(tired&&!resume)setTimeout(()=>toast(`😴 ${B.name} is tired from last time! It has ${tired*12}% less health.`),1000);
+ else if(B.foes.length>1&&!resume)setTimeout(()=>toast(`${B.foes.map(f=>f.e).join(' ')} Beat all ${B.foes.length} to win! Wrong answers mean they ALL attack!`),900);
  setTimeout(nextQ,900);
 }
 /* gangs: after a world's boss is beaten, monsters sometimes team up */
@@ -1138,7 +1140,7 @@ function gangFor(p,z,i,isBoss,round){
  let n=0;const r=Math.random();
  if(round===1){if(isBoss)n=r<.3?1:0;else if(p.level>=10&&r<.15)n=2;else if(r<.45)n=1;}
  else if(isBoss)n=round===2?(r<.5?1:0):round===3?1:2;
- else{const [p2,p3]={2:[.55,.15],3:[.45,.3],4:[.4,.45],5:[.3,.6]}[round];n=r<p3?2:r<p3+p2?1:0;}
+ else{const [p2,p3]={2:[.55,.15],3:[.45,.3],4:[.45,.3],5:[.45,.4]}[round];n=r<p3?2:r<p3+p2?1:0;}
  const RM=RMUL[round]||RMUL[1];
  const pool=[0,1,2,3,4].filter(k=>k!==i);const out=[];
  for(let k=0;k<n&&pool.length;k++){const j=pool.splice(Math.floor(Math.random()*pool.length),1)[0];const hp=Math.round((110+j*15)*.6*RM.hp);out.push({n:z.mons[j][0],e:z.mons[j][1],hp,max:hp});}
@@ -1269,7 +1271,7 @@ function nextQ(){
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
- B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?Math.max(B.round>=5?8:10,fastLimit(q)*(B.round>=5?2:2.5)):0;
+ B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?Math.max(B.round>=5?8:10,fastLimit(q)*(B.round>=5?2:2.5),medianThink(p)*(B.round>=5?1.8:2.2)):0;
  p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
@@ -1301,7 +1303,7 @@ function press(k){
 }
 function answer(){
  const p=P(),q=B.q,secs=(performance.now()-B.t0)/1000;
- const v=parseInt(B.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const fast=secs<fastLimit(q);const slip=!ok&&!q.tpl&&isSlip(q,B.input);
+ const v=parseInt(B.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const med=medianThink(p);const fast=med?secs<med*0.85:secs<fastLimit(q);const slip=!ok&&!q.tpl&&isSlip(q,B.input);
  B.busy=true;
  p.stats[q.op][ok?'r':'w']++;
  const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
@@ -1316,6 +1318,7 @@ function answer(){
   if(q.again||q.practice){B.coins+=3;p.coins+=3;}
   const perk=petPerk(p),spell=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
   let dmg=20*spell.mult*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
+  p.thinkT=p.thinkT||[];p.thinkT.push(Math.round(Math.min(60,secs)*10)/10);if(p.thinkT.length>20)p.thinkT.shift();
   const crit=fast&&!q.hinted&&Math.random()<(B.streak>=2?.6:.35);if(crit)dmg*=2;dmg=Math.round(dmg);
   const c=5+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;
   B.xp+=Math.round(10*(perk==='xp'?1.5:1));
@@ -1456,7 +1459,7 @@ function winBattle(){
  const p=P();SFX.win();
  const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const stars=B.wrong<=1?3:B.wrong<=3?2:1;
- const R=B.round||1;const pr=rstore(p,B.z.id,R);const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
+ const R=B.round||1;if(p.tired)delete p.tired[tiredKey(B.z.id,R,B.i)];const pr=rstore(p,B.z.id,R);const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
  let bonus=B.isBoss?100:25+B.i*5;if(!first)bonus=Math.round(bonus/2);bonus=Math.round(bonus*(1+.25*(R-1)));
  const rhtml=B.isBoss&&first?roundPrize(p,R,B.z,B):'';
  const secs=Math.round((Date.now()-B.start)/1000),key=(R>1?'r'+R+'-':'')+B.z.id+'-'+B.i,old=p.pb[key];
@@ -1485,9 +1488,10 @@ function winBattle(){
 }
 function loseBattle(){
  if(B.wild){endBattleBook();save();modal(`<div class="mcard"><div class="big-emoji">😵‍💫</div><h2>The wild ${esc(B.name)} got away!</h2><p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned.</p><div class="row"><button class="btn green big" onclick="closeModal();go('world')">Back to exploring 🧭</button></div></div>`);return;}
+ {const p=P();p.tired=p.tired||{};const k=tiredKey(B.z.id,B.round||1,B.i);p.tired[k]=Math.min(3,(p.tired[k]||0)+1);}
  endBattleBook();save();const z=B.z.id,i=B.i;
  modal(`<div class="mcard"><div class="big-emoji">😵‍💫</div><h2>${esc(B.name)} won this time!</h2>
- <p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned. Every hero gets knocked down sometimes. Try again!</p>
+ <p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned. Every hero gets knocked down sometimes. Try again!</p><p class="muted">😴 ${esc(B.name)} is getting tired, so it will be a little weaker next time!</p>
   ${downsNote()}<div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button><button class="btn green" onclick="startBattle('${z}',${i})">Try again 💪</button></div></div>`);
 }
 function fleeBattle(){
@@ -1984,7 +1988,9 @@ function mergeGifts(remote){const a=state.gifts||{},b=(remote&&remote.gifts)||{}
 
 /* ================= rounds: 5 medal rounds per world ================= */
 const ROUNDS=[null,{n:'Bronze',m:'🥉'},{n:'Silver',m:'🥈'},{n:'Gold',m:'🥇'},{n:'Diamond',m:'💎'},{n:'Legend',m:'👑'}];
-const RMUL={1:{hp:1,dmg:1},2:{hp:1.25,dmg:1.2},3:{hp:1.45,dmg:1.35},4:{hp:1.6,dmg:1.5},5:{hp:1.8,dmg:1.65}};
+const RMUL={1:{hp:1,dmg:1},2:{hp:1.2,dmg:1.15},3:{hp:1.35,dmg:1.25},4:{hp:1.45,dmg:1.3},5:{hp:1.6,dmg:1.4}};
+function medianThink(p){const a=(p.thinkT||[]);if(a.length<5)return 0;const b=[...a].sort((x,y)=>x-y);return b[Math.floor(b.length/2)];}
+const tiredKey=(zid,r,i)=>zid+'-'+r+'-'+i;
 function rpeek(p,zid,r){if(r<=1)return p.progress[zid]||[];return ((p.rounds||{})[zid]||{})[r]||[];}
 function rstore(p,zid,r){if(r<=1){p.progress[zid]=p.progress[zid]||[0,0,0,0,0,0];return p.progress[zid];}p.rounds=p.rounds||{};const z=p.rounds[zid]=p.rounds[zid]||{};return z[r]=z[r]||[0,0,0,0,0,0];}
 function medal(p,zid){let m=0;for(let r=1;r<=5;r++){if((rpeek(p,zid,r)[5]||0)>0)m=r;else break;}return m;}
