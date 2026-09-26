@@ -305,6 +305,8 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .cafe-steps{display:flex;gap:8px;justify-content:center;margin:0 0 12px}.cafe-steps span{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:20px;opacity:.55}.cafe-steps span.on{background:#ffd43b;opacity:1;box-shadow:0 0 0 3px #fff}.cafe-steps span.done{background:#8ce99a;opacity:1}
 .room{min-height:calc(100dvh - 60px)}
 .lib-room{background:linear-gradient(rgba(62,39,20,.55),rgba(62,39,20,.55)),repeating-linear-gradient(0deg,#6d4323 0 12px,transparent 12px 96px),repeating-linear-gradient(90deg,#e03131 0 14px,#1c7ed6 14px 26px,#2f9e44 26px 42px,#f08c00 42px 52px,#7048e8 52px 68px,#fcc419 68px 78px,#0c8599 78px 94px),#8b5a2b;background-attachment:fixed}
+.rlmeter{background:#fffdf5;border-radius:14px;padding:8px 12px;margin:0 auto 10px;max-width:760px;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.2)}.rlbadge{font-size:16px}.rlbar{height:12px;border-radius:8px;background:#f1e3c8;overflow:hidden;margin:5px 0}.rlbar i{display:block;height:100%;background:linear-gradient(90deg,#f59f00,#e8590c)}.rlmeter small{color:#8d5a2b}
+.lbook .blv{font-size:10px;opacity:.85}.shelf-lab{color:#ffe8cc;font-weight:800;margin:0 0 8px 4px}.lvmsg{margin-top:6px;background:rgba(255,255,255,.2);border-radius:10px;padding:4px 8px}
 .lib-head{display:flex;gap:10px;align-items:flex-end;margin-bottom:10px}.hoot{width:120px;flex:none}.hoot-svg{width:100%;height:auto;display:block;animation:bob 2.8s ease-in-out infinite}.hoot-eyes{animation:blink 4s infinite;transform-origin:100px 86px}@keyframes blink{0%,94%,100%{transform:none}97%{transform:scaleY(.1)}}
 .lib-bubble{border-color:#b08900}.lib-bubble::before{border-right-color:#b08900}.lib-bubble .nm{color:#8d5a2b}
 .shelf{background:#6d4323;border-radius:16px;padding:14px 12px 0;box-shadow:inset 0 0 0 6px #5a361b}.shelf-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:flex-end;padding-bottom:12px;border-bottom:14px solid #4a2c15;margin-bottom:14px}
@@ -453,6 +455,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .ceraward span{font-size:22px}.ceraward small{display:block;color:#7a6a3a}
 @keyframes cerIn{from{opacity:0;transform:scale(.4) rotate(-6deg)}to{opacity:1;transform:none}}
 .cernote{text-align:center;font-size:14px;opacity:.9;margin:12px 0 0}
+.petlb .petbig{font-size:34px;width:44px;text-align:center;flex:none}.petlb .ownertag{display:inline-flex;align-items:center;gap:4px;background:#f3f0ff;color:#5f3dc4;border-radius:999px;padding:1px 8px 1px 2px;font-size:12px;font-weight:700;vertical-align:middle}.petlb .ownertag .lbface{width:22px;height:22px}.petlb .petbits{display:block;color:#868e96;font-size:12px;margin-top:2px}
 .fbar.tiered{position:relative;overflow:visible}.fmark{position:absolute;top:-4px;bottom:-4px;width:4px;margin-left:-2px;background:#fff;border-radius:2px;box-shadow:0 0 0 2px rgba(0,0,0,.25)}.fmark.got{background:#ffd43b}
 .ftiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.ftier{background:rgba(255,255,255,.15);border-radius:12px;padding:6px 8px;text-align:center;display:flex;flex-direction:column;gap:1px}.ftier span{font-size:20px;font-weight:800}.ftier small{opacity:.9}.ftier.got{background:#ffd43b;color:#5c3c00}
 .fnote{font-size:12px;opacity:.8;margin-top:6px}
@@ -636,7 +639,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1503,7 +1506,7 @@ function startBattle(zid,i,resume,opts){
  const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.15*tired)*(z.hpx||1)*lvlScale(p,round).hp);
  const foes=[{n:wild&&opts?opts.n:z.mons[i][0],e:wild&&opts?opts.e:z.mons[i][1],hp:mhp,max:mhp}].concat(resume||wild?[]:gangFor(p,z,i,isBoss,round));
  B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0,round};
- if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round','spellFrozen','petFrozen','monShield','pwUsed','pwTick','petSince'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
+ if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round','spellFrozen','petFrozen','monShield','pwUsed','pwTick','petSince','bufN'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
  if(resume&&B.foes&&B.foes[B.ti]){const f=B.foes[B.ti];B.name=f.n;B.emoji=f.e;B.mmax=f.max;B.foes[B.ti].hp=B.mhp;}
  if(wild){B.wild=true;B.backTo='world';B.name=foes[0].n;B.emoji=foes[0].e;}else{p.last={zid,i};if(!resume&&B.foes[0])B.foes[0].pw=powersFor(p,z,i,isBoss,round);B.tiredN=tired;if(!resume&&p.lunchTray){p.lunchTray=false;B.hmax+=20;B.hhp+=20;B.shieldUp=true;B.lunch=true;save();}}
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
@@ -1724,7 +1727,7 @@ function usePetMove(){
  el.animate([{transform:`translate(${x0}px,${y0}px) scale(1)`},{transform:`translate(${(x0+x1)/2}px,${Math.min(y0,y1)-90}px) scale(1.3) rotate(-20deg)`},{transform:`translate(${x1}px,${y1}px) scale(1.4)`},{transform:`translate(${x0}px,${y0}px) scale(1)`}],{duration:1100,easing:'ease-in-out'}).onfinish=()=>{el.remove();if(pf)pf.style.visibility='';};
  setTimeout(()=>{
   if(!B)return;const base=[0,35,42,50][PET_STAGES.indexOf(petStage(pd))]||35;const dmg=Math.min(Math.round(B.mmax*.3),Math.round(base*(happy?1.25:1)*((PET_TIERS[pet.tier]||{}).mult||1)));
-  B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();burst(x1+32,y1+32,'#ffd84a',14);floatText('#monS',`${happy?'😊 ':''}-${dmg}`,'#ffe066');
+  B.mhp=Math.max(0,B.mhp-dmg);petCredit(p,'dmg',dmg);SFX.hit();burst(x1+32,y1+32,'#ffd84a',14);floatText('#monS',`${happy?'😊 ':''}-${dmg}`,'#ffe066');
   $('#monS').animate([{transform:'none'},{transform:'translateX(20px) rotate(12deg)'},{transform:'none'}],{duration:400});
   pd.xp+=.5;updateBars();
   if(B.mhp<=0){if(nextFoe(()=>{if(!B||B.over)return;B.busy=false;B.t0=performance.now();save();updateMana();}))return;B.over=true;setTimeout(winBattle,700);return;}
@@ -1762,14 +1765,14 @@ function nextQ(){
   const old=(!B.review.length&&Math.random()<.1)?practiceFact(p,op):null;
   if(old){q=Object.assign({},old,{practice:true});label='⭐ Star problem: +3 coins';}
   else{
-   const L=lvl(p,op);
-   let t=0;do{q=genQ(op,L);}while(B.recent.includes(q.text)&&t++<12);
+   const L0=lvl(p,op),mast=B.round>=4&&!B.wild&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
+   let t=0;do{q=genQ(op,L);}while(B.recent.includes(q.text)&&t++<12);if(mast)q.mastered=true;
   }
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
  B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?(()=>{const md=medianThink(p),fl=fastLimit(q)*(B.round>=5?2:2.5);return Math.max(B.round>=5?6:8,md?Math.min(fl,md*(B.round>=5?2.5:3)):fl,md*(B.round>=5?1.8:2.2));})():0;
- p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick,petSince:B.petSince};save();
+ p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick,petSince:B.petSince,bufN:B.bufN||0};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
  showQ();
@@ -1805,7 +1808,7 @@ function answer(){
  p.stats[q.op][ok?'r':'w']++;
  const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
  let lvChange=null;const prevL=lvl(p,q.op);
- if(!q.again&&!q.practice&&!q.hinted)lvChange=adjustSkill(p,q.op,ok,slip);
+ if(!q.again&&!q.practice&&!q.hinted&&!q.mastered)lvChange=adjustSkill(p,q.op,ok,slip);
  if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${UP_N} right in a row to move back up!`);},900);}
  if(ok){
   B.right++;B.petSince=(B.petSince||0)+1;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();thawTick();
@@ -1818,8 +1821,8 @@ function answer(){
   let dmg=20*(B.spellFrozen>0?1:spell.mult)*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
   p.thinkT=p.thinkT||[];p.thinkT.push(Math.round(Math.min(60,secs)*10)/10);if(p.thinkT.length>20)p.thinkT.shift();
   const crit=fast&&!q.hinted&&Math.random()<(B.streak>=2?.6:.35);if(crit)dmg*=2;dmg=Math.round(dmg);
-  const c=coinPer(p,q)+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;
-  B.xp+=Math.round(10*(perk==='xp'?1.5:1));
+  const c=coinPer(p,q)+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;if(perk==='coins')petCredit(p,'c',2);
+  B.xp+=Math.round(10*(perk==='xp'?1.5:1));if(perk==='xp')petCredit(p,'xp',5);if(perk==='power')petCredit(p,'dmg',Math.round(dmg*.15/1.15));
   save();SFX.correct();$('#qcard').classList.add('right');
   const blocked=!!B.monShield;if(blocked){B.monShield=0;dmg=0;}
   castSpell(spell,crit,()=>{
@@ -1827,7 +1830,7 @@ function answer(){
    B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();
    floatText('#monS',(crit?'💥 CRITICAL! ':'')+'-'+dmg,crit?'#ffe066':'#fff');if(crit){banner('💥 CRITICAL HIT!');const ar=$('#arena');if(ar){ar.classList.remove('critflash');void ar.offsetWidth;ar.classList.add('critflash');}}
    $('#monS').animate([{transform:'translateX(0)'},{transform:'translateX(14px) rotate(8deg)'},{transform:'translateX(-8px)'},{transform:'none'}],{duration:350});
-   if(perk==='heal'&&B.streak%5===0&&B.hhp<B.hmax){const h=Math.min(20,B.hmax-B.hhp);B.hhp+=h;floatText('#heroS','+'+h+' ❤️','#8dffb0');}
+   if(perk==='heal'&&B.streak%5===0&&B.hhp<B.hmax){const h=Math.min(20,B.hmax-B.hhp);B.hhp+=h;petCredit(p,'hp',h);floatText('#heroS','+'+h+' ❤️','#8dffb0');}
    if([3,5,10,15,20].includes(B.streak))banner(B.streak>=10?`🔥 UNSTOPPABLE x${B.streak}!`:`🔥 COMBO x${B.streak}!`);
    updateBars();
    if(B.mhp<=0){if(!nextFoe(()=>setTimeout(nextQ,250))){B.over=true;setTimeout(winBattle,500);}}
@@ -1906,7 +1909,7 @@ function monsterAttack(done){
   if(B.mode!=='math'){floatText('#heroS','💨 Dodged!','#9fe7ff');}
   else if(B.shieldUp){B.shieldUp=false;SFX.coin();floatText('#heroS','🛡️ Shield blocked it!','#9fe7ff');}
   else if(!B.grace&&!(B.round>=4)){B.grace=true;floatText('#heroS','💨 Missed you!','#9fe7ff');}
-  else if(B.shield&&!(B.petFrozen>0)){B.shield=false;floatText('#heroS','🐾 Pet blocked it!','#9fe7ff');}
+  else if(B.shield&&!(B.petFrozen>0)){B.shield=false;petCredit(P(),'hp',dmg);floatText('#heroS','🐾 Pet blocked it!','#9fe7ff');}
   else{B.hhp=Math.max(0,B.hhp-dmg);SFX.hurt();floatText('#heroS',(others.length?'Gang attack!':atk.n+'!')+' -'+dmg,'#ff8a8a');
    $('#heroS').animate([{filter:'none'},{filter:'brightness(2) sepia(1) hue-rotate(-50deg) saturate(5)'},{filter:'none'}],{duration:400});
    $('#arena').animate([{transform:'none'},{transform:'translate(-6px,3px)'},{transform:'translate(6px,-3px)'},{transform:'none'}],{duration:300});}
@@ -1970,7 +1973,7 @@ function winBattle(){
  let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
  const gangN=(B.foes||[]).length;if(gangN>1)bonus+=25*(gangN-1);
  p.coins+=bonus;B.coins+=bonus;B.xp+=(B.isBoss?60:20)+(gangN>1?15*(gangN-1):0);
- const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1)*(p.pets.length>=20?.5:1);const egg=Math.random()<chance;if(egg)p.eggs++;
+ const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1)*(p.pets.length>=20?.5:1);const egg=Math.random()<chance;if(egg){p.eggs++;if(petPerk(p)==='lucky'&&!(B.isBoss&&first))petCredit(p,'egg',1);}
  p.battles++;const up=endBattleBook();save();
  const z=B.z.id,i=B.i;
  setTimeout(()=>{
@@ -2813,12 +2816,22 @@ const STORIES=[
  q:[['What is the theme of the story?',['Winning is all that matters','Steady practice and patience help you reach big goals','Running hurts','Coaches are strict'],1,'Kai improved a little at a time and reached his goal.'],
   ['What did Kai do when his knee hurt?',['He quit','He rested and walked instead','He ran faster','He bought new shoes'],1,'"He rested and walked instead."'],
   ['Why was Kai smiling if he did not win?',['He got a prize for last place','He reached his own goal of running the whole race','He saw his friends','The race was short'],1,'He "ran the whole 5K without stopping."']]}];
-/* ================= the Library: Professor Hoot's reading comprehension ================= */
+/* ================= the Library: Professor Hoot's reading comprehension =================
+   Reading levels 1-10. Each finished story moves the level: first-try score >= 90% +0.5,
+   >= 75% +0.25, 50-74% stays, under 50% -0.5. So kids climb slowly while in the 75-85% sweet spot. */
 const LIB_PER_DAY=2;let LIB=null;
-function libBand(p){return (p.grade||3)<=3?'A':'B';}
-function libState(p){p.lib=p.lib||{done:{},day:null,n:0};if(p.lib.day!==dayKey()){p.lib.day=dayKey();p.lib.n=0;}return p.lib;}
-function libShelf(p){const L=libState(p);const band=STORIES.filter(s=>s.lv===libBand(p));const fresh=band.filter(s=>!L.done[s.id]);
- const order=fresh.length?fresh:band.slice().sort((a,b)=>(L.done[a.id].d||'').localeCompare(L.done[b.id].d||''));return {band,next:order.slice(0,Math.max(0,LIB_PER_DAY-L.n)),L};}
+STORIES.forEach(s=>{if(s.lv==='A')s.lv=2;else if(s.lv==='B')s.lv=3;});
+(window.MORE_STORIES||[]).forEach(s=>{if(!STORIES.some(x=>x.id===s.id))STORIES.push(s);});
+const LIB_LEVELS=[...new Set(STORIES.map(s=>s.lv))].sort((a,b)=>a-b);const LIB_MAX=LIB_LEVELS[LIB_LEVELS.length-1];
+const libGradeLv=p=>Math.max(1,Math.min(LIB_MAX,p.grade||3));
+function libState(p){p.lib=p.lib||{done:{},day:null,n:0};if(p.lib.rl===undefined)p.lib.rl=libGradeLv(p);if(p.lib.day!==dayKey()){p.lib.day=dayKey();p.lib.n=0;}return p.lib;}
+const libLevel=p=>Math.max(LIB_LEVELS[0],Math.min(LIB_MAX,Math.floor(libState(p).rl)));
+function libShelf(p){const L=libState(p);const lv=libLevel(p);const at=l=>STORIES.filter(s=>s.lv===l);
+ const order=[lv,lv-1,lv+1,lv-2,lv+2].filter(l=>LIB_LEVELS.includes(l));let fresh=[];for(const l of order){fresh=at(l).filter(s=>!L.done[s.id]);if(fresh.length)break;}
+ const pool=fresh.length?fresh:at(lv).slice().sort((a,b)=>(L.done[a.id].d||'').localeCompare(L.done[b.id].d||''));
+ const next=pool.slice(0,Math.max(0,LIB_PER_DAY-L.n));
+ const band=[...new Set(at(lv).concat(next))];const readOther=STORIES.filter(s=>L.done[s.id]&&!band.includes(s)).slice(-12);
+ return {band,next,L,lv,readOther};}
 function hootSVG(){return `<svg class="hoot-svg" viewBox="0 0 200 220" aria-label="Professor Hoot the librarian owl">
 <ellipse cx="100" cy="150" rx="66" ry="64" fill="#8d5a2b"/><ellipse cx="100" cy="162" rx="44" ry="46" fill="#f3d9b1"/>${[0,1,2].map(r=>[0,1,2].map(c=>`<path d="M${80+c*20} ${140+r*18} q10 8 20 0" stroke="#d9b98a" stroke-width="3" fill="none"/>`).join('')).join('')}
 <path d="M36 128 Q14 170 44 196 Q48 160 56 140Z" fill="#6f4520"/><path d="M164 128 Q186 170 156 196 Q152 160 144 140Z" fill="#6f4520"/>
@@ -2831,24 +2844,29 @@ function hootSVG(){return `<svg class="hoot-svg" viewBox="0 0 200 220" aria-labe
 <g transform="translate(58,168) rotate(-8)"><rect width="84" height="46" rx="4" fill="#1c7ed6"/><rect x="40" y="0" width="4" height="46" fill="#1864ab"/><rect x="6" y="6" width="30" height="34" fill="#fff" opacity=".85"/><rect x="48" y="6" width="30" height="34" fill="#fff" opacity=".85"/></g>
 <path d="M70 210 l-8 8 M78 210 l0 10 M86 210 l8 8 M114 210 l-8 8 M122 210 l0 10 M130 210 l8 8" stroke="#f59f00" stroke-width="4" stroke-linecap="round"/></svg>`;}
 function libHead(say){return `<div class="lib-head"><div class="hoot">${hootSVG()}</div><div class="cafe-bubble lib-bubble"><b class="nm">Professor Hoot, the Librarian</b><div>${say}</div></div></div>`;}
+const libStars=(n,of)=>'⭐'.repeat(n)+'☆'.repeat(Math.max(0,of-n));
+function libMeter(p){const L=libState(p);const lv=libLevel(p);const frac=Math.max(0,Math.min(1,L.rl-Math.floor(L.rl)));const top=lv>=LIB_MAX&&Math.floor(L.rl)>=LIB_MAX;
+ return `<div class="rlmeter"><div class="rlbadge">📖 Reading Level <b>${lv}</b></div><div class="rlbar"><i style="width:${top?100:Math.round(frac*100)}%"></i></div><small>${top?'Top level! You read like a scholar. 🎓':`Getting to Level ${lv+1}: ${Math.round(frac*100)}%. Stories get longer and trickier as you climb!`}</small></div>`;}
 SCREENS.library=()=>{const p=P();const back=`<div class="zhead"><button class="btn ghost small" onclick="LIB=null;go('world')">← Explore</button><h2 class="title">📚 The Library</h2></div>`;
  const wrap=b=>{app.innerHTML=topbar()+`<div class="room lib-room"><div class="page lib">${back}${b}</div></div>`;};
- if(!LIB){const {band,next,L}=libShelf(p);const cols=['#e03131','#1c7ed6','#2f9e44','#f08c00','#7048e8','#0c8599','#c2255c','#5c940d','#e8590c','#364fc7'];
-  const books=band.map((s,i)=>{const d=L.done[s.id];const isNext=next.includes(s);return `<button class="lbook ${d?'read':''} ${isNext?'next':''}" style="--bc:${cols[i%cols.length]}" ${isNext||d?`onclick="libOpen('${s.id}',${isNext?1:0})"`:''}><span class="be">${s.e}</span><span class="bt">${esc(s.t)}</span><span class="bs">${d?'⭐'.repeat(d.best)+'☆'.repeat(3-d.best):isNext?'✨ NEW':'🔒'}</span></button>`;}).join('');
-  const say=next.length?`Hoo-hoo! Welcome, ${esc(p.name)}! Pick a <b>✨ NEW</b> story from the shelf. Read it carefully, then answer 3 questions. You can read <b>${LIB_PER_DAY} new stories</b> each day.`:`Wonderful reading today, ${esc(p.name)}! New stories arrive <b>tomorrow</b>. You can re-read any story with a ⭐ for practice.`;
-  wrap(`${libHead(say)}<div class="shelf"><div class="shelf-row">${books}</div></div>`);return;}
- const S=LIB.s,C=LIB;
- if(C.stage==='read'){wrap(`${libHead(C.practice?'Practice reading! Take your time.':'Read the story carefully. Then tap <b>I\'m ready for the questions!</b>')}
+ const cols=['#e03131','#1c7ed6','#2f9e44','#f08c00','#7048e8','#0c8599','#c2255c','#5c940d','#e8590c','#364fc7'];
+ if(!LIB){const {band,next,L,lv,readOther}=libShelf(p);
+  const book=(s,i)=>{const d=L.done[s.id];const isNext=next.includes(s);return `<button class="lbook ${d?'read':''} ${isNext?'next':''}" style="--bc:${cols[i%cols.length]}" ${isNext||d?`onclick="libOpen('${s.id}',${isNext?1:0})"`:''}><span class="be">${s.e}</span><span class="bt">${esc(s.t)}</span><span class="bs">${isNext?'✨ NEW':d?libStars(d.best,s.q.length):'🔒'}</span><span class="blv">Lv ${s.lv}</span></button>`;};
+  const say=next.length?`Hoo-hoo! Welcome, ${esc(p.name)}! Pick a <b>✨ NEW</b> story. Read it carefully, then answer the questions. You can read <b>${LIB_PER_DAY} new stories</b> each day, and as you get better, the stories get longer and harder!`:`Wonderful reading today, ${esc(p.name)}! New stories arrive <b>tomorrow</b>. You can re-read any story with a ⭐ for practice.`;
+  wrap(`${libHead(say)}${libMeter(p)}<div class="shelf"><div class="shelf-row">${band.map(book).join('')}</div>${readOther.length?`<div class="shelf-lab">📗 Books you've read</div><div class="shelf-row">${readOther.map((s,i)=>book(s,i+3)).join('')}</div>`:''}</div>`);return;}
+ const S=LIB.s,C=LIB,NQ=C.qs.length;
+ if(C.stage==='read'){wrap(`${libHead(C.practice?'Practice reading! Take your time.':`Read carefully. This is a <b>Level ${S.lv}</b> story with <b>${NQ} questions</b>. Then tap <b>I'm ready for the questions!</b>`)}
   <div class="story"><div class="story-top"><span class="story-e">${S.e}</span><h2>${esc(S.t)}</h2><button class="btn small" onclick="libRead()">🔊 Read it to me</button></div>${S.p.map(x=>`<p>${esc(x)}</p>`).join('')}
   <div class="row"><button class="btn green big" onclick="LIB.stage='q';LIB.i=0;LIB.tries=0;go('library')">I'm ready for the questions! ➜</button></div></div>`);return;}
  if(C.stage==='q'){const qq=C.qs[C.i];
-  wrap(`${libHead(C.msg||`Question ${C.i+1} of 3. You can look back at the story any time!`)}
+  wrap(`${libHead(C.msg||`Question ${C.i+1} of ${NQ}. You can look back at the story any time!`)}
   <div class="story q"><details ${C.look?'open':''} ontoggle="LIB.look=this.open"><summary>📖 Look back at the story: ${esc(S.t)}</summary>${S.p.map(x=>`<p>${esc(x)}</p>`).join('')}</details>
-  <div class="lib-qn">Question ${C.i+1} of 3</div><div class="lib-q">${esc(qq.q)}</div>
+  <div class="lib-qn">Question ${C.i+1} of ${NQ}</div><div class="lib-q">${esc(qq.q)}</div>
   <div class="lib-choices">${qq.c.map((c,k)=>`<button class="lchoice ${C.picked===k?(k===qq.a?'right':'wrong'):''} ${C.reveal&&k===qq.a?'right':''}" onclick="libPick(${k})"><span class="ll">${'ABCD'[k]}</span>${esc(c)}</button>`).join('')}</div>
-  ${C.why?`<div class="lib-why">${C.why}</div>`:''}${C.nextBtn?`<div class="row"><button class="btn green big" onclick="libNext()">${C.i<2?'Next question ➜':'See my stars! ⭐'}</button></div>`:''}</div>`);return;}
- const st=C.stars;wrap(`${libHead(st===3?`Hoo-ray! A perfect score, ${esc(p.name)}! You really understood that story!`:st>=2?`Great reading, ${esc(p.name)}! You understood the story well.`:`Good effort, ${esc(p.name)}! Every story makes you a stronger reader.`)}
-  <div class="cafe-reward lib-reward"><div class="big-emoji">📚</div><div><b style="font-size:21px">${esc(S.t)}</b><br><span style="font-size:28px">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</span><br>${C.practice?'Practice read: great job! 🦉':`🪙 +${C.coins} coins · 📚 +${C.pts} reading points`}</div></div>
+  ${C.why?`<div class="lib-why">${C.why}</div>`:''}${C.nextBtn?`<div class="row"><button class="btn green big" onclick="libNext()">${C.i<NQ-1?'Next question ➜':'See my stars! ⭐'}</button></div>`:''}</div>`);return;}
+ const st=C.stars,sc=st/NQ;wrap(`${libHead(sc>=1?`Hoo-ray! A perfect score, ${esc(p.name)}! You really understood that story!`:sc>=.66?`Great reading, ${esc(p.name)}! You understood the story well.`:`Good effort, ${esc(p.name)}! Every story makes you a stronger reader.`)}
+  <div class="cafe-reward lib-reward"><div class="big-emoji">📚</div><div><b style="font-size:21px">${esc(S.t)}</b><br><span style="font-size:28px">${libStars(st,NQ)}</span><br>${C.practice?'Practice read: great job! 🦉':`🪙 +${C.coins} coins · 📚 +${C.pts} reading points`}${C.lvMsg?`<div class="lvmsg">${C.lvMsg}</div>`:''}</div></div>
+  ${C.practice?'':libMeter(p)}
   <div class="row"><button class="btn gold big" onclick="LIB=null;go('library')">Back to the shelf 📚</button><button class="btn ghost dark" onclick="LIB=null;go('world')">Back to the village 🏡</button></div>`);};
 function libOpen(id,isNew){const s=STORIES.find(x=>x.id===id);const shuf=q=>{const idx=[0,1,2,3].sort(()=>Math.random()-.5);return {q:q[0],c:idx.map(i=>q[1][i]),a:idx.indexOf(q[2]),why:q[3]};};
  LIB={s,stage:'read',practice:!isNew,qs:s.q.map(shuf),i:0,tries:0,stars:0,picked:null,msg:'',why:'',look:false};SFX.tap();go('library');}
@@ -2857,11 +2875,14 @@ function libPick(k){const C=LIB,qq=C.qs[C.i];if(C.nextBtn)return;C.picked=k;cons
  if(k===qq.a){SFX.correct();if(C.tries===0)C.stars++;C.msg=pick(['Hoo-hoo! Correct!','Wise answer!','Yes! You found it!','Excellent reading!']);C.why='✅ '+esc(qq.why);C.nextBtn=true;save();}
  else{SFX.wrong();C.tries++;save();if(C.tries>=2){C.reveal=true;C.msg='Let\'s look at the right answer together.';C.why='💡 '+esc(qq.why);C.nextBtn=true;}else{C.msg='Hmm, not quite. Tap <b>📖 Look back at the story</b> and try again!';}}
  go('library');}
+function libAdjust(L,sc){const before=Math.floor(L.rl);const d=sc>=.9?.5:sc>=.75?.25:sc>=.5?0:-.5;L.rl=Math.max(LIB_LEVELS[0],Math.min(LIB_MAX+.99,L.rl+d));L.hist=(L.hist||[]).concat([Math.round(sc*100)]).slice(-10);return Math.floor(L.rl)-before;}
 function libNext(){const C=LIB;C.i++;C.tries=0;C.picked=null;C.reveal=false;C.why='';C.msg='';C.nextBtn=false;C.look=false;
- if(C.i<3){go('library');return;}
- const p=P();C.stage='done';
- if(!C.practice){const L=libState(p);L.n++;const prev=L.done[C.s.id];L.done[C.s.id]={best:Math.max(C.stars,prev?prev.best:0),d:dayKey()};C.coins=10+5*C.stars;C.pts=5+10*C.stars;p.coins+=C.coins;
-  const w=wkOf(p);w.readPts=(w.readPts||0)+C.pts;w.stories=(w.stories||0)+1;p.readLog=p.readLog||[];p.readLog.push({d:dayKey(),t:C.s.t,s:C.stars});if(p.readLog.length>40)p.readLog.shift();}
+ if(C.i<C.qs.length){go('library');return;}
+ const p=P();C.stage='done';const NQ=C.qs.length,sc=C.stars/NQ;
+ if(!C.practice){const L=libState(p);L.n++;const prev=L.done[C.s.id];L.done[C.s.id]={best:Math.max(C.stars,prev?prev.best:0),d:dayKey()};
+  const rel=Math.max(-2,Math.min(2,C.s.lv-libGradeLv(p)));C.coins=10+Math.round(20*sc)+2*C.s.lv;C.pts=5+Math.round(30*sc)+3*(rel+2);p.coins+=C.coins;
+  const moved=libAdjust(L,sc);C.lvMsg=moved>0?`📈 Reading Level up! You're now at <b>Level ${libLevel(p)}</b>. Longer stories ahead!`:moved<0?`🦉 Professor Hoot picked some slightly shorter stories for a little while.`:'';
+  const w=wkOf(p);w.readPts=(w.readPts||0)+C.pts;w.stories=(w.stories||0)+1;p.readLog=p.readLog||[];p.readLog.push({d:dayKey(),t:C.s.t,s:C.stars,n:NQ,lv:C.s.lv});if(p.readLog.length>40)p.readLog.shift();}
  save();SFX.win();go('library');}
 function wFight(m){if(m&&m.principal){principalMeet();return;}if(!W||curScreen!=='world'||$('#modal.show'))return;W.path=[];W.mobs=W.mobs.filter(o=>o!==m);const b=m.b;setTimeout(()=>{if(W)wSpawn(b);},20000);
  SFX.tap();startBattle(m.zid,0,null,{wild:true,n:m.n,e:m.e});}
@@ -2895,7 +2916,7 @@ function wChestTry(){const p=P();const {q,k}=W.chestQ||{};if(!q)return;const v=p
 /* wild battles (from exploring) */
 function wildWin(){
  const p=P();SFX.win();const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
- const bonus=10+rnd(0,10);p.coins+=bonus;B.coins+=bonus;B.xp+=15;const egg=Math.random()<(petPerk(p)==='lucky'?.08:.04);if(egg)p.eggs++;
+ const bonus=10+rnd(0,10);p.coins+=bonus;B.coins+=bonus;B.xp+=15;const egg=Math.random()<(petPerk(p)==='lucky'?.08:.04);if(egg){p.eggs++;if(petPerk(p)==='lucky')petCredit(p,'egg',1);}
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
  let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
  p.wild=(p.wild||0)+1;p.battles++;const up=endBattleBook();save();
@@ -2922,7 +2943,7 @@ function wkStats(p,wk){
  days.forEach(k=>{const d=p.daily&&p.daily[k];if(d){r+=d.r||0;wr+=d.w||0;}if(d&&((d.r||0)+(d.w||0))>0)pd++;});
  const t0=new Date(wk+'T00:00:00').getTime(),t1=t0+7*864e5;
  const gifts=Object.values(state.gifts||{}).filter(g=>g&&g.from===p.id&&g.kind!=='thanks'&&g.t>=t0&&g.t<t1).length;
- return {r,w:wr,days:pd,acc:r+wr>=30?Math.round(r/(r+wr)*100):0,pts:w.pts||0,lv:w.lv||0,cb:w.cb||0,bs:w.bs||0,boss:w.boss||0,chest:w.chest||0,pet:w.pet||0,words:w.words||0,gifts,readPts:w.readPts||0,stories:w.stories||0};}
+ return {r,w:wr,days:pd,acc:r+wr>=30?Math.round(r/(r+wr)*100):0,pts:w.pts||0,lv:w.lv||0,cb:w.cb||0,bs:w.bs||0,boss:w.boss||0,chest:w.chest||0,pet:w.pet||0,words:w.words||0,gifts,readPts:w.readPts||0,stories:w.stories||0,spR:w.spR||0,spPts:(w.words||0)*10+(w.spR||0)};}
 const pl_=(n,w)=>`${n} ${n===1?w:(/(s|sh|ch|x)$/.test(w)?w+'es':/[^aeiou]y$/.test(w)?w.slice(0,-1)+'ies':w+'s')}`;
 const STAR_CATS=[
  {id:'champ',e:'👑',n:'Math Champion',v:s=>s.pts,d:s=>`${s.pts} champion points`},
@@ -3014,11 +3035,17 @@ SCREENS.leaders=(tab)=>{
   const bb=st.map(x=>{const lr=soFar(x.p);return {p:x.p,v:lr>0?Math.round((x.s.r-lr)/lr*100):(x.s.r>0?100:0),first:!lr&&x.s.r>0};}).sort((a,b)=>b.v-a.v);
   const pdays=st.map(x=>({p:x.p,v:x.s.days})).sort((a,b)=>b.v-a.v);
   const rdg=st.map(x=>({p:x.p,v:x.s.readPts,n:x.s.stories})).sort((a,b)=>b.v-a.v);
+  const spl=st.map(x=>({p:x.p,v:x.s.spPts,n:x.s.words,r:x.s.spR})).sort((a,b)=>b.v-a.v);
+  const petRows=st.map(x=>{const best=(x.p.pets||[]).map(id=>{const pd=(x.p.petData||{})[id];const pet=PETS.find(q=>q.id===id);return pet&&pd?{pet,pd,v:Math.round((pd.wk||{})[wk]||0),all:petPower(pd)}:null;}).filter(Boolean).sort((a,b)=>b.v-a.v||b.all-a.all)[0];return best?{p:x.p,...best}:null;}).filter(Boolean).sort((a,b)=>b.v-a.v||b.all-a.all);
+  const petBoard=()=>{let rank=0,last=null,shown=0;return `<div class="panel lbcard petlb"><h3>🐾 Pet Champions</h3><div class="lbhow">Each hero's best pet this week. Pets earn points for <b>🪙 coins</b> they find, <b>❤️ health</b> they heal or block, <b>✨ XP</b>, <b>💥 damage</b> from pet moves, <b>🥚 eggs</b> and <b>💡 hints</b>.</div>${petRows.length?petRows.map(r=>{if(r.v!==last){rank=shown;last=r.v;}shown++;const m=r.v>0&&rank<3?['🥇','🥈','🥉'][rank]:'';const s=r.pd.st||{};const bits=[s.c?`🪙 ${s.c}`:'',s.hp?`❤️ ${s.hp}`:'',s.xp?`✨ ${s.xp}`:'',s.dmg?`💥 ${s.dmg}`:'',s.egg?`🥚 ${s.egg}`:'',s.hint?`💡 ${s.hint}`:''].filter(Boolean).join(' · ');
+   return `<div class="lbrow ${r.p.id===me.id?'me':''}"><span class="lbm">${m}</span><span class="petbig">${r.pet.e}</span><span class="lbn"><b>${esc(r.pet.name)}</b> <span class="ownertag">${face(r.p)}${esc(r.p.name)}'s pet</span><small class="petbits">${bits||'Just getting started!'}</small></span><b>${r.v}<small class="up" style="color:#868e96">all-time ${r.all}</small></b></div>`;}).join(''):'<div class="muted">No pets yet!</div>'}</div>`;};
   const top=champ[0];
   body=`${top&&top.v>0?`<div class="lbhero"><div class="lbcrown">👑</div>${face(top.p)}<div><div style="opacity:.9">This week's Math Champion (so far)</div><b style="font-size:26px">${esc(top.p.name)}</b><div>${top.v} champion points</div></div></div>`:''}${goal}
   <div class="lbgrid">${board('👑','Math Champion','Points depend on how hard each problem is <b>for your grade</b>. Only the first 150 answers each day count.',champ,r=>`${r.v}${r.d>0?`<small class="up">▲ ${r.d} vs last week</small>`:''}`)}
   ${board('📈','Beat Your Best','How much better you did than your own last week.',bb,r=>r.first?'new!':r.v>0?'+'+r.v+'%':'<span class="muted" style="font-weight:600">keep going!</span>','Compared with the same days last week. No "last place" here, only the top 3 get medals.')}
-  ${board('📚','Reading Champion','Read stories in the <b>Library</b>. Each story gives 5 points + 10 for every ⭐ (first try right). Stories match your grade.',rdg,r=>`${r.v}<small class="up" style="color:#868e96">${pl_(r.n,'story')}</small>`)}
+  ${board('✏️','Spelling Champion','Spell words in <b>Spelling Grove</b>. 1 point for each word spelled right, plus 10 for every word you learn (right twice in a row).',spl,r=>`${r.v}<small class="up" style="color:#868e96">${pl_(r.n,'word')} learned</small>`)}
+  ${petBoard()}
+  ${board('📚','Reading Champion','Read stories in the <b>Library</b>. Points for every ⭐ (first try right), plus a bonus for reading above your grade level.',rdg,r=>`${r.v}<small class="up" style="color:#868e96">${pl_(r.n,'story')}</small>`)}
   ${board('📅','Practice Days','Showing up counts more than marathon sessions.',pdays,r=>pl_(r.v,'day'))}</div>`;
  }else{
   const rows=ps.map(p=>({p,t:trophyOf(p)}));
@@ -3105,16 +3132,15 @@ const BUF_LIMIT={4:3,5:1};
 function bufferOn(p,zid,r){return !!BUF_LIMIT[r]&&medal(p,zid)<r;}
 function bufferUsed(p,zid,r){return ((p.rbuf||{})[zid]||{})[r]||0;}
 function bufferMiss(p){if(!B||B.wild||!B.z||!B.z.id||!['math','spell'].includes(B.mode))return;const zid=B.z.id,r=B.round||1;if(!bufferOn(p,zid,r))return;
- p.rbuf=p.rbuf||{};const z=p.rbuf[zid]=p.rbuf[zid]||{};z[r]=(z[r]||0)+1;const lim=BUF_LIMIT[r];
- if(z[r]>=lim){B.bufferOut=true;}else setTimeout(()=>toast(`${ROUNDS[r].m} ${ROUNDS[r].n} rule: ${z[r]} of ${lim} misses used. ${lim-z[r]===1?'One more and you go back to the start!':''}`),700);}
-function bufferHit(){if(!B||B.wild||!B.z||!B.z.id||!['math','spell'].includes(B.mode))return false;const r=B.round||1;return !!B.bufferOut||(bufferOn(P(),B.z.id,r)&&bufferUsed(P(),B.z.id,r)>=BUF_LIMIT[r]);}
-function bufferReset(){const p=P();const zid=B.z.id,r=B.round;B.over=true;
- const pr=rstore(p,zid,r);for(let k=0;k<6;k++)pr[k]=0;if(p.rbuf&&p.rbuf[zid])p.rbuf[zid][r]=0;if(p.tired)Object.keys(p.tired).forEach(k=>{if(k.startsWith(zid+'-'+r+'-'))delete p.tired[k];});
+ B.bufN=(B.bufN||0)+1;const lim=BUF_LIMIT[r];
+ if(B.bufN>=lim){B.bufferOut=true;}else setTimeout(()=>toast(`${ROUNDS[r].m} ${ROUNDS[r].n} rule: ${B.bufN} of ${lim} misses in this battle. ${lim-B.bufN===1?'One more and this battle starts over!':''}`),700);}
+function bufferHit(){if(!B||B.wild||!B.z||!B.z.id||!['math','spell'].includes(B.mode))return false;const r=B.round||1;return !!B.bufferOut||(bufferOn(P(),B.z.id,r)&&(B.bufN||0)>=BUF_LIMIT[r]);}
+function bufferReset(){const p=P();const zid=B.z.id,r=B.round,i=B.i;B.over=true;
  endBattleBook();save();SFX.wrong();const lim=BUF_LIMIT[r];
- modal(`<div class="mcard"><div class="big-emoji">${ROUNDS[r].m}</div><h2>Back to the start of ${ROUNDS[r].n}!</h2>
- <p>${lim===1?`In the <b>${ROUNDS[r].n}</b> round, one miss sends you back to the start.`:`That was miss number ${lim} in the <b>${ROUNDS[r].n}</b> round, so you go back to the start.`} Legends are made by trying again! 💪</p>
+ modal(`<div class="mcard"><div class="big-emoji">${ROUNDS[r].m}</div><h2>Start this battle over!</h2>
+ <p>${lim===1?`In the <b>${ROUNDS[r].n}</b> round, one miss means you start the battle over.`:`That was miss number ${lim} in this <b>${ROUNDS[r].n}</b> battle, so it starts over.`} Your other ${ROUNDS[r].n} wins are safe. Legends are made by trying again! 💪</p>
  <p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned.</p>
- <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${zid}')">Map</button><button class="btn green" onclick="closeModal();startBattle('${zid}',0)">Start ${ROUNDS[r].n} again ${ROUNDS[r].m}</button></div></div>`);}
+ <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${zid}')">Map</button><button class="btn green" onclick="closeModal();startBattle('${zid}',${i})">Try again ${ROUNDS[r].m}</button></div></div>`);}
 const RMUL={1:{hp:1,dmg:1},2:{hp:1.2,dmg:1.15},3:{hp:1.35,dmg:1.25},4:{hp:1.45,dmg:1.3},5:{hp:1.6,dmg:1.4}};
 function medianThink(p){const a=(p.thinkT||[]);if(a.length<5)return 0;const b=[...a].sort((x,y)=>x-y);return b[Math.floor(b.length/2)];}
 const tiredKey=(zid,r,i)=>zid+'-'+r+'-'+i;
@@ -3125,14 +3151,14 @@ function curRound(p,zid){const maxOpen=Math.min(5,medal(p,zid)+1);const sel=(p.r
 function setRound(zid,r){const p=P();p.roundSel=p.roundSel||{};p.roundSel[zid]=r;save();SFX.tap();go('zone',zid);}
 function totalMedals(p){return [...ZONES.map(z=>z.id),'spell'].reduce((a,id)=>a+medal(p,id),0);}
 function roundNote(z,r){
- if(z.op==='spell')return ['','Hear the word. The boxes show how many letters it has.','No letter boxes! You have to know how long the word is.','No letter boxes, and only <b>2 replays</b> of each word.','Beat the clock! Spell fast for a ⏱️ speed bonus. Only 2 replays. <b>3 misses</b> anywhere in Diamond and you start Diamond over!','The boss uses 30 words and there are no pet hints. <b>One miss</b> and you start Legend over! Win for a 🌟 Legend egg!'][r];
- return ['','The first adventure!','Tougher monsters, and gangs show up more.','Even tougher! Bigger gangs, and the boss brings a helper.','No free miss! Monsters ⚡ charge up an attack if you take too long (bigger problems give you more time). The boss brings two helpers. <b>3 misses</b> anywhere in Diamond and you start Diamond over!','The hardest round! Monsters charge up even faster. <b>One miss</b> and you start Legend over! Win it for a 🌟 Legend egg!'][r];
+ if(z.op==='spell')return ['','Hear the word. The boxes show how many letters it has.','No letter boxes! You have to know how long the word is.','No letter boxes, and only <b>2 replays</b> of each word.','Beat the clock! Spell fast for a ⏱️ speed bonus. Only 2 replays. <b>3 misses</b> in a battle and that battle starts over!','The boss uses 30 words and there are no pet hints. <b>One miss</b> and the battle starts over! Win for a 🌟 Legend egg!'][r];
+ return ['','The first adventure!','Tougher monsters, and gangs show up more.','Even tougher! Bigger gangs, and the boss brings a helper.','No free miss! Monsters ⚡ charge up an attack if you take too long (bigger problems give you more time). The boss brings two helpers. Problems are one step below your level, but <b>3 misses</b> in a battle and it starts over!','The hardest round! Monsters charge up even faster. Problems are two steps below your level, but <b>one miss</b> and the battle starts over! Win it for a 🌟 Legend egg!'][r];
 }
 function roundTabs(p,z){
  const m=medal(p,z.id),cur=curRound(p,z.id);
  return `<div class="rtabs">${[1,2,3,4,5].map(r=>{const open=r<=Math.min(5,m+1),done=r<=m;
   return `<button class="rtab ${r===cur?'on':''} ${open?'':'locked'} ${done?'done':''}" onclick="${open?`setRound('${z.id}',${r})`:`toast('Beat the ${ROUNDS[r-1].n} boss to unlock ${ROUNDS[r].n}!')`}"><span class="rm">${open?ROUNDS[r].m:'🔒'}</span><small>${ROUNDS[r].n}${done?' ✓':''}</small></button>`;}).join('')}</div>
- <div class="rnote">${ROUNDS[cur].m} <b>${ROUNDS[cur].n} round:</b> ${roundNote(z,cur)}${bufferOn(p,z.id,cur)&&BUF_LIMIT[cur]>1?` <b>Misses used: ${bufferUsed(p,z.id,cur)} of ${BUF_LIMIT[cur]}</b>`:''}</div>`;
+ <div class="rnote">${ROUNDS[cur].m} <b>${ROUNDS[cur].n} round:</b> ${roundNote(z,cur)}</div>`;
 }
 function roundPrize(p,r,z,B){
  const coin=n=>{p.coins+=n;if(B)B.coins+=n;};let lines=[];
@@ -3196,7 +3222,7 @@ SCREENS.parent=()=>{
  <p class="note">Every child starts every skill at the easiest level (single digits) and moves up from there. Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level. <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${cloudSection()}
  ${state.players.map(parentCard).join('')}
- ${(()=>{const rows=[];state.players.forEach(pl=>(pl.readLog||[]).slice(-6).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · "${esc(v.t)}" · ${'⭐'.repeat(v.s)}${'☆'.repeat(3-v.s)} (${v.s}/3 right on the first try)</li>`)));return rows.length?`<div class="pp"><h3>📚 Library reading</h3><p class="note">Professor Hoot gives 2 new stories a day with 3 multiple-choice questions each (main idea, details, lesson). Grades 1-3 get shorter stories, grades 4+ get longer ones.</p><ul>${rows.join('')}</ul></div>`:'';})()}
+ ${(()=>{const rows=[];state.players.forEach(pl=>(pl.readLog||[]).slice(-6).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · "${esc(v.t)}"${v.lv?` (Level ${v.lv})`:''} · ${'⭐'.repeat(v.s)}${'☆'.repeat((v.n||3)-v.s)} (${v.s}/${v.n||3} right on the first try)</li>`)));return rows.length?`<div class="pp"><h3>📚 Library reading</h3><p class="note">Professor Hoot gives 2 new stories a day. There are 10 reading levels (about 1st grade to 12th grade). Higher levels have longer stories and 4-5 questions (main idea, details, inference, vocabulary, author's purpose). The level moves up after strong scores and down after weak ones, aiming for about 75-85% right on the first try.${state.players.filter(x=>x.lib&&x.lib.rl).map(x=>` <b>${esc(x.name)}</b>: Level ${Math.floor(x.lib.rl)}.`).join('')}</p><ul>${rows.join('')}</ul></div>`:'';})()}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.kindVisits||[]).slice(-8).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · ${v.kind==='spell'?`spelling "${esc(v.what)}"`:v.kind==='math'?`math: ${esc(v.what)}`:`blessing vs ${esc(v.what)} (was losing)`}</li>`)));state.players.forEach(pl=>(pl.principalVisits||[]).slice(-4).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · 🎓 Principal Wise visit: ${esc(v.t)}</li>`)));return rows.length?`<div class="pp"><h3>✨ Kind Teacher &amp; 🎓 Principal visits</h3><p class="note">She appears at most once a day per child, only when they are truly stuck. These show where each child needed help.</p><ul>${rows.join('')}</ul></div>`:'';})()}
  <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
  <div class="pp"><h3>💾 Saving</h3><p>Everyone's progress saves automatically on this device, and the game picks up where each child left off, even in the middle of a battle.</p>
@@ -3344,7 +3370,7 @@ function questAnswer(){
  const p=P(),q=B.q,said=B.input;const ok=questCorrect(q,said);
  B.busy=true;const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
  if(q.type==='word'){const k=q.word.toLowerCase();const st=p.spellStats[k]=p.spellStats[k]||{r:0,w:0,s:0};if(ok){st.r++;st.s++;if(st.s===2)wkBump(p,'words');}else{st.w++;st.s=0;}st.last=dk;}
- if(ok)wkAnswer(p,8);
+ if(ok)wkAnswer(p,8);if(ok&&q.type==='word')wkBump(p,'spR');
  if(ok){
   if(!q.tries)B.firstTry++;B.right++;petCharge(p);B.streak++;B.best=Math.max(B.best,B.streak);B.done++;
   let c=5+(q.tries?3:0);if(q.type==='word'&&spellRound()>=4&&q.t0&&performance.now()-q.t0<20000){c+=5;setTimeout(()=>floatText('#heroS','⏱️ Speed bonus!','#ffe066'),100);}B.coins+=c;p.coins+=c;B.xp+=10;save();SFX.correct();$('#qcard').classList.add('right');
@@ -3439,6 +3465,9 @@ function clearWords(id){const p=state.players.find(x=>x.id===id);p.customWords=n
 const PET_LEVELS=[2,4,6,8,10];
 const HINT_CHARGE=8;                       // right answers to earn back one hint
 const PET_STAGES=[{n:'Baby',xp:0,max:1},{n:'Big',xp:15,max:2},{n:'Grown-up',xp:45,max:3},{n:'Legendary',xp:120,max:3}];
+const PET_PTS={c:1,hp:1,xp:1,dmg:.5,egg:25,hint:5};
+function petCredit(p,k,n){const pet=petOf(p);if(!pet||!n)return;const pd=petData(p,pet.id);pd.st=pd.st||{};pd.st[k]=(pd.st[k]||0)+n;pd.wk=pd.wk||{};const wk=weekKey();pd.wk[wk]=Math.round(((pd.wk[wk]||0)+n*PET_PTS[k])*10)/10;const ks=Object.keys(pd.wk).sort();if(ks.length>8)delete pd.wk[ks[0]];}
+function petPower(pd){const s=(pd&&pd.st)||{};return Math.round(Object.keys(PET_PTS).reduce((a,k)=>a+(s[k]||0)*PET_PTS[k],0));}
 function petData(p,id){p.petData=p.petData||{};if(!p.petData[id])p.petData[id]={xp:0,hints:1,charge:0};return p.petData[id];}
 function petStage(pd){let s=PET_STAGES[0];PET_STAGES.forEach(x=>{if(pd.xp>=x.xp)s=x;});return s;}
 function petMeter(pd){const st=petStage(pd);let m='';for(let i=0;i<st.max;i++)m+=i<pd.hints?'💡':'<span class="dimbulb">💡</span>';return m;}
@@ -3466,7 +3495,7 @@ function useHint(){
  const pd=petData(p,pet.id);
  if(B.q.hinted){toast(`${pet.name} already helped with this one!`);return;}
  if(pd.hints<=0){toast(`${pet.e} ${pet.name} is resting. ${HINT_CHARGE-pd.charge} more right answers for a new hint!`);return;}
- pd.hints--;pd.xp+=1;B.q.hinted=true;save();SFX.coin();
+ pd.hints--;pd.xp+=1;B.q.hinted=true;petCredit(p,'hint',1);save();SFX.coin();
  let body=hintFor(B.q);
  modal(`<div class="mcard hintcard"><div class="pethead"><span class="bigpet">${pet.e}</span><div><b>${esc(pet.name)} says:</b><div class="muted">${pd.hints} hint${pd.hints===1?'':'s'} left</div></div></div><div class="hint">${body}</div><button class="btn green big" onclick="closeModal()">Thanks, ${esc(pet.name)}!</button></div>`);
  updateHintBtn();
