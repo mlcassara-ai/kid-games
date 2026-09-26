@@ -3189,13 +3189,16 @@ function allWeeks(){const s=new Set();state.players.forEach(p=>Object.keys(p.wkH
 function trophyOf(p){let n=0;const fav={};allWeeks().forEach(wk=>{const c=ceremony(wk);const r=c&&c.rows.find(x=>x.p.id===p.id);if(r)r.stars.forEach(s=>{n++;fav[s.c]=(fav[s.c]||0)+1;});});const f=Object.entries(fav).sort((a,b)=>b[1]-a[1])[0];return {n,fav:f?{c:catOf(f[0]),k:f[1]}:null};}
 function activePlayers(){const cut=new Date();cut.setDate(cut.getDate()-14);const ck=dayKey(cut);return state.players.filter(p=>p.setup&&Object.keys(p.daily||{}).some(k=>k>=ck&&((p.daily[k].r||0)+(p.daily[k].w||0))>0));}
 const GOAL_PER=[250,500,750];const GOAL_NAMES=['🥉 Bronze','🥈 Silver','🥇 Gold'];
-function famR(p,wk){let r=0;weekDays(wk).forEach(k=>{const d=p.daily&&p.daily[k];if(d)r+=Math.min(150,d.r||0);});return r;}
-function familyGoal(){const wk=weekKey();const n=Math.max(2,activePlayers().length);const tiers=GOAL_PER.map(x=>Math.round(n*x/50)*50);
+const FAM_CAP=300,FAM_STORY=10,FAM_WORD=5;
+function famR(p,wk){let r=0;weekDays(wk).forEach(k=>{const d=p.daily&&p.daily[k];if(d)r+=Math.min(FAM_CAP,d.r||0);});const w=(p.wkHist||{})[wk]||{};return r+FAM_STORY*(w.stories||0)+FAM_WORD*(w.words||0);}
+/* goal size is locked for the week: kids who played in the 2 weeks BEFORE it started (first week ever: whoever is playing) */
+function famN(wk){const t0=new Date(wk+'T12:00:00');const cut=new Date(t0);cut.setDate(cut.getDate()-14);const ck=dayKey(cut);const pre=state.players.filter(p=>p.setup&&Object.keys(p.daily||{}).some(k=>k>=ck&&k<wk&&((p.daily[k].r||0)+(p.daily[k].w||0))>0)).length;return Math.max(2,pre||activePlayers().length);}
+function familyGoal(){const wk=weekKey();const n=famN(wk);const tiers=GOAL_PER.map(x=>Math.round(n*x/50)*50);
  const parts=state.players.filter(p=>p.setup).map(p=>({p,r:famR(p,wk)})).filter(x=>x.r>0).sort((a,b)=>b.r-a.r);const total=parts.reduce((s,x)=>s+x.r,0);
- const tier=tiers.filter(t=>total>=t).length;return {wk,n,tiers,tier,target:tiers[0],next:tier<3?tiers[tier]:null,total,parts,done:tier>=1};}
+ const tier=Math.max(tiers.filter(t=>total>=t).length,...state.players.map(p=>Math.min(3,goalClaimed(p,wk))));return {wk,n,tiers,tier,target:tiers[0],next:tier<3?tiers[tier]:null,total,parts,done:tier>=1};}
 function goalClaimed(p,wk){const v=(p.goalWon||{})[wk];return v===true?1:(+v||0);}
-function goalPrizeDue(p){const g=familyGoal();return g.tier>goalClaimed(p,g.wk)&&wkStats(p,g.wk).r>=20;}
-function checkGoalPrize(p){const g=familyGoal();if(!g.done)return false;p.goalWon=p.goalWon||{};const had=goalClaimed(p,g.wk);if(had>=g.tier)return false;if(wkStats(p,g.wk).r<20)return false;
+function goalPrizeDue(p){const g=familyGoal();return g.tier>goalClaimed(p,g.wk)&&famR(p,g.wk)>=20;}
+function checkGoalPrize(p){const g=familyGoal();if(!g.done)return false;p.goalWon=p.goalWon||{};const had=goalClaimed(p,g.wk);if(had>=g.tier)return false;if(famR(p,g.wk)<20)return false;
  const lines=[];let myth=null;
  for(let t=had+1;t<=g.tier;t++){
   if(t===1){p.legendEggs=(p.legendEggs||0)+1;lines.push('🥉 Bronze: 🌟 +1 Legend Egg');}
@@ -3236,11 +3239,11 @@ SCREENS.leaders=(tab)=>{
   const wk=weekKey(),pw=prevWeekKey();const g=familyGoal();const cols=['#ffd43b','#74c0fc','#ff8787','#b197fc','#8ce99a','#ffa94d'];
   const gmax=g.tiers[2],pct=v=>Math.min(100,v/gmax*100);const prize=['🌟 Legend Egg','🌟 Legend Egg + 🪙 500','☁️❓ Mystery prize'];
   const goal=`<div class="fgoal"><h3>🤝 Family Goals this week${g.tier?` · ${GOAL_NAMES[g.tier-1]} reached!`:''}</h3>
-   <div>${g.next?`Next goal: <b>${GOAL_NAMES[g.tier]}</b> at <b>${g.next}</b> right answers. Everyone who helped (20+ right) gets the prize!`:'🎉 ALL THREE GOALS REACHED! What a family!'} <b>${g.total} so far</b></div>
+   <div>${g.next?`Next goal: <b>${GOAL_NAMES[g.tier]}</b> at <b>${g.next}</b> points. Everyone who helped (20+ points) gets the prize!`:'🎉 ALL THREE GOALS REACHED! What a family!'} <b>${g.total} so far</b></div>
    <div class="fbar tiered">${g.parts.map((x,k)=>`<i style="width:${pct(x.r)}%;background:${cols[k%cols.length]}"></i>`).join('')}${g.tiers.map((t,k)=>`<span class="fmark ${g.tier>k?'got':''}" style="left:${pct(t)}%"></span>`).join('')}</div>
    <div class="ftiers">${g.tiers.map((t,k)=>`<div class="ftier ${g.tier>k?'got':''}"><b>${GOAL_NAMES[k]}</b><span>${t}</span><small>${prize[k]}</small></div>`).join('')}</div>
    <div class="flegend">${g.parts.map((x,k)=>`<span style="--c:${cols[k%cols.length]}">${esc(x.p.name)} ${x.r}</span>`).join('')||'<span style="--c:#fff">Nobody yet this week. Be the first!</span>'}</div>
-   <div class="fnote">Goals grow with the family: ${g.n} players this week (anyone who played in the last 2 weeks). Up to 150 right answers per player per day count.</div></div>`;
+   <div class="fnote">Points: ✅ 1 per right answer (up to ${FAM_CAP} a day) · 📚 ${FAM_STORY} per Library story · 📜 ${FAM_WORD} per new spelling word. Goal is set for ${g.n} players and stays the same all week.</div></div>`;
   const st=ps.map(p=>({p,s:wkStats(p,wk),l:wkStats(p,pw)}));const nd=new Date().getDay()+1;const soFar=(p)=>{let r=0;weekDays(pw).slice(0,nd).forEach(k=>{const d=p.daily&&p.daily[k];if(d)r+=d.r||0;});return r;};
   const board=(e,n,how,rows,fmt,note)=>{let rank=0,last=null,shown=0;return `<div class="panel lbcard"><h3>${e} ${n}</h3><div class="lbhow">${how}</div>${rows.map((r,i)=>{if(r.v!==last){rank=shown;last=r.v;}shown++;const m=r.v>0&&rank<3?['🥇','🥈','🥉'][rank]:'';return `<div class="lbrow ${r.p.id===me.id?'me':''}"><span class="lbm">${m}</span>${face(r.p)}<span class="lbn">${esc(r.p.name)}${r.tag?` <span class="lbtag">${r.tag}</span>`:''}</span><b>${fmt(r)}</b></div>`;}).join('')}${note?`<div class="lbnote">${note}</div>`:''}</div>`;};
   const champ=st.map(x=>{const best=Math.max(0,...Object.entries(x.p.wkHist||{}).filter(([k])=>k<wk).map(([,w])=>w.pts||0));return {p:x.p,v:x.s.pts,d:x.s.pts-(x.l.pts||0),tag:x.s.pts>0&&x.s.pts>best&&best>0?'new best!':''};}).sort((a,b)=>b.v-a.v);
