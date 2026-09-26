@@ -456,6 +456,17 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 @keyframes cerIn{from{opacity:0;transform:scale(.4) rotate(-6deg)}to{opacity:1;transform:none}}
 .cernote{text-align:center;font-size:14px;opacity:.9;margin:12px 0 0}
 .petlb .petbig{font-size:34px;width:44px;text-align:center;flex:none}.petlb .ownertag{display:inline-flex;align-items:center;gap:4px;background:#f3f0ff;color:#5f3dc4;border-radius:999px;padding:1px 8px 1px 2px;font-size:12px;font-weight:700;vertical-align:middle}.petlb .ownertag .lbface{width:22px;height:22px}.petlb .petbits{display:block;color:#868e96;font-size:12px;margin-top:2px}
+.scsteps{display:flex;gap:8px;justify-content:center;margin:0 0 12px}.scsteps span{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff}.scsteps span.on{background:#ffd43b;color:#5c3c00}.scsteps span.done{background:#8ce99a;color:#1b5e20}
+.scq{font-size:34px;font-weight:800;text-align:center;margin:14px 0}.scres{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0}.scres div{background:#f3f0ff;border-radius:12px;padding:8px;display:flex;flex-direction:column}.scres span{font-size:20px;font-weight:800;color:#5f3dc4}
+.ascb #monS,.ascb .bk{filter:hue-rotate(var(--asch)) saturate(1.4) drop-shadow(0 0 14px rgba(255,215,0,.8))}.ascmap .node{filter:hue-rotate(var(--asch)) saturate(1.3)}.ascmap{box-shadow:inset 0 0 0 4px #ffd43b,0 0 24px rgba(255,212,59,.5)}.asctab{background:linear-gradient(135deg,#7048e8,#f59f00)!important;color:#fff}
+.z-haunt{background:linear-gradient(160deg,#fd7e14,#5f3dc4 55%,#1a1033)}.battle.z-haunt{background:linear-gradient(180deg,#5f3dc4,#1a1033)}
+.evbanner{display:block;width:100%;text-align:left;font:inherit;font-size:15px;border:0;border-radius:16px;padding:10px 14px;margin:10px 0;background:linear-gradient(90deg,#fd7e14,#7048e8);color:#fff;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25)}.evbanner.soon{cursor:default;opacity:.95}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}.vcard{background:#fff;color:var(--ink);border-radius:18px;padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center;box-shadow:0 4px 0 rgba(0,0,0,.2)}.vcard .ve{font-size:44px}.vstars{color:#f59f00;font-size:20px;letter-spacing:2px}.vperk{font-weight:700}.vnext{font-size:13px;color:#868e96;min-height:2.4em}
+.qdot{background:#ff6b6b;color:#fff;border-radius:999px;padding:0 7px;margin-left:4px}
+.qpanel{background:rgba(255,255,255,.95);color:var(--ink);border-radius:20px;padding:12px 14px;margin:12px 0}.qpanel h3{margin:0 0 8px}.qready{background:#ffd43b;color:#5c3c00;border-radius:999px;padding:2px 10px;font-size:14px;animation:bob 1.2s ease-in-out infinite;display:inline-block}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}.qitem{display:flex;gap:8px;align-items:center;text-align:left;min-width:0;box-shadow:none;margin:0;background:#f8f6ff;border:2px solid #e5dbff;border-radius:14px;padding:8px}.qitem.done{border-color:#fcc419;background:#fff9db}
+.qnpc{font-size:34px;flex:none}.qbody{flex:1;min-width:0;font-size:14px}.qbody b{font-size:15px;display:block}.qbody small{color:#868e96}.qbar{height:8px;background:#e9ecef;border-radius:6px;overflow:hidden;margin:4px 0 1px}.qbar i{display:block;height:100%;background:linear-gradient(90deg,#7048e8,#be4bdb)}.qitem.done .qbar i{background:#fcc419}
+.nsteps{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}.nstep{font:inherit;font-size:13px;font-weight:700;border:0;border-radius:999px;background:#e7f5ff;color:#1864ab;padding:5px 11px;cursor:pointer}
 .fbar.tiered{position:relative;overflow:visible}.fmark{position:absolute;top:-4px;bottom:-4px;width:4px;margin-left:-2px;background:#fff;border-radius:2px;box-shadow:0 0 0 2px rgba(0,0,0,.25)}.fmark.got{background:#ffd43b}
 .ftiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.ftier{background:rgba(255,255,255,.15);border-radius:12px;padding:6px 8px;text-align:center;display:flex;flex-direction:column;gap:1px}.ftier span{font-size:20px;font-weight:800}.ftier small{opacity:.9}.ftier.got{background:#ffd43b;color:#5c3c00}
 .fnote{font-size:12px;opacity:.8;margin-top:6px}
@@ -986,7 +997,7 @@ const HAIRS=['#2b1d0e','#6a3d1a','#c68642','#f2d16b','#d9480f','#7c5cff','#1c7ed
 const HATS=[
  {id:'wizard',name:'Wizard Hat',price:0},{id:'none',name:'No Hat',price:0},{id:'cap',name:'Cap',price:0},{id:'bow',name:'Bow',price:0},
  {id:'catears',name:'Cat Ears',price:80},{id:'helmet',name:'Knight Helm',price:120},{id:'viking',name:'Viking Helm',price:180},
- {id:'crown',name:'Royal Crown',price:250},{id:'astro',name:'Space Helmet',price:400}];
+ {id:'crown',name:'Royal Crown',price:250},{id:'astro',name:'Space Helmet',price:400},{id:'pumpkin',name:'Pumpkin Hat',price:1,event:true}];
 const ROBES=[
  {id:'purple',name:'Purple',c:'#7c5cff',price:0},{id:'blue',name:'Blue',c:'#2f8cff',price:0},{id:'red',name:'Red',c:'#ef4444',price:0},
  {id:'green',name:'Green',c:'#22b35e',price:0},{id:'orange',name:'Orange',c:'#ff8c1a',price:0},{id:'pink',name:'Pink',c:'#ff5fa2',price:0},
@@ -1007,11 +1018,11 @@ const SPELLS=[
  {id:'galaxy',name:'Galaxy Spiral',e:'🌌',mult:1.9,price:3200,lvl:20,color:'#5c7cfa'},
  {id:'nova',name:'Supernova',e:'💫',mult:2,price:4500,lvl:25,color:'#ffe066'}];
 /* higher-end balance: rewards follow challenge, monsters grow with the hero */
-function challengeD(p,op){const exp=Math.min(9,(p.grade||3)+2);const L=op==='mix'?Math.round(BASIC_OPS.reduce((s,o)=>s+lvl(p,o),0)/4):lvl(p,op);return Math.max(-2,Math.min(2,L-exp));}
-function coinPer(p,q){const exp=Math.min(9,(p.grade||3)+2);return 3+Math.max(-1,Math.min(2,(q.L||1)-exp));}
+function challengeD(p,op){const exp=gradeExp(p);const L=op==='mix'?Math.round(BASIC_OPS.reduce((s,o)=>s+lvl(p,o),0)/4):lvl(p,op);return Math.max(-2,Math.min(2,L-exp));}
+function coinPer(p,q){const exp=gradeExp(p);return 3+Math.max(-1,Math.min(2,(q.L||1)-exp));}
 function lvlScale(p,round){const over=Math.max(0,(p.level||1)-10);const sp=(SPELLS.find(s=>s.id===p.spell)||SPELLS[0]).mult;return {hp:(1+Math.min(.5,over*.025))*((round||1)>=3?1+(sp-1)*.6:1),dmg:1+Math.min(.6,over*.03)};}
 const PERKS={coins:'🪙 Extra coins',power:'💥 Stronger spells',shield:'🛡️ Blocks a hit',xp:'✨ Levels up faster',lucky:'🥚 Finds more eggs',heal:'❤️ Heals you on streaks'};
-const PET_TIERS={common:{n:'Common',c:'#6bbf59',odds:60,mult:1},rare:{n:'Rare',c:'#3a8dde',odds:24,mult:1.1},epic:{n:'Epic',c:'#a855f7',odds:12,mult:1.2},legend:{n:'Legendary',c:'#f59e0b',odds:4,mult:1.35},mythic:{n:'Mythic',c:'#e64980',odds:0,mult:1.5}};
+const PET_TIERS={common:{n:'Common',c:'#6bbf59',odds:60,mult:1},rare:{n:'Rare',c:'#3a8dde',odds:24,mult:1.1},epic:{n:'Epic',c:'#a855f7',odds:12,mult:1.2},legend:{n:'Legendary',c:'#f59e0b',odds:4,mult:1.35},mythic:{n:'Mythic',c:'#e64980',odds:0,mult:1.5},event:{n:'Halloween',c:'#fd7e14',odds:0,mult:1.3}};
 const TIER_ORDER=['common','rare','epic','legend'];
 const PETS=[
  {id:'chick',e:'🐣',name:'Peep',perk:'coins',tier:'common'},{id:'fox',e:'🦊',name:'Ember',perk:'power',tier:'common'},
@@ -1034,11 +1045,12 @@ const PETS=[
  {id:'unicorn',e:'🦄',name:'Sparkle',perk:'xp',tier:'legend'},{id:'dragon',e:'🐉',name:'Blaze',perk:'power',tier:'legend'},
  {id:'skydragon',e:'🐲',name:'Zephyr',perk:'lucky',tier:'legend'},{id:'titan',e:'🦕',name:'Titan',perk:'shield',tier:'legend'},
  {id:'butterfly',e:'🦋',name:'Aurora',perk:'heal',tier:'legend'},{id:'bigwhale',e:'🐋',name:'Atlas',perk:'coins',tier:'legend'},
- {id:'nova',e:'🪼',name:'Nova the Star Jelly',perk:'power',tier:'mythic'}];
+ {id:'nova',e:'🪼',name:'Nova the Star Jelly',perk:'power',tier:'mythic'},
+ {id:'boo',e:'👻',name:'Boo the Ghost',perk:'lucky',tier:'event'}];
 PETS.forEach(x=>{x.rare=x.tier!=='common';});
-const REG_PETS=PETS.filter(x=>x.tier!=='mythic');const MYTHIC=PETS.filter(x=>x.tier==='mythic');const regHave=p=>(p.pets||[]).filter(id=>REG_PETS.some(x=>x.id===id)).length;
-const tierTag=x=>`<small class="tiertag" style="background:${PET_TIERS[x.tier].c}">${x.tier==='mythic'?'🌌 ':x.tier==='legend'?'🌟 ':x.tier==='epic'?'💜 ':x.tier==='rare'?'✨ ':''}${PET_TIERS[x.tier].n}</small>`;
-const eggPrice=p=>p.pets.length<20?Math.min(900,150+p.pets.length*30):Math.min(2500,900+(p.pets.length-20)*100);
+const REG_PETS=PETS.filter(x=>x.tier!=='mythic'&&x.tier!=='event');const EVENT_PETS=PETS.filter(x=>x.tier==='event');const MYTHIC=PETS.filter(x=>x.tier==='mythic');const regHave=p=>(p.pets||[]).filter(id=>REG_PETS.some(x=>x.id===id)).length;
+const tierTag=x=>`<small class="tiertag" style="background:${PET_TIERS[x.tier].c}">${x.tier==='event'?'🎃 ':x.tier==='mythic'?'🌌 ':x.tier==='legend'?'🌟 ':x.tier==='epic'?'💜 ':x.tier==='rare'?'✨ ':''}${PET_TIERS[x.tier].n}</small>`;
+const eggPrice=p=>Math.round((p.pets.length<20?Math.min(900,150+p.pets.length*30):Math.min(2500,900+(p.pets.length-20)*100))*(1-.05*vLv(p,'shop')));
 const ZONES=[
  {id:'forest',name:'Addition Forest',op:'add',sym:'+',cls:'z-forest',art:'🌳',decor:['🌲','🌳','🍄','🌼','🌿'],
   mons:[['Grumbug','🐛'],['Shroomling','🍄'],['Buzzbee','🐝'],['Twigwolf','🐺'],['Vinesnake','🐍'],['King Mossback','🦍']]},
@@ -1065,7 +1077,13 @@ const ZONES=[
  {id:'mesa',name:'Measure Mesa',op:'meas',sym:'📏',cls:'z-mesa',art:'📏',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock.',decor:['📏','🌵'],
   mons:[['Ruler Rattler','🐍'],['Yardstick Yak','🐃'],['Inchworm','🐛'],['Protractor Hawk','🦅'],['Canyon Coyote','🐺'],['Perimeter Pharaoh','🦂']]},
  {id:'summit',name:'Story Summit',op:'word',sym:'📖',cls:'z-summit',art:'🏔️',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock.',decor:['🏔️','📖'],
-  mons:[['Riddle Raccoon','🦝'],['Snow Owl','🦉'],['Puzzle Goat','🐐'],['Word Wolf','🐺'],['Frost Troll','🧌'],['The Story Dragon','🐉']]}];
+  mons:[['Riddle Raccoon','🦝'],['Snow Owl','🦉'],['Puzzle Goat','🐐'],['Word Wolf','🐺'],['Frost Troll','🧌'],['The Story Dragon','🐉']]},
+ {id:'haunt',name:'Haunted Hollow',op:'mix',sym:'🎃',cls:'z-haunt',art:'🎃',scene:'castle',event:true,decor:['🎃','👻','🕸️','🍬'],
+  mons:[['Pumpkin Pal','🎃'],['Giggle Ghost','👻'],['Bat Buddy','🦇'],['Spooky Spider','🕷️'],['Candy Goblin','👺'],['The Pumpkin King','🤴']]}];
+Object.defineProperty(ZONES.find(z=>z.id==='haunt'),'lockMsg',{get(){return eventSoon()?'🎃 Opens October 18!':'🎃 Closed until next Halloween!';}});
+const EVENT_START='2026-10-18',EVENT_END='2026-11-01';
+const eventOpen=()=>{const d=dayKey();return d>=EVENT_START&&d<=EVENT_END;};
+const eventSoon=()=>{const d=dayKey();return d<EVENT_START;};
 const NODE_POS=[[15,80],[34,54],[18,26],[48,32],[66,64],[82,28]];
 
 /* ================= save / state ================= */
@@ -1089,7 +1107,7 @@ function newPlayer(name,grade){
   recent:Object.fromEntries(OPS.map(o=>[o,[]])),log:[],lock:null,battle:null,maxL:Object.fromEntries(OPS.map(o=>[o,Math.floor(g[o])])),champ:{},pb:{},days:[],quest:null,pantry:{},toys:[],petGear:[],spinDay:null};
 }
 let state=load();
-function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{if(p.setup&&!(p.wkHist&&p.wkHist[weekKey()])&&typeof wkOf==='function'){const w=wkOf(p);weekDays(weekKey()).forEach(k=>{const d=p.daily&&p.daily[k];if(d&&d.r){const n=Math.min(DAY_CAP,d.r);w.dc[k]=n;w.pts+=n*8;}});(p.log||[]).forEach(l=>{if(l.to>l.from&&weekDays(weekKey()).includes(l.d))w.lv++;});}p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1.5;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel|mika/i.test(p.name))p.look.kind='boy';}if(!p.mikaBoy&&/mika/i.test(p.name)){p.look.kind='boy';p.mikaBoy=true;}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{if(/^ethan$/i.test((p.name||'').trim())&&p.grade===3&&!p.gradeFix11){p.grade=11;p.gradeFix11=1;if(p.spellSig!==undefined)try{p.spellSig=spellSchool(p).map(x=>x.w).join('|');}catch(e){}}if(p.setup&&!(p.wkHist&&p.wkHist[weekKey()])&&typeof wkOf==='function'){const w=wkOf(p);weekDays(weekKey()).forEach(k=>{const d=p.daily&&p.daily[k];if(d&&d.r){const n=Math.min(DAY_CAP,d.r);w.dc[k]=n;w.pts+=n*8;}});(p.log||[]).forEach(l=>{if(l.to>l.from&&weekDays(weekKey()).includes(l.d))w.lv++;});}p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1.5;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel|mika/i.test(p.name))p.look.kind='boy';}if(!p.mikaBoy&&/mika/i.test(p.name)){p.look.kind='boy';p.mikaBoy=true;}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -1097,7 +1115,7 @@ const xpNeed=l=>60+l*40;
 const petOf=p=>p.pet?PETS.find(x=>x.id===p.pet):null;
 const petPerk=p=>{if(typeof B!=='undefined'&&B&&!B.over&&B.petFrozen>0&&curScreen==='battle')return null;const x=petOf(p);return x?x.perk:null;};
 const bossesBeaten=p=>ZONES.filter(z=>(p.progress[z.id]||[])[5]>0).length;
-const zoneLocked=(z,p)=>(z.id==='tower'&&bossesBeaten(p)<2)||(!!z.g5&&!((p.grade||0)>=5||bossesBeaten(p)>=6));
+const zoneLocked=(z,p)=>(!!z.event&&!eventOpen())||(z.id==='tower'&&bossesBeaten(p)<2)||(!!z.g5&&!((p.grade||0)>=5||bossesBeaten(p)>=6));
 
 /* ================= sound ================= */
 let AC=null;
@@ -1136,6 +1154,7 @@ function heroSVG(look,opts){
   case 'helmet':hat=`<path d="M50 26 Q60 8 74 12 Q63 16 57 27Z" fill="#ef4444" stroke="${O}" stroke-width="2"/><path d="M32 44 Q32 24 50 24 Q68 24 68 44 Z" fill="#c9d1dc" stroke="${O}" stroke-width="2.5"/><rect x="48" y="25" width="4" height="19" fill="#a4adb8"/>`;break;
   case 'viking':hat=`<path d="M35 36 Q20 32 21 14 Q27 27 38 29Z M65 36 Q80 32 79 14 Q73 27 62 29Z" fill="#f4ead0" stroke="${O}" stroke-width="2.2" stroke-linejoin="round"/><path d="M32 40 Q32 23 50 23 Q68 23 68 40 Z" fill="#9aa4b1" stroke="${O}" stroke-width="2.5"/><rect x="31" y="36" width="38" height="5" rx="2" fill="#c68642" stroke="${O}" stroke-width="1.5"/>`;break;
   case 'crown':hat=`<path d="M35 34 L34 18 L42 25 L50 13 L58 25 L66 18 L65 34 Z" fill="#ffc83d" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="50" cy="28" r="2.6" fill="#ef4444"/><circle cx="41" cy="30" r="2" fill="#2f8cff"/><circle cx="59" cy="30" r="2" fill="#22b35e"/>`;break;
+  case 'pumpkin':hat=`<ellipse cx="50" cy="25" rx="18" ry="12" fill="#ff8c1a" stroke="${O}" stroke-width="2.5"/><path d="M42 15 Q39 25 42 36 M58 15 Q61 25 58 36 M50 13 V37" stroke="#d9480f" stroke-width="2" fill="none"/><path d="M50 13 Q51 6 56 5" stroke="#2f9e44" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M52 9 Q60 6 63 11 Q56 13 52 9Z" fill="#40c057" stroke="${O}" stroke-width="1.2"/><path d="M43 25 L46 22 L49 25Z M51 25 L54 22 L57 25Z M44 30 Q50 34 56 30" fill="#5c2a00" stroke="#5c2a00" stroke-width="1"/>`;break;
   case 'astro':hat=`<line x1="50" y1="24" x2="50" y2="12" stroke="${O}" stroke-width="2"/><circle cx="50" cy="11" r="3" fill="#ff5a5f" stroke="${O}" stroke-width="1.5"/><circle cx="50" cy="45" r="22" fill="rgba(170,225,255,.25)" stroke="#dfe9f5" stroke-width="3.5"/><path d="M36 36 Q40 29 47 27" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>`;break;
  }
  const vb=opts.head?'22 0 56 66':'0 0 100 130';
@@ -1272,7 +1291,7 @@ function renderCreate(){
  <div class="opts">
   <label class="lbl">Boy or girl?</label><div class="chips"><button class="chip big ${draft.look.kind==='boy'?'on':''}" onclick="draft.look.kind='boy';renderCreate()">🧙‍♂️ Boy wizard</button><button class="chip big ${draft.look.kind==='girl'?'on':''}" onclick="draft.look.kind='girl';renderCreate()">🧙‍♀️ Girl wizard</button></div>
   <label class="lbl">Hero name</label><input id="nm" class="inp" maxlength="16" value="${esc(draft.name)}" placeholder="Type a name" oninput="draft.name=this.value">
-  ${draft.id?'':`<label class="lbl">School grade</label><div class="chips">${[1,2,3,4,5,6].map(g=>`<button class="chip ${draft.grade===g?'on':''}" onclick="draft.grade=${g};renderCreate()">${g}</button>`).join('')}</div>`}
+  ${draft.id?'':`<label class="lbl">School grade</label><div class="chips">${[1,2,3,4,5,6,7,8,9,10,11,12].map(g=>`<button class="chip ${draft.grade===g?'on':''}" onclick="draft.grade=${g};renderCreate()">${g}</button>`).join('')}</div>`}
   <label class="lbl">Skin</label><div class="chips">${SKINS.map(c=>sw(c,draft.look.skin===c,`draft.look.skin='${c}'`)).join('')}</div>
   <label class="lbl">Hair</label><div class="chips">${HAIRS.map(c=>sw(c,draft.look.hair===c,`draft.look.hair='${c}'`)).join('')}</div>
   <label class="lbl">Robe</label><div class="chips">${robes.map(r=>sw(r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c,draft.look.robe===r.id,`draft.look.robe='${r.id}'`)).join('')}</div>
@@ -1308,13 +1327,46 @@ function welcomeIfNew(p){
  <p>Number Monsters have taken over the Quest Realms. Only a math hero can stop them!</p>
  <div class="hint" style="text-align:left">✅ Right answers cast spells at the monster.<br>⚡ Answer fast for a <b>CRITICAL</b> hit!<br>🔥 Keep a streak going for extra power.<br>💡 Wrong answers let the monster hit back, but you'll see the trick to solve it.</div>
  <p><b>🥚 You found a mystery egg!</b> Hatch it in your backpack.</p>
- <div class="row"><button class="btn green" onclick="closeModal();go('backpack')">Hatch my egg!</button><button class="btn ghost dark" onclick="closeModal()">To the map!</button></div></div>`);
+ <p class="muted">First, a quick 🎯 <b>skill check</b> (about 2 minutes) so your monsters start at just the right level.</p>
+ <div class="row"><button class="btn gold big" onclick="closeModal();SKC=null;go('skillcheck')">🎯 Start the skill check</button><button class="btn ghost dark" onclick="closeModal();go('backpack')">Skip, hatch my egg</button></div></div>`);
 }
+/* ---------- skill check: quick placement for + − × ÷ ---------- */
+let SKC=null;const SC_OPS=['add','sub','mul','div'];
+function scStart(p){const L0=clamp(gradeExp(p)-2,1,15);SKC={i:0,L:L0,start:L0,ok:0,asked:0,passed:{},failedAt:{},q:null,input:'',n:0,msg:'',done:false};scNextQ();}
+function scNextQ(){const op=SC_OPS[SKC.i];SKC.q=genQ(op,SKC.L);SKC.input='';SKC.n++;}
+function scFinishOp(){const op=SC_OPS[SKC.i];SKC.i++;SKC.ok=0;SKC.asked=0;if(SKC.i>=SC_OPS.length){scApply();return;}SKC.L=SKC.start;scNextQ();}
+function scAnswer(){const p=P();const q=SKC.q;const v=parseInt(SKC.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const op=SC_OPS[SKC.i];
+ SKC.asked++;if(ok){SFX.correct();SKC.ok++;}else SFX.wrong();
+ SKC.msg=ok?pick(['Nice!','Yes!','Correct!','👍']):`The answer was ${q.answer}. No worries!`;
+ const tries=Object.keys(SKC.passed).length;
+ if(!ok){SKC.failedAt[op]=Math.min(SKC.failedAt[op]||99,SKC.L);if(SKC.passed[op]){scFinishOp();}else if(SKC.L<=1){SKC.passed[op]=1;scFinishOp();}else{SKC.L=Math.max(1,SKC.L-2);SKC.ok=0;SKC.asked=0;scNextQ();}}
+ else if(SKC.ok>=2){SKC.passed[op]=SKC.L;const nx=Math.min(maxLv(op),SKC.L+2);if(nx===SKC.L||nx>=(SKC.failedAt[op]||99)){scFinishOp();}else{SKC.L=nx;SKC.ok=0;SKC.asked=0;scNextQ();}}
+ else scNextQ();
+ if(SKC.n>40&&!SKC.done)scApply();
+ go('skillcheck');}
+function scApply(){const p=P();SKC.done=true;SKC.res={};
+ SC_OPS.forEach(op=>{const to=SKC.passed[op]||1;SKC.res[op]=to;if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});
+ const avg=SC_OPS.reduce((a,o)=>a+(SKC.passed[o]||1),0)/4;
+ if(avg>=6)XOPS.forEach(op=>{const to=Math.min(10,Math.floor(avg-2));if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});
+ p.skillChecked=dayKey();save();}
+function scKey(k){if(!SKC||SKC.done)return;if(k==='del')SKC.input=SKC.input.slice(0,-1);else if(SKC.input.length<7)SKC.input+=k;SFX.tap();go('skillcheck');}
+SCREENS.skillcheck=()=>{const p=P();if(!SKC)scStart(p);
+ const head=`<div class="zhead"><button class="btn ghost small" onclick="SKC=null;go('map')">← Map</button><h2 class="title">🎯 Skill Check</h2></div>`;
+ if(SKC.done){app.innerHTML=topbar()+`<div class="page">${head}<div class="cafe-card center"><div class="big-emoji">🧙</div><h3>All done, ${esc(p.name)}!</h3><p>Your monsters will start at these levels. They'll keep adjusting as you play.</p>
+  <div class="scres">${SC_OPS.map(o=>`<div><b>${OPNAME[o]}</b><span>Level ${lvl(p,o)}</span><small>${KID_DESC[o][lvl(p,o)]}</small></div>`).join('')}</div>
+  <div class="row"><button class="btn green big" onclick="SKC=null;go('map')">To the map! 🗺️</button>${p.eggs?`<button class="btn gold" onclick="SKC=null;go('backpack')">Hatch my egg 🥚</button>`:''}</div></div></div>`;return;}
+ const q=SKC.q,op=SC_OPS[SKC.i];const box=`<span class="ansbox">${SKC.input||'?'}</span>`;
+ const qh=q.tpl?`<div class="xq">${q.vis?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div></div></div>`:`<div class="scq">${q.text} = ${box}</div>`;
+ app.innerHTML=topbar()+`<div class="page">${head}<div class="scsteps">${SC_OPS.map((o,k)=>`<span class="${k<SKC.i?'done':k===SKC.i?'on':''}">${{add:'+',sub:'−',mul:'×',div:'÷'}[o]}</span>`).join('')}</div>
+ <div class="cafe-card"><div class="cafe-lab">${OPNAME[op]} · try your best, it's okay to miss!</div>${qh}${SKC.msg?`<div class="muted center">${SKC.msg}</div>`:''}
+ <div class="cpad">${['1','2','3','4','5','6','7','8','9','del','0'].map(k=>`<button onclick="scKey('${k}')">${k==='del'?'⌫':k}</button>`).join('')}<button class="go" style="grid-column:auto" onclick="scAnswer()">✓</button></div>
+ <div class="row"><button class="btn ghost dark small" onclick="scFinishOp();go('skillcheck')">I don't know these yet ➜</button></div></div></div>`;
+};
 
 /* ---------- world map ---------- */
 SCREENS.map=()=>{
  const p=P();
- app.innerHTML=topbar()+`<div class="page"><h2 class="title">🌀 The Quest Realms</h2><div class="explore-btn"><button class="btn gold big" onclick="go('world')">🧭 Explore the world</button><button class="btn big" onclick="go('leaders')">📜 Leaderboard</button></div>${questBar(p)}${homeCards(p)}${continueCard(p)}${schoolCards(p)}
+ app.innerHTML=topbar()+`<div class="page"><h2 class="title">🌀 The Quest Realms</h2><div class="explore-btn"><button class="btn gold big" onclick="go('world')">🧭 Explore the world</button><button class="btn big" onclick="go('leaders')">📜 Leaderboard</button></div>${questBar(p)}${eventBanner(p)}${questPanel(p)}${homeCards(p)}${continueCard(p)}${schoolCards(p)}
  <h2 class="title" style="margin-top:26px">🔢 Math Worlds</h2><div class="zones">${ZONES.map(z=>{
   const locked=zoneLocked(z,p);const pr=p.progress[z.id]||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
   return `<button class="zone-card ${z.cls} ${locked?'locked':''}" onclick="${locked?`toast('${z.lockMsg}')`:`go('zone','${z.id}')`}">
@@ -1335,20 +1387,61 @@ function homeCards(p){const pet=petOf(p);let petLine='';
 
 /* ---------- zone ---------- */
 SCREENS.zone=zid=>{
- const z=findZone(zid);const p=P();if(z.op==='spell')checkSpellSig(p);const cr=curRound(p,z.id);const pr=rpeek(p,z.id,cr);
+ const z=findZone(zid);const p=P();if(z.op==='spell')checkSpellSig(p);const cr=curRound(p,z.id);const av=canAsc(p,z)&&(p.ascView||{})[z.id];const pr=av?ascProg(p,z.id):rpeek(p,z.id,cr);const ar=ascRank(p,z.id)+1;
  let decor=`<div class="scene zscene">${sceneSVG(z.id)}</div>`;for(let i=0;i<0;i++){decor+=`<span class="decor" style="left:${(i*37+9)%96+2}%;top:${(i*53+13)%90+5}%;font-size:${24+(i*7)%22}px">${z.decor[i%z.decor.length]}</span>`;}
  const nodes=z.mons.map((m,i)=>{
   const open=i===0||pr[i-1]>0;const st=pr[i]||0;const next=open&&!st;
-  return `<button class="node ${i===5?'boss':''} ${open?'':'locked'} ${st?'done':''} ${next?'next':''}" style="left:${NODE_POS[i][0]}%;top:${NODE_POS[i][1]}%" title="${esc(m[0])}" onclick="${open?`startBattle('${z.id}',${i})`:`toast('Beat the monster before this one first!')`}">${open?m[1]:'🔒'}${next?'<span class="go-tag">GO!</span>':''}${st?`<span class="nstars">${'⭐'.repeat(st)}</span>`:''}</button>`;}).join('');
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">${ROUNDS[cr].m} ${z.name}</h2></div>
+  return `<button class="node ${i===5?'boss':''} ${open?'':'locked'} ${st?'done':''} ${next?'next':''}" style="left:${NODE_POS[i][0]}%;top:${NODE_POS[i][1]}%" title="${esc(m[0])}" onclick="${open?`startBattle('${z.id}',${i},null,${av?'{asc:true}':'null'})`:`toast('Beat the monster before this one first!')`}">${open?m[1]:'🔒'}${next?'<span class="go-tag">GO!</span>':''}${st?`<span class="nstars">${'⭐'.repeat(st)}</span>`:''}</button>`;}).join('');
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">${av?`✨ ★${ar}`:ROUNDS[cr].m} ${z.name}</h2></div>
  ${roundTabs(p,z)}
- <div class="zmap ${z.cls} r${cr}"><svg class="zpath" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${NODE_POS.map(q=>q.join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>${decor}${nodes}</div>
+ <div class="zmap ${z.cls} r${cr} ${av?'ascmap':''}" style="--asch:${ar*47}deg"><svg class="zpath" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${NODE_POS.map(q=>q.join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>${decor}${nodes}</div>
  <p class="ztip">${z.op==='spell'?`${esc(spellTitle(p))}: ${spellList(p).length} words · ${spellList(p).filter(x=>learned(p,x.w)).length} learned. Each battle uses about 6 words; the boss uses 20!${bankPacks(p).length?` 📚 Bonus word packs: ${packsOpen(p)} of ${bankPacks(p).length} open (learn 15 words in a pack to open the next).`:''}`:z.op==='mix'?'Every kind of problem lives here. Watch out!':'Now practicing: <b>'+KID_DESC[z.op][lvl(p,z.op)]+'</b>'}</p></div>`;
 };
 
 /* ================= questions ================= */
+
+/* ================= higher math: levels 11-15 for + − × ÷ (middle and high school) ================= */
+const HI_DESC={
+ add:['Adding negative numbers','Order of operations','One-step equations (x + a)','Adding squares','Big expressions'],
+ sub:['Subtracting negatives','Negative minus negative','One-step equations (x − a)','Distance on a number line','Exponents and order of operations'],
+ mul:['Negative × negative','Percent of a number','Powers and exponents','Ratios and proportions','Two-step equations'],
+ div:['Negative ÷ negative','Unit rates','Square roots','Finding the whole from a percent','Equations with division']};
+['add','sub','mul','div'].forEach(o=>{HI_DESC[o].forEach((d,i)=>{KID_DESC[o][11+i]=d;LEVEL_DESC[o][11+i]=d;});});
+const maxLv=op=>BASIC_OPS.includes(op)?15:10;
+const gradeExp=p=>Math.min(14,(p.grade||3)+2);
+const NEG=n=>`(−${Math.abs(n)})`;const SQ=n=>`${n}²`;const POW=(b,e)=>`${b}<sup>${e}</sup>`;
+function genHigh(op,L){const q={op,L,fast:14};const fin=o=>Object.assign(q,o);const eq=(expr,ans,explain,nudge,prompt)=>fin({tpl:`${expr} = {A}`,text:expr.replace(/<sup>(\d+)<\/sup>/g,'^$1').replace(/<[^>]+>/g,''),answer:ans,explain,nudge,prompt});
+ const k=L-10;
+ if(op==='add'){
+  if(k===1){const a=-rnd(3,40),b=rnd(-a+1,-a+50);return eq(`${NEG(a)} + ${b}`,a+b,`<p>Start at <b>${a}</b> on a number line and move <b>${b}</b> steps to the right. You pass 0 after ${-a} steps, then go ${a+b} more.</p><p>Answer: <b>${a+b}</b></p>`,`<p>A negative plus a bigger positive: subtract the sizes. ${b} − ${-a} = ?</p>`);}
+  if(k===2){const x=rnd(2,20),y=rnd(2,9),z=rnd(2,9);return eq(`${x} + ${y} × ${z}`,x+y*z,`<p>Multiply first! ${y} × ${z} = ${y*z}. Then ${x} + ${y*z} = <b>${x+y*z}</b>.</p>`,`<p>Remember the order: <b>× before +</b>.</p>`);}
+  if(k===3){const x=rnd(5,60),a=rnd(5,60);return fin({prompt:'Find <b>x</b>',tpl:`x + ${a} = ${x+a} &nbsp; → &nbsp; x = {A}`,text:`x + ${a} = ${x+a}`,answer:x,explain:`<p>Undo the + ${a} by subtracting ${a} from both sides: ${x+a} − ${a} = <b>${x}</b>.</p>`,nudge:`<p>What number plus ${a} makes ${x+a}? Try ${x+a} − ${a}.</p>`});}
+  if(k===4){const a=rnd(2,12),b=rnd(2,12);return eq(`${SQ(a)} + ${SQ(b)}`,a*a+b*b,`<p>${SQ(a)} means ${a} × ${a} = ${a*a}. ${SQ(b)} = ${b*b}. Add them: <b>${a*a+b*b}</b>.</p>`,`<p>The little ² means multiply the number by itself.</p>`);}
+  const a=rnd(2,6),b=rnd(2,9),c=rnd(1,8),d=rnd(1,8);return eq(`${SQ(a)} + ${b} × (${c} + ${d})`,a*a+b*(c+d),`<p>Parentheses first: ${c} + ${d} = ${c+d}. Exponent: ${SQ(a)} = ${a*a}. Multiply: ${b} × ${c+d} = ${b*(c+d)}. Add: <b>${a*a+b*(c+d)}</b>.</p>`,`<p>Order: <b>( )</b> → <b>²</b> → <b>×</b> → <b>+</b>.</p>`);
+ }
+ if(op==='sub'){
+  if(k===1){const a=rnd(3,40),b=rnd(2,30);return eq(`${a} − ${NEG(b)}`,a+b,`<p>Subtracting a negative is the same as <b>adding</b>: ${a} + ${b} = <b>${a+b}</b>.</p>`,`<p>Two minus signs in a row turn into a plus!</p>`);}
+  if(k===2){const a=-rnd(3,30),b=-rnd(-a+1,-a+30);return eq(`${NEG(a)} − ${NEG(b)}`,a-b,`<p>− (${b}) becomes + ${-b}. So ${a} + ${-b} = <b>${a-b}</b>.</p>`,`<p>Change "− negative" into "+ positive" first.</p>`);}
+  if(k===3){const a=rnd(5,60),x=rnd(a+3,a+80);return fin({prompt:'Find <b>x</b>',tpl:`x − ${a} = ${x-a} &nbsp; → &nbsp; x = {A}`,text:`x − ${a} = ${x-a}`,answer:x,explain:`<p>Undo the − ${a} by adding ${a}: ${x-a} + ${a} = <b>${x}</b>.</p>`,nudge:`<p>What number take away ${a} leaves ${x-a}? Try ${x-a} + ${a}.</p>`});}
+  if(k===4){const a=-rnd(2,30),b=rnd(2,40);return fin({prompt:`How far apart are <b>${a}</b> and <b>${b}</b> on a number line?`,tpl:`Distance = {A}`,text:`distance from ${a} to ${b}`,answer:b-a,explain:`<p>From ${a} up to 0 is ${-a} steps. From 0 up to ${b} is ${b} steps. Total: <b>${b-a}</b>.</p>`,nudge:`<p>Count the steps to 0 first, then from 0 to ${b}.</p>`});}
+  let a,b,c;do{a=rnd(5,15);b=rnd(2,9);c=rnd(2,9);}while(a*a<=b*c);return eq(`${SQ(a)} − ${b} × ${c}`,a*a-b*c,`<p>Exponent first: ${SQ(a)} = ${a*a}. Then multiply: ${b} × ${c} = ${b*c}. Subtract: <b>${a*a-b*c}</b>.</p>`,`<p>Order: <b>²</b> → <b>×</b> → <b>−</b>.</p>`);
+ }
+ if(op==='mul'){
+  if(k===1){const a=rnd(2,12),b=rnd(2,12);return eq(`${NEG(a)} × ${NEG(b)}`,a*b,`<p>A negative times a negative is <b>positive</b>. ${a} × ${b} = <b>${a*b}</b>.</p>`,`<p>Two negatives multiplied make a positive.</p>`);}
+  if(k===2){const pc=pick([10,20,25,50,75,5,40]),base=pc===75||pc===25?4:pc===5?20:pc===40||pc===20?5:10;const n=base*rnd(2,30);return eq(`${pc}% of ${n}`,n*pc/100,`<p>${pc}% means ${pc} out of 100. ${n} × ${pc} ÷ 100 = <b>${n*pc/100}</b>.</p>`,`<p>${pc===50?'50% is half.':pc===25?'25% is a quarter (divide by 4).':pc===10?'10% means divide by 10.':'Find 10% first, then scale it.'}</p>`);}
+  if(k===3){const b=rnd(2,5),e=b===2?rnd(3,8):b===3?rnd(2,5):rnd(2,4);return eq(POW(b,e),Math.pow(b,e),`<p>${b}<sup>${e}</sup> means ${Array(e).fill(b).join(' × ')} = <b>${Math.pow(b,e)}</b>.</p>`,`<p>Multiply ${b} by itself ${e} times.</p>`);}
+  if(k===4){const a=rnd(2,9),b=rnd(2,12),m=rnd(2,9);return fin({prompt:'Complete the ratio',tpl:`${a} : ${b} = ${a*m} : {A}`,text:`${a}:${b} = ${a*m}:?`,answer:b*m,explain:`<p>${a} was multiplied by ${m} to get ${a*m}, so multiply ${b} by ${m} too: <b>${b*m}</b>.</p>`,nudge:`<p>How many times bigger is ${a*m} than ${a}? Do the same to ${b}.</p>`});}
+  const m=rnd(2,9),x=rnd(2,15),c=rnd(1,30);return fin({prompt:'Find <b>x</b>',tpl:`${m}x + ${c} = ${m*x+c} &nbsp; → &nbsp; x = {A}`,text:`${m}x + ${c} = ${m*x+c}`,answer:x,explain:`<p>Subtract ${c}: ${m}x = ${m*x}. Divide by ${m}: x = <b>${x}</b>.</p>`,nudge:`<p>First undo the + ${c}, then undo the × ${m}.</p>`});
+ }
+ if(k===1){const a=rnd(2,12),b=rnd(2,12);return eq(`${NEG(a*b)} ÷ ${NEG(b)}`,a,`<p>Negative ÷ negative is <b>positive</b>. ${a*b} ÷ ${b} = <b>${a}</b>.</p>`,`<p>Same signs give a positive answer.</p>`);}
+ if(k===2){const n=rnd(3,12),u=rnd(2,15),it=pick([['🍎','apples'],['🎟️','tickets'],['📓','notebooks'],['🧃','juice boxes']]);return fin({prompt:`${it[0]} ${n} ${it[1]} cost <b>$${n*u}</b>. How much for <b>1</b>?`,tpl:`$ {A}`,text:`${n} ${it[1]} cost $${n*u}`,answer:u,explain:`<p>Divide the total by how many: ${n*u} ÷ ${n} = <b>$${u}</b> each.</p>`,nudge:`<p>Share $${n*u} equally among ${n}.</p>`});}
+ if(k===3){const n=rnd(2,20);return eq(`√${n*n}`,n,`<p>√ asks "what number times itself makes ${n*n}?" ${n} × ${n} = ${n*n}, so the answer is <b>${n}</b>.</p>`,`<p>Think: ? × ? = ${n*n}</p>`);}
+ if(k===4){const pc=pick([10,20,25,50]),whole=(pc===25?4:pc===20?5:pc===50?2:10)*rnd(2,30);const part=whole*pc/100;return fin({prompt:`<b>${part}</b> is <b>${pc}%</b> of what number?`,tpl:`Whole = {A}`,text:`${part} is ${pc}% of ?`,answer:whole,explain:`<p>${pc}% is ${part}, so 1% is ${part} ÷ ${pc}, and 100% is ${part} × ${100/pc} = <b>${whole}</b>.</p>`,nudge:`<p>${pc}% goes into 100% exactly ${100/pc} times.</p>`});}
+ const d=rnd(2,9),m=rnd(2,15),c=rnd(1,20);return fin({prompt:'Find <b>x</b>',tpl:`x ÷ ${d} + ${c} = ${m+c} &nbsp; → &nbsp; x = {A}`,text:`x ÷ ${d} + ${c} = ${m+c}`,answer:d*m,explain:`<p>Subtract ${c}: x ÷ ${d} = ${m}. Multiply by ${d}: x = <b>${d*m}</b>.</p>`,nudge:`<p>Undo the + ${c} first, then undo the ÷ ${d}.</p>`});
+}
 function genQ(op,L){
  if(XOPS.includes(op))return genX(op,L);
+ if(L>10)return genHigh(op,L);
  let a,b,c,ans,text;
  if(op==='add'){
   switch(L){
@@ -1428,11 +1521,11 @@ function adjustSkill(p,op,ok,slip){
  if(slip)return null;
  const w=p.recent[op];w.push(ok?1:0);if(w.length>8)w.shift();
  const L=lvl(p,op);
- if(L<10&&w.length>=UP_N&&w.slice(-UP_N).every(x=>x===1)){applyLevel(p,op,L+1);p.recent[op]=[];return 1;}
+ if(L<maxLv(op)&&w.length>=UP_N&&w.slice(-UP_N).every(x=>x===1)){applyLevel(p,op,L+1);p.recent[op]=[];return 1;}
  if(L>1&&w.length>=DOWN_N&&w.slice(-DOWN_WIN).filter(x=>x===0).length>=DOWN_N){applyLevel(p,op,L-1);p.recent[op]=[];return -1;}
  return null;
 }
-function applyLevel(p,op,to){const L=lvl(p,op);p.skill[op]=clamp(to,1,10)+.5;p.log.unshift({d:dayKey(),op,from:L,to:lvl(p,op)});if(p.log.length>30)p.log.pop();}
+function applyLevel(p,op,to){const L=lvl(p,op);p.skill[op]=clamp(to,1,maxLv(op))+.5;p.log.unshift({d:dayKey(),op,from:L,to:lvl(p,op)});if(p.log.length>30)p.log.pop();}
 function isSlip(q,given){
  const a=String(q.answer),g=String(given);if(q.answer<20||a.length!==g.length)return false;
  const diff=[];for(let i=0;i<a.length;i++)if(a[i]!==g[i])diff.push(i);
@@ -1501,18 +1594,18 @@ function startBattle(zid,i,resume,opts){
  const z=ZONES.find(x=>x.id===zid);const p=P();const isBoss=i===5;
  const champ=false;
  const wild=!!((opts&&opts.wild)||(resume&&resume.wild));
- const round=wild?1:((resume&&resume.round)||curRound(p,zid));const RM=RMUL[round]||RMUL[1];
+ const asc=!wild&&((opts&&opts.asc)||(resume&&resume.asc))?ascRank(p,zid)+1:0;const round=wild?1:asc?5:((resume&&resume.round)||curRound(p,zid));const RM=RMUL[round]||RMUL[1];
  const tired=wild?0:Math.min(3,((p.tired||{})[tiredKey(zid,round,i)])||0);
- const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.15*tired)*(z.hpx||1)*lvlScale(p,round).hp);
+ const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.15*tired)*(z.hpx||1)*lvlScale(p,round).hp*(1+.1*asc));
  const foes=[{n:wild&&opts?opts.n:z.mons[i][0],e:wild&&opts?opts.e:z.mons[i][1],hp:mhp,max:mhp}].concat(resume||wild?[]:gangFor(p,z,i,isBoss,round));
- B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0,round};
- if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round','spellFrozen','petFrozen','monShield','pwUsed','pwTick','petSince','bufN'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
+ B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0,round,asc};if(asc){B.foes.forEach(f=>{f.n=ASC_NAMES[(asc-1)%ASC_NAMES.length]+' '+f.n;});B.name=B.foes[0].n;}
+ if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round','spellFrozen','petFrozen','monShield','pwUsed','pwTick','petSince','bufN','asc'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
  if(resume&&B.foes&&B.foes[B.ti]){const f=B.foes[B.ti];B.name=f.n;B.emoji=f.e;B.mmax=f.max;B.foes[B.ti].hp=B.mhp;}
- if(wild){B.wild=true;B.backTo='world';B.name=foes[0].n;B.emoji=foes[0].e;}else{p.last={zid,i};if(!resume&&B.foes[0])B.foes[0].pw=powersFor(p,z,i,isBoss,round);B.tiredN=tired;if(!resume&&p.lunchTray){p.lunchTray=false;B.hmax+=20;B.hhp+=20;B.shieldUp=true;B.lunch=true;save();}}
+ if(wild){B.wild=true;B.backTo='world';B.name=foes[0].n;B.emoji=foes[0].e;}else{p.last={zid,i};if(!resume&&B.foes[0])B.foes[0].pw=powersFor(p,z,i,isBoss,round);B.tiredN=tired;if(!resume&&p.lunchTray){p.lunchTray=false;{const lh=20+5*vLv(p,'cafe');B.hmax+=lh;B.hhp+=lh;}B.shieldUp=true;B.lunch=true;save();}}
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
  renderBattle();
  banner((B.round>1?ROUNDS[B.round].m+' ':'')+(B.foes.length>1?`GANG OF ${B.foes.length}!`:B.wild?`🌿 A wild ${B.name}!`:(isBoss?'BOSS: ':'⚔️ ')+B.name+'!'));
- if(B.lunch)setTimeout(()=>toast('🍱 Lunch Tray power-up! +20 ❤️ and a magic shield!'),1400);
+ if(B.lunch)setTimeout(()=>toast(`🍱 Lunch Tray power-up! +${20+5*vLv(P(),'cafe')} ❤️ and a magic shield!`),1400);
  if(tired&&!resume)setTimeout(()=>toast(`😴 ${B.name} is tired from last time! It has ${tired*15}% less health.`),1000);
  else if(B.foes.length>1&&!resume)setTimeout(()=>toast(`${B.foes.map(f=>f.e).join(' ')} Beat all ${B.foes.length} to win! Wrong answers mean they ALL attack!`),900);
  setTimeout(nextQ,900);
@@ -1654,8 +1747,8 @@ function nextFoe(cont){
 }
 function renderBattle(){
  const p=P();const pet=petOf(p);
- app.innerHTML=`<div class="battle ${B.z.cls} ${B.mode!=='math'?'questmode':''}">
- <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname" id="bname">${B.round>1?ROUNDS[B.round].m+' ':''}${B.isBoss&&B.ti===0?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
+ app.innerHTML=`<div class="battle ${B.z.cls} ${B.mode!=='math'?'questmode':''} ${B.asc?'ascb':''}" style="--asch:${(B.asc||0)*47}deg">
+ <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname" id="bname">${B.asc?`✨★${B.asc} `:B.round>1?ROUNDS[B.round].m+' ':''}${B.isBoss&&B.ti===0?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
  <div class="bmain"><div class="arena" id="arena"><div class="scene">${sceneSVG(B.z.id)}</div>${B.mode==='math'&&!B.wild?`<div class="spellbar" id="spellbar">${SPECIALS.map(x=>`<button id="sp-${x.id}" onclick="useSpecial('${x.id}')">${x.e} ${x.n}<small>${x.cost} in a row</small></button>`).join('')}${pet&&petMovesMax(petData(p,pet.id))?`<button id="sp-pet" onclick="usePetMove()">${pet.e} ${PET_MOVES[pet.id]||'Pet Attack'}<small id="spPetN"></small></button>`:''}</div>`:''}
   <div class="fighter hero" id="heroF"><div class="bubble"></div><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div>${B.mode==='math'&&!B.wild?'<div class="mana" id="mana" title="Streak power: spells need right answers in a row"></div>':''}<div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf" id="petF">${petAvatar(p,pet)}</div>`:''}</div>
   <div class="fighter mon ${B.isBoss&&B.ti===0?'boss':''}" id="monF">${B.mode==='math'?foesHTML():`<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div>`}</div>
@@ -1718,7 +1811,7 @@ function usePetMove(){
  if(!B||B.mode!=='math'||B.over||fbOpen||B.busy||B.wild)return;
  const p=P(),pet=petOf(p);if(!pet)return;if((B.petSince||0)<3){toast(`${pet.e} ${PET_MOVES[pet.id]||'Pet Attack'} charges up after 3 right answers. ${3-(B.petSince||0)} more to go!`);return;}if(B.petFrozen>0){toast(`🧊 ${pet.name} is frozen! Get ${B.petFrozen} more right to thaw.`);return;}const pd=petData(p,pet.id);const max=petMovesMax(pd);
  if((B.petUses||0)>=max){toast(`${pet.e} ${pet.name} is tired. ${max} move${max>1?'s':''} per battle!`);return;}
- B.petUses=(B.petUses||0)+1;B.petSince=0;B.busy=true;const happy=petHappy(pd);const mv=PET_MOVES[pet.id]||'Pet Attack';
+ B.petUses=(B.petUses||0)+1;B.petSince=0;questEvent(p,'petmove',1);B.busy=true;const happy=petHappy(pd);const mv=PET_MOVES[pet.id]||'Pet Attack';
  banner(`${pet.e} ${mv.toUpperCase()}!`);tone(660,.1,'triangle',.1);
  const arena=$('#arena'),a=arena.getBoundingClientRect(),pf=$('#petF'),m=$('#monS').getBoundingClientRect();
  const r=pf?pf.getBoundingClientRect():$('#heroS').getBoundingClientRect();
@@ -1726,7 +1819,7 @@ function usePetMove(){
  const x0=r.left-a.left,y0=r.top-a.top,x1=m.left-a.left+m.width/2-32,y1=m.top-a.top+m.height/2-32;
  el.animate([{transform:`translate(${x0}px,${y0}px) scale(1)`},{transform:`translate(${(x0+x1)/2}px,${Math.min(y0,y1)-90}px) scale(1.3) rotate(-20deg)`},{transform:`translate(${x1}px,${y1}px) scale(1.4)`},{transform:`translate(${x0}px,${y0}px) scale(1)`}],{duration:1100,easing:'ease-in-out'}).onfinish=()=>{el.remove();if(pf)pf.style.visibility='';};
  setTimeout(()=>{
-  if(!B)return;const base=[0,35,42,50][PET_STAGES.indexOf(petStage(pd))]||35;const dmg=Math.min(Math.round(B.mmax*.3),Math.round(base*(happy?1.25:1)*((PET_TIERS[pet.tier]||{}).mult||1)));
+  if(!B)return;const base=[0,35,42,50][PET_STAGES.indexOf(petStage(pd))]||35;const dmg=Math.min(Math.round(B.mmax*.3),Math.round(base*(happy?1.25:1)*((PET_TIERS[pet.tier]||{}).mult||1)*(1+Math.min(.6,.03*petLv(pd)))));
   B.mhp=Math.max(0,B.mhp-dmg);petCredit(p,'dmg',dmg);SFX.hit();burst(x1+32,y1+32,'#ffd84a',14);floatText('#monS',`${happy?'😊 ':''}-${dmg}`,'#ffe066');
   $('#monS').animate([{transform:'none'},{transform:'translateX(20px) rotate(12deg)'},{transform:'none'}],{duration:400});
   pd.xp+=.5;updateBars();
@@ -1765,14 +1858,14 @@ function nextQ(){
   const old=(!B.review.length&&Math.random()<.1)?practiceFact(p,op):null;
   if(old){q=Object.assign({},old,{practice:true});label='⭐ Star problem: +3 coins';}
   else{
-   const L0=lvl(p,op),mast=B.round>=4&&!B.wild&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
+   const L0=lvl(p,op),mast=B.round>=4&&!B.wild&&!B.asc&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
    let t=0;do{q=genQ(op,L);}while(B.recent.includes(q.text)&&t++<12);if(mast)q.mastered=true;
   }
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
  B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?(()=>{const md=medianThink(p),fl=fastLimit(q)*(B.round>=5?2:2.5);return Math.max(B.round>=5?6:8,md?Math.min(fl,md*(B.round>=5?2.5:3)):fl,md*(B.round>=5?1.8:2.2));})():0;
- p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick,petSince:B.petSince,bufN:B.bufN||0};save();
+ p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick,petSince:B.petSince,bufN:B.bufN||0,asc:B.asc||0};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
  showQ();
@@ -1812,16 +1905,16 @@ function answer(){
  if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${UP_N} right in a row to move back up!`);},900);}
  if(ok){
   B.right++;B.petSince=(B.petSince||0)+1;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();thawTick();
-  wkAnswer(p,champPts(p,q.L));{const w=wkOf(p);w.bs=Math.max(w.bs||0,B.streak);}
+  wkAnswer(p,champPts(p,q.L));{const w=wkOf(p);w.bs=Math.max(w.bs||0,B.streak);}questRight(p,q);questEvent(p,'streak',B.streak);
   const mm=p.missed[q.text];if(mm&&(q.practice||q.again))mm.fixed=(mm.fixed||0)+1;
-  if(lvChange===1){const nl=prevL+1;const isNew=nl>(p.maxL[q.op]||0);if(isNew){p.maxL[q.op]=nl;wkBump(p,'lv');}
+  if(lvChange===1){questEvent(p,'skillup',1);const nl=prevL+1;const isNew=nl>(p.maxL[q.op]||0);if(isNew){p.maxL[q.op]=nl;wkBump(p,'lv');}
    setTimeout(()=>{if(isNew){banner(`⭐ NEW LEVEL! ${OPNAME[q.op]} ${nl}`);SFX.level();toast(`New challenge: ${KID_DESC[q.op][nl]}`);}else toast(`👍 Back up to ${OPNAME[q.op]} level ${nl}!`);},700);}
   if(q.again||q.practice){B.coins+=3;p.coins+=3;}
   const perk=petPerk(p),spell=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
   let dmg=20*(B.spellFrozen>0?1:spell.mult)*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
   p.thinkT=p.thinkT||[];p.thinkT.push(Math.round(Math.min(60,secs)*10)/10);if(p.thinkT.length>20)p.thinkT.shift();
   const crit=fast&&!q.hinted&&Math.random()<(B.streak>=2?.6:.35);if(crit)dmg*=2;dmg=Math.round(dmg);
-  const c=coinPer(p,q)+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;if(perk==='coins')petCredit(p,'c',2);
+  const pcb=perk==='coins'?2+Math.min(4,Math.floor(petLv(petData(p,p.pet))/5)):0;const c=coinPer(p,q)+pcb;B.coins+=c;p.coins+=c;if(pcb)petCredit(p,'c',pcb);
   B.xp+=Math.round(10*(perk==='xp'?1.5:1));if(perk==='xp')petCredit(p,'xp',5);if(perk==='power')petCredit(p,'dmg',Math.round(dmg*.15/1.15));
   save();SFX.correct();$('#qcard').classList.add('right');
   const blocked=!!B.monShield;if(blocked){B.monShield=0;dmg=0;}
@@ -1895,7 +1988,7 @@ const ATK={'🐛':['shot','🟢','Goo spit'],'🍄':['shot','🟤','Spore puff']
 function attackOf(emoji){const a=ATK[emoji];return a?{t:a[0],e:a[1],n:a[2]}:{t:'shot',e:'💥',n:'Attack'};}
 function monsterAttack(done){
  const others=B.mode==='math'&&B.foes?B.foes.filter((f,k)=>k!==B.ti&&f.hp>0):[];
- const DM=(RMUL[B.round]||RMUL[1]).dmg*(B.wild?1:lvlScale(P()).dmg);const one=()=>(B.isBoss&&B.ti===0?rnd(20,26):rnd(13,20))*DM;
+ const DM=(RMUL[B.round]||RMUL[1]).dmg*(B.wild?1:lvlScale(P()).dmg)*(1+.05*(B.asc||0));const one=()=>(B.isBoss&&B.ti===0?rnd(20,26):rnd(13,20))*DM;
  let dmg=one();others.forEach(()=>dmg+=rnd(13,20)*DM);if(others.length)dmg*=.6;dmg=Math.round(dmg);
  const atk=attackOf(B.emoji);
  if(others.length){const ar=$('#arena'),aa=ar&&ar.getBoundingClientRect(),hh=$('#heroS').getBoundingClientRect();
@@ -1963,16 +2056,16 @@ function winBattle(){
  const p=P();SFX.win();
  const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const stars=B.wrong<=1?3:B.wrong<=3?2:1;
- const R=B.round||1;if(B.tiredN>0)wkBump(p,'cb');if(B.isBoss)wkBump(p,'boss');if(p.tired)delete p.tired[tiredKey(B.z.id,R,B.i)];const pr=rstore(p,B.z.id,R);const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
- let bonus=B.isBoss?100:25+B.i*5;if(!first)bonus=Math.round(bonus/2);bonus=Math.round(bonus*(1+.25*(R-1))*(1+.2*challengeD(p,B.z.op)));
- const rhtml=B.isBoss&&first?roundPrize(p,R,B.z,B):'';
+ const R=B.round||1;if(B.tiredN>0)wkBump(p,'cb');if(B.isBoss)wkBump(p,'boss');if(p.tired)delete p.tired[tiredKey(B.z.id,R,B.i)];const pr=B.asc?ascProg(p,B.z.id):rstore(p,B.z.id,R);const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
+ let bonus=B.isBoss?100:25+B.i*5;if(!first)bonus=Math.round(bonus/2);bonus=Math.round(bonus*(1+.25*(R-1))*(1+.2*challengeD(p,B.z.op))*(1+.02*vLv(p,'portal'))*(1+Math.min(30,ascTotal(p))/100)*(B.asc?1+.1*B.asc:1));
+ const rhtml=(B.isBoss&&first?(B.asc?ascPrize(p,B.z,B):roundPrize(p,R,B.z,B)):'')+(B.isBoss&&first&&B.z.event&&!B.asc?eventPrize(p,R):'');
  const secs=Math.round((Date.now()-B.start)/1000),key=(R>1?'r'+R+'-':'')+B.z.id+'-'+B.i,old=p.pb[key];
  const newBest=!old||secs<old.t;if(newBest)p.pb[key]={t:secs,streak:Math.max(B.best,old?old.streak:0)};else if(B.best>old.streak)old.streak=B.best;
  const bestLine=old?(newBest?`<div class="pbest">⏱ ${fmtClock(secs)} · NEW PERSONAL BEST!</div>`:`<div class="pbest dim">⏱ ${fmtClock(secs)} · your best is ${fmtClock(old.t)}</div>`):'';
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
  let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
  const gangN=(B.foes||[]).length;if(gangN>1)bonus+=25*(gangN-1);
- p.coins+=bonus;B.coins+=bonus;B.xp+=(B.isBoss?60:20)+(gangN>1?15*(gangN-1):0);
+ p.coins+=bonus;B.coins+=bonus;B.xp+=(B.isBoss?60:20)+(gangN>1?15*(gangN-1):0);questEvent(p,'win',1);if(B.isBoss)questEvent(p,'boss',1);if(B.isBoss&&first&&!B.asc)questEvent(p,'medal',R);
  const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1)*(p.pets.length>=20?.5:1);const egg=Math.random()<chance;if(egg){p.eggs++;if(petPerk(p)==='lucky'&&!(B.isBoss&&first))petCredit(p,'egg',1);}
  p.battles++;const up=endBattleBook();save();
  const z=B.z.id,i=B.i;
@@ -2031,10 +2124,11 @@ SCREENS.backpack=()=>{
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs})</button>`:''}
    ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="muted" style="margin-bottom:6px">Pets found: <b>${regHave(p)} / ${REG_PETS.length}</b></div>
-   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}
-   <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item mystery"><div class="ie"><span class="cloud">☁️</span><span class="qm">❓</span></div><div>???</div><small>A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal it.</small></div>`).join('')}</div></div>
+   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}
+   <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item mystery"><div class="ie"><span class="cloud">☁️</span><span class="qm">❓</span></div><div>???</div><small>A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal it.</small></div>`).join('')}</div>
+   ${EVENT_PETS.some(x=>p.pets.includes(x.id))||eventOpen()||eventSoon()?`<h4 class="tierh" style="color:#fd7e14">🎃 Halloween <span class="muted">${EVENT_PETS.filter(x=>p.pets.includes(x.id)).length} / ${EVENT_PETS.length}</span></h4><div class="items">${EVENT_PETS.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}`):`<div class="item mystery"><div class="ie" style="filter:brightness(0);opacity:.3">${x.e}</div><div>???</div><small>Beat the Haunted Hollow boss (Oct 18 to Nov 1).</small></div>`).join('')}</div>`:''}</div>
   <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
-  <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
+  <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.filter(h=>!h.event||p.owned.hats.includes(h.id)).map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
   <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
  </div></div></div>`;
 };
@@ -2070,7 +2164,7 @@ function rollEggPet(p,legend){
 }
 function hatchEgg(legend){
  const p=P();if(legend){if(!(p.legendEggs>0))return;p.legendEggs--;}else{if(p.eggs<1)return;p.eggs--;}
- if(regHave(p)>=REG_PETS.length){p.coins+=100;save();go('backpack');toast('You have every pet! The egg turned into 🪙 100.');return;}
+ if(regHave(p)>=REG_PETS.length&&!legend){p.pantry.cake=(p.pantry.cake||0)+1;p.coins+=50;const cp=petOf(p);if(cp)petGain(p,cp,30);save();go('backpack');toast(`You have every pet! The egg had a 🎂 Party Cake, 🪙 50${cp?` and +30 XP for ${cp.name}`:''}!`);return;}
  const pet=rollEggPet(p,legend);let prize='';
  if(pet){p.pets.push(pet.id);if(!p.pet)p.pet=pet.id;petData(p,pet.id);}
  else{const a=pick(PET_FOODS),b=pick(PET_FOODS);p.pantry[a.id]=(p.pantry[a.id]||0)+1;p.pantry[b.id]=(p.pantry[b.id]||0)+1;p.coins+=40;prize=`${a.e}${b.e}`;}
@@ -2103,7 +2197,7 @@ const PET_MOVES={chick:'Peck Attack',fox:'Fire Tail',turtle:'Shell Spin',owl:'Wi
  bunny:'Bunny Kick',hamster:'Cheek Cannon',frog:'Tongue Snap',pig:'Mud Splat',koala:'Eucalyptus Toss',duck:'Quack Attack',mouse:'Cheese Blast',snail:'Slime Zoom',
  hedgehog:'Spike Roll',raccoon:'Sneaky Swipe',otter:'Splash Wave',sloth:'Sleepy Slam',parrot:'Squawk Blast',dolphin:'Sonic Splash',monkey:'Banana Bomb',bee:'Honey Sting',
  lion:'Mighty Roar',tiger:'Tiger Claw',shark:'Shark Bite',wolf:'Moon Howl',flamingo:'Pink Tornado',peacock:'Feather Dazzle',whale:'Water Spout',eagle:'Sky Dive',
- skydragon:'Storm Breath',titan:'Earthquake Stomp',butterfly:'Aurora Wings',bigwhale:'Tidal Crash'};
+ skydragon:'Storm Breath',boo:'Spooky Boo',nova:'Star Burst',titan:'Earthquake Stomp',butterfly:'Aurora Wings',bigwhale:'Tidal Crash'};
 const MOOD_HOURS=8,MOOD_MAX=5;
 function petMood(pd){
  const now=Date.now();if(!pd.t){pd.t=now;pd.food=3;pd.joy=3;}
@@ -2121,7 +2215,7 @@ function petAvatar(p,pet,cls){const pd=petData(p,pet.id);const g=PET_GEAR.find(x
  return `<span class="pav ${cls||''}"><span class="pe">${pet.e}</span>${g?`<span class="pacc ${g.pos}">${g.show||g.e}</span>`:''}</span>`;}
 function pips(n,e){let s='';for(let i=0;i<MOOD_MAX;i++)s+=i<n?e:`<span class="dimbulb">${e}</span>`;return s;}
 function petMovesMax(pd){const st=petStage(pd);return st.n==='Baby'?0:st.n==='Big'?1:st.n==='Grown-up'?2:3;}
-function petGain(p,pet,xp){wkBump(p,'pet');const pd=petData(p,pet.id);const st=petStage(pd);pd.xp+=xp;const st2=petStage(pd);
+function petGain(p,pet,xp){wkBump(p,'pet');xp*=1+.1*vLv(p,'pethome');const pd=petData(p,pet.id);const st=petStage(pd);const lv0=petLv(pd);pd.xp+=xp;const st2=petStage(pd);petLvCheck(p,pet,lv0);
  if(st2!==st){pd.hints=Math.min(st2.max,pd.hints+1);setTimeout(()=>{SFX.level();modal(`<div class="mcard"><div class="big-emoji">${pet.e}</div><h2>${esc(pet.name)} grew up!</h2><p>${esc(pet.name)} is now <b>${st2.n}</b>!</p>${petMovesMax(pd)?`<p>In math battles, ${esc(pet.name)} can use <b>🐾 ${PET_MOVES[pet.id]||'Pet Attack'}</b> ${petMovesMax(pd)} time${petMovesMax(pd)>1?'s':''} per battle!</p>`:''}<button class="btn green big" onclick="closeModal()">Yay!</button></div>`);},500);}}
 SCREENS.pethome=()=>{
  const p=P();const pet=petOf(p);
@@ -2137,7 +2231,7 @@ SCREENS.pethome=()=>{
    <div class="muted" style="margin-top:4px">Tap ${esc(pet.name)} to give a pat!</div>
    <div class="phstats">
     <div><b>${st.n}</b> ${esc(pet.name)} · ${PERKS[pet.perk]}</div>
-    <div class="pxp"><i style="width:${pct}%"></i></div><div class="muted">${nx?`${Math.floor(pd.xp)} / ${nx.xp} pet XP to become <b>${nx.n}</b>`:'Fully grown! 🌟'}</div>
+    <div class="pxp"><i style="width:${nx?pct:(()=>{const li=petLvInfo(pd);return Math.round(li.into/li.need*100);})()}%"></i></div><div class="muted">${nx?`${Math.floor(pd.xp)} / ${nx.xp} pet XP to become <b>${nx.n}</b>`:(()=>{const li=petLvInfo(pd);return `🌟 <b>Legendary Lv ${li.lv}</b> · ${Math.floor(li.into)} / ${li.need} XP to Lv ${li.lv+1}. Every level makes pet moves stronger!`;})()}</div>
     <div class="mood"><span>Tummy</span><span>${pips(pd.food,'🍗')}</span></div>
     <div class="mood"><span>Happy</span><span>${pips(pd.joy,'💖')}</span></div>
     <div class="muted">${petMovesMax(pd)?`🐾 Battle move: <b>${PET_MOVES[pet.id]||'Pet Attack'}</b> (${petMovesMax(pd)}× per battle)${petHappy(pd)?' · 😊 Happy bonus: extra strong!':''}`:`🐾 When ${esc(pet.name)} becomes <b>Big</b>, it learns a battle move!`}</div>
@@ -2165,11 +2259,11 @@ function patPet(){const p=P(),pet=petOf(p);if(!pet)return;const pd=petMood(petDa
  else sayPet(pick(['Hehe, that tickles!','Purr… 😊','More pats please!','I love you!']));}
 function feedPet(id){const p=P(),pet=petOf(p);const f=PET_FOODS.find(x=>x.id===id);const pd=petMood(petData(p,pet.id));
  if(!(p.pantry[id]>0))return;if(pd.food>=MOOD_MAX){sayPet(`I'm too full! Maybe later. 😋`);petBounce();return;}
- p.pantry[id]--;pd.food=Math.min(MOOD_MAX,pd.food+f.food);pd.joy=Math.min(MOOD_MAX,pd.joy+f.joy);petGain(p,pet,f.xp);save();SFX.coin();
+ p.pantry[id]--;questEvent(p,'petcare',1);pd.food=Math.min(MOOD_MAX,pd.food+f.food);pd.joy=Math.min(MOOD_MAX,pd.joy+f.joy);petGain(p,pet,f.xp);save();SFX.coin();
  petFx(f.e);setTimeout(()=>petFx('😋'),250);petBounce();setTimeout(()=>{if(curScreen==='pethome')go('pethome');toast(`${pet.e} ${pet.name} loved the ${f.name}! +${f.xp} pet XP`);},800);}
 function playPet(id){const p=P(),pet=petOf(p);const t=PET_TOYS.find(x=>x.id===id);const pd=petMood(petData(p,pet.id));pd.played=pd.played||{};const today=dayKey();
  if(pd.played[id]===today){sayPet(`We already played with the ${t.name} today. Try tomorrow!`);return;}
- pd.played[id]=today;pd.joy=Math.min(MOOD_MAX,pd.joy+2);petGain(p,pet,3);save();SFX.win();
+ pd.played[id]=today;questEvent(p,'petcare',1);pd.joy=Math.min(MOOD_MAX,pd.joy+2);petGain(p,pet,3);save();SFX.win();
  const s=$('#phStage');if(s){const el=document.createElement('div');el.className='phfx';el.textContent=t.e;el.style.left='10%';s.appendChild(el);
   el.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate(120px,-80px) rotate(360deg)',opacity:1},{transform:'translate(240px,0) rotate(720deg)',opacity:0}],{duration:1000}).onfinish=()=>el.remove();}
  petBounce();setTimeout(()=>petFx('💖'),400);setTimeout(()=>{if(curScreen==='pethome')go('pethome');toast(`${pet.e} ${pet.name} had fun with the ${t.name}! +3 pet XP`);},1100);}
@@ -2221,7 +2315,7 @@ const BIOMES={
  reef:{c:[31,24],g:'#9fe0e8',g2:'#94d6df',zone:'reef',bl:['🌿','🪨'],de:['🐚','💧']}};
 const NPCS=[
  {id:'school',x:18,y:15,e:'🌀',n:'Quest Portal'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
- {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'},{id:'library',x:24,y:19,e:'📚',n:'Library'}];
+ {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'},{id:'library',x:24,y:19,e:'📚',n:'Library'},{id:'build',x:26,y:17,e:'🏗️',n:'Builder'}];
 let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildWorld(){
@@ -2274,7 +2368,7 @@ SCREENS.world=()=>{
  if(W.mobs.length<8)for(let i=W.mobs.length;i<16;i++){const ks=Object.keys(BIOMES).filter(k=>k!=='village');wSpawn(ks[i%ks.length]);}
  if(!W.mobs.some(m=>m.principal)||W.prFor!==p.id){W.prFor=p.id;principalSpawn();}
  app.innerHTML=topbar()+`<div class="world" id="world"><canvas id="wcv"></canvas>
- <div class="wtop"><div class="warea" id="warea"></div><button class="btn small" onclick="go('map')">📋 List</button></div>
+ <div class="wtop"><div class="warea" id="warea"></div><button class="btn small" onclick="go('map')">📜 Quests${(()=>{const n=qState(p).active.filter(a=>a.done).length;return n?` <b class="qdot">${n}</b>`:'';})()}</button></div>
  <div class="whelp" id="whelp">Tap anywhere to walk · Bump into monsters to battle · Find the 🎁 treasure!</div>
  <div class="dpad"><button data-d="0,-1" style="grid-area:u">▲</button><button data-d="-1,0" style="grid-area:l">◀</button><button data-d="1,0" style="grid-area:r">▶</button><button data-d="0,1" style="grid-area:d">▼</button></div></div>`;
  const cv=$('#wcv');wResize();
@@ -2343,7 +2437,8 @@ function wFrame(now){
    items.push({y,draw:()=>{ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.8,ts*.8,ts*.3,0,0,7);ctx.fill();
     ctx.drawImage(wSprite(lock?'🔒':z.art,Math.round(ts*1.3)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.25+Math.sin(now/500)*2,s,s);
     wLabel(ctx,z.name,sx+ts/2,sy-ts*.55,'#fff','rgba(40,20,80,.85)');}});}
-  if(t.npc){const n=NPCS.find(q=>q.id===t.npc);const s=ts*(n.id==='fountain'?1.2:1.05);items.push({y,draw:()=>{ctx.drawImage(wSprite(n.e,Math.round(ts*.95)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.1,s,s);if(n.n)wLabel(ctx,n.n,sx+ts/2,sy-ts*.18,'#3b2b6b','rgba(255,255,255,.9)');}});}
+  if(t.plaza&&!t.npc){const dc=plazaDecor(x,y);if(dc)items.push({y:y-.01,draw:()=>ctx.drawImage(wSprite(dc,Math.round(ts*.7)),sx+ts*.15,sy+ts*.05,ts*.7,ts*.7)});}
+  if(t.npc){const n=NPCS.find(q=>q.id===t.npc);const s=ts*(n.id==='fountain'?1.2:1.05);items.push({y,draw:()=>{ctx.drawImage(wSprite(n.e,Math.round(ts*.95)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.1,s,s);if(n.n){const vb=VIL.find(v=>v.npc===n.id);const vl=vb?vLv(P(),vb.id):0;wLabel(ctx,n.n+(vl?' '+'★'.repeat(vl):''),sx+ts/2,sy-ts*.18,'#3b2b6b','rgba(255,255,255,.9)');}}});}
   if(t.chest){const done=wChestOpen(t.chest);items.push({y,draw:()=>{ctx.globalAlpha=done?.45:1;const bob=done?0:Math.sin(now/300)*2;ctx.drawImage(wSprite(done?'📦':'🎁',Math.round(ts*.75)),sx+ts*.1,sy+ts*.05+bob,ts*.8,ts*.8);ctx.globalAlpha=1;
    if(!done&&(Math.floor(now/400)%2)){ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.6,sy-ts*.1,ts*.4,ts*.4);}}});}}
  W.mobs.forEach(m=>{if(m.x<x0-1||m.x>x1+1||m.y<y0-1||m.y>y1+1)return;let mx=m.x,my=m.y;if(m.mt&&now-m.mt<300){const k=(now-m.mt)/300;mx=m.fx+(m.x-m.fx)*k;my=m.fy+(m.y-m.fy)*k;}
@@ -2709,7 +2804,7 @@ SCREENS.cafe=()=>{const p=P();const today=dayKey();
    <div class="cpad">${['1','2','3','4','5','6','7','8','9',q.money?'.':'','0','del'].map(k=>k?`<button onclick="cafeKey('${k}')">${k==='del'?'⌫':k}</button>`:'<span></span>').join('')}<button class="go" onclick="cafeCheck()">✓</button></div>`;}
   else qh=`${q.read?`<div class="cafe-read">${esc(q.read)}</div>`:''}<div class="cafe-q">${esc(q.q)}</div><div class="cafe-mc">${q.c.map((c,i)=>`<button class="btn big ${C.picked===i?(i===q.a?'green':'red'):''}" onclick="cafePick(${i})">${esc(c)}</button>`).join('')}</div>`;
   body=`${head(C.msg||say)}${dots}<div class="cafe-card"><div class="cafe-lab">${lab}</div>${qh}</div>`;}
- else{body=`${head(`What a wonderful lunch, ${esc(p.name)}! You earned ${C.stars} lunch star${C.stars===1?'':'s'}! ⭐`)}${dots}<div class="cafe-reward"><div class="big-emoji">🍱</div><div><b style="font-size:21px">Lunch Tray power-up earned!</b><br>Your next battle starts with a <b>🛡️ shield</b> and <b>+20 ❤️</b>.<br>${C.treat?`Ms. Rosa also made your pet a treat: <b>${C.treat}</b> 🐾<br>`:''}🪙 +${C.coins} coins · ${'⭐'.repeat(C.stars)}${'☆'.repeat(4-C.stars)}</div></div><div class="row"><button class="btn gold big" onclick="CAFE=null;go('world')">Back to the village 🏡</button></div>`;}
+ else{body=`${head(`What a wonderful lunch, ${esc(p.name)}! You earned ${C.stars} lunch star${C.stars===1?'':'s'}! ⭐`)}${dots}<div class="cafe-reward"><div class="big-emoji">🍱</div><div><b style="font-size:21px">Lunch Tray power-up earned!</b><br>Your next battle starts with a <b>🛡️ shield</b> and <b>+${20+5*vLv(p,'cafe')} ❤️</b>.<br>${C.treat?`Ms. Rosa also made your pet a treat: <b>${C.treat}</b> 🐾<br>`:''}🪙 +${C.coins} coins · ${'⭐'.repeat(C.stars)}${'☆'.repeat(4-C.stars)}</div></div><div class="row"><button class="btn gold big" onclick="CAFE=null;go('world')">Back to the village 🏡</button></div>`;}
  app.innerHTML=topbar()+`<div class="room cafe-room"><div class="page cafe">${back}${body}</div></div>`;
  if(C.sayNow){const t=C.sayNow;C.sayNow=null;setTimeout(()=>say(t.replace(/<[^>]+>/g,''),.95),200);}
 };
@@ -2732,7 +2827,7 @@ function cafePick(i){const C=CAFE,q=C.qs[C.step-1];if(C.picked===q.a)return;C.pi
  SFX.wrong();cafeWrong();C.tries++;if(C.tries>=2){C.picked=q.a;C.msg=`The answer is <b>${esc(q.c[q.a])}</b>. ${esc(q.why)}`;go('cafe');setTimeout(()=>{if(CAFE===C)cafeNext();},2600);return;}
  C.msg='Hmm, try again! 🤔';go('cafe');}
 function cafeNext(){const C=CAFE;C.step++;C.tries=0;C.input='';C.picked=null;
- if(C.step>4){const p=P();C.step=5;C.coins=15+5*C.stars;p.coins+=C.coins;p.lunchTray=true;const f=pick(PET_FOODS);p.pantry[f.id]=(p.pantry[f.id]||0)+1;C.treat=`${f.e} ${f.name}`;p.cafe={d:dayKey(),done:true,stars:C.stars};save();SFX.win();C.msg='';setTimeout(()=>{if(CAFE===C)go('cafe');},500);return;}
+ if(C.step>4){const p=P();C.step=5;C.coins=15+5*C.stars;p.coins+=C.coins;p.lunchTray=true;const f=pick(PET_FOODS);p.pantry[f.id]=(p.pantry[f.id]||0)+1;C.treat=`${f.e} ${f.name}`;p.cafe={d:dayKey(),done:true,stars:C.stars};questEvent(p,'lunch',1);questEvent(p,'lstars',C.stars);save();SFX.win();C.msg='';setTimeout(()=>{if(CAFE===C)go('cafe');},500);return;}
  go('cafe');}
 
 const STORIES=[
@@ -2819,6 +2914,26 @@ const STORIES=[
 /* ================= the Library: Professor Hoot's reading comprehension =================
    Reading levels 1-10. Each finished story moves the level: first-try score >= 90% +0.5,
    >= 75% +0.25, 50-74% stays, under 50% -0.5. So kids climb slowly while in the 75-85% sweet spot. */
+
+/* ================= village upgrades: spend coins to grow your own village ================= */
+const VIL=[
+ {id:'portal',npc:'school',e:'🌀',n:'Quest Portal',perk:l=>l?`+${l*2}% coins from battles`:'Boosts battle coins',cost:[300,600,1200,2400,4800]},
+ {id:'library',npc:'library',e:'📚',n:'Library',perk:l=>l?`+${l*5} coins per story${l>=3?` · ${l>=5?2:1} extra ${l>=5?'stories':'story'} a day`:''}`:'Bonus coins and extra stories',cost:[250,500,1000,2000,4000]},
+ {id:'pethome',npc:'pets',e:'🏡',n:'Pet Home',perk:l=>l?`Pets grow ${l*10}% faster`:'Pets grow faster',cost:[250,500,1000,2000,4000]},
+ {id:'cafe',npc:'cafe',e:'🍱',n:'Cafeteria',perk:l=>`Lunch Tray gives +${20+l*5} ❤️`,cost:[200,400,800,1600,3200]},
+ {id:'shop',npc:'shop',e:'🏪',n:'Shop',perk:l=>l?`Eggs ${l*5}% cheaper`:'Cheaper eggs',cost:[300,600,1200,2400,4800]},
+ {id:'plaza',npc:'fountain',e:'⛲',n:'Village Plaza',perk:l=>l?['🌷 Flowers','🏮 Lanterns','🌳 Trees','🗿 Hero statue','🌈 Rainbow arch'].slice(0,l).join(' · '):'Decorations for the plaza',cost:[200,400,800,1600,3200]}];
+const vLv=(p,id)=>((p&&p.vil)||{})[id]||0;
+const libPerDay=p=>2+(vLv(p,'library')>=3?1:0)+(vLv(p,'library')>=5?1:0);
+const PLAZA_DECOR=[[['🌷',17,13],['🌷',27,13],['🌷',17,20],['🌷',27,20]],[['🏮',19,17],['🏮',25,17]],[['🌳',17,17],['🌳',27,16]],[['🗿',22,20]],[['🌈',21,13],['🎆',23,13]]];
+function plazaDecor(x,y){const l=vLv(P(),'plaza');for(let i=0;i<l;i++)for(const [e,dx,dy] of PLAZA_DECOR[i])if(dx===x&&dy===y)return e;return null;}
+function vilUp(id){const p=P();const b=VIL.find(v=>v.id===id);const l=vLv(p,id);if(l>=5)return;const c=b.cost[l];if(p.coins<c){toast(`You need ${c-p.coins} more coins.`);return;}
+ p.coins-=c;p.vil=p.vil||{};p.vil[id]=l+1;questEvent(p,'build',1);save();SFX.level();
+ modal(`<div class="mcard"><div class="big-emoji">${b.e}</div><h2>${b.n} upgraded!</h2><p>${'★'.repeat(l+1)}${'☆'.repeat(4-l)}</p><p><b>${b.perk(l+1)}</b></p><button class="btn green big" onclick="closeModal();go('village')">Awesome!</button></div>`);}
+SCREENS.village=()=>{const p=P();const tot=VIL.reduce((a,b)=>a+vLv(p,b.id),0);
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏗️ Build Your Village</h2></div>
+ <div class="cafe-card center" style="margin-bottom:12px">🧱 Builder Bo: "Your coins can make this village amazing! Every upgrade helps you on your quest." <div class="muted">Village stars: <b>${tot} / ${VIL.length*5}</b> · You have 🪙 ${p.coins}</div></div>
+ <div class="vgrid">${VIL.map(b=>{const l=vLv(p,b.id),c=b.cost[l];return `<div class="vcard"><div class="ve">${b.e}</div><b>${b.n}</b><div class="vstars">${'★'.repeat(l)}${'☆'.repeat(5-l)}</div><div class="vperk">${b.perk(l)}</div>${l<5?`<div class="vnext">Next: ${b.perk(l+1)}</div><button class="btn ${p.coins>=c?'gold':'ghost dark'} small" onclick="vilUp('${b.id}')">Upgrade · 🪙 ${c}</button>`:'<div class="vnext">⭐ Fully upgraded!</div>'}</div>`;}).join('')}</div></div>`;};
 const LIB_PER_DAY=2;let LIB=null;
 STORIES.forEach(s=>{if(s.lv==='A')s.lv=2;else if(s.lv==='B')s.lv=3;});
 (window.MORE_STORIES||[]).forEach(s=>{if(!STORIES.some(x=>x.id===s.id))STORIES.push(s);});
@@ -2829,7 +2944,7 @@ const libLevel=p=>Math.max(LIB_LEVELS[0],Math.min(LIB_MAX,Math.floor(libState(p)
 function libShelf(p){const L=libState(p);const lv=libLevel(p);const at=l=>STORIES.filter(s=>s.lv===l);
  const order=[lv,lv-1,lv+1,lv-2,lv+2].filter(l=>LIB_LEVELS.includes(l));let fresh=[];for(const l of order){fresh=at(l).filter(s=>!L.done[s.id]);if(fresh.length)break;}
  const pool=fresh.length?fresh:at(lv).slice().sort((a,b)=>(L.done[a.id].d||'').localeCompare(L.done[b.id].d||''));
- const next=pool.slice(0,Math.max(0,LIB_PER_DAY-L.n));
+ const next=pool.slice(0,Math.max(0,libPerDay(p)-L.n));
  const band=[...new Set(at(lv).concat(next))];const readOther=STORIES.filter(s=>L.done[s.id]&&!band.includes(s)).slice(-12);
  return {band,next,L,lv,readOther};}
 function hootSVG(){return `<svg class="hoot-svg" viewBox="0 0 200 220" aria-label="Professor Hoot the librarian owl">
@@ -2852,7 +2967,7 @@ SCREENS.library=()=>{const p=P();const back=`<div class="zhead"><button class="b
  const cols=['#e03131','#1c7ed6','#2f9e44','#f08c00','#7048e8','#0c8599','#c2255c','#5c940d','#e8590c','#364fc7'];
  if(!LIB){const {band,next,L,lv,readOther}=libShelf(p);
   const book=(s,i)=>{const d=L.done[s.id];const isNext=next.includes(s);return `<button class="lbook ${d?'read':''} ${isNext?'next':''}" style="--bc:${cols[i%cols.length]}" ${isNext||d?`onclick="libOpen('${s.id}',${isNext?1:0})"`:''}><span class="be">${s.e}</span><span class="bt">${esc(s.t)}</span><span class="bs">${isNext?'✨ NEW':d?libStars(d.best,s.q.length):'🔒'}</span><span class="blv">Lv ${s.lv}</span></button>`;};
-  const say=next.length?`Hoo-hoo! Welcome, ${esc(p.name)}! Pick a <b>✨ NEW</b> story. Read it carefully, then answer the questions. You can read <b>${LIB_PER_DAY} new stories</b> each day, and as you get better, the stories get longer and harder!`:`Wonderful reading today, ${esc(p.name)}! New stories arrive <b>tomorrow</b>. You can re-read any story with a ⭐ for practice.`;
+  const say=next.length?`Hoo-hoo! Welcome, ${esc(p.name)}! Pick a <b>✨ NEW</b> story. Read it carefully, then answer the questions. You can read <b>${libPerDay(p)} new stories</b> each day, and as you get better, the stories get longer and harder!`:`Wonderful reading today, ${esc(p.name)}! New stories arrive <b>tomorrow</b>. You can re-read any story with a ⭐ for practice.`;
   wrap(`${libHead(say)}${libMeter(p)}<div class="shelf"><div class="shelf-row">${band.map(book).join('')}</div>${readOther.length?`<div class="shelf-lab">📗 Books you've read</div><div class="shelf-row">${readOther.map((s,i)=>book(s,i+3)).join('')}</div>`:''}</div>`);return;}
  const S=LIB.s,C=LIB,NQ=C.qs.length;
  if(C.stage==='read'){wrap(`${libHead(C.practice?'Practice reading! Take your time.':`Read carefully. This is a <b>Level ${S.lv}</b> story with <b>${NQ} questions</b>. Then tap <b>I'm ready for the questions!</b>`)}
@@ -2880,8 +2995,8 @@ function libNext(){const C=LIB;C.i++;C.tries=0;C.picked=null;C.reveal=false;C.wh
  if(C.i<C.qs.length){go('library');return;}
  const p=P();C.stage='done';const NQ=C.qs.length,sc=C.stars/NQ;
  if(!C.practice){const L=libState(p);L.n++;const prev=L.done[C.s.id];L.done[C.s.id]={best:Math.max(C.stars,prev?prev.best:0),d:dayKey()};
-  const rel=Math.max(-2,Math.min(2,C.s.lv-libGradeLv(p)));C.coins=10+Math.round(20*sc)+2*C.s.lv;C.pts=5+Math.round(30*sc)+3*(rel+2);p.coins+=C.coins;
-  const moved=libAdjust(L,sc);C.lvMsg=moved>0?`📈 Reading Level up! You're now at <b>Level ${libLevel(p)}</b>. Longer stories ahead!`:moved<0?`🦉 Professor Hoot picked some slightly shorter stories for a little while.`:'';
+  const rel=Math.max(-2,Math.min(2,C.s.lv-libGradeLv(p)));C.coins=10+Math.round(20*sc)+2*C.s.lv+5*vLv(p,'library');C.pts=5+Math.round(30*sc)+3*(rel+2);p.coins+=C.coins;
+  const moved=libAdjust(L,sc);questEvent(p,'story',1);questEvent(p,'rstars',C.stars);if(moved>0)questEvent(p,'readlv',1);C.lvMsg=moved>0?`📈 Reading Level up! You're now at <b>Level ${libLevel(p)}</b>. Longer stories ahead!`:moved<0?`🦉 Professor Hoot picked some slightly shorter stories for a little while.`:'';
   const w=wkOf(p);w.readPts=(w.readPts||0)+C.pts;w.stories=(w.stories||0)+1;p.readLog=p.readLog||[];p.readLog.push({d:dayKey(),t:C.s.t,s:C.stars,n:NQ,lv:C.s.lv});if(p.readLog.length>40)p.readLog.shift();}
  save();SFX.win();go('library');}
 function wFight(m){if(m&&m.principal){principalMeet();return;}if(!W||curScreen!=='world'||$('#modal.show'))return;W.path=[];W.mobs=W.mobs.filter(o=>o!==m);const b=m.b;setTimeout(()=>{if(W)wSpawn(b);},20000);
@@ -2895,6 +3010,7 @@ function wNpc(id){const p=P();
  if(id==='spin'){openSpin();return;}
  if(id==='board'){go('leaders');return;}
  if(id==='cafe'){p&&(p.wpos={x:W.hx,y:W.hy});CAFE=null;go('cafe');return;}
+ if(id==='build'){p&&(p.wpos={x:W.hx,y:W.hy});go('village');return;}
  if(id==='library'){p&&(p.wpos={x:W.hx,y:W.hy});LIB=null;go('library');return;}
  if(id==='mail'){if(!showGift())openGift();return;}
  if(id==='fountain'){fountainOpen();return;}
@@ -2915,7 +3031,7 @@ function wChestTry(){const p=P();const {q,k}=W.chestQ||{};if(!q)return;const v=p
  save();SFX.win();modal(`<div class="mcard"><div class="big-emoji">🎉</div><h2>Unlocked!</h2><p style="font-size:20px"><b>${prize}</b></p><p class="muted">Treasures found: ${p.treasures}</p><button class="btn green big" onclick="closeModal();go('world')">Yay!</button></div>`);}
 /* wild battles (from exploring) */
 function wildWin(){
- const p=P();SFX.win();const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
+ const p=P();questEvent(p,'wild',1);SFX.win();const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const bonus=10+rnd(0,10);p.coins+=bonus;B.coins+=bonus;B.xp+=15;const egg=Math.random()<(petPerk(p)==='lucky'?.08:.04);if(egg){p.eggs++;if(petPerk(p)==='lucky')petCredit(p,'egg',1);}
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
  let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
@@ -2935,7 +3051,7 @@ function prevWeekKey(){const d=weekStart();d.setDate(d.getDate()-7);return dayKe
 function weekDays(wk){const d=new Date(wk+'T12:00:00');return Array.from({length:7},(_,i)=>{const x=new Date(d);x.setDate(d.getDate()+i);return dayKey(x);});}
 function wkOf(p,wk){wk=wk||weekKey();p.wkHist=p.wkHist||{};if(!p.wkHist[wk]){p.wkHist[wk]={pts:0,dc:{},lv:0,cb:0,bs:0,boss:0,chest:0,pet:0,words:0};const ks=Object.keys(p.wkHist).sort();while(ks.length>26)delete p.wkHist[ks.shift()];}return p.wkHist[wk];}
 const DAY_CAP=150;
-function champPts(p,L){const exp=Math.min(9,(p.grade||3)+2);const d=Math.max(-2,Math.min(2,(L||1)-exp));return [4,7,10,13,16][d+2];}
+function champPts(p,L){const exp=gradeExp(p);const d=Math.max(-2,Math.min(2,(L||1)-exp));return [4,7,10,13,16][d+2];}
 function wkAnswer(p,pts){const w=wkOf(p);const dk=dayKey();w.dc[dk]=(w.dc[dk]||0)+1;if(w.dc[dk]<=DAY_CAP)w.pts+=pts;}
 function wkBump(p,k,n){const w=wkOf(p);w[k]=(w[k]||0)+(n||1);}
 function wkStats(p,wk){
@@ -3038,7 +3154,7 @@ SCREENS.leaders=(tab)=>{
   const spl=st.map(x=>({p:x.p,v:x.s.spPts,n:x.s.words,r:x.s.spR})).sort((a,b)=>b.v-a.v);
   const petRows=st.map(x=>{const best=(x.p.pets||[]).map(id=>{const pd=(x.p.petData||{})[id];const pet=PETS.find(q=>q.id===id);return pet&&pd?{pet,pd,v:Math.round((pd.wk||{})[wk]||0),all:petPower(pd)}:null;}).filter(Boolean).sort((a,b)=>b.v-a.v||b.all-a.all)[0];return best?{p:x.p,...best}:null;}).filter(Boolean).sort((a,b)=>b.v-a.v||b.all-a.all);
   const petBoard=()=>{let rank=0,last=null,shown=0;return `<div class="panel lbcard petlb"><h3>🐾 Pet Champions</h3><div class="lbhow">Each hero's best pet this week. Pets earn points for <b>🪙 coins</b> they find, <b>❤️ health</b> they heal or block, <b>✨ XP</b>, <b>💥 damage</b> from pet moves, <b>🥚 eggs</b> and <b>💡 hints</b>.</div>${petRows.length?petRows.map(r=>{if(r.v!==last){rank=shown;last=r.v;}shown++;const m=r.v>0&&rank<3?['🥇','🥈','🥉'][rank]:'';const s=r.pd.st||{};const bits=[s.c?`🪙 ${s.c}`:'',s.hp?`❤️ ${s.hp}`:'',s.xp?`✨ ${s.xp}`:'',s.dmg?`💥 ${s.dmg}`:'',s.egg?`🥚 ${s.egg}`:'',s.hint?`💡 ${s.hint}`:''].filter(Boolean).join(' · ');
-   return `<div class="lbrow ${r.p.id===me.id?'me':''}"><span class="lbm">${m}</span><span class="petbig">${r.pet.e}</span><span class="lbn"><b>${esc(r.pet.name)}</b> <span class="ownertag">${face(r.p)}${esc(r.p.name)}'s pet</span><small class="petbits">${bits||'Just getting started!'}</small></span><b>${r.v}<small class="up" style="color:#868e96">all-time ${r.all}</small></b></div>`;}).join(''):'<div class="muted">No pets yet!</div>'}</div>`;};
+   return `<div class="lbrow ${r.p.id===me.id?'me':''}"><span class="lbm">${m}</span><span class="petbig">${r.pet.e}</span><span class="lbn"><b>${esc(r.pet.name)}</b>${petLv(r.pd)?` <small class="muted">Lv ${petLv(r.pd)}</small>`:''} <span class="ownertag">${face(r.p)}${esc(r.p.name)}'s pet</span><small class="petbits">${bits||'Just getting started!'}</small></span><b>${r.v}<small class="up" style="color:#868e96">all-time ${r.all}</small></b></div>`;}).join(''):'<div class="muted">No pets yet!</div>'}</div>`;};
   const top=champ[0];
   body=`${top&&top.v>0?`<div class="lbhero"><div class="lbcrown">👑</div>${face(top.p)}<div><div style="opacity:.9">This week's Math Champion (so far)</div><b style="font-size:26px">${esc(top.p.name)}</b><div>${top.v} champion points</div></div></div>`:''}${goal}
   <div class="lbgrid">${board('👑','Math Champion','Points depend on how hard each problem is <b>for your grade</b>. Only the first 150 answers each day count.',champ,r=>`${r.v}${r.d>0?`<small class="up">▲ ${r.d} vs last week</small>`:''}`)}
@@ -3091,7 +3207,7 @@ function giftSend(toId,kind,item,qty){
  else if(kind==='egg'){if(p.eggs<1)return giftPick(toId);p.eggs--;}
  else return;
  p.giftsSent=p.giftsSent&&p.giftsSent.d===dayKey()?{d:dayKey(),n:p.giftsSent.n+1}:{d:dayKey(),n:1};
- p.giftsGiven=(p.giftsGiven||0)+1;
+ p.giftsGiven=(p.giftsGiven||0)+1;questEvent(p,'gift',1);
  state.gifts=state.gifts||{};const id='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
  state.gifts[id]={id,from:p.id,fromName:p.name,to:toId,kind,item:item||null,qty,t:Date.now(),claimed:false};
  save();SFX.win();
@@ -3157,13 +3273,28 @@ function roundNote(z,r){
 function roundTabs(p,z){
  const m=medal(p,z.id),cur=curRound(p,z.id);
  return `<div class="rtabs">${[1,2,3,4,5].map(r=>{const open=r<=Math.min(5,m+1),done=r<=m;
-  return `<button class="rtab ${r===cur?'on':''} ${open?'':'locked'} ${done?'done':''}" onclick="${open?`setRound('${z.id}',${r})`:`toast('Beat the ${ROUNDS[r-1].n} boss to unlock ${ROUNDS[r].n}!')`}"><span class="rm">${open?ROUNDS[r].m:'🔒'}</span><small>${ROUNDS[r].n}${done?' ✓':''}</small></button>`;}).join('')}</div>
- <div class="rnote">${ROUNDS[cur].m} <b>${ROUNDS[cur].n} round:</b> ${roundNote(z,cur)}</div>`;
+  return `<button class="rtab ${r===cur&&!(canAsc(p,z)&&(p.ascView||{})[z.id])?'on':''} ${open?'':'locked'} ${done?'done':''}" onclick="${open?`ascSel('${z.id}',0);setRound('${z.id}',${r})`:`toast('Beat the ${ROUNDS[r-1].n} boss to unlock ${ROUNDS[r].n}!')`}"><span class="rm">${open?ROUNDS[r].m:'🔒'}</span><small>${ROUNDS[r].n}${done?' ✓':''}</small></button>`;}).join('')}${z.op!=='spell'?(()=>{const ok=canAsc(p,z),av=ok&&(p.ascView||{})[z.id],ar=ascRank(p,z.id)+1;return `<button class="rtab asctab ${av?'on':''} ${ok?'':'locked'}" onclick="${ok?`ascSel('${z.id}',1)`:`toast('Earn the 👑 Legend medal to unlock Ascension!')`}"><span class="rm">${ok?'✨':'🔒'}</span><small>${ok?`★${ar}`:'Ascend'}</small></button>`;})():''}</div>
+ <div class="rnote">${canAsc(p,z)&&(p.ascView||{})[z.id]?`✨ <b>Ascension ★${ascRank(p,z.id)+1}:</b> the monsters return with new colors and ${(ascRank(p,z.id)+1)*10}% more health. Beat the boss to rise to ★${ascRank(p,z.id)+2}. Every star you earn gives +1% battle coins forever (up to 30%). There's no top!`:`${ROUNDS[cur].m} <b>${ROUNDS[cur].n} round:</b> ${roundNote(z,cur)}`}</div>`;
 }
+
+/* ================= ascension: endless star ranks after Legend ================= */
+const ASC_NAMES=['Shadow','Crystal','Storm','Cosmic','Ancient','Golden','Frost','Blaze','Thunder','Mystic'];
+function ascRank(p,zid){return ((p.asc||{})[zid]||{}).rank||0;}
+function ascProg(p,zid){p.asc=p.asc||{};const a=p.asc[zid]=p.asc[zid]||{rank:0,prog:[0,0,0,0,0,0]};return a.prog;}
+const ascTotal=p=>Object.values(p.asc||{}).reduce((s,a)=>s+(a.rank||0),0);
+const canAsc=(p,z)=>z.op!=='spell'&&medal(p,z.id)>=5;
+function ascSel(zid,on){const p=P();p.ascView=p.ascView||{};p.ascView[zid]=!!on;save();SFX.tap();go('zone',zid);}
+function ascPrize(p,z,B){const a=p.asc[z.id];a.rank++;a.prog=[0,0,0,0,0,0];const c=400+100*a.rank;p.coins+=c;if(B)B.coins+=c;p.eggs++;wkBump(p,'boss');
+ return `<div class="rdone"><div class="rdm">✨</div><b>ASCENSION ★${a.rank} COMPLETE!</b><div>${esc(z.name)} rises to <b>★${a.rank+1}</b>. The monsters grow stronger, and so do you!</div><div class="rprize">🪙 ${c} coins<br>🥚 A mystery egg<br>🌟 +1% battle coins forever (you have ${Math.min(30,ascTotal(p))}%)</div></div>`;}
+function eventPrize(p,r){const out=[];
+ if(r===1&&!p.pets.includes('boo')){p.pets.push('boo');petData(p,'boo');out.push('👻 <b>Boo the Ghost</b> joined your pets! (Halloween only)');}
+ else if(r===2&&!p.owned.hats.includes('pumpkin')){p.owned.hats.push('pumpkin');out.push('🎃 <b>Pumpkin Hat</b>! Wear it in your backpack.');}
+ else if(r>=3){p.pantry.cake=(p.pantry.cake||0)+2;p.legendEggs=(p.legendEggs||0)+1;out.push('🎂 2 Party Cakes and 🌟 a Legend Egg!');}
+ return out.length?`<div class="rdone" style="background:linear-gradient(135deg,#fd7e14,#5f3dc4)"><div class="rdm">🎃</div><b>HALLOWEEN PRIZE!</b><div class="rprize">${out.join('<br>')}</div></div>`:'';}
 function roundPrize(p,r,z,B){
  const coin=n=>{p.coins+=n;if(B)B.coins+=n;};let lines=[];
  if(r===2){if(p.pets.length+p.eggs<20){p.eggs++;coin(150);lines=['🥚 A mystery egg','🪙 150 coins'];}else{const a=pick(PET_FOODS),b=pick(PET_FOODS);p.pantry[a.id]=(p.pantry[a.id]||0)+1;p.pantry[b.id]=(p.pantry[b.id]||0)+1;coin(250);lines=[`${a.e}${b.e} Pet treats`,'🪙 250 coins'];}}
- else if(r===3){coin(200);const pool=[...HATS.filter(h=>h.price&&!p.owned.hats.includes(h.id)).map(h=>['hat',h]),...ROBES.filter(x=>x.price&&!p.owned.robes.includes(x.id)).map(x=>['robe',x])];
+ else if(r===3){coin(200);const pool=[...HATS.filter(h=>h.price&&!h.event&&!p.owned.hats.includes(h.id)).map(h=>['hat',h]),...ROBES.filter(x=>x.price&&!p.owned.robes.includes(x.id)).map(x=>['robe',x])];
   if(pool.length){const [k,it]=pick(pool);p.owned[k==='hat'?'hats':'robes'].push(it.id);lines=[`🎁 A free ${k==='hat'?'hat':'robe'}: <b>${it.name}</b>`,'🪙 200 coins'];}else{coin(200);lines=['🪙 400 coins'];}}
  else if(r===4){const two=p.pets.length+p.eggs<30;p.eggs+=two?2:1;coin(300);lines=[two?'🥚🥚 Two mystery eggs':'🥚 A mystery egg','🪙 300 coins'];}
  else if(r===5){p.legendEggs=(p.legendEggs||0)+1;coin(500);lines=['🌟 A LEGEND EGG (Epic or Legendary pet inside!)','🪙 500 coins'];}
@@ -3210,11 +3341,12 @@ function parentCard(p){
  <div class="kpis"><div><b>${tot}</b><span>problems answered</span></div><div><b>${tot?Math.round(right/tot*100):0}%</b><span>correct</span></div><div><b>${fmtTime(p.time)}</b><span>time in battles</span></div><div><b>${p.battles}</b><span>battles won</span></div><div><b>${p.bestStreak}</b><span>best streak</span></div></div>
  <div class="tblwrap"><table class="optable"><tr><th>Skill</th><th>Working on now</th><th>Accuracy</th><th>Level</th></tr>
  ${OPS.map(o=>{const s=p.stats[o],n=s.r+s.w,L=lvl(p,o);return `<tr id="lv-${p.id}-${o}"><td><b>${OPNAME[o]}</b></td><td>${LEVEL_DESC[o][L]}</td><td>${n?Math.round(s.r/n*100)+'% <span class="muted">of '+n+'</span>':'—'}</td><td style="white-space:nowrap"><button class="mini" onclick="adjLevel('${p.id}','${o}',-1)">−</button> ${L} <button class="mini" onclick="adjLevel('${p.id}','${o}',1)">+</button></td></tr>`;}).join('')}</table></div>
+ <div class="row" style="justify-content:flex-start;margin:6px 0"><button class="btn small" onclick="state.cur='${p.id}';SKC=null;closeModal();go('skillcheck')">🎯 Run a skill check for ${esc(p.name)}</button>${p.skillChecked?`<span class="muted">Last skill check: ${p.skillChecked}</span>`:''}</div>
  ${parentSchool(p)}
  <h4>Last 7 days</h4>${daysChart(p)}
  ${(p.log||[]).length?`<h4>Level changes</h4><div class="missed">${p.log.slice(0,8).map(l=>`<span class="mf lvlog">${l.to>l.from?'⬆️':'⬇️'} ${OPNAME[l.op]} ${l.from}→${l.to} <em>${l.d.slice(5)}</em></span>`).join('')}</div>`:''}
  <h4>Facts to practice</h4>${missed.length?`<div class="missed">${missed.map(([k,v])=>`<span class="mf ${(v.fixed||0)>=2?'done':''}">${esc(k)} = ${v.a} <em>${(v.fixed||0)>=2?'✓ mastered':'missed '+v.n+'×'}</em></span>`).join('')}</div>`:'<p class="muted">No misses yet!</p>'}
- <div class="row" style="justify-content:flex-start;align-items:center"><label>Grade <select class="sel" onchange="setGrade('${p.id}',this.value)">${[1,2,3,4,5,6].map(g=>`<option ${g==p.grade?'selected':''}>${g}</option>`).join('')}</select></label>
+ <div class="row" style="justify-content:flex-start;align-items:center"><label>Grade <select class="sel" onchange="setGrade('${p.id}',this.value)">${[1,2,3,4,5,6,7,8,9,10,11,12].map(g=>`<option ${g==p.grade?'selected':''}>${g}</option>`).join('')}</select></label>
  ${p.lock?`<span>🔒 Secret pictures on</span><button class="btn small ghost dark" onclick="clearLock('${p.id}')">Turn off lock</button>`:''}<button class="btn small danger" onclick="confirmReset('${p.id}')">Reset progress</button><button class="btn small danger" onclick="confirmDelete('${p.id}')">Delete player</button></div></div>`;
 }
 SCREENS.parent=()=>{
@@ -3224,7 +3356,7 @@ SCREENS.parent=()=>{
  ${state.players.map(parentCard).join('')}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.readLog||[]).slice(-6).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · "${esc(v.t)}"${v.lv?` (Level ${v.lv})`:''} · ${'⭐'.repeat(v.s)}${'☆'.repeat((v.n||3)-v.s)} (${v.s}/${v.n||3} right on the first try)</li>`)));return rows.length?`<div class="pp"><h3>📚 Library reading</h3><p class="note">Professor Hoot gives 2 new stories a day. There are 10 reading levels (about 1st grade to 12th grade). Higher levels have longer stories and 4-5 questions (main idea, details, inference, vocabulary, author's purpose). The level moves up after strong scores and down after weak ones, aiming for about 75-85% right on the first try.${state.players.filter(x=>x.lib&&x.lib.rl).map(x=>` <b>${esc(x.name)}</b>: Level ${Math.floor(x.lib.rl)}.`).join('')}</p><ul>${rows.join('')}</ul></div>`:'';})()}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.kindVisits||[]).slice(-8).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · ${v.kind==='spell'?`spelling "${esc(v.what)}"`:v.kind==='math'?`math: ${esc(v.what)}`:`blessing vs ${esc(v.what)} (was losing)`}</li>`)));state.players.forEach(pl=>(pl.principalVisits||[]).slice(-4).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · 🎓 Principal Wise visit: ${esc(v.t)}</li>`)));return rows.length?`<div class="pp"><h3>✨ Kind Teacher &amp; 🎓 Principal visits</h3><p class="note">She appears at most once a day per child, only when they are truly stuck. These show where each child needed help.</p><ul>${rows.join('')}</ul></div>`:'';})()}
- <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
+ <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6,7,8,9,10,11,12].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
  <div class="pp"><h3>💾 Saving</h3><p>Everyone's progress saves automatically on this device, and the game picks up where each child left off, even in the middle of a battle.</p>
  <p><b>On an iPad or iPhone:</b> tap Share, then <b>Add to Home Screen</b>, and always open the game from that icon. The Home Screen icon keeps its own saved games and PIN, separate from Safari, so playing in Safari and from the icon won't share progress.</p><p><b>Before deleting the Home Screen icon</b>, download a backup: removing the icon also erases what it saved. Restore the backup in the new icon's Parent Corner.</p>
  <div class="row" style="justify-content:flex-start"><button class="btn green small" onclick="downloadBackup()">⬇️ Download a backup</button><button class="btn small ghost dark" onclick="changePin()">Change Parent PIN</button><label class="btn small">⬆️ Restore a backup<input type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)"></label></div></div></div>`;
@@ -3234,6 +3366,88 @@ function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save
 function downloadBackup(){const b=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='math-quest-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();toast('Backup downloaded.');}
 function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;const keep=state.pin;state=s;if(!state.pin)state.pin=keep;state.family=cloud.code;state.players.forEach(p=>p.upd=Date.now());migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
 function dayStreak(p){let n=0;const d=new Date();if(!p.days.includes(dayKey(d)))d.setDate(d.getDate()-1);while(p.days.includes(dayKey(d))){n++;d.setDate(d.getDate()-1);}return n;}
+/* ================= NPC quest chains: always 3 active quests with a clear next step ================= */
+const QNPC={elder:{e:'🧙',n:'Elder Wiz'},hoot:{e:'🦉',n:'Professor Hoot'},pet:{e:'🧑‍🌾',n:'Pet Keeper'},rosa:{e:'👩‍🍳',n:'Ms. Rosa'},principal:{e:'🎓',n:'Principal Wise'}};
+const QCHAINS={
+ elder:[{t:'First Steps',type:'win',n:3,d:'Win 3 battles in any world.',r:{coins:80}},
+  {t:'Monster Hunter',type:'win',n:8,d:'Win 8 battles.',r:{coins:120}},
+  {t:'Boss Slayer',type:'boss',n:1,d:'Beat a world boss.',r:{coins:150,eggs:1}},
+  {t:'Combo Master',type:'streak',n:8,max:true,d:'Get 8 right in a row in one battle.',r:{coins:150}},
+  {t:'Into the Wild',type:'wild',n:3,d:'Beat 3 wild monsters while exploring.',r:{coins:150}},
+  {t:'Deep Thinker',type:'right',n:60,d:'Get 60 right answers in battles.',r:{coins:200}},
+  {t:'Silver Seeker',type:'medal',n:2,max:true,d:'Earn a 🥈 Silver medal in any world.',r:{coins:250,eggs:1}},
+  {t:'Unstoppable',type:'streak',n:12,max:true,d:'Get 12 right in a row in one battle.',r:{coins:250}},
+  {t:'Golden Hero',type:'medal',n:3,max:true,d:'Earn a 🥇 Gold medal in any world.',r:{coins:300,eggs:1}},
+  {t:'Diamond Mind',type:'medal',n:4,max:true,d:'Earn a 💎 Diamond medal in any world.',r:{coins:400,legend:1}},
+  {t:'Living Legend',type:'medal',n:5,max:true,d:'Earn a 👑 Legend medal in any world.',r:{coins:600,legend:1}}],
+ hoot:[{t:'Open a Book',type:'story',n:1,d:'Read a new story in the Library.',r:{coins:60}},
+  {t:'Word Wizard',type:'spell',n:10,d:'Spell 10 words right in Spelling Grove.',r:{coins:80}},
+  {t:'Star Reader',type:'rstars',n:5,d:'Earn 5 reading ⭐ (first-try right answers).',r:{coins:100}},
+  {t:'Word Collector',type:'words',n:3,d:'Learn 3 spelling words (right twice in a row).',r:{coins:120}},
+  {t:'Bookworm',type:'story',n:4,d:'Read 4 new stories.',r:{coins:150,eggs:1}},
+  {t:'Spelling Bee',type:'words',n:8,d:'Learn 8 spelling words.',r:{coins:200}},
+  {t:'Deep Reader',type:'rstars',n:20,d:'Earn 20 reading ⭐.',r:{coins:250}},
+  {t:'Level Up Reader',type:'readlv',n:1,d:'Move up one reading level in the Library.',r:{coins:250,eggs:1}}],
+ pet:[{t:'Best Friends',type:'petcare',n:2,d:'Feed or play with your pet 2 times.',r:{coins:60,food:'cookie'}},
+  {t:'Team Attack',type:'petmove',n:3,d:'Use your pet\'s battle move 3 times.',r:{coins:100}},
+  {t:'Helpful Pet',type:'petpts',n:30,d:'Your pets earn 30 Pet Champion points.',r:{coins:120}},
+  {t:'Pet Pampering',type:'petcare',n:5,d:'Feed or play with your pet 5 times.',r:{coins:120,food:'cake'}},
+  {t:'Battle Buddies',type:'petmove',n:10,d:'Use pet moves 10 times.',r:{coins:200}},
+  {t:'Legendary Bond',type:'petlv',n:1,max:true,d:'Grow any pet to Legendary Lv 1.',r:{coins:300,eggs:1}}],
+ rosa:[{t:'Lunch Time',type:'lunch',n:1,d:'Finish a lunch order in the Cafeteria.',r:{coins:80}},
+  {t:'Balanced Plate',type:'lstars',n:3,d:'Earn 3 lunch stars.',r:{coins:100}},
+  {t:'Money Smart',type:'rightop',op:'money',n:20,d:'Get 20 Money problems right.',r:{coins:150}},
+  {t:'Regular Customer',type:'lunch',n:3,d:'Finish 3 lunch orders (one per day).',r:{coins:200,food:'cake'}}],
+ principal:[{t:'Tricky Skill',type:'weak',n:15,d:'Get 15 right in your trickiest skill: {OP}.',r:{coins:120}},
+  {t:'Show Up',type:'days',n:2,d:'Play on 2 different days.',r:{coins:150}},
+  {t:'Grow Your Brain',type:'skillup',n:1,d:'Move up a level in any math skill.',r:{coins:150}},
+  {t:'Kind Heart',type:'gift',n:1,d:'Send a gift to someone in your family.',r:{coins:100}},
+  {t:'Build It Up',type:'build',n:1,d:'Upgrade a building with Builder Bo in the village.',r:{coins:150}},
+  {t:'Face Your Challenge',type:'weak',n:25,d:'Get 25 right in your trickiest skill: {OP}.',r:{coins:200,eggs:1}},
+  {t:'Steady Hero',type:'days',n:4,d:'Play on 4 different days.',r:{coins:250}}]};
+// after a chain's list ends, it keeps going with growing versions of its repeatable quests
+const QREPEAT={elder:[{t:'Wizard Trial',type:'win',n:10,d:'Win {N} battles.',r:{coins:200}},{t:'Brain Storm',type:'right',n:80,d:'Get {N} right answers.',r:{coins:220}}],
+ hoot:[{t:'Story Time',type:'story',n:3,d:'Read {N} new stories.',r:{coins:180}},{t:'Word Hunt',type:'words',n:5,d:'Learn {N} spelling words.',r:{coins:180}}],
+ pet:[{t:'Pet Pal',type:'petcare',n:4,d:'Care for your pet {N} times.',r:{coins:150,food:'icecream'}},{t:'Pet Power',type:'petpts',n:60,d:'Pets earn {N} Pet Champion points.',r:{coins:180}}],
+ rosa:[{t:'Lunch Rush',type:'lunch',n:2,d:'Finish {N} lunch orders.',r:{coins:160}},{t:'Cash Counter',type:'rightop',op:'money',n:25,d:'Get {N} Money problems right.',r:{coins:180}}],
+ principal:[{t:'Keep Growing',type:'weak',n:20,d:'Get {N} right in your trickiest skill: {OP}.',r:{coins:200}},{t:'Level Climber',type:'skillup',n:1,d:'Move up {N} level in any math skill.',r:{coins:200}}]};
+const QROT=['elder','hoot','pet','rosa','principal'];
+function qDef(chain,idx){const L=QCHAINS[chain];if(idx<L.length)return L[idx];const k=idx-L.length,R=QREPEAT[chain],base=R[k%R.length],tier=Math.floor(k/R.length);
+ const n=base.type==='skillup'?1:Math.round(base.n*(1+.25*tier));return Object.assign({},base,{t:`${base.t} ${tier+1}`,n,d:base.d.replace('{N}',n),r:{...base.r,coins:Math.round(base.r.coins*(1+.2*tier))}});}
+function weakOp(p){const ops=OPS.filter(o=>{const z=ZONES.find(z=>z.op===o);return !z||!zoneLocked(z,p);}).filter(o=>p.stats[o].r+p.stats[o].w>=10);
+ if(!ops.length)return 'mul';return ops.map(o=>({o,a:p.stats[o].r/(p.stats[o].r+p.stats[o].w)})).sort((a,b)=>a.a-b.a)[0].o;}
+function qState(p){p.qs=p.qs||{idx:{},active:[],rot:0};const Q=p.qs;
+ while(Q.active.length<3){let tries=0;while(tries++<5){const c=QROT[Q.rot%QROT.length];Q.rot++;if(!Q.active.some(a=>a.c===c)){const idx=Q.idx[c]||0;const d=qDef(c,idx);Q.active.push({c,i:idx,prog:0,done:false,op:d.type==='weak'?weakOp(p):null});break;}}if(tries>5)break;}
+ return Q;}
+const qDesc=(a,d)=>d.d.replace('{OP}',OPNAME[a.op]||'Multiplication');
+function questEvent(p,type,n,meta){if(!p||!p.setup)return;const Q=qState(p);let changed=false;meta=meta||{};
+ Q.active.forEach(a=>{if(a.done)return;const d=qDef(a.c,a.i);if(d.type!==type)return;
+  if(type==='weak'&&meta.op!==a.op)return;if(type==='rightop'&&meta.op!==d.op)return;
+  if(d.max)a.prog=Math.max(a.prog,n);else a.prog+=n;changed=true;
+  if(a.prog>=d.n){a.prog=d.n;a.done=true;const N=QNPC[a.c];setTimeout(()=>toast(`📜 Quest complete: ${d.t}! Claim your reward from ${N.e} ${N.n}.`),1200);}});
+ if(changed)save();}
+function questRight(p,q){questEvent(p,'right',1);questEvent(p,'weak',1,{op:q.op});questEvent(p,'rightop',1,{op:q.op});
+ const Q=qState(p);const dk=dayKey();if(Q.lastDay!==dk){Q.lastDay=dk;questEvent(p,'days',1);}}
+function questClaim(k){const p=P();const Q=qState(p);const a=Q.active[k];if(!a||!a.done)return;const d=qDef(a.c,a.i);const r=d.r;const got=[];
+ if(r.coins){p.coins+=r.coins;got.push(`🪙 ${r.coins}`);}if(r.eggs){p.eggs+=r.eggs;got.push(`🥚 ${r.eggs} egg`);}if(r.legend){p.legendEggs=(p.legendEggs||0)+r.legend;got.push('🌟 Legend Egg');}
+ if(r.food){p.pantry[r.food]=(p.pantry[r.food]||0)+1;const f=PET_FOODS.find(x=>x.id===r.food);got.push(`${f.e} ${f.name}`);}
+ addXP(p,40);got.push('✨ 40 XP');
+ Q.idx[a.c]=(Q.idx[a.c]||0)+1;Q.done=(Q.done||0)+1;Q.active.splice(k,1);qState(p);save();SFX.win();
+ const N=QNPC[a.c];modal(`<div class="mcard"><div class="big-emoji">${N.e}</div><h2>${esc(d.t)}: done!</h2><p>${N.n} is proud of you, ${esc(p.name)}!</p><div class="rewards">${got.map(g=>`<div>${g}</div>`).join('')}</div>
+ <p class="muted">A new quest is waiting. You've finished ${Q.done} quest${Q.done===1?'':'s'}!</p><button class="btn green big" onclick="closeModal();go(curScreen,curArg)">Great! ➜</button></div>`);}
+function nextSteps(p){const out=[];const L=p.lib&&p.lib.day===dayKey()?p.lib.n:0;if(L<libPerDay(p))out.push(`<button class="nstep" onclick="LIB=null;go('library')">📚 ${libPerDay(p)-L} new ${libPerDay(p)-L>1?'stories':'story'} in the Library</button>`);const cheap=Math.min(...VIL.filter(b=>vLv(p,b.id)<5).map(b=>b.cost[vLv(p,b.id)]));if(p.coins>=cheap)out.push(`<button class="nstep" onclick="go('village')">🏗️ Upgrade your village</button>`);
+ if(!(p.cafe&&p.cafe.d===dayKey()&&p.cafe.done))out.push(`<button class="nstep" onclick="CAFE=null;go('cafe')">🍱 Today's lunch order</button>`);
+ if(p.spinDay!==dayKey())out.push(`<button class="nstep" onclick="go('world')">🎡 Daily spin is ready</button>`);
+ const z=ZONES.filter(z=>!zoneLocked(z,p)&&medal(p,z.id)<5).sort((a,b)=>medal(p,a.id)-medal(p,b.id))[0];
+ if(z){const r=Math.min(5,medal(p,z.id)+1);out.push(`<button class="nstep" onclick="go('zone','${z.id}')">${ROUNDS[r].m} ${ROUNDS[r].n} medal in ${z.name}</button>`);}
+ return out.slice(0,4).join('');}
+function questPanel(p){const Q=qState(p);const ready=Q.active.filter(a=>a.done).length;
+ return `<div class="qpanel"><h3>📜 Quests${ready?` <span class="qready">${ready} ready!</span>`:''}</h3><div class="qgrid">${Q.active.map((a,k)=>{const d=qDef(a.c,a.i),N=QNPC[a.c];const pct=Math.round(a.prog/d.n*100);
+  return `<div class="qitem ${a.done?'done':''}"><div class="qnpc">${N.e}</div><div class="qbody"><b>${esc(d.t)}</b><small>${esc(N.n)}</small><div>${esc(qDesc(a,d))}</div><div class="qbar"><i style="width:${pct}%"></i></div><small>${a.prog} / ${d.n}</small></div>${a.done?`<button class="btn gold small" onclick="questClaim(${k})">Claim!</button>`:''}</div>`;}).join('')}</div>
+  <div class="nsteps"><b>Next up:</b> ${nextSteps(p)}</div></div>`;}
+
+function eventBanner(p){const z=ZONES.find(z=>z.id==='haunt');if(eventOpen())return `<button class="evbanner" onclick="go('zone','haunt')">🎃 <b>Haunted Hollow is open!</b> Beat the Pumpkin King for <b>Boo the Ghost</b>, a pet you can only get until Nov 1. 👻</button>`;
+ if(eventSoon()){const days=Math.ceil((new Date(EVENT_START+'T00:00:00')-new Date())/864e5);if(days<=30)return `<div class="evbanner soon">🎃 <b>Haunted Hollow</b> opens in ${days} day${days===1?'':'s'} (Oct 18)! A spooky event world with a ghost pet and a pumpkin hat you can only get then.</div>`;}return '';}
 function questBar(p){const q=(p.quest&&p.quest.d===dayKey())?p.quest:{wins:0,done:false};const st=dayStreak(p);
  return `<div class="questbar"><div>🎯 <b>Today's quest:</b> win 3 battles ${q.done?'✅ Done!':`(${Math.min(q.wins,3)}/3) → 🥚`}</div>${st>=2?`<div>🔥 ${st}-day streak</div>`:''}</div>`;}
 function continueCard(p){
@@ -3249,8 +3463,8 @@ function refreshParent(anchorId,flash){
  if(b&&top!==null){window.scrollTo(0,y);window.scrollBy(0,b.getBoundingClientRect().top-top);}else if(b)b.scrollIntoView({block:'center'});else window.scrollTo(0,y);
  if(b&&flash){b.classList.add('flash');setTimeout(()=>b.classList.remove('flash'),900);}
 }
-function adjLevel(id,op,d){const p=state.players.find(x=>x.id===id);const L=lvl(p,op),to=clamp(L+d,1,10);if(to===L)return;applyLevel(p,op,to);p.recent[op]=[];save();refreshParent(`lv-${id}-${op}`,true);}
-function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;save();refreshParent(`pp-${id}`,true);toast(`Grade set to ${g}.`);}
+function adjLevel(id,op,d){const p=state.players.find(x=>x.id===id);const L=lvl(p,op),to=clamp(L+d,1,maxLv(op));if(to===L)return;applyLevel(p,op,to);p.recent[op]=[];save();refreshParent(`lv-${id}-${op}`,true);}
+function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;if(p.spellSig!==undefined)p.spellSig=spellSchool(p).map(x=>x.w).join('|');save();refreshParent(`pp-${id}`,true);toast(`Grade set to ${g}.`);}
 function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}const np=newPlayer(n,+$('#npGrade').value);state.players.push(np);save();refreshParent(null);const c=document.getElementById('pp-'+np.id);if(c){c.scrollIntoView({block:'center',behavior:'smooth'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),900);}}
 function confirmReset(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Reset ${esc(p.name)}?</h2><p>This clears coins, pets, items, map progress and stats. It can't be undone.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doReset('${id}')">Reset</button></div></div>`);}
 function doReset(id){const i=state.players.findIndex(x=>x.id===id);const o=state.players[i];const n=newPlayer(o.name,o.grade);n.id=o.id;state.players[i]=n;save();closeModal();refreshParent(`pp-${id}`,true);}
@@ -3369,7 +3583,7 @@ function questCorrect(q,inp){
 function questAnswer(){
  const p=P(),q=B.q,said=B.input;const ok=questCorrect(q,said);
  B.busy=true;const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
- if(q.type==='word'){const k=q.word.toLowerCase();const st=p.spellStats[k]=p.spellStats[k]||{r:0,w:0,s:0};if(ok){st.r++;st.s++;if(st.s===2)wkBump(p,'words');}else{st.w++;st.s=0;}st.last=dk;}
+ if(q.type==='word'){const k=q.word.toLowerCase();const st=p.spellStats[k]=p.spellStats[k]||{r:0,w:0,s:0};if(ok){st.r++;st.s++;questEvent(p,'spell',1);if(st.s===2){wkBump(p,'words');questEvent(p,'words',1);}}else{st.w++;st.s=0;}st.last=dk;}
  if(ok)wkAnswer(p,8);if(ok&&q.type==='word')wkBump(p,'spR');
  if(ok){
   if(!q.tries)B.firstTry++;B.right++;petCharge(p);B.streak++;B.best=Math.max(B.best,B.streak);B.done++;
@@ -3466,15 +3680,19 @@ const PET_LEVELS=[2,4,6,8,10];
 const HINT_CHARGE=8;                       // right answers to earn back one hint
 const PET_STAGES=[{n:'Baby',xp:0,max:1},{n:'Big',xp:15,max:2},{n:'Grown-up',xp:45,max:3},{n:'Legendary',xp:120,max:3}];
 const PET_PTS={c:1,hp:1,xp:1,dmg:.5,egg:25,hint:5};
-function petCredit(p,k,n){const pet=petOf(p);if(!pet||!n)return;const pd=petData(p,pet.id);pd.st=pd.st||{};pd.st[k]=(pd.st[k]||0)+n;pd.wk=pd.wk||{};const wk=weekKey();pd.wk[wk]=Math.round(((pd.wk[wk]||0)+n*PET_PTS[k])*10)/10;const ks=Object.keys(pd.wk).sort();if(ks.length>8)delete pd.wk[ks[0]];}
+function petCredit(p,k,n){const pet=petOf(p);if(!pet||!n)return;questEvent(p,'petpts',n*PET_PTS[k]);const pd=petData(p,pet.id);pd.st=pd.st||{};pd.st[k]=(pd.st[k]||0)+n;pd.wk=pd.wk||{};const wk=weekKey();pd.wk[wk]=Math.round(((pd.wk[wk]||0)+n*PET_PTS[k])*10)/10;const ks=Object.keys(pd.wk).sort();if(ks.length>8)delete pd.wk[ks[0]];}
 function petPower(pd){const s=(pd&&pd.st)||{};return Math.round(Object.keys(PET_PTS).reduce((a,k)=>a+(s[k]||0)*PET_PTS[k],0));}
 function petData(p,id){p.petData=p.petData||{};if(!p.petData[id])p.petData[id]={xp:0,hints:1,charge:0};return p.petData[id];}
+/* endless pet levels after Legendary: each level needs a little more XP */
+function petLvInfo(pd){const top=PET_STAGES[PET_STAGES.length-1].xp;if(!pd||pd.xp<top)return {lv:0,into:0,need:50};let x=pd.xp-top,l=1,need=50;while(x>=need){x-=need;l++;need+=10;}return {lv:l,into:x,need};}
+const petLv=pd=>petLvInfo(pd).lv;
+function petLvCheck(p,pet,before){const pd=petData(p,pet.id);const now=petLv(pd);if(now>0)questEvent(p,'petlv',now);if(now>before){setTimeout(()=>{if(curScreen==='battle'&&B&&!B.over)banner(`${pet.e} ${pet.name} is now Lv ${now}!`);toast(`🌟 ${pet.e} ${pet.name} reached Legendary Lv ${now}! Pet moves hit a little harder.`);SFX.level();},900);}}
 function petStage(pd){let s=PET_STAGES[0];PET_STAGES.forEach(x=>{if(pd.xp>=x.xp)s=x;});return s;}
 function petMeter(pd){const st=petStage(pd);let m='';for(let i=0;i<st.max;i++)m+=i<pd.hints?'💡':'<span class="dimbulb">💡</span>';return m;}
 function petMilestones(p){p.petMs=p.petMs||[];const due=PET_LEVELS.filter(l=>p.level>=l&&!p.petMs.includes(l));p.pendingPets=due.length;return due;}
 function petCharge(p){
- const pet=petOf(p);if(!pet)return;const pd=petData(p,pet.id);const st=petStage(pd);
- pd.xp+=.25;
+ const pet=petOf(p);if(!pet)return;const pd=petData(p,pet.id);const st=petStage(pd);const lv0=petLv(pd);
+ pd.xp+=.25*(1+.1*vLv(p,'pethome'));petLvCheck(p,pet,lv0);
  if(pd.hints<st.max){pd.charge++;if(pd.charge>=HINT_CHARGE){pd.charge=0;pd.hints++;setTimeout(()=>toast(`${pet.e} ${pet.name} has a new hint for you! 💡`),600);}}
  const st2=petStage(pd);if(st2.max>st.max){pd.hints=Math.min(st2.max,pd.hints+1);setTimeout(()=>{banner(`${pet.e} ${pet.name} grew up!`);toast(`${pet.name} is now ${st2.n} and can hold ${st2.max} hints!`);},900);}
  updateHintBtn();
