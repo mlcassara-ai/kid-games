@@ -302,7 +302,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .xtip{font-size:12px;color:var(--muted);font-weight:600}
 .vis.pie,.vis.clock{width:clamp(78px,14vh,118px);height:auto;flex:none}
 .vis.fbar{display:grid;width:min(170px,40vw);height:26px;border:2px solid #5a3b00;border-radius:6px;overflow:hidden}
-.vis.fbar i{border-right:2px solid #5a3b00;background:#fff}.vis.fbar i:last-child{border-right:none}.vis.fbar i.on{background:#ff9f43}
+.vis.fbar i{border-right:2px solid #5a3b00;background:#fff}.vis.fbar i:last-child{border-right:none}.vis.fbar i.on{background:#ff9f43}.vis.fbar i.on2{background:#4dabf7}.vis.fbar i.x{background:repeating-linear-gradient(45deg,#ff9f43 0 4px,#fff 4px 8px);position:relative}.vis.fbar i.x::after{content:'✕';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;color:#c0392b;font-size:15px}
 .vis.vset{max-width:220px;font-size:.8em;line-height:1.15;display:flex;flex-wrap:wrap;justify-content:center}
 .vis.coins{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:260px;align-items:center}
 .coin{display:inline-grid;place-items:center;border-radius:50%;font-size:12px;font-weight:700;color:#2b2250;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2),0 2px 3px rgba(0,0,0,.25);border:2px solid rgba(0,0,0,.2)}
@@ -531,7 +531,7 @@ function visHTML(v){
    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
    s+=n===1?`<circle cx="50" cy="50" r="44" fill="${i<k?'#ff9f43':'#fff'}"/>`:`<path d="M50 50 L${x0.toFixed(1)} ${y0.toFixed(1)} A44 44 0 ${1/n>.5?1:0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z" fill="${i<k?'#ff9f43':'#fff'}" stroke="#5a3b00" stroke-width="2"/>`;}
   return `<svg class="vis pie" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#5a3b00"/>${s}</svg>`;}
- if(v.t==='bar'){let s='';for(let i=0;i<v.n;i++)s+=`<i class="${i<v.k?'on':''}"></i>`;return `<div class="vis fbar" style="grid-template-columns:repeat(${v.n},1fr)">${s}</div>`;}
+ if(v.t==='bar'){let s='';for(let i=0;i<v.n;i++){const c=i<v.k?(v.x&&i>=v.k-v.x?'on x':'on'):(v.k2&&i<v.k+v.k2?'on2':'');s+=`<i class="${c}"></i>`;}return `<div class="vis fbar" style="grid-template-columns:repeat(${v.n},1fr)">${s}</div>`;}
  if(v.t==='set'){return `<div class="vis vset">${Array.from({length:v.n},(_,i)=>`<span class="${v.k&&i<v.k?'hl':''}">${v.e}</span>`).join('')}</div>`;}
  if(v.t==='coins'){return `<div class="vis coins">${v.list.map(c=>c===100?`<span class="bill">$1</span>`:`<span class="coin c${c}" style="background:${COIN[c].c}">${COIN[c].l}</span>`).join('')}</div>`;}
  if(v.t==='iso')return isoBoxes(v.b,v.lb);
@@ -566,7 +566,7 @@ function genX(op,L){
     explain:`<p>${fr(1,d)} means split into <b>${d}</b> equal groups.</p><p>${N} ÷ ${d} = <b>${N/d}</b></p>`,nudge:`<p>Share the ${N} ${e} into <b>${d}</b> equal groups. How many in one group?</p>`});}
   if(L<=6){const n=pick([4,5,6,8,10]);let a,b,ans,t;
    if(L===5){a=rnd(1,n-2);b=rnd(1,n-1-a);ans=a+b;t=`${fr(a,n)} + ${fr(b,n)} = ${frA(n)}`;}else{a=rnd(2,n);b=rnd(1,a-1);ans=a-b;t=`${fr(a,n)} − ${fr(b,n)} = ${frA(n)}`;}
-   return fin({vis:{t:'bar',n,k:L===5?a:a},tpl:t,answer:ans,text:`${a}/${n} ${L===5?'+':'−'} ${b}/${n}`,
+   return fin({vis:L===5?{t:'bar',n,k:a,k2:b}:{t:'bar',n,k:a,x:b},tpl:t,answer:ans,text:`${a}/${n} ${L===5?'+':'−'} ${b}/${n}`,
     explain:`<p>The bottom numbers match, so just ${L===5?'add':'subtract'} the top numbers:</p><p>${a} ${L===5?'+':'−'} ${b} = <b>${ans}</b>, so it's ${fr(ans,n)}</p>`,nudge:`<p>Keep the bottom number (${n}). Just ${L===5?'add':'take away'} the top numbers!</p>`});}
   if(L===7){const b=pick([2,3,4,5]),a=rnd(1,b-1),m=rnd(2,4);
    return fin({vis:{t:'bar',n:b,k:a},tpl:`${fr(a,b)} = ${frA(b*m)}`,answer:a*m,text:`${a}/${b} = ?/${b*m}`,
@@ -863,10 +863,17 @@ const SPELLS=[
  {id:'spark',name:'Sparkle Bolt',e:'✨',mult:1,price:0,color:'#ffe066'},
  {id:'fire',name:'Fireball',e:'🔥',mult:1.1,price:150,color:'#ff7a1a'},
  {id:'ice',name:'Ice Shard',e:'❄️',mult:1.2,price:300,color:'#7fe3ff'},
- {id:'leaf',name:'Leaf Storm',e:'🍃',mult:1.25,price:450,color:'#5be37d'},
- {id:'bolt',name:'Lightning',e:'⚡',mult:1.35,price:650,color:'#ffd43b'},
- {id:'rainbow',name:'Rainbow Blast',e:'🌈',mult:1.5,price:950,color:'#ff5fa2'},
- {id:'comet',name:'Comet Crash',e:'☄️',mult:1.7,price:1400,color:'#ff9f43'}];
+ {id:'leaf',name:'Leaf Storm',e:'🍃',mult:1.25,price:450,lvl:3,color:'#5be37d'},
+ {id:'bolt',name:'Lightning',e:'⚡',mult:1.35,price:650,lvl:5,color:'#ffd43b'},
+ {id:'rainbow',name:'Rainbow Blast',e:'🌈',mult:1.5,price:950,lvl:8,color:'#ff5fa2'},
+ {id:'comet',name:'Comet Crash',e:'☄️',mult:1.7,price:1400,lvl:12,color:'#ff9f43'},
+ {id:'meteor',name:'Meteor Shower',e:'🌠',mult:1.8,price:2200,lvl:16,color:'#9775fa'},
+ {id:'galaxy',name:'Galaxy Spiral',e:'🌌',mult:1.9,price:3200,lvl:20,color:'#5c7cfa'},
+ {id:'nova',name:'Supernova',e:'💫',mult:2,price:4500,lvl:25,color:'#ffe066'}];
+/* higher-end balance: rewards follow challenge, monsters grow with the hero */
+function challengeD(p,op){const exp=Math.min(9,(p.grade||3)+2);const L=op==='mix'?Math.round(BASIC_OPS.reduce((s,o)=>s+lvl(p,o),0)/4):lvl(p,op);return Math.max(-2,Math.min(2,L-exp));}
+function coinPer(p,q){const exp=Math.min(9,(p.grade||3)+2);return 3+Math.max(-1,Math.min(2,(q.L||1)-exp));}
+function lvlScale(p,round){const over=Math.max(0,(p.level||1)-10);const sp=(SPELLS.find(s=>s.id===p.spell)||SPELLS[0]).mult;return {hp:(1+Math.min(.5,over*.025))*((round||1)>=3?1+(sp-1)*.6:1),dmg:1+Math.min(.6,over*.03)};}
 const PERKS={coins:'🪙 Extra coins',power:'💥 Stronger spells',shield:'🛡️ Blocks a hit',xp:'✨ Levels up faster',lucky:'🥚 Finds more eggs',heal:'❤️ Heals you on streaks'};
 const PET_TIERS={common:{n:'Common',c:'#6bbf59',odds:60,mult:1},rare:{n:'Rare',c:'#3a8dde',odds:24,mult:1.1},epic:{n:'Epic',c:'#a855f7',odds:12,mult:1.2},legend:{n:'Legendary',c:'#f59e0b',odds:4,mult:1.35}};
 const TIER_ORDER=['common','rare','epic','legend'];
@@ -893,7 +900,7 @@ const PETS=[
  {id:'butterfly',e:'🦋',name:'Aurora',perk:'heal',tier:'legend'},{id:'bigwhale',e:'🐋',name:'Atlas',perk:'coins',tier:'legend'}];
 PETS.forEach(x=>{x.rare=x.tier!=='common';});
 const tierTag=x=>`<small class="tiertag" style="background:${PET_TIERS[x.tier].c}">${x.tier==='legend'?'🌟 ':x.tier==='epic'?'💜 ':x.tier==='rare'?'✨ ':''}${PET_TIERS[x.tier].n}</small>`;
-const eggPrice=p=>Math.min(900,150+p.pets.length*30);
+const eggPrice=p=>p.pets.length<20?Math.min(900,150+p.pets.length*30):Math.min(2500,900+(p.pets.length-20)*100);
 const ZONES=[
  {id:'forest',name:'Addition Forest',op:'add',sym:'+',cls:'z-forest',art:'🌳',decor:['🌲','🌳','🍄','🌼','🌿'],
   mons:[['Grumbug','🐛'],['Shroomling','🍄'],['Buzzbee','🐝'],['Twigwolf','🐺'],['Vinesnake','🐍'],['King Mossback','🦍']]},
@@ -1356,7 +1363,7 @@ function startBattle(zid,i,resume,opts){
  const wild=!!((opts&&opts.wild)||(resume&&resume.wild));
  const round=wild?1:((resume&&resume.round)||curRound(p,zid));const RM=RMUL[round]||RMUL[1];
  const tired=wild?0:Math.min(3,((p.tired||{})[tiredKey(zid,round,i)])||0);
- const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.12*tired)*(z.hpx||1));
+ const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.12*tired)*(z.hpx||1)*lvlScale(p,round).hp);
  const foes=[{n:wild&&opts?opts.n:z.mons[i][0],e:wild&&opts?opts.e:z.mons[i][1],hp:mhp,max:mhp}].concat(resume||wild?[]:gangFor(p,z,i,isBoss,round));
  B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0,round};
  if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
@@ -1378,7 +1385,7 @@ function gangFor(p,z,i,isBoss,round){
  else{const [p2,p3]={2:[.55,.15],3:[.45,.3],4:[.45,.3],5:[.45,.4]}[round];n=r<p3?2:r<p3+p2?1:0;}
  const RM=RMUL[round]||RMUL[1];
  const pool=[0,1,2,3,4].filter(k=>k!==i);const out=[];
- for(let k=0;k<n&&pool.length;k++){const j=pool.splice(Math.floor(Math.random()*pool.length),1)[0];const hp=Math.round((110+j*15)*.6*RM.hp*(z.hpx||1));out.push({n:z.mons[j][0],e:z.mons[j][1],hp,max:hp});}
+ for(let k=0;k<n&&pool.length;k++){const j=pool.splice(Math.floor(Math.random()*pool.length),1)[0];const hp=Math.round((110+j*15)*.6*RM.hp*(z.hpx||1)*lvlScale(p,round).hp);out.push({n:z.mons[j][0],e:z.mons[j][1],hp,max:hp});}
  return out;
 }
 function foesHTML(){
@@ -1506,7 +1513,7 @@ function nextQ(){
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
- B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?Math.max(B.round>=5?8:10,fastLimit(q)*(B.round>=5?2:2.5),medianThink(p)*(B.round>=5?1.8:2.2)):0;
+ B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?(()=>{const md=medianThink(p),fl=fastLimit(q)*(B.round>=5?2:2.5);return Math.max(B.round>=5?6:8,md?Math.min(fl,md*(B.round>=5?2.5:3)):fl,md*(B.round>=5?1.8:2.2));})():0;
  p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
@@ -1555,7 +1562,7 @@ function answer(){
   let dmg=20*spell.mult*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
   p.thinkT=p.thinkT||[];p.thinkT.push(Math.round(Math.min(60,secs)*10)/10);if(p.thinkT.length>20)p.thinkT.shift();
   const crit=fast&&!q.hinted&&Math.random()<(B.streak>=2?.6:.35);if(crit)dmg*=2;dmg=Math.round(dmg);
-  const c=5+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;
+  const c=coinPer(p,q)+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;
   B.xp+=Math.round(10*(perk==='xp'?1.5:1));
   save();SFX.correct();$('#qcard').classList.add('right');
   castSpell(spell,crit,()=>{
@@ -1627,7 +1634,7 @@ const ATK={'🐛':['shot','🟢','Goo spit'],'🍄':['shot','🟤','Spore puff']
 function attackOf(emoji){const a=ATK[emoji];return a?{t:a[0],e:a[1],n:a[2]}:{t:'shot',e:'💥',n:'Attack'};}
 function monsterAttack(done){
  const others=B.mode==='math'&&B.foes?B.foes.filter((f,k)=>k!==B.ti&&f.hp>0):[];
- const DM=(RMUL[B.round]||RMUL[1]).dmg;const one=()=>(B.isBoss&&B.ti===0?rnd(20,26):rnd(13,20))*DM;
+ const DM=(RMUL[B.round]||RMUL[1]).dmg*(B.wild?1:lvlScale(P()).dmg);const one=()=>(B.isBoss&&B.ti===0?rnd(20,26):rnd(13,20))*DM;
  let dmg=one();others.forEach(()=>dmg+=rnd(13,20)*DM);if(others.length)dmg*=.6;dmg=Math.round(dmg);
  const atk=attackOf(B.emoji);
  if(others.length){const ar=$('#arena'),aa=ar&&ar.getBoundingClientRect(),hh=$('#heroS').getBoundingClientRect();
@@ -1696,7 +1703,7 @@ function winBattle(){
  const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const stars=B.wrong<=1?3:B.wrong<=3?2:1;
  const R=B.round||1;if(p.tired)delete p.tired[tiredKey(B.z.id,R,B.i)];const pr=rstore(p,B.z.id,R);const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
- let bonus=B.isBoss?100:25+B.i*5;if(!first)bonus=Math.round(bonus/2);bonus=Math.round(bonus*(1+.25*(R-1)));
+ let bonus=B.isBoss?100:25+B.i*5;if(!first)bonus=Math.round(bonus/2);bonus=Math.round(bonus*(1+.25*(R-1))*(1+.2*challengeD(p,B.z.op)));
  const rhtml=B.isBoss&&first?roundPrize(p,R,B.z,B):'';
  const secs=Math.round((Date.now()-B.start)/1000),key=(R>1?'r'+R+'-':'')+B.z.id+'-'+B.i,old=p.pb[key];
  const newBest=!old||secs<old.t;if(newBest)p.pb[key]={t:secs,streak:Math.max(B.best,old?old.streak:0)};else if(B.best>old.streak)old.streak=B.best;
@@ -1705,11 +1712,11 @@ function winBattle(){
  let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(p.pets.length<PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
  const gangN=(B.foes||[]).length;if(gangN>1)bonus+=25*(gangN-1);
  p.coins+=bonus;B.coins+=bonus;B.xp+=(B.isBoss?60:20)+(gangN>1?15*(gangN-1):0);
- const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1);const egg=Math.random()<chance;if(egg)p.eggs++;
+ const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1)*(p.pets.length>=20?.5:1);const egg=Math.random()<chance;if(egg)p.eggs++;
  p.battles++;const up=endBattleBook();save();
  const z=B.z.id,i=B.i;
  setTimeout(()=>{
-  modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You beat ${(B.foes||[]).length>1?`<b>the whole gang</b> ${B.foes.map(f=>f.e).join('')}`:`<b>${esc(B.name)}</b>`}!${B.best>=3?` Best streak: 🔥${B.best}`:''}</p>
+  B.endModal=()=>`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You beat ${(B.foes||[]).length>1?`<b>the whole gang</b> ${B.foes.map(f=>f.e).join('')}`:`<b>${esc(B.name)}</b>`}!${B.best>=3?` Best streak: 🔥${B.best}`:''}</p>
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>${bestLine}
   ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${p.pets.length<PETS.length||p.eggs?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
@@ -1718,7 +1725,7 @@ function winBattle(){
   ${rhtml}
   <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button>
   ${i<5?`<button class="btn green" onclick="startBattle('${z}',${i+1})">Next battle ⚔️</button>`:''}
-  ${egg||questDone?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`);
+  ${egg||questDone?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`;modal(B.endModal());
   if(up)setTimeout(SFX.level,400);
  },750);
 }
@@ -1749,7 +1756,7 @@ document.addEventListener('keydown',e=>{
 /* ================= backpack & shop ================= */
 SCREENS.backpack=()=>{
  const p=P();const pet=petOf(p);const sp=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
- const item=(kind,id,prev,name,price,owned,eq,sub)=>`<button class="item ${eq?'eq':''} ${!owned&&p.coins<price?'need':''}" onclick="shopClick('${kind}','${id}')">${prev}<div>${name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${owned?(eq?'✓ Using':'Use'):'🪙 '+price}</div></button>`;
+ const item=(kind,id,prev,name,price,owned,eq,sub,need)=>{const locked=!owned&&need&&p.level<need;return `<button class="item ${eq?'eq':''} ${!owned&&(p.coins<price||locked)?'need':''}" onclick="shopClick('${kind}','${id}')">${prev}<div>${name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${owned?(eq?'✓ Using':'Use'):locked?'🔒 Level '+need:'🪙 '+price}</div></button>`;};
  app.innerHTML=topbar()+`<div class="page"><h2 class="title">🎒 Backpack &amp; Shop</h2><div class="bp">
  <div class="bp-hero"><div class="hv">${heroSVG(p.look,{spell:p.spell})}${pet?`<div class="bp-pet">${pet.e}</div>`:''}</div>
   <div class="bp-stats"><b style="font-size:20px">${esc(p.name)}</b><br>Level ${p.level} · ❤️ ${heroMax(p)} HP<br>Spell: ${sp.e} ${sp.name}<br>${pet?`Pet: ${pet.e} ${pet.name}<br><small>${PERKS[pet.perk]}</small>`:'No pet yet'}</div>
@@ -1762,7 +1769,7 @@ SCREENS.backpack=()=>{
    ${p.pets.length<PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="muted" style="margin-bottom:6px">Pets found: <b>${p.pets.length} / ${PETS.length}</b></div>
    ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}</div>
-  <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell')).join('')}</div></div>
+  <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
   <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
   <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
  </div></div></div>`;
@@ -1774,12 +1781,13 @@ function shopClick(kind,id){
  const ownedList=p.owned[kind==='hat'?'hats':kind==='robe'?'robes':'spells'];
  const equip=()=>{if(kind==='hat')p.look.hat=id;else if(kind==='robe')p.look.robe=id;else p.spell=id;};
  if(ownedList.includes(id)){equip();save();SFX.tap();go('backpack');return;}
+ if(it.lvl&&p.level<it.lvl){toast(`🔒 ${it.name} unlocks at level ${it.lvl}. You are level ${p.level}!`);return;}
  if(p.coins<it.price){toast(`You need ${it.price-p.coins} more coins. Win battles to earn more!`);return;}
  modal(`<div class="mcard"><h2>Buy ${it.name}?</h2><p>It costs <b>🪙 ${it.price}</b>. You have 🪙 ${p.coins}.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">No</button><button class="btn gold" onclick="buyItem('${kind}','${id}')">Buy it!</button></div></div>`);
 }
 function buyItem(kind,id){
  const p=P();const list=kind==='hat'?HATS:kind==='robe'?ROBES:SPELLS;const it=list.find(x=>x.id===id);
- if(p.coins<it.price){closeModal();return;}
+ if(p.coins<it.price||(it.lvl&&p.level<it.lvl)){closeModal();return;}
  p.coins-=it.price;p.owned[kind==='hat'?'hats':kind==='robe'?'robes':'spells'].push(id);
  if(kind==='hat')p.look.hat=id;else if(kind==='robe')p.look.robe=id;else p.spell=id;
  save();SFX.coin();closeModal();go('backpack');toast(`You got ${it.name}!`);
@@ -2250,10 +2258,10 @@ function roundTabs(p,z){
 }
 function roundPrize(p,r,z,B){
  const coin=n=>{p.coins+=n;if(B)B.coins+=n;};let lines=[];
- if(r===2){p.eggs++;coin(150);lines=['🥚 A mystery egg','🪙 150 coins'];}
+ if(r===2){if(p.pets.length+p.eggs<20){p.eggs++;coin(150);lines=['🥚 A mystery egg','🪙 150 coins'];}else{const a=pick(PET_FOODS),b=pick(PET_FOODS);p.pantry[a.id]=(p.pantry[a.id]||0)+1;p.pantry[b.id]=(p.pantry[b.id]||0)+1;coin(250);lines=[`${a.e}${b.e} Pet treats`,'🪙 250 coins'];}}
  else if(r===3){coin(200);const pool=[...HATS.filter(h=>h.price&&!p.owned.hats.includes(h.id)).map(h=>['hat',h]),...ROBES.filter(x=>x.price&&!p.owned.robes.includes(x.id)).map(x=>['robe',x])];
   if(pool.length){const [k,it]=pick(pool);p.owned[k==='hat'?'hats':'robes'].push(it.id);lines=[`🎁 A free ${k==='hat'?'hat':'robe'}: <b>${it.name}</b>`,'🪙 200 coins'];}else{coin(200);lines=['🪙 400 coins'];}}
- else if(r===4){p.eggs+=2;coin(300);lines=['🥚🥚 Two mystery eggs','🪙 300 coins'];}
+ else if(r===4){const two=p.pets.length+p.eggs<30;p.eggs+=two?2:1;coin(300);lines=[two?'🥚🥚 Two mystery eggs':'🥚 A mystery egg','🪙 300 coins'];}
  else if(r===5){p.legendEggs=(p.legendEggs||0)+1;coin(500);lines=['🌟 A LEGEND EGG (Epic or Legendary pet inside!)','🪙 500 coins'];}
  const title=z.op==='spell'?`${ROUNDS[r].n} Speller`:`${ROUNDS[r].n} Hero of ${z.name}`;
  return `<div class="rdone"><div class="rdm">${ROUNDS[r].m}</div><b>${ROUNDS[r].n.toUpperCase()} ROUND COMPLETE!</b><div>You are now a <b>${esc(title)}</b>!</div>${lines.length?`<div class="rprize">${lines.join('<br>')}</div>`:''}${r<5?`<div class="rnext">${ROUNDS[r+1].m} <b>${ROUNDS[r+1].n}</b> round unlocked!</div>`:'<div class="rnext">👑 You conquered every round! 👑</div>'}</div>`;
@@ -2490,11 +2498,11 @@ function questWin(){
  p.battles++;const up=endBattleBook();save();
  const back=B.backTo==='zone'?`closeModal();go('zone','spell')`:`closeModal();go('quests','${B.backArg}')`;
  setTimeout(()=>{
-  modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You got <b>${B.firstTry} of ${B.total}</b> right on the first try!</p>
+  B.endModal=()=>`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You got <b>${B.firstTry} of ${B.total}</b> right on the first try!</p>
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>${rhtml}
   ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${petMilestones(p).length?`<button class="btn gold" style="margin-top:10px" onclick="offerPet()">🎁 Choose your new pet buddy!</button>`:''}
-  <div class="row"><button class="btn ghost dark" onclick="${back}">Back</button>${next}${egg?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`);
+  <div class="row"><button class="btn ghost dark" onclick="${back}">Back</button>${next}${egg?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`;modal(B.endModal());
   if(up)setTimeout(SFX.level,400);
  },750);
 }
@@ -2638,7 +2646,7 @@ function takePet(id,lvl){
  const p=P();if(!p.pets.includes(id))p.pets.push(id);p.petMs=p.petMs||[];if(!p.petMs.includes(lvl))p.petMs.push(lvl);
  p.pet=id;const pd=petData(p,id);pd.hints=petStage(pd).max;save();closeModal();
  const x=PETS.find(q=>q.id===id);toast(`${x.e} ${x.name} joined your team!`);SFX.win();
- if(petMilestones(p).length)setTimeout(offerPet,600);else if(curScreen==='backpack'||curScreen==='map')go(curScreen,curArg);
+ if(petMilestones(p).length)setTimeout(offerPet,600);else if(curScreen==='battle'&&B&&B.over&&B.endModal)modal(B.endModal());else if(curScreen==='backpack'||curScreen==='map')go(curScreen,curArg);
 }
 
 /* ================= online save (Firebase, family code) ================= */
