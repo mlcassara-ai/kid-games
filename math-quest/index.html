@@ -2265,7 +2265,7 @@ function wFrame(now){
  // tween hero
  if(W.moving){const k=Math.min(1,(now-W.mt)/140);W.drawX=W.fx+(W.hx-W.fx)*k;W.drawY=W.fy+(W.hy-W.fy)*k;}else{W.drawX=W.hx;W.drawY=W.hy;}
  // mobs wander
- if(now-W.mobT>900){W.mobT=now;W.mobs.forEach(m=>{if(Math.random()<(m.principal?.65:.5))return;const [dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]);const nx=m.x+dx,ny=m.y+dy;const t=W.T[ny]&&W.T[ny][nx];
+ if(now-W.mobT>900){W.mobT=now;principalCheckLeave();W.mobs.forEach(m=>{if(Math.random()<(m.principal?.65:.5))return;const [dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]);const nx=m.x+dx,ny=m.y+dy;const t=W.T[ny]&&W.T[ny][nx];
   if(!t||t.block||t.water||(!m.principal&&(t.plaza||t.b!==m.b))||W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;
   if(m.x===W.hx&&m.y===W.hy&&!$('#modal.show'))setTimeout(()=>wFight(m),50);});}
  const [cx,cy]=wCam();
@@ -2305,7 +2305,14 @@ document.addEventListener('keydown',e=>{if(curScreen!=='world'||!W||$('#modal.sh
 const PRINCIPAL_EVERY=3;
 function daysSince(d){if(!d)return 999;const a=new Date(d+'T12:00:00'),b=new Date(dayKey()+'T12:00:00');return Math.round((b-a)/864e5);}
 function principalDue(p){return p&&p.setup&&(p.battles||0)>=5&&daysSince(p.principalLast)>=PRINCIPAL_EVERY;}
+const PR_WAIT=15*60e3;
+function principalLeave(p,quiet){W&&(W.mobs=W.mobs.filter(m=>!m.principal));p.principalLast=dayKey();p.prSpawnAt=null;p.prMissed=(p.prMissed||0)+1;save();
+ if(!quiet&&curScreen==='world')toast('🎓 Principal Wise waited for you, but he had to get back to his office. He\'ll visit again in a few days!');}
+function principalCheckLeave(){const p=P();if(!p||!p.prSpawnAt||!W||!W.mobs.some(m=>m.principal))return;if(Date.now()-p.prSpawnAt>PR_WAIT)principalLeave(p);
+ else if(Date.now()-p.prSpawnAt>PR_WAIT-3*60e3&&!p.prWarned){p.prWarned=1;if(curScreen==='world')toast('🎓 Principal Wise is getting ready to leave soon. Go say hi!');}}
 function principalSpawn(){if(!W)return;const p=P();W.mobs=W.mobs.filter(m=>!m.principal);if(!principalDue(p))return;
+ if(p.prSpawnAt&&Date.now()-p.prSpawnAt>PR_WAIT){principalLeave(p,true);setTimeout(()=>{if(curScreen==='world')toast('🎓 You missed Principal Wise! He waited, then went back to his office. He\'ll visit again in a few days.');},900);return;}
+ if(!p.prSpawnAt){p.prSpawnAt=Date.now();p.prWarned=0;save();}
  for(let t=0;t<400;t++){const x=1+Math.floor(Math.random()*(WCOLS-2)),y=1+Math.floor(Math.random()*(WROWS-2));const tile=W.T[y][x];const d=Math.hypot(x-W.hx,y-W.hy);
   if(tile.block||tile.water||tile.plaza||d<5||d>11)continue;W.mobs.push({id:'principal',principal:true,x,y,dx:x,dy:y,e:'👨‍💼',n:'Principal Wise',b:tile.b});break;}
  setTimeout(()=>{if(curScreen==='world'){SFX.level();toast('🔔 Principal Wise is visiting today! Find him on the map. He wants to talk to you!');}},900);}
@@ -2391,7 +2398,7 @@ function principalMapSVG(){return `<svg xmlns="http://www.w3.org/2000/svg" viewB
 let PR_IMG=null;function prImg(){if(!PR_IMG){PR_IMG=new Image();PR_IMG.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(principalMapSVG());}return PR_IMG;}
 let PR_STATE=null;
 function principalMeet(){
- const p=P();if(!W)return;W.path=[];W.mobs=W.mobs.filter(m=>!m.principal);p.wpos={x:W.hx,y:W.hy};
+ const p=P();p.prSpawnAt=null;if(!W)return;W.path=[];W.mobs=W.mobs.filter(m=>!m.principal);p.wpos={x:W.hx,y:W.hy};
  PR_STATE={lines:principalLines(p),i:0};SFX.level();go('office');}
 SCREENS.office=()=>{
  const p=P();if(!PR_STATE)PR_STATE={lines:principalLines(p),i:0};
