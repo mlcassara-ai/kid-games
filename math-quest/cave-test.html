@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Science Cave (test)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;min-height:100dvh;font-family:'Fredoka',system-ui,sans-serif;background:#1b1446 radial-gradient(ellipse at top,#4b3aa8,#1b1446 70%) fixed;color:#241a3d}
+.box{max-width:520px;margin:24px auto;background:#fff;border-radius:22px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+h1{margin:0 0 4px}p{color:#6d6490}
+label{display:block;margin:10px 0 4px;font-weight:600}
+input,select{font-family:inherit;font-size:17px;padding:8px 10px;border-radius:10px;border:2px solid #ddd5ff;width:100%;box-sizing:border-box}
+button{font-family:inherit;font-size:16px;font-weight:600;border:none;border-radius:14px;padding:10px 14px;cursor:pointer;margin:4px 0}
+.go{background:#7c5cff;color:#fff;font-size:20px;width:100%;padding:14px;box-shadow:0 4px 0 #4a31c9}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.tools button{background:#eee9ff}
+.stat{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.stat span{background:#f3f0ff;border-radius:10px;padding:4px 10px;font-weight:600}
+small{color:#6d6490}
+</style>
+</head>
+<body>
+<div class="box">
+ <h1>⛏️ Science Cave — test page</h1>
+ <p>A standalone preview of the new Math Quest area. Progress here is saved only on this device and does not touch anyone's Math Quest save.</p>
+ <label>Explorer name</label><input id="nm" maxlength="16">
+ <label>Grade</label><select id="gr"></select>
+ <div class="stat" id="st"></div>
+ <button class="go" onclick="enter()">Enter the cave ⬇️</button>
+ <div class="tools">
+  <button onclick="boost()">💰 Test boost: +5,000 🪙 +300 🔬</button>
+  <button onclick="nextDay()">🌙 Skip to tomorrow</button>
+  <button onclick="gearAll()">🛠️ Max all gear</button>
+  <button onclick="gatesAll()">🔓 Open all gates</button>
+  <button onclick="if(confirm('Erase this test explorer?'))reset()">🗑️ Reset</button>
+ </div>
+ <small>The test buttons are only for trying things out — they won't exist in the real game.</small>
+</div>
+<script src="cave-data.js?v=1"></script>
+<script src="cave.js?v=1"></script>
+<script>
+const KEY='cavetest.v1';
+let D;try{D=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+D=D||{name:'Explorer',grade:3,coins:0,cave:{},off:0,id:'t'+Math.random().toString(36).slice(2,8)};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}};
+const gr=document.getElementById('gr');for(let g=1;g<=12;g++)gr.innerHTML+=`<option value="${g}">Grade ${g}</option>`;
+gr.value=D.grade;gr.onchange=()=>{D.grade=+gr.value;save();};
+const nm=document.getElementById('nm');nm.value=D.name;nm.oninput=()=>{D.name=nm.value;save();};
+function day(){const d=new Date();d.setDate(d.getDate()+(D.off||0));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function stats(){const s=Cave.summary(D.cave);document.getElementById('st').innerHTML=`<span>🪙 ${D.coins.toLocaleString()}</span><span>📏 ${s.layer}</span><span>💎 ${s.minerals} minerals</span><span>🦴 ${s.fossils} exhibits</span><span>🐾 ${s.critters} critters</span>${s.probeRank?`<span>🚀 rank ${s.probeRank}</span>`:''}<span>📅 ${day()}</span>`;}
+function enter(){save();Cave.open({player:{id:D.id,name:D.name,grade:D.grade,emoji:'🧑‍🚀'},state:D.cave,today:day,
+ coins:()=>D.coins,addCoins:(n)=>{D.coins+=n;save();},spend:(n)=>{if(D.coins<n)return false;D.coins-=n;save();return true;},
+ save,exit:()=>{save();stats();}});}
+function boost(){D.coins+=5000;D.cave.rp=(D.cave.rp||0)+300;save();stats();}
+function nextDay(){D.off=(D.off||0)+1;save();stats();}
+function gearAll(){D.cave.gear={drill:4,suit:4,bat:4,pack:4,lamp:3,uv:1};D.cave.idd=D.cave.idd||{};save();stats();}
+function gatesAll(){D.cave.gates=Object.assign(D.cave.gates||{},{lever:1,mirror:1,sonar:1,raft:1,glow:1,pulley:1,seismo:1});save();stats();}
+function reset(){localStorage.removeItem(KEY);location.reload();}
+stats();
+</script>
+</body>
+</html>
