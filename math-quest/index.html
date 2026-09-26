@@ -453,6 +453,13 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .ceraward span{font-size:22px}.ceraward small{display:block;color:#7a6a3a}
 @keyframes cerIn{from{opacity:0;transform:scale(.4) rotate(-6deg)}to{opacity:1;transform:none}}
 .cernote{text-align:center;font-size:14px;opacity:.9;margin:12px 0 0}
+.fbar.tiered{position:relative;overflow:visible}.fmark{position:absolute;top:-4px;bottom:-4px;width:4px;margin-left:-2px;background:#fff;border-radius:2px;box-shadow:0 0 0 2px rgba(0,0,0,.25)}.fmark.got{background:#ffd43b}
+.ftiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.ftier{background:rgba(255,255,255,.15);border-radius:12px;padding:6px 8px;text-align:center;display:flex;flex-direction:column;gap:1px}.ftier span{font-size:20px;font-weight:800}.ftier small{opacity:.9}.ftier.got{background:#ffd43b;color:#5c3c00}
+.fnote{font-size:12px;opacity:.8;margin-top:6px}
+.item.mystery .ie{position:relative;font-size:38px}.item.mystery .qm{position:absolute;left:50%;top:50%;transform:translate(-50%,-38%);font-size:18px;animation:bob 1.6s ease-in-out infinite}.item.mystery{background:linear-gradient(135deg,#f3f0ff,#ffdeeb)}
+.mythic-ie{text-shadow:0 0 12px #e64980,0 0 24px #7048e8}
+.mythic-reveal{position:relative;height:110px;display:flex;align-items:center;justify-content:center}.mythic-reveal .cloud{position:absolute;font-size:96px;animation:cloudAway 1.4s ease-in forwards}.mythic-reveal .pet{font-size:80px;opacity:0;animation:mythIn .8s 1s cubic-bezier(.2,1.6,.4,1) forwards;text-shadow:0 0 18px #e64980,0 0 36px #7048e8}
+@keyframes cloudAway{60%{transform:scale(1.2);opacity:1}100%{transform:scale(2);opacity:0}}@keyframes mythIn{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}
 .fgoal{background:linear-gradient(135deg,#16a34a,#0e7c3a);border-radius:20px;padding:16px;color:#fff;margin-bottom:16px}.fgoal h3{margin:0 0 4px}
 .fbar{height:24px;background:rgba(0,0,0,.25);border-radius:14px;overflow:hidden;display:flex;margin:10px 0 6px}.fbar i{display:block;height:100%}
 .flegend{display:flex;gap:12px;flex-wrap:wrap;font-size:14px}.flegend span::before{content:'';display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
@@ -1001,7 +1008,7 @@ function challengeD(p,op){const exp=Math.min(9,(p.grade||3)+2);const L=op==='mix
 function coinPer(p,q){const exp=Math.min(9,(p.grade||3)+2);return 3+Math.max(-1,Math.min(2,(q.L||1)-exp));}
 function lvlScale(p,round){const over=Math.max(0,(p.level||1)-10);const sp=(SPELLS.find(s=>s.id===p.spell)||SPELLS[0]).mult;return {hp:(1+Math.min(.5,over*.025))*((round||1)>=3?1+(sp-1)*.6:1),dmg:1+Math.min(.6,over*.03)};}
 const PERKS={coins:'🪙 Extra coins',power:'💥 Stronger spells',shield:'🛡️ Blocks a hit',xp:'✨ Levels up faster',lucky:'🥚 Finds more eggs',heal:'❤️ Heals you on streaks'};
-const PET_TIERS={common:{n:'Common',c:'#6bbf59',odds:60,mult:1},rare:{n:'Rare',c:'#3a8dde',odds:24,mult:1.1},epic:{n:'Epic',c:'#a855f7',odds:12,mult:1.2},legend:{n:'Legendary',c:'#f59e0b',odds:4,mult:1.35}};
+const PET_TIERS={common:{n:'Common',c:'#6bbf59',odds:60,mult:1},rare:{n:'Rare',c:'#3a8dde',odds:24,mult:1.1},epic:{n:'Epic',c:'#a855f7',odds:12,mult:1.2},legend:{n:'Legendary',c:'#f59e0b',odds:4,mult:1.35},mythic:{n:'Mythic',c:'#e64980',odds:0,mult:1.5}};
 const TIER_ORDER=['common','rare','epic','legend'];
 const PETS=[
  {id:'chick',e:'🐣',name:'Peep',perk:'coins',tier:'common'},{id:'fox',e:'🦊',name:'Ember',perk:'power',tier:'common'},
@@ -1023,9 +1030,11 @@ const PETS=[
  {id:'whale',e:'🐳',name:'Bubbles',perk:'xp',tier:'epic'},{id:'eagle',e:'🦅',name:'Skye',perk:'power',tier:'epic'},
  {id:'unicorn',e:'🦄',name:'Sparkle',perk:'xp',tier:'legend'},{id:'dragon',e:'🐉',name:'Blaze',perk:'power',tier:'legend'},
  {id:'skydragon',e:'🐲',name:'Zephyr',perk:'lucky',tier:'legend'},{id:'titan',e:'🦕',name:'Titan',perk:'shield',tier:'legend'},
- {id:'butterfly',e:'🦋',name:'Aurora',perk:'heal',tier:'legend'},{id:'bigwhale',e:'🐋',name:'Atlas',perk:'coins',tier:'legend'}];
+ {id:'butterfly',e:'🦋',name:'Aurora',perk:'heal',tier:'legend'},{id:'bigwhale',e:'🐋',name:'Atlas',perk:'coins',tier:'legend'},
+ {id:'nova',e:'🪼',name:'Nova the Star Jelly',perk:'power',tier:'mythic'}];
 PETS.forEach(x=>{x.rare=x.tier!=='common';});
-const tierTag=x=>`<small class="tiertag" style="background:${PET_TIERS[x.tier].c}">${x.tier==='legend'?'🌟 ':x.tier==='epic'?'💜 ':x.tier==='rare'?'✨ ':''}${PET_TIERS[x.tier].n}</small>`;
+const REG_PETS=PETS.filter(x=>x.tier!=='mythic');const MYTHIC=PETS.filter(x=>x.tier==='mythic');const regHave=p=>(p.pets||[]).filter(id=>REG_PETS.some(x=>x.id===id)).length;
+const tierTag=x=>`<small class="tiertag" style="background:${PET_TIERS[x.tier].c}">${x.tier==='mythic'?'🌌 ':x.tier==='legend'?'🌟 ':x.tier==='epic'?'💜 ':x.tier==='rare'?'✨ ':''}${PET_TIERS[x.tier].n}</small>`;
 const eggPrice=p=>p.pets.length<20?Math.min(900,150+p.pets.length*30):Math.min(2500,900+(p.pets.length-20)*100);
 const ZONES=[
  {id:'forest',name:'Addition Forest',op:'add',sym:'+',cls:'z-forest',art:'🌳',decor:['🌲','🌳','🍄','🌼','🌿'],
@@ -1311,7 +1320,7 @@ SCREENS.map=()=>{
   <div class="zlv">${locked?'':(z.op==='mix'?'Add, subtract, times and divide!':KID_DESC[z.op][lvl(p,z.op)])}</div>
   <div class="zart">${z.art}</div>${z.g5&&!medal(p,z.id)?'<div class="g5tag">5th grade</div>':''}${z.g3&&!medal(p,z.id)?'<div class="g5tag g3tag">📚 From class</div>':''}${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div></div>`;
  if(!$('#modal.show')&&ceremonyDue(p))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>The Sunday Star Ceremony is here!</h2><p>Let's see who earned stars last week…</p><button class="btn gold big" onclick="closeModal();go('leaders','ceremony')">See the stars! ✨</button></div>`);},600);
- else if(!$('#modal.show')&&familyGoal().done&&!((p.goalWon||{})[weekKey()])&&wkStats(p,weekKey()).r>=20)setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))checkGoalPrize(p);},600);
+ else if(!$('#modal.show')&&goalPrizeDue(p))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))checkGoalPrize(p);},600);
  else if(petMilestones(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))offerPet();},600);
  else if(pendingGifts(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map')showGift();},650);
  else if(spinReady(p)&&p.spinShown!==dayKey()&&!$('#modal.show')){p.spinShown=dayKey();saveLocal();setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))openSpin();},700);}
@@ -1957,7 +1966,7 @@ function winBattle(){
  const newBest=!old||secs<old.t;if(newBest)p.pb[key]={t:secs,streak:Math.max(B.best,old?old.streak:0)};else if(B.best>old.streak)old.streak=B.best;
  const bestLine=old?(newBest?`<div class="pbest">⏱ ${fmtClock(secs)} · NEW PERSONAL BEST!</div>`:`<div class="pbest dim">⏱ ${fmtClock(secs)} · your best is ${fmtClock(old.t)}</div>`):'';
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
- let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(p.pets.length<PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
+ let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
  const gangN=(B.foes||[]).length;if(gangN>1)bonus+=25*(gangN-1);
  p.coins+=bonus;B.coins+=bonus;B.xp+=(B.isBoss?60:20)+(gangN>1?15*(gangN-1):0);
  const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1)*(p.pets.length>=20?.5:1);const egg=Math.random()<chance;if(egg)p.eggs++;
@@ -1967,7 +1976,7 @@ function winBattle(){
   B.endModal=()=>`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You beat ${(B.foes||[]).length>1?`<b>the whole gang</b> ${B.foes.map(f=>f.e).join('')}`:`<b>${esc(B.name)}</b>`}!${B.best>=3?` Best streak: 🔥${B.best}`:''}</p>
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>${bestLine}
-  ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${p.pets.length<PETS.length||p.eggs?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
+  ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${regHave(p)<REG_PETS.length||p.eggs?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
   ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${petMilestones(p).length?`<button class="btn gold" style="margin-top:10px" onclick="offerPet()">🎁 Choose your new pet buddy!</button>`:''}${downsNote()}
   ${B.isBoss&&first&&R===1?`<p><b>👑 You freed ${B.z.name}!</b>${B.z.id!=='tower'&&bossesBeaten(p)===2?' The Chaos Tower is now open!':''}</p>`:''}
   ${rhtml}
@@ -2016,9 +2025,10 @@ SCREENS.backpack=()=>{
   <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(pet.name)}'s home (feed, play &amp; pet shop)</button>`:''}
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs})</button>`:''}
-   ${p.pets.length<PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
-   <div class="muted" style="margin-bottom:6px">Pets found: <b>${p.pets.length} / ${PETS.length}</b></div>
-   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}</div>
+   ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
+   <div class="muted" style="margin-bottom:6px">Pets found: <b>${regHave(p)} / ${REG_PETS.length}</b></div>
+   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}
+   <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item mystery"><div class="ie"><span class="cloud">☁️</span><span class="qm">❓</span></div><div>???</div><small>A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal it.</small></div>`).join('')}</div></div>
   <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
   <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
   <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
@@ -2056,7 +2066,7 @@ function rollEggPet(p,legend){
 }
 function hatchEgg(legend){
  const p=P();if(legend){if(!(p.legendEggs>0))return;p.legendEggs--;}else{if(p.eggs<1)return;p.eggs--;}
- if(p.pets.length>=PETS.length){p.coins+=100;save();go('backpack');toast('You have every pet! The egg turned into 🪙 100.');return;}
+ if(regHave(p)>=REG_PETS.length){p.coins+=100;save();go('backpack');toast('You have every pet! The egg turned into 🪙 100.');return;}
  const pet=rollEggPet(p,legend);let prize='';
  if(pet){p.pets.push(pet.id);if(!p.pet)p.pet=pet.id;petData(p,pet.id);}
  else{const a=pick(PET_FOODS),b=pick(PET_FOODS);p.pantry[a.id]=(p.pantry[a.id]||0)+1;p.pantry[b.id]=(p.pantry[b.id]||0)+1;p.coins+=40;prize=`${a.e}${b.e}`;}
@@ -2070,7 +2080,7 @@ function hatchEgg(legend){
    $('#hR').innerHTML=`<p>No new pet this time, but it had treats inside: <b>${prize}</b> and 🪙 40!</p><p class="muted">The rarest pets are still out there… keep trying! 🌟</p><div class="row"><button class="btn green" onclick="closeModal();go('backpack')">OK</button></div>`;return;}
   e.textContent=pet.e;e.classList.add('hatched');if(big){e.classList.add('glowegg');e.style.setProperty('--gc',PET_TIERS[pet.tier].c);}SFX.win();
   $('#hT').innerHTML=`${pet.tier==='legend'?'🌟 LEGENDARY! 🌟<br>':pet.tier==='epic'?'💜 EPIC! 💜<br>':pet.tier==='rare'?'✨ Rare! ✨<br>':''}You got ${esc(pet.name)}!`;
-  $('#hR').innerHTML=`${tierTag(pet)}<p>Pet power: <b>${PERKS[pet.perk]}</b></p><p class="muted">Pets found: ${p.pets.length} / ${PETS.length}</p><div class="row"><button class="btn ghost dark" onclick="closeModal();go('backpack')">OK</button><button class="btn green" onclick="P().pet='${pet.id}';save();closeModal();go('backpack')">Take ${esc(pet.name)} along!</button></div>`;
+  $('#hR').innerHTML=`${tierTag(pet)}<p>Pet power: <b>${PERKS[pet.perk]}</b></p><p class="muted">Pets found: ${regHave(p)} / ${REG_PETS.length}</p><div class="row"><button class="btn ghost dark" onclick="closeModal();go('backpack')">OK</button><button class="btn green" onclick="P().pet='${pet.id}';save();closeModal();go('backpack')">Take ${esc(pet.name)} along!</button></div>`;
   if(big)for(let i=0;i<3;i++)setTimeout(SFX.coin,300+i*180);
  },big?2300:1700);
 }
@@ -2578,12 +2588,12 @@ function fnt(p){p.fountain=p.fountain||{t:0,need:rnd(1,15),seen:[]};if(p.fountai
 const FOUNT_HINTS=['The water sparkles…','You hear a tiny giggle from the water…','The fountain gurgles happily.','Bubbles rise to the top…','Did the fountain just… snicker?','Plip! The coin sinks and glows.','Something is chuckling down there…','The water ripples in a funny way.'];
 function fountainOpen(){const p=P();const f=fnt(p);
  modal(`<div class="mcard fountain"><div class="fnt-pool" id="fntPool"><span class="fnt-e">⛲</span></div><h2>The Wishing Fountain</h2><p id="fntMsg" class="fnt-msg">Toss in a coin and make a wish…</p>
- <div class="row"><button class="btn gold" onclick="fountainToss(1)">Toss 🪙 1</button><button class="btn gold" onclick="fountainToss(2)">Toss 🪙 2</button></div>
+ <div class="row"><button class="btn gold big" id="fntBtn" onclick="fountainToss()">Toss 🪙 ${f.t+1}</button></div><p class="muted" style="margin:0">Each toss costs 1 more coin than the last. A joke resets the price to 1.</p>
  <p class="muted" id="fntCoins">You have 🪙 ${p.coins}${f.seen.length?` · 🤣 ${f.seen.length} of ${DAD_JOKES.length} jokes found`:''}</p><button class="btn ghost dark small" onclick="closeModal()">Walk away</button></div>`);}
 let fntBusy=false;
-function fountainToss(n){const p=P();const f=fnt(p);if(fntBusy||!$('#fntMsg'))return;
+function fountainToss(){const p=P();const f=fnt(p);if(fntBusy||!$('#fntMsg'))return;const n=f.t+1;
  if(p.coins<n){$('#fntMsg').textContent=p.coins?`You only have ${p.coins} coin${p.coins>1?'s':''}!`:'The fountain gurgles. You need a coin!';return;}
- p.coins-=n;f.t+=n;save();
+ p.coins-=n;f.t++;save();const fb=$('#fntBtn');if(fb)fb.textContent=`Toss 🪙 ${f.t+1}`;
  for(let i=0;i<Math.min(n,5);i++){tone(900+Math.random()*300,.12,'sine',.06,i*.09);const pool=$('#fntPool');if(pool){const c=document.createElement('span');c.className='fnt-coin';c.textContent='🪙';c.style.left=(30+Math.random()*40)+'%';c.style.animationDelay=(i*.09)+'s';pool.appendChild(c);setTimeout(()=>c.remove(),1200);const r=document.createElement('i');r.className='fnt-ripple';r.style.left=(25+Math.random()*50)+'%';r.style.animationDelay=(.4+i*.09)+'s';pool.appendChild(r);setTimeout(()=>r.remove(),1800);}}
  const ce=$('#fntCoins');if(ce)ce.textContent=`You have 🪙 ${p.coins}${f.seen.length?` · 🤣 ${f.seen.length} of ${DAD_JOKES.length} jokes found`:''}`;
  if(f.t>=f.need){fntBusy=true;$('#fntMsg').textContent='💦 The fountain is bubbling like crazy…';setTimeout(()=>{fntBusy=false;fountainJoke();},900);return;}
@@ -2886,7 +2896,7 @@ function wildWin(){
  const p=P();SFX.win();const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const bonus=10+rnd(0,10);p.coins+=bonus;B.coins+=bonus;B.xp+=15;const egg=Math.random()<(petPerk(p)==='lucky'?.08:.04);if(egg)p.eggs++;
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
- let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(p.pets.length<PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
+ let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
  p.wild=(p.wild||0)+1;p.battles++;const up=endBattleBook();save();
  setTimeout(()=>{modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>You beat the wild ${esc(B.name)}!</h2>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>
@@ -2944,18 +2954,32 @@ function ceremony(wk){
 function allWeeks(){const s=new Set();state.players.forEach(p=>Object.keys(p.wkHist||{}).forEach(k=>s.add(k)));const cur=weekKey();return [...s].filter(k=>k<cur).sort();}
 function trophyOf(p){let n=0;const fav={};allWeeks().forEach(wk=>{const c=ceremony(wk);const r=c&&c.rows.find(x=>x.p.id===p.id);if(r)r.stars.forEach(s=>{n++;fav[s.c]=(fav[s.c]||0)+1;});});const f=Object.entries(fav).sort((a,b)=>b[1]-a[1])[0];return {n,fav:f?{c:catOf(f[0]),k:f[1]}:null};}
 function activePlayers(){const cut=new Date();cut.setDate(cut.getDate()-14);const ck=dayKey(cut);return state.players.filter(p=>p.setup&&Object.keys(p.daily||{}).some(k=>k>=ck&&((p.daily[k].r||0)+(p.daily[k].w||0))>0));}
-function familyGoal(){const wk=weekKey();const n=Math.max(2,activePlayers().length);const target=Math.max(400,Math.round(n*200/50)*50);
- const parts=state.players.filter(p=>p.setup).map(p=>({p,r:wkStats(p,wk).r})).filter(x=>x.r>0).sort((a,b)=>b.r-a.r);const total=parts.reduce((s,x)=>s+x.r,0);return {wk,target,total,parts,done:total>=target};}
-function checkGoalPrize(p){const g=familyGoal();if(!g.done)return false;p.goalWon=p.goalWon||{};if(p.goalWon[g.wk])return false;if(wkStats(p,g.wk).r<20)return false;
- p.goalWon[g.wk]=1;p.legendEggs=(p.legendEggs||0)+1;save();SFX.win();
- modal(`<div class="mcard"><div class="big-emoji">🥚🌟</div><h2>Family Goal reached!</h2><p>Your family got <b>${g.total}</b> right answers together this week!</p><div class="rewards"><div>🌟 +1 Legend Egg</div></div><p class="muted">Everyone who helped gets one. Teamwork!</p><button class="btn gold big" onclick="closeModal();go('backpack')">Hatch it! 🥚</button></div>`);return true;}
+const GOAL_PER=[250,500,750];const GOAL_NAMES=['🥉 Bronze','🥈 Silver','🥇 Gold'];
+function famR(p,wk){let r=0;weekDays(wk).forEach(k=>{const d=p.daily&&p.daily[k];if(d)r+=Math.min(150,d.r||0);});return r;}
+function familyGoal(){const wk=weekKey();const n=Math.max(2,activePlayers().length);const tiers=GOAL_PER.map(x=>Math.round(n*x/50)*50);
+ const parts=state.players.filter(p=>p.setup).map(p=>({p,r:famR(p,wk)})).filter(x=>x.r>0).sort((a,b)=>b.r-a.r);const total=parts.reduce((s,x)=>s+x.r,0);
+ const tier=tiers.filter(t=>total>=t).length;return {wk,n,tiers,tier,target:tiers[0],next:tier<3?tiers[tier]:null,total,parts,done:tier>=1};}
+function goalClaimed(p,wk){const v=(p.goalWon||{})[wk];return v===true?1:(+v||0);}
+function goalPrizeDue(p){const g=familyGoal();return g.tier>goalClaimed(p,g.wk)&&wkStats(p,g.wk).r>=20;}
+function checkGoalPrize(p){const g=familyGoal();if(!g.done)return false;p.goalWon=p.goalWon||{};const had=goalClaimed(p,g.wk);if(had>=g.tier)return false;if(wkStats(p,g.wk).r<20)return false;
+ const lines=[];let myth=null;
+ for(let t=had+1;t<=g.tier;t++){
+  if(t===1){p.legendEggs=(p.legendEggs||0)+1;lines.push('🥉 Bronze: 🌟 +1 Legend Egg');}
+  else if(t===2){p.legendEggs=(p.legendEggs||0)+1;p.coins+=500;lines.push('🥈 Silver: 🌟 +1 Legend Egg and 🪙 500 coins');}
+  else{const m=MYTHIC.find(x=>!p.pets.includes(x.id));if(m){p.pets.push(m.id);petData(p,m.id);myth=m;lines.push(`🥇 Gold: the mystery is… <b>${m.e} ${esc(m.name)}</b>!`);}else{p.legendEggs=(p.legendEggs||0)+2;p.coins+=1000;lines.push('🥇 Gold: 🌟 +2 Legend Eggs and 🪙 1000 coins');}}}
+ p.goalWon[g.wk]=g.tier;save();SFX.win();if(myth)for(let i=0;i<5;i++)setTimeout(SFX.coin,300+i*160);
+ modal(`<div class="mcard">${myth?`<div class="mythic-reveal"><span class="cloud">☁️</span><span class="pet">${myth.e}</span></div><h2>🌌 MYTHIC! 🌌</h2>`:`<div class="big-emoji">${g.tier>=2?'🥈':'🥚🌟'}</div><h2>Family Goal reached!</h2>`}
+  <p>Your family got <b>${g.total}</b> right answers together this week!</p><div class="rewards">${lines.map(l=>`<div>${l}</div>`).join('')}</div>
+  ${myth?`<p>${tierTag(myth)} Pet power: <b>${PERKS[myth.perk]}</b>. You can't get this pet any other way!</p>`:''}
+  <p class="muted">${g.next?`Next: <b>${GOAL_NAMES[g.tier]}</b> at ${g.next} family answers${g.tier===2?' unlocks a ☁️ mystery prize':''}!`:'Everyone who helped gets a prize. Teamwork!'}</p>
+  <div class="row">${myth?`<button class="btn gold big" onclick="P().pet='${myth.id}';save();closeModal();go('backpack')">Take ${esc(myth.name)} along!</button>`:`<button class="btn gold big" onclick="closeModal();go('backpack')">Hatch it! 🥚</button>`}</div></div>`);return true;}
 function ceremonyDue(p){const wk=prevWeekKey();if((p.cerSeen||'')>=wk)return false;const c=ceremony(wk);return !!(c&&c.rows.find(r=>r.p.id===p.id));}
 function weekRight(p){let n=0;for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const k=dayKey(d);if(p.daily&&p.daily[k])n+=p.daily[k].r||0;}return n;}
 function starCount(p){const sum=o=>Object.values(o||{}).reduce((a,arr)=>a+(arr||[]).reduce((x,y)=>x+(y||0),0),0);return sum(p.progress)+Object.values(p.rounds||{}).reduce((a,zr)=>a+sum(zr),0);}
 const BOARDS=[
  {id:'week',e:'✅',n:'Right answers this week',v:weekRight},
  {id:'stars',e:'⭐',n:'Stars earned',v:starCount},
- {id:'pets',e:'🐾',n:'Pets found',v:p=>(p.pets||[]).length,of:()=>PETS.length},
+ {id:'pets',e:'🐾',n:'Pets found',v:p=>regHave(p),of:()=>REG_PETS.length},
  {id:'level',e:'⬆️',n:'Hero level',v:p=>p.level},
  {id:'streak',e:'🔥',n:'Best streak',v:p=>p.bestStreak||0},
  {id:'medals',e:'🏅',n:'Round medals',v:totalMedals,of:()=>(ZONES.length+1)*5},
@@ -2976,9 +3000,13 @@ SCREENS.leaders=(tab)=>{
    if(me.cerSeen!==wk){me.cerSeen=wk;save();let t=0;for(let k=0;k<14;k++)tone(140+(k%2)*20,.08,'triangle',.06,k*.07);setTimeout(()=>SFX.win(),1100);}}
  }else if(tab==='week'){
   const wk=weekKey(),pw=prevWeekKey();const g=familyGoal();const cols=['#ffd43b','#74c0fc','#ff8787','#b197fc','#8ce99a','#ffa94d'];
-  const goal=`<div class="fgoal"><h3>🥚 Family Goal: ${g.target} right answers this week</h3><div>Hit it and <b>everyone who helped</b> gets a 🌟 Legend Egg! <b>${Math.min(g.total,g.target)} / ${g.target}</b>${g.done?' · 🎉 GOAL REACHED!':''}</div>
-   <div class="fbar">${g.parts.map((x,k)=>`<i style="width:${Math.min(100,x.r/g.target*100)}%;background:${cols[k%cols.length]}"></i>`).join('')}</div>
-   <div class="flegend">${g.parts.map((x,k)=>`<span style="--c:${cols[k%cols.length]}">${esc(x.p.name)} ${x.r}</span>`).join('')||'<span style="--c:#fff">Nobody yet this week. Be the first!</span>'}</div></div>`;
+  const gmax=g.tiers[2],pct=v=>Math.min(100,v/gmax*100);const prize=['🌟 Legend Egg','🌟 Legend Egg + 🪙 500','☁️❓ Mystery prize'];
+  const goal=`<div class="fgoal"><h3>🤝 Family Goals this week${g.tier?` · ${GOAL_NAMES[g.tier-1]} reached!`:''}</h3>
+   <div>${g.next?`Next goal: <b>${GOAL_NAMES[g.tier]}</b> at <b>${g.next}</b> right answers. Everyone who helped (20+ right) gets the prize!`:'🎉 ALL THREE GOALS REACHED! What a family!'} <b>${g.total} so far</b></div>
+   <div class="fbar tiered">${g.parts.map((x,k)=>`<i style="width:${pct(x.r)}%;background:${cols[k%cols.length]}"></i>`).join('')}${g.tiers.map((t,k)=>`<span class="fmark ${g.tier>k?'got':''}" style="left:${pct(t)}%"></span>`).join('')}</div>
+   <div class="ftiers">${g.tiers.map((t,k)=>`<div class="ftier ${g.tier>k?'got':''}"><b>${GOAL_NAMES[k]}</b><span>${t}</span><small>${prize[k]}</small></div>`).join('')}</div>
+   <div class="flegend">${g.parts.map((x,k)=>`<span style="--c:${cols[k%cols.length]}">${esc(x.p.name)} ${x.r}</span>`).join('')||'<span style="--c:#fff">Nobody yet this week. Be the first!</span>'}</div>
+   <div class="fnote">Goals grow with the family: ${g.n} players this week (anyone who played in the last 2 weeks). Up to 150 right answers per player per day count.</div></div>`;
   const st=ps.map(p=>({p,s:wkStats(p,wk),l:wkStats(p,pw)}));const nd=new Date().getDay()+1;const soFar=(p)=>{let r=0;weekDays(pw).slice(0,nd).forEach(k=>{const d=p.daily&&p.daily[k];if(d)r+=d.r||0;});return r;};
   const board=(e,n,how,rows,fmt,note)=>{let rank=0,last=null,shown=0;return `<div class="panel lbcard"><h3>${e} ${n}</h3><div class="lbhow">${how}</div>${rows.map((r,i)=>{if(r.v!==last){rank=shown;last=r.v;}shown++;const m=r.v>0&&rank<3?['🥇','🥈','🥉'][rank]:'';return `<div class="lbrow ${r.p.id===me.id?'me':''}"><span class="lbm">${m}</span>${face(r.p)}<span class="lbn">${esc(r.p.name)}${r.tag?` <span class="lbtag">${r.tag}</span>`:''}</span><b>${fmt(r)}</b></div>`;}).join('')}${note?`<div class="lbnote">${note}</div>`:''}</div>`;};
   const champ=st.map(x=>{const best=Math.max(0,...Object.entries(x.p.wkHist||{}).filter(([k])=>k<wk).map(([,w])=>w.pts||0));return {p:x.p,v:x.s.pts,d:x.s.pts-(x.l.pts||0),tag:x.s.pts>0&&x.s.pts>best&&best>0?'new best!':''};}).sort((a,b)=>b.v-a.v);
