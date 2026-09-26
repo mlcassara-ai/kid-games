@@ -1747,6 +1747,7 @@ function addCharge(){
 }
 function nextQ(){
  if(!B||B.over||curScreen!=='battle')return;
+ if(bufferHit()){bufferReset();return;}
  if(B.mode!=='math'){questNextQ();return;}
  if(B.pwCast)B.pwCast=false;else if(B.right+B.wrong>0&&maybePower())return;
  if(!B.kindStart&&B.right+B.wrong===0){B.kindStart=true;if(B.tiredN>=2&&Math.random()<.5&&kindBless('again'))return;}
@@ -1837,7 +1838,7 @@ function answer(){
   const m=p.missed[q.text]||{n:0,a:q.answer,op:q.op};m.n++;m.last=dayKey();m.fixed=0;m.q=q.tpl?Object.assign({},q,{again:undefined,practice:undefined,hinted:undefined}):{op:q.op,L:q.L,a:q.a,b:q.b,c:q.c,answer:q.answer,text:q.text};p.missed[q.text]=m;
   const keys=Object.keys(p.missed);if(keys.length>250){keys.sort((x,y)=>p.missed[x].n-p.missed[y].n).slice(0,50).forEach(k=>delete p.missed[k]);}
   if(!q.again)B.review.push({q:Object.assign({},q),wait:3});
-  save();SFX.wrong();
+  bufferMiss(p);save();SFX.wrong();
   const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
   const said=B.input;monsterAttack(()=>{if(B.hhp>0&&(kindMath(q)||(B.hhp<B.hmax*.3&&B.wrong>=4&&Math.random()<.25&&kindBless('low'))))return;showFeedback(q,said,slip);});
  }
@@ -3100,6 +3101,20 @@ function mergeGifts(remote){const a=state.gifts||{},b=(remote&&remote.gifts)||{}
 
 /* ================= rounds: 5 medal rounds per world ================= */
 const ROUNDS=[null,{n:'Bronze',m:'🥉'},{n:'Silver',m:'🥈'},{n:'Gold',m:'🥇'},{n:'Diamond',m:'💎'},{n:'Legend',m:'👑'}];
+const BUF_LIMIT={4:3,5:1};
+function bufferOn(p,zid,r){return !!BUF_LIMIT[r]&&medal(p,zid)<r;}
+function bufferUsed(p,zid,r){return ((p.rbuf||{})[zid]||{})[r]||0;}
+function bufferMiss(p){if(!B||B.wild||!B.z||!B.z.id||!['math','spell'].includes(B.mode))return;const zid=B.z.id,r=B.round||1;if(!bufferOn(p,zid,r))return;
+ p.rbuf=p.rbuf||{};const z=p.rbuf[zid]=p.rbuf[zid]||{};z[r]=(z[r]||0)+1;const lim=BUF_LIMIT[r];
+ if(z[r]>=lim){B.bufferOut=true;}else setTimeout(()=>toast(`${ROUNDS[r].m} ${ROUNDS[r].n} rule: ${z[r]} of ${lim} misses used. ${lim-z[r]===1?'One more and you go back to the start!':''}`),700);}
+function bufferHit(){if(!B||B.wild||!B.z||!B.z.id||!['math','spell'].includes(B.mode))return false;const r=B.round||1;return !!B.bufferOut||(bufferOn(P(),B.z.id,r)&&bufferUsed(P(),B.z.id,r)>=BUF_LIMIT[r]);}
+function bufferReset(){const p=P();const zid=B.z.id,r=B.round;B.over=true;
+ const pr=rstore(p,zid,r);for(let k=0;k<6;k++)pr[k]=0;if(p.rbuf&&p.rbuf[zid])p.rbuf[zid][r]=0;if(p.tired)Object.keys(p.tired).forEach(k=>{if(k.startsWith(zid+'-'+r+'-'))delete p.tired[k];});
+ endBattleBook();save();SFX.wrong();const lim=BUF_LIMIT[r];
+ modal(`<div class="mcard"><div class="big-emoji">${ROUNDS[r].m}</div><h2>Back to the start of ${ROUNDS[r].n}!</h2>
+ <p>${lim===1?`In the <b>${ROUNDS[r].n}</b> round, one miss sends you back to the start.`:`That was miss number ${lim} in the <b>${ROUNDS[r].n}</b> round, so you go back to the start.`} Legends are made by trying again! 💪</p>
+ <p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned.</p>
+ <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${zid}')">Map</button><button class="btn green" onclick="closeModal();startBattle('${zid}',0)">Start ${ROUNDS[r].n} again ${ROUNDS[r].m}</button></div></div>`);}
 const RMUL={1:{hp:1,dmg:1},2:{hp:1.2,dmg:1.15},3:{hp:1.35,dmg:1.25},4:{hp:1.45,dmg:1.3},5:{hp:1.6,dmg:1.4}};
 function medianThink(p){const a=(p.thinkT||[]);if(a.length<5)return 0;const b=[...a].sort((x,y)=>x-y);return b[Math.floor(b.length/2)];}
 const tiredKey=(zid,r,i)=>zid+'-'+r+'-'+i;
@@ -3110,14 +3125,14 @@ function curRound(p,zid){const maxOpen=Math.min(5,medal(p,zid)+1);const sel=(p.r
 function setRound(zid,r){const p=P();p.roundSel=p.roundSel||{};p.roundSel[zid]=r;save();SFX.tap();go('zone',zid);}
 function totalMedals(p){return [...ZONES.map(z=>z.id),'spell'].reduce((a,id)=>a+medal(p,id),0);}
 function roundNote(z,r){
- if(z.op==='spell')return ['','Hear the word. The boxes show how many letters it has.','No letter boxes! You have to know how long the word is.','No letter boxes, and only <b>2 replays</b> of each word.','Beat the clock! Spell fast for a ⏱️ speed bonus. Only 2 replays.','The boss uses <b>every</b> word and there are no pet hints. Win for a 🌟 Legend egg!'][r];
- return ['','The first adventure!','Tougher monsters, and gangs show up more.','Even tougher! Bigger gangs, and the boss brings a helper.','No free miss! Monsters ⚡ charge up an attack if you take too long (bigger problems give you more time). The boss brings two helpers.','The hardest round! Monsters charge up even faster. Win it for a 🌟 Legend egg!'][r];
+ if(z.op==='spell')return ['','Hear the word. The boxes show how many letters it has.','No letter boxes! You have to know how long the word is.','No letter boxes, and only <b>2 replays</b> of each word.','Beat the clock! Spell fast for a ⏱️ speed bonus. Only 2 replays. <b>3 misses</b> anywhere in Diamond and you start Diamond over!','The boss uses 30 words and there are no pet hints. <b>One miss</b> and you start Legend over! Win for a 🌟 Legend egg!'][r];
+ return ['','The first adventure!','Tougher monsters, and gangs show up more.','Even tougher! Bigger gangs, and the boss brings a helper.','No free miss! Monsters ⚡ charge up an attack if you take too long (bigger problems give you more time). The boss brings two helpers. <b>3 misses</b> anywhere in Diamond and you start Diamond over!','The hardest round! Monsters charge up even faster. <b>One miss</b> and you start Legend over! Win it for a 🌟 Legend egg!'][r];
 }
 function roundTabs(p,z){
  const m=medal(p,z.id),cur=curRound(p,z.id);
  return `<div class="rtabs">${[1,2,3,4,5].map(r=>{const open=r<=Math.min(5,m+1),done=r<=m;
   return `<button class="rtab ${r===cur?'on':''} ${open?'':'locked'} ${done?'done':''}" onclick="${open?`setRound('${z.id}',${r})`:`toast('Beat the ${ROUNDS[r-1].n} boss to unlock ${ROUNDS[r].n}!')`}"><span class="rm">${open?ROUNDS[r].m:'🔒'}</span><small>${ROUNDS[r].n}${done?' ✓':''}</small></button>`;}).join('')}</div>
- <div class="rnote">${ROUNDS[cur].m} <b>${ROUNDS[cur].n} round:</b> ${roundNote(z,cur)}</div>`;
+ <div class="rnote">${ROUNDS[cur].m} <b>${ROUNDS[cur].n} round:</b> ${roundNote(z,cur)}${bufferOn(p,z.id,cur)&&BUF_LIMIT[cur]>1?` <b>Misses used: ${bufferUsed(p,z.id,cur)} of ${BUF_LIMIT[cur]}</b>`:''}</div>`;
 }
 function roundPrize(p,r,z,B){
  const coin=n=>{p.coins+=n;if(B)B.coins+=n;};let lines=[];
@@ -3277,6 +3292,7 @@ function startQuest(kind,id){
 
 /* question flow */
 function questNextQ(){
+ if(B&&!B.over&&bufferHit()){bufferReset();return;}
  if(!B.queue.length){B.over=true;setTimeout(winBattle,300);return;}
  const it=B.queue.shift();B.q=it;B.input='';if(it.type==='word')it.t0=performance.now();B.t0=performance.now();B.busy=false;
  $('#qlabel').textContent=it.tries?'⭐ Try this one again!':(B.mode==='spell'?`Word ${B.done+1} of ${B.total}`:`Question ${B.done+1} of ${B.total}`);
@@ -3343,7 +3359,7 @@ function questAnswer(){
  }else{
   B.wrong++;B.streak=0;q.tries++;q.said=said;if(q.rp)q.rp=Math.max(0,q.rp-1);
   B.queue.splice(Math.min(2,B.queue.length),0,q);
-  save();SFX.wrong();const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
+  bufferMiss(P());save();SFX.wrong();const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
   monsterAttack(()=>{if(kindSpell(q,said))return;showFeedback(q,said,false);});
  }
  updateBars();
