@@ -293,6 +293,13 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .cert-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:14px}.cert-seal{font-size:34px;background:#e03131;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #ffd43b}
 .sig{font-family:'Brush Script MT','Segoe Script',cursive;font-size:20px;color:#1f2d5c}
 .awardpanel .awards{display:flex;flex-direction:column;gap:6px}.award{display:flex;justify-content:space-between;background:#fff8e1;border:2px solid #e9c46a;border-radius:10px;padding:6px 10px}.award small{color:#8a7b5a}
+.mcard.fountain{text-align:center}.fnt-pool{position:relative;height:110px;margin:0 auto 6px;max-width:260px;border-radius:50%/40%;background:radial-gradient(ellipse at 50% 60%,#9be7ff,#3fa6d9 70%,#2f7fb5);overflow:hidden;box-shadow:inset 0 -8px 0 rgba(0,0,0,.15)}
+.fnt-e{font-size:64px;line-height:110px}.fnt-e.big{font-size:74px}.fnt-coin{position:absolute;top:-30px;font-size:22px;animation:fntDrop 1s ease-in forwards}
+@keyframes fntDrop{0%{transform:translateY(0) rotate(0)}70%{transform:translateY(95px) rotate(540deg);opacity:1}100%{transform:translateY(100px) rotate(600deg);opacity:0}}
+.fnt-ripple{position:absolute;top:70px;width:20px;height:8px;border:2px solid #fff;border-radius:50%;opacity:0;animation:fntRip 1.2s ease-out forwards}@keyframes fntRip{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(3.5)}}
+.fnt-msg{font-style:italic;min-height:1.4em}.fnt-pool.splash{animation:fntSplash .6s ease-out}@keyframes fntSplash{0%{transform:scale(.8)}60%{transform:scale(1.1)}100%{transform:none}}
+.fnt-face{position:absolute;right:22%;top:14px;font-size:30px;animation:bob 1s ease-in-out infinite}
+.fnt-joke{font-size:22px;font-weight:700;margin:10px 0}.fnt-punch{font-size:24px;font-weight:900;color:#e8590c;margin:8px 0 12px;opacity:0;transform:scale(.3);transition:all .45s cubic-bezier(.2,1.6,.4,1);min-height:1.3em}.fnt-punch.show{opacity:1;transform:none}
 .kindpanel{background:linear-gradient(135deg,#f3f0ff,#fff9db)}.kindstars{font-size:24px;letter-spacing:4px}
 .spellbar.frozen button:not(#sp-pet),.spellbar.petfrozen #sp-pet{filter:grayscale(.6) brightness(1.1);background:linear-gradient(180deg,#e6f7ff,#b9e6ff)!important;opacity:.8;position:relative}
 .spellbar.frozen button:not(#sp-pet)::after,.spellbar.petfrozen #sp-pet::after{content:'❄️';position:absolute;top:-8px;right:-6px;font-size:16px}
@@ -2408,6 +2415,135 @@ function principalAward(){
  modal(`<div class="mcard cert"><div class="cert-in"><div class="cert-top">🏅 MATH QUEST ACADEMY 🏅</div><div class="cert-title">${esc(title)}</div><div class="cert-small">is proudly presented to</div><div class="cert-name">${esc(p.name)}</div><div class="cert-small">for trying so hard and never giving up</div><div class="cert-foot"><div><i>${esc(dayKey())}</i><br><small>date</small></div><div class="cert-seal">⭐</div><div><i class="sig">Principal Wise</i><br><small>principal</small></div></div></div>
  <div class="rewards"><div>🪙 +${coins}</div><div>📜 Added to your backpack</div></div><button class="btn gold big" onclick="closeModal();PR_STATE=null;go('world')">Thank you, Principal Wise! 👋</button></div>`);
  sayPrincipal(`${title}, presented to ${p.name}. Congratulations!`);}
+const DAD_JOKES=[
+["Why did the math book look so sad?","It had too many problems."],
+["What do you call a fake noodle?","An impasta!"],
+["Why don't eggs tell jokes?","They'd crack each other up."],
+["What do you call a bear with no teeth?","A gummy bear!"],
+["Why did the scarecrow win an award?","He was outstanding in his field."],
+["What did the ocean say to the beach?","Nothing, it just waved."],
+["Why can't a bicycle stand up by itself?","It's two tired."],
+["What do you call a dinosaur that is sleeping?","A dino-snore!"],
+["Why did the cookie go to the doctor?","It was feeling crummy."],
+["What do you call cheese that isn't yours?","Nacho cheese!"],
+["Why are skeletons so calm?","Nothing gets under their skin."],
+["What did one wall say to the other wall?","I'll meet you at the corner."],
+["Why did the golfer bring two pairs of pants?","In case he got a hole in one."],
+["How does a penguin build its house?","Igloos it together."],
+["What do you call a sleeping bull?","A bulldozer!"],
+["Why did the banana go to the doctor?","It wasn't peeling well."],
+["What kind of tree fits in your hand?","A palm tree!"],
+["Why was six afraid of seven?","Because seven ate nine!"],
+["What do you call a pony with a cough?","A little horse."],
+["Why do cows wear bells?","Because their horns don't work."],
+["What did the zero say to the eight?","Nice belt!"],
+["Why did the student eat his homework?","The teacher said it was a piece of cake."],
+["What do you call a fish with no eyes?","A fsh!"],
+["Why don't skeletons fight each other?","They don't have the guts."],
+["How do you make a tissue dance?","Put a little boogie in it."],
+["What do you call a pig that does karate?","A pork chop!"],
+["Why did the tomato turn red?","It saw the salad dressing."],
+["What has ears but can't hear?","A cornfield!"],
+["Why did the picture go to jail?","It was framed."],
+["What do you call a lazy kangaroo?","A pouch potato!"],
+["Why was the broom late?","It over-swept."],
+["What do you call a snowman with a six-pack?","An abdominal snowman."],
+["Why did the computer go to the doctor?","It had a virus."],
+["What do you call a sad strawberry?","A blueberry!"],
+["Why do bees have sticky hair?","They use honeycombs."],
+["What do you call a boomerang that won't come back?","A stick."],
+["How do you organize a space party?","You planet!"],
+["Why did the kid bring a ladder to school?","He wanted to go to high school."],
+["What do elves learn in school?","The elf-abet!"],
+["Why did the owl invite his friends over?","He didn't want to be owl by himself."],
+["What do you call a dog magician?","A labracadabrador!"],
+["Why was the math teacher late?","She took the rhombus."],
+["What's a cat's favorite color?","Purr-ple!"],
+["Why can't you trust stairs?","They're always up to something."],
+["What did the left eye say to the right eye?","Between you and me, something smells."],
+["What do you call a sleeping pizza?","A pizZZZa!"],
+["Why did the frog take the bus?","His car got toad."],
+["What do you call an alligator in a vest?","An investigator!"],
+["Why don't oysters share?","They're shellfish."],
+["What do you call a belt made of watches?","A waist of time."],
+["Why did the bicycle fall asleep?","It was wheely tired."],
+["What do you call a cow with no legs?","Ground beef!"],
+["Why did the orange stop halfway up the hill?","It ran out of juice."],
+["What's brown and sticky?","A stick!"],
+["Why was the baby strawberry crying?","Its parents were in a jam."],
+["What did the pencil say to the paper?","I dot my i's on you."],
+["Why don't mountains get cold?","They wear snow caps."],
+["What do you call a rabbit with fleas?","Bugs Bunny!"],
+["Why did the melon jump into the lake?","It wanted to be a watermelon."],
+["How do you catch a squirrel?","Climb a tree and act like a nut."],
+["What do you call a shoe made of a banana?","A slipper!"],
+["Why did the chicken join a band?","It had the drumsticks."],
+["What kind of music do planets like?","Neptunes!"],
+["Why did the clock get sent to the principal?","It was tocking too much."],
+["What do you call a funny mountain?","Hill-arious!"],
+["Why did the teddy bear skip dessert?","It was already stuffed."],
+["What does a cloud wear under its raincoat?","Thunderwear!"],
+["Why was the calendar so popular?","It had a lot of dates."],
+["What do you call a deer with no eyes?","No idea!"],
+["Why did the lion spit out the clown?","He tasted funny."],
+["What do you get when you cross a snowman and a vampire?","Frostbite!"],
+["Why are fish so smart?","They live in schools."],
+["What did the big flower say to the little flower?","Hey there, bud!"],
+["Why did the cow go to outer space?","To see the moooon."],
+["What do you call a train carrying bubble gum?","A chew-chew train!"],
+["Why was the letter A so cold?","It was surrounded by AC."],
+["What do you call a potato wearing glasses?","A spec-tater!"],
+["Why did the soccer ball quit the team?","It was tired of being kicked around."],
+["What's a ghost's favorite dessert?","I scream!"],
+["Why did the turkey cross the road?","To prove it wasn't chicken."],
+["What do you call a dinosaur with a big vocabulary?","A thesaurus!"],
+["Why did the sun go to school?","To get a little brighter."],
+["What do you call a sheep with no legs?","A cloud!"],
+["Why did the pirate buy an eye patch?","He couldn't afford an iPad."],
+["What do you call a man with a rubber toe?","Roberto!"],
+["Why did the fish blush?","It saw the ocean's bottom."],
+["What did the hat say to the scarf?","You hang around, I'll go on ahead."],
+["Why do ducks make great detectives?","They always quack the case!"],
+["What do you call a bee that can't make up its mind?","A maybe!"],
+["Why did the invisible man turn down the job?","He couldn't see himself doing it."],
+["What do you call a dog that can tell time?","A watch dog!"],
+["Why did the police arrest the cookie?","It was a crook-ie!"],
+["How do trees get online?","They log in!"],
+["What do you call a duck that gets all A's?","A wise quacker!"],
+["Why did the kid throw the clock out the window?","To see time fly!"],
+["What do you call a tired dinosaur?","A dino-sore!"],
+["Why was the robot so tired?","It had a hard drive."],
+["What do you call two bananas?","A pair of slippers!"],
+["Why did the coffee file a police report?","It got mugged."],
+["What's orange and sounds like a parrot?","A carrot!"],
+["Why did the wizard get a good grade?","He was great at spell-ing!"]];
+
+/* ================= the wishing fountain: a secret dad-joke machine ================= */
+function fnt(p){p.fountain=p.fountain||{t:0,need:rnd(5,20),seen:[]};return p.fountain;}
+const FOUNT_HINTS=['The water sparkles…','You hear a tiny giggle from the water…','The fountain gurgles happily.','Bubbles rise to the top…','Did the fountain just… snicker?','Plip! The coin sinks and glows.','Something is chuckling down there…','The water ripples in a funny way.'];
+function fountainOpen(){const p=P();const f=fnt(p);
+ modal(`<div class="mcard fountain"><div class="fnt-pool" id="fntPool"><span class="fnt-e">⛲</span></div><h2>The Wishing Fountain</h2><p id="fntMsg" class="fnt-msg">Toss in a coin and make a wish…</p>
+ <div class="row"><button class="btn gold" onclick="fountainToss(1)">Toss 🪙 1</button><button class="btn gold" onclick="fountainToss(5)">Toss 🪙 5</button></div>
+ <p class="muted" id="fntCoins">You have 🪙 ${p.coins}${f.seen.length?` · 🤣 ${f.seen.length} of ${DAD_JOKES.length} jokes found`:''}</p><button class="btn ghost dark small" onclick="closeModal()">Walk away</button></div>`);}
+let fntBusy=false;
+function fountainToss(n){const p=P();const f=fnt(p);if(fntBusy||!$('#fntMsg'))return;
+ if(p.coins<n){$('#fntMsg').textContent=p.coins?`You only have ${p.coins} coin${p.coins>1?'s':''}!`:'The fountain gurgles. You need a coin!';return;}
+ p.coins-=n;f.t+=n;save();
+ for(let i=0;i<Math.min(n,5);i++){tone(900+Math.random()*300,.12,'sine',.06,i*.09);const pool=$('#fntPool');if(pool){const c=document.createElement('span');c.className='fnt-coin';c.textContent='🪙';c.style.left=(30+Math.random()*40)+'%';c.style.animationDelay=(i*.09)+'s';pool.appendChild(c);setTimeout(()=>c.remove(),1200);const r=document.createElement('i');r.className='fnt-ripple';r.style.left=(25+Math.random()*50)+'%';r.style.animationDelay=(.4+i*.09)+'s';pool.appendChild(r);setTimeout(()=>r.remove(),1800);}}
+ const ce=$('#fntCoins');if(ce)ce.textContent=`You have 🪙 ${p.coins}${f.seen.length?` · 🤣 ${f.seen.length} of ${DAD_JOKES.length} jokes found`:''}`;
+ if(f.t>=f.need){fntBusy=true;$('#fntMsg').textContent='💦 The fountain is bubbling like crazy…';setTimeout(()=>{fntBusy=false;fountainJoke();},900);return;}
+ $('#fntMsg').textContent=pick(FOUNT_HINTS);}
+function fountainJoke(){const p=P();const f=fnt(p);
+ let pool=DAD_JOKES.map((_,i)=>i).filter(i=>!f.seen.includes(i));if(!pool.length){f.seen=[];pool=DAD_JOKES.map((_,i)=>i);}
+ const i=pick(pool);f.seen.push(i);f.t=0;f.need=rnd(5,20);save();const [q,a]=DAD_JOKES[i];
+ [523,659,784].forEach((x,k)=>tone(x,.18,'triangle',.07,k*.1));
+ modal(`<div class="mcard fountain"><div class="fnt-pool splash"><span class="fnt-e big">⛲</span><span class="fnt-face">😜</span></div><h2>💦 SPLOOSH! The fountain has a joke for you!</h2>
+ <div class="fnt-joke">${esc(q)}</div><div class="fnt-punch" id="fntPunch">${esc(a)}</div>
+ <div class="row"><button class="btn green big" id="fntTell" onclick="fountainPunch()">Tell me! 🤔</button></div>
+ <p class="muted">🤣 Joke ${f.seen.length} of ${DAD_JOKES.length} found</p></div>`);
+ setTimeout(()=>say(q,.9),300);}
+function fountainPunch(){const el=$('#fntPunch');if(!el)return;el.classList.add('show');const b=$('#fntTell');if(b){b.textContent='😂 Ha! Again!';b.onclick=()=>fountainOpen();}
+ say(el.textContent,.9);setTimeout(()=>{tone(180,.08,'square',.06);tone(140,.08,'square',.06,.12);tone(1200,.35,'triangle',.04,.26);},1100);}
 function wFight(m){if(m&&m.principal){principalMeet();return;}if(!W||curScreen!=='world'||$('#modal.show'))return;W.path=[];W.mobs=W.mobs.filter(o=>o!==m);const b=m.b;setTimeout(()=>{if(W)wSpawn(b);},20000);
  SFX.tap();startBattle(m.zid,0,null,{wild:true,n:m.n,e:m.e});}
 function wGate(zid){const z=ZONES.find(x=>x.id===zid);const p=P();if(zoneLocked(z,p)){toast('🔒 '+z.lockMsg);return;}p.wpos={x:W.hx,y:W.hy};save();SFX.tap();go('zone',zid);}
@@ -2419,7 +2555,7 @@ function wNpc(id){const p=P();
  if(id==='spin'){openSpin();return;}
  if(id==='board'){go('leaders');return;}
  if(id==='mail'){if(!showGift())openGift();return;}
- if(id==='fountain'){toast('⛲ You toss a coin in the fountain and make a wish!');return;}
+ if(id==='fountain'){fountainOpen();return;}
  modal(`<div class="mcard"><div class="big-emoji">🧙</div><h2>Elder Wiz says…</h2><p style="font-size:18px">"${esc(pick(ELDER_TIPS))}"</p>${questBar(p).replace('questbar','questbar dark')}<button class="btn green big" onclick="closeModal()">Thanks!</button></div>`);}
 function wChestOpen(k){const p=P();return !!(p.chests&&p.chests.d===dayKey()&&p.chests.open.includes(k));}
 function wChest(k){const p=P();if(wChestOpen(k)){toast('📦 Empty! A new treasure appears tomorrow.');return;}
