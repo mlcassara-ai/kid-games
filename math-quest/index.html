@@ -245,6 +245,13 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .spellbar button{font:inherit;font-weight:700;font-size:clamp(12px,1.8vh,15px);padding:6px 9px;border-radius:14px;background:rgba(255,255,255,.93);color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.3);white-space:nowrap;line-height:1.1}
 .spellbar button small{display:block;font-size:11px;color:#6a5fa0}
 .spellbar button.off{opacity:.45;filter:grayscale(.7)}
+.spellbar.frozen button:not(#sp-pet),.spellbar.petfrozen #sp-pet{filter:grayscale(.6) brightness(1.1);background:linear-gradient(180deg,#e6f7ff,#b9e6ff)!important;opacity:.8;position:relative}
+.spellbar.frozen button:not(#sp-pet)::after,.spellbar.petfrozen #sp-pet::after{content:'❄️';position:absolute;top:-8px;right:-6px;font-size:16px}
+.spellbar.frozen::before{content:attr(data-thaw);position:absolute;left:0;right:0;top:100%;margin-top:4px;text-align:center;font-size:12px;font-weight:800;color:#e6f7ff;text-shadow:0 1px 2px #000}
+.petf.frozen{filter:grayscale(.5) brightness(1.2) drop-shadow(0 0 8px #9fe7ff);animation:none}.petf.frozen::after{content:'🧊';position:absolute;right:-10px;top:-6px;font-size:18px}
+.hintbtn.frozen{filter:grayscale(.8);opacity:.6}
+.mon-sprite.stoneskin{filter:sepia(.6) saturate(.4) brightness(.9) drop-shadow(0 0 10px #bdb5a6)}
+.mpow{display:flex;gap:3px;justify-content:center;font-size:16px;margin-bottom:2px}.mpow span{background:rgba(0,0,0,.45);border-radius:10px;padding:1px 5px}
 .spellbar button.ready{animation:glowbtn 1.2s ease-in-out infinite}
 @keyframes glowbtn{0%,100%{box-shadow:0 3px 0 rgba(0,0,0,.3),0 0 0 #ffe066}50%{box-shadow:0 3px 0 rgba(0,0,0,.3),0 0 14px #ffe066}}
 .fighter.hero .bubble{position:absolute;left:50%;bottom:-6px;width:clamp(120px,24vh,200px);height:clamp(120px,24vh,200px);transform:translateX(-50%);border-radius:50%;border:3px solid rgba(140,220,255,.9);background:radial-gradient(circle,rgba(140,220,255,.05) 55%,rgba(140,220,255,.4));box-shadow:0 0 18px rgba(140,220,255,.8);pointer-events:none;display:none;animation:bpulse 1.6s ease-in-out infinite}
@@ -957,7 +964,7 @@ const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
 const xpNeed=l=>60+l*40;
 const petOf=p=>p.pet?PETS.find(x=>x.id===p.pet):null;
-const petPerk=p=>{const x=petOf(p);return x?x.perk:null;};
+const petPerk=p=>{if(typeof B!=='undefined'&&B&&!B.over&&B.petFrozen>0&&curScreen==='battle')return null;const x=petOf(p);return x?x.perk:null;};
 const bossesBeaten=p=>ZONES.filter(z=>(p.progress[z.id]||[])[5]>0).length;
 const zoneLocked=(z,p)=>(z.id==='tower'&&bossesBeaten(p)<2)||(!!z.g5&&!((p.grade||0)>=5||bossesBeaten(p)>=6));
 
@@ -1366,9 +1373,9 @@ function startBattle(zid,i,resume,opts){
  const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.12*tired)*(z.hpx||1)*lvlScale(p,round).hp);
  const foes=[{n:wild&&opts?opts.n:z.mons[i][0],e:wild&&opts?opts.e:z.mons[i][1],hp:mhp,max:mhp}].concat(resume||wild?[]:gangFor(p,z,i,isBoss,round));
  B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0,round};
- if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
+ if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round','spellFrozen','petFrozen','monShield','pwUsed','pwTick'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
  if(resume&&B.foes&&B.foes[B.ti]){const f=B.foes[B.ti];B.name=f.n;B.emoji=f.e;B.mmax=f.max;B.foes[B.ti].hp=B.mhp;}
- if(wild){B.wild=true;B.backTo='world';B.name=foes[0].n;B.emoji=foes[0].e;}else p.last={zid,i};
+ if(wild){B.wild=true;B.backTo='world';B.name=foes[0].n;B.emoji=foes[0].e;}else{p.last={zid,i};if(!resume&&B.foes[0])B.foes[0].pw=powersFor(p,z,i,isBoss,round);}
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
  renderBattle();
  banner((B.round>1?ROUNDS[B.round].m+' ':'')+(B.foes.length>1?`GANG OF ${B.foes.length}!`:B.wild?`🌿 A wild ${B.name}!`:(isBoss?'BOSS: ':'⚔️ ')+B.name+'!'));
@@ -1388,9 +1395,42 @@ function gangFor(p,z,i,isBoss,round){
  for(let k=0;k<n&&pool.length;k++){const j=pool.splice(Math.floor(Math.random()*pool.length),1)[0];const hp=Math.round((110+j*15)*.6*RM.hp*(z.hpx||1)*lvlScale(p,round).hp);out.push({n:z.mons[j][0],e:z.mons[j][1],hp,max:hp});}
  return out;
 }
+
+/* ================= monster special powers (harder monsters) ================= */
+const POWERS={
+ frost:{e:'❄️',n:'Spell Freeze',tip:'freezes your spells! No spell power bonus and no Fireball, Shield or Heal until you thaw them.',uses:2},
+ petfreeze:{e:'🧊',n:'Pet Freeze',tip:'freezes your pet! No pet bonus, pet moves or hints until it thaws.',uses:2},
+ armor:{e:'🪨',n:'Stone Skin',tip:'grows stone skin! Your next spell will bounce off.',uses:1},
+ regen:{e:'💚',n:'Regrow',tip:'heals itself!',uses:1}};
+const POW_KEYS=Object.keys(POWERS);const THAW_N=3;
+function powersFor(p,z,i,isBoss,round){
+ let n=0;round=round||1;
+ if(round===1)n=isBoss&&p.level>=12?1:0;else if(round===2)n=isBoss?1:0;else if(round===3)n=isBoss?2:(i>=3?1:0);else n=isBoss?2:1;
+ if(!n)return [];let hsh=0;for(const ch of z.id+i)hsh=(hsh*31+ch.charCodeAt(0))>>>0;
+ const out=[];let k=hsh%POW_KEYS.length;while(out.length<n){if(!out.includes(POW_KEYS[k]))out.push(POW_KEYS[k]);k=(k+1+(hsh>>3)%3)%POW_KEYS.length;}
+ return out;}
+function curPowers(){const f=B&&B.foes&&B.foes[B.ti];return (f&&f.pw)||[];}
+function maybePower(){
+ if(!B||B.over||B.mode!=='math'||B.wild)return false;const pw=curPowers();if(!pw.length)return false;
+ B.pwTick=(B.pwTick||0)+1;B.pwUsed=B.pwUsed||{};if(B.pwTick<3)return false;
+ const ready=pw.filter(k=>(B.pwUsed[k]||0)<POWERS[k].uses&&!(k==='frost'&&B.spellFrozen>0)&&!(k==='petfreeze'&&(B.petFrozen>0||!petOf(P())))&&!(k==='armor'&&B.monShield)&&!(k==='regen'&&B.mhp>B.mmax*.6));
+ if(!ready.length||Math.random()>(B.round>=5?.45:.35))return false;
+ const k=pick(ready),x=POWERS[k],p=P();B.pwUsed[k]=(B.pwUsed[k]||0)+1;B.pwTick=0;B.busy=true;
+ banner(`${x.e} ${B.name}: ${x.n.toUpperCase()}!`);tone(300,.25,'sawtooth',.08);
+ const ms=$('#monS');if(ms)ms.animate([{transform:'none',filter:'none'},{transform:'scale(1.25)',filter:'drop-shadow(0 0 18px #9fe7ff)'},{transform:'none',filter:'none'}],{duration:700});
+ if(k==='frost'){B.spellFrozen=THAW_N;floatText('#heroS','❄️ Spells frozen!','#9fe7ff');}
+ else if(k==='petfreeze'){B.petFrozen=THAW_N;floatText('#heroS','🧊 Pet frozen!','#9fe7ff');}
+ else if(k==='armor'){B.monShield=1;floatText('#monS','🪨 Stone Skin!','#d6d0c4');}
+ else{const h=Math.round(B.mmax*.2);B.mhp=Math.min(B.mmax,B.mhp+h);floatText('#monS','💚 +'+h,'#8dffb0');}
+ p.seenPw=p.seenPw||{};if(!p.seenPw[k]){p.seenPw[k]=1;setTimeout(()=>toast(`${x.e} ${B.name} ${x.tip}${k==='frost'||k==='petfreeze'?` Get ${THAW_N} right to thaw!`:''}`),900);}
+ updateBars();save();setTimeout(()=>{if(!B||B.over)return;B.busy=false;B.pwCast=true;nextQ();},1300);
+ return true;}
+function thawTick(){
+ if(B.spellFrozen>0){B.spellFrozen--;if(!B.spellFrozen)setTimeout(()=>floatText('#mana','🔥 Spells thawed!','#ffd84a'),500);}
+ if(B.petFrozen>0){B.petFrozen--;if(!B.petFrozen)setTimeout(()=>floatText('#heroS','🐾 Pet thawed!','#ffd84a'),700);}}
 function foesHTML(){
  const bk=(B.foes||[]).map((f,k)=>({f,k})).filter(o=>o.k!==B.ti&&o.f.hp>0);
- return `<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div>${B.round>=4&&!B.wild?'<div class="mcharge" id="mcharge" title="Monster charging an attack"><i></i><span>⚡</span></div>':''}<div class="mon-sprite" id="monS">${B.emoji}</div>${bk.length?`<div class="gang">${bk.map(o=>`<div class="bk" data-k="${o.k}"><div class="minihp"><i></i></div><span class="bks">${o.f.e}</span></div>`).join('')}</div>`:''}`;
+ const pw=curPowers();return `${pw.length?`<div class="mpow" title="Special powers">${pw.map(k=>`<span title="${POWERS[k].n}">${POWERS[k].e}</span>`).join('')}</div>`:''}<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div>${B.round>=4&&!B.wild?'<div class="mcharge" id="mcharge" title="Monster charging an attack"><i></i><span>⚡</span></div>':''}<div class="mon-sprite" id="monS">${B.emoji}</div>${bk.length?`<div class="gang">${bk.map(o=>`<div class="bk" data-k="${o.k}"><div class="minihp"><i></i></div><span class="bks">${o.f.e}</span></div>`).join('')}</div>`:''}`;
 }
 function nextFoe(cont){
  if(!B||!B.foes||B.foes.length<2)return false;
@@ -1431,6 +1471,10 @@ function updateMana(){
  const m=$('#mana');if(!m||!B||B.mode!=='math')return;
  let h='';for(let i=0;i<MAX_CHARGE;i++)h+=`<i class="${i<(B.charge||0)?'on':''}"></i>`;m.innerHTML=h;
  $('#heroF').classList.toggle('shielded',!!B.shieldUp);
+ const sb=$('#spellbar');if(sb){sb.classList.toggle('frozen',B.spellFrozen>0);sb.classList.toggle('petfrozen',B.petFrozen>0);sb.dataset.thaw=B.spellFrozen>0?`❄️ Frozen: ${B.spellFrozen} right to thaw`:'';}
+ const pf=$('#petF');if(pf)pf.classList.toggle('frozen',B.petFrozen>0);
+ const hb=$('#hintBtn');if(hb)hb.classList.toggle('frozen',B.petFrozen>0);
+ const ms=$('#monS');if(ms)ms.classList.toggle('stoneskin',!!B.monShield);
  const pb=$('#sp-pet');if(pb){const p=P(),pet=petOf(p);const left=pet?petMovesMax(petData(p,pet.id))-(B.petUses||0):0;pb.classList.toggle('off',left<=0);pb.classList.toggle('ready',left>0);$('#spPetN').textContent=left>0?`${left} left · free!`:'used up';}
  SPECIALS.forEach(x=>{const b=$('#sp-'+x.id);if(!b)return;const ok=(B.charge||0)>=x.cost&&!(x.id==='shield'&&B.shieldUp)&&!(x.id==='heal'&&B.hhp>=B.hmax);b.classList.toggle('off',!ok);b.classList.toggle('ready',ok);});
 }
@@ -1438,6 +1482,7 @@ function useSpecial(id){
  if(!B||B.mode!=='math'||B.over||fbOpen)return;
  const x=SPECIALS.find(s=>s.id===id);
  if(B.busy){return;}
+ if(B.spellFrozen>0){toast(`❄️ Your spells are frozen! Get ${B.spellFrozen} more right to thaw them.`);return;}
  if((B.charge||0)<x.cost){toast(`${x.e} ${x.n} needs ${x.cost} charges. Get ${x.cost-(B.charge||0)} more right! ⚡`);return;}
  if(id==='shield'&&B.shieldUp){toast('🛡️ Your shield is already up!');return;}
  if(id==='heal'&&B.hhp>=B.hmax){toast('💚 You already have full health!');return;}
@@ -1462,7 +1507,7 @@ function useSpecial(id){
 }
 function usePetMove(){
  if(!B||B.mode!=='math'||B.over||fbOpen||B.busy)return;
- const p=P(),pet=petOf(p);if(!pet)return;const pd=petData(p,pet.id);const max=petMovesMax(pd);
+ const p=P(),pet=petOf(p);if(!pet)return;if(B.petFrozen>0){toast(`🧊 ${pet.name} is frozen! Get ${B.petFrozen} more right to thaw.`);return;}const pd=petData(p,pet.id);const max=petMovesMax(pd);
  if((B.petUses||0)>=max){toast(`${pet.e} ${pet.name} is tired. ${max} move${max>1?'s':''} per battle!`);return;}
  B.petUses=(B.petUses||0)+1;B.busy=true;const happy=petHappy(pd);const mv=PET_MOVES[pet.id]||'Pet Attack';
  banner(`${pet.e} ${mv.toUpperCase()}!`);tone(660,.1,'triangle',.1);
@@ -1497,6 +1542,7 @@ function addCharge(){
 function nextQ(){
  if(!B||B.over||curScreen!=='battle')return;
  if(B.mode!=='math'){questNextQ();return;}
+ if(B.pwCast)B.pwCast=false;else if(B.right+B.wrong>0&&maybePower())return;
  const p=P();let q=null;
  B.review.forEach(r=>r.wait--);
  const due=B.review.findIndex(r=>r.wait<=0);
@@ -1514,7 +1560,7 @@ function nextQ(){
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
  B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?(()=>{const md=medianThink(p),fl=fastLimit(q)*(B.round>=5?2:2.5);return Math.max(B.round>=5?6:8,md?Math.min(fl,md*(B.round>=5?2.5:3)):fl,md*(B.round>=5?1.8:2.2));})():0;
- p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round};save();
+ p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
  showQ();
@@ -1553,19 +1599,21 @@ function answer(){
  if(!q.again&&!q.practice&&!q.hinted)lvChange=adjustSkill(p,q.op,ok,slip);
  if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${UP_N} right in a row to move back up!`);},900);}
  if(ok){
-  B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();
+  B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();thawTick();
   const mm=p.missed[q.text];if(mm&&(q.practice||q.again))mm.fixed=(mm.fixed||0)+1;
   if(lvChange===1){const nl=prevL+1;const isNew=nl>(p.maxL[q.op]||0);if(isNew)p.maxL[q.op]=nl;
    setTimeout(()=>{if(isNew){banner(`⭐ NEW LEVEL! ${OPNAME[q.op]} ${nl}`);SFX.level();toast(`New challenge: ${KID_DESC[q.op][nl]}`);}else toast(`👍 Back up to ${OPNAME[q.op]} level ${nl}!`);},700);}
   if(q.again||q.practice){B.coins+=3;p.coins+=3;}
   const perk=petPerk(p),spell=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
-  let dmg=20*spell.mult*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
+  let dmg=20*(B.spellFrozen>0?1:spell.mult)*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
   p.thinkT=p.thinkT||[];p.thinkT.push(Math.round(Math.min(60,secs)*10)/10);if(p.thinkT.length>20)p.thinkT.shift();
   const crit=fast&&!q.hinted&&Math.random()<(B.streak>=2?.6:.35);if(crit)dmg*=2;dmg=Math.round(dmg);
   const c=coinPer(p,q)+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;
   B.xp+=Math.round(10*(perk==='xp'?1.5:1));
   save();SFX.correct();$('#qcard').classList.add('right');
+  const blocked=!!B.monShield;if(blocked){B.monShield=0;dmg=0;}
   castSpell(spell,crit,()=>{
+   if(blocked){floatText('#monS','🪨 Bounced off!','#d6d0c4');SFX.wrong();updateBars();setTimeout(nextQ,450);return;}
    B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();
    floatText('#monS',(crit?'💥 CRITICAL! ':'')+'-'+dmg,crit?'#ffe066':'#fff');if(crit){banner('💥 CRITICAL HIT!');const ar=$('#arena');if(ar){ar.classList.remove('critflash');void ar.offsetWidth;ar.classList.add('critflash');}}
    $('#monS').animate([{transform:'translateX(0)'},{transform:'translateX(14px) rotate(8deg)'},{transform:'translateX(-8px)'},{transform:'none'}],{duration:350});
@@ -1648,7 +1696,7 @@ function monsterAttack(done){
   if(B.mode!=='math'){floatText('#heroS','💨 Dodged!','#9fe7ff');}
   else if(B.shieldUp){B.shieldUp=false;SFX.coin();floatText('#heroS','🛡️ Shield blocked it!','#9fe7ff');}
   else if(!B.grace&&!(B.round>=4)){B.grace=true;floatText('#heroS','💨 Missed you!','#9fe7ff');}
-  else if(B.shield){B.shield=false;floatText('#heroS','🐾 Pet blocked it!','#9fe7ff');}
+  else if(B.shield&&!(B.petFrozen>0)){B.shield=false;floatText('#heroS','🐾 Pet blocked it!','#9fe7ff');}
   else{B.hhp=Math.max(0,B.hhp-dmg);SFX.hurt();floatText('#heroS',(others.length?'Gang attack!':atk.n+'!')+' -'+dmg,'#ff8a8a');
    $('#heroS').animate([{filter:'none'},{filter:'brightness(2) sepia(1) hue-rotate(-50deg) saturate(5)'},{filter:'none'}],{duration:400});
    $('#arena').animate([{transform:'none'},{transform:'translate(-6px,3px)'},{transform:'translate(6px,-3px)'},{transform:'none'}],{duration:300});}
@@ -2573,6 +2621,7 @@ function useHint(){
  if(!B||B.busy||B.over||fbOpen||!B.q)return;
  if(spellRound()>=5){toast('👑 No pet hints in the Legend round. You can do it!');return;}
  const p=P();const pet=petOf(p);
+ if(pet&&B.petFrozen>0){toast(`🧊 ${pet.name} is frozen and can't give hints! Get ${B.petFrozen} more right to thaw.`);return;}
  if(!pet){toast('Earn a pet buddy at hero level 2 and it will give you hints! 🐾');return;}
  const pd=petData(p,pet.id);
  if(B.q.hinted){toast(`${pet.name} already helped with this one!`);return;}
