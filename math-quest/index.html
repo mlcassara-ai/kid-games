@@ -377,6 +377,14 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 @keyframes hotp{from{opacity:.7}to{opacity:1}}
 .critflash{animation:critf .45s ease-out}
 @keyframes critf{0%{filter:brightness(1)}30%{filter:brightness(1.8) saturate(1.4)}100%{filter:none}}
+.z-vault{background:linear-gradient(160deg,#9be7ff,#3f7fd6 60%,#2b3f8a)}
+.z-mesa{background:linear-gradient(160deg,#ffb37a,#d0643b 60%,#8a3a1c)}
+.z-summit{background:linear-gradient(160deg,#dff0ff,#7ea6e0 50%,#3b5a9a)}
+.battle.z-vault{background:linear-gradient(180deg,#22305a,#10162e)}.battle.z-mesa{background:linear-gradient(180deg,#b8653a,#5a2a12)}.battle.z-summit{background:linear-gradient(180deg,#6d8fc4,#2b3f6e)}
+.g5tag{position:absolute;top:14px;right:14px;background:#ffd84a;color:#5a3b00;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:700}
+.vis.iso{width:clamp(110px,20vh,170px);height:auto;flex:none}.vis.prot{width:clamp(150px,26vh,210px);height:auto;flex:none}
+.vis.rect{width:clamp(110px,18vh,150px);height:auto;flex:none}.vis.g100{width:clamp(80px,14vh,110px);height:auto;flex:none}
+@media(max-width:520px){.vis.iso{width:100px}.vis.prot{width:150px}.vis.rect{width:100px}.vis.g100{width:78px}.vis.pie,.vis.clock{width:84px}.xq{font-size:clamp(18px,3vh,24px);gap:8px}.xprompt{font-size:.72em}}
 .impact{position:absolute;font-size:72px;pointer-events:none;z-index:5;filter:drop-shadow(0 0 6px #ff3b3b) drop-shadow(0 0 14px #ff3b3b)}
 @media (orientation:landscape) and (max-height:560px){
  .spellbar{top:4px;gap:4px;flex-wrap:nowrap}.spellbar button{padding:4px 7px;font-size:12px}.spellbar button small{display:none}}
@@ -499,7 +507,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function dayKey(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 /* ================= new math worlds: fractions, money, time ================= */
-const XOPS=['frac','money','time'];
+const XOPS=['frac','money','time','vol','meas','word'];
 const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
 const frA=b=>`<span class="fr"><span>{A}</span><span>${b}</span></span>`;
 const pad2=n=>String(n).padStart(2,'0');
@@ -517,6 +525,10 @@ function visHTML(v){
  if(v.t==='bar'){let s='';for(let i=0;i<v.n;i++)s+=`<i class="${i<v.k?'on':''}"></i>`;return `<div class="vis fbar" style="grid-template-columns:repeat(${v.n},1fr)">${s}</div>`;}
  if(v.t==='set'){return `<div class="vis vset">${Array.from({length:v.n},(_,i)=>`<span class="${v.k&&i<v.k?'hl':''}">${v.e}</span>`).join('')}</div>`;}
  if(v.t==='coins'){return `<div class="vis coins">${v.list.map(c=>c===100?`<span class="bill">$1</span>`:`<span class="coin c${c}" style="background:${COIN[c].c}">${COIN[c].l}</span>`).join('')}</div>`;}
+ if(v.t==='iso')return isoBoxes(v.b,v.lb);
+ if(v.t==='prot')return protractorSVG(v.a,v.fine);
+ if(v.t==='rect')return rectSVG(v.top,v.side);
+ if(v.t==='g100')return grid100SVG(v.cols===undefined?null:v.cols,v.cells||0);
  if(v.t==='clock'){const {h,m}=v;const ha=((h%12)+m/60)/12*2*Math.PI,ma=m/60*2*Math.PI;
   let ticks='';for(let i=1;i<=12;i++){const a=i/12*2*Math.PI;ticks+=`<text x="${(50+36*Math.sin(a)).toFixed(1)}" y="${(50-36*Math.cos(a)+4.5).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="#2b2250">${i}</text>`;}
   let mins='';for(let i=0;i<60;i++){if(i%5===0)continue;const a=i/60*2*Math.PI;mins+=`<line x1="${(50+44*Math.sin(a)).toFixed(1)}" y1="${(50-44*Math.cos(a)).toFixed(1)}" x2="${(50+46*Math.sin(a)).toFixed(1)}" y2="${(50-46*Math.cos(a)).toFixed(1)}" stroke="#b9b0d9" stroke-width="1"/>`;}
@@ -526,6 +538,7 @@ function visHTML(v){
  return '';
 }
 function genX(op,L){
+ if(G5OPS.includes(op))return genG5(op,L);
  const q={op,L,fast:9};
  const fin=(o)=>Object.assign(q,o);
  if(op==='frac'){
@@ -546,8 +559,11 @@ function genX(op,L){
   if(L===8){const n=pick([3,4,5,6,8,10]),k=rnd(2,n-1),N=n*rnd(2,8);
    return fin({tpl:`${fr(k,n)} of ${N} = {A}`,answer:N/n*k,text:`${k}/${n} of ${N}`,
     explain:`<p>First find ${fr(1,n)}: ${N} ÷ ${n} = ${N/n}.</p><p>Then take ${k} of them: ${N/n} × ${k} = <b>${N/n*k}</b></p>`,nudge:`<p>Find ${fr(1,n)} of ${N} first (divide by ${n}), then multiply by ${k}.</p>`});}
-  if(L===9){const n=pick([2,3,4,5,6,8]);if(Math.random()<.5){const w=rnd(2,4);return fin({prompt:`How many ${fr(1,n)} pieces make ${w} wholes?`,tpl:'{A}',answer:n*w,text:`${w} wholes in 1/${n}s`,explain:`<p>1 whole = ${n} pieces, so ${w} wholes = ${w} × ${n} = <b>${n*w}</b></p>`,nudge:`<p>How many pieces are in ONE whole? Now do that ${w} times.</p>`});}
+  if(L===9){if(Math.random()<.6){const k=rnd(1,9);if(Math.random()<.5)return fin({vis:{t:'g100',cols:k},prompt:'The whole grid is 1. What fraction is shaded?',tpl:frA(10),answer:k,text:`Grid ${k}/10`,explain:`<p>Each column is <b>one tenth</b> of the grid. ${k} columns are shaded, so it's ${fr(k,10)}.</p>`,nudge:`<p>Count the shaded <b>columns</b>. There are 10 columns in all.</p>`});
+    return fin({vis:{t:'g100',cols:k},prompt:'Write the shaded part as hundredths.',tpl:`${fr(k,10)} = ${frA(100)}`,answer:k*10,text:`${k}/10 = ?/100`,explain:`<p>Each column has 10 little squares. ${k} columns = ${k*10} squares out of 100.</p><p>${fr(k,10)} = ${fr(k*10,100)}</p>`,nudge:`<p>Count the little squares that are shaded. How many out of 100?</p>`});}
+   const n=pick([2,3,4,5,6,8]);if(Math.random()<.5){const w=rnd(2,4);return fin({prompt:`How many ${fr(1,n)} pieces make ${w} wholes?`,tpl:'{A}',answer:n*w,text:`${w} wholes in 1/${n}s`,explain:`<p>1 whole = ${n} pieces, so ${w} wholes = ${w} × ${n} = <b>${n*w}</b></p>`,nudge:`<p>How many pieces are in ONE whole? Now do that ${w} times.</p>`});}
    const w=rnd(1,3),r=rnd(1,n-1),top=w*n+r;return fin({tpl:`${fr(top,n)} = ${w} and ${frA(n)}`,answer:r,text:`${top}/${n} as a mixed number`,explain:`<p>${w} wholes use ${w} × ${n} = ${w*n} pieces.</p><p>${top} − ${w*n} = <b>${r}</b> left over.</p>`,nudge:`<p>How many pieces do ${w} wholes use? What is left over?</p>`});}
+  if(Math.random()<.55){const a=rnd(1,8),x=rnd(1,99-a*10);const tot=a*10+x;return fin({vis:{t:'g100',cells:tot},tpl:`${fr(a,10)} + ${frA(100)} = ${fr(tot,100)}`,answer:x,text:`${a}/10 + ?/100 = ${tot}/100`,explain:`<p>Change ${fr(a,10)} to hundredths: ${fr(a*10,100)}.</p><p>${tot} − ${a*10} = <b>${x}</b>, so the missing fraction is ${fr(x,100)}.</p>`,nudge:`<p>${fr(a,10)} is the same as ${fr(a*10,100)}. How many more hundredths to get to ${tot}?</p>`});}
   const b=pick([2,3,4,5]),m=pick([2,3]),d=b*m,a=rnd(1,b-1),c=rnd(1,d-1);const ans=a*m+c;
   return fin({tpl:`${fr(a,b)} + ${fr(c,d)} = ${frA(d)}`,answer:ans,text:`${a}/${b} + ${c}/${d}`,explain:`<p>Change ${fr(a,b)} into ${d}ths: ${fr(a,b)} = ${fr(a*m,d)}</p><p>${a*m} + ${c} = <b>${ans}</b>, so it's ${fr(ans,d)}</p>`,nudge:`<p>Make the bottoms match first: ${fr(a,b)} = ?/${d}</p>`});
  }
@@ -592,7 +608,7 @@ function genX(op,L){
   explain:`<p>${tfmt(h,m)} + ${dh} hour${dh>1?'s':''} = ${tfmt(wrapH(h+dh),m)}</p><p>Then + ${dm} minutes = <b>${tfmt(H,M)}</b></p>`,nudge:`<p>Add the hours first, then the minutes. Type 3:45 as 3 4 5.</p>`});
 }
 const XDESC={
- frac:['','Fraction pictures','Fractions up to eighths','Half & quarter of a group','Fraction of a group','Adding fractions','Taking away fractions','Matching fractions','Fraction of a number','Wholes & mixed numbers','Adding different fractions'],
+ frac:['','Fraction pictures','Fractions up to eighths','Half & quarter of a group','Fraction of a group','Adding fractions','Taking away fractions','Matching fractions','Fraction of a number','Tenths & hundredths','Adding tenths + hundredths'],
  money:['','Pennies & nickels','Dimes, nickels & pennies','Counting quarters','Coins and dollars','Adding prices','Change from $1','Dollars to cents','Change from $5','Buying lots','Shopping trip'],
  time:['',"O'clock",'Half past','Quarter past & to','5-minute times','Any minute','Minutes in hours','Minutes later','How long?','Minutes earlier','Long trips']};
 function xAnsStr(q){if(q.kind==='clock')return tfmt(Math.floor(q.answer/100),q.answer%100);return q.tpl&&q.tpl.includes('$')?'$'+q.answer:q.tpl&&q.tpl.includes('¢')?q.answer+'¢':String(q.answer);}
@@ -603,9 +619,108 @@ function xShowQ(q,inp){
 }
 function xFeedback(q){return `<div class="xq fbx">${q.vis?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',`<b class="good">${xAnsStr(q)}</b>`)}</div></div></div>`;}
 
+/* ================= 5th-grade worlds (from Jibreel's schoolwork): volume, measurement, word problems ================= */
+const G5OPS=['vol','meas','word'];
+const UNIT1={feet:'foot',inches:'inch',yards:'yard',meters:'meter',centimeters:'centimeter',kilometers:'kilometer',kilograms:'kilogram',grams:'gram',gallons:'gallon',quarts:'quart',pints:'pint',hours:'hour',minutes:'minute',pounds:'pound',ounces:'ounce'};
+const fmtN=n=>Number(n).toLocaleString('en-US');
+function isoBoxes(boxes,labels){ // boxes: [{x,l,w,h}] placed along x; draws unit cubes with grid
+ const s=22,c=0.866;let pts=[];const P=(x,y,z)=>[(x-y)*c*s,(x+y)*0.5*s-z*s];
+ boxes.forEach(b=>{for(const [x,y,z] of [[b.x,0,0],[b.x+b.l,0,0],[b.x,b.w,0],[b.x+b.l,b.w,0],[b.x,0,b.h],[b.x+b.l,0,b.h],[b.x,b.w,b.h],[b.x+b.l,b.w,b.h]])pts.push(P(x,y,z));});
+ const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);const pad=30;const minx=Math.min(...xs)-pad,miny=Math.min(...ys)-pad,W=Math.max(...xs)-minx+pad,H=Math.max(...ys)-miny+pad;
+ const poly=(a,fill)=>`<polygon points="${a.map(p=>p.map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="${fill}" stroke="#2b2250" stroke-width="1.2" stroke-linejoin="round"/>`;
+ let g='';
+ boxes.forEach((b,bi)=>{const col=bi?['#b9f0c9','#7fd69a','#5cbf7d']:['#cfe3ff','#8fb8f5','#6b9be8'];
+  for(let i=0;i<b.l;i++)for(let j=0;j<b.w;j++)g+=poly([P(b.x+i,j,b.h),P(b.x+i+1,j,b.h),P(b.x+i+1,j+1,b.h),P(b.x+i,j+1,b.h)],col[0]);
+  for(let i=0;i<b.l;i++)for(let k=0;k<b.h;k++)g+=poly([P(b.x+i,b.w,k),P(b.x+i+1,b.w,k),P(b.x+i+1,b.w,k+1),P(b.x+i,b.w,k+1)],col[1]);
+  for(let j=0;j<b.w;j++)for(let k=0;k<b.h;k++)g+=poly([P(b.x+b.l,j,k),P(b.x+b.l,j+1,k),P(b.x+b.l,j+1,k+1),P(b.x+b.l,j,k+1)],col[2]);
+  if(labels){const t=(p,txt,dx,dy)=>`<text x="${(p[0]+dx).toFixed(1)}" y="${(p[1]+dy).toFixed(1)}" font-size="13" font-weight="700" fill="#2b2250" text-anchor="middle">${txt}</text>`;
+   const L=labels[bi]||{};const a=P(b.x,b.w,0),bb=P(b.x+b.l,b.w,0),cc=P(b.x+b.l,0,0),d=P(b.x+b.l,b.w,b.h);
+   if(L.l)g+=t([(a[0]+bb[0])/2,(a[1]+bb[1])/2],L.l,-10,18);if(L.w)g+=t([(bb[0]+cc[0])/2,(bb[1]+cc[1])/2],L.w,18,14);if(L.h)g+=t([(bb[0]+d[0])/2,(bb[1]+d[1])/2],L.h,24,4);
+   if(L.name){const top=P(b.x+b.l/2,b.w/2,b.h);g+=`<text x="${top[0].toFixed(1)}" y="${(top[1]+5).toFixed(1)}" font-size="15" font-weight="800" fill="#c0392b" text-anchor="middle">${L.name}</text>`;}}
+ });
+ return `<svg class="vis iso" viewBox="${minx.toFixed(1)} ${miny.toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}">${g}</svg>`;
+}
+function protractorSVG(a,fine){const cx=100,cy=104,R=88;let t='';
+ for(let d=0;d<=180;d+=(fine?5:10)){const r1=R,r2=d%30===0?R-12:d%10===0?R-8:R-5;const rad=d*Math.PI/180;t+=`<line x1="${(cx+r1*Math.cos(rad)).toFixed(1)}" y1="${(cy-r1*Math.sin(rad)).toFixed(1)}" x2="${(cx+r2*Math.cos(rad)).toFixed(1)}" y2="${(cy-r2*Math.sin(rad)).toFixed(1)}" stroke="#5a4a9a" stroke-width="${d%30===0?1.6:1}"/>`;
+  if(d%30===0)t+=`<text x="${(cx+(R-22)*Math.cos(rad)).toFixed(1)}" y="${(cy-(R-22)*Math.sin(rad)+3).toFixed(1)}" font-size="9" font-weight="700" fill="#5a4a9a" text-anchor="middle">${d}</text>`;}
+ const rad=a*Math.PI/180;const ex=cx+R*1.05*Math.cos(rad),ey=cy-R*1.05*Math.sin(rad);
+ return `<svg class="vis prot" viewBox="0 0 200 112"><path d="M${cx-R} ${cy} A${R} ${R} 0 0 1 ${cx+R} ${cy} Z" fill="#fff7d6" stroke="#b8963e" stroke-width="2"/>${t}
+ <path d="M${cx+22} ${cy} A22 22 0 0 0 ${(cx+22*Math.cos(rad)).toFixed(1)} ${(cy-22*Math.sin(rad)).toFixed(1)}" fill="none" stroke="#ff5fa2" stroke-width="3"/>
+ <line x1="${cx}" y1="${cy}" x2="${cx+R*1.05}" y2="${cy}" stroke="#2b2250" stroke-width="3" stroke-linecap="round"/><line x1="${cx}" y1="${cy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="#2b2250" stroke-width="3" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="3" fill="#2b2250"/></svg>`;}
+function rectSVG(top,side){return `<svg class="vis rect" viewBox="0 0 170 104"><rect x="34" y="22" width="120" height="66" fill="#e8f7ff" stroke="#2b2250" stroke-width="2.5"/><text x="94" y="15" font-size="14" font-weight="700" fill="#2b2250" text-anchor="middle">${top}</text><text x="17" y="60" font-size="14" font-weight="700" fill="#2b2250" text-anchor="middle">${side}</text></svg>`;}
+function grid100SVG(cols,cells){let g='';for(let r=0;r<10;r++)for(let c=0;c<10;c++){const on=cols!==null?c<cols:(r*10+c)<cells;g+=`<rect x="${c*10}" y="${r*10}" width="10" height="10" fill="${on?'#ff9f43':'#fff'}" stroke="#5a3b00" stroke-width=".6"/>`;}
+ return `<svg class="vis g100" viewBox="-1 -1 102 102">${g}</svg>`;}
+function genG5(op,L){
+ const q={op,L,fast:12};const fin=o=>Object.assign(q,o);
+ if(op==='vol'){
+  if(L<=2){const l=rnd(2,L===1?3:4),w=rnd(1,L===1?2:3),h=rnd(1,L===1?2:3);const v=l*w*h;
+   return fin({vis:{t:'iso',b:[{x:0,l,w,h}]},prompt:'How many unit cubes make this box?',tpl:'{A} unit cubes',answer:v,text:`Cube count ${l}×${w}×${h}`,
+    explain:`<p>Count one layer: ${l} × ${w} = ${l*w} cubes.</p><p>There are ${h} layer${h>1?'s':''}: ${l*w} × ${h} = <b>${v}</b></p>`,nudge:`<p>Count the cubes on the <b>top layer</b> first. Then count how many layers there are!</p>`});}
+  if(L===3){const top=rnd(4,12),n=rnd(2,5);return fin({prompt:`The top layer has <b>${top}</b> cubes. There are <b>${n}</b> layers.`,tpl:'Volume = {A} cubic units',answer:top*n,text:`${top} per layer × ${n} layers`,explain:`<p>Each layer has ${top} cubes. ${top} × ${n} = <b>${top*n}</b></p>`,nudge:`<p>Same number in every layer. Multiply!</p>`});}
+  if(L===4){const l=rnd(3,6),w=rnd(2,4),h=rnd(2,4);return fin({vis:{t:'iso',b:[{x:0,l,w,h}],lb:[{l,w,h}]},prompt:'Find the volume.',tpl:'{A} cubic units',answer:l*w*h,text:`Box ${l}×${w}×${h}`,explain:`<p>Volume = length × width × height</p><p>${l} × ${w} × ${h} = <b>${l*w*h}</b></p>`,nudge:`<p>Multiply length × width × height.</p>`});}
+  if(L===5){const l=rnd(4,12),w=rnd(2,8),h=rnd(2,9);const u=pick(['inches','feet','cm','units']);return fin({prompt:`A box is <b>${l} ${u}</b> long, <b>${w} ${u}</b> wide and <b>${h} ${u}</b> tall.`,tpl:`Volume = {A} cubic ${u}`,answer:l*w*h,text:`${l}×${w}×${h} box`,explain:`<p>${l} × ${w} = ${l*w} (area of the base)</p><p>${l*w} × ${h} = <b>${l*w*h}</b> cubic ${u}</p>`,nudge:`<p>Find the base first: ${l} × ${w}. Then times the height.</p>`});}
+  if(L===6){const a=rnd(2,10);return fin({vis:{t:'iso',b:[{x:0,l:Math.min(a,4),w:Math.min(a,4),h:Math.min(a,4)}],lb:[{l:a,w:a,h:a}]},prompt:`A cube-shaped box is <b>${a} inches</b> on each side.`,tpl:'Volume = {A} cubic inches',answer:a*a*a,text:`Cube side ${a}`,explain:`<p>Every side of a cube is the same: ${a} × ${a} × ${a}</p><p>${a*a} × ${a} = <b>${a*a*a}</b></p>`,nudge:`<p>A cube is ${a} long, ${a} wide AND ${a} tall.</p>`});}
+  if(L===7||L===10){const A={l:rnd(2,4),w:rnd(2,3),h:rnd(2,4)},Bb={l:rnd(1,3),w:A.w,h:rnd(1,A.h-1||1)};const va=A.l*A.w*A.h,vb=Bb.l*Bb.w*Bb.h;
+   if(L===10&&Math.random()<.5){const less=rnd(3,Math.min(20,va+vb-2));return fin({vis:{t:'iso',b:[{x:0,...A},{x:A.l,...Bb}]},prompt:`This figure is a ${A.l}×${A.w}×${A.h} box plus a ${Bb.l}×${Bb.w}×${Bb.h} box. Kara made a figure that is <b>${less} cubic units smaller</b>. What is the volume of Kara's figure?`,tpl:'{A} cubic units',answer:va+vb-less,text:`Composite minus ${less}`,explain:`<p>Blue: ${A.l}×${A.w}×${A.h} = ${va}. Green: ${Bb.l}×${Bb.w}×${Bb.h} = ${vb}.</p><p>Total ${va+vb}, then ${va+vb} − ${less} = <b>${va+vb-less}</b></p>`,nudge:`<p>Find the whole figure's volume first, then take away ${less}.</p>`});}
+   return fin({vis:{t:'iso',b:[{x:0,...A},{x:A.l,...Bb}],lb:[{name:'A'},{name:'B'}]},prompt:`Box <b style="color:#2f6fd6">A</b> is ${A.l} × ${A.w} × ${A.h}. Box <b style="color:#1e9a53">B</b> is ${Bb.l} × ${Bb.w} × ${Bb.h}. What is the total volume?`,tpl:'{A} cubic units',answer:va+vb,text:`Composite ${A.l}×${A.w}×${A.h} + ${Bb.l}×${Bb.w}×${Bb.h}`,explain:`<p>A = ${A.l} × ${A.w} × ${A.h} = ${va}</p><p>B = ${Bb.l} × ${Bb.w} × ${Bb.h} = ${vb}</p><p>${va} + ${vb} = <b>${va+vb}</b></p>`,nudge:`<p>Find the volume of box A and box B, then add them.</p>`});}
+  if(L===8){const l=rnd(3,9),w=rnd(2,6),h=rnd(2,8);const V=l*w*h;return fin({prompt:`A box has a volume of <b>${V} cubic feet</b>. It is ${l} feet long and ${w} feet wide.`,tpl:'Height = {A} feet',answer:h,text:`V=${V}, ${l}×${w}×?`,explain:`<p>Base = ${l} × ${w} = ${l*w}</p><p>${V} ÷ ${l*w} = <b>${h}</b></p>`,nudge:`<p>Volume = base × height. Find the base (${l} × ${w}), then divide.</p>`});}
+  // L9 grouping / associative property
+  const a=rnd(2,9),b=rnd(2,9),c=rnd(2,9);const t=rnd(0,2);
+  if(t===0)return fin({tpl:`(${a} × ${b}) × ${c} = ${a} × ({A} × ${c})`,answer:b,text:`(${a}×${b})×${c} = ${a}×(?×${c})`,explain:`<p>You can group the factors any way and the volume stays the same!</p><p>(${a} × ${b}) × ${c} = ${a} × (<b>${b}</b> × ${c}) = ${a*b*c}</p>`,nudge:`<p>Moving the parentheses doesn't change the answer. Which number is missing?</p>`});
+  if(t===1)return fin({tpl:`${a*b} × ${c} = ${a} × {A}`,answer:b*c,text:`${a*b}×${c} = ${a}×?`,explain:`<p>${a*b} = ${a} × ${b}, so ${a*b} × ${c} = ${a} × ${b} × ${c} = ${a} × <b>${b*c}</b></p>`,nudge:`<p>Break ${a*b} into ${a} × ${b}. Then group the rest together.</p>`});
+  return fin({prompt:'Find the value.',tpl:`${a} × ${b} × ${c*10} = {A}`,answer:a*b*c*10,text:`${a}×${b}×${c*10}`,explain:`<p>${a} × ${b} = ${a*b}. ${a*b} × ${c} = ${a*b*c}. Add a zero for the ×10: <b>${a*b*c*10}</b></p>`,nudge:`<p>Multiply two numbers first, then the third. The ×10 just adds a zero!</p>`});
+ }
+ if(op==='meas'){
+  if(L===1||L===10&&Math.random()<.5){const fine=L===10;const a=fine?5*rnd(2,34):10*rnd(1,17);return fin({vis:{t:'prot',a,fine},prompt:'Measure the angle.',tpl:'{A}°',answer:a,text:`Protractor ${a}°`,explain:`<p>Start at <b>0</b> on the flat line and count up to where the other line crosses: <b>${a}°</b>.</p><p class="tip">${a<90?'Less than 90° = acute':a===90?'90° = right angle':'More than 90° = obtuse'}</p>`,nudge:`<p>Start at 0 on the flat line. Each small tick is ${fine?5:10}°. The big numbers go by 30s.</p>`});}
+  if(L===10){const t=Math.random()<.5?90:180;const a=5*rnd(2,t/5-2);return fin({prompt:`Two angles together make a <b>${t===90?'right angle (90°)':'straight line (180°)'}</b>. One angle is <b>${a}°</b>.`,tpl:'The other angle is {A}°',answer:t-a,text:`${t} − ${a}`,explain:`<p>${t} − ${a} = <b>${t-a}°</b></p>`,nudge:`<p>They add up to ${t}°. What goes with ${a}?</p>`});}
+  const conv=[
+   {L:2,u:['feet','inches'],f:12,max:6},{L:2,u:['yards','feet'],f:3,max:9},
+   {L:3,u:['meters','centimeters'],f:100,max:9},{L:3,u:['kilometers','meters'],f:1000,max:9},
+   {L:4,u:['kilograms','grams'],f:1000,max:9},{L:4,u:['gallons','quarts'],f:4,max:9},{L:4,u:['quarts','pints'],f:2,max:9},{L:4,u:['gallons','pints'],f:8,max:6},
+   {L:5,u:['yards','inches'],f:36,max:5},{L:5,u:['hours','minutes'],f:60,max:6},{L:5,u:['pounds','ounces'],f:16,max:6}];
+  if(L<=4||(L===5&&Math.random()<.5)){const c=pick(conv.filter(x=>x.L===L||(L===5&&x.L>=2)));const n=rnd(2,c.max);
+   if(Math.random()<.3&&L>=3)return fin({prompt:`Change to ${c.u[0]}.`,tpl:`${fmtN(n*c.f)} ${c.u[1]} = {A} ${c.u[0]}`,answer:n,text:`${n*c.f} ${c.u[1]} → ${c.u[0]}`,explain:`<p>1 ${UNIT1[c.u[0]]} = ${c.f} ${c.u[1]}.</p><p>${fmtN(n*c.f)} ÷ ${c.f} = <b>${n}</b></p>`,nudge:`<p>How many ${c.u[1]} are in 1 ${UNIT1[c.u[0]]}? Divide by that.</p>`});
+   return fin({prompt:'Change the units.',tpl:`${n} ${c.u[0]} = {A} ${c.u[1]}`,answer:n*c.f,text:`${n} ${c.u[0]} → ${c.u[1]}`,explain:`<p>1 ${UNIT1[c.u[0]]} = ${c.f} ${c.u[1]}.</p><p>${n} × ${c.f} = <b>${fmtN(n*c.f)}</b></p>`,nudge:`<p>Bigger unit → smaller unit means <b>more</b> of them. Multiply by ${c.f}.</p>`});}
+  if(L===5){const sets=[[['1 km',1000],['2,000 m',2000],['100 cm',1]],[['2 yards',72],['5 feet',60],['48 inches',48]],[['4 feet',48],['1 yard',36],['38 inches',38]],[['3 kg',3000],['3,526 g',3526],['3,652 g',3652]]];
+   const s=pick(sets);const unit=s===sets[1]||s===sets[2]?'inches':s===sets[3]?'grams':'meters';const mx=s.reduce((a,b)=>b[1]>a[1]?b:a);
+   return fin({prompt:`Which is the <b>biggest</b>: ${s.map(x=>x[0]).join(', ')}? Give it in ${unit}.`,tpl:`{A} ${unit}`,answer:mx[1],text:`Biggest of ${s.map(x=>x[0]).join(', ')}`,explain:`<p>Change them all to ${unit}: ${s.map(x=>`${x[0]} = ${fmtN(x[1])}`).join(', ')}.</p><p>Biggest: <b>${fmtN(mx[1])} ${unit}</b></p>`,nudge:`<p>Change everything to ${unit} first, then compare.</p>`});}
+  if(L===6){const w=rnd(3,15),l=w+rnd(2,20);return fin({vis:{t:'rect',top:l+' ft',side:w+' ft'},prompt:'Find the perimeter.',tpl:'Perimeter = {A} ft',answer:2*(l+w),text:`Perimeter ${l}×${w}`,explain:`<p>Add all 4 sides: ${l} + ${w} + ${l} + ${w} = <b>${2*(l+w)}</b></p>`,nudge:`<p>A rectangle has 4 sides: 2 long ones and 2 short ones. Add them all!</p>`});}
+  if(L===7){const w=rnd(5,15),k=rnd(2,6),l=w*k;const what=pick(['room','pool','classroom','garden']);return fin({prompt:`A rectangular ${what} is <b>${w} feet</b> wide. It is <b>${k} times</b> as long as it is wide. What is the perimeter?`,tpl:'{A} feet',answer:2*(w+l),text:`${w} wide, ${k}× long, perimeter`,explain:`<p>Length = ${w} × ${k} = ${l} feet.</p><p>Perimeter = ${l} + ${w} + ${l} + ${w} = <b>${2*(w+l)}</b> feet</p><p class="tip">Careful! First find the length, then add ALL 4 sides.</p>`,nudge:`<p>Step 1: find the length (${w} × ${k}). Step 2: add all 4 sides.</p>`});}
+  if(L===8){const w=rnd(4,20),l=w+rnd(3,20),P=2*(l+w);return fin({vis:{t:'rect',top:l+' ft',side:'? ft'},prompt:`The perimeter is <b>${P} feet</b>. The length is ${l} feet.`,tpl:'Width = {A} ft',answer:w,text:`P=${P}, l=${l}, width?`,explain:`<p>Two lengths: ${l} + ${l} = ${2*l}. ${P} − ${2*l} = ${P-2*l} for the two widths.</p><p>${P-2*l} ÷ 2 = <b>${w}</b></p>`,nudge:`<p>Take away both long sides from ${P}, then split what's left in half.</p>`});}
+  const w=rnd(3,12),l=rnd(6,16);return fin({vis:{t:'rect',top:l+' ft',side:'? ft'},prompt:`The area is <b>${l*w} sq. ft</b>. The length is ${l} feet.`,tpl:'Width = {A} ft',answer:w,text:`Area ${l*w}, l=${l}, width?`,explain:`<p>Area = length × width, so ${l*w} ÷ ${l} = <b>${w}</b></p>`,nudge:`<p>${l} × ? = ${l*w}</p>`});
+ }
+ // word problems
+ const name=pick(['Mario','Heather','Julia','Aiden','Phillip','Jasmine','Kaya','Celine']);const sib=pick(['sister','brother','cousin']);
+ if(L===1){const a=rnd(3,12),k=rnd(2,6);const [thing,verb]=pick([['books','read'],['rocks','found'],['pushups','did'],['strawberries','picked']]);
+  return fin({prompt:`${name} ${verb} <b>${a}</b> ${thing}. Their ${sib} ${verb} <b>${k} times as many</b>.`,tpl:`{A} ${thing}`,answer:a*k,text:`${a} × ${k} (times as many)`,explain:`<p>"${k} times as many" means multiply: ${a} × ${k} = <b>${a*k}</b></p>`,nudge:`<p>"Times as many" means <b>multiply</b>!</p>`});}
+ if(L===2){const b=rnd(4,15),k=rnd(2,9);const [big,small]=pick([['backpack','lunchbox'],['bike','helmet'],['necklace','bracelet'],['jacket','hat']]);
+  return fin({prompt:`A ${big} costs <b>$${b*k}</b>. That is <b>${k} times as much</b> as a ${small}. How much does the ${small} cost?`,tpl:'$ {A}',answer:b,text:`$${b*k} is ${k}× the ${small}`,explain:`<p>The ${small} is the smaller amount, so divide: ${b*k} ÷ ${k} = <b>$${b}</b></p>`,nudge:`<p>The ${big} is ${k} times bigger. To find the ${small}, <b>divide</b> by ${k}.</p>`});}
+ if(L===3){const b=rnd(3,12),k=rnd(2,9);const [big,small]=pick([['backpack','lunchbox'],['necklace','bracelet'],['game','book']]);
+  return fin({prompt:`A ${big} costs <b>$${b*k}</b>. A ${small} costs <b>$${b}</b>. How many times as much does the ${big} cost?`,tpl:'{A} times as much',answer:k,text:`$${b*k} vs $${b}: how many times`,explain:`<p>${b*k} ÷ ${b} = <b>${k}</b>. The answer is "${k} times," not dollars!</p>`,nudge:`<p>How many ${b}s fit into ${b*k}? Divide.</p>`});}
+ if(L===4){const d=rnd(2,9),n=rnd(6,19);const [a1,a2,a3]=pick([['cups of flour','cups','loaf of bread'],['cups of pecans','cups','pecan pie'],['stickers','stickers','page']]);
+  return fin({prompt:`A bakeshop has <b>${d*n}</b> ${a1}. It takes <b>${d}</b> ${a2} to make one ${a3}. How many can it make?`,tpl:'{A}',answer:n,text:`${d*n} ÷ ${d}`,explain:`<p>${d*n} ÷ ${d} = <b>${n}</b></p>`,nudge:`<p>Share ${d*n} into groups of ${d}. Divide!</p>`});}
+ if(L===5){const d=rnd(3,9),n=rnd(12,40);const [t1,t2]=pick([['action figures','box'],['flowers','vase'],['pencils','package'],['minutes of reading','night']]);
+  const pr=t2==='night'?`${name} read <b>${d*n}</b> minutes in <b>${d}</b> days, the same amount each night. How many minutes each night?`:`There are <b>${d*n}</b> ${t1}. Each ${t2} holds <b>${d}</b>. How many ${t2}${t2==='box'?'es':'s'} are needed?`;
+  return fin({prompt:pr,tpl:'{A}',answer:n,text:`${d*n} ÷ ${d}`,explain:`<p>${d*n} ÷ ${d} = <b>${n}</b></p><p class="tip">Check: ${n} × ${d} = ${d*n} ✓</p>`,nudge:`<p>Divide ${d*n} by ${d}. Try: ${d} × 10 = ${d*10}, then keep going.</p>`});}
+ if(L===6){const d=rnd(4,9),n=rnd(8,30),r=rnd(1,d-1);const tot=d*n+r;const up=Math.random()<.6;
+  return fin({prompt:up?`<b>${tot}</b> people are coming to a party. Each table seats <b>${d}</b>. How many tables are needed so everyone can sit?`:`A baker has <b>${tot}</b> cookies. Each box holds <b>${d}</b>. How many boxes can be <b>completely filled</b>?`,tpl:'{A}',answer:up?n+1:n,text:`${tot} ÷ ${d} (${up?'round up':'full boxes'})`,
+   explain:`<p>${tot} ÷ ${d} = ${n} remainder ${r}.</p><p>${up?`The ${r} extra people still need a table, so <b>${n+1}</b>.`:`Only full boxes count, so <b>${n}</b>.`}</p>`,nudge:`<p>Divide, then think: what do you do with the leftover ${up?'people':'cookies'}?</p>`});}
+ if(L===7){const len=rnd(5,6);let num='';for(let i=0;i<len;i++)num+=i===0?rnd(1,9):rnd(0,9);const pos=rnd(0,len-1);const dg=+num[pos];if(!dg)return genG5(op,L);const val=dg*Math.pow(10,len-1-pos);
+  return fin({prompt:`What is the <b>value</b> of the <b>${dg}</b> in <b>${fmtN(+num)}</b>?`,tpl:'{A}',answer:val,text:`Value of ${dg} in ${num}`,explain:`<p>The ${dg} is in the <b>${['ones','tens','hundreds','thousands','ten thousands','hundred thousands'][len-1-pos]}</b> place, so its value is <b>${fmtN(val)}</b>.</p>`,nudge:`<p>Which place is the ${dg} in? Ones, tens, hundreds, thousands…?</p>`});}
+ if(L===8){const t=rnd(5,19),h=rnd(1,9);return fin({prompt:'Write it as one number.',tpl:`${t} tens + ${h} hundreds = {A}`,answer:t*10+h*100,text:`${t} tens + ${h} hundreds`,explain:`<p>${t} tens = ${t*10}. ${h} hundreds = ${h*100}.</p><p>${t*10} + ${h*100} = <b>${t*10+h*100}</b></p>`,nudge:`<p>${t} tens is ${t} × 10. ${h} hundreds is ${h} × 100.</p>`});}
+ if(L===9){const a=rnd(4,12),k=rnd(2,6);const thing=pick(['pushups','strawberries','books','rocks']);
+  return fin({prompt:`${name} has <b>${a}</b> ${thing}. Their ${sib} has <b>${k} times as many</b>. How many do they have <b>together</b>?`,tpl:`{A} ${thing}`,answer:a+a*k,text:`${a} + ${a}×${k}`,explain:`<p>${sib}: ${a} × ${k} = ${a*k}.</p><p>Together: ${a} + ${a*k} = <b>${a+a*k}</b></p>`,nudge:`<p>Two steps: find the ${sib}'s amount, then add both.</p>`});}
+ const ppl=rnd(3,8),each=rnd(12,30),extra=rnd(2,5);
+ return fin({prompt:`A family of <b>${ppl}</b> paid <b>$${ppl*each}</b> at the water park, the same for each person. Then <b>${extra}</b> friends joined at the same price. What did the friends pay in all?`,tpl:'$ {A}',answer:each*extra,text:`$${ppl*each}÷${ppl} × ${extra}`,explain:`<p>Each person: ${ppl*each} ÷ ${ppl} = $${each}.</p><p>Friends: ${each} × ${extra} = <b>$${each*extra}</b></p>`,nudge:`<p>Step 1: price for ONE person. Step 2: times ${extra}.</p>`});
+}
+Object.assign(XDESC,{
+ vol:['','Counting cubes','Bigger cube boxes','Layers of cubes','Volume with labels','Length × width × height','Cubes','Two-box shapes','Missing height','Grouping factors','Volume puzzles'],
+ meas:['','Measuring angles','Feet, inches & yards','Meters & kilometers','Grams, quarts & pints','Which is biggest?','Perimeter','Perimeter word problems','Missing width (perimeter)','Missing width (area)','Angle challenges'],
+ word:['','Times as many','Times as much (divide)','How many times?','Division stories','Big division stories','Leftovers (remainders)','Place value','Tens & hundreds','Two-step problems','Challenge problems']});
+
 /* ================= game data ================= */
-const OPS=['add','sub','mul','div','frac','money','time'];const BASIC_OPS=['add','sub','mul','div'];
-const OPNAME={add:'Addition',sub:'Subtraction',mul:'Multiplication',div:'Division',frac:'Fractions',money:'Money',time:'Time',mix:'Mixed'};
+const OPS=['add','sub','mul','div','frac','money','time','vol','meas','word'];const BASIC_OPS=['add','sub','mul','div'];
+const OPNAME={add:'Addition',sub:'Subtraction',mul:'Multiplication',div:'Division',frac:'Fractions',money:'Money',time:'Time',vol:'Volume',meas:'Measurement',word:'Word problems',mix:'Mixed'};
 const LEVEL_DESC={
  add:['','Sums to 10','Sums to 20','2-digit + 1-digit','2-digit + 2-digit (no carrying)','2-digit + 2-digit (carrying)','3-digit + 2-digit','3-digit + 3-digit','4-digit + 3-digit','4-digit + 4-digit','Adding three numbers'],
  sub:['','Take away within 10','Take away within 20','2-digit − 1-digit','2-digit − 2-digit (no borrowing)','2-digit − 2-digit (borrowing)','3-digit − 2-digit','3-digit − 3-digit','4-digit − 3-digit','4-digit − 4-digit','5-digit − 4-digit'],
@@ -619,7 +734,7 @@ const KID_DESC={
  div:['','Easy sharing: 1, 2, 3','Sharing by 2, 5, 10','Sharing by 2 to 5','Dividing to 6','Dividing to 9','Dividing to 12','2-digit dividing','3-digit dividing','Dividing by 2-digit numbers','Giant dividing']};
 Object.assign(KID_DESC,XDESC);Object.assign(LEVEL_DESC,XDESC);
 // Everyone starts every skill at the easiest level (single digits) and climbs from there.
-const START={add:1,sub:1,mul:1,div:1,frac:1,money:1,time:1};const GRADE_START={1:START,2:START,3:START,4:START,5:START,6:START};
+const START={add:1,sub:1,mul:1,div:1,frac:1,money:1,time:1,vol:1,meas:1,word:1};const GRADE_START={1:START,2:START,3:START,4:START,5:START,6:START};
 const SKINS=['#ffe0c7','#f5c99b','#d9a066','#a86b3c','#6b4226'];
 const HAIRS=['#2b1d0e','#6a3d1a','#c68642','#f2d16b','#d9480f','#7c5cff','#1c7ed6','#ff6fb5','#e9ecef'];
 const HATS=[
@@ -685,7 +800,13 @@ const ZONES=[
  {id:'market',name:'Money Market',op:'money',sym:'¢',cls:'z-market',art:'💰',decor:['🪙','💰','🛒'],
   mons:[['Penny Pincher','🦞'],['Sneaky Squirrel','🐿️'],['Coin Goblin','👹'],['Piggy Bandit','🐗'],['Stone Golem','🗿'],['The Mimic','🧰']]},
  {id:'temple',name:'Time Temple',op:'time',sym:'⏰',cls:'z-temple',art:'⏳',decor:['⏳','🏺','🌵'],
-  mons:[['Sand Scarab','🪲'],['Dust Devil','🌪️'],['Camel Clock','🐫'],['Hourglass Imp','👿'],['Genie of Minutes','🧞'],['The Great Sphinx','🦁']]}];
+  mons:[['Sand Scarab','🪲'],['Dust Devil','🌪️'],['Camel Clock','🐫'],['Hourglass Imp','👿'],['Genie of Minutes','🧞'],['The Great Sphinx','🦁']]},
+ {id:'vault',name:'Volume Vault',op:'vol',sym:'🧊',cls:'z-vault',art:'🧊',scene:'caves',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock.',decor:['🧊','💎'],
+  mons:[['Cube Critter','🐸'],['Block Bat','🦇'],['Prism Penguin','🐧'],['Stack Bear','🐻'],['Ice Golem','⛄'],['The Cube King','🤴']]},
+ {id:'mesa',name:'Measure Mesa',op:'meas',sym:'📏',cls:'z-mesa',art:'📏',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock.',decor:['📏','🌵'],
+  mons:[['Ruler Rattler','🐍'],['Yardstick Yak','🐃'],['Inchworm','🐛'],['Protractor Hawk','🦅'],['Canyon Coyote','🐺'],['Perimeter Pharaoh','🦂']]},
+ {id:'summit',name:'Story Summit',op:'word',sym:'📖',cls:'z-summit',art:'🏔️',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock.',decor:['🏔️','📖'],
+  mons:[['Riddle Raccoon','🦝'],['Snow Owl','🦉'],['Puzzle Goat','🐐'],['Word Wolf','🐺'],['Frost Troll','🧌'],['The Story Dragon','🐉']]}];
 const NODE_POS=[[15,80],[34,54],[18,26],[48,32],[66,64],[82,28]];
 
 /* ================= save / state ================= */
@@ -717,7 +838,7 @@ const xpNeed=l=>60+l*40;
 const petOf=p=>p.pet?PETS.find(x=>x.id===p.pet):null;
 const petPerk=p=>{const x=petOf(p);return x?x.perk:null;};
 const bossesBeaten=p=>ZONES.filter(z=>(p.progress[z.id]||[])[5]>0).length;
-const zoneLocked=(z,p)=>z.id==='tower'&&bossesBeaten(p)<2;
+const zoneLocked=(z,p)=>(z.id==='tower'&&bossesBeaten(p)<2)||(!!z.g5&&!((p.grade||0)>=5||bossesBeaten(p)>=6));
 
 /* ================= sound ================= */
 let AC=null;
@@ -941,7 +1062,7 @@ SCREENS.map=()=>{
   <div class="op">${z.sym}</div><h3>${z.name}</h3>
   <div class="zsub">${locked?'🔒 '+z.lockMsg:`⭐ ${stars} / 18`}</div>
   <div class="zlv">${locked?'':(z.op==='mix'?'Add, subtract, times and divide!':KID_DESC[z.op][lvl(p,z.op)])}</div>
-  <div class="zart">${z.art}</div>${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div></div>`;
+  <div class="zart">${z.art}</div>${z.g5&&!medal(p,z.id)?'<div class="g5tag">5th grade</div>':''}${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div></div>`;
  if(petMilestones(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))offerPet();},600);
  else if(pendingGifts(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map')showGift();},650);
  else if(spinReady(p)&&p.spinShown!==dayKey()&&!$('#modal.show')){p.spinShown=dayKey();saveLocal();setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))openSpin();},700);}
@@ -1386,7 +1507,7 @@ const ATK={'🐛':['shot','🟢','Goo spit'],'🍄':['shot','🟤','Spore puff']
  '👾':['shot','👾','Pixel blast'],'👽':['shot','🟢','Ray gun'],'🛸':['rain','⚡','Tractor beam'],'🐙':['shot','⚫','Ink blast'],'🐲':['rain','🔥','Fire rain'],
  '🐦':['shot','🪶','Peck dive'],'🍅':['shot','🍅','Tomato splat'],'🐀':['melee','🦷','Nibble'],'🎃':['shot','🍬','Candy toss'],'🐐':['melee','💥','Head butt'],'🐂':['melee','💥','Bull charge'],
  '🦞':['melee','✂️','Pinch'],'🐿️':['shot','🌰','Acorn throw'],'👹':['shot','🪙','Coin toss'],'🐗':['melee','💥','Tusk bash'],'🗿':['rain','🪨','Rock drop'],'🧰':['shot','🔩','Bolt blast'],
- '🪲':['melee','🦷','Scarab bite'],'🌪️':['shot','🌪️','Dust storm'],'🐫':['shot','💦','Spit'],'👿':['shot','⏳','Sand blast'],'🦁':['melee','🦷','Sphinx roar'],
+ '🪲':['melee','🦷','Scarab bite'],'🐻':['melee','💥','Bear hug'],'⛄':['shot','❄️','Snowball'],'🤴':['rain','🧊','Ice cube crash'],'🐃':['melee','💥','Horn charge'],'🦅':['melee','🪶','Talon dive'],'🌪️':['shot','🌪️','Dust storm'],'🐫':['shot','💦','Spit'],'👿':['shot','⏳','Sand blast'],'🦁':['melee','🦷','Sphinx roar'],
  '🐞':['melee','💥','Beetle bonk'],'🐸':['melee','👅','Tongue lash'],'🦝':['melee','💢','Scratch'],'🐭':['melee','🦷','Nibble'],'🦜':['shot','🪶','Feather dart'],'🦉':['rain','🪶','Feather storm'],'🧞':['shot','🌪️','Whirlwind']};
 function attackOf(emoji){const a=ATK[emoji];return a?{t:a[0],e:a[1],n:a[2]}:{t:'shot',e:'💥',n:'Attack'};}
 function monsterAttack(done){
@@ -1695,7 +1816,7 @@ function doSpin(){const p=P();if(!spinReady(p))return;const b=$('#spinBtn');if(b
   $('#spinOut').innerHTML=`<div class="big-emoji" style="font-size:60px">${pr.e}</div><h2>${pr.t==='coins'?`You won ${pr.n} coins!`:pr.t==='egg'?'A MYSTERY EGG! 🎉':`You won a ${f.name}!`}</h2>${pr.t==='food'?`<p class="muted">It's in your pet's food bag.</p>`:pr.t==='egg'?`<p class="muted">Hatch it in your backpack!</p>`:''}<div class="row"><button class="btn green big" onclick="closeModal();go(curScreen,curArg)">Awesome!</button></div>`;};}
 
 /* ================= explore: the walkable world ================= */
-const WCOLS=46,WROWS=34;
+const WCOLS=60,WROWS=34;
 const BIOMES={
  village:{c:[22,17],g:'#a4d86e',g2:'#9ccf66',name:'🏡 Number Village',bl:['🌳','🏡'],de:['🌼','🌷']},
  forest:{c:[8,7],g:'#5fae4b',g2:'#58a545',zone:'forest',bl:['🌲','🌳','🌲'],de:['🍄','🌿']},
@@ -1705,7 +1826,10 @@ const BIOMES={
  volcano:{c:[39,17],g:'#a45a42',g2:'#9a523b',zone:'volcano',bl:['🌋','🪨'],de:['🔥','♨️']},
  farm:{c:[8,29],g:'#bddc6e',g2:'#b4d466',zone:'farm',bl:['🌽','🌳'],de:['🌻','🌾']},
  market:{c:[22,30],g:'#e6c48f',g2:'#dfbd87',zone:'market',bl:['🛒','🧺'],de:['🪙','🎈']},
- temple:{c:[38,29],g:'#f0d49c',g2:'#e9cd94',zone:'temple',bl:['🌵','🏺'],de:['🐚','🌾']}};
+ temple:{c:[38,29],g:'#f0d49c',g2:'#e9cd94',zone:'temple',bl:['🌵','🏺'],de:['🐚','🌾']},
+ vault:{c:[52,7],g:'#bfe4f5',g2:'#b4dbee',zone:'vault',bl:['🧊','⛄'],de:['❄️','💎']},
+ mesa:{c:[53,18],g:'#e0a070',g2:'#d89868',zone:'mesa',bl:['🌵','🪨'],de:['📏','🦴']},
+ summit:{c:[52,29],g:'#eef4fb',g2:'#e4ecf6',zone:'summit',bl:['🌲','🏔️'],de:['❄️','📖']}};
 const NPCS=[
  {id:'school',x:18,y:15,e:'🏫',n:'School'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
  {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'}];
@@ -2540,7 +2664,7 @@ const SC={
 };
 function sceneSVG(id){
  {const zz=ZONES.find(x=>x.id===id);if(zz&&zz.scene)id=zz.scene;}
- const r=rng({forest:7,caves:11,volcano:23,castle:31,tower:43,spell:53,quiz:61,hw:71,farm:83,market:89,temple:97}[id]||5);
+ const r=rng({forest:7,caves:11,volcano:23,castle:31,tower:43,spell:53,quiz:61,hw:71,farm:83,market:89,temple:97,mesa:101,summit:103}[id]||5);
  let d='',b='';
  if(id==='forest'){
   d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc3f0"/><stop offset=".75" stop-color="#d7f2fb"/></linearGradient><linearGradient id="sc-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ccf4f"/><stop offset="1" stop-color="#3f8f2c"/></linearGradient><radialGradient id="sc-sun"><stop offset="0" stop-color="#fffbe0"/><stop offset=".5" stop-color="#fff2a0" stop-opacity=".6"/><stop offset="1" stop-color="#fff2a0" stop-opacity="0"/></radialGradient>`;
@@ -2649,7 +2773,31 @@ function sceneSVG(id){
   ${[...Array(10)].map(()=>{const x=r()*800,y=300+r()*90;return `<path d="M${x} ${y} q-14 -18 -26 -10 q14 2 26 10 q-6 -22 6 -30 q2 16 -6 30 q14 -18 26 -10 q-14 2 -26 10z" fill="#2f9e44"/>`;}).join('')}
   ${SC.rock(40,390,80,44,'#8c929b','#6b717a','#c7ccd3')}${SC.rock(770,392,90,50,'#8c929b','#6b717a','#c7ccd3')}`;
  }
- else if(!['farm','market','temple'].includes(id))return '';
+ else if(!['farm','market','temple','mesa','summit'].includes(id))return '';
+ if(id==='mesa'){
+  d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9e6b"/><stop offset=".75" stop-color="#ffe0b5"/></linearGradient>`;
+  const mesa=(x,y,w,h,c,c2)=>`<path d="M${x} ${y} L${x+w*.15} ${y-h} L${x+w*.85} ${y-h} L${x+w} ${y}Z" fill="${c}"/><path d="M${x+w*.15} ${y-h} L${x+w*.85} ${y-h} L${x+w*.82} ${y-h+10} L${x+w*.18} ${y-h+10}Z" fill="${c2}"/>${[1,2,3].map(k=>`<path d="M${x+w*(.1+k*.02)} ${y-h+k*h/4} H${x+w*(.9-k*.02)}" stroke="${c2}" stroke-width="3" opacity=".6"/>`).join('')}`;
+  b=`<rect width="800" height="400" fill="url(#sc-sky)"/><circle cx="620" cy="110" r="40" fill="#fff3c4"/>
+  <g class="drift">${SC.cloud(160,70,.8,.6)}${SC.cloud(700,40,.7,.6)}</g>
+  ${mesa(20,262,230,120,'#c8643b','#e08457')}${mesa(420,258,300,90,'#b85532','#d9774d')}${mesa(260,262,150,70,'#d3714a','#eb9166')}
+  <path d="M0 262 Q200 245 400 258 T800 252 V400 H0Z" fill="#e9a969"/>
+  <g transform="translate(90,300)"><rect x="-4" y="-60" width="8" height="60" fill="#3f8f4a" rx="4"/><path d="M-4 -30 h-12 v-14 M4 -22 h12 v-12" stroke="#3f8f4a" stroke-width="8" fill="none" stroke-linecap="round"/></g>
+  <g transform="translate(700,310)"><rect x="-4" y="-50" width="8" height="50" fill="#3f8f4a" rx="4"/><path d="M4 -26 h12 v-12" stroke="#3f8f4a" stroke-width="8" fill="none" stroke-linecap="round"/></g>
+  <g opacity=".85"><rect x="520" y="296" width="140" height="18" rx="3" fill="#ffd84a" stroke="#8a6d00"/>${[...Array(15)].map((_,i)=>`<line x1="${526+i*9}" y1="296" x2="${526+i*9}" y2="${i%5?303:308}" stroke="#8a6d00"/>`).join('')}</g>
+  <path d="M0 300 Q220 286 420 296 T800 292 V400 H0Z" fill="#dc9656"/><path d="M250 400 Q330 330 400 312 Q470 330 560 400 Z" fill="#c07a3e" opacity=".5"/>`;
+ }
+ if(id==='summit'){
+  d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b8fd9"/><stop offset=".8" stop-color="#d8ecff"/></linearGradient>`;
+  const mt=(x,y,w,h,c)=>`<path d="M${x} ${y} L${x+w/2} ${y-h} L${x+w} ${y}Z" fill="${c}"/><path d="M${x+w/2} ${y-h} L${x+w/2-w*.12} ${y-h+h*.28} L${x+w/2-w*.03} ${y-h+h*.22} L${x+w/2+w*.05} ${y-h+h*.32} L${x+w/2+w*.13} ${y-h+h*.27}Z" fill="#fff"/>`;
+  b=`<rect width="800" height="400" fill="url(#sc-sky)"/><circle cx="130" cy="90" r="34" fill="#fffbe0"/>
+  <g class="drift">${SC.cloud(300,60,1)}${SC.cloud(760,90,.8)}</g>
+  ${mt(-40,270,360,200,'#7b8fb3')}${mt(250,270,340,230,'#6a7ea6')}${mt(520,270,340,180,'#7b8fb3')}
+  <path d="M0 270 Q200 250 400 262 T800 256 V400 H0Z" fill="#e8f2fb"/>
+  ${[...Array(8)].map((_,i)=>SC.pine(40+i*105+r()*20,300+r()*6,50+r()*25,'#2f6d5a','#1d4f41')).join('')}
+  <g transform="translate(560,210)"><rect x="-2" y="0" width="4" height="60" fill="#5b3b1f"/><path d="M2 2 L34 10 L2 18Z" fill="#ef4444"/></g>
+  <path d="M0 305 Q220 290 420 300 T800 296 V400 H0Z" fill="#f4f9ff"/><path d="M250 400 Q330 330 400 312 Q470 330 560 400 Z" fill="#cfdcea" opacity=".6"/>
+  <g class="drift" opacity=".8">${[...Array(18)].map(()=>`<circle cx="${r()*800}" cy="${r()*300}" r="${1+r()*2}" fill="#fff"/>`).join('')}</g>`;
+ }
  if(id==='farm'){
   d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ec8f2"/><stop offset=".8" stop-color="#e2f6ff"/></linearGradient><radialGradient id="sc-sun"><stop offset="0" stop-color="#fff6c2"/><stop offset="1" stop-color="#ffd84a" stop-opacity="0"/></radialGradient>`;
   const flower=(x,y,s)=>`<g transform="translate(${x},${y}) scale(${s})"><rect x="-1.5" y="-38" width="3" height="38" fill="#3e8e2f"/><path d="M0 -20 q10 -6 14 2 q-8 4 -14 -2" fill="#4caf50"/><g transform="translate(0,-42)">${[...Array(10)].map((_,i)=>`<ellipse rx="4" ry="10" transform="rotate(${i*36}) translate(0,-9)" fill="#ffc83d"/>`).join('')}<circle r="7" fill="#7a4a1c"/></g></g>`;
