@@ -245,6 +245,39 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .spellbar button{font:inherit;font-weight:700;font-size:clamp(12px,1.8vh,15px);padding:6px 9px;border-radius:14px;background:rgba(255,255,255,.93);color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.3);white-space:nowrap;line-height:1.1}
 .spellbar button small{display:block;font-size:11px;color:#6a5fa0}
 .spellbar button.off{opacity:.45;filter:grayscale(.7)}
+.kind-ov{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 40%,rgba(76,50,160,.92),rgba(12,8,40,.97));animation:kindIn .9s ease-out;overflow:auto;padding:12px}
+.kind-ov.leave{animation:kindOut .9s ease-in forwards}
+@keyframes kindIn{from{opacity:0}to{opacity:1}}@keyframes kindOut{to{opacity:0;filter:brightness(2)}}
+.kind-stars i{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 6px #fff,0 0 12px #ffe9a8;animation:ktw 2.4s ease-in-out infinite}
+@keyframes ktw{0%,100%{opacity:.2}50%{opacity:1}}
+.kind-flash{position:absolute;left:50%;top:40%;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 0 120px 80px #fff6c2;transform:translate(-50%,-50%);animation:kflash 1.3s ease-out forwards;pointer-events:none}
+@keyframes kflash{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}25%{opacity:1;transform:translate(-50%,-50%) scale(3)}100%{opacity:0;transform:translate(-50%,-50%) scale(6)}}
+.kind-wrap{position:relative;display:flex;gap:18px;align-items:center;max-width:860px;width:100%;flex-wrap:wrap;justify-content:center}
+.kind-fig{position:relative;width:min(260px,52vw);animation:kfloat 3.2s ease-in-out infinite,kappear 1.4s cubic-bezier(.2,1.4,.4,1)}
+.kind-svg{width:100%;height:auto;display:block;filter:drop-shadow(0 0 22px rgba(255,236,170,.75))}
+@keyframes kfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes kappear{from{transform:scale(.1) translateY(80px);opacity:0;filter:brightness(4)}to{transform:none;opacity:1}}
+.kind-wings{transform-origin:120px 140px;animation:kwing 1.6s ease-in-out infinite}@keyframes kwing{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.9)}}
+.kind-aura{animation:kpulse 2.4s ease-in-out infinite}@keyframes kpulse{0%,100%{opacity:.75}50%{opacity:1}}
+.kind-tw{animation:ktw 1.8s ease-in-out infinite}
+.kind-wand{transform-origin:172px 112px;animation:kwand 2.6s ease-in-out infinite}@keyframes kwand{0%,100%{transform:rotate(0)}50%{transform:rotate(-10deg)}}
+.kind-swirl{position:absolute;left:50%;top:45%;width:0;height:0}
+.kind-swirl b{position:absolute;color:#fff6c2;font-size:18px;text-shadow:0 0 10px #ffd43b;animation:kswirl 3.5s linear infinite;transform:rotate(var(--a)) translateX(130px)}
+@keyframes kswirl{from{transform:rotate(var(--a)) translateX(130px) rotate(0)}to{transform:rotate(calc(var(--a) + 360deg)) translateX(130px) rotate(-360deg)}}
+.kind-card{background:linear-gradient(180deg,#fffdf5,#fff3d6);border-radius:22px;padding:18px 20px;max-width:440px;width:100%;box-shadow:0 0 0 4px #ffe066,0 0 40px rgba(255,224,102,.6);color:var(--ink);animation:kappear 1.2s .5s both cubic-bezier(.2,1.3,.4,1)}
+.kind-name{font-weight:900;font-size:22px;text-align:center;color:#7048e8;letter-spacing:.5px}
+.kind-say{font-size:17px;line-height:1.4;margin:8px 0 10px;text-align:center;font-style:italic}
+.kind-body .kind-hint{max-height:32vh;overflow:auto}.kind-problem{display:flex;justify-content:center;margin-bottom:6px}
+.kind-gift{margin-top:10px;text-align:center;font-weight:700;background:#f3f0ff;border-radius:12px;padding:8px}.kind-gift.big{font-size:18px;line-height:1.6}
+.kind-letters{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin:6px 0 12px;min-height:60px}
+.kind-letters .kl{font-size:clamp(30px,7vw,46px);font-weight:900;color:#7048e8;text-shadow:0 0 12px #d0bfff;opacity:0;animation:kletter .6s forwards cubic-bezier(.2,1.5,.4,1)}
+.kind-letters .kl.tricky{color:#f59f00;text-shadow:0 0 14px #ffd43b}
+@keyframes kletter{from{opacity:0;transform:translateY(-20px) scale(2);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+.kind-trick{background:#fff0f6;border-radius:12px;padding:10px;font-size:16px;line-height:1.4;text-align:center}
+.kind-btns{display:flex;justify-content:center;margin-top:14px}
+.kind-dust{position:fixed;z-index:201;font-size:22px;color:#ffe066;pointer-events:none;text-shadow:0 0 10px #fff}
+.fighter.hero.kindglow .hero-sprite{filter:drop-shadow(0 0 14px #ffd43b) drop-shadow(0 0 28px #fff3bf)}
+.kindpanel{background:linear-gradient(135deg,#f3f0ff,#fff9db)}.kindstars{font-size:24px;letter-spacing:4px}
 .spellbar.frozen button:not(#sp-pet),.spellbar.petfrozen #sp-pet{filter:grayscale(.6) brightness(1.1);background:linear-gradient(180deg,#e6f7ff,#b9e6ff)!important;opacity:.8;position:relative}
 .spellbar.frozen button:not(#sp-pet)::after,.spellbar.petfrozen #sp-pet::after{content:'❄️';position:absolute;top:-8px;right:-6px;font-size:16px}
 .spellbar.frozen::before{content:attr(data-thaw);position:absolute;left:0;right:0;top:100%;margin-top:4px;text-align:center;font-size:12px;font-weight:800;color:#e6f7ff;text-shadow:0 1px 2px #000}
@@ -1373,9 +1406,9 @@ function startBattle(zid,i,resume,opts){
  const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.12*tired)*(z.hpx||1)*lvlScale(p,round).hp);
  const foes=[{n:wild&&opts?opts.n:z.mons[i][0],e:wild&&opts?opts.e:z.mons[i][1],hp:mhp,max:mhp}].concat(resume||wild?[]:gangFor(p,z,i,isBoss,round));
  B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0,round};
- if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round','spellFrozen','petFrozen','monShield','pwUsed','pwTick'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
+ if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round','spellFrozen','petFrozen','monShield','pwUsed','pwTick','petSince'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
  if(resume&&B.foes&&B.foes[B.ti]){const f=B.foes[B.ti];B.name=f.n;B.emoji=f.e;B.mmax=f.max;B.foes[B.ti].hp=B.mhp;}
- if(wild){B.wild=true;B.backTo='world';B.name=foes[0].n;B.emoji=foes[0].e;}else{p.last={zid,i};if(!resume&&B.foes[0])B.foes[0].pw=powersFor(p,z,i,isBoss,round);}
+ if(wild){B.wild=true;B.backTo='world';B.name=foes[0].n;B.emoji=foes[0].e;}else{p.last={zid,i};if(!resume&&B.foes[0])B.foes[0].pw=powersFor(p,z,i,isBoss,round);B.tiredN=tired;}
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
  renderBattle();
  banner((B.round>1?ROUNDS[B.round].m+' ':'')+(B.foes.length>1?`GANG OF ${B.foes.length}!`:B.wild?`🌿 A wild ${B.name}!`:(isBoss?'BOSS: ':'⚔️ ')+B.name+'!'));
@@ -1428,6 +1461,81 @@ function maybePower(){
 function thawTick(){
  if(B.spellFrozen>0){B.spellFrozen--;if(!B.spellFrozen)setTimeout(()=>floatText('#mana','🔥 Spells thawed!','#ffd84a'),500);}
  if(B.petFrozen>0){B.petFrozen--;if(!B.petFrozen)setTimeout(()=>floatText('#heroS','🐾 Pet thawed!','#ffd84a'),700);}}
+
+/* ================= The Kind Teacher: a rare, magical helper (at most once a day, only when truly stuck) ================= */
+let kindOpen=false;
+const KIND_TRICKS={because:'Big Elephants Can Always Understand Small Elephants: B-E-C-A-U-S-E!',different:'Clap it in three parts: dif - fer - ent. Two f\'s, like two little fish swimming together.',friend:'A friend is your friend to the END. Friend ends with E-N-D.',again:'a - GAIN. You gain another turn when you try again!',said:'Sally Ate Ice cream Daily: S-A-I-D.',people:'People Eat Orange Peels, Loving Everything.',beautiful:'Start with B-E-A-U, then tiful. Beau-ti-ful!',believe:'Never believe a LIE. There is a lie hiding inside be-LIE-ve.',enough:'e - n - OUGH. The OUGH is the same as in tough.',laugh:'Laugh And U Get Happy: L-A-U-G-H.',surprise:'sur - prise. Two r\'s, one in each part.',library:'li - BRAR - y. Don\'t forget the first r!',caught:'c - AUGH - t. The same AUGH as in daughter.',busy:'A bus is busy! Busy starts with B-U-S.',through:'t-h-r-OUGH. Go through the rough road.',often:'OFT - EN. There is a quiet t hiding in there.',almost:'Almost has only one L: al + most.',both:'b - o - t - h. It ends with th, like tooth.',coach:'Coach has the OA team, just like boat and goat.',young:'YOU + NG. You are young!',touch:'t - OU - ch. The OU team, then ch.',your:'YOU + R makes YOUR.',human:'hu + man. Two claps: hu - man.',music:'mu - sic. Say mew like a kitty, then sic.',country:'COUNT + RY. Count the states in our country!',california:'Cal - i - for - nia. Four claps!',new:'The EW team says oo: n-e-w.',few:'The EW team again: f-e-w, just like new.',fuel:'fu - el. Two claps.',throne:'The quiet e at the end makes the o say its name: throne.',rocket:'rock + et.',pocket:'pock + et, just like rocket!',sew:'You sew with a needle. S-E-W sounds like so!',state:'The quiet e makes the a say its name: st-A-t-e.',cute:'The quiet e makes the u say its name: c-U-t-e.',use:'u - s - e. The quiet e helps the u say its name.',unit:'u - nit. Two claps.',most:'m - o - s - t. Almost has the same ending!',hold:'h - OLD. Hold ends with old.',told:'t - OLD. Told ends with old, just like hold.',grow:'g - r - OW. The OW team says oh, like snow.',open:'o - pen. Two claps.',also:'al - so. Only one L!',under:'un - der. Two claps.',such:'s - u - ch.',much:'m - u - ch. Just like such!'};
+function kindCan(p){if(!B||B.wild||kindOpen)return false;if(p.kindDay===dayKey())return false;if(B.mode==='math'&&(B.round||1)>=5)return false;if(B.mode==='spell'&&spellRound()>=5)return false;return true;}
+function kindLog(p,kind,what){p.kindDay=dayKey();p.kindVisits=p.kindVisits||[];p.kindVisits.push({d:dayKey(),kind,what:String(what).slice(0,40)});if(p.kindVisits.length>60)p.kindVisits.shift();save();}
+function kindSay(text){try{if(!window.speechSynthesis||!state.sound)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.85;u.pitch=1.2;const v=pickVoice();if(v)u.voice=v;speechSynthesis.speak(u);}catch(e){}}
+function kindChime(){[523,659,784,1047,1319,1568,2093].forEach((f,i)=>tone(f,.9,'sine',.05,i*.13));[1568,2093,2637].forEach((f,i)=>tone(f,1.4,'triangle',.025,1.1+i*.2));}
+function kindSVG(){return `<svg class="kind-svg" viewBox="0 0 240 330" aria-label="The Kind Teacher">
+<defs><radialGradient id="kaura"><stop offset="0" stop-color="#fffbe6" stop-opacity=".95"/><stop offset=".45" stop-color="#ffe9a8" stop-opacity=".45"/><stop offset="1" stop-color="#ffd6f5" stop-opacity="0"/></radialGradient>
+<linearGradient id="kgown" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8a4ff"/><stop offset=".55" stop-color="#8b6cf6"/><stop offset="1" stop-color="#5b3fd6"/></linearGradient>
+<linearGradient id="kwing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0fbff" stop-opacity=".9"/><stop offset="1" stop-color="#ffd6f5" stop-opacity=".35"/></linearGradient>
+<linearGradient id="khair" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfd6e4"/></linearGradient></defs>
+<circle cx="120" cy="150" r="118" fill="url(#kaura)" class="kind-aura"/>
+<g class="kind-wings"><path d="M112 128 C60 70 10 90 24 150 C34 190 80 176 112 150Z" fill="url(#kwing)" stroke="#fff" stroke-width="1.5"/><path d="M110 150 C70 170 40 220 70 238 C96 250 110 200 114 162Z" fill="url(#kwing)" stroke="#fff" stroke-width="1.2" opacity=".85"/>
+<path d="M128 128 C180 70 230 90 216 150 C206 190 160 176 128 150Z" fill="url(#kwing)" stroke="#fff" stroke-width="1.5"/><path d="M130 150 C170 170 200 220 170 238 C144 250 130 200 126 162Z" fill="url(#kwing)" stroke="#fff" stroke-width="1.2" opacity=".85"/></g>
+<path d="M104 146 Q120 138 136 146 L170 300 Q150 316 120 312 Q90 316 70 300Z" fill="url(#kgown)"/>
+<path d="M70 300 Q85 290 95 304 Q108 292 120 306 Q132 292 145 304 Q156 290 170 300 Q150 318 120 316 Q90 318 70 300Z" fill="#d0bfff"/>
+<g fill="#fff6c2">${[[98,200],[132,190],[112,240],[146,250],[90,268],[126,278],[150,284],[104,290]].map(([x,y],i)=>`<path class="kind-tw" style="animation-delay:${i*.35}s" transform="translate(${x},${y})" d="M0 -5 L1.4 -1.4 L5 0 L1.4 1.4 L0 5 L-1.4 1.4 L-5 0 L-1.4 -1.4Z"/>`).join('')}</g>
+<path d="M104 146 Q120 160 136 146 L132 176 Q120 184 108 176Z" fill="#9775fa"/>
+<path d="M106 150 Q84 178 92 206" stroke="#ffe0c7" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M106 152 Q88 176 96 200" stroke="#9775fa" stroke-width="11" fill="none" stroke-linecap="round" opacity=".55"/>
+<path d="M134 150 Q160 140 172 112" stroke="#ffe0c7" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M134 152 Q156 144 166 124" stroke="#9775fa" stroke-width="11" fill="none" stroke-linecap="round" opacity=".55"/>
+<g class="kind-wand"><line x1="172" y1="112" x2="196" y2="58" stroke="#f1d37a" stroke-width="4" stroke-linecap="round"/><circle cx="197" cy="54" r="16" fill="#fff6c2" opacity=".55" class="kind-aura"/><path transform="translate(197,54)" d="M0 -13 L3.5 -4 L13 -4 L5.5 2 L8.5 12 L0 6 L-8.5 12 L-5.5 2 L-13 -4 L-3.5 -4Z" fill="#ffd43b" stroke="#fff" stroke-width="1.5"/></g>
+<path d="M92 92 Q88 60 120 56 Q152 60 148 92 Q150 118 138 128 L102 128 Q90 118 92 92Z" fill="url(#khair)"/>
+<circle cx="120" cy="96" r="25" fill="#ffe0c7"/>
+<circle cx="120" cy="52" r="15" fill="url(#khair)"/><path d="M106 58 Q120 50 134 58" stroke="#e8ecf4" stroke-width="3" fill="none"/>
+<path d="M96 88 Q104 70 120 70 Q138 70 144 88 Q134 78 120 80 Q106 78 96 88Z" fill="url(#khair)"/>
+<path d="M108 66 L112 58 L116 64 L120 54 L124 64 L128 58 L132 66Z" fill="#ffd43b" stroke="#fff" stroke-width="1"/><circle cx="120" cy="56" r="2.5" fill="#ff8fd0"/>
+<path d="M108 96 Q112 92 116 96" stroke="#5a3b2a" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M124 96 Q128 92 132 96" stroke="#5a3b2a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<circle cx="106" cy="104" r="4.5" fill="#ffadc9" opacity=".7"/><circle cx="134" cy="104" r="4.5" fill="#ffadc9" opacity=".7"/>
+<path d="M112 108 Q120 115 128 108" stroke="#c2255c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+<circle cx="120" cy="136" r="5" fill="#ffd43b" stroke="#fff" stroke-width="1.2"/></svg>`;}
+function kindAppear(o){
+ kindOpen=true;fbOpen=true;if(B)B.busy=true;const p=P();
+ const stars=Array.from({length:46},()=>`<i style="left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${(Math.random()*3).toFixed(2)}s;transform:scale(${(.4+Math.random()).toFixed(2)})"></i>`).join('');
+ const ov=document.createElement('div');ov.id='kindOv';ov.className='kind-ov';
+ ov.innerHTML=`<div class="kind-stars">${stars}</div><div class="kind-flash"></div><div class="kind-wrap"><div class="kind-fig">${kindSVG()}<div class="kind-swirl">${Array.from({length:14},(_,i)=>`<b style="--a:${i*26}deg;animation-delay:${(i*.12).toFixed(2)}s">✦</b>`).join('')}</div></div>
+ <div class="kind-card"><div class="kind-name">✨ The Kind Teacher ✨</div><div class="kind-say">${o.say}</div><div class="kind-body">${o.body||''}</div><div class="kind-btns"><button class="btn gold big" id="kindGo">${o.btn||'Thank you! ✨'}</button></div></div></div>`;
+ document.body.appendChild(ov);kindChime();
+ setTimeout(()=>kindSay(o.voice||o.sayPlain||''),1200);
+ if(o.after)setTimeout(o.after,1500);
+ $('#kindGo').onclick=()=>{SFX.coin();ov.classList.add('leave');try{speechSynthesis.cancel();}catch(e){}
+  for(let i=0;i<24;i++){const s=document.createElement('div');s.className='kind-dust';s.textContent=pick(['✦','✧','⭐','✨']);s.style.left=(40+Math.random()*20)+'%';s.style.top=(30+Math.random()*30)+'%';document.body.appendChild(s);
+   s.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${(Math.random()-.5)*500}px,${-150-Math.random()*300}px) scale(.3)`,opacity:0}],{duration:1400+Math.random()*600,easing:'ease-out'}).onfinish=()=>s.remove();}
+  setTimeout(()=>{ov.remove();kindOpen=false;fbOpen=false;if(B)B.busy=false;o.done&&o.done();},900);};
+}
+function kindMath(q){
+ const p=P();if(!kindCan(p)||B.mode!=='math')return false;
+ const hist=(B.hist||[]).filter(x=>x.op===q.op).slice(-4);if(hist.length<4||hist.filter(x=>!x.ok).length<3||B.wrong<3)return false;
+ if(Math.random()>.3)return false;
+ kindLog(p,'math',q.text);B.charge=Math.min(MAX_CHARGE,(B.charge||0)+2);
+ const nm=esc(p.name);
+ kindAppear({say:`${nm}, I have been watching you try so hard. Let me show you a little magic for this one.`,voice:`${p.name}, I have been watching you try so hard. Let me show you a little magic for this one.`,
+  body:`<div class="kind-problem">${q.tpl?xFeedback(q):`<div class="fb-ans">${esc(q.text)} = <b>?</b></div>`}</div><div class="hint kind-hint">${hintHTML(q)}</div><div class="kind-gift">🎁 She also gave you <b>2 spell charges</b>!</div>`,
+  btn:'I can do it! ✨',done:()=>{updateBars();B.forceQ=Object.assign({},q,{hinted:true,kind:true,again:undefined,practice:undefined});nextQ();}});
+ return true;}
+function kindBless(reason){
+ const p=P();if(!kindCan(p)||B.mode!=='math')return false;
+ kindLog(p,'bless',B.name);
+ B.charge=MAX_CHARGE;B.shieldUp=true;B.hhp=Math.min(B.hmax,B.hhp+Math.round((B.hmax-B.hhp)*.6));B.kindGlow=true;
+ const nm=esc(p.name);const msg=reason==='again'?`${p.name}, you keep coming back, and that is the bravest thing a hero can do. Take my blessing.`:`${p.name}, don't give up! Every great wizard needs a little help sometimes. Take my blessing.`;
+ kindAppear({say:esc(msg).replace(esc(p.name),nm),voice:msg,body:`<div class="kind-gift big">⚡ All your spell charges are full!<br>🛡️ A magic shield protects you<br>❤️ Your health is restored</div>`,btn:'Let\'s go! ⚔️',done:()=>{const h=$('#heroF');if(h)h.classList.add('kindglow');updateBars();nextQ();}});
+ return true;}
+function kindSpell(q,said){
+ const p=P();if(!kindCan(p)||q.type!=='word')return false;
+ const st=wordStat(p,q.word);if(st.w<3||st.s>0)return false;
+ if(Math.random()>.35)return false;
+ kindLog(p,'spell',q.word);
+ const w=q.word,trick=KIND_TRICKS[w.toLowerCase()];const bad=[];for(let k=0;k<w.length;k++)if((said||'')[k]!==w[k].toLowerCase())bad.push(k);
+ const letters=[...w].map((ch,k)=>`<span class="kl ${bad.includes(k)?'tricky':''}" style="animation-delay:${(1.6+k*.45).toFixed(2)}s">${esc(ch)}</span>`).join('');
+ const msg=`${p.name}, this word has been tricky for you. Watch closely while I write it in the air.`;
+ kindAppear({say:esc(msg),voice:`${msg} ${w}.`,body:`<div class="kind-letters">${letters}</div>${trick?`<div class="kind-trick">🪄 ${esc(trick)}</div>`:`<div class="kind-trick">🪄 The glowing gold letters are the tricky part. Say it slowly as you spell it!</div>`}`,
+  btn:'I\'ll spell it now! ✨',after:()=>{[...w].forEach((ch,k)=>tone(900+k*60,.18,'sine',.035,.3+k*.45));setTimeout(()=>{if(kindOpen)kindSay(`${w}. ${[...w].join(', ')}. ${w}.`);},(1.6+w.length*.45)*1000);},
+  done:()=>{const i=B.queue.indexOf(q);if(i>0){B.queue.splice(i,1);B.queue.unshift(q);}q.kind=true;nextQ();}});
+ return true;}
 function foesHTML(){
  const bk=(B.foes||[]).map((f,k)=>({f,k})).filter(o=>o.k!==B.ti&&o.f.hp>0);
  const pw=curPowers();return `${pw.length?`<div class="mpow" title="Special powers">${pw.map(k=>`<span title="${POWERS[k].n}">${POWERS[k].e}</span>`).join('')}</div>`:''}<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div>${B.round>=4&&!B.wild?'<div class="mcharge" id="mcharge" title="Monster charging an attack"><i></i><span>⚡</span></div>':''}<div class="mon-sprite" id="monS">${B.emoji}</div>${bk.length?`<div class="gang">${bk.map(o=>`<div class="bk" data-k="${o.k}"><div class="minihp"><i></i></div><span class="bks">${o.f.e}</span></div>`).join('')}</div>`:''}`;
@@ -1447,8 +1555,8 @@ function renderBattle(){
  const p=P();const pet=petOf(p);
  app.innerHTML=`<div class="battle ${B.z.cls} ${B.mode!=='math'?'questmode':''}">
  <div class="bhud"><button class="iconbtn" title="Run away" onclick="fleeBattle()">✕</button><div class="bname" id="bname">${B.round>1?ROUNDS[B.round].m+' ':''}${B.isBoss&&B.ti===0?'BOSS ':''}${esc(B.name)}</div><div class="streak" id="streak"></div><div class="coins" id="bcoins">🪙 ${p.coins}</div></div>
- <div class="bmain"><div class="arena" id="arena"><div class="scene">${sceneSVG(B.z.id)}</div>${B.mode==='math'?`<div class="spellbar" id="spellbar">${SPECIALS.map(x=>`<button id="sp-${x.id}" onclick="useSpecial('${x.id}')">${x.e} ${x.n}<small>${x.cost} charges</small></button>`).join('')}${pet&&petMovesMax(petData(p,pet.id))?`<button id="sp-pet" onclick="usePetMove()">${pet.e} ${PET_MOVES[pet.id]||'Pet Attack'}<small id="spPetN"></small></button>`:''}</div>`:''}
-  <div class="fighter hero" id="heroF"><div class="bubble"></div><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div>${B.mode==='math'?'<div class="mana" id="mana" title="Spell charges"></div>':''}<div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf" id="petF">${petAvatar(p,pet)}</div>`:''}</div>
+ <div class="bmain"><div class="arena" id="arena"><div class="scene">${sceneSVG(B.z.id)}</div>${B.mode==='math'&&!B.wild?`<div class="spellbar" id="spellbar">${SPECIALS.map(x=>`<button id="sp-${x.id}" onclick="useSpecial('${x.id}')">${x.e} ${x.n}<small>${x.cost} charges</small></button>`).join('')}${pet&&petMovesMax(petData(p,pet.id))?`<button id="sp-pet" onclick="usePetMove()">${pet.e} ${PET_MOVES[pet.id]||'Pet Attack'}<small id="spPetN"></small></button>`:''}</div>`:''}
+  <div class="fighter hero" id="heroF"><div class="bubble"></div><div class="hp"><i id="hhp"></i></div><div class="hpnum" id="hhpn"></div>${B.mode==='math'&&!B.wild?'<div class="mana" id="mana" title="Spell charges"></div>':''}<div class="hero-sprite" id="heroS">${heroSVG(p.look,{spell:p.spell})}</div>${pet?`<div class="petf" id="petF">${petAvatar(p,pet)}</div>`:''}</div>
   <div class="fighter mon ${B.isBoss&&B.ti===0?'boss':''}" id="monF">${B.mode==='math'?foesHTML():`<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div>`}</div>
  </div>
  <div class="bctrl"><div class="qcard" id="qcard"><button class="hintbtn" id="hintBtn" onclick="useHint()"></button><div class="qlabel" id="qlabel"></div><div class="qtext" id="qtext">Get ready…</div></div>
@@ -1475,11 +1583,11 @@ function updateMana(){
  const pf=$('#petF');if(pf)pf.classList.toggle('frozen',B.petFrozen>0);
  const hb=$('#hintBtn');if(hb)hb.classList.toggle('frozen',B.petFrozen>0);
  const ms=$('#monS');if(ms)ms.classList.toggle('stoneskin',!!B.monShield);
- const pb=$('#sp-pet');if(pb){const p=P(),pet=petOf(p);const left=pet?petMovesMax(petData(p,pet.id))-(B.petUses||0):0;pb.classList.toggle('off',left<=0);pb.classList.toggle('ready',left>0);$('#spPetN').textContent=left>0?`${left} left · free!`:'used up';}
+ const pb=$('#sp-pet');if(pb){const p=P(),pet=petOf(p);const left=pet?petMovesMax(petData(p,pet.id))-(B.petUses||0):0;const warm=(B.petSince||0)>=3;pb.classList.toggle('off',left<=0||!warm);pb.classList.toggle('ready',left>0&&warm);$('#spPetN').textContent=left<=0?'used up':warm?`ready! (${left} left)`:`${3-(B.petSince||0)} right to charge`;}
  SPECIALS.forEach(x=>{const b=$('#sp-'+x.id);if(!b)return;const ok=(B.charge||0)>=x.cost&&!(x.id==='shield'&&B.shieldUp)&&!(x.id==='heal'&&B.hhp>=B.hmax);b.classList.toggle('off',!ok);b.classList.toggle('ready',ok);});
 }
 function useSpecial(id){
- if(!B||B.mode!=='math'||B.over||fbOpen)return;
+ if(!B||B.mode!=='math'||B.over||fbOpen||B.wild)return;
  const x=SPECIALS.find(s=>s.id===id);
  if(B.busy){return;}
  if(B.spellFrozen>0){toast(`❄️ Your spells are frozen! Get ${B.spellFrozen} more right to thaw them.`);return;}
@@ -1506,10 +1614,10 @@ function useSpecial(id){
  }
 }
 function usePetMove(){
- if(!B||B.mode!=='math'||B.over||fbOpen||B.busy)return;
- const p=P(),pet=petOf(p);if(!pet)return;if(B.petFrozen>0){toast(`🧊 ${pet.name} is frozen! Get ${B.petFrozen} more right to thaw.`);return;}const pd=petData(p,pet.id);const max=petMovesMax(pd);
+ if(!B||B.mode!=='math'||B.over||fbOpen||B.busy||B.wild)return;
+ const p=P(),pet=petOf(p);if(!pet)return;if((B.petSince||0)<3){toast(`${pet.e} ${PET_MOVES[pet.id]||'Pet Attack'} charges up after 3 right answers. ${3-(B.petSince||0)} more to go!`);return;}if(B.petFrozen>0){toast(`🧊 ${pet.name} is frozen! Get ${B.petFrozen} more right to thaw.`);return;}const pd=petData(p,pet.id);const max=petMovesMax(pd);
  if((B.petUses||0)>=max){toast(`${pet.e} ${pet.name} is tired. ${max} move${max>1?'s':''} per battle!`);return;}
- B.petUses=(B.petUses||0)+1;B.busy=true;const happy=petHappy(pd);const mv=PET_MOVES[pet.id]||'Pet Attack';
+ B.petUses=(B.petUses||0)+1;B.petSince=0;B.busy=true;const happy=petHappy(pd);const mv=PET_MOVES[pet.id]||'Pet Attack';
  banner(`${pet.e} ${mv.toUpperCase()}!`);tone(660,.1,'triangle',.1);
  const arena=$('#arena'),a=arena.getBoundingClientRect(),pf=$('#petF'),m=$('#monS').getBoundingClientRect();
  const r=pf?pf.getBoundingClientRect():$('#heroS').getBoundingClientRect();
@@ -1517,7 +1625,7 @@ function usePetMove(){
  const x0=r.left-a.left,y0=r.top-a.top,x1=m.left-a.left+m.width/2-32,y1=m.top-a.top+m.height/2-32;
  el.animate([{transform:`translate(${x0}px,${y0}px) scale(1)`},{transform:`translate(${(x0+x1)/2}px,${Math.min(y0,y1)-90}px) scale(1.3) rotate(-20deg)`},{transform:`translate(${x1}px,${y1}px) scale(1.4)`},{transform:`translate(${x0}px,${y0}px) scale(1)`}],{duration:1100,easing:'ease-in-out'}).onfinish=()=>{el.remove();if(pf)pf.style.visibility='';};
  setTimeout(()=>{
-  if(!B)return;const base=[0,35,42,50][PET_STAGES.indexOf(petStage(pd))]||35;const dmg=Math.round(base*(happy?1.25:1)*((PET_TIERS[pet.tier]||{}).mult||1));
+  if(!B)return;const base=[0,35,42,50][PET_STAGES.indexOf(petStage(pd))]||35;const dmg=Math.min(Math.round(B.mmax*.3),Math.round(base*(happy?1.25:1)*((PET_TIERS[pet.tier]||{}).mult||1)));
   B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();burst(x1+32,y1+32,'#ffd84a',14);floatText('#monS',`${happy?'😊 ':''}-${dmg}`,'#ffe066');
   $('#monS').animate([{transform:'none'},{transform:'translateX(20px) rotate(12deg)'},{transform:'none'}],{duration:400});
   pd.xp+=.5;updateBars();
@@ -1528,7 +1636,7 @@ function usePetMove(){
 /* Diamond/Legend: monsters charge an attack while you think (more time for bigger problems) */
 setInterval(()=>{
  if(curScreen!=='battle'||!B||B.over||B.mode!=='math'||!B.chargeLim)return;
- const bar=$('#mcharge');if(B.busy||fbOpen||$('#modal.show'))return;
+ const bar=$('#mcharge');if(B.busy||fbOpen||kindOpen||$('#modal.show'))return;
  B.chargeEl=(B.chargeEl||0)+.1;const f=Math.min(1,B.chargeEl/B.chargeLim);
  if(bar){bar.querySelector('i').style.width=(f*100)+'%';bar.classList.toggle('hot',f>.7);}
  if(f>=1){B.chargeEl=0;B.busy=true;floatText('#monS','⚡ Too slow!','#ffe066');
@@ -1543,11 +1651,13 @@ function nextQ(){
  if(!B||B.over||curScreen!=='battle')return;
  if(B.mode!=='math'){questNextQ();return;}
  if(B.pwCast)B.pwCast=false;else if(B.right+B.wrong>0&&maybePower())return;
+ if(!B.kindStart&&B.right+B.wrong===0){B.kindStart=true;if(B.tiredN>=2&&Math.random()<.5&&kindBless('again'))return;}
  const p=P();let q=null;
  B.review.forEach(r=>r.wait--);
  const due=B.review.findIndex(r=>r.wait<=0);
  let label='';
- if(due>=0){q=B.review.splice(due,1)[0].q;q.again=true;label='⭐ Bonus try! Get it for +3 coins';}
+ if(B.forceQ){q=B.forceQ;B.forceQ=null;label='✨ The Kind Teacher believes in you!';}
+ else if(due>=0){q=B.review.splice(due,1)[0].q;q.again=true;label='⭐ Bonus try! Get it for +3 coins';}
  else{
   const op=pickOp(p,B.z.op);
   const old=(!B.review.length&&Math.random()<.1)?practiceFact(p,op):null;
@@ -1560,7 +1670,7 @@ function nextQ(){
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
  B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?(()=>{const md=medianThink(p),fl=fastLimit(q)*(B.round>=5?2:2.5);return Math.max(B.round>=5?6:8,md?Math.min(fl,md*(B.round>=5?2.5:3)):fl,md*(B.round>=5?1.8:2.2));})():0;
- p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick};save();
+ p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick,petSince:B.petSince};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
  showQ();
@@ -1580,7 +1690,7 @@ function showQ(){
  }else $('#qtext').innerHTML=`${q.text} = <span class="ansbox">${inp}</span>`;
 }
 function press(k){
- if(!B||curScreen!=='battle'||B.over)return;
+ if(!B||curScreen!=='battle'||B.over||kindOpen)return;
  if(fbOpen){if(k==='go')closeFeedback();return;}
  if(B.busy)return;
  if(B.mode!=='math'){questPress(k);return;}
@@ -1592,14 +1702,14 @@ function press(k){
 function answer(){
  const p=P(),q=B.q,secs=(performance.now()-B.t0)/1000;
  const v=parseInt(B.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const med=medianThink(p);const fast=med?secs<med*0.85:secs<fastLimit(q);const slip=!ok&&!q.tpl&&isSlip(q,B.input);
- B.busy=true;
+ B.busy=true;B.hist=B.hist||[];B.hist.push({op:q.op,ok});if(B.hist.length>12)B.hist.shift();
  p.stats[q.op][ok?'r':'w']++;
  const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
  let lvChange=null;const prevL=lvl(p,q.op);
  if(!q.again&&!q.practice&&!q.hinted)lvChange=adjustSkill(p,q.op,ok,slip);
  if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${UP_N} right in a row to move back up!`);},900);}
  if(ok){
-  B.right++;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();thawTick();
+  B.right++;B.petSince=(B.petSince||0)+1;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();thawTick();
   const mm=p.missed[q.text];if(mm&&(q.practice||q.again))mm.fixed=(mm.fixed||0)+1;
   if(lvChange===1){const nl=prevL+1;const isNew=nl>(p.maxL[q.op]||0);if(isNew)p.maxL[q.op]=nl;
    setTimeout(()=>{if(isNew){banner(`⭐ NEW LEVEL! ${OPNAME[q.op]} ${nl}`);SFX.level();toast(`New challenge: ${KID_DESC[q.op][nl]}`);}else toast(`👍 Back up to ${OPNAME[q.op]} level ${nl}!`);},700);}
@@ -1630,7 +1740,7 @@ function answer(){
   if(!q.again)B.review.push({q:Object.assign({},q),wait:3});
   save();SFX.wrong();
   const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
-  const said=B.input;monsterAttack(()=>showFeedback(q,said,slip));
+  const said=B.input;monsterAttack(()=>{if(B.hhp>0&&(kindMath(q)||(B.hhp<B.hmax*.3&&B.wrong>=4&&Math.random()<.25&&kindBless('low'))))return;showFeedback(q,said,slip);});
  }
  updateBars();
 }
@@ -1732,7 +1842,7 @@ function showFeedback(q,said,slip){
  <button class="btn green big" onclick="closeFeedback()">Got it! ➜</button></div>`);
 }
 function closeFeedback(){
- if(!fbOpen)return;fbOpen=false;closeModal();
+ if(!fbOpen||kindOpen)return;fbOpen=false;closeModal();
  if(B.hhp<=0){B.over=true;loseBattle();}else nextQ();
 }
 function endBattleBook(){
@@ -1811,6 +1921,7 @@ SCREENS.backpack=()=>{
   <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>
  <div>
   ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
+  ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
   <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(pet.name)}'s home (feed, play &amp; pet shop)</button>`:''}
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs})</button>`:''}
@@ -2366,6 +2477,7 @@ SCREENS.parent=()=>{
  <p class="note">Every child starts every skill at the easiest level (single digits) and moves up from there. Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level. <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${cloudSection()}
  ${state.players.map(parentCard).join('')}
+ ${(()=>{const rows=[];state.players.forEach(pl=>(pl.kindVisits||[]).slice(-8).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · ${v.kind==='spell'?`spelling "${esc(v.what)}"`:v.kind==='math'?`math: ${esc(v.what)}`:`blessing vs ${esc(v.what)} (was losing)`}</li>`)));return rows.length?`<div class="pp"><h3>✨ Kind Teacher visits</h3><p class="note">She appears at most once a day per child, only when they are truly stuck. These show where each child needed help.</p><ul>${rows.join('')}</ul></div>`:'';})()}
  <div class="pp"><h3>Add a player</h3><div class="row" style="justify-content:flex-start"><input id="npName" class="inp" style="max-width:240px" placeholder="Name" maxlength="16"><label>Grade <select id="npGrade" class="sel">${[1,2,3,4,5,6].map(g=>`<option ${g===3?'selected':''}>${g}</option>`).join('')}</select></label><button class="btn green" onclick="addPlayer()">Add</button></div></div>
  <div class="pp"><h3>💾 Saving</h3><p>Everyone's progress saves automatically on this device, and the game picks up where each child left off, even in the middle of a battle.</p>
  <p><b>On an iPad or iPhone:</b> tap Share, then <b>Add to Home Screen</b>, and always open the game from that icon. The Home Screen icon keeps its own saved games and PIN, separate from Safari, so playing in Safari and from the icon won't share progress.</p><p><b>Before deleting the Home Screen icon</b>, download a backup: removing the icon also erases what it saved. Restore the backup in the new icon's Parent Corner.</p>
@@ -2520,7 +2632,7 @@ function questAnswer(){
   B.wrong++;B.streak=0;q.tries++;q.said=said;if(q.rp)q.rp=Math.max(0,q.rp-1);
   B.queue.splice(Math.min(2,B.queue.length),0,q);
   save();SFX.wrong();const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
-  monsterAttack(()=>showFeedback(q,said,false));
+  monsterAttack(()=>{if(kindSpell(q,said))return;showFeedback(q,said,false);});
  }
  updateBars();
 }
