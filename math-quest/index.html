@@ -462,6 +462,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .z-haunt{background:linear-gradient(160deg,#fd7e14,#5f3dc4 55%,#1a1033)}.battle.z-haunt{background:linear-gradient(180deg,#5f3dc4,#1a1033)}
 .evbanner{display:block;width:100%;text-align:left;font:inherit;font-size:15px;border:0;border-radius:16px;padding:10px 14px;margin:10px 0;background:linear-gradient(90deg,#fd7e14,#7048e8);color:#fff;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25)}.evbanner.soon{cursor:default;opacity:.95}
 .tbchip{background:#2b2250;color:#ffe8a3}.tbchip.low{background:#e03131;color:#fff;animation:bob 1.2s ease-in-out infinite}.tbrow label{display:inline-flex;align-items:center;gap:4px}.restcard{max-width:520px;margin:40px auto}
+.pad .negk{display:none;grid-column:1/-1;font-size:18px!important;background:#fff4e6!important;color:#d9480f!important}.pad.negon .negk{display:block}
 .vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}.vcard{background:#fff;color:var(--ink);border-radius:18px;padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center;box-shadow:0 4px 0 rgba(0,0,0,.2)}.vcard .ve{font-size:44px}.vstars{color:#f59f00;font-size:20px;letter-spacing:2px}.vperk{font-weight:700}.vnext{font-size:13px;color:#868e96;min-height:2.4em}
 .qdot{background:#ff6b6b;color:#fff;border-radius:999px;padding:0 7px;margin-left:4px}
 .qpanel{background:rgba(255,255,255,.95);color:var(--ink);border-radius:20px;padding:12px 14px;margin:12px 0}.qpanel h3{margin:0 0 8px}.qready{background:#ffd43b;color:#5c3c00;border-radius:999px;padding:2px 10px;font-size:14px;animation:bob 1.2s ease-in-out infinite;display:inline-block}
@@ -775,7 +776,7 @@ const XDESC={
  money:['','Pennies & nickels','Dimes, nickels & pennies','Counting quarters','Coins and dollars','Adding prices','Change from $1','Dollars to cents','Change from $5','Buying lots','Shopping trip'],
  time:['',"O'clock",'Half past','Quarter past & to','5-minute times','Any minute','Minutes in hours','Minutes later','How long?','Minutes earlier','Long trips']};
 function xAnsStr(q){if(q.kind==='clock')return tfmt(Math.floor(q.answer/100),q.answer%100);return q.tpl&&q.tpl.includes('$')?'$'+q.answer:q.tpl&&q.tpl.includes('¢')?q.answer+'¢':String(q.answer);}
-function xInpFmt(q,inp){if(!inp)return '?';if(q.kind==='clock'&&inp.length>=3)return inp.slice(0,-2)+':'+inp.slice(-2);return inp;}
+function xInpFmt(q,inp){if(!inp)return '?';if(inp.startsWith('-'))return '−'+(inp.slice(1)||'?');if(q.kind==='clock'&&inp.length>=3)return inp.slice(0,-2)+':'+inp.slice(-2);return inp;}
 function xShowQ(q,inp){
  const box=`<span class="ansbox">${xInpFmt(q,inp)}</span>`;
  $('#qtext').innerHTML=`<div class="xq">${q.vis?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div>${q.kind==='clock'?'<div class="xtip">Type 3:45 as 3 4 5</div>':''}</div></div>`;
@@ -1438,9 +1439,48 @@ const HI_DESC={
  mul:['Negative × negative','Percent of a number','Powers and exponents','Ratios and proportions','Two-step equations'],
  div:['Negative ÷ negative','Unit rates','Square roots','Finding the whole from a percent','Equations with division']};
 ['add','sub','mul','div'].forEach(o=>{HI_DESC[o].forEach((d,i)=>{KID_DESC[o][11+i]=d;LEVEL_DESC[o][11+i]=d;});});
-const maxLv=op=>BASIC_OPS.includes(op)?15:10;
-const gradeExp=p=>Math.min(14,(p.grade||3)+2);
+const maxLv=op=>BASIC_OPS.includes(op)?20:10;
+const gradeExp=p=>Math.min(18,(p.grade||3)+2+Math.max(0,(p.grade||3)-8));
 const NEG=n=>`(−${Math.abs(n)})`;const SQ=n=>`${n}²`;const POW=(b,e)=>`${b}<sup>${e}</sup>`;
+/* ================= algebra: levels 16-20 for + − × ÷ (answers can be negative: use the ± key) ================= */
+const ALG_DESC={
+ add:['Evaluate expressions','Combine like terms','Variables on both sides','Systems of equations','Evaluate quadratics'],
+ sub:['Negative results','Negative minus positive','Absolute value','Slope from two points','Function values'],
+ mul:['Negative × positive','Exponent rules (multiply)','Distributive property','Multiply binomials','Factor trinomials'],
+ div:['Negative ÷ positive','Exponent rules (divide)','Solve −ax = b','Two-step with negatives','Slope from an equation']};
+['add','sub','mul','div'].forEach(o=>{ALG_DESC[o].forEach((d,i)=>{KID_DESC[o][16+i]=d;LEVEL_DESC[o][16+i]=d;});});
+const nz=(lo,hi)=>{let v=0;while(!v)v=rnd(lo,hi);return v;};const sgn=n=>n<0?`− ${-n}`:`+ ${n}`;const par=n=>n<0?`(−${-n})`:`${n}`;
+const algFix=s=>s&&s.replace(/(^|[\s(,=>:])-(\d)/g,'$1−$2').replace(/([+−] )1x/g,'$1x');
+function genAlg(op,L){const q={op,L,fast:20,neg:true};const fin=o=>{Object.assign(q,o);['tpl','prompt','explain','nudge'].forEach(k=>{if(q[k])q[k]=algFix(q[k]);});return q;};const k=L-15;
+ const eqn=(prompt,tpl,text,ans,explain,nudge)=>fin({prompt,tpl,text,answer:ans,explain,nudge});
+ if(op==='add'){
+  if(k===1){const a=nz(2,6),b=nz(-9,9),x=nz(-6,6);return eqn(`Find the value when <b>x = ${x<0?'−'+(-x):x}</b>`,`${a}x ${sgn(b)} = {A}`,`${a}x ${sgn(b)}, x=${x}`,a*x+b,`<p>Replace x with ${par(x)}: ${a} × ${par(x)} = ${a*x}. Then ${a*x} ${sgn(b)} = <b>${a*x+b}</b>.</p>`,`<p>Swap x for ${par(x)} and multiply first.</p>`);}
+  if(k===2){const a=rnd(2,9),b=rnd(2,9),c=rnd(2,15);return eqn('Simplify',`${a}x + ${b}x − ${c}x = {A}x`,`${a}x+${b}x-${c}x`,a+b-c,`<p>Add and subtract the numbers in front of x: ${a} + ${b} − ${c} = <b>${a+b-c}</b>, so it's ${a+b-c}x.</p>`,`<p>Like terms: just combine the numbers in front of x.</p>`);}
+  if(k===3){let a,c,x;do{a=rnd(2,9);c=rnd(1,8);}while(a===c);x=nz(-9,9);const b=rnd(-12,12),d=a*x+b-c*x;return eqn('Find <b>x</b>',`${a}x ${sgn(b)} = ${c}x ${sgn(d)} &nbsp; → &nbsp; x = {A}`,`${a}x${sgn(b)}=${c}x${sgn(d)}`,x,`<p>Move the x's to one side: ${a}x − ${c}x = ${a-c}x. Move the numbers: ${d} − ${par(b)} = ${d-b}. So ${a-c}x = ${d-b}, and x = <b>${x}</b>.</p>`,`<p>Get all the x's on one side and the plain numbers on the other.</p>`);}
+  if(k===4){const x=nz(-9,12),y=nz(-9,12);return eqn('Solve the system. Find <b>x</b>',`x + y = ${x+y}, &nbsp; x − y = ${x-y} &nbsp; → &nbsp; x = {A}`,`x+y=${x+y}, x-y=${x-y}`,x,`<p>Add the two equations: 2x = ${x+y} + ${par(x-y)} = ${2*x}, so x = <b>${x}</b>.</p>`,`<p>Adding the equations makes the y's cancel out.</p>`);}
+  const b=rnd(-6,6),c=rnd(-9,9),x=nz(-5,5);return eqn(`Find the value when <b>x = ${x<0?'−'+(-x):x}</b>`,`x² ${sgn(b)}x ${sgn(c)} = {A}`,`x^2${sgn(b)}x${sgn(c)}, x=${x}`,x*x+b*x+c,`<p>${par(x)}² = ${x*x}. ${b} × ${par(x)} = ${b*x}. Add them up: ${x*x} ${sgn(b*x)} ${sgn(c)} = <b>${x*x+b*x+c}</b>.</p>`,`<p>A negative number squared is positive!</p>`);
+ }
+ if(op==='sub'){
+  if(k===1){const a=rnd(2,40),b=rnd(a+1,a+40);return fin({tpl:`${a} − ${b} = {A}`,text:`${a} - ${b}`,answer:a-b,explain:`<p>${b} is bigger than ${a}, so the answer is negative: ${b} − ${a} = ${b-a}, so it's <b>−${b-a}</b>.</p>`,nudge:`<p>Find the difference, then put a − in front.</p>`});}
+  if(k===2){const a=rnd(2,40),b=rnd(2,40);return fin({tpl:`(−${a}) − ${b} = {A}`,text:`-${a} - ${b}`,answer:-a-b,explain:`<p>Start at −${a} and go ${b} more to the left: <b>−${a+b}</b>.</p>`,nudge:`<p>Negative minus positive goes further negative.</p>`});}
+  if(k===3){const a=rnd(2,30),b=rnd(2,30);return fin({tpl:`|−${a}| − |${b}| = {A}`,text:`|-${a}|-|${b}|`,answer:a-b,explain:`<p>Absolute value is the distance from 0: |−${a}| = ${a}, |${b}| = ${b}. ${a} − ${b} = <b>${a-b}</b>.</p>`,nudge:`<p>|−${a}| is just ${a}.</p>`});}
+  if(k===4){const m=nz(-6,6),x1=rnd(-5,5),y1=rnd(-9,9),dx=rnd(1,5),x2=x1+dx,y2=y1+m*dx;return eqn('What is the slope?',`(${x1}, ${y1}) and (${x2}, ${y2}) &nbsp; → &nbsp; slope = {A}`,`slope (${x1},${y1}) (${x2},${y2})`,m,`<p>Slope = rise ÷ run = (${y2} − ${par(y1)}) ÷ (${x2} − ${par(x1)}) = ${y2-y1} ÷ ${dx} = <b>${m}</b>.</p>`,`<p>Change in y divided by change in x.</p>`);}
+  const a=rnd(1,4),c=rnd(-9,9),x=nz(-4,4);return eqn(`f(x) = ${a}x² ${sgn(c)}. Find <b>f(${x})</b>`,`f(${x}) = {A}`,`f(x)=${a}x^2${sgn(c)}, f(${x})`,a*x*x+c,`<p>${par(x)}² = ${x*x}. ${a} × ${x*x} = ${a*x*x}. Then ${a*x*x} ${sgn(c)} = <b>${a*x*x+c}</b>.</p>`,`<p>Square first, then multiply, then add.</p>`);
+ }
+ if(op==='mul'){
+  if(k===1){const a=rnd(2,12),b=rnd(2,12);return fin({tpl:`(−${a}) × ${b} = {A}`,text:`-${a} x ${b}`,answer:-a*b,explain:`<p>Negative × positive = negative. ${a} × ${b} = ${a*b}, so <b>−${a*b}</b>.</p>`,nudge:`<p>Different signs make a negative answer.</p>`});}
+  if(k===2){const b=rnd(2,7),m=rnd(2,9),n=rnd(2,9);return eqn('Write the exponent',`${b}<sup>${m}</sup> × ${b}<sup>${n}</sup> = ${b}<sup>{A}</sup>`,`${b}^${m} x ${b}^${n}`,m+n,`<p>Same base: add the exponents. ${m} + ${n} = <b>${m+n}</b>.</p>`,`<p>When you multiply powers with the same base, add the exponents.</p>`);}
+  if(k===3){const a=nz(-9,9),b=nz(-9,9);return eqn('Distribute',`${par(a)}(x ${sgn(b)}) = ${a}x ${a*b<0?'−':'+'} {A}`,`${a}(x${sgn(b)})`,Math.abs(a*b),`<p>${par(a)} × ${par(b)} = ${a*b}, so the second term is ${a*b<0?'−':'+'} ${Math.abs(a*b)}.</p>`,`<p>Multiply ${par(a)} by each thing inside the parentheses.</p>`);}
+  if(k===4){const a=nz(-9,9),b=nz(-9,9);return eqn('Multiply. What goes in front of x?',`(x ${sgn(a)})(x ${sgn(b)}) = x² + {A}x ${sgn(a*b)}`,`(x${sgn(a)})(x${sgn(b)})`,a+b,`<p>The middle term is ${par(a)} + ${par(b)} = <b>${a+b}</b>.</p>`,`<p>Middle number = the two numbers added. Last number = the two numbers multiplied.</p>`);}
+  let a,b;do{a=nz(-9,9);b=nz(-9,9);}while(a===b);const [s,t]=[Math.min(a,b),Math.max(a,b)];return eqn(`Factor. The first number is <b>${s<0?'−'+(-s):s}</b>. Find the other.`,`x² ${sgn(s+t)}x ${sgn(s*t)} = (x ${sgn(s)})(x + {A})`,`x^2${sgn(s+t)}x${sgn(s*t)}`,t,`<p>You need two numbers that multiply to ${s*t} and add to ${s+t}: ${s} and <b>${t}</b>.</p>`,`<p>Which number times ${s} gives ${s*t}?</p>`);
+ }
+ if(k===1){const a=rnd(2,12),b=rnd(2,12);return fin({tpl:`(−${a*b}) ÷ ${b} = {A}`,text:`-${a*b} / ${b}`,answer:-a,explain:`<p>Negative ÷ positive = negative. ${a*b} ÷ ${b} = ${a}, so <b>−${a}</b>.</p>`,nudge:`<p>Different signs: the answer is negative.</p>`});}
+ if(k===2){const b=rnd(2,7),n=rnd(2,6),m=n+rnd(1,7);return eqn('Write the exponent',`${b}<sup>${m}</sup> ÷ ${b}<sup>${n}</sup> = ${b}<sup>{A}</sup>`,`${b}^${m} / ${b}^${n}`,m-n,`<p>Same base: subtract the exponents. ${m} − ${n} = <b>${m-n}</b>.</p>`,`<p>Dividing powers with the same base: subtract the exponents.</p>`);}
+ if(k===3){const a=rnd(2,9),x=nz(-12,12);return eqn('Find <b>x</b>',`−${a}x = ${-a*x} &nbsp; → &nbsp; x = {A}`,`-${a}x = ${-a*x}`,x,`<p>Divide both sides by −${a}: ${-a*x} ÷ (−${a}) = <b>${x}</b>.</p>`,`<p>Undo the × (−${a}) by dividing by −${a}.</p>`);}
+ if(k===4){const d=rnd(2,6),x=d*nz(-9,9),c=rnd(1,12);return eqn('Find <b>x</b>',`x ÷ ${d} − ${c} = ${x/d-c} &nbsp; → &nbsp; x = {A}`,`x/${d} - ${c} = ${x/d-c}`,x,`<p>Add ${c}: x ÷ ${d} = ${x/d}. Multiply by ${d}: x = <b>${x}</b>.</p>`,`<p>Undo the − ${c} first, then the ÷ ${d}.</p>`);}
+ const a=rnd(2,5),m=nz(-6,6),b=nz(-9,9);return eqn('What is the slope?',`${a}y = ${a*m}x ${sgn(a*b)} &nbsp; → &nbsp; slope = {A}`,`${a}y = ${a*m}x ${sgn(a*b)}`,m,`<p>Divide everything by ${a}: y = ${m}x ${sgn(b)}. The slope is the number in front of x: <b>${m}</b>.</p>`,`<p>Get y by itself. The slope is the number next to x.</p>`);
+}
+
 function genHigh(op,L){const q={op,L,fast:14};const fin=o=>Object.assign(q,o);const eq=(expr,ans,explain,nudge,prompt)=>fin({tpl:`${expr} = {A}`,text:expr.replace(/<sup>(\d+)<\/sup>/g,'^$1').replace(/<[^>]+>/g,''),answer:ans,explain,nudge,prompt});
  const k=L-10;
  if(op==='add'){
@@ -1472,6 +1512,7 @@ function genHigh(op,L){const q={op,L,fast:14};const fin=o=>Object.assign(q,o);co
 }
 function genQ(op,L){
  if(XOPS.includes(op))return genX(op,L);
+ if(L>15)return genAlg(op,L);
  if(L>10)return genHigh(op,L);
  let a,b,c,ans,text;
  if(op==='add'){
@@ -1546,13 +1587,13 @@ const fastLimit=q=>q.fast||3+(String(q.a).length+String(q.b).length+(q.c!==undef
    DOWN: 3 wrong out of the last 4 at the current level -> one level easier.
    The count starts over after every level change, so each level needs a few answers
    before it can move again. Repeats of missed problems and swapped-digit typos don't count. */
-const UP_N=5,DOWN_N=3,DOWN_WIN=4;
+const UP_N=5,DOWN_N=3,DOWN_WIN=4;const upN=p=>(p&&(p.grade||3)<=3)?6:UP_N;
 function adjustSkill(p,op,ok,slip){
  p.recent=p.recent||{};p.recent[op]=p.recent[op]||[];p.log=p.log||[];
  if(slip)return null;
  const w=p.recent[op];w.push(ok?1:0);if(w.length>8)w.shift();
  const L=lvl(p,op);
- if(L<maxLv(op)&&w.length>=UP_N&&w.slice(-UP_N).every(x=>x===1)){applyLevel(p,op,L+1);p.recent[op]=[];return 1;}
+ if(L<maxLv(op)&&w.length>=upN(p)&&w.slice(-upN(p)).every(x=>x===1)){applyLevel(p,op,L+1);p.recent[op]=[];return 1;}
  if(L>1&&w.length>=DOWN_N&&w.slice(-DOWN_WIN).filter(x=>x===0).length>=DOWN_N){applyLevel(p,op,L-1);p.recent[op]=[];return -1;}
  return null;
 }
@@ -1637,6 +1678,7 @@ function startBattle(zid,i,resume,opts){
  renderBattle();
  banner((B.round>1?ROUNDS[B.round].m+' ':'')+(B.foes.length>1?`GANG OF ${B.foes.length}!`:B.wild?`🌿 A wild ${B.name}!`:(isBoss?'BOSS: ':'⚔️ ')+B.name+'!'));
  if(B.lunch)setTimeout(()=>toast(`🍱 Lunch Tray power-up! +${20+5*vLv(P(),'cafe')} ❤️ and a magic shield!`),1400);
+ if(!resume&&!wild&&bufferOn(p,zid,round)&&((p.bufFails||{})[zid+'-'+round+'-'+i]||0)>=3)setTimeout(()=>toast(`✨ The Kind Teacher believes in you! This battle you can miss ${BUF_LIMIT[round]+1}.`),1500);
  if(tired&&!resume)setTimeout(()=>toast(`😴 ${B.name} is tired from last time! It has ${tired*15}% less health.`),1000);
  else if(B.foes.length>1&&!resume)setTimeout(()=>toast(`${B.foes.map(f=>f.e).join(' ')} Beat all ${B.foes.length} to win! Wrong answers mean they ALL attack!`),900);
  setTimeout(nextQ,900);
@@ -1785,7 +1827,7 @@ function renderBattle(){
   <div class="fighter mon ${B.isBoss&&B.ti===0?'boss':''}" id="monF">${B.mode==='math'?foesHTML():`<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div>`}</div>
  </div>
  <div class="bctrl"><div class="qcard" id="qcard"><button class="hintbtn" id="hintBtn" onclick="useHint()"></button><div class="qlabel" id="qlabel"></div><div class="qtext" id="qtext">Get ready…</div></div>
- <div class="qpad">${B.mode!=='math'?'':`<div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="press('${n}')">${n}</button>`).join('')}<button class="del" onclick="press('del')">⌫</button><button onclick="press('0')">0</button><button class="go" onclick="press('go')">✓</button></div>`}</div></div></div></div>`;
+ <div class="qpad">${B.mode!=='math'?'':`<div class="pad" id="mpad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="press('${n}')">${n}</button>`).join('')}<button class="del" onclick="press('del')">⌫</button><button onclick="press('0')">0</button><button class="go" onclick="press('go')">✓</button><button class="negk" onclick="press('neg')">± make it negative</button></div>`}</div></div></div></div>`;
  updateBars();
 }
 function updateBars(){
@@ -1904,7 +1946,7 @@ function nextQ(){
 function showQ(){
  updateHintBtn();
  if(B.mode!=='math'){questShowQ();return;}
- const q=B.q,inp=B.input||'?';
+ const q=B.q,inp=B.input||'?';{const mp=$('#mpad');if(mp)mp.classList.toggle('negon',!!q.neg);}
  if(q.tpl){xShowQ(q,B.input);return;}
  if(isVertical(q)){
   const nums=q.c!==undefined?[q.a,q.b,q.c]:[q.a,q.b];const sym=q.op==='add'?'+':q.op==='sub'?'−':'×';
@@ -1921,7 +1963,8 @@ function press(k){
  if(B.busy)return;
  if(B.mode!=='math'){questPress(k);return;}
  if(k==='del')B.input=B.input.slice(0,-1);
- else if(k==='go'){if(B.input)answer();return;}
+ else if(k==='neg'){B.input=B.input.startsWith('-')?B.input.slice(1):'-'+B.input;}
+ else if(k==='go'){if(B.input&&B.input!=='-')answer();return;}
  else if(B.input.length<7)B.input=B.input==='0'?k:B.input+k;
  SFX.tap();showQ();
 }
@@ -1933,7 +1976,7 @@ function answer(){
  const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
  let lvChange=null;const prevL=lvl(p,q.op);
  if(!q.again&&!q.practice&&!q.hinted&&!q.mastered)lvChange=adjustSkill(p,q.op,ok,slip);
- if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${UP_N} right in a row to move back up!`);},900);}
+ if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${upN(p)} right in a row to move back up!`);},900);}
  if(ok){
   B.right++;B.petSince=(B.petSince||0)+1;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();thawTick();
   wkAnswer(p,champPts(p,q.L));{const w=wkOf(p);w.bs=Math.max(w.bs||0,B.streak);}questRight(p,q);questEvent(p,'streak',B.streak);
@@ -2079,7 +2122,7 @@ function endBattleBook(){
  const up=addXP(p,B.xp);return up;
 }
 function fmtClock(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
-function downsNote(){if(!B||!B.downs||!B.downs.length)return '';return `<div class="downnote">🎯 ${B.downs.map(op=>`<b>${OPNAME[op]}</b> will be a bit easier next time (${KID_DESC[op][lvl(P(),op)]})`).join('<br>🎯 ')}.<br>Get 6 right in a row to move back up!</div>`;}
+function downsNote(){if(!B||!B.downs||!B.downs.length)return '';return `<div class="downnote">🎯 ${B.downs.map(op=>`<b>${OPNAME[op]}</b> will be a bit easier next time (${KID_DESC[op][lvl(P(),op)]})`).join('<br>🎯 ')}.<br>Get ${upN(P())} right in a row to move back up!</div>`;}
 function addXP(p,x){let up=false;p.xp+=x;while(p.xp>=xpNeed(p.level)){p.xp-=xpNeed(p.level);p.level++;up=true;}return up;}
 function winBattle(){
  if(B.mode!=='math'){questWin();return;}
@@ -2087,7 +2130,7 @@ function winBattle(){
  const p=P();SFX.win();
  const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const stars=B.wrong<=1?3:B.wrong<=3?2:1;
- const R=B.round||1;if(B.tiredN>0)wkBump(p,'cb');if(B.isBoss)wkBump(p,'boss');if(p.tired)delete p.tired[tiredKey(B.z.id,R,B.i)];const pr=B.asc?ascProg(p,B.z.id):rstore(p,B.z.id,R);const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
+ const R=B.round||1;if(B.tiredN>0)wkBump(p,'cb');if(B.isBoss)wkBump(p,'boss');if(p.tired)delete p.tired[tiredKey(B.z.id,R,B.i)];const pr=B.asc?ascProg(p,B.z.id):rstore(p,B.z.id,R);if(p.bufFails)delete p.bufFails[B.z.id+'-'+R+'-'+B.i];const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
  let bonus=B.isBoss?100:25+B.i*5;if(!first)bonus=Math.round(bonus/2);bonus=Math.round(bonus*(1+.25*(R-1))*(1+.2*challengeD(p,B.z.op))*(1+.02*vLv(p,'portal'))*(1+Math.min(30,ascTotal(p))/100)*(B.asc?1+.1*B.asc:1));
  const rhtml=(B.isBoss&&first?(B.asc?ascPrize(p,B.z,B):roundPrize(p,R,B.z,B)):'')+(B.isBoss&&first&&B.z.event&&!B.asc?eventPrize(p,R):'');
  const secs=Math.round((Date.now()-B.start)/1000),key=(R>1?'r'+R+'-':'')+B.z.id+'-'+B.i,old=p.pb[key];
@@ -2134,6 +2177,7 @@ document.addEventListener('keydown',e=>{
  if(B.mode!=='math'&&B.q&&B.q.type==='word'&&/^[a-zA-Z']$/.test(e.key)){press(e.key.toLowerCase());e.preventDefault();return;}
  if(B.mode==='hw'&&/^[./:$,\-rR]$/.test(e.key)){press(e.key==='r'?'R':e.key);e.preventDefault();return;}
  if(/^[0-9]$/.test(e.key)){press(e.key);e.preventDefault();}
+ else if(e.key==='-'&&B.mode==='math'&&B.q&&B.q.neg){press('neg');e.preventDefault();}
  else if(e.key==='Backspace'){press('del');e.preventDefault();}
  else if(e.key==='Enter'){press('go');e.preventDefault();}
 });
@@ -2477,7 +2521,7 @@ function wFrame(now){
     ctx.drawImage(wSprite(lock?'🔒':z.art,Math.round(ts*1.3)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.25+Math.sin(now/500)*2,s,s);
     wLabel(ctx,z.name+(z.event&&lock?(eventSoon()?' · Opens Oct 18':' · Closed'):''),sx+ts/2,sy-ts*.55,'#fff',z.event?'rgba(200,80,0,.9)':'rgba(40,20,80,.85)');}});}
   if(t.plaza&&!t.npc){const dc=plazaDecor(x,y);if(dc)items.push({y:y-.01,draw:()=>ctx.drawImage(wSprite(dc,Math.round(ts*.7)),sx+ts*.15,sy+ts*.05,ts*.7,ts*.7)});}
-  if(t.npc){const n=NPCS.find(q=>q.id===t.npc);const s=ts*(n.id==='fountain'?1.2:1.05);items.push({y,draw:()=>{ctx.drawImage(wSprite(n.e,Math.round(ts*.95)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.1,s,s);if(n.n){const vb=VIL.find(v=>v.npc===n.id);const vl=vb?vLv(P(),vb.id):0;wLabel(ctx,n.n+(vl?' '+'★'.repeat(vl):''),sx+ts/2,sy-ts*.18,'#3b2b6b','rgba(255,255,255,.9)');}}});}
+  if(t.npc){const n=NPCS.find(q=>q.id===t.npc);const s=ts*(n.id==='fountain'?1.2:1.05);items.push({y,draw:()=>{ctx.drawImage(wSprite(n.e,Math.round(ts*.95)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.1,s,s);if(n.n){const vb=VIL.find(v=>v.npc===n.id);const vl=vb?vLv(P(),vb.id):0;wLabel(ctx,n.n+(vl?` ★${vl}`:''),sx+ts/2,sy-ts*.18,'#3b2b6b','rgba(255,255,255,.9)');}const qm=npcQuestMark(P(),n.id);if(qm){const rdy=qm==='❗',bob=Math.sin(now/300)*ts*.05,qs=Math.round(ts*.42),cx0=sx+ts/2,cy0=sy-ts*.18-ts*.58+bob;ctx.beginPath();ctx.arc(cx0,cy0,ts*.3,0,7);ctx.fillStyle=rdy?'#ffd43b':'#7048e8';ctx.fill();ctx.lineWidth=Math.max(2,ts*.05);ctx.strokeStyle='#fff';ctx.stroke();ctx.drawImage(wSprite(rdy?'❗':'❓',qs),cx0-qs/2,cy0-qs/2,qs,qs);}}});}
   if(t.chest){const done=wChestOpen(t.chest);items.push({y,draw:()=>{ctx.globalAlpha=done?.45:1;const bob=done?0:Math.sin(now/300)*2;ctx.drawImage(wSprite(done?'📦':'🎁',Math.round(ts*.75)),sx+ts*.1,sy+ts*.05+bob,ts*.8,ts*.8);ctx.globalAlpha=1;
    if(!done&&(Math.floor(now/400)%2)){ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.6,sy-ts*.1,ts*.4,ts*.4);}}});}}
  W.mobs.forEach(m=>{if(m.x<x0-1||m.x>x1+1||m.y<y0-1||m.y>y1+1)return;let mx=m.x,my=m.y;if(m.mt&&now-m.mt<300){const k=(now-m.mt)/300;mx=m.fx+(m.x-m.fx)*k;my=m.fy+(m.y-m.fy)*k;}
@@ -2956,23 +3000,25 @@ const STORIES=[
 
 /* ================= village upgrades: spend coins to grow your own village ================= */
 const VIL=[
- {id:'portal',npc:'school',e:'🌀',n:'Quest Portal',perk:l=>l?`+${l*2}% coins from battles`:'Boosts battle coins',cost:[300,600,1200,2400,4800]},
- {id:'library',npc:'library',e:'📚',n:'Library',perk:l=>l?`+${l*5} coins per story${l>=3?` · ${l>=5?2:1} extra ${l>=5?'stories':'story'} a day`:''}`:'Bonus coins and extra stories',cost:[250,500,1000,2000,4000]},
- {id:'pethome',npc:'pets',e:'🏡',n:'Pet Home',perk:l=>l?`Pets grow ${l*10}% faster`:'Pets grow faster',cost:[250,500,1000,2000,4000]},
- {id:'cafe',npc:'cafe',e:'🍱',n:'Cafeteria',perk:l=>`Lunch Tray gives +${20+l*5} ❤️`,cost:[200,400,800,1600,3200]},
- {id:'shop',npc:'shop',e:'🏪',n:'Shop',perk:l=>l?`Eggs ${l*5}% cheaper`:'Cheaper eggs',cost:[300,600,1200,2400,4800]},
- {id:'plaza',npc:'fountain',e:'⛲',n:'Village Plaza',perk:l=>l?['🌷 Flowers','🏮 Lanterns','🌳 Trees','🗿 Hero statue','🌈 Rainbow arch'].slice(0,l).join(' · '):'Decorations for the plaza',cost:[200,400,800,1600,3200]}];
+ {id:'portal',npc:'school',e:'🌀',n:'Quest Portal',perk:l=>l?`+${l*2}% coins from battles`:'Boosts battle coins',cost:[300,600,1200,2400,4800,7000,9000,11000,13500,16000]},
+ {id:'library',npc:'library',e:'📚',n:'Library',perk:l=>l?`+${l*5} coins per story${l>=3?` · ${l>=8?3:l>=5?2:1} extra ${l>=5?'stories':'story'} a day`:''}`:'Bonus coins and extra stories',cost:[250,500,1000,2000,4000,6000,8000,10000,12000,15000]},
+ {id:'pethome',npc:'pets',e:'🏡',n:'Pet Home',perk:l=>l?`Pets grow ${l*10}% faster`:'Pets grow faster',cost:[250,500,1000,2000,4000,6000,8000,10000,12000,15000]},
+ {id:'cafe',npc:'cafe',e:'🍱',n:'Cafeteria',perk:l=>`Lunch Tray gives +${20+l*5} ❤️`,cost:[200,400,800,1600,3200,5000,6500,8000,10000,12000]},
+ {id:'shop',npc:'shop',e:'🏪',n:'Shop',perk:l=>l?`Eggs ${l*5}% cheaper`:'Cheaper eggs',cost:[300,600,1200,2400,4800,7000,9000,11000,13500,16000]},
+ {id:'plaza',npc:'fountain',e:'⛲',n:'Village Plaza',perk:l=>l?PLAZA_NAMES.slice(Math.max(0,l-3),l).join(' · ')+(l>3?' and more':''):'Decorations for the plaza',cost:[200,400,800,1600,3200,5000,6500,8000,10000,12000]}];
+const VIL_MAX=10;const PLAZA_NAMES=['🌷 Flowers','🏮 Lanterns','🌳 Trees','🗿 Hero statue','🌈 Rainbow arch','🎈 Balloons','🎠 Carousel','🦄 Unicorn statue','🎪 Circus tent','🏰 Tiny castle'];
+const vStars=l=>`${'★'.repeat(Math.min(5,l))}${'☆'.repeat(Math.max(0,5-l))}${l>5?' '+'🌟'.repeat(l-5):''} <small>Lv ${l}/${VIL_MAX}</small>`;
 const vLv=(p,id)=>((p&&p.vil)||{})[id]||0;
-const libPerDay=p=>2+(vLv(p,'library')>=3?1:0)+(vLv(p,'library')>=5?1:0);
-const PLAZA_DECOR=[[['🌷',17,13],['🌷',27,13],['🌷',17,20],['🌷',27,20]],[['🏮',19,17],['🏮',25,17]],[['🌳',17,17],['🌳',27,16]],[['🗿',22,20]],[['🌈',21,13],['🎆',23,13]]];
+const libPerDay=p=>2+(vLv(p,'library')>=3?1:0)+(vLv(p,'library')>=5?1:0)+(vLv(p,'library')>=8?1:0);
+const PLAZA_DECOR=[[['🌷',17,13],['🌷',27,13],['🌷',17,20],['🌷',27,20]],[['🏮',19,17],['🏮',25,17]],[['🌳',17,17],['🌳',27,16]],[['🗿',22,20]],[['🌈',21,13],['🎆',23,13]],[['🎈',20,16],['🎈',24,16]],[['🎠',17,15]],[['🦄',27,18]],[['🎪',25,20]],[['🏰',19,20]]];
 function plazaDecor(x,y){const l=vLv(P(),'plaza');for(let i=0;i<l;i++)for(const [e,dx,dy] of PLAZA_DECOR[i])if(dx===x&&dy===y)return e;return null;}
-function vilUp(id){const p=P();const b=VIL.find(v=>v.id===id);const l=vLv(p,id);if(l>=5)return;const c=b.cost[l];if(p.coins<c){toast(`You need ${c-p.coins} more coins.`);return;}
+function vilUp(id){const p=P();const b=VIL.find(v=>v.id===id);const l=vLv(p,id);if(l>=VIL_MAX)return;const c=b.cost[l];if(p.coins<c){toast(`You need ${c-p.coins} more coins.`);return;}
  p.coins-=c;p.vil=p.vil||{};p.vil[id]=l+1;questEvent(p,'build',1);save();SFX.level();
- modal(`<div class="mcard"><div class="big-emoji">${b.e}</div><h2>${b.n} upgraded!</h2><p>${'★'.repeat(l+1)}${'☆'.repeat(4-l)}</p><p><b>${b.perk(l+1)}</b></p><button class="btn green big" onclick="closeModal();go('village')">Awesome!</button></div>`);}
+ modal(`<div class="mcard"><div class="big-emoji">${b.e}</div><h2>${b.n} upgraded!</h2><p>${vStars(l+1)}</p><p><b>${b.perk(l+1)}</b></p><button class="btn green big" onclick="closeModal();go('village')">Awesome!</button></div>`);}
 SCREENS.village=()=>{const p=P();const tot=VIL.reduce((a,b)=>a+vLv(p,b.id),0);
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏗️ Build Your Village</h2></div>
- <div class="cafe-card center" style="margin-bottom:12px">🧱 Builder Bo: "Your coins can make this village amazing! Every upgrade helps you on your quest." <div class="muted">Village stars: <b>${tot} / ${VIL.length*5}</b> · You have 🪙 ${p.coins}</div></div>
- <div class="vgrid">${VIL.map(b=>{const l=vLv(p,b.id),c=b.cost[l];return `<div class="vcard"><div class="ve">${b.e}</div><b>${b.n}</b><div class="vstars">${'★'.repeat(l)}${'☆'.repeat(5-l)}</div><div class="vperk">${b.perk(l)}</div>${l<5?`<div class="vnext">Next: ${b.perk(l+1)}</div><button class="btn ${p.coins>=c?'gold':'ghost dark'} small" onclick="vilUp('${b.id}')">Upgrade · 🪙 ${c}</button>`:'<div class="vnext">⭐ Fully upgraded!</div>'}</div>`;}).join('')}</div></div>`;};
+ <div class="cafe-card center" style="margin-bottom:12px">🧱 Builder Bo: "Your coins can make this village amazing! Every upgrade helps you on your quest." <div class="muted">Village stars: <b>${tot} / ${VIL.length*VIL_MAX}</b> · You have 🪙 ${p.coins}</div></div>
+ <div class="vgrid">${VIL.map(b=>{const l=vLv(p,b.id),c=b.cost[l];return `<div class="vcard"><div class="ve">${b.e}</div><b>${b.n}</b><div class="vstars">${vStars(l)}</div><div class="vperk">${b.perk(l)}</div>${l<VIL_MAX?`<div class="vnext">Next: ${b.perk(l+1)}</div><button class="btn ${p.coins>=c?'gold':'ghost dark'} small" onclick="vilUp('${b.id}')">Upgrade · 🪙 ${c}</button>`:'<div class="vnext">⭐ Fully upgraded!</div>'}</div>`;}).join('')}</div></div>`;};
 const LIB_PER_DAY=2;let LIB=null;
 STORIES.forEach(s=>{if(s.lv==='A')s.lv=2;else if(s.lv==='B')s.lv=3;});
 (window.MORE_STORIES||[]).forEach(s=>{if(!STORIES.some(x=>x.id===s.id))STORIES.push(s);});
@@ -3042,18 +3088,29 @@ function wFight(m){if(m&&m.principal){principalMeet();return;}if(!W||curScreen!=
  SFX.tap();startBattle(m.zid,0,null,{wild:true,n:m.n,e:m.e});}
 function wGate(zid){const z=ZONES.find(x=>x.id===zid);const p=P();if(zoneLocked(z,p)){toast('🔒 '+z.lockMsg);return;}p.wpos={x:W.hx,y:W.hy};save();SFX.tap();go('zone',zid);}
 const ELDER_TIPS=['Get 3 right in a row to charge up a 🔥 Fireball!','A happy, well-fed pet hits harder in battle!','Wild monsters roam every land. Bump into one for a quick battle!','Every land hides a 🎁 treasure. Answer the lock to open it, once a day!','Beat a boss and monsters start showing up in gangs. Be ready!','Legendary pets are super rare. Keep hatching eggs!','Check the 📜 Leaderboard to see how your family is doing!'];
+
+/* quest-givers in the village: ❗ = reward ready, ❔ = quest in progress. Talk to them to claim. */
+const QNPC_TILE={elder:'elder',hoot:'library',pet:'pets',rosa:'cafe'};
+function npcQuestIdx(p,npcId){const Q=qState(p);return Q.active.findIndex(a=>QNPC_TILE[a.c]===npcId);}
+function npcQuestMark(p,npcId){const k=npcQuestIdx(p,npcId);if(k<0)return '';return qState(p).active[k].done?'❗':'❔';}
+function npcQuestCard(p,k,cont){const a=qState(p).active[k],d=qDef(a.c,a.i),N=QNPC[a.c];const pct=Math.round(a.prog/d.n*100);
+ return `<div class="qitem ${a.done?'done':''}" style="margin:10px 0"><div class="qnpc">${N.e}</div><div class="qbody"><b>${esc(d.t)}</b><div>${esc(qDesc(a,d))}</div><div class="qbar"><i style="width:${pct}%"></i></div><small>${a.prog} / ${d.n}${a.done?' · Done!':''}</small></div></div>
+ <div class="row">${a.done?`<button class="btn gold big" onclick="closeModal();questClaim(${k})">Claim my reward! 🎁</button>`:''}${cont?`<button class="btn ${a.done?'ghost dark':'green big'}" onclick="closeModal();${cont}">${a.done?'Later':'Keep going! ➜'}</button>`:''}</div>`;}
+function npcQuestGate(npcId,cont){const p=P();const k=npcQuestIdx(p,npcId);if(k<0||!qState(p).active[k].done)return false;const a=qState(p).active[k],N=QNPC[a.c];
+ modal(`<div class="mcard"><div class="big-emoji">${N.e}</div><h2>${N.n}: "You did it!"</h2><p>You finished my quest, ${esc(p.name)}. Here's your reward!</p>${npcQuestCard(p,k,cont)}</div>`);return true;}
 function wNpc(id){const p=P();
  if(id==='school'){go('map');return;}
  if(id==='shop'){go('backpack');return;}
- if(id==='pets'){go('pethome');return;}
+ if(id==='pets'){if(npcQuestGate('pets',"go('pethome')"))return;go('pethome');return;}
  if(id==='spin'){openSpin();return;}
  if(id==='board'){go('leaders');return;}
- if(id==='cafe'){p&&(p.wpos={x:W.hx,y:W.hy});CAFE=null;go('cafe');return;}
+ if(id==='cafe'){p&&(p.wpos={x:W.hx,y:W.hy});if(npcQuestGate('cafe',"CAFE=null;go('cafe')"))return;CAFE=null;go('cafe');return;}
  if(id==='build'){p&&(p.wpos={x:W.hx,y:W.hy});go('village');return;}
- if(id==='library'){p&&(p.wpos={x:W.hx,y:W.hy});LIB=null;go('library');return;}
+ if(id==='library'){p&&(p.wpos={x:W.hx,y:W.hy});if(npcQuestGate('library',"LIB=null;go('library')"))return;LIB=null;go('library');return;}
  if(id==='mail'){if(!showGift())openGift();return;}
  if(id==='fountain'){fountainOpen();return;}
- modal(`<div class="mcard"><div class="big-emoji">🧙</div><h2>Elder Wiz says…</h2><p style="font-size:18px">"${esc(pick(ELDER_TIPS))}"</p>${questBar(p).replace('questbar','questbar dark')}<button class="btn green big" onclick="closeModal()">Thanks!</button></div>`);}
+ const ek=npcQuestIdx(p,'elder');
+ modal(`<div class="mcard"><div class="big-emoji">🧙</div><h2>Elder Wiz says…</h2>${ek>=0?`<p>${qState(p).active[ek].done?'Well done, young wizard! You finished my quest.':'Here is your quest from me. I believe in you!'}</p>${npcQuestCard(p,ek,'')}`:`<p>I have no quest for you right now. Finish one of your other quests and I may have a new one! 📜</p>`}<p class="muted" style="font-size:16px">💡 "${esc(pick(ELDER_TIPS))}"</p>${questBar(p).replace('questbar','questbar dark')}<button class="btn ghost dark" onclick="closeModal()">Thanks!</button></div>`);}
 function wChestOpen(k){const p=P();return !!(p.chests&&p.chests.d===dayKey()&&p.chests.open.includes(k));}
 function wChest(k){const p=P();if(wChestOpen(k)){toast('📦 Empty! A new treasure appears tomorrow.');return;}
  const z=ZONES.find(zz=>zz.id===BIOMES[k].zone);const op=z.op==='mix'?pickOp(p,'mix'):z.op;const q=genQ(op,lvl(p,op));W.chestQ={q,k};
@@ -3286,14 +3343,17 @@ const ROUNDS=[null,{n:'Bronze',m:'🥉'},{n:'Silver',m:'🥈'},{n:'Gold',m:'🥇
 const BUF_LIMIT={4:3,5:1};
 function bufferOn(p,zid,r){return !!BUF_LIMIT[r]&&medal(p,zid)<r;}
 function bufferUsed(p,zid,r){return ((p.rbuf||{})[zid]||{})[r]||0;}
+const bufKey=()=>B.z.id+'-'+(B.round||1)+'-'+B.i;
+function bufLim(p){const r=B.round||1;return BUF_LIMIT[r]+(((p.bufFails||{})[bufKey()]||0)>=3?1:0);}
 function bufferMiss(p){if(!B||B.wild||!B.z||!B.z.id||!['math','spell'].includes(B.mode))return;const zid=B.z.id,r=B.round||1;if(!bufferOn(p,zid,r))return;
- B.bufN=(B.bufN||0)+1;const lim=BUF_LIMIT[r];
+ B.bufN=(B.bufN||0)+1;const lim=bufLim(p);
  if(B.bufN>=lim){B.bufferOut=true;}else setTimeout(()=>toast(`${ROUNDS[r].m} ${ROUNDS[r].n} rule: ${B.bufN} of ${lim} misses in this battle. ${lim-B.bufN===1?'One more and this battle starts over!':''}`),700);}
-function bufferHit(){if(!B||B.wild||!B.z||!B.z.id||!['math','spell'].includes(B.mode))return false;const r=B.round||1;return !!B.bufferOut||(bufferOn(P(),B.z.id,r)&&(B.bufN||0)>=BUF_LIMIT[r]);}
+function bufferHit(){if(!B||B.wild||!B.z||!B.z.id||!['math','spell'].includes(B.mode))return false;const r=B.round||1;return !!B.bufferOut||(bufferOn(P(),B.z.id,r)&&(B.bufN||0)>=bufLim(P()));}
 function bufferReset(){const p=P();const zid=B.z.id,r=B.round,i=B.i;B.over=true;
- endBattleBook();save();SFX.wrong();const lim=BUF_LIMIT[r];
+ const lim=bufLim(p);p.bufFails=p.bufFails||{};const fk=bufKey();p.bufFails[fk]=(p.bufFails[fk]||0)+1;const helpNow=p.bufFails[fk]===3;
+ endBattleBook();save();SFX.wrong();
  modal(`<div class="mcard"><div class="big-emoji">${ROUNDS[r].m}</div><h2>Start this battle over!</h2>
- <p>${lim===1?`In the <b>${ROUNDS[r].n}</b> round, one miss means you start the battle over.`:`That was miss number ${lim} in this <b>${ROUNDS[r].n}</b> battle, so it starts over.`} Your other ${ROUNDS[r].n} wins are safe. Legends are made by trying again! 💪</p>
+ <p>${lim===1?`In the <b>${ROUNDS[r].n}</b> round, one miss means you start the battle over.`:`That was miss number ${lim} in this <b>${ROUNDS[r].n}</b> battle, so it starts over.`} Your other ${ROUNDS[r].n} wins are safe. Legends are made by trying again! 💪</p>${helpNow||p.bufFails[fk]>3?`<div class="hint">✨ <b>The Kind Teacher is coming to help!</b> Next time you try this battle, you can miss <b>one extra</b>.</div>`:''}
  <p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned.</p>
  <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${zid}')">Map</button><button class="btn green" onclick="closeModal();startBattle('${zid}',${i})">Try again ${ROUNDS[r].m}</button></div></div>`);}
 const RMUL={1:{hp:1,dmg:1},2:{hp:1.2,dmg:1.15},3:{hp:1.35,dmg:1.25},4:{hp:1.45,dmg:1.3},5:{hp:1.6,dmg:1.4}};
@@ -3394,7 +3454,7 @@ function parentCard(p){
 }
 SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go(P()&&P().setup?'map':'profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
- <p class="note">Every child starts every skill at the easiest level (single digits) and moves up from there. Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level. <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
+ <p class="note">Every child starts every skill at the easiest level (single digits) and moves up from there. Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level (6 in a row for grades 1-3). <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${cloudSection()}
  ${state.players.map(parentCard).join('')}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.readLog||[]).slice(-6).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · "${esc(v.t)}"${v.lv?` (Level ${v.lv})`:''} · ${'⭐'.repeat(v.s)}${'☆'.repeat((v.n||3)-v.s)} (${v.s}/${v.n||3} right on the first try)</li>`)));return rows.length?`<div class="pp"><h3>📚 Library reading</h3><p class="note">Professor Hoot gives 2 new stories a day. There are 10 reading levels (about 1st grade to 12th grade). Higher levels have longer stories and 4-5 questions (main idea, details, inference, vocabulary, author's purpose). The level moves up after strong scores and down after weak ones, aiming for about 75-85% right on the first try.${state.players.filter(x=>x.lib&&x.lib.rl).map(x=>` <b>${esc(x.name)}</b>: Level ${Math.floor(x.lib.rl)}.`).join('')}</p><ul>${rows.join('')}</ul></div>`:'';})()}
@@ -3467,7 +3527,7 @@ function questEvent(p,type,n,meta){if(!p||!p.setup)return;const Q=qState(p);let 
  Q.active.forEach(a=>{if(a.done)return;const d=qDef(a.c,a.i);if(d.type!==type)return;
   if(type==='weak'&&meta.op!==a.op)return;if(type==='rightop'&&meta.op!==d.op)return;
   if(d.max)a.prog=Math.max(a.prog,n);else a.prog+=n;changed=true;
-  if(a.prog>=d.n){a.prog=d.n;a.done=true;const N=QNPC[a.c];setTimeout(()=>toast(`📜 Quest complete: ${d.t}! Claim your reward from ${N.e} ${N.n}.`),1200);}});
+  if(a.prog>=d.n){a.prog=d.n;a.done=true;const N=QNPC[a.c];setTimeout(()=>toast(`📜 Quest complete: ${d.t}! ${(typeof QNPC_TILE!=='undefined'&&QNPC_TILE[a.c])?`Visit ${N.e} ${N.n} in the village to claim your reward.`:'Claim your reward in 📜 Quests.'}`),1200);}});
  if(changed)save();}
 function questRight(p,q){questEvent(p,'right',1);questEvent(p,'weak',1,{op:q.op});questEvent(p,'rightop',1,{op:q.op});
  const Q=qState(p);const dk=dayKey();if(Q.lastDay!==dk){Q.lastDay=dk;questEvent(p,'days',1);}}
@@ -3478,7 +3538,7 @@ function questClaim(k){const p=P();const Q=qState(p);const a=Q.active[k];if(!a||
  Q.idx[a.c]=(Q.idx[a.c]||0)+1;Q.done=(Q.done||0)+1;Q.active.splice(k,1);qState(p);save();SFX.win();
  const N=QNPC[a.c];modal(`<div class="mcard"><div class="big-emoji">${N.e}</div><h2>${esc(d.t)}: done!</h2><p>${N.n} is proud of you, ${esc(p.name)}!</p><div class="rewards">${got.map(g=>`<div>${g}</div>`).join('')}</div>
  <p class="muted">A new quest is waiting. You've finished ${Q.done} quest${Q.done===1?'':'s'}!</p><button class="btn green big" onclick="closeModal();go(curScreen,curArg)">Great! ➜</button></div>`);}
-function nextSteps(p){const out=[];const L=p.lib&&p.lib.day===dayKey()?p.lib.n:0;if(L<libPerDay(p))out.push(`<button class="nstep" onclick="LIB=null;go('library')">📚 ${libPerDay(p)-L} new ${libPerDay(p)-L>1?'stories':'story'} in the Library</button>`);const cheap=Math.min(...VIL.filter(b=>vLv(p,b.id)<5).map(b=>b.cost[vLv(p,b.id)]));if(p.coins>=cheap)out.push(`<button class="nstep" onclick="go('village')">🏗️ Upgrade your village</button>`);
+function nextSteps(p){const out=[];const L=p.lib&&p.lib.day===dayKey()?p.lib.n:0;if(L<libPerDay(p))out.push(`<button class="nstep" onclick="LIB=null;go('library')">📚 ${libPerDay(p)-L} new ${libPerDay(p)-L>1?'stories':'story'} in the Library</button>`);const cheap=Math.min(...VIL.filter(b=>vLv(p,b.id)<VIL_MAX).map(b=>b.cost[vLv(p,b.id)]));if(p.coins>=cheap)out.push(`<button class="nstep" onclick="go('village')">🏗️ Upgrade your village</button>`);
  if(!(p.cafe&&p.cafe.d===dayKey()&&p.cafe.done))out.push(`<button class="nstep" onclick="CAFE=null;go('cafe')">🍱 Today's lunch order</button>`);
  if(p.spinDay!==dayKey())out.push(`<button class="nstep" onclick="go('world')">🎡 Daily spin is ready</button>`);
  const z=ZONES.filter(z=>!zoneLocked(z,p)&&medal(p,z.id)<5).sort((a,b)=>medal(p,a.id)-medal(p,b.id))[0];
