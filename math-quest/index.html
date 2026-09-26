@@ -370,6 +370,13 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .wtimer i{display:block;height:100%;background:linear-gradient(90deg,#2ecc71,#ffc83d,#ff5a5f);animation:wtime 20s linear forwards;transform-origin:left}
 @keyframes wtime{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 .legendbtn{background:linear-gradient(90deg,#f59e0b,#a855f7);color:#fff}
+.mcharge{position:relative;width:clamp(90px,20vw,160px);height:10px;background:rgba(0,0,0,.45);border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.6)}
+.mcharge i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffe066,#ff8a3d);transition:width .1s linear}
+.mcharge span{position:absolute;right:2px;top:-4px;font-size:12px}
+.mcharge.hot i{background:linear-gradient(90deg,#ff8a3d,#ff3b3b);animation:hotp .4s ease-in-out infinite alternate}
+@keyframes hotp{from{opacity:.7}to{opacity:1}}
+.critflash{animation:critf .45s ease-out}
+@keyframes critf{0%{filter:brightness(1)}30%{filter:brightness(1.8) saturate(1.4)}100%{filter:none}}
 .impact{position:absolute;font-size:72px;pointer-events:none;z-index:5;filter:drop-shadow(0 0 6px #ff3b3b) drop-shadow(0 0 14px #ff3b3b)}
 @media (orientation:landscape) and (max-height:560px){
  .spellbar{top:4px;gap:4px;flex-wrap:nowrap}.spellbar button{padding:4px 7px;font-size:12px}.spellbar button small{display:none}}
@@ -1139,7 +1146,7 @@ function gangFor(p,z,i,isBoss,round){
 }
 function foesHTML(){
  const bk=(B.foes||[]).map((f,k)=>({f,k})).filter(o=>o.k!==B.ti&&o.f.hp>0);
- return `<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div><div class="mon-sprite" id="monS">${B.emoji}</div>${bk.length?`<div class="gang">${bk.map(o=>`<div class="bk" data-k="${o.k}"><div class="minihp"><i></i></div><span class="bks">${o.f.e}</span></div>`).join('')}</div>`:''}`;
+ return `<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div>${B.round>=4&&!B.wild?'<div class="mcharge" id="mcharge" title="Monster charging an attack"><i></i><span>⚡</span></div>':''}<div class="mon-sprite" id="monS">${B.emoji}</div>${bk.length?`<div class="gang">${bk.map(o=>`<div class="bk" data-k="${o.k}"><div class="minihp"><i></i></div><span class="bks">${o.f.e}</span></div>`).join('')}</div>`:''}`;
 }
 function nextFoe(cont){
  if(!B||!B.foes||B.foes.length<2)return false;
@@ -1229,6 +1236,15 @@ function usePetMove(){
   setTimeout(()=>{if(!B||B.over)return;B.busy=false;B.t0=performance.now();if(p.battle){p.battle.petUses=B.petUses;p.battle.mhp=B.mhp;}save();updateMana();},600);
  },560);
 }
+/* Diamond/Legend: monsters charge an attack while you think (more time for bigger problems) */
+setInterval(()=>{
+ if(curScreen!=='battle'||!B||B.over||B.mode!=='math'||!B.chargeLim)return;
+ const bar=$('#mcharge');if(B.busy||fbOpen||$('#modal.show'))return;
+ B.chargeEl=(B.chargeEl||0)+.1;const f=Math.min(1,B.chargeEl/B.chargeLim);
+ if(bar){bar.querySelector('i').style.width=(f*100)+'%';bar.classList.toggle('hot',f>.7);}
+ if(f>=1){B.chargeEl=0;B.busy=true;floatText('#monS','⚡ Too slow!','#ffe066');
+  setTimeout(()=>monsterAttack(()=>{if(!B||B.over)return;if(B.hhp<=0){B.over=true;loseBattle();return;}B.busy=false;const b2=$('#mcharge i');if(b2)b2.style.width='0%';}),350);}
+},100);
 function addCharge(){
  if(!B||B.mode!=='math')return;const before=B.charge||0;B.charge=Math.min(MAX_CHARGE,before+1);
  if(B.charge>before){const s=SPECIALS.find(x=>x.cost===B.charge);if(s)setTimeout(()=>floatText('#mana',`⚡ ${s.n} ready!`,'#7fe3ff'),450);}
@@ -1253,6 +1269,7 @@ function nextQ(){
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
+ B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?Math.max(B.round>=5?8:10,fastLimit(q)*(B.round>=5?2:2.5)):0;
  p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round};save();
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
@@ -1299,13 +1316,13 @@ function answer(){
   if(q.again||q.practice){B.coins+=3;p.coins+=3;}
   const perk=petPerk(p),spell=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
   let dmg=20*spell.mult*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
-  const crit=fast&&B.streak>=2&&!q.hinted;if(crit)dmg*=1.4;dmg=Math.round(dmg);
+  const crit=fast&&!q.hinted&&Math.random()<(B.streak>=2?.6:.35);if(crit)dmg*=2;dmg=Math.round(dmg);
   const c=5+(perk==='coins'?2:0);B.coins+=c;p.coins+=c;
   B.xp+=Math.round(10*(perk==='xp'?1.5:1));
   save();SFX.correct();$('#qcard').classList.add('right');
   castSpell(spell,crit,()=>{
    B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();
-   floatText('#monS',(crit?'SUPER HIT! ':'')+'-'+dmg,crit?'#ffe066':'#fff');
+   floatText('#monS',(crit?'💥 CRITICAL! ':'')+'-'+dmg,crit?'#ffe066':'#fff');if(crit){banner('💥 CRITICAL HIT!');const ar=$('#arena');if(ar){ar.classList.remove('critflash');void ar.offsetWidth;ar.classList.add('critflash');}}
    $('#monS').animate([{transform:'translateX(0)'},{transform:'translateX(14px) rotate(8deg)'},{transform:'translateX(-8px)'},{transform:'none'}],{duration:350});
    if(perk==='heal'&&B.streak%5===0&&B.hhp<B.hmax){const h=Math.min(20,B.hmax-B.hhp);B.hhp+=h;floatText('#heroS','+'+h+' ❤️','#8dffb0');}
    if([3,5,10,15,20].includes(B.streak))banner(B.streak>=10?`🔥 UNSTOPPABLE x${B.streak}!`:`🔥 COMBO x${B.streak}!`);
@@ -1976,7 +1993,7 @@ function setRound(zid,r){const p=P();p.roundSel=p.roundSel||{};p.roundSel[zid]=r
 function totalMedals(p){return [...ZONES.map(z=>z.id),'spell'].reduce((a,id)=>a+medal(p,id),0);}
 function roundNote(z,r){
  if(z.op==='spell')return ['','Hear the word. The boxes show how many letters it has.','No letter boxes! You have to know how long the word is.','No letter boxes, and only <b>2 replays</b> of each word.','Beat the clock! Spell fast for a ⏱️ speed bonus. Only 2 replays.','The boss uses <b>every</b> word and there are no pet hints. Win for a 🌟 Legend egg!'][r];
- return ['','The first adventure!','Tougher monsters, and gangs show up more.','Even tougher! Bigger gangs, and the boss brings a helper.','No free miss! The boss brings two helpers.','The hardest round of all. Win it for a 🌟 Legend egg!'][r];
+ return ['','The first adventure!','Tougher monsters, and gangs show up more.','Even tougher! Bigger gangs, and the boss brings a helper.','No free miss! Monsters ⚡ charge up an attack if you take too long (bigger problems give you more time). The boss brings two helpers.','The hardest round! Monsters charge up even faster. Win it for a 🌟 Legend egg!'][r];
 }
 function roundTabs(p,z){
  const m=medal(p,z.id),cur=curRound(p,z.id);
