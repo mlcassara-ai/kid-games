@@ -2526,7 +2526,7 @@ const DAD_JOKES=[
 ["Why did the wizard get a good grade?","He was great at spell-ing!"]];
 
 /* ================= the wishing fountain: a secret dad-joke machine ================= */
-function fnt(p){p.fountain=p.fountain||{t:0,need:rnd(5,20),seen:[]};return p.fountain;}
+function fnt(p){p.fountain=p.fountain||{t:0,need:rnd(1,15),seen:[]};if(p.fountain.need>15)p.fountain.need=rnd(1,15);return p.fountain;}
 const FOUNT_HINTS=['The water sparkles…','You hear a tiny giggle from the water…','The fountain gurgles happily.','Bubbles rise to the top…','Did the fountain just… snicker?','Plip! The coin sinks and glows.','Something is chuckling down there…','The water ripples in a funny way.'];
 function fountainOpen(){const p=P();const f=fnt(p);
  modal(`<div class="mcard fountain"><div class="fnt-pool" id="fntPool"><span class="fnt-e">⛲</span></div><h2>The Wishing Fountain</h2><p id="fntMsg" class="fnt-msg">Toss in a coin and make a wish…</p>
@@ -2542,7 +2542,7 @@ function fountainToss(n){const p=P();const f=fnt(p);if(fntBusy||!$('#fntMsg'))re
  $('#fntMsg').textContent=pick(FOUNT_HINTS);}
 function fountainJoke(){const p=P();const f=fnt(p);
  let pool=DAD_JOKES.map((_,i)=>i).filter(i=>!f.seen.includes(i));if(!pool.length){f.seen=[];pool=DAD_JOKES.map((_,i)=>i);}
- const i=pick(pool);f.seen.push(i);f.t=0;f.need=rnd(5,20);save();const [q,a]=DAD_JOKES[i];
+ const i=pick(pool);f.seen.push(i);f.t=0;f.need=rnd(1,15);save();const [q,a]=DAD_JOKES[i];
  [523,659,784].forEach((x,k)=>tone(x,.18,'triangle',.07,k*.1));
  modal(`<div class="mcard fountain"><div class="fnt-pool splash"><span class="fnt-e big">⛲</span><span class="fnt-face">😜</span></div><h2>💦 SPLOOSH! The fountain has a joke for you!</h2>
  <div class="fnt-joke">${esc(q)}</div><div class="fnt-punch" id="fntPunch">${esc(a)}</div>
