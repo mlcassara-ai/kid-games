@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Beat The Bully</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff8ec; --panel:#ffffff; --ink:#2b2140; --quiet:#6b6280; --line:#e8dfd0;
+  --accent:#7b4dff; --good:#1f9d55; --ok:#e0a100; --bad:#d62839; --heart:#ff4f8b; --beh:#e63946;
+  --shadow:0 4px 14px rgba(60,40,90,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Baloo 2',system-ui,sans-serif;font-size:17px}
+button{font-family:inherit;font-size:1rem;cursor:pointer;border:none;border-radius:12px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:600;box-shadow:0 2px 0 rgba(0,0,0,.15);transition:transform .08s}
+button:hover:not(:disabled){transform:translateY(-1px)}
+button:disabled{background:#cfc8dc;color:#fff;cursor:not-allowed;box-shadow:none}
+button.alt{background:#fff;color:var(--ink);border:2px solid var(--line)}
+button.good{background:var(--good)} button.bad{background:var(--bad)} button.warm{background:#ff8c42}
+.hidden{display:none!important}
+header{display:flex;align-items:center;gap:12px;padding:8px 16px;flex-wrap:wrap}
+header h1{margin:0;font-size:1.6rem;font-weight:800;letter-spacing:.3px}
+header h1 span{color:var(--accent)}
+header .sp{flex:1}
+header button{padding:6px 12px;font-size:.9rem}
+#cal{display:flex;gap:3px;align-items:flex-end;padding:0 16px 6px;overflow-x:auto}
+.wk{flex:1;min-width:26px;text-align:center;font-size:.72rem;color:var(--quiet)}
+.wk .dot{height:18px;border-radius:6px;background:#efe6d6;margin-bottom:2px;display:flex;align-items:center;justify-content:center;font-size:.8rem}
+.wk.past .dot{background:#c9b8f5}
+.wk.now .dot{background:var(--accent);color:#fff;font-weight:800;transform:scale(1.15)}
+.wk.skip{opacity:.3}
+.wk.fd .dot{background:#ffd166}
+main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:14px;padding:6px 16px 20px;max-width:1400px;margin:0 auto}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+#boardWrap{background:var(--panel);border-radius:18px;box-shadow:var(--shadow);padding:8px}
+#board{width:100%;height:auto;display:block}
+#board .cell{cursor:default}
+#board .cell.pick{cursor:pointer}
+#board .cell.pick rect{stroke:#ffb703;stroke-width:6;animation:pulse 1s infinite alternate}
+@keyframes pulse{from{stroke-opacity:1}to{stroke-opacity:.35}}
+.pawn{transition:transform .45s ease}
+aside{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border-radius:16px;box-shadow:var(--shadow);padding:12px 14px}
+.card h3{margin:0 0 6px;font-size:1.05rem}
+#dock{border:3px solid var(--accent)}
+#dock .msg{margin:4px 0 10px;color:var(--ink)}
+#dock .btns{display:flex;flex-wrap:wrap;gap:8px}
+#dock .btns button{flex:1 1 auto}
+.note{font-size:.78rem;color:var(--quiet);font-weight:400;display:block}
+button .note{color:inherit;opacity:.85}
+.toks{display:flex;gap:6px;flex-wrap:wrap}
+.tok{display:inline-flex;align-items:center;gap:3px;background:#f6f1e7;border-radius:999px;padding:1px 9px;font-weight:600}
+.tok.zero{opacity:.35}
+.hand{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.sc{background:#f1ecff;border:2px solid #d9cdfc;border-radius:10px;padding:2px 8px;font-size:.85rem}
+.pl{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
+.pl:first-of-type{border-top:none}
+.pl .sw{width:18px;height:18px;border-radius:50%;flex:none}
+.pl.active{background:#f7f2ff;border-radius:10px;padding:6px}
+.pl .nm{font-weight:800;min-width:70px}
+#log{max-height:170px;overflow:auto;font-size:.85rem;color:var(--quiet)}
+#log div{padding:2px 0;border-bottom:1px dashed var(--line)}
+#log div:first-child{color:var(--ink);font-weight:600}
+/* modal */
+#modal{position:fixed;inset:0;background:rgba(40,25,70,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+#modal .box{background:#fff;border-radius:20px;max-width:560px;width:100%;padding:20px 22px;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:92vh;overflow:auto;animation:pop .18s ease-out}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+#modal h2{margin:0 0 8px;font-size:1.4rem}
+#modal .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+#modal .btns button{flex:1 1 auto}
+.bcard{border-radius:16px;padding:12px 14px;margin:6px 0;background:#fff0f0;border:3px solid #ffb3b8}
+.bcard.goodm{background:#eefcf2;border-color:#9be3b3}
+.bcard .t{font-size:1.25rem;font-weight:800}
+.bcard .k{font-size:.85rem;color:var(--quiet);text-transform:uppercase;letter-spacing:.5px}
+.match{margin-top:6px;font-size:.92rem}
+.chip{display:inline-block;border-radius:999px;padding:0 8px;margin:2px 2px;font-size:.85rem;font-weight:600}
+.chip.g{background:#d9f7e4;color:#136b39} .chip.y{background:#fff1c7;color:#7a5a00}
+.tip{background:#f3efff;border-radius:12px;padding:8px 12px;margin-top:10px;font-size:.92rem}
+.big{font-size:2.6rem;text-align:center;margin:4px 0}
+.res-good{color:var(--good);font-weight:800} .res-ok{color:#9a7000;font-weight:800} .res-bad{color:var(--bad);font-weight:800}
+/* setup */
+#setup{position:fixed;inset:0;background:var(--bg);z-index:40;overflow:auto;padding:24px 16px}
+#setup .wrap{max-width:640px;margin:0 auto}
+#setup h1{font-size:2.6rem;margin:0;text-align:center;font-weight:800}
+#setup h1 span{color:var(--accent)}
+#setup .sub{text-align:center;color:var(--quiet);margin-bottom:18px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.seg button{background:#fff;color:var(--ink);border:2px solid var(--line)}
+.seg button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pin{display:flex;gap:8px;align-items:center;margin:6px 0}
+.pin input{font-family:inherit;font-size:1rem;padding:8px 10px;border-radius:10px;border:2px solid var(--line);flex:1;min-width:0}
+.pin .sw{width:26px;height:26px;border-radius:50%;flex:none}
+select{font-family:inherit;font-size:1rem;padding:6px 8px;border-radius:10px;border:2px solid var(--line);background:#fff}
+label.tg{display:flex;gap:8px;align-items:center;font-weight:600}
+.die{display:inline-block;font-size:2rem;animation:spin .5s ease-out}
+@keyframes spin{from{transform:rotate(-200deg) scale(.4)}to{transform:none}}
+.confetti{font-size:2rem;text-align:center;letter-spacing:6px}
+</style>
+</head>
+<body>
+
+<div id="setup">
+  <div class="wrap">
+    <h1>Beat The <span>Bully</span></h1>
+    <div class="sub">A cooperative game. Work together to help Bruno <b>stop</b> bullying and <b>change</b>, before Field Day.</div>
+    <div id="resumeBox" class="card hidden" style="margin-bottom:14px">
+      <h3>Saved game found</h3>
+      <div id="resumeInfo" class="note"></div>
+      <div class="row"><button id="resumeBtn" class="good">▶ Continue saved game</button><button id="discardBtn" class="alt">Start over</button></div>
+    </div>
+    <div class="card">
+      <h3>How many players?</h3>
+      <div class="row seg" id="segPlayers"></div>
+      <div id="names"></div>
+      <h3 style="margin-top:12px">Game mode</h3>
+      <div class="row seg" id="segMode"></div>
+      <div id="modeNote" class="note"></div>
+      <div id="bullyOpt" style="margin-top:12px">
+        <label class="tg"><input type="checkbox" id="bullyChk"> One player plays Bruno (the Bully)</label>
+        <div class="note">For 3–4 players, ages 8+. Bruno still wins or loses with the team. His secret goal is to be reached.</div>
+        <div class="row hidden" id="bullyWhoRow">Who plays Bruno? <select id="bullyWho"></select></div>
+      </div>
+      <div class="row" style="margin-top:14px"><button id="startBtn" class="good" style="flex:1;font-size:1.2rem">Start the school year! 🎒</button></div>
+      <div class="row"><button id="rulesBtn0" class="alt" style="flex:1">📖 How to play</button></div>
+    </div>
+  </div>
+</div>
+
+<header>
+  <h1>Beat The <span>Bully</span></h1>
+  <div id="wkLabel" class="note"></div>
+  <div class="sp"></div>
+  <button class="alt" id="rulesBtn">📖 Rules</button>
+  <button class="alt" id="newBtn">New game</button>
+</header>
+<div id="cal"></div>
+<main>
+  <div id="boardWrap"><svg id="board" viewBox="0 0 700 700" role="img" aria-label="Game board"></svg></div>
+  <aside>
+    <div class="card" id="dock"><h3 id="dockT">Welcome!</h3><div class="msg" id="dockM"></div><div class="btns" id="dockB"></div></div>
+    <div class="card" id="cur"></div>
+    <div class="card"><h3>Classmates</h3><div id="plist"></div></div>
+    <div class="card"><h3>What happened</h3><div id="log"></div></div>
+  </aside>
+</main>
+
+<div id="modal" class="hidden"><div class="box"><h2 id="mT"></h2><div id="mB"></div><div class="btns" id="mBtns"></div></div></div>
+
+<script>
+'use strict';
+// ================= DATA =================
+const TOK = ['courage','friends','kindness','confidence'];
+const TI = {
+  courage:{e:'🦁',n:'Courage'}, friends:{e:'🤝',n:'Friends'},
+  kindness:{e:'💚',n:'Kindness'}, confidence:{e:'💪',n:'Confidence'}
+};
+const ZONES = [
+  {n:'Bus Stop', e:'🚌', c:'#ffe7a3'}, {n:'Hallway', e:'🚪', c:'#ffd3b0'},
+  {n:'Cafeteria', e:'🍎', c:'#ffc9d6'}, {n:'Playground', e:'🛝', c:'#c4f2dc'},
+  {n:'Classroom', e:'✏️', c:'#c6ebfb'}, {n:'Library', e:'📚', c:'#e1d2ff'}
+];
+// [type, token]
+const SPACES = [
+  ['res','friends'],['kind'],['res','courage'],['event'],
+  ['res','confidence'],['clue'],['kind'],['event'],
+  ['res','friends'],['res','kindness'],['kind'],['res','friends'],
+  ['res','courage'],['event'],['clue'],['res','friends'],
+  ['res','confidence'],['kind'],['res','confidence'],['res','courage'],
+  ['res','kindness'],['clue'],['res','kindness'],['kind']
+];
+const CLUE_NAMES = {5:"Counselor's Office", 14:'Buddy Bench', 21:'Reading Nook'};
+const N = 24;
+const STRAT = {
+  voice:{n:'Confident Voice',e:'🗣️',cost:'confidence',count:6,tip:'Stand tall, look at them, and say it once in a calm, firm voice: "Stop. I don\'t like that." Then walk away.'},
+  walk:{n:'Walk Away',e:'🚶',cost:null,count:6,tip:'Bullies want a reaction. Walking toward friends or a grown-up takes that away.'},
+  together:{n:'Stick Together',e:'👫',cost:'friends',count:5,tip:'Bullies usually pick on kids who are alone. Stay with a buddy, especially in hallways, at recess and on the bus.'},
+  adult:{n:'Tell an Adult',e:'🧑‍🏫',cost:'courage',count:6,tip:'Telling is getting help, not getting someone in trouble. Tell a teacher, the bus driver, the lunch aide, a coach or a parent.'},
+  humor:{n:'Use Humor',e:'😄',cost:null,count:4,tip:'A light joke can end small teasing, but it\'s never the answer for pushing, threats or taking things.'},
+  fight:{n:'Fight Back',e:'👊',cost:null,count:3,tip:'Fighting back usually gets you in trouble too, and it makes the bullying worse. Walk away and tell someone instead.'}
+};
+const BT = {
+  tease:{n:'Teasing',loss:1,good:['voice','walk','humor'],ok:['together','adult']},
+  lunch:{n:'Takes Your Stuff',loss:2,good:['adult','together','voice'],ok:['walk']},
+  exclude:{n:"Won't Let You Play",loss:1,good:['together','walk'],ok:['voice','adult']},
+  rumor:{n:'Spreads a Rumor',loss:2,good:['adult','together'],ok:['voice','walk']},
+  shove:{n:'Shoves You',loss:2,good:['adult'],ok:['walk','together']}
+};
+// zone index: 0 Bus,1 Hall,2 Cafe,3 Play,4 Class,5 Lib
+const BULLY_CARDS = [
+  ['tease','"Nice shoes. Did your grandma pick them?"',0],['tease','Makes fun of your answer in class',4],
+  ['tease','Calls you a baby',3],['tease','Laughs at what\'s in your lunch',2],['tease','Makes fun of how you read out loud',5],
+  ['tease','Copies the way you talk',1],['tease','Says your drawing is ugly',4],
+  ['lunch','Grabs your snack at lunch',2],['lunch','"Pay me or you can\'t use the swings."',3],
+  ['lunch','Takes your pencil case and won\'t give it back',4],['lunch','Takes your seat on the bus',0],['lunch','Demands your dessert',2],
+  ['exclude','Tells everyone not to pick you',3],['exclude','Saves every seat at the table',2],
+  ['exclude','"You can\'t be in our group."',4],['exclude','Tells kids not to sit with you on the bus',0],
+  ['rumor','Tells people you cheated on the test',4],['rumor','Whispers about you in line',1],
+  ['rumor','Says you still sleep with a nightlight',5],['rumor','Starts a mean joke about you',0],
+  ['shove','Bumps you into the lockers',1],['shove','Knocks your books down',5],
+  ['shove','Trips you in the lunch line',2],['shove','Pushes you off the slide',3]
+];
+const GOOD_TEXT = ['Holds the door for you','Says "good game" after recess','Shares his markers','Laughs with you, not at you','Helps pick up dropped books','Says sorry to a little kid'];
+const EVENTS = [
+  ...Array(6).fill(['assembly','Kindness Assembly','Everyone takes 1 token.']),
+  ...Array(4).fill(['sub','Substitute Teacher','Bruno acts up while the teacher is away. Behavior +1.']),
+  ...Array(4).fill(['group','Group Project With Bruno','You\'re in Bruno\'s group! Pay 1 🤝 Friends to make him feel part of the team: Heart +1.']),
+  ...Array(3).fill(['newkid','New Kid in Class','You show the new kid around. +1 🌟 Kind Star.']),
+  ...Array(3).fill(['duty','Teacher on Hallway Duty','A teacher saw what\'s been going on. +1 👀 Witness.'])
+];
+const KIND_ACTS = [
+  ['courage','Help the new kid find their class'],['courage','Ask a shy kid to play tag'],['courage','Say sorry first after an argument'],['courage','Tell a friend you like their idea in front of everyone'],['courage','Volunteer to go first in the spelling bee'],
+  ['friends','Sit with someone eating alone'],['friends','Save a spot in line for a friend'],['friends','Invite a new kid to your table'],['friends','Pick someone who is always picked last'],['friends','Walk a friend to the nurse'],
+  ['kindness','Share your crayons'],['kindness','Pick up someone\'s dropped tray'],['kindness','Write a thank-you note to the bus driver'],['kindness','Help clean up the classroom'],['kindness','Give a compliment to someone having a bad day'],
+  ['confidence','Answer a hard question out loud'],['confidence','Help a classmate with math'],['confidence','Read your story to the class'],['confidence','Try something new at recess'],['confidence','Lead the class line']
+];
+const WHYS = [
+  {t:'New in Town',s:'Bruno moved here this summer. He doesn\'t have any friends yet, and acting tough feels safer than being lonely.',z:2,a:'Save him a seat at lunch'},
+  {t:"Can't Read Well",s:'Reading out loud is really hard for Bruno. He picks on others so nobody notices he\'s embarrassed.',z:5,a:'Read together in the Reading Nook'},
+  {t:'Big Brother Picks on Him',s:'Bruno\'s big brother is mean to him every day at home. Bruno passes it on at school.',z:0,a:'Sit with him on the bus'},
+  {t:'Trouble at Home',s:'Bruno\'s parents have been fighting a lot. He\'s angry and sad, and it comes out at school.',z:1,a:'Walk with him to the Counselor'},
+  {t:'Cut From the Team',s:'Bruno didn\'t make the soccer team. He feels like a loser and wants others to feel small too.',z:3,a:'Ask him to teach you his trick shot'},
+  {t:'Called Out in Class',s:'A teacher embarrassed Bruno in front of everyone. Now he acts out so he feels in control.',z:4,a:'Tell him his idea was cool'}
+];
+const COLORS = ['#e63946','#3a86ff','#2a9d8f','#f77f00'];
+const MONTHS = ['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun'];
+const MODES = {
+  standard:{n:'Standard',note:'Ages 8+. About 35–45 minutes.',B:6,winB:2,winH:8,stars:3,start:1,detPen:1,fight:true,whyKnown:false},
+  junior:{n:'Junior',note:'Ages 5–8, best with a grown-up playing. About 25–30 minutes. No Fight Back cards, and Bruno\'s secret is known from the start.',B:5,winB:3,winH:7,stars:3,start:9,detPen:0,fight:false,whyKnown:true},
+  hard:{n:'Hard',note:'For experienced players, ages 10+. Behavior starts at 7, you need Heart 9, and it takes 4 stars to move Heart.',B:7,winB:2,winH:9,stars:4,start:1,detPen:1,fight:true,whyKnown:false}
+};
+
+// ================= HELPERS =================
+const $ = id => document.getElementById(id);
+const rand = n => Math.floor(Math.random()*n);
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rand(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+const zoneOf = s => Math.floor(s/4);
+function dist(a,b){const d=Math.abs(a-b)%N;return Math.min(d,N-d)}
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function tokStr(t,k){return `${k>1?k+' ':''}${TI[t].e} ${TI[t].n}`}
+function cellXY(i){ if(i<=6) return [i,0]; if(i<=11) return [6,i-6]; if(i<=18) return [6-(i-12),6]; return [0,6-(i-18)]; }
+function spaceLabel(i){
+  const [t,k]=SPACES[i], z=ZONES[zoneOf(i)].n;
+  if(t==='res') return `${z}: +2 ${TI[k].e}`;
+  if(t==='kind') return `${z}: Kind Act 💝`;
+  if(t==='clue') return `${z}: Clue 🔍`;
+  return `${z}: School Event 🔔`;
+}
+class GameOver extends Error{}
+
+// ================= STATE =================
+let G = null;
+let GEN = 0; // bumps on new game to orphan old async flows
+const cls = () => G.ps.filter(p=>!p.bruno);
+
+function makeDeck(){
+  const d=[];
+  for(const k in STRAT){ if(k==='fight' && !G.M.fight) continue; for(let i=0;i<STRAT[k].count;i++) d.push(k); }
+  return shuffle(d);
+}
+function newGame(cfg){
+  const M = MODES[cfg.mode];
+  const bullyV = cfg.bully;
+  G = {cfg, M:{...M}, ps:[], log:[], behavior:M.B, heart:0, witness:0, clues:0, stars:0,
+       whyIdx:rand(6), whyKnown:M.whyKnown, bruno:4, skipBully:0, soft:bullyV?2:0,
+       week:bullyV?3:M.start, turn:0, goodAdded:0, over:false, stats:{good:0,ups:0,inc:0,det:0,fights:0}};
+  G.clueNeed = bullyV?2:3;
+  G.strat = makeDeck(); G.sdisc=[];
+  G.bdeck = shuffle(BULLY_CARDS.map((c,i)=>i)); G.bdisc=[];
+  G.events = shuffle(EVENTS.map((e,i)=>i)); G.kinds = shuffle(KIND_ACTS.map((k,i)=>i));
+  const n = cfg.names.length;
+  const base = n===2?3:(n===3?2:1);
+  const starts=[0,8,16,12];
+  let ci=0;
+  cfg.names.forEach((nm,i)=>{
+    const isB = bullyV && i===cfg.bullyIdx;
+    const p={name:nm, color:COLORS[i], bruno:isB, pos:0, tok:{}, hand:[], stars:0, skip:false};
+    if(!isB){
+      p.pos=starts[ci++];
+      TOK.forEach(t=>p.tok[t]=base); if(n===4) p.tok.kindness++;
+    }
+    G.ps.push(p);
+  });
+  cls().forEach(p=>{for(let i=0;i<3;i++){const c=drawStrat(); if(c) p.hand.push(c);}});
+  log('School starts! Welcome to Maple Grove Elementary.');
+}
+function drawStrat(){
+  if(!G.strat.length){G.strat=shuffle(G.sdisc);G.sdisc=[];}
+  return G.strat.pop()||null;
+}
+function log(m){ if(!G) return; G.log.unshift(m); if(G.log.length>60) G.log.pop(); }
+function save(){ try{ localStorage.setItem('btb-save', JSON.stringify(G)); }catch(e){} }
+function loadSave(){ try{ const s=localStorage.getItem('btb-save'); return s?JSON.parse(s):null; }catch(e){ return null; } }
+function clearSave(){ try{ localStorage.removeItem('btb-save'); }catch(e){} }
+
+// ================= RENDER =================
+function render(){
+  if(!G) return;
+  renderCal(); renderBoard(); renderSide();
+}
+function renderCal(){
+  let h='';
+  for(let w=1;w<=20;w++){
+    const m=MONTHS[Math.floor((w-1)/2)];
+    const first=G.cfg.bully?3:G.M.start;
+    let c='wk'; if(w<first) c+=' skip'; else if(w<G.week) c+=' past'; if(w===G.week) c+=' now';
+    const icon = w===10?'❄️':(w===16?'📝':w);
+    h+=`<div class="${c}"><div class="dot">${icon}</div>${w%2?m:''}</div>`;
+  }
+  h+=`<div class="wk fd ${G.week>20?'now':''}"><div class="dot">🏆</div>Field</div>`;
+  $('cal').innerHTML=h;
+  $('wkLabel').textContent = G.week>20?'Field Day!':`Week ${G.week} of 20 · ${MONTHS[Math.floor((G.week-1)/2)]}`;
+}
+function brunoFace(){ const h=G.heart; return h>=8?'😊':h>=6?'🙂':h>=3?'😐':h>=1?'😒':'😠'; }
+function renderBoard(){
+  const S=100; let h='';
+  const pick = G.pick?G.pick.allowed:[];
+  for(let i=0;i<N;i++){
+    const [x,y]=cellXY(i), z=ZONES[zoneOf(i)], [t,k]=SPACES[i];
+    const icon = t==='res'?TI[k].e:t==='kind'?'💝':t==='clue'?'🔍':'🔔';
+    const cap = t==='res'?`+2 ${TI[k].n}`:t==='kind'?'Kind Act':t==='clue'?(CLUE_NAMES[i]||'Clue'):'Event';
+    const isWhy = G.whyKnown && zoneOf(i)===WHYS[G.whyIdx].z;
+    h+=`<g class="cell ${pick.includes(i)?'pick':''}" data-i="${i}">
+      <rect x="${x*S+3}" y="${y*S+3}" width="${S-6}" height="${S-6}" rx="14" fill="${z.c}" stroke="${isWhy?'#ff4f8b':'#fff'}" stroke-width="${isWhy?5:2}"/>
+      ${i%4===0?`<text x="${x*S+10}" y="${y*S+22}" font-size="11.5" font-weight="800" fill="#4a3f63">${z.e} ${z.n}</text>`:''}
+      <text x="${x*S+S/2}" y="${y*S+62}" font-size="32" text-anchor="middle">${icon}</text>
+      <text x="${x*S+S/2}" y="${y*S+88}" font-size="11.5" text-anchor="middle" fill="#4a3f63">${cap}</text>
+    </g>`;
+  }
+  // center bully board
+  h+=`<rect x="108" y="108" width="484" height="484" rx="24" fill="#fffdf7" stroke="#eadfcb" stroke-width="2"/>`;
+  h+=`<text x="350" y="146" text-anchor="middle" font-size="22" font-weight="800" fill="#2b2140">Maple Grove Elementary</text>`;
+  h+=`<text x="350" y="215" text-anchor="middle" font-size="58">${brunoFace()}</text>`;
+  h+=`<text x="350" y="245" text-anchor="middle" font-size="15" fill="#6b6280">Bruno${G.skipBully>0?' · 🚫 in Detention ('+G.skipBully+')':''}</text>`;
+  const meter=(y,label,val,col,goal,goalTxt,danger)=>{
+    let s=`<text x="130" y="${y+19}" font-size="15" font-weight="800" fill="#2b2140">${label}</text>`;
+    for(let v=0;v<=10;v++){
+      const bx=240+v*30, on=v<=val&&val>0&&v>0;
+      const inGoal = goal(v);
+      s+=`<rect x="${bx}" y="${y}" width="26" height="26" rx="6" fill="${on?col:'#f1ebe0'}" stroke="${inGoal?'#1f9d55':(danger&&v===10?'#d62839':'#e2d8c6')}" stroke-width="${inGoal||(danger&&v===10)?3:1.5}"/>`;
+      s+=`<text x="${bx+13}" y="${y+18}" font-size="12" text-anchor="middle" fill="${on?'#fff':'#9b92ad'}">${v===10&&danger?'💀':v}</text>`;
+    }
+    s+=`<text x="240" y="${y+44}" font-size="12" fill="#6b6280">${goalTxt}</text>`;
+    return s;
+  };
+  h+=meter(272,'😠 Behavior',G.behavior,'#e63946',v=>v<=G.M.winB,`Goal: ${G.M.winB} or less by Field Day · 10 = Bruno Runs the School`,true);
+  h+=meter(340,'💖 Heart',G.heart,'#ff4f8b',v=>v>=G.M.winH,`Goal: ${G.M.winH} or more by Field Day`,false);
+  const dots=(n,max,e)=>{let s='';for(let i=0;i<max;i++)s+=i<n?e:'▫️';return s};
+  h+=`<text x="130" y="428" font-size="16" fill="#2b2140"><tspan font-weight="800">👀 Witnesses </tspan>${dots(Math.min(G.witness,3),3,'👀')}${G.witness>3?' +'+(G.witness-3):''}${G.witness>=3?'  ← Tell a Grown-Up!':''}</text>`;
+  if(G.whyKnown){
+    const w=WHYS[G.whyIdx];
+    h+=`<text x="130" y="462" font-size="16" fill="#2b2140"><tspan font-weight="800">🔍 Why: </tspan>${esc(w.t)} → ${ZONES[w.z].e} ${ZONES[w.z].n}</text>`;
+  } else h+=`<text x="130" y="462" font-size="16" fill="#2b2140"><tspan font-weight="800">🔍 Clues </tspan>${dots(G.clues,G.clueNeed,'🔍')}  (find ${G.clueNeed} to learn Bruno's secret)</text>`;
+  const per=G.M.stars, toNext=per-(G.stars%per);
+  h+=`<text x="130" y="496" font-size="16" fill="#2b2140"><tspan font-weight="800">🌟 Kind Stars </tspan>${G.stars}  (${toNext} more → Heart +1)</text>`;
+  if(G.cfg.bully) h+=`<text x="130" y="530" font-size="15" fill="#6b6280">🎭 Bruno is played by ${esc(G.ps[G.cfg.bullyIdx].name)} · Soft Moments left: ${G.soft}</text>`;
+  h+=`<text x="350" y="572" text-anchor="middle" font-size="13" fill="#9b92ad">Win together: Behavior ≤ ${G.M.winB} AND Heart ≥ ${G.M.winH}</text>`;
+  // pawns
+  const occ={};
+  const initials=cls().map(p=>(p.name[0]||'?').toUpperCase());
+  cls().forEach((p,idx)=>{
+    const lab = initials.filter(x=>x===initials[idx]).length>1 ? String(G.ps.indexOf(p)+1) : initials[idx];
+    const [x,y]=cellXY(p.pos); const k=(occ[p.pos]=(occ[p.pos]||0)+1)-1;
+    const off=[[22,30],[78,30],[22,76],[78,76]][k%4];
+    h+=`<g class="pawn" style="transform:translate(${x*S+off[0]}px,${y*S+off[1]}px)">
+      <circle r="15" fill="${p.color}" stroke="#fff" stroke-width="3"/>
+      <text y="6" font-size="15" font-weight="800" text-anchor="middle" fill="#fff">${esc(lab)}</text></g>`;
+  });
+  const [bx,by]=cellXY(G.bruno);
+  h+=`<g class="pawn" style="transform:translate(${bx*S+50}px,${by*S+50}px)">
+    <circle r="22" fill="#5b3e8a" stroke="#ffd166" stroke-width="4"/>
+    <text y="9" font-size="26" text-anchor="middle">${brunoFace()}</text></g>`;
+  $('board').innerHTML=h;
+}
+function tokHTML(p){
+  return `<div class="toks">${TOK.map(t=>`<span class="tok ${p.tok[t]?'':'zero'}" title="${TI[t].n}">${TI[t].e} ${p.tok[t]}</span>`).join('')}<span class="tok" title="Kind Stars earned">🌟 ${p.stars}</span></div>`;
+}
+function renderSide(){
+  const c = cls(); const a = c[G.turn % c.length];
+  $('cur').innerHTML = `<h3 style="color:${a.color}">🎒 ${esc(a.name)}'s turn</h3>${tokHTML(a)}
+    <div class="note" style="margin-top:6px">Strategy cards in hand (${a.hand.length}/4):</div>
+    <div class="hand">${a.hand.map(k=>`<span class="sc" title="${esc(STRAT[k].tip)}">${STRAT[k].e} ${STRAT[k].n}${STRAT[k].cost?' · '+TI[STRAT[k].cost].e:''}</span>`).join('')||'<span class="note">none</span>'}</div>`;
+  $('plist').innerHTML = c.map(p=>`<div class="pl ${p===a?'active':''}"><span class="sw" style="background:${p.color}"></span><span class="nm">${esc(p.name)}</span>${tokHTML(p)}<span class="note">🃏${p.hand.length}${p.skip?' · ⏸ skips':''}</span></div>`).join('')
+    + (G.cfg.bully?`<div class="pl"><span class="sw" style="background:#5b3e8a"></span><span class="nm">${esc(G.ps[G.cfg.bullyIdx].name)}</span><span class="note">🎭 playing Bruno</span></div>`:'');
+  $('log').innerHTML = G.log.slice(0,30).map(m=>`<div>${m}</div>`).join('');
+}
+
+// ================= PROMPTS =================
+function modal(title, html, buttons){
+  const gen=GEN;
+  return new Promise(res=>{
+    $('mT').innerHTML=title; $('mB').innerHTML=html||'';
+    const b=$('mBtns'); b.innerHTML='';
+    buttons.forEach(o=>{
+      const el=document.createElement('button');
+      el.innerHTML=o.label+(o.note?`<span class="note">${o.note}</span>`:'');
+      if(o.cls) el.className=o.cls; if(o.disabled) el.disabled=true;
+      el.onclick=()=>{ if(gen!==GEN) return; $('modal').classList.add('hidden'); res(o.value); };
+      b.appendChild(el);
+    });
+    $('modal').classList.remove('hidden');
+  });
+}
+const ok = (title, html, label='OK') => modal(title, html, [{label, value:true}]);
+function dock(title, html, buttons){
+  const gen=GEN;
+  return new Promise(res=>{
+    $('dockT').innerHTML=title; $('dockM').innerHTML=html||'';
+    const b=$('dockB'); b.innerHTML='';
+    const done=v=>{ if(gen!==GEN) return; G.pick=null; b.innerHTML=''; render(); res(v); };
+    buttons.forEach(o=>{
+      const el=document.createElement('button');
+      el.innerHTML=o.label+(o.note?`<span class="note">${o.note}</span>`:'');
+      if(o.cls) el.className=o.cls; if(o.disabled) el.disabled=true;
+      el.onclick=()=>done(o.value);
+      b.appendChild(el);
+    });
+    G.dockDone=done;
+  });
+}
+$('board').addEventListener('click',e=>{
+  const g=e.target.closest('.cell'); if(!g||!G||!G.pick) return;
+  const i=+g.dataset.i; if(G.pick.allowed.includes(i) && G.dockDone) G.dockDone(i);
+});
+function bullyCardHTML(ci){
+  if(ci==='good'||typeof ci==='string') return '';
+  const [type,text,z]=BULLY_CARDS[ci], b=BT[type];
+  return `<div class="bcard"><div class="k">${b.n} · lose ${b.loss} token${b.loss>1?'s':''} · ${ZONES[z].e} ${ZONES[z].n}</div>
+    <div class="t">${esc(text)}</div>
+    <div class="match">Best: ${b.good.map(k=>`<span class="chip g">${STRAT[k].e} ${STRAT[k].n}</span>`).join('')}<br>
+    OK: ${b.ok.map(k=>`<span class="chip y">${STRAT[k].e} ${STRAT[k].n}</span>`).join('')}</div></div>`;
+}
+
+// ================= GAME ACTIONS =================
+function checkLoss(){ if(G.behavior>=10){ G.lost=true; throw new GameOver(); } }
+function beh(k){ G.behavior=Math.max(0,Math.min(10,G.behavior+k)); }
+function addHeartCore(k){
+  const old=G.heart; G.heart=Math.max(0,Math.min(10,G.heart+k));
+  if(old<3 && G.heart>=3 && G.goodAdded<1){ G.goodAdded=1; addGood(); log('💖 Heart reached 3: Good Moments are now in the Bully deck.'); }
+  if(old<6 && G.heart>=6 && G.goodAdded<2){ G.goodAdded=2; addGood(); log('💖 Heart reached 6: more Good Moments added.'); }
+}
+function addGood(){ for(let i=0;i<3;i++) G.bdeck.push('good'); shuffle(G.bdeck); }
+async function heartUp(k){
+  addHeartCore(k); render();
+  if(G.cfg.bully && G.soft>0 && k>0 && G.heart<10){
+    const bn=G.ps[G.cfg.bullyIdx].name;
+    const v=await modal(`🎭 ${esc(bn)}, you were reached!`, `<p>Heart just went up. Do you want to play a <b>Soft Moment</b>? (${G.soft} left)</p><p><i>"He looks surprised… and a little embarrassed."</i></p>`,
+      [{label:'💗 Play Soft Moment (Heart +1)',value:true,cls:'good'},{label:'Not yet',value:false,cls:'alt'}]);
+    if(v){ G.soft--; addHeartCore(1); log(`🎭 Bruno played a Soft Moment. Heart +1.`); render(); }
+  }
+}
+async function addStar(p,k){
+  const per=G.M.stars, before=Math.floor(G.stars/per);
+  G.stars+=k; p.stars+=k;
+  const gained=Math.floor(G.stars/per)-before;
+  if(gained){ log(`🌟 ${G.stars} Kind Stars! Bruno notices how everyone treats each other. Heart +${gained}.`); await heartUp(gained); }
+}
+function loseTokens(p,k){
+  const lost=[];
+  for(let i=0;i<k;i++){
+    const have=TOK.filter(t=>p.tok[t]>0); if(!have.length) break;
+    const t=have.reduce((a,b)=>p.tok[b]>p.tok[a]?b:a); p.tok[t]--; lost.push(TI[t].e);
+  }
+  return lost;
+}
+function lowestTok(p){ return TOK.reduce((a,b)=>p.tok[b]<p.tok[a]?b:a); }
+
+// ================= TURN FLOW =================
+async function run(){
+  const gen=GEN;
+  try{
+    while(G.week<=20){
+      save(); render();
+      await takeTurn();
+      if(gen!==GEN) return;
+      G.week++; G.turn=(G.turn+1)%cls().length;
+    }
+    save(); render();
+    await ok('🏆 Field Day!', '<div class="big">🏃‍♀️🏅🏃</div><p>It\'s the last day of school! Bruno gets one more chance to act before we see how the year went.</p>', 'Draw the last Bully card');
+    await bullyPhase();
+    await endGame();
+  }catch(e){
+    if(e instanceof GameOver) await endGame(); else { console.error(e); throw e; }
+  }
+}
+
+async function takeTurn(){
+  const c=cls(), p=c[G.turn];
+  render();
+  if(p.skip){
+    p.skip=false;
+    await ok(`⏸ ${esc(p.name)} misses this week`, `<p>${esc(p.name)} got in trouble for fighting back and has to sit out this week.</p>`);
+    log(`⏸ ${esc(p.name)} sat out this week.`);
+  } else {
+    if(p.hand.length<4){ const c2=drawStrat(); if(c2){ p.hand.push(c2); log(`${esc(p.name)} drew a Strategy card: ${STRAT[c2].e} ${STRAT[c2].n}.`);} }
+    render();
+    await dock(`🎲 ${esc(p.name)}'s turn`, 'Roll the die and move around the school. You pick the direction!', [{label:'🎲 Roll the die',value:1}]);
+    const roll=1+rand(6);
+    const a=(p.pos+roll)%N, b=(p.pos-roll+N)%N;
+    G.pick={allowed:[a,b]}; render();
+    const dest = await dock(`You rolled <span class="die">${['','⚀','⚁','⚂','⚃','⚄','⚅'][roll]}</span> ${roll}!`,
+      'Which way? Tap a glowing space or pick below.',
+      [{label:`↻ ${spaceLabel(a)}`,value:a},{label:`↺ ${spaceLabel(b)}`,value:b}]);
+    p.pos=dest; render();
+    await resolveSpace(p);
+    await mainPhase(p);
+  }
+  // Bruno
+  if(G.week===10){
+    cls().forEach(q=>q.tok[lowestTok(q)]++);
+    log('❄️ Winter Break! No bullying this week, and everyone took 1 token.');
+    render();
+    await ok('❄️ Winter Break!', '<div class="big">⛄🎁</div><p>No school, so no bullying this week! Everyone takes 1 token (whatever you have least of).</p>');
+  } else {
+    await bullyPhase();
+    if(G.week===16){
+      await ok('📝 Testing Week!', '<p>Bruno is stressed about tests. He acts out <b>twice</b> this week.</p>');
+      await bullyPhase();
+    }
+  }
+}
+
+async function resolveSpace(p){
+  const [t,k]=SPACES[p.pos];
+  if(t==='res'){
+    p.tok[k]+=2; log(`${esc(p.name)} got +2 ${TI[k].e} ${TI[k].n}.`); render();
+  } else if(t==='kind'){
+    if(!G.kinds.length) G.kinds=shuffle(KIND_ACTS.map((x,i)=>i));
+    const [cost,text]=KIND_ACTS[G.kinds.pop()];
+    let paid=null;
+    if(p.tok[cost]>0){ p.tok[cost]--; paid=cost; }
+    else { const have=TOK.filter(x=>p.tok[x]>0); if(have.length){ paid=have.reduce((a,b)=>p.tok[b]>p.tok[a]?b:a); p.tok[paid]--; } }
+    if(!paid){ await ok('💝 Kind Act', `<div class="bcard goodm"><div class="t">${esc(text)}</div></div><p>You don't have any tokens to spend right now, so you can't do this one. Next time!</p>`); return; }
+    const roll=1+rand(6), caught=roll>=5;
+    await ok('💝 Kind Act!', `<div class="bcard goodm"><div class="k">costs ${TI[cost].e} ${TI[cost].n}</div><div class="t">${esc(text)}</div></div>
+      <p>You paid 1 ${TI[paid].e} and earned <b>1 🌟 Kind Star</b>.</p><p>Did a grown-up notice? You rolled <b>${roll}</b>. ${caught?'<span class="res-good">Yes! Caught Being Kind! +1 more 🌟 and +1 💪 Confidence.</span>':'Not this time, but kindness still counts!'}</p>`);
+    log(`💝 ${esc(p.name)}: ${esc(text)}${caught?' (Caught Being Kind!)':''}`);
+    await addStar(p,1);
+    if(caught){ p.tok.confidence++; await addStar(p,1); }
+  } else if(t==='clue'){
+    if(G.whyKnown){ p.tok.kindness++; log(`${esc(p.name)} got +1 💚 at the ${CLUE_NAMES[p.pos]}.`); await ok('🔍 '+CLUE_NAMES[p.pos], '<p>We already know Bruno\'s secret. You get <b>+1 💚 Kindness</b> instead.</p>'); return; }
+    G.clues++; render();
+    if(G.cfg.bully){
+      const bn=G.ps[G.cfg.bullyIdx].name;
+      await ok(`🔍 Clue found! (${G.clues}/${G.clueNeed})`, `<p><b>${esc(bn)}</b>, stay in character as Bruno and give everyone <b>one hint</b> about why he acts this way. Don't name the place!</p>`, 'Hint given');
+    }
+    if(G.clues>=G.clueNeed){
+      G.whyKnown=true; const w=WHYS[G.whyIdx]; render();
+      log(`🔍 Bruno's secret revealed: ${esc(w.t)}.`);
+      await ok('🔍 Bruno\'s secret: '+esc(w.t), `<p style="font-size:1.1rem">${esc(w.s)}</p><div class="tip">Knowing why doesn't make bullying OK, but it helps us understand him.<br><br>
+        <b>New action unlocked:</b> in the ${ZONES[w.z].e} <b>${ZONES[w.z].n}</b>, pay 2 💚 to <b>${esc(w.a)}</b> (Heart +2).</div>`);
+    } else if(!G.cfg.bully){
+      await ok(`🔍 Clue found! (${G.clues}/${G.clueNeed})`, `<p>You found a clue at the ${CLUE_NAMES[p.pos]} about why Bruno acts this way. Find ${G.clueNeed-G.clues} more to learn his secret.</p>`);
+    }
+  } else {
+    if(!G.events.length) G.events=shuffle(EVENTS.map((x,i)=>i));
+    const [kind,title,text]=EVENTS[G.events.pop()];
+    log(`🔔 ${title}`);
+    if(kind==='group' && p.tok.friends>0){
+      const v=await modal('🔔 '+title, `<p>${text}</p>`, [{label:'🤝 Pay 1 Friends (Heart +1)',value:true,cls:'good'},{label:'Not this time',value:false,cls:'alt'}]);
+      if(v){ p.tok.friends--; await heartUp(1); log(`${esc(p.name)} included Bruno in the group project. Heart +1.`); }
+      return;
+    }
+    await ok('🔔 '+title, `<p>${text}</p>${kind==='group'?'<p class="note">You don\'t have any 🤝 to spend.</p>':''}`);
+    if(kind==='assembly'){ cls().forEach(q=>q.tok[lowestTok(q)]++); log('Everyone took 1 token (what they had least of).'); }
+    else if(kind==='sub'){ beh(1); render(); checkLoss(); }
+    else if(kind==='newkid'){ await addStar(p,1); }
+    else if(kind==='duty'){ G.witness++; }
+    render();
+  }
+}
+
+async function mainPhase(p){
+  let traded=false;
+  while(true){
+    render();
+    const w=G.whyKnown?WHYS[G.whyIdx]:null;
+    const canDet = G.witness>=3 && p.tok.courage>0;
+    const canWhy = w && zoneOf(p.pos)===w.z && p.tok.kindness>=2;
+    const near = dist(p.pos,G.bruno)<=2;
+    const canInc = near && p.tok.kindness>0 && p.tok.friends>0;
+    const btns=[
+      {label:'🤗 Include Bruno',value:'inc',disabled:!canInc,cls:'good',note:canInc?'1 💚 + 1 🤝 → Heart +1':(!near?'Get within 2 spaces of Bruno':'Needs 1 💚 + 1 🤝')},
+      {label:w?`💗 ${esc(w.a)}`:'💗 Help With the Why',value:'why',disabled:!canWhy,cls:'good',note:!w?'Find Bruno\'s secret first':(canWhy?'2 💚 → Heart +2':`Go to the ${ZONES[w.z].n} with 2 💚`)},
+      {label:'🧑‍🏫 Tell a Grown-Up',value:'det',disabled:!canDet,cls:'warm',note:G.witness<3?`Needs 3 👀 (have ${G.witness})`:(canDet?'1 🦁 → Detention':'Needs 1 🦁')},
+      {label:'🎈 Hang Out',value:'hang',cls:'alt',note:'Take 1 token'},
+      {label:'🔄 Trade',value:'trade',disabled:traded,cls:'alt',note:traded?'Already traded':'Once per turn'}
+    ];
+    const v=await dock(`${esc(p.name)}: choose one action`, 'Talk it over with your team!', btns);
+    if(v==='trade'){ if(await tradeUI(p)) traded=true; continue; }
+    if(v==='inc'){
+      p.tok.kindness--; p.tok.friends--; G.stats.inc++;
+      log(`🤗 ${esc(p.name)} included Bruno. Heart +1.`);
+      await ok('🤗 You included Bruno!', `<div class="big">🤗</div><p>You asked Bruno to join in. He didn't expect that. <b>Heart +1.</b></p>`);
+      await heartUp(1);
+    } else if(v==='why'){
+      p.tok.kindness-=2;
+      log(`💗 ${esc(p.name)}: ${esc(w.a)}. Heart +2.`);
+      await ok('💗 '+esc(w.a), `<p>You helped with the real reason Bruno is struggling. <b>Heart +2.</b></p>`);
+      await heartUp(2);
+    } else if(v==='det'){
+      p.tok.courage--; beh(-2); G.witness=0; G.skipBully+=2; G.stats.det++;
+      G.heart=Math.max(0,G.heart-G.M.detPen);
+      log(`🧑‍🏫 ${esc(p.name)} told a grown-up. Detention! Behavior −2${G.M.detPen?', Heart −1':''}.`);
+      await ok('🧑‍🏫 Detention!', `<div class="big">🚫</div><p>With 3 witnesses, the grown-ups step in. <b>Behavior −2</b>, and Bruno misses the next <b>2</b> Bully turns.</p>
+        ${G.M.detPen?'<p><b>Heart −1.</b> He\'s angry and embarrassed. Consequences stop behavior, but they don\'t change hearts.</p>':''}
+        <div class="tip">Telling a grown-up is getting help, not tattling.</div>`);
+    } else if(v==='hang'){
+      const t=await dock('🎈 Hang Out', 'Take 1 token:', TOK.map(t=>({label:`${TI[t].e} ${TI[t].n}`,value:t,cls:'alt'})));
+      p.tok[t]++; log(`${esc(p.name)} hung out and took 1 ${TI[t].e}.`);
+    }
+    render(); return;
+  }
+}
+
+async function tradeUI(p){
+  const others=cls().filter(q=>q!==p);
+  const opt=(arr)=>arr.map(t=>`<option value="${t}">${TI[t].e} ${TI[t].n}</option>`).join('');
+  const html=`<p><b>Bank:</b> give 2 of the same, get 1 of anything.</p>
+    <div class="row">Give 2 <select id="tbG">${opt(TOK.filter(t=>p.tok[t]>=2))}</select> → get 1 <select id="tbW">${opt(TOK)}</select></div>
+    <p style="margin-top:14px"><b>Swap 1-for-1 with a classmate</b> (you both agree):</p>
+    <div class="row">With <select id="tcP">${others.map((q,i)=>`<option value="${i}">${esc(q.name)}</option>`).join('')}</select></div>
+    <div class="row">You give <select id="tcG">${opt(TOK.filter(t=>p.tok[t]>=1))}</select> and get <select id="tcW">${opt(TOK)}</select></div>
+    <p class="note">Only one trade per turn.</p>`;
+  const v=await modal('🔄 Trade', html, [
+    {label:'Trade with bank',value:'bank',disabled:!TOK.some(t=>p.tok[t]>=2)},
+    {label:'Swap with classmate',value:'swap',disabled:!TOK.some(t=>p.tok[t]>=1)},
+    {label:'Cancel',value:null,cls:'alt'}]);
+  if(v==='bank'){
+    const g=$('tbG').value, w=$('tbW').value;
+    if(!g||p.tok[g]<2||g===w) { await ok('Oops','<p>That trade doesn\'t work. Pick two different kinds.</p>'); return false; }
+    p.tok[g]-=2; p.tok[w]++; log(`🔄 ${esc(p.name)} traded 2 ${TI[g].e} for 1 ${TI[w].e}.`); return true;
+  }
+  if(v==='swap'){
+    const q=others[+$('tcP').value], g=$('tcG').value, w=$('tcW').value;
+    if(!q||!g||p.tok[g]<1||q.tok[w]<1||g===w){ await ok('Oops',`<p>That swap doesn't work. ${q&&q.tok[w]<1?esc(q.name)+' has no '+TI[w].e+'.':'Pick two different kinds.'}</p>`); return false; }
+    p.tok[g]--; q.tok[g]++; q.tok[w]--; p.tok[w]++;
+    log(`🔄 ${esc(p.name)} swapped 1 ${TI[g].e} with ${esc(q.name)} for 1 ${TI[w].e}.`); return true;
+  }
+  return false;
+}
+
+// ================= BULLY PHASE =================
+function drawBully(){
+  if(!G.bdeck.length){ G.bdeck=shuffle(G.bdisc); G.bdisc=[]; }
+  return G.bdeck.pop();
+}
+function lossOf(c){ return c==='good'?-1:BT[BULLY_CARDS[c][0]].loss; }
+function idleDock(t,m){ $('dockT').innerHTML=t; $('dockM').innerHTML=m||''; $('dockB').innerHTML=''; }
+async function bullyPhase(){
+  idleDock('😠 Bruno\'s turn','Watch out…');
+  if(G.skipBully>0){
+    G.skipBully--; render();
+    log('🚫 Bruno is in Detention. No bullying this week.');
+    await ok('🚫 Bruno is in Detention', '<p>No bullying this week!</p>');
+    return;
+  }
+  let card;
+  const act=cls()[G.turn];
+  if(G.cfg.bully){
+    const bn=G.ps[G.cfg.bullyIdx].name;
+    const a=drawBully(), b=drawBully();
+    const opts=[a,b].filter(x=>x!==undefined);
+    await ok(`🎭 ${esc(bn)}'s turn as Bruno`, `<p>Pass the device to <b>${esc(bn)}</b>.</p>`, "I'm Bruno");
+    const forced = G.heart<5;
+    let choices=opts;
+    if(forced && opts.length===2 && lossOf(opts[0])!==lossOf(opts[1])) choices=[lossOf(opts[0])>lossOf(opts[1])?opts[0]:opts[1]];
+    const show=opts.map(o=>o==='good'?`<div class="bcard goodm"><div class="t">🌟 Good Moment</div></div>`:bullyCardHTML(o)).join('');
+    card = choices.length===1 ? choices[0] : await modal('🎭 Pick Bruno\'s card', show+(forced?'<p class="note">Bad Mood rule: Heart is below 5, so Bruno must play the harsher card. They\'re tied, so you pick.</p>':'<p class="note">Heart is 5 or more, so you can pick either card.</p>'),
+      opts.map((o,i)=>({label:o==='good'?'🌟 Good Moment':`Card ${i+1}: ${BT[BULLY_CARDS[o][0]].n}`,value:o})));
+    if(choices.length===1 && opts.length===2){
+      await ok('🎭 Bad Mood', show+`<p>Heart is below 5, so Bruno is in a <b>Bad Mood</b> and must play the harsher card.</p>`);
+    }
+    opts.forEach(o=>{ if(o!==card) G.bdeck.unshift(o); });
+  } else {
+    card=drawBully();
+  }
+  G.bdisc.push(card);
+  if(card==='good'){
+    const text=GOOD_TEXT[rand(GOOD_TEXT.length)];
+    const who=cls().filter(q=>q.tok.confidence>0);
+    log(`🌟 Good Moment: Bruno ${text.toLowerCase()}.`);
+    const v=await modal('🌟 Good Moment!', `<div class="bcard goodm"><div class="k">Bruno did something nice</div><div class="t">Bruno ${esc(text.toLowerCase())}.</div></div>
+      <p>Notice it! One classmate can <b>praise him</b> for 1 💪 Confidence. <b>Heart +1.</b></p>`,
+      [...who.map(q=>({label:`💬 ${esc(q.name)} praises him`,value:q.name,cls:'good'})),{label:'Nobody this time',value:null,cls:'alt'}]);
+    if(v){ const q=cls().find(x=>x.name===v); q.tok.confidence--; log(`💬 ${esc(q.name)} praised Bruno. Heart +1.`); await heartUp(1); }
+    render(); return;
+  }
+  const [type,text,z]=BULLY_CARDS[card]; const bt=BT[type];
+  G.bruno = z*4 + rand(4);
+  render();
+  // target
+  let target;
+  if(G.cfg.bully){
+    let cand=cls().filter(q=>dist(q.pos,G.bruno)<=3);
+    if(!cand.length){ const m=Math.min(...cls().map(q=>dist(q.pos,G.bruno))); cand=cls().filter(q=>dist(q.pos,G.bruno)===m); }
+    target = cand.length===1?cand[0]: await (async()=>{
+      const v=await modal('🎭 Who does Bruno pick on?', bullyCardHTML(card)+'<p class="note">Choose a classmate within 3 spaces of Bruno.</p>', cand.map(q=>({label:esc(q.name),value:q.name})));
+      return cls().find(q=>q.name===v);
+    })();
+    await ok('📱 Pass it back!', `<p>Give the device back to the classmates.</p>`);
+  } else {
+    const m=Math.min(...cls().map(q=>dist(q.pos,G.bruno)));
+    const tied=cls().filter(q=>dist(q.pos,G.bruno)===m);
+    if(tied.length===1) target=tied[0];
+    else {
+      const v=await modal('😠 Bruno is coming!', bullyCardHTML(card)+`<p>${tied.map(q=>esc(q.name)).join(' and ')} are the same distance away. <b>${esc(act.name)}</b>, you're the active player: who does Bruno go after?</p>`, tied.map(q=>({label:esc(q.name),value:q.name})));
+      target=cls().find(q=>q.name===v);
+    }
+  }
+  log(`😠 Bruno → ${esc(target.name)}: ${esc(text)}`);
+  // upstander
+  let ups=null;
+  const upC=cls().filter(q=>q!==target && q.tok.courage>0 && dist(q.pos,target.pos)<=3);
+  if(upC.length){
+    const v=await modal(`😠 Bruno picks on ${esc(target.name)}!`, bullyCardHTML(card)+`<p><b>Will anyone stand up for ${esc(target.name)}?</b> Pay 1 🦁 Courage: you earn a 🌟, add a 👀 witness, and ${esc(target.name)} loses 1 fewer token.</p>`,
+      [...upC.map(q=>({label:`✋ ${esc(q.name)} stands up`,value:q.name,cls:'good'})),{label:'Not this time',value:null,cls:'alt'}]);
+    if(v){ ups=cls().find(q=>q.name===v); ups.tok.courage--; G.witness++; G.stats.ups++; log(`✋ ${esc(ups.name)} stood up for ${esc(target.name)}!`); await addStar(ups,1); }
+  }
+  // response
+  const hasBuddy=cls().some(q=>q!==target && dist(q.pos,target.pos)<=3);
+  const junior=G.cfg.mode==='junior';
+  const btns=target.hand.map((k,i)=>{
+    const s=STRAT[k]; let dis=false, note=s.cost?`costs 1 ${TI[s.cost].e}`:'free';
+    if(s.cost && target.tok[s.cost]<1){dis=true; note=`need 1 ${TI[s.cost].e}`;}
+    if(k==='together' && !hasBuddy){dis=true; note='no classmate within 3 spaces';}
+    const mark = junior ? (bt.good.includes(k)?' ✅':bt.ok.includes(k)?' 🟡':'') : '';
+    return {label:`${s.e} ${s.n}${mark}`,value:i,disabled:dis,note};
+  });
+  btns.push({label:'No card',value:-1,cls:'alt'});
+  const pick=await modal(`${esc(target.name)}, how do you respond?`, bullyCardHTML(card)+(ups?`<p>✋ ${esc(ups.name)} is standing up for you!</p>`:'')+(junior?'<p class="note">✅ = best match · 🟡 = OK</p>':''), btns);
+  const choice = pick>=0 ? target.hand[pick] : null;
+  if(pick>=0){ target.hand.splice(pick,1); G.sdisc.push(choice); const cst=STRAT[choice].cost; if(cst) target.tok[cst]--; }
+  let html='', tip=choice?STRAT[choice].tip:'Next time, try Walk Away, a Confident Voice, or Tell an Adult. And stick with friends!';
+  if(type==='shove') G.witness++;
+  if(choice==='adult') G.witness++;
+  if(choice==='fight'){
+    beh(1); G.heart=Math.max(0,G.heart-1); target.skip=true; G.stats.fights++;
+    html=`<div class="big">👊💥</div><p class="res-bad">You both got in trouble!</p><p>The card is stopped, but <b>Behavior +1</b>, <b>Heart −1</b>, and ${esc(target.name)} misses the next turn.</p>`;
+    log(`👊 ${esc(target.name)} fought back. Both got in trouble.`);
+  } else {
+    const sc = choice && bt.good.includes(choice)?2 : choice && bt.ok.includes(choice)?1 : 0;
+    const off = ups?1:0;
+    if(sc===2){ beh(-1); G.stats.good++; html=`<div class="big">✅</div><p class="res-good">Best match! Bruno backs off.</p><p>You lose nothing, and <b>Behavior −1</b>. Bullying didn't work this time.</p>`; log(`✅ ${esc(target.name)} used ${STRAT[choice].n}. Behavior −1.`); }
+    else if(sc===1){ const l=loseTokens(target,Math.max(0,bt.loss-1-off)); html=`<div class="big">🟡</div><p class="res-ok">OK match.</p><p>${l.length?'You lost '+l.join(' '):'You lost nothing'}. It helped, but it wasn't the best fit for this situation.</p>`; log(`🟡 ${esc(target.name)} used ${STRAT[choice].n}${l.length?', lost '+l.join(''):''}.`); }
+    else {
+      const l=loseTokens(target,Math.max(0,bt.loss-off));
+      const up = !ups; if(up) beh(1);
+      html=`<div class="big">😣</div><p class="res-bad">${choice?"That didn't fit this situation.":'No response.'}</p><p>${l.length?'You lost '+l.join(' ')+'.':''} ${up?'<b>Behavior +1</b>: it worked, so he\'ll do it more.':`Because ${esc(ups.name)} stood up for you, Bruno didn't get the reaction he wanted. Behavior doesn't go up.`}</p>`;
+      log(`😣 ${esc(target.name)} ${choice?'used '+STRAT[choice].n+' (no match)':'had no response'}${up?'. Behavior +1.':'.'}`);
+    }
+  }
+  if(type==='shove') html+=`<p>👀 Somebody saw the shove: <b>+1 Witness</b>.</p>`;
+  if(choice==='adult') html+=`<p>👀 Telling an adult adds <b>+1 Witness</b>.</p>`;
+  render();
+  await ok('What happened', html+`<div class="tip">💡 <b>Real Life Tip:</b> ${esc(tip)}</div>`);
+  checkLoss();
+}
+
+// ================= END =================
+async function endGame(){
+  const win = !G.lost && G.behavior<=G.M.winB && G.heart>=G.M.winH;
+  clearSave(); render();
+  const best=cls().slice().sort((a,b)=>b.stars-a.stars)[0];
+  const w=WHYS[G.whyIdx];
+  let head, body;
+  if(win){ head='🎉 You beat the bully!'; body=`<div class="confetti">🎊🎉🎈🎊🎉</div><p style="font-size:1.1rem">Bruno stopped bullying, and he's become a <b>New Friend</b>. He joins everyone for the Field Day photo! 📸 ${brunoFace()}</p>`; }
+  else if(G.lost){ head='😟 Bruno Runs the School'; body='<p>Behavior hit 10. Nobody spoke up in time. Try more Confident Voices, Tell an Adult, and standing up for each other.</p>'; }
+  else { head='🌅 Not yet…'; body=`<p>School's out, and Bruno is still stuck. ${G.heart<G.M.winH?`<b>Heart was ${G.heart}</b> (needed ${G.M.winH}). Try Including him more, and find his secret. `:''}${G.behavior>G.M.winB?`<b>Behavior was ${G.behavior}</b> (needed ${G.M.winB} or less). Use best-match responses and Tell a Grown-Up.`:''}</p>`; }
+  body+=`<p><b>Bruno's secret was:</b> ${esc(w.t)}. ${esc(w.s)}</p>`;
+  if(best && best.stars>0) body+=`<p>🏅 <b>Upstander of the Year:</b> ${esc(best.name)} (${best.stars} 🌟)</p>`;
+  body+=`<div class="tip"><b>Debrief. Everyone answers one:</b><ol style="margin:6px 0 0 18px;padding:0">
+    <li>What strategy worked best against Bruno today? Would it work at your school?</li>
+    <li>When did someone stand up for you? How did that feel?</li>
+    <li>Does knowing Bruno's Why make what he did OK? (No, but it helps us understand him.)</li>
+    <li>Which grown-ups could you tell at your real school?</li>
+    ${G.cfg.bully?`<li>${esc(G.ps[G.cfg.bullyIdx].name)}: what did it feel like when someone was kind to Bruno?</li>`:''}</ol></div>`;
+  await modal(head, body, [{label:'🔁 Play again',value:1,cls:'good'}]);
+  showSetup();
+}
+
+// ================= RULES =================
+const RULES = `<p><b>Goal (everyone wins together):</b> by Field Day, get Bruno's <b>😠 Behavior</b> down to the goal <i>and</i> his <b>💖 Heart</b> up to the goal. If Behavior ever hits 10, everyone loses.</p>
+<p><b>Your turn:</b> draw a Strategy card → roll and move (you pick the direction) → do the space → trade once (optional) → take <b>one action</b>:</p>
+<ul><li>🤗 <b>Include Bruno</b> (within 2 spaces of him): 1 💚 + 1 🤝 → Heart +1</li>
+<li>💗 <b>Help With the Why</b> (after you find his secret, in the right place): 2 💚 → Heart +2</li>
+<li>🧑‍🏫 <b>Tell a Grown-Up</b> (with 3 👀 witnesses): 1 🦁 → Detention. Behavior −2, Heart −1, and Bruno skips 2 turns</li>
+<li>🎈 <b>Hang Out</b>: take 1 token</li></ul>
+<p><b>Spaces:</b> colored spaces give +2 tokens · 💝 Kind Acts earn 🌟 (every 3 🌟 = Heart +1) · 🔍 Clues reveal Bruno's secret · 🔔 School Events.</p>
+<p><b>Bruno's turn:</b> after every classmate turn, Bruno picks on the nearest classmate. Classmates within 3 spaces can <b>stand up</b> for them (1 🦁). The target plays a Strategy card:
+<br>✅ Best match: nothing lost, Behavior −1 · 🟡 OK: lose 1 fewer · ❌ None: lose tokens, Behavior +1 · 👊 Fight Back: stops it, but Behavior +1, Heart −1, and you skip a turn.</p>
+<p><b>Good Moments:</b> once Heart gets to 3, Bruno sometimes does something nice. Praise him (1 💪) for Heart +1.</p>`;
+async function showRules(){ await modal('📖 How to play', RULES, [{label:'Got it!',value:1}]); }
+
+// ================= SETUP =================
+let S={n:3, mode:'standard', names:['','','',''], bully:false, bullyIdx:0};
+function showSetup(){
+  GEN++; G=null;
+  $('setup').classList.remove('hidden'); $('modal').classList.add('hidden');
+  const sv=loadSave();
+  if(sv && sv.week){ $('resumeBox').classList.remove('hidden'); $('resumeInfo').textContent=`${sv.ps.filter(p=>!p.bruno).map(p=>p.name).join(', ')} · Week ${Math.min(sv.week,20)} · ${MODES[sv.cfg.mode].n}${sv.cfg.bully?' · Bully player':''}`; }
+  else $('resumeBox').classList.add('hidden');
+  drawSetup();
+}
+function drawSetup(){
+  $('segPlayers').innerHTML=[2,3,4].map(n=>`<button class="${S.n===n?'on':''}" data-n="${n}">${n} players</button>`).join('');
+  $('segMode').innerHTML=Object.keys(MODES).map(m=>`<button class="${S.mode===m?'on':''}" data-m="${m}">${MODES[m].n}</button>`).join('');
+  $('modeNote').textContent=MODES[S.mode].note;
+  let h='';
+  for(let i=0;i<S.n;i++) h+=`<div class="pin"><span class="sw" style="background:${COLORS[i]}"></span><input data-i="${i}" maxlength="14" placeholder="Player ${i+1}" value="${esc(S.names[i])}"></div>`;
+  $('names').innerHTML=h;
+  const canBully = S.n>=3 && S.mode!=='junior';
+  if(!canBully) S.bully=false;
+  $('bullyOpt').style.opacity=canBully?1:.45; $('bullyChk').disabled=!canBully; $('bullyChk').checked=S.bully;
+  $('bullyWhoRow').classList.toggle('hidden',!S.bully);
+  $('bullyWho').innerHTML=Array.from({length:S.n},(_,i)=>`<option value="${i}" ${S.bullyIdx===i?'selected':''}>${esc(S.names[i]||'Player '+(i+1))}</option>`).join('');
+  document.querySelectorAll('#names input').forEach(el=>el.oninput=()=>{S.names[+el.dataset.i]=el.value; $('bullyWho').options[+el.dataset.i].text=el.value||'Player '+(+el.dataset.i+1);});
+}
+$('segPlayers').onclick=e=>{const b=e.target.closest('button'); if(!b) return; S.n=+b.dataset.n; if(S.bullyIdx>=S.n) S.bullyIdx=0; drawSetup();};
+$('segMode').onclick=e=>{const b=e.target.closest('button'); if(!b) return; S.mode=b.dataset.m; drawSetup();};
+$('bullyChk').onchange=()=>{S.bully=$('bullyChk').checked; drawSetup();};
+$('bullyWho').onchange=()=>{S.bullyIdx=+$('bullyWho').value;};
+$('rulesBtn0').onclick=showRules; $('rulesBtn').onclick=showRules;
+$('newBtn').onclick=async()=>{ const v=await modal('Start a new game?','<p>This game will end.</p>',[{label:'Yes, new game',value:1,cls:'bad'},{label:'Keep playing',value:0,cls:'alt'}]); if(v){ clearSave(); showSetup(); } };
+$('startBtn').onclick=async()=>{
+  const names=Array.from({length:S.n},(_,i)=>(S.names[i]||'').trim()||`Player ${i+1}`);
+  const used={}; names.forEach((n,i)=>{ if(used[n]) names[i]=n+' '+(i+1); used[names[i]]=1; });
+  clearSave();
+  GEN++;
+  newGame({names, mode:S.mode, bully:S.bully, bullyIdx:S.bullyIdx});
+  $('setup').classList.add('hidden'); render();
+  if(G.cfg.bully){
+    const bn=G.ps[G.cfg.bullyIdx].name, w=WHYS[G.whyIdx];
+    await ok('🎭 Secret for Bruno', `<p>Pass the device to <b>${esc(bn)}</b>. Everyone else, look away! 🙈</p>`, "I'm "+esc(bn));
+    await ok('🤫 Bruno\'s secret Why', `<div class="bcard goodm"><div class="t">${esc(w.t)}</div><p>${esc(w.s)}</p><p class="note">Place: ${ZONES[w.z].e} ${ZONES[w.z].n}. Don't say it! Give hints when classmates find clues.</p></div>
+      <p>You win or lose <b>with</b> the team. Play Bruno's cards in character, but your secret goal is to be reached.</p><p class="note">Only mean things from the cards. No made-up insults.</p>`, 'Got it, hide it');
+    await ok('📱 Pass it back!', '<p>Give the device back to the classmates. Let\'s start the school year!</p>');
+  } else if(G.whyKnown){
+    const w=WHYS[G.whyIdx];
+    await ok('🔍 Bruno\'s secret', `<p style="font-size:1.1rem">${esc(w.s)}</p><div class="tip">In the ${ZONES[w.z].e} <b>${ZONES[w.z].n}</b>, pay 2 💚 to <b>${esc(w.a)}</b> (Heart +2).</div>`);
+  }
+  run();
+};
+$('resumeBtn').onclick=()=>{ const sv=loadSave(); if(!sv) return; GEN++; G=sv; G.pick=null; $('setup').classList.add('hidden'); log('▶ Game resumed.'); run(); };
+$('discardBtn').onclick=()=>{ clearSave(); showSetup(); };
+showSetup();
+</script>
+</body>
+</html>
