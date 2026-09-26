@@ -78,15 +78,73 @@ const JIBREEL_WORDS = [
   { w: 'disconnected', s: 'The video call got disconnected.' }
 ];
 
+
+// Mika: his Week 4 (long o) and Week 5 (u sounds) spelling lists, plus the bonus words
+const MIKA_WORDS = [
+  { w: 'rocket', s: 'The rocket zoomed up into space.' },
+  { w: 'pocket', s: 'I keep my lucky rock in my pocket.' },
+  { w: 'hold', s: 'Please hold my hand when we cross the street.' },
+  { w: 'told', s: 'My teacher told us a funny story.' },
+  { w: 'often', s: 'We often play soccer after school.' },
+  { w: 'grow', s: 'Plants need water and sun to grow.' },
+  { w: 'throne', s: 'The king sat on his golden throne.' },
+  { w: 'so', s: 'I was so happy to see my friend.' },
+  { w: 'sew', s: 'Grandma will sew a patch on my jeans.' },
+  { w: 'most', s: 'Pizza is the food I like the most.' },
+  { w: 'almost', s: 'I almost missed the bus this morning.' },
+  { w: 'both', s: 'Both of my shoes are untied.' },
+  { w: 'coach', s: 'The coach blew her whistle.' },
+  { w: 'open', s: 'Please open the door for the dog.' },
+  { w: 'also', s: 'I like cats, and I also like dogs.' },
+  { w: 'under', s: 'The ball rolled under the couch.' },
+  { w: 'such', s: 'That was such a cool magic trick.' },
+  { w: 'much', s: 'How much does the toy cost?' },
+  { w: 'young', s: 'The young puppy was learning to walk.' },
+  { w: 'touch', s: 'Do not touch the hot stove.' },
+  { w: 'use', s: 'You can use my pencil.' },
+  { w: 'your', s: 'Is this your backpack?' },
+  { w: 'you', s: 'Thank you for the present.' },
+  { w: 'unit', s: 'We are learning a new unit in math.' },
+  { w: 'cute', s: 'The baby bunny is so cute.' },
+  { w: 'few', s: 'I have a few crayons left.' },
+  { w: 'new', s: 'I got new shoes for school.' },
+  { w: 'fuel', s: 'The rocket needs fuel to fly.' },
+  { w: 'human', s: 'A human has two hands and two feet.' },
+  { w: 'music', s: 'We dance when the music plays.' },
+  { w: 'state', s: 'California is a big state.' },
+  { w: 'country', s: 'The United States is our country.' },
+  { w: 'California', s: 'We live in California.' }
+];
+
 window.MQ_CONTENT = {
-  updated: '2026-09-25',
+  updated: '2026-09-25b',
 
   kids: {
     mika: {
-      spelling: { title: 'Starter 3rd grade words', words: GRADE3_WORDS },
-      // homework: [{ id: 'hw-2026-09-28', title: 'Homework: Sep 28', problems: [{ q: '47 + 38', a: '85' }] }],
-      homework: [],
-      quizzes: ['ca-missions']
+      spelling: { title: "Mika's words from school (Week 4 & 5)", words: MIKA_WORDS },
+      homework: [
+        { id: 'm-wk5-review', title: 'Groups, Arrays & Graphs Review', problems: [
+          { q: 'Jason has 6 bookshelves. There are 6 books on each shelf. How many books?', a: '36' },
+          { q: 'Madison makes 4 types of ribbon. Each type comes in 3 colors. How many ribbons?', a: '12', hint: '4 groups of 3: 3, 6, 9, 12.' },
+          { q: 'A hexagon uses 6 straws. How many straws for 3 hexagons?', a: '18' },
+          { q: 'Elvira bought 4 packages of stickers with 6 in each. How many stickers?', a: '24' },
+          { q: 'James got 3 hits in each game. He played 4 games. How many hits?', a: '12', hint: '4 games × 3 hits. Count by 3s four times.' },
+          { q: 'Mrs. Burns buys 5 boxes with 6 muffins in each. How many muffins?', a: '30' },
+          { q: '5 × 6 = ?', a: '30', hint: 'Count by 5s six times: 5, 10, 15, 20, 25, 30.' },
+          { q: '9 × 6 = ?', a: '54', hint: '9 × 3 = 27. Double it!' },
+          { q: '6 × 4 = ?', a: '24', hint: '3 × 4 = 12. Double it!' },
+          { q: '7 × 3 = ?', a: '21', hint: '7 + 7 + 7' },
+          { q: '6 × 7 = ?', a: '42', hint: '3 × 7 = 21. Double it!' },
+          { q: '3 × 6 = ?', a: '18' },
+          { q: '30 people are going on a trip. 5 people fit in each car. How many cars?', a: '6', hint: 'We want the number of CARS. Count by 5s to 30: 5, 10, 15, 20, 25, 30.' },
+          { q: '24 buttons go into 3 equal piles. How many in each pile?', a: '8', hint: '3 × ? = 24' },
+          { q: '36 party favors on 9 tables, the same on each. How many on each table?', a: '4', hint: '9 × ? = 36' },
+          { q: '28 chairs in rows of 7. How many rows?', a: '4', hint: 'Count by 7s: 7, 14, 21, 28.' },
+          { q: 'Make 6 jumps of 3 on a number line. Where do you land?', a: '18' },
+          { q: 'A picture graph key says each star = 2 votes. Pizza has 4 stars. How many votes?', a: '8', hint: 'Count by 2s for each star.' }
+        ] }
+      ],
+      quizzes: ['m-reading', 'm-math', 'ca-missions']
     },
     jibreel: {
       spelling: { title: "Jibreel's words from school (Week 2 & 4)", words: JIBREEL_WORDS },
@@ -123,6 +181,52 @@ window.MQ_CONTENT = {
   },
 
   quizzes: {
+    'm-reading': {
+      title: 'Reading & Grammar Power-Up',
+      emoji: '📖',
+      note: "From Mika's Week 3-5 worksheets",
+      questions: [
+        { q: 'What is the lesson at the end of a fable called?', c: ['The title', 'The moral', 'The setting', 'The author'], a: 1, why: 'A fable ends with a moral, a lesson about how to act.' },
+        { q: 'Which is NOT usually part of a fable?', c: ['Animals that talk', 'A lesson or moral', 'A problem to solve', 'A map of a real city'], a: 3, why: 'Fables have talking animals, a problem and a moral. They do not need real maps.' },
+        { q: 'In "The Fox and the Crow," the fox tricks the crow. What word describes the fox?', c: ['Clever', 'Sleepy', 'Shy', 'Honest'], a: 0, why: 'The fox is clever and sly. He uses sweet words to trick the crow.' },
+        { q: 'The crow believes she is the most beautiful bird. What word describes the crow?', c: ['Brave', 'Vain', 'Kind', 'Tired'], a: 1, why: 'Vain means thinking too much about how great you look.' },
+        { q: 'Which is a SENSORY detail (uses the five senses)?', c: ['The bread smelled warm and sweet.', 'The story has three parts.', 'It was a Tuesday.', 'Sam is in third grade.'], a: 0, why: 'Smell is one of the five senses: see, hear, smell, taste, touch.' },
+        { q: 'How many syllables are in "rocket"?', c: ['1', '2', '3', '4'], a: 1, why: 'Clap it: rock-et. Two claps, two syllables.' },
+        { q: 'How many syllables are in "grow"?', c: ['1', '2', '3', '4'], a: 0, why: 'Clap it: grow. One clap.' },
+        { q: 'Which word has the long o sound spelled "oa"?', c: ['coach', 'told', 'grow', 'throne'], a: 0, why: 'c-OA-ch. The o and a team up to say "oh".' },
+        { q: 'Which is spelled correctly?', c: ['almost', 'amolst', 'allmost', 'almoast'], a: 0, why: 'al + most = almost.' },
+        { q: 'Which is spelled correctly?', c: ['sowe', 'sew', 'soe', 'sewe'], a: 1, why: '"Sew" (like sewing a shirt) is spelled s-e-w, but says "so".' },
+        { q: 'Which book title is capitalized correctly?', c: ['Beauty And The Beast', 'beauty and the beast', 'Beauty and the Beast', 'Beauty and The beast'], a: 2, why: 'Capitalize the first word, the last word and big words. Little words like "and" and "the" stay small in the middle.' },
+        { q: 'Which title is capitalized correctly?', c: ['The Wizard of Oz', 'The Wizard Of Oz', 'the wizard of oz', 'The wizard of Oz'], a: 0, why: '"of" is a short word in the middle, so it stays lowercase.' },
+        { q: 'Choose the right verb: "Marissa ___ the piano very well."', c: ['play', 'plays'], a: 1, why: 'Marissa is ONE person, so the verb gets an -s: plays.' },
+        { q: 'Choose the right verb: "My friends ___ in the chorus."', c: ['sing', 'sings'], a: 0, why: 'Friends is MORE than one, so no -s: sing.' },
+        { q: 'Which word is a synonym (same meaning) for "smart"?', c: ['excited', 'intelligent', 'miserable'], a: 1, why: 'Smart and intelligent mean the same thing.' },
+        { q: 'Which word is an antonym (opposite) of "funny"?', c: ['serious', 'hilarious', 'hysterical'], a: 0, why: 'Funny is the opposite of serious. Hilarious means VERY funny.' },
+        { q: 'Which word means "without care"?', c: ['careful', 'carest', 'careless'], a: 2, why: 'The ending -less means "without". Careless = without care.' },
+        { q: 'Which word means "to do again"?', c: ['predo', 'redo', 'undo'], a: 1, why: 'The prefix re- means "again". Redo = do again.' },
+        { q: 'What root do "telegraph" and "photograph" share?', c: ['tele', 'photo', 'graph', 'ph'], a: 2, why: 'Graph means write or draw. Both words end in graph.' },
+        { q: 'Which is a synonym for "hungry"?', c: ['stuffed', 'starving', 'satisfied'], a: 1, why: 'Starving means VERY hungry. Stuffed and satisfied mean full.' }
+      ]
+    },
+    'm-math': {
+      title: 'Groups & Graphs Quiz',
+      emoji: '📊',
+      note: "From Mika's 3rd grade math pages",
+      questions: [
+        { q: '30 people, 5 in each car. Which number sentence finds how many cars?', c: ['30 × 5', '30 ÷ 5', '30 + 5', '30 − 5'], a: 1, why: 'We know the total and the size of each group, so we divide: 30 ÷ 5 = 6 cars.' },
+        { q: '3 rows of 4 stars. Which number sentence matches?', c: ['3 + 4', '3 × 4', '4 − 3', '12 ÷ 4 = 4'], a: 1, why: 'Rows × how many in each row: 3 × 4 = 12.' },
+        { q: 'On a number line, 6 × 3 means...', c: ['3 jumps of 6', '6 jumps of 3', '9 jumps of 1', '6 jumps of 6'], a: 1, why: 'The first number is how many jumps. The second is how big each jump is.' },
+        { q: 'A picture graph key says each 😀 = 2. How many is 😀😀😀?', c: ['3', '5', '6', '9'], a: 2, why: 'Count by 2s: 2, 4, 6.' },
+        { q: 'A key says each ⭐ = 2. What is half a ⭐ worth?', c: ['1', '2', '4', '0'], a: 0, why: 'Half of 2 is 1.' },
+        { q: 'A bar graph counts by 2s. A bar stops halfway between 6 and 8. What number is that?', c: ['6', '7', '8', '9'], a: 1, why: 'Halfway between 6 and 8 is 7.' },
+        { q: 'Apples got 8 votes and Grapes got 3. How many MORE for Apples?', c: ['11', '5', '24', '3'], a: 1, why: '"How many more" means subtract: 8 − 3 = 5.' },
+        { q: 'Which fact helps you find 6 × 7?', c: ['3 × 7, then double it', '6 + 7', '7 − 6', '6 × 6 − 1'], a: 0, why: '6 is double 3. 3 × 7 = 21, double 21 = 42.' },
+        { q: '9 × 6 = ?', c: ['45', '54', '56', '63'], a: 1, why: '9 × 3 = 27, double it = 54.' },
+        { q: '24 buttons in 3 equal piles. How many in each pile?', c: ['6', '7', '8', '21'], a: 2, why: '3 × 8 = 24, so 24 ÷ 3 = 8.' },
+        { q: 'Which is an ARRAY?', c: ['Things in neat rows and columns', 'A pile of things', 'A circle of things', 'Things in a line with gaps'], a: 0, why: 'An array has equal rows, like eggs in a carton.' },
+        { q: 'Which multiplication matches 7 + 7 + 7?', c: ['7 × 7', '3 × 7', '7 + 3', '21 × 3'], a: 1, why: 'Three groups of 7 is 3 × 7 = 21.' }
+      ]
+    },
     'j-grammar': {
       title: 'Grammar Power-Up',
       emoji: '✏️',

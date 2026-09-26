@@ -381,6 +381,15 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .z-mesa{background:linear-gradient(160deg,#ffb37a,#d0643b 60%,#8a3a1c)}
 .z-summit{background:linear-gradient(160deg,#dff0ff,#7ea6e0 50%,#3b5a9a)}
 .battle.z-vault{background:linear-gradient(180deg,#22305a,#10162e)}.battle.z-mesa{background:linear-gradient(180deg,#b8653a,#5a2a12)}.battle.z-summit{background:linear-gradient(180deg,#6d8fc4,#2b3f6e)}
+.z-garden{background:linear-gradient(160deg,#c9f7a8,#5cbf5a 60%,#2f7d3a)}.z-reef{background:linear-gradient(160deg,#9ff3ff,#2fa6c9 60%,#1c4f8a)}
+.battle.z-garden{background:linear-gradient(180deg,#5aa04a,#23502a)}.battle.z-reef{background:linear-gradient(180deg,#1e6f9a,#0c2a4a)}
+.g3tag{background:#b2f2bb;color:#1b5e20}
+.pgraph{background:#fff;border-radius:12px;padding:8px 10px;color:#2b2250;min-width:200px}.pgraph .pgt,.bgraph .pgt{font-weight:800;font-size:14px;text-align:center;margin-bottom:4px;color:#2b2250}.pgraph table{border-collapse:collapse;width:100%}.pgraph td{border:1.5px solid #cfc6ef;padding:3px 6px;font-size:14px}.pgraph .pgl{font-weight:700;white-space:nowrap}.pgraph .pgi{text-align:left;min-width:120px}.pgraph .pgi span{font-size:20px;display:inline-block;width:24px;line-height:1.2}.pgraph .pgi span.half{width:12px;overflow:hidden;vertical-align:bottom}.pgraph .pgk{font-size:12.5px;margin-top:5px;text-align:center}
+.bgraph{background:#fff;border-radius:12px;padding:8px;width:280px;max-width:100%}.bgraph svg{width:100%;height:auto;display:block}
+.nline{width:330px;max-width:100%;background:#fff;border-radius:12px}
+.vgroups{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:300px}.vgroups .grp{border:3px dashed #7c5cff;border-radius:50%;padding:8px;font-size:20px;background:#fff;max-width:90px;text-align:center;line-height:1.1;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;min-width:56px;min-height:56px}
+.varr{display:grid;gap:3px 6px;background:#fff;border-radius:12px;padding:8px;font-size:20px;line-height:1.1}
+@media (max-width:600px){.pgraph .pgi span{font-size:16px;width:19px}.pgraph .pgi span.half{width:9.5px}.bgraph{width:300px}.nline{width:320px}.varr{font-size:16px}.vgroups .grp{font-size:16px;min-width:44px;min-height:44px;padding:5px}}
 .g5tag{position:absolute;top:14px;right:14px;background:#ffd84a;color:#5a3b00;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:700}
 .vis.iso{width:clamp(110px,20vh,170px);height:auto;flex:none}.vis.prot{width:clamp(150px,26vh,210px);height:auto;flex:none}
 .vis.rect{width:clamp(110px,18vh,150px);height:auto;flex:none}.vis.g100{width:clamp(80px,14vh,110px);height:auto;flex:none}
@@ -507,7 +516,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function dayKey(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 /* ================= new math worlds: fractions, money, time ================= */
-const XOPS=['frac','money','time','vol','meas','word'];
+const XOPS=['frac','money','time','vol','meas','word','graph','grp'];
 const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
 const frA=b=>`<span class="fr"><span>{A}</span><span>${b}</span></span>`;
 const pad2=n=>String(n).padStart(2,'0');
@@ -526,6 +535,11 @@ function visHTML(v){
  if(v.t==='set'){return `<div class="vis vset">${Array.from({length:v.n},(_,i)=>`<span class="${v.k&&i<v.k?'hl':''}">${v.e}</span>`).join('')}</div>`;}
  if(v.t==='coins'){return `<div class="vis coins">${v.list.map(c=>c===100?`<span class="bill">$1</span>`:`<span class="coin c${c}" style="background:${COIN[c].c}">${COIN[c].l}</span>`).join('')}</div>`;}
  if(v.t==='iso')return isoBoxes(v.b,v.lb);
+ if(v.t==='pgraph')return pgraphHTML(v);
+ if(v.t==='bgraph')return bgraphHTML(v);
+ if(v.t==='nline')return nlineSVG(v.j,v.s);
+ if(v.t==='groups')return groupsHTML(v.g,v.n,v.e);
+ if(v.t==='array')return emojiArrayHTML(v.r,v.c,v.e);
  if(v.t==='prot')return protractorSVG(v.a,v.fine);
  if(v.t==='rect')return rectSVG(v.top,v.side);
  if(v.t==='g100')return grid100SVG(v.cols===undefined?null:v.cols,v.cells||0);
@@ -539,6 +553,7 @@ function visHTML(v){
 }
 function genX(op,L){
  if(G5OPS.includes(op))return genG5(op,L);
+ if(op==='graph'||op==='grp')return genG3(op,L);
  const q={op,L,fast:9};
  const fin=(o)=>Object.assign(q,o);
  if(op==='frac'){
@@ -718,9 +733,104 @@ Object.assign(XDESC,{
  meas:['','Measuring angles','Feet, inches & yards','Meters & kilometers','Grams, quarts & pints','Which is biggest?','Perimeter','Perimeter word problems','Missing width (perimeter)','Missing width (area)','Angle challenges'],
  word:['','Times as many','Times as much (divide)','How many times?','Division stories','Big division stories','Leftovers (remainders)','Place value','Tens & hundreds','Two-step problems','Challenge problems']});
 
+/* ================= 3rd-grade worlds (from Mika's schoolwork): graphs, equal groups & arrays ================= */
+const G3OPS=['graph','grp'];
+const G3NAMES=['Jason','Dora','Elvira','Madison','Leo','Sofia','Omar','Ava','Ben','Maya'];
+const GTHEMES=[
+ {t:'Favorite fruit',u:'kids',e:'🍎',c:[['Apples'],['Bananas'],['Grapes'],['Peaches']]},
+ {t:'Favorite pet',u:'kids',e:'🐾',c:[['Dogs'],['Cats'],['Fish'],['Birds']]},
+ {t:'Favorite sport',u:'kids',e:'⚽',c:[['Soccer'],['Tennis'],['Hoops'],['Swim']]},
+ {t:'Books read',u:'books',e:'📘',c:[['Mon'],['Tue'],['Wed'],['Thu']]},
+ {t:'Cookies sold',u:'cookies',e:'🍪',c:[['Jason'],['Dora'],['Leo'],['Maya']]},
+ {t:'Class votes: field trip',u:'votes',e:'⭐',c:[['Zoo'],['Farm'],['Museum'],['Beach']]}];
+function pgraphHTML(v){
+ const rows=v.rows.map(([n,val])=>{const full=Math.floor(val/v.key),half=val%v.key?1:0;
+  return `<tr><td class="pgl">${n}</td><td class="pgi">${`<span>${v.e}</span>`.repeat(full)}${half?`<span class="half">${v.e}</span>`:''}</td></tr>`;}).join('');
+ return `<div class="vis pgraph"><div class="pgt">${v.title}</div><table>${rows}</table><div class="pgk">Key: each ${v.e} = <b>${v.key}</b> ${v.u}${v.rows.some(r=>r[1]%v.key)?` · half ${v.e} = ${v.key/2}`:''}</div></div>`;}
+function bgraphHTML(v){
+ const n=v.cats.length,W=44+n*70,H=170,top=16,bot=140,max=v.max;const y=val=>bot-(val/max)*(bot-top);
+ let g='';for(let t=0;t<=max;t+=v.scale){g+=`<line x1="34" x2="${W-6}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}" stroke="#d6d0f0" stroke-width="1"/><text x="30" y="${(y(t)+4).toFixed(1)}" font-size="11" font-weight="700" fill="#5a4a9a" text-anchor="end">${t}</text>`;}
+ const cols=['#ff9f43','#4dabf7','#51cf66','#f06595'];
+ v.cats.forEach(([nm,val],i)=>{const x=48+i*70;g+=`<rect x="${x}" y="${y(val).toFixed(1)}" width="44" height="${(bot-y(val)).toFixed(1)}" fill="${cols[i%4]}" stroke="#2b2250" stroke-width="1.2"/><text x="${x+22}" y="${bot+15}" font-size="12" font-weight="700" fill="#2b2250" text-anchor="middle">${nm}</text>`;});
+ g+=`<line x1="34" y1="${bot}" x2="${W-6}" y2="${bot}" stroke="#2b2250" stroke-width="2"/><line x1="34" y1="${top-6}" x2="34" y2="${bot}" stroke="#2b2250" stroke-width="2"/>`;
+ return `<div class="vis bgraph"><div class="pgt">${v.title}</div><svg viewBox="0 0 ${W} ${H}">${g}</svg></div>`;}
+function nlineSVG(j,s){const end=j*s+s,W=320,x=v=>14+v/end*(W-28);let g=`<line x1="6" y1="60" x2="${W-6}" y2="60" stroke="#2b2250" stroke-width="2"/>`;
+ for(let v=0;v<=end;v++){const big=v%s===0;g+=`<line x1="${x(v).toFixed(1)}" x2="${x(v).toFixed(1)}" y1="${big?52:56}" y2="${big?68:64}" stroke="#2b2250" stroke-width="${big?1.6:1}"/>`;if(big)g+=`<text x="${x(v).toFixed(1)}" y="82" font-size="11" font-weight="700" fill="#2b2250" text-anchor="middle">${v}</text>`;}
+ for(let k=0;k<j;k++){const a=x(k*s),b=x((k+1)*s),m=(a+b)/2;g+=`<path d="M${a.toFixed(1)} 56 Q${m.toFixed(1)} 18 ${b.toFixed(1)} 56" fill="none" stroke="#ff5fa2" stroke-width="2.2"/><text x="${m.toFixed(1)}" y="30" font-size="10" font-weight="700" fill="#ff5fa2" text-anchor="middle">${k+1}</text>`;}
+ return `<svg class="vis nline" viewBox="0 0 ${W} 90">${g}</svg>`;}
+function groupsHTML(g,n,e){return `<div class="vis vgroups">${Array.from({length:g},()=>`<span class="grp">${e.repeat(n)}</span>`).join('')}</div>`;}
+function emojiArrayHTML(r,c,e){return `<div class="vis varr" style="grid-template-columns:repeat(${c},auto)">${`<span>${e}</span>`.repeat(r*c)}</div>`;}
+function g3Graph(L){
+ const th=pick(GTHEMES);const nc=L<=3?3:(L>=9?4:pick([3,4]));const cats=th.c.slice(0,nc).map(c=>c[0]);
+ let key=1,scale=1,bar=false,half=false;
+ if(L===1||L===2)key=1;else if(L===3)key=2;else if(L===4){bar=true;scale=1;}else if(L===5){bar=true;scale=2;}
+ else if(L===6){key=2;half=true;}else if(L===7){bar=true;scale=5;}else if(L===8){bar=true;scale=2;half=true;}
+ else if(L===9){key=pick([4,10]);half=true;}else{bar=true;scale=pick([5,10]);}
+ const unit=bar?scale:key;const maxU=bar?(L===4?9:8):6;
+ const vals=[];while(vals.length<nc){const u=rnd(1,maxU);let v=u*unit;if(half&&Math.random()<.5)v-=unit/2;if(v<=0)continue;if(!vals.includes(v))vals.push(v);}
+ const data=cats.map((c,i)=>[c,vals[i]]);const title=th.t;
+ const vis=bar?{t:'bgraph',cats:data,scale,max:Math.ceil(Math.max(...vals)/scale)*scale+scale,title}:{t:'pgraph',rows:data,e:th.e,key,u:th.u,title};
+ const q={op:'graph',L,fast:15,vis};const fin=o=>Object.assign(q,o);
+ const read=bar?`<p>Find the top of the bar and slide across to the numbers on the side.${half?` If it stops halfway between two lines, it's the number in the middle.`:''}</p>`:(key===1?`<p>Each ${th.e} is 1, so just count them.</p>`:`<p>Each ${th.e} stands for <b>${key}</b>. Skip-count by ${key}s${half?` and add ${key/2} for a half picture`:''}.</p>`);
+ const hint=bar?`<p>Look at the numbers on the side. The lines go up by <b>${scale}</b>.</p>`:`<p>Check the <b>key</b>! Each ${th.e} = ${key}.</p>`;
+ const i1=rnd(0,nc-1);let i2=rnd(0,nc-1);while(i2===i1)i2=rnd(0,nc-1);
+ const A=data[i1],B=data[i2];
+ let kind=L===1||L===3||L===6||L===8?'read':L===2||L===7?'more':L===5?pick(['read','both']):L===4?pick(['read','more']):L===9?'all':'two';
+ if(kind==='read')return fin({prompt:`${title}: how many for <b>${A[0]}</b>?`,tpl:`{A} ${th.u}`,answer:A[1],text:`Read ${A[0]}`,explain:read+`<p>${A[0]} = <b>${A[1]}</b></p>`,nudge:hint});
+ if(kind==='more'){const [hi,lo]=A[1]>=B[1]?[A,B]:[B,A];return fin({prompt:`How many <b>more</b> for ${hi[0]} than ${lo[0]}?`,tpl:`{A} more`,answer:hi[1]-lo[1],text:`${hi[0]} − ${lo[0]}`,explain:read+`<p>${hi[0]} = ${hi[1]}, ${lo[0]} = ${lo[1]}.</p><p>${hi[1]} − ${lo[1]} = <b>${hi[1]-lo[1]}</b></p>`,nudge:hint+`<p>"How many more" means <b>subtract</b>: big − small.</p>`});}
+ if(kind==='both')return fin({prompt:`How many for ${A[0]} and ${B[0]} <b>altogether</b>?`,tpl:`{A} ${th.u}`,answer:A[1]+B[1],text:`${A[0]} + ${B[0]}`,explain:read+`<p>${A[1]} + ${B[1]} = <b>${A[1]+B[1]}</b></p>`,nudge:hint+`<p>"Altogether" means <b>add</b>.</p>`});
+ if(kind==='all'){const s=vals.reduce((x,y)=>x+y,0);return fin({prompt:`How many ${th.u} <b>in all</b>?`,tpl:`{A} ${th.u}`,answer:s,text:`Total of graph`,explain:read+`<p>${vals.join(' + ')} = <b>${s}</b></p>`,nudge:hint+`<p>Find each row, then add them all up.</p>`});}
+ let i3=0;while(i3===i1||i3===i2)i3++;const C=data[i3];const s=A[1]+B[1];
+ if(s===C[1])return g3Graph(L);
+ const [big,small,bn,sn]=s>C[1]?[s,C[1],`${A[0]} and ${B[0]} together`,C[0]]:[C[1],s,C[0],`${A[0]} and ${B[0]} together`];
+ return fin({prompt:`How many more for <b>${bn}</b> than <b>${sn}</b>?`,tpl:`{A} more`,answer:big-small,text:`2-step graph`,explain:read+`<p>${A[0]} + ${B[0]} = ${A[1]} + ${B[1]} = ${s}. ${C[0]} = ${C[1]}.</p><p>${big} − ${small} = <b>${big-small}</b></p>`,nudge:hint+`<p>Step 1: add ${A[0]} and ${B[0]}. Step 2: compare with ${C[0]}.</p>`});
+}
+const GRPE=['🍪','⭐','🍓','🧁','🐟','🎈','🍩','🌸','⚽','🐞'];
+const WMUL=[
+ (a,b)=>[`${pick(G3NAMES)} has <b>${a}</b> bookshelves. There are <b>${b}</b> books on each shelf. How many books in all?`,'books'],
+ (a,b)=>[`Mrs. Burns buys <b>${a}</b> boxes of muffins. There are <b>${b}</b> muffins in each box. How many muffins?`,'muffins'],
+ (a,b)=>[`${pick(G3NAMES)} got <b>${b}</b> hits in each baseball game and played <b>${a}</b> games. How many hits?`,'hits'],
+ (a,b)=>[`${pick(G3NAMES)} bought <b>${a}</b> packages of stickers with <b>${b}</b> stickers in each. How many stickers?`,'stickers'],
+ (a,b)=>[`There are <b>${a}</b> rows of chairs with <b>${b}</b> chairs in each row. How many chairs?`,'chairs'],
+ (a,b)=>[`A spider has 8 legs. How many legs do <b>${a}</b> spiders have?`,'legs',8],
+ (a,b)=>[`A hexagon uses <b>6</b> straws. How many straws for <b>${a}</b> hexagons?`,'straws',6],
+ (a,b)=>[`A tricycle has 3 wheels. How many wheels on <b>${a}</b> tricycles?`,'wheels',3]];
+const WDIV=[
+ (t,g)=>[`<b>${t}</b> people are going on a trip. <b>${g}</b> people fit in each car. How many cars do they need?`,'cars','groups'],
+ (t,g)=>[`${pick(G3NAMES)} has <b>${t}</b> buttons and puts them in <b>${g}</b> equal piles. How many in each pile?`,'buttons','share'],
+ (t,g)=>[`There are <b>${t}</b> party favors for <b>${g}</b> tables, the same number on each. How many on each table?`,'favors','share'],
+ (t,g)=>[`<b>${t}</b> kids make teams of <b>${g}</b>. How many teams?`,'teams','groups'],
+ (t,g)=>[`<b>${t}</b> chairs are set in rows of <b>${g}</b>. How many rows?`,'rows','groups'],
+ (t,g)=>[`<b>${t}</b> cookies are shared equally by <b>${g}</b> friends. How many does each friend get?`,'cookies','share']];
+function g3Grp(L){
+ const q={op:'grp',L,fast:12};const fin=o=>Object.assign(q,o);const e=pick(GRPE);
+ if(L===1){const g=rnd(2,4),n=rnd(2,5);return fin({vis:{t:'groups',g,n,e},prompt:'How many in all?',tpl:`${g} groups of ${n} = {A}`,answer:g*n,text:`${g} groups of ${n}`,explain:`<p>${g} groups with ${n} in each.</p><p>${Array(g).fill(n).join(' + ')} = <b>${g*n}</b>, and that's ${g} × ${n}!</p>`,nudge:`<p>Count by <b>${n}s</b>, one group at a time.</p>`});}
+ if(L===2){const r=rnd(2,5),c=rnd(2,6);return fin({vis:{t:'array',r,c,e},prompt:'This is an <b>array</b>. How many in all?',tpl:`${r} rows of ${c} = {A}`,answer:r*c,text:`Array ${r}×${c}`,explain:`<p>Rows go across. There are ${r} rows with ${c} in each row.</p><p>${r} × ${c} = <b>${r*c}</b></p>`,nudge:`<p>Count one row. Then skip-count by that number for each row!</p>`});}
+ if(L===3){const r=rnd(2,6),c=rnd(2,7);return fin({vis:{t:'array',r,c,e},prompt:`There are <b>${r}</b> rows. How many are in <b>each row</b>?`,tpl:`${r} × {A} = ${r*c}`,answer:c,text:`${r}×?=${r*c}`,explain:`<p>Count across one row: <b>${c}</b>.</p><p>${r} rows × ${c} in each row = ${r*c}</p>`,nudge:`<p>Count the pictures going <b>across</b> in just one row.</p>`});}
+ if(L===4){const s=pick([2,3,4,5,6,3,6]),j=rnd(2,s>=5?5:7);return fin({vis:{t:'nline',j,s},prompt:`Make <b>${j}</b> jumps of <b>${s}</b>. Where do you land?`,tpl:`${j} × ${s} = {A}`,answer:j*s,text:`${j} jumps of ${s}`,explain:`<p>The first number (${j}) is how many jumps. The second (${s}) is how big each jump is.</p><p>${Array.from({length:j},(_,i)=>(i+1)*s).join(', ')} → <b>${j*s}</b></p>`,nudge:`<p>Start at 0. Hop ${s} spaces, ${j} times. Count the pink jumps!</p>`});}
+ if(L===5){const g=rnd(2,5),n=rnd(2,6),t=g*n;return fin({vis:{t:'set',n:t,e},prompt:`Share <b>${t}</b> ${e} into <b>${g}</b> equal groups. How many in <b>each</b> group?`,tpl:`${t} ÷ ${g} = {A}`,answer:n,text:`${t}÷${g} share`,explain:`<p>Deal them out one at a time into ${g} groups, like dealing cards.</p><p>Each group gets <b>${n}</b>, because ${g} × ${n} = ${t}.</p>`,nudge:`<p>Think: ${g} × <b>?</b> = ${t}</p>`});}
+ if(L===6){const g=pick([2,3,4,5,6]),n=rnd(2,7),t=g*n;return fin({prompt:`<b>${t}</b> people are going to the zoo. <b>${g}</b> people fit in each car. How many cars?`,tpl:'{A} cars',answer:n,text:`${t} people, ${g} per car`,explain:`<p>We know the <b>total</b> (${t}) and how many go in <b>each car</b> (${g}). We need the number of groups, so we <b>divide</b>.</p><p>Count by ${g}s to ${t}: ${Array.from({length:n},(_,i)=>(i+1)*g).join(', ')}. That's <b>${n}</b> cars. ${t} ÷ ${g} = ${n}</p><p>(Not ${t} × ${g}! That would be ${t*g} people, more than we have.)</p>`,nudge:`<p>Fill one car with ${g} people. Then another... How many cars until all ${t} are riding? Count by ${g}s!</p>`});}
+ if(L===7){const f=Math.random()<.5?WMUL[rnd(0,WMUL.length-1)]:WMUL[rnd(5,7)];let a=rnd(2,9),b=pick([3,6,4,7,6,3]);const r0=f(a,b);if(r0[2])b=r0[2];const r=f(a,b);const ans=a*b;
+  return fin({prompt:r[0],tpl:`{A} ${r[1]}`,answer:ans,text:`${a}×${b} story`,explain:`<p>Equal groups → <b>multiply</b>.</p><p>${a} × ${b} = <b>${ans}</b></p>${b===6?`<p>Trick: ${a} × 3 = ${a*3}, doubled = ${ans}.</p>`:''}`,nudge:`<p>How many groups? How many in each group? Multiply them!</p>`});}
+ if(L===8){const f=pick(WDIV);const g=rnd(2,9),n=rnd(2,9),t=g*n;const r=f(t,g);
+  return fin({prompt:r[0],tpl:`{A} ${r[1]}`,answer:n,text:`${t}÷${g} story`,explain:`<p>We split ${t} into equal parts, so we <b>divide</b>.</p><p>${t} ÷ ${g} = <b>${n}</b> because ${g} × ${n} = ${t}.</p>`,nudge:`<p>Think of it as a missing factor: ${g} × <b>?</b> = ${t}</p>`});}
+ if(L===9){const a=pick([3,6,6,4,7,3,6,8]),b=rnd(2,9);const miss=Math.random()<.45;
+  if(miss)return fin({prompt:'Find the missing number.',tpl:`${a} × {A} = ${a*b}`,answer:b,text:`${a}×?=${a*b}`,explain:`<p>Skip-count by ${a}s until you reach ${a*b}: ${Array.from({length:b},(_,i)=>(i+1)*a).join(', ')}.</p><p>That's <b>${b}</b> jumps.</p>`,nudge:`<p>Count by <b>${a}s</b> on your fingers until you hit ${a*b}.</p>`});
+  return fin({tpl:`${a} × ${b} = {A}`,answer:a*b,text:`${a}×${b}`,explain:a===6?`<p>6 is double 3! ${b} × 3 = ${b*3}, and double that is <b>${a*b}</b>.</p>`:a===3?`<p>${b} × 2 = ${b*2}, plus one more ${b} = <b>${a*b}</b>.</p>`:`<p>${a} × ${b} = <b>${a*b}</b></p>`,nudge:a===6?`<p>Do ${b} × 3 first, then double it!</p>`:`<p>Skip-count by ${a}s, ${b} times.</p>`});}
+ const k=rnd(0,2);
+ if(k===0){const bx=rnd(3,6),per=pick([4,6,3]),ate=rnd(2,per*bx-4);return fin({prompt:`There are <b>${bx}</b> boxes with <b>${per}</b> muffins in each. The class eats <b>${ate}</b>. How many are left?`,tpl:'{A} muffins',answer:bx*per-ate,text:`${bx}×${per}−${ate}`,explain:`<p>Step 1: ${bx} × ${per} = ${bx*per} muffins.</p><p>Step 2: ${bx*per} − ${ate} = <b>${bx*per-ate}</b></p>`,nudge:`<p>First find how many muffins in all. Then take away the ones eaten.</p>`});}
+ if(k===1){const pk=rnd(2,4),per=pick([6,4,3]),fr=pick([2,3,4]);let tot=pk*per;if(tot%fr)return g3Grp(L);return fin({prompt:`${pick(G3NAMES)} has <b>${pk}</b> packs of <b>${per}</b> stickers and shares them equally with <b>${fr}</b> friends. How many does each friend get?`,tpl:'{A} stickers',answer:tot/fr,text:`${pk}×${per}÷${fr}`,explain:`<p>Step 1: ${pk} × ${per} = ${tot} stickers.</p><p>Step 2: ${tot} ÷ ${fr} = <b>${tot/fr}</b></p>`,nudge:`<p>Find the total first, then share it.</p>`});}
+ const t=pick([3,6]);const a=rnd(2,9),b=rnd(2,9);return fin({prompt:`${pick(G3NAMES)} made <b>${a}</b> triangles and <b>${b}</b> hexagons out of straws. How many straws? (triangle = 3, hexagon = 6)`,tpl:'{A} straws',answer:a*3+b*6,text:`${a}×3+${b}×6`,explain:`<p>Triangles: ${a} × 3 = ${a*3}. Hexagons: ${b} × 6 = ${b*6}.</p><p>${a*3} + ${b*6} = <b>${a*3+b*6}</b></p>`,nudge:`<p>Find the triangle straws and the hexagon straws, then add.</p>`});
+}
+function genG3(op,L){return op==='graph'?g3Graph(L):g3Grp(L);}
+Object.assign(XDESC,{
+ graph:['','Picture graphs','How many more? (pictures)','Picture keys of 2','Bar graphs','Bar graphs that count by 2s','Half pictures','Bar graphs by 5s','Halfway bars','Big picture keys','Two-step graph puzzles'],
+ grp:['','Equal groups','Arrays','Missing factor arrays','Number line jumps','Sharing equally','How many groups?','Times story problems','Division story problems','Facts of 3 and 6','Two-step stories']});
+
+
 /* ================= game data ================= */
-const OPS=['add','sub','mul','div','frac','money','time','vol','meas','word'];const BASIC_OPS=['add','sub','mul','div'];
-const OPNAME={add:'Addition',sub:'Subtraction',mul:'Multiplication',div:'Division',frac:'Fractions',money:'Money',time:'Time',vol:'Volume',meas:'Measurement',word:'Word problems',mix:'Mixed'};
+const OPS=['add','sub','mul','div','frac','money','time','vol','meas','word','graph','grp'];const BASIC_OPS=['add','sub','mul','div'];
+const OPNAME={add:'Addition',sub:'Subtraction',mul:'Multiplication',div:'Division',frac:'Fractions',money:'Money',time:'Time',vol:'Volume',meas:'Measurement',word:'Word problems',graph:'Graphs',grp:'Groups & arrays',mix:'Mixed'};
 const LEVEL_DESC={
  add:['','Sums to 10','Sums to 20','2-digit + 1-digit','2-digit + 2-digit (no carrying)','2-digit + 2-digit (carrying)','3-digit + 2-digit','3-digit + 3-digit','4-digit + 3-digit','4-digit + 4-digit','Adding three numbers'],
  sub:['','Take away within 10','Take away within 20','2-digit − 1-digit','2-digit − 2-digit (no borrowing)','2-digit − 2-digit (borrowing)','3-digit − 2-digit','3-digit − 3-digit','4-digit − 3-digit','4-digit − 4-digit','5-digit − 4-digit'],
@@ -734,7 +844,7 @@ const KID_DESC={
  div:['','Easy sharing: 1, 2, 3','Sharing by 2, 5, 10','Sharing by 2 to 5','Dividing to 6','Dividing to 9','Dividing to 12','2-digit dividing','3-digit dividing','Dividing by 2-digit numbers','Giant dividing']};
 Object.assign(KID_DESC,XDESC);Object.assign(LEVEL_DESC,XDESC);
 // Everyone starts every skill at the easiest level (single digits) and climbs from there.
-const START={add:1,sub:1,mul:1,div:1,frac:1,money:1,time:1,vol:1,meas:1,word:1};const GRADE_START={1:START,2:START,3:START,4:START,5:START,6:START};
+const START={add:1,sub:1,mul:1,div:1,frac:1,money:1,time:1,vol:1,meas:1,word:1,graph:1,grp:1};const GRADE_START={1:START,2:START,3:START,4:START,5:START,6:START};
 const SKINS=['#ffe0c7','#f5c99b','#d9a066','#a86b3c','#6b4226'];
 const HAIRS=['#2b1d0e','#6a3d1a','#c68642','#f2d16b','#d9480f','#7c5cff','#1c7ed6','#ff6fb5','#e9ecef'];
 const HATS=[
@@ -801,6 +911,10 @@ const ZONES=[
   mons:[['Penny Pincher','🦞'],['Sneaky Squirrel','🐿️'],['Coin Goblin','👹'],['Piggy Bandit','🐗'],['Stone Golem','🗿'],['The Mimic','🧰']]},
  {id:'temple',name:'Time Temple',op:'time',sym:'⏰',cls:'z-temple',art:'⏳',decor:['⏳','🏺','🌵'],
   mons:[['Sand Scarab','🪲'],['Dust Devil','🌪️'],['Camel Clock','🐫'],['Hourglass Imp','👿'],['Genie of Minutes','🧞'],['The Great Sphinx','🦁']]},
+ {id:'garden',name:'Graph Garden',op:'graph',sym:'📊',cls:'z-garden',art:'📊',g3:true,hpx:.7,decor:['🌷','📊'],
+  mons:[['Tally Toad','🐸'],['Picto Parrot','🦜'],['Bar Bunny','🐰'],['Chart Chick','🐤'],['Pie Pig','🐷'],['Queen Graphina','🦚']]},
+ {id:'reef',name:'Array Reef',op:'grp',sym:'⁂',cls:'z-reef',art:'🐠',g3:true,hpx:.8,decor:['🐠','🐚'],
+  mons:[['Egg Crab','🦀'],['Row Puffer','🐡'],['Group Guppy','🐟'],['Stack Turtle','🐢'],['Shark Squad','🦈'],['King Octoplex','🐙']]},
  {id:'vault',name:'Volume Vault',op:'vol',sym:'🧊',cls:'z-vault',art:'🧊',scene:'caves',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock.',decor:['🧊','💎'],
   mons:[['Cube Critter','🐸'],['Block Bat','🦇'],['Prism Penguin','🐧'],['Stack Bear','🐻'],['Ice Golem','⛄'],['The Cube King','🤴']]},
  {id:'mesa',name:'Measure Mesa',op:'meas',sym:'📏',cls:'z-mesa',art:'📏',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock.',decor:['📏','🌵'],
@@ -821,7 +935,7 @@ function save(){stampChanges(false);saveLocal();scheduleSync();}
 function newPlayer(name,grade){
  const g=GRADE_START[grade]||GRADE_START[3];
  return {id:'p'+Math.random().toString(36).slice(2,10),name,grade,setup:false,
-  look:{kind:/jibreel/i.test(name)?'boy':(/mika/i.test(name)?'girl':null),skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:/jibreel/i.test(name)?'blue':'purple'},
+  look:{kind:/jibreel|mika/i.test(name)?'boy':null,skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:/jibreel/i.test(name)?'blue':'purple'},
   level:1,xp:0,coins:0,skill:Object.fromEntries(OPS.map(o=>[o,g[o]])),
   stats:Object.fromEntries(OPS.map(o=>[o,{r:0,w:0}])),
   missed:{},daily:{},progress:{},
@@ -830,7 +944,7 @@ function newPlayer(name,grade){
   recent:Object.fromEntries(OPS.map(o=>[o,[]])),log:[],lock:null,battle:null,maxL:Object.fromEntries(OPS.map(o=>[o,Math.floor(g[o])])),champ:{},pb:{},days:[],quest:null,pantry:{},toys:[],petGear:[],spinDay:null};
 }
 let state=load();
-function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1.5;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel/i.test(p.name))p.look.kind='boy';else if(/mika/i.test(p.name))p.look.kind='girl';}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1.5;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel|mika/i.test(p.name))p.look.kind='boy';}if(!p.mikaBoy&&/mika/i.test(p.name)){p.look.kind='boy';p.mikaBoy=true;}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -1062,7 +1176,7 @@ SCREENS.map=()=>{
   <div class="op">${z.sym}</div><h3>${z.name}</h3>
   <div class="zsub">${locked?'🔒 '+z.lockMsg:`⭐ ${stars} / 18`}</div>
   <div class="zlv">${locked?'':(z.op==='mix'?'Add, subtract, times and divide!':KID_DESC[z.op][lvl(p,z.op)])}</div>
-  <div class="zart">${z.art}</div>${z.g5&&!medal(p,z.id)?'<div class="g5tag">5th grade</div>':''}${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div></div>`;
+  <div class="zart">${z.art}</div>${z.g5&&!medal(p,z.id)?'<div class="g5tag">5th grade</div>':''}${z.g3&&!medal(p,z.id)?'<div class="g5tag g3tag">📚 From class</div>':''}${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div></div>`;
  if(petMilestones(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))offerPet();},600);
  else if(pendingGifts(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map')showGift();},650);
  else if(spinReady(p)&&p.spinShown!==dayKey()&&!$('#modal.show')){p.spinShown=dayKey();saveLocal();setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))openSpin();},700);}
@@ -1242,7 +1356,7 @@ function startBattle(zid,i,resume,opts){
  const wild=!!((opts&&opts.wild)||(resume&&resume.wild));
  const round=wild?1:((resume&&resume.round)||curRound(p,zid));const RM=RMUL[round]||RMUL[1];
  const tired=wild?0:Math.min(3,((p.tired||{})[tiredKey(zid,round,i)])||0);
- const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.12*tired));
+ const mhp=wild?Math.round(50+Math.min(p.level,20)*3):Math.round((isBoss?200:110+i*15)*RM.hp*(1-.12*tired)*(z.hpx||1));
  const foes=[{n:wild&&opts?opts.n:z.mons[i][0],e:wild&&opts?opts.e:z.mons[i][1],hp:mhp,max:mhp}].concat(resume||wild?[]:gangFor(p,z,i,isBoss,round));
  B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0,round};
  if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
@@ -1264,7 +1378,7 @@ function gangFor(p,z,i,isBoss,round){
  else{const [p2,p3]={2:[.55,.15],3:[.45,.3],4:[.45,.3],5:[.45,.4]}[round];n=r<p3?2:r<p3+p2?1:0;}
  const RM=RMUL[round]||RMUL[1];
  const pool=[0,1,2,3,4].filter(k=>k!==i);const out=[];
- for(let k=0;k<n&&pool.length;k++){const j=pool.splice(Math.floor(Math.random()*pool.length),1)[0];const hp=Math.round((110+j*15)*.6*RM.hp);out.push({n:z.mons[j][0],e:z.mons[j][1],hp,max:hp});}
+ for(let k=0;k<n&&pool.length;k++){const j=pool.splice(Math.floor(Math.random()*pool.length),1)[0];const hp=Math.round((110+j*15)*.6*RM.hp*(z.hpx||1));out.push({n:z.mons[j][0],e:z.mons[j][1],hp,max:hp});}
  return out;
 }
 function foesHTML(){
@@ -1508,7 +1622,8 @@ const ATK={'🐛':['shot','🟢','Goo spit'],'🍄':['shot','🟤','Spore puff']
  '🐦':['shot','🪶','Peck dive'],'🍅':['shot','🍅','Tomato splat'],'🐀':['melee','🦷','Nibble'],'🎃':['shot','🍬','Candy toss'],'🐐':['melee','💥','Head butt'],'🐂':['melee','💥','Bull charge'],
  '🦞':['melee','✂️','Pinch'],'🐿️':['shot','🌰','Acorn throw'],'👹':['shot','🪙','Coin toss'],'🐗':['melee','💥','Tusk bash'],'🗿':['rain','🪨','Rock drop'],'🧰':['shot','🔩','Bolt blast'],
  '🪲':['melee','🦷','Scarab bite'],'🐻':['melee','💥','Bear hug'],'⛄':['shot','❄️','Snowball'],'🤴':['rain','🧊','Ice cube crash'],'🐃':['melee','💥','Horn charge'],'🦅':['melee','🪶','Talon dive'],'🌪️':['shot','🌪️','Dust storm'],'🐫':['shot','💦','Spit'],'👿':['shot','⏳','Sand blast'],'🦁':['melee','🦷','Sphinx roar'],
- '🐞':['melee','💥','Beetle bonk'],'🐸':['melee','👅','Tongue lash'],'🦝':['melee','💢','Scratch'],'🐭':['melee','🦷','Nibble'],'🦜':['shot','🪶','Feather dart'],'🦉':['rain','🪶','Feather storm'],'🧞':['shot','🌪️','Whirlwind']};
+ '🐞':['melee','💥','Beetle bonk'],'🐸':['melee','👅','Tongue lash'],'🦝':['melee','💢','Scratch'],'🐭':['melee','🦷','Nibble'],'🦜':['shot','🪶','Feather dart'],'🦉':['rain','🪶','Feather storm'],'🧞':['shot','🌪️','Whirlwind'],
+ '🐰':['melee','💥','Bunny kick'],'🐤':['shot','🪶','Peck'],'🐷':['melee','💥','Pig slam'],'🦚':['rain','🪶','Feather storm'],'🐡':['shot','📍','Spike shot'],'🐟':['shot','💧','Splash'],'🐢':['melee','💥','Shell slam'],'🦈':['melee','🦷','Shark bite']};
 function attackOf(emoji){const a=ATK[emoji];return a?{t:a[0],e:a[1],n:a[2]}:{t:'shot',e:'💥',n:'Attack'};}
 function monsterAttack(done){
  const others=B.mode==='math'&&B.foes?B.foes.filter((f,k)=>k!==B.ti&&f.hp>0):[];
@@ -1829,7 +1944,9 @@ const BIOMES={
  temple:{c:[38,29],g:'#f0d49c',g2:'#e9cd94',zone:'temple',bl:['🌵','🏺'],de:['🐚','🌾']},
  vault:{c:[52,7],g:'#bfe4f5',g2:'#b4dbee',zone:'vault',bl:['🧊','⛄'],de:['❄️','💎']},
  mesa:{c:[53,18],g:'#e0a070',g2:'#d89868',zone:'mesa',bl:['🌵','🪨'],de:['📏','🦴']},
- summit:{c:[52,29],g:'#eef4fb',g2:'#e4ecf6',zone:'summit',bl:['🌲','🏔️'],de:['❄️','📖']}};
+ summit:{c:[52,29],g:'#eef4fb',g2:'#e4ecf6',zone:'summit',bl:['🌲','🏔️'],de:['❄️','📖']},
+ garden:{c:[31,11],g:'#b8e39a',g2:'#afdb90',zone:'garden',bl:['🌷','🌳'],de:['🌼','🐝']},
+ reef:{c:[31,24],g:'#9fe0e8',g2:'#94d6df',zone:'reef',bl:['🌿','🪨'],de:['🐚','💧']}};
 const NPCS=[
  {id:'school',x:18,y:15,e:'🏫',n:'School'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
  {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'}];
@@ -1855,7 +1972,7 @@ function buildWorld(){
   const nearGate=Object.values(BIOMES).some(bb=>bb.zone&&Math.abs(bb.c[0]-x)<=1&&Math.abs(bb.c[1]-y)<=1);if(nearGate)continue;
   if(v<.17){t.o=B.bl[Math.floor(r()*B.bl.length)];t.block=true;}else if(v<.25){t.o=B.de[Math.floor(r()*B.de.length)];t.deco=true;}}
  // lakes
- for(const [cx,cy,rad] of [[14,11,2.2],[30,23,2.4],[31,11,1.8]])for(let y=0;y<WROWS;y++)for(let x=0;x<WCOLS;x++){const t=T[y][x];if(!t.path&&!t.plaza&&Math.hypot(x-cx,y-cy)<rad){t.water=true;t.block=true;t.o=null;}}
+ for(const [cx,cy,rad] of [[14,11,2.2],[45,23,2],[46,11,1.6],[35,28,1.4]])for(let y=0;y<WROWS;y++)for(let x=0;x<WCOLS;x++){const t=T[y][x];if(!t.path&&!t.plaza&&Math.hypot(x-cx,y-cy)<rad){t.water=true;t.block=true;t.o=null;}}
  // gates
  const gates={};for(const k of keys){const B=BIOMES[k];if(!B.zone)continue;const t=T[B.c[1]][B.c[0]];t.gate=B.zone;t.block=true;t.o=null;t.water=false;gates[B.zone]=B.c;}
  // npcs
@@ -2664,7 +2781,7 @@ const SC={
 };
 function sceneSVG(id){
  {const zz=ZONES.find(x=>x.id===id);if(zz&&zz.scene)id=zz.scene;}
- const r=rng({forest:7,caves:11,volcano:23,castle:31,tower:43,spell:53,quiz:61,hw:71,farm:83,market:89,temple:97,mesa:101,summit:103}[id]||5);
+ const r=rng({forest:7,caves:11,volcano:23,castle:31,tower:43,spell:53,quiz:61,hw:71,farm:83,market:89,temple:97,mesa:101,summit:103,garden:107,reef:109}[id]||5);
  let d='',b='';
  if(id==='forest'){
   d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc3f0"/><stop offset=".75" stop-color="#d7f2fb"/></linearGradient><linearGradient id="sc-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ccf4f"/><stop offset="1" stop-color="#3f8f2c"/></linearGradient><radialGradient id="sc-sun"><stop offset="0" stop-color="#fffbe0"/><stop offset=".5" stop-color="#fff2a0" stop-opacity=".6"/><stop offset="1" stop-color="#fff2a0" stop-opacity="0"/></radialGradient>`;
@@ -2773,7 +2890,7 @@ function sceneSVG(id){
   ${[...Array(10)].map(()=>{const x=r()*800,y=300+r()*90;return `<path d="M${x} ${y} q-14 -18 -26 -10 q14 2 26 10 q-6 -22 6 -30 q2 16 -6 30 q14 -18 26 -10 q-14 2 -26 10z" fill="#2f9e44"/>`;}).join('')}
   ${SC.rock(40,390,80,44,'#8c929b','#6b717a','#c7ccd3')}${SC.rock(770,392,90,50,'#8c929b','#6b717a','#c7ccd3')}`;
  }
- else if(!['farm','market','temple','mesa','summit'].includes(id))return '';
+ else if(!['farm','market','temple','mesa','summit','garden','reef'].includes(id))return '';
  if(id==='mesa'){
   d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9e6b"/><stop offset=".75" stop-color="#ffe0b5"/></linearGradient>`;
   const mesa=(x,y,w,h,c,c2)=>`<path d="M${x} ${y} L${x+w*.15} ${y-h} L${x+w*.85} ${y-h} L${x+w} ${y}Z" fill="${c}"/><path d="M${x+w*.15} ${y-h} L${x+w*.85} ${y-h} L${x+w*.82} ${y-h+10} L${x+w*.18} ${y-h+10}Z" fill="${c2}"/>${[1,2,3].map(k=>`<path d="M${x+w*(.1+k*.02)} ${y-h+k*h/4} H${x+w*(.9-k*.02)}" stroke="${c2}" stroke-width="3" opacity=".6"/>`).join('')}`;
@@ -2785,6 +2902,32 @@ function sceneSVG(id){
   <g transform="translate(700,310)"><rect x="-4" y="-50" width="8" height="50" fill="#3f8f4a" rx="4"/><path d="M4 -26 h12 v-12" stroke="#3f8f4a" stroke-width="8" fill="none" stroke-linecap="round"/></g>
   <g opacity=".85"><rect x="520" y="296" width="140" height="18" rx="3" fill="#ffd84a" stroke="#8a6d00"/>${[...Array(15)].map((_,i)=>`<line x1="${526+i*9}" y1="296" x2="${526+i*9}" y2="${i%5?303:308}" stroke="#8a6d00"/>`).join('')}</g>
   <path d="M0 300 Q220 286 420 296 T800 292 V400 H0Z" fill="#dc9656"/><path d="M250 400 Q330 330 400 312 Q470 330 560 400 Z" fill="#c07a3e" opacity=".5"/>`;
+ }
+ if(id==='garden'){
+  d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ed8ff"/><stop offset=".8" stop-color="#e9fbff"/></linearGradient>`;
+  const tulip=(x,y,c)=>`<g transform="translate(${x},${y})"><rect x="-1.5" y="-34" width="3" height="34" fill="#2f8f3a"/><path d="M-9 -34 Q-10 -50 -4 -48 L0 -54 L4 -48 Q10 -50 9 -34 Q0 -28 -9 -34Z" fill="${c}"/></g>`;
+  const bars=[60,100,80,130,110];
+  b=`<rect width="800" height="400" fill="url(#sc-sky)"/><circle cx="660" cy="90" r="36" fill="#fff6c2"/>
+  <g class="drift">${SC.cloud(180,70,1)}${SC.cloud(520,50,.8)}</g>
+  <path d="M0 240 Q160 200 330 232 T660 222 T800 232 V400 H0Z" fill="#a6db7a"/>
+  <g transform="translate(470,262)">${bars.map((hh,i)=>`<rect x="${i*44}" y="${-hh}" width="30" height="${hh}" rx="4" fill="${['#ff9f43','#4dabf7','#51cf66','#f06595','#ffd43b'][i]}" stroke="#2b2250" stroke-width="2"/>`).join('')}<path d="M-8 0 H222 M-8 0 V-140" stroke="#2b2250" stroke-width="3"/></g>
+  ${SC.oak(90,290,1.1,'#2f9e44','#69db7c')}${SC.oak(300,280,.7,'#37b24d','#8ce99a')}
+  <path d="M0 290 Q200 278 400 288 T800 282 V400 H0Z" fill="#7cc35a"/>
+  ${[...Array(14)].map((_,i)=>tulip(20+i*58+r()*20,320+r()*20,pick(['#ff6b6b','#ffd43b','#f783ac','#9775fa']))).join('')}
+  <path d="M250 400 Q330 330 400 312 Q470 330 560 400 Z" fill="#c9a86a" opacity=".6"/>${SC.tufts(r,30,300,395,'#4f8f2c')}`;
+ }
+ if(id==='reef'){
+  d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fb6d6"/><stop offset="1" stop-color="#0d4f7a"/></linearGradient>`;
+  const coral=(x,y,c,s)=>`<g transform="translate(${x},${y}) scale(${s})"><path d="M0 0 V-40 M0 -24 L-16 -44 M0 -30 L14 -52 M-16 -44 V-58 M14 -52 L22 -60" stroke="${c}" stroke-width="8" stroke-linecap="round" fill="none"/></g>`;
+  const kelp=(x,y,h)=>`<path class="sway" d="M${x} ${y} q-12 ${-h/4} 0 ${-h/2} q12 ${-h/4} 0 ${-h/2}" stroke="#2f9e44" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+  b=`<rect width="800" height="400" fill="url(#sc-sky)"/>
+  ${[...Array(6)].map((_,i)=>`<path d="M${80+i*130} 0 L${40+i*130} 260 L${120+i*130} 260Z" fill="#fff" opacity=".06"/>`).join('')}
+  <path d="M0 290 Q200 270 400 285 T800 280 V400 H0Z" fill="#e9d8a6"/>
+  ${coral(90,300,'#ff6b6b',1.3)}${coral(700,305,'#f783ac',1.4)}${coral(250,296,'#ffa94d',.9)}${coral(560,298,'#9775fa',1)}
+  ${kelp(160,300,110)}${kelp(630,300,130)}${kelp(420,296,90)}
+  <g opacity=".85">${[0,1,2].map(rr=>[0,1,2,3].map(cc=>`<text x="${330+cc*34}" y="${120+rr*34}" font-size="22">🐟</text>`).join('')).join('')}</g>
+  ${[...Array(14)].map(()=>`<circle class="float" style="animation-delay:${(-r()*6).toFixed(1)}s" cx="${r()*800}" cy="${60+r()*220}" r="${2+r()*4}" fill="none" stroke="#e0f7ff" stroke-width="1.5" opacity=".7"/>`).join('')}
+  <path d="M0 330 Q200 318 400 328 T800 322 V400 H0Z" fill="#dcc690"/>${SC.rock(60,390,80,44,'#8c929b','#6b717a','#c7ccd3')}${SC.rock(760,392,90,50,'#8c929b','#6b717a','#c7ccd3')}`;
  }
  if(id==='summit'){
   d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b8fd9"/><stop offset=".8" stop-color="#d8ecff"/></linearGradient>`;
