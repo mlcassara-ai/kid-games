@@ -300,6 +300,24 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .fnt-msg{font-style:italic;min-height:1.4em}.fnt-pool.splash{animation:fntSplash .6s ease-out}@keyframes fntSplash{0%{transform:scale(.8)}60%{transform:scale(1.1)}100%{transform:none}}
 .fnt-face{position:absolute;right:22%;top:14px;font-size:30px;animation:bob 1s ease-in-out infinite}
 .fnt-joke{font-size:22px;font-weight:700;margin:10px 0}.fnt-punch{font-size:24px;font-weight:900;color:#e8590c;margin:8px 0 12px;opacity:0;transform:scale(.3);transition:all .45s cubic-bezier(.2,1.6,.4,1);min-height:1.3em}.fnt-punch.show{opacity:1;transform:none}
+.cafe .cafe-head{display:flex;gap:10px;align-items:flex-end;margin-bottom:8px}.rosa{width:120px;flex:none}.rosa-svg{width:100%;height:auto;display:block;animation:bob 2.4s ease-in-out infinite}
+.cafe-bubble{background:#fff;border:3px solid #ffa94d;border-radius:18px;padding:10px 14px;font-size:17px;line-height:1.4;color:var(--ink);flex:1;position:relative;margin-bottom:20px}.cafe-bubble::before{content:'';position:absolute;left:-16px;bottom:18px;border:8px solid transparent;border-right:10px solid #ffa94d}.cafe-bubble .nm{display:block;color:#c05621;font-size:14px}
+.cafe-steps{display:flex;gap:8px;justify-content:center;margin:0 0 12px}.cafe-steps span{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:20px;opacity:.55}.cafe-steps span.on{background:#ffd43b;opacity:1;box-shadow:0 0 0 3px #fff}.cafe-steps span.done{background:#8ce99a;opacity:1}
+.cafe-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:14px;align-items:start}@media(max-width:760px){.cafe-grid{grid-template-columns:1fr}.cafe-grid>div:first-child{order:2}}
+.cafe .goals{display:grid;gap:6px}.cafe .goal{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:7px 10px;font-weight:700;border:2px solid #ffe8cc;color:var(--ink)}.cafe .goal .ck{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e9ecef;color:#fff;font-size:14px}.cafe .goal.done{border-color:#8ce99a}.cafe .goal.done .ck{background:#2f9e44}.cafe .goal .gn{margin-left:auto}
+.cafe-meter{margin-top:10px;background:#fff;border-radius:14px;padding:10px 12px;color:var(--ink)}.cafe-meter .bar{height:18px;border-radius:10px;background:#f1f3f5;overflow:hidden;display:flex;margin:6px 0}.cafe-meter .bar i{display:block;height:100%}.cafe-meter small{color:#6b5a3a;font-size:14px}
+.plate-row{display:flex;gap:10px;align-items:center;justify-content:center}.cafe-plate{width:min(330px,72vw);height:auto}.pl-pop{animation:plpop .35s cubic-bezier(.2,1.6,.4,1)}@keyframes plpop{from{transform:scale(.2);opacity:0}}
+.cafe-cup{width:70px;height:96px;background:#e7f5ff;border:3px solid #74c0fc;border-radius:6px 6px 16px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:32px}.cafe-cup small{font-size:10px;font-weight:800;color:#1c7ed6}
+.cafe-tray{background:#8d6e63;border-radius:20px;padding:10px;margin-top:10px;box-shadow:inset 0 -6px 0 rgba(0,0,0,.18)}.cafe-tray h3{color:#fff;margin:0 0 8px;font-size:16px}
+.cafe-foods{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:7px}.cafe-foods.drinks{margin-top:8px}
+.cfood{background:#fffdf5;border-radius:14px;padding:6px 4px;text-align:center;font-weight:700;font-size:13px;border:0;font-family:inherit;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.2)}.cfood span{font-size:28px;display:block}.cfood small{display:block;font-weight:600;color:#8a7b5a;font-size:11px}.cfood.used{background:#d3f9d8;box-shadow:0 0 0 3px #2f9e44}
+.cafe-card{background:#fff;border-radius:20px;padding:16px;color:var(--ink);max-width:640px;margin:0 auto}.cafe-card.center{text-align:center}.cafe-lab{font-weight:800;color:#c05621;margin-bottom:6px}
+.cafe-q{font-size:20px;font-weight:700;margin:8px 0}.cafe-ans{font-size:26px;font-weight:800;text-align:center;margin:8px 0}
+.cpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:360px;margin:8px auto 0}.cpad button{font:inherit;font-size:24px;font-weight:800;padding:12px 0;border-radius:14px;border:0;background:#f3f0ff;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.15);cursor:pointer}.cpad button.go{grid-column:1/-1;background:#2fbf71;color:#fff}
+.cafe-menu{background:#2b2b2b;color:#fff;border-radius:12px;padding:8px 12px;font-family:"Chalkboard SE","Comic Sans MS",cursive;border:6px solid #8d6e63;max-width:340px;margin:0 auto 8px}.cafe-menu div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #555}.cafe-menu div:last-child{border:0}
+.cafe-read{background:#fff9db;border-left:5px solid #fcc419;border-radius:10px;padding:10px 12px;font-size:18px;line-height:1.5;font-style:italic}
+.cafe-mc{display:grid;gap:8px;margin-top:8px}.cafe-mc .btn{background:#f3f0ff;color:var(--ink)}.cafe-mc .btn.green{background:#2fbf71;color:#fff}.cafe-mc .btn.red{background:#ffc9c9;color:#c92a2a}
+.cafe-reward{background:linear-gradient(135deg,#7c5cff,#b197fc);color:#fff;border-radius:20px;padding:16px;display:flex;gap:14px;align-items:center;max-width:640px;margin:0 auto 14px;line-height:1.5}.cafe-reward .big-emoji{font-size:56px}
 .kindpanel{background:linear-gradient(135deg,#f3f0ff,#fff9db)}.kindstars{font-size:24px;letter-spacing:4px}
 .spellbar.frozen button:not(#sp-pet),.spellbar.petfrozen #sp-pet{filter:grayscale(.6) brightness(1.1);background:linear-gradient(180deg,#e6f7ff,#b9e6ff)!important;opacity:.8;position:relative}
 .spellbar.frozen button:not(#sp-pet)::after,.spellbar.petfrozen #sp-pet::after{content:'❄️';position:absolute;top:-8px;right:-6px;font-size:16px}
@@ -1449,10 +1467,11 @@ function startBattle(zid,i,resume,opts){
  B={z,i,isBoss,foes,ti:0,name:z.mons[i][0],emoji:z.mons[i][1],mhp,mmax:mhp,hhp:heroMax(p),hmax:heroMax(p),streak:0,best:0,right:0,wrong:0,coins:0,xp:0,q:null,input:'',t0:0,review:[],busy:true,shield:petPerk(p)==='shield',start:Date.now(),recent:[],over:false,missRow:0,grace:false,champ,pendingDown:{},mode:'math',charge:0,shieldUp:false,petUses:0,round};
  if(resume)['mhp','hhp','streak','best','right','wrong','coins','xp','shield','review','grace','champ','pendingDown','charge','shieldUp','petUses','foes','ti','wild','round','spellFrozen','petFrozen','monShield','pwUsed','pwTick','petSince'].forEach(k=>{if(resume[k]!==undefined)B[k]=resume[k];});
  if(resume&&B.foes&&B.foes[B.ti]){const f=B.foes[B.ti];B.name=f.n;B.emoji=f.e;B.mmax=f.max;B.foes[B.ti].hp=B.mhp;}
- if(wild){B.wild=true;B.backTo='world';B.name=foes[0].n;B.emoji=foes[0].e;}else{p.last={zid,i};if(!resume&&B.foes[0])B.foes[0].pw=powersFor(p,z,i,isBoss,round);B.tiredN=tired;}
+ if(wild){B.wild=true;B.backTo='world';B.name=foes[0].n;B.emoji=foes[0].e;}else{p.last={zid,i};if(!resume&&B.foes[0])B.foes[0].pw=powersFor(p,z,i,isBoss,round);B.tiredN=tired;if(!resume&&p.lunchTray){p.lunchTray=false;B.hmax+=20;B.hhp+=20;B.shieldUp=true;B.lunch=true;save();}}
  closeModal();fbOpen=false;curScreen='battle';curArg=null;
  renderBattle();
  banner((B.round>1?ROUNDS[B.round].m+' ':'')+(B.foes.length>1?`GANG OF ${B.foes.length}!`:B.wild?`🌿 A wild ${B.name}!`:(isBoss?'BOSS: ':'⚔️ ')+B.name+'!'));
+ if(B.lunch)setTimeout(()=>toast('🍱 Lunch Tray power-up! +20 ❤️ and a magic shield!'),1400);
  if(tired&&!resume)setTimeout(()=>toast(`😴 ${B.name} is tired from last time! It has ${tired*15}% less health.`),1000);
  else if(B.foes.length>1&&!resume)setTimeout(()=>toast(`${B.foes.map(f=>f.e).join(' ')} Beat all ${B.foes.length} to win! Wrong answers mean they ALL attack!`),900);
  setTimeout(nextQ,900);
@@ -2159,7 +2178,7 @@ const BIOMES={
  reef:{c:[31,24],g:'#9fe0e8',g2:'#94d6df',zone:'reef',bl:['🌿','🪨'],de:['🐚','💧']}};
 const NPCS=[
  {id:'school',x:18,y:15,e:'🏫',n:'School'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
- {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'}];
+ {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'}];
 let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildWorld(){
@@ -2551,6 +2570,127 @@ function fountainJoke(){const p=P();const f=fnt(p);
  setTimeout(()=>say(q,.9),300);}
 function fountainPunch(){const el=$('#fntPunch');if(!el)return;el.classList.add('show');const b=$('#fntTell');if(b){b.textContent='😂 Ha! Again!';b.onclick=()=>fountainOpen();}
  say(el.textContent,.9);setTimeout(()=>{tone(180,.08,'square',.06);tone(140,.08,'square',.06,.12);tone(1200,.35,'triangle',.04,.26);},1100);}
+/* ================= the Cafeteria: Ms. Rosa's daily lunch challenge ================= */
+const CAFE_FOODS={veg:[['🥦','Broccoli'],['🥕','Carrots'],['🌽','Corn'],['🥒','Cucumber'],['🍅','Tomato'],['🥬','Lettuce']],
+ fruit:[['🍎','Apple'],['🍌','Banana'],['🍇','Grapes'],['🍓','Strawberries'],['🍊','Orange'],['🍐','Pear']],
+ grain:[['🍞','Bread'],['🍚','Rice'],['🍝','Pasta'],['🥯','Bagel']],prot:[['🍗','Chicken'],['🥚','Egg'],['🐟','Fish'],['🥜','Peanuts']],
+ treat:[['🍪','Cookie'],['🧁','Cupcake'],['🍩','Donut']]};
+const CAFE_DRINKS=[['🥛','Milk',1],['💧','Water',1],['🥤','Soda',0]];
+const CAFE_GROUP={veg:'Veggies',fruit:'Fruits',grain:'Grains',prot:'Protein'};
+const CAFE_READ=[
+ {t:'Today\'s special is a warm turkey sandwich on whole-grain bread, served with crunchy carrot sticks and a cup of cold milk.',q:'Which food in the special is a vegetable?',c:['turkey','bread','carrot sticks','milk'],a:2,why:'Carrots are a vegetable. Crunch crunch!'},
+ {t:'Ms. Rosa is serving spaghetti with tomato sauce, a side of green beans, and juicy red strawberries for dessert.',q:'Which food is the fruit?',c:['spaghetti','green beans','strawberries','sauce'],a:2,why:'Strawberries are a fruit, and a sweet dessert too!'},
+ {t:'Breakfast for dinner! Fluffy pancakes, scrambled eggs, sliced bananas, and a tall glass of water.',q:'Which food gives you protein?',c:['pancakes','scrambled eggs','bananas','water'],a:1,why:'Eggs are packed with protein to help your muscles grow.'},
+ {t:'Taco Tuesday! Soft corn tortillas filled with chicken, lettuce, and tomatoes, with an orange on the side.',q:'What word describes the tortillas?',c:['soft','orange','Tuesday','filled'],a:0,why:'"Soft" describes the tortillas. It\'s an adjective!'},
+ {t:'The soup of the day is chicken noodle soup. It comes with a warm dinner roll and a crisp green salad.',q:'Which food is a grain?',c:['chicken','dinner roll','salad','soup'],a:1,why:'Bread, like a dinner roll, is a grain.'},
+ {t:'Picnic lunch! A peanut butter sandwich, a bunch of purple grapes, cucumber slices, and a carton of milk.',q:'What color are the grapes?',c:['green','red','purple','blue'],a:2,why:'The story says "purple grapes". Good reading!'},
+ {t:'Fish sticks are on the menu today, with brown rice, steamed broccoli, and apple slices.',q:'Which TWO words tell how the broccoli was cooked?',c:['steamed','brown','apple','sticks'],a:0,why:'"Steamed" tells how the broccoli was cooked.'},
+ {t:'For the class party, Ms. Rosa made a fruit salad with melon, blueberries, and kiwi. Everyone also got one small cupcake.',q:'How many cupcakes did each student get?',c:['none','one','two','a dozen'],a:1,why:'"Everyone also got one small cupcake."'}];
+const CAFE_FUEL=[
+ {q:'Which snack gives you longer-lasting energy before a big boss battle?',c:['🍎 Apple + peanut butter','🍬 Candy'],a:0,why:'Fruit plus protein keeps your energy up longer. Candy is fine as a treat once in a while!'},
+ {q:'After running around at recess, what\'s the best drink?',c:['💧 Water','🥤 Soda'],a:0,why:'Water is the best way to cool down and feel great.'},
+ {q:'Which breakfast will keep you full until lunch?',c:['🥣 Oatmeal with fruit','🍩 A donut'],a:0,why:'Oatmeal and fruit give you slow, steady energy all morning.'},
+ {q:'Your pet is thirsty after playing. What should you give it?',c:['💧 Fresh water','🧃 A juice box'],a:0,why:'Pets need fresh, clean water, just like you!'},
+ {q:'Which lunch has the most colors (and vitamins)?',c:['🥗 Salad with carrots, tomatoes & corn','🍞 Plain white bread'],a:0,why:'More colors on your plate usually means more vitamins.'},
+ {q:'How much of your plate should be fruits and veggies?',c:['About half','None'],a:0,why:'Filling half your plate with fruits and veggies is a great habit.'},
+ {q:'Why do athletes eat protein like chicken, eggs or beans?',c:['To help muscles grow and heal','To make them sleepy'],a:0,why:'Protein helps build strong muscles.',g:4},
+ {q:'What\'s a good snack an hour before skating practice?',c:['🍌 Banana and yogurt','🍟 Chips and soda'],a:0,why:'A banana and yogurt give quick energy plus protein, without feeling heavy.',g:4},
+ {q:'Fact or opinion? "Carrots are orange."',c:['Fact','Opinion'],a:0,why:'You can check it, so it\'s a fact!'},
+ {q:'Fact or opinion? "Pizza is the best food in the world."',c:['Fact','Opinion'],a:1,why:'That\'s how someone feels, so it\'s an opinion.'},
+ {q:'Fact or opinion? "Milk has calcium, which helps build strong bones."',c:['Fact','Opinion'],a:0,why:'Scientists have measured it, so it\'s a fact.'},
+ {q:'Fact or opinion? "Broccoli tastes yucky."',c:['Fact','Opinion'],a:1,why:'Some people love broccoli! It\'s an opinion.'}];
+let CAFE=null;
+const cents2=n=>(Math.round(n*100)/100).toFixed(2);
+function cafeMathQ(p){const g=p.grade||3;
+ if(g<=3){const k=rnd(0,2);
+  if(k===0)return {kind:'num',q:'Your plate has 4 equal parts. 2 parts are fruits and veggies. What fraction of the plate is fruits and veggies?',pre:'',post:' / 4',a:2,hint:'Count the fruit and veggie parts on the plate. There are 2!'};
+  if(k===1)return {kind:'num',q:'Your plate has 4 equal parts. How many parts are NOT fruits and veggies?',pre:'',post:' parts',a:2,hint:'4 parts in all, minus the 2 fruit and veggie parts.'};
+  const n=rnd(3,6),e=pick([3,4,6]);return {kind:'num',q:`Ms. Rosa puts ${e} carrot sticks on each plate. How many carrot sticks for ${n} plates?`,pre:'',post:' carrot sticks',a:n*e,hint:`${n} plates × ${e} sticks. Count by ${e}s!`};}
+ const k=rnd(0,2);
+ if(k===0){const n=pick([8,12,16,20]);return {kind:'num',q:`${n} kids each need 3/4 cup of carrots. How many cups of carrots in all?`,pre:'',post:' cups',a:n*3/4,hint:`${n} ÷ 4 = ${n/4}, then × 3.`};}
+ if(k===1){const n=pick([6,9,12,15]);return {kind:'num',q:`The recipe needs 2/3 cup of rice per plate. How many cups of rice for ${n} plates?`,pre:'',post:' cups',a:n*2/3,hint:`${n} ÷ 3 = ${n/3}, then × 2.`};}
+ const pz=rnd(4,7),s=8,e=rnd(10,pz*s-3);return {kind:'num',q:`Ms. Rosa cut ${pz} pizzas into ${s} slices each. ${e} slices were eaten. How many slices are left?`,pre:'',post:' slices',a:pz*s-e,hint:`First ${pz} × ${s} = ${pz*s}. Then subtract ${e}.`};}
+function cafeMoneyQ(p){const g=p.grade||3;
+ const items=[['🌮','Taco plate'],['🍝','Pasta bowl'],['🍕','Pizza slice'],['🥪','Sandwich'],['🥛','Milk'],['🍊','Orange'],['🍎','Apple'],['🥗','Salad']].sort(()=>Math.random()-.5).slice(0,4).map(([e,n],i)=>({e,n,pr:i<2?rnd(35,55)*5:rnd(6,14)*5}));
+ if(g<=3){const a=items[0],b=items[2];const tot=a.pr+b.pr;const pay=tot<=300?300:500;
+  return {kind:'num',money:true,menu:items,q:`You have $${pay/100}.00. You buy the ${a.n.toLowerCase()} and the ${b.n.toLowerCase()}. How much change do you get?`,pre:'$ ',post:'',a:(pay-tot)/100,hint:`$${cents2(a.pr/100)} + $${cents2(b.pr/100)} = $${cents2(tot/100)}. Then $${pay/100}.00 − $${cents2(tot/100)}.`};}
+ if(Math.random()<.5){const n=pick([2,3,4]),each=rnd(70,130)*5;const tot=each*n;return {kind:'num',money:true,menu:items,q:`${n} friends split a pizza order that costs $${cents2(tot/100)}. They each pay the same. How much does each friend pay?`,pre:'$ ',post:'',a:each/100,hint:`$${cents2(tot/100)} ÷ ${n}.`};}
+ const a=items[0],b=items[2],c=items[3];const tot=a.pr+b.pr+c.pr;return {kind:'num',money:true,menu:items,q:`You buy the ${a.n.toLowerCase()}, the ${b.n.toLowerCase()} and the ${c.n.toLowerCase()} for you AND your friend (2 of each). What is the total?`,pre:'$ ',post:'',a:tot*2/100,hint:`One of each: $${cents2(tot/100)}. Then × 2.`};}
+function cafeStart(){const p=P();const pk=(arr,n)=>[...arr].sort(()=>Math.random()-.5).slice(0,n);
+ const foods=[...pk(CAFE_FOODS.veg,3).map(f=>[...f,'veg']),...pk(CAFE_FOODS.fruit,3).map(f=>[...f,'fruit']),...pk(CAFE_FOODS.grain,2).map(f=>[...f,'grain']),...pk(CAFE_FOODS.prot,2).map(f=>[...f,'prot']),...pk(CAFE_FOODS.treat,1).map(f=>[...f,'treat'])].sort(()=>Math.random()-.5);
+ const g=p.grade||3;const rd=pick(CAFE_READ);const fuel=pick(CAFE_FUEL.filter(x=>!x.g||g>=x.g));
+ CAFE={step:0,foods,plate:{veg:[],fruit:[],grain:[],prot:[]},drink:null,stars:0,tries:0,input:'',msg:'',
+  qs:[cafeMathQ(p),cafeMoneyQ(p),{kind:'mc',read:rd.t,q:rd.q,c:rd.c,a:rd.a,why:rd.why},{kind:'mc',q:fuel.q,c:fuel.c,a:fuel.a,why:fuel.why}]};}
+function rosaSVG(){return `<svg class="rosa-svg" viewBox="0 0 200 210" aria-label="Ms. Rosa the lunch lady">
+<path d="M40 210 Q38 150 70 136 L130 136 Q162 150 160 210Z" fill="#4dabf7"/><path d="M70 150 L130 150 L136 210 L64 210Z" fill="#fff"/><path d="M70 150 Q100 162 130 150" stroke="#e9ecef" stroke-width="3" fill="none"/>
+<circle cx="100" cy="182" r="12" fill="#ff6b6b"/><path d="M100 170 q4 -8 10 -8" stroke="#2f9e44" stroke-width="3" fill="none"/>
+<path d="M40 160 Q22 176 34 196" stroke="#4dabf7" stroke-width="16" fill="none" stroke-linecap="round"/><circle cx="35" cy="198" r="9" fill="#e0a57a"/>
+<path d="M160 160 Q180 140 172 118" stroke="#4dabf7" stroke-width="16" fill="none" stroke-linecap="round"/><circle cx="172" cy="114" r="9" fill="#e0a57a"/>
+<rect x="169" y="60" width="6" height="54" rx="3" fill="#adb5bd"/><ellipse cx="172" cy="58" rx="16" ry="9" fill="#ced4da" stroke="#868e96" stroke-width="2"/>
+<rect x="90" y="118" width="20" height="20" fill="#e0a57a"/><ellipse cx="100" cy="92" rx="36" ry="38" fill="#eab38a"/>
+<path d="M62 84 Q60 40 100 40 Q140 40 138 84 Q126 66 100 64 Q74 66 62 84Z" fill="#6b3e26"/>
+<path d="M58 70 Q60 28 100 28 Q140 28 142 70 Q130 52 100 50 Q70 52 58 70Z" fill="#e7f5ff" stroke="#a5d8ff" stroke-width="2"/>${[...Array(9)].map((_,i)=>`<circle cx="${66+i*8.5}" cy="${48+Math.abs(i-4)*3}" r="1.3" fill="#a5d8ff"/>`).join('')}
+<ellipse cx="64" cy="96" rx="6" ry="9" fill="#df9f73"/><ellipse cx="136" cy="96" rx="6" ry="9" fill="#df9f73"/><circle cx="64" cy="106" r="3" fill="#ffd43b"/><circle cx="136" cy="106" r="3" fill="#ffd43b"/>
+<g class="rosa-eyes"><ellipse cx="86" cy="90" rx="4" ry="5" fill="#2b2250"/><ellipse cx="114" cy="90" rx="4" ry="5" fill="#2b2250"/><circle cx="87.5" cy="88" r="1.5" fill="#fff"/><circle cx="115.5" cy="88" r="1.5" fill="#fff"/></g>
+<path d="M79 80 q7 -5 14 0 M107 80 q7 -5 14 0" stroke="#6b3e26" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="78" cy="104" r="7" fill="#ff8fab" opacity=".5"/><circle cx="122" cy="104" r="7" fill="#ff8fab" opacity=".5"/>
+<path class="rosa-mouth" d="M86 108 Q100 122 114 108 Q100 114 86 108Z" fill="#c2255c"/></svg>`;}
+function cafePlateSVG(){const P0=CAFE.plate;const pos={veg:[[74,72],[108,108],[56,118]],fruit:[[226,72],[192,108],[244,118]],grain:[[74,228],[108,192],[56,182]],prot:[[226,228],[192,192],[244,182]]};
+ let em='';for(const g in pos)P0[g].forEach((f,i)=>{const [x,y]=pos[g][i];em+=`<text x="${x}" y="${y+12}" font-size="34" text-anchor="middle" class="pl-pop">${f}</text>`;});
+ return `<svg class="cafe-plate" viewBox="0 0 300 300"><circle cx="150" cy="150" r="146" fill="#e9ecef"/><circle cx="150" cy="150" r="132" fill="#fff" stroke="#dee2e6" stroke-width="3"/>
+ <path d="M150 150 L150 18 A132 132 0 0 0 18 150 Z" fill="#ebfbee"/><path d="M150 150 L18 150 A132 132 0 0 0 150 282 Z" fill="#fff4e6"/><path d="M150 150 L150 282 A132 132 0 0 0 282 150 Z" fill="#fff9db"/><path d="M150 150 L282 150 A132 132 0 0 0 150 18 Z" fill="#ffe3e3"/>
+ <line x1="150" y1="18" x2="150" y2="282" stroke="#ced4da" stroke-width="3"/><line x1="18" y1="150" x2="282" y2="150" stroke="#ced4da" stroke-width="3"/>
+ <text x="96" y="42" font-size="12" font-weight="800" fill="#2b8a3e" text-anchor="middle">VEGGIES</text><text x="204" y="42" font-size="12" font-weight="800" fill="#c92a2a" text-anchor="middle">FRUITS</text>
+ <text x="96" y="266" font-size="12" font-weight="800" fill="#d9480f" text-anchor="middle">GRAINS</text><text x="204" y="266" font-size="12" font-weight="800" fill="#e67700" text-anchor="middle">PROTEIN</text>${em}</svg>`;}
+function cafeDone(){const P0=CAFE.plate;return {fv:(P0.veg.length?1:0)+(P0.fruit.length?1:0),pr:P0.prot.length>0,gr:P0.grain.length>0,dr:!!(CAFE.drink&&CAFE.drink[2])};}
+SCREENS.cafe=()=>{const p=P();const today=dayKey();
+ const head=(say)=>`<div class="cafe-head"><div class="rosa">${rosaSVG()}</div><div class="cafe-bubble"><b class="nm">Ms. Rosa, the Lunch Lady</b><div>${say}</div></div></div>`;
+ const back=`<div class="zhead"><button class="btn ghost small" onclick="CAFE=null;go('world')">← Explore</button><h2 class="title">🍱 The Cafeteria</h2></div>`;
+ if(p.cafe&&p.cafe.d===today&&p.cafe.done&&(!CAFE||CAFE.step!==5)){app.innerHTML=topbar()+`<div class="page cafe">${back}${head(`Thanks for lunch today, ${esc(p.name)}! The kitchen is closed now. Come back <b>tomorrow</b> for a brand new lunch order! 🍎`)}${p.lunchTray?'<div class="cafe-card center">🍱 Your <b>Lunch Tray power-up</b> is ready for your next battle!</div>':''}</div>`;return;}
+ if(!CAFE)cafeStart();const C=CAFE;const dots=`<div class="cafe-steps">${['🍽️','🧮','💵','📖','⚡'].map((e,i)=>`<span class="${i<C.step?'done':i===C.step?'on':''}">${e}</span>`).join('')}</div>`;
+ let body='';
+ if(C.step===0){const d=cafeDone();const ok=d.fv===2&&d.pr&&d.gr&&d.dr;
+  const goal=(done,t,n)=>`<div class="goal ${done?'done':''}"><span class="ck">✓</span>${t}<span class="gn">${n}</span></div>`;
+  const cols=[['#51cf66',C.plate.veg.length],['#ff6b6b',C.plate.fruit.length],['#ffa94d',C.plate.grain.length],['#fcc419',C.plate.prot.length],['#74c0fc',C.drink&&C.drink[2]?1:0]];const tot=cols.reduce((s,c)=>s+c[1],0)||1;
+  body=`${head(`Hi ${esc(p.name)}! Today's lunch order: build a plate that's <b>½ fruits &amp; veggies</b>, with some <b>protein</b> and some <b>grains</b>. Don't forget a healthy drink! 🥛`)}${dots}
+  <div class="cafe-grid"><div><div class="goals">${goal(d.fv===2,'½ plate fruits &amp; veggies',`${d.fv} / 2`)}${goal(d.pr,'Protein',d.pr?'✓':'')}${goal(d.gr,'Grains',d.gr?'✓':'')}${goal(d.dr,'A healthy drink',d.dr?'✓':'')}</div>
+   <div class="cafe-meter"><b>🌈 Balance meter</b><div class="bar">${cols.map(c=>`<i style="width:${c[1]/tot*100}%;background:${c[0]}"></i>`).join('')}</div><small>${C.msg||(ok?'🌟 Perfect balance! Lots of colors = lots of vitamins!':'Tap foods on the lunch line to fill your plate!')}</small></div>
+   <div class="row" style="margin-top:10px"><button class="btn ${ok?'green':'ghost dark'} big" ${ok?'':'disabled'} onclick="cafeServe()">🍽️ Serve my lunch!</button>${tot>1?`<button class="btn ghost dark small" onclick="cafeStart();go('cafe')">↺ Start over</button>`:''}</div></div>
+   <div><div class="plate-row">${cafePlateSVG()}<div class="cafe-cup"><span>${C.drink?C.drink[0]:'?'}</span><small>DRINK</small></div></div>
+   <div class="cafe-tray"><h3>🍽️ Today's lunch line (tap to add)</h3><div class="cafe-foods">${C.foods.map((f,i)=>`<button class="cfood ${C.plate[f[2]]&&C.plate[f[2]].includes(f[0])?'used':''}" onclick="cafeAdd(${i})"><span>${f[0]}</span>${f[1]}<small>${f[2]==='treat'?'treat':CAFE_GROUP[f[2]]}</small></button>`).join('')}</div>
+   <div class="cafe-foods drinks">${CAFE_DRINKS.map((d,i)=>`<button class="cfood ${C.drink===d?'used':''}" onclick="cafeDrink(${i})"><span>${d[0]}</span>${d[1]}<small>drink</small></button>`).join('')}</div></div></div></div>`;}
+ else if(C.step<=4){const q=C.qs[C.step-1];const lab=['','🧮 Math bite','💵 Lunch line money','📖 Read the menu','⚡ Fuel for heroes'][C.step];
+  const say=['','Now a little lunchroom math!','Time to pay at the register!','Can you read today\'s menu board?','One last question about food and energy!'][C.step];
+  let qh='';if(q.kind==='num'){qh=`${q.menu?`<div class="cafe-menu">${q.menu.map(m=>`<div><span>${m.e} ${m.n}</span><span>$${cents2(m.pr/100)}</span></div>`).join('')}</div>`:''}<div class="cafe-q">${esc(q.q)}</div><div class="cafe-ans">${q.pre}<span class="ansbox">${esc(C.input||'?')}</span>${q.post}</div>
+   <div class="cpad">${['1','2','3','4','5','6','7','8','9',q.money?'.':'','0','del'].map(k=>k?`<button onclick="cafeKey('${k}')">${k==='del'?'⌫':k}</button>`:'<span></span>').join('')}<button class="go" onclick="cafeCheck()">✓</button></div>`;}
+  else qh=`${q.read?`<div class="cafe-read">${esc(q.read)}</div>`:''}<div class="cafe-q">${esc(q.q)}</div><div class="cafe-mc">${q.c.map((c,i)=>`<button class="btn big ${C.picked===i?(i===q.a?'green':'red'):''}" onclick="cafePick(${i})">${esc(c)}</button>`).join('')}</div>`;
+  body=`${head(C.msg||say)}${dots}<div class="cafe-card"><div class="cafe-lab">${lab}</div>${qh}</div>`;}
+ else{body=`${head(`What a wonderful lunch, ${esc(p.name)}! You earned ${C.stars} lunch star${C.stars===1?'':'s'}! ⭐`)}${dots}<div class="cafe-reward"><div class="big-emoji">🍱</div><div><b style="font-size:21px">Lunch Tray power-up earned!</b><br>Your next battle starts with a <b>🛡️ shield</b> and <b>+20 ❤️</b>.<br>${C.treat?`Ms. Rosa also made your pet a treat: <b>${C.treat}</b> 🐾<br>`:''}🪙 +${C.coins} coins · ${'⭐'.repeat(C.stars)}${'☆'.repeat(4-C.stars)}</div></div><div class="row"><button class="btn gold big" onclick="CAFE=null;go('world')">Back to the village 🏡</button></div>`;}
+ app.innerHTML=topbar()+`<div class="page cafe">${back}${body}</div>`;
+ if(C.sayNow){const t=C.sayNow;C.sayNow=null;setTimeout(()=>say(t.replace(/<[^>]+>/g,''),.95),200);}
+};
+function cafeAdd(i){const C=CAFE;const f=C.foods[i];SFX.tap();
+ if(f[2]==='treat'){C.msg='🍪 A '+f[1].toLowerCase()+' is a fine treat once in a while! Let\'s fill the plate with food from each part first. 😊';go('cafe');return;}
+ const arr=C.plate[f[2]];if(arr.includes(f[0])){C.plate[f[2]]=arr.filter(x=>x!==f[0]);C.msg='';go('cafe');return;}if(arr.length>=3){C.msg=`That part of the plate is full!`;go('cafe');return;}
+ arr.push(f[0]);C.msg='';tone(700+Math.random()*300,.08,'sine',.05);go('cafe');}
+function cafeDrink(i){const d=CAFE_DRINKS[i];SFX.tap();if(!d[2]){CAFE.msg='🥤 Soda is a sometimes drink. For lunch, try milk or water to stay strong and cool!';CAFE.drink=null;}else{CAFE.drink=d;CAFE.msg='';}go('cafe');}
+function cafeServe(){const C=CAFE;const d=cafeDone();if(!(d.fv===2&&d.pr&&d.gr&&d.dr))return;SFX.win();C.step=1;C.tries=0;C.input='';C.picked=null;C.msg='';const p=P();p.cafePlates=(p.cafePlates||0)+1;save();go('cafe');}
+function cafeKey(k){const C=CAFE;if(k==='del')C.input=C.input.slice(0,-1);else if(C.input.length<7&&!(k==='.'&&C.input.includes('.')))C.input+=k;SFX.tap();go('cafe');}
+function cafeRight(){const C=CAFE,p=P();if(C.tries===0)C.stars++;const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk].r++;if(typeof wkAnswer==='function')wkAnswer(p,8);save();}
+function cafeWrong(){const p=P();const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk].w++;save();}
+function cafeCheck(){const C=CAFE,q=C.qs[C.step-1];if(!C.input)return;const v=parseFloat(C.input);
+ if(Math.abs(v-q.a)<0.001){SFX.correct();cafeRight();C.msg=pick(['Yummy! That\'s right! 🎉','Perfect! You\'re a lunchroom math star! ⭐','Correct! Ms. Rosa is impressed! 👏']);C.sayNow=C.msg;cafeNext();return;}
+ SFX.wrong();cafeWrong();C.tries++;
+ if(C.tries>=2){C.msg=`The answer was <b>${q.money?'$'+cents2(q.a):q.a}</b>. ${esc(q.hint)} Let's keep going!`;C.sayNow=`The answer was ${q.money?'$'+cents2(q.a):q.a}.`;cafeNext();return;}
+ C.msg=`Not quite! Hint: ${esc(q.hint)}`;C.sayNow='Not quite! Here is a hint.';C.input='';go('cafe');}
+function cafePick(i){const C=CAFE,q=C.qs[C.step-1];if(C.picked===q.a)return;C.picked=i;
+ if(i===q.a){SFX.correct();cafeRight();C.msg=`Yes! ${esc(q.why)}`;C.sayNow=`Yes! ${q.why}`;go('cafe');setTimeout(()=>{if(CAFE===C)cafeNext();},1600);return;}
+ SFX.wrong();cafeWrong();C.tries++;if(C.tries>=2){C.picked=q.a;C.msg=`The answer is <b>${esc(q.c[q.a])}</b>. ${esc(q.why)}`;go('cafe');setTimeout(()=>{if(CAFE===C)cafeNext();},2600);return;}
+ C.msg='Hmm, try again! 🤔';go('cafe');}
+function cafeNext(){const C=CAFE;C.step++;C.tries=0;C.input='';C.picked=null;
+ if(C.step>4){const p=P();C.step=5;C.coins=15+5*C.stars;p.coins+=C.coins;p.lunchTray=true;const f=pick(PET_FOODS);p.pantry[f.id]=(p.pantry[f.id]||0)+1;C.treat=`${f.e} ${f.name}`;p.cafe={d:dayKey(),done:true,stars:C.stars};save();SFX.win();C.msg='';setTimeout(()=>{if(CAFE===C)go('cafe');},500);return;}
+ go('cafe');}
+
 function wFight(m){if(m&&m.principal){principalMeet();return;}if(!W||curScreen!=='world'||$('#modal.show'))return;W.path=[];W.mobs=W.mobs.filter(o=>o!==m);const b=m.b;setTimeout(()=>{if(W)wSpawn(b);},20000);
  SFX.tap();startBattle(m.zid,0,null,{wild:true,n:m.n,e:m.e});}
 function wGate(zid){const z=ZONES.find(x=>x.id===zid);const p=P();if(zoneLocked(z,p)){toast('🔒 '+z.lockMsg);return;}p.wpos={x:W.hx,y:W.hy};save();SFX.tap();go('zone',zid);}
@@ -2561,6 +2701,7 @@ function wNpc(id){const p=P();
  if(id==='pets'){go('pethome');return;}
  if(id==='spin'){openSpin();return;}
  if(id==='board'){go('leaders');return;}
+ if(id==='cafe'){p&&(p.wpos={x:W.hx,y:W.hy});CAFE=null;go('cafe');return;}
  if(id==='mail'){if(!showGift())openGift();return;}
  if(id==='fountain'){fountainOpen();return;}
  modal(`<div class="mcard"><div class="big-emoji">🧙</div><h2>Elder Wiz says…</h2><p style="font-size:18px">"${esc(pick(ELDER_TIPS))}"</p>${questBar(p).replace('questbar','questbar dark')}<button class="btn green big" onclick="closeModal()">Thanks!</button></div>`);}
