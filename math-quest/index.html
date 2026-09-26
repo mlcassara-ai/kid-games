@@ -2951,8 +2951,8 @@ const STORIES=[
   ['What did Kai do when his knee hurt?',['He quit','He rested and walked instead','He ran faster','He bought new shoes'],1,'"He rested and walked instead."'],
   ['Why was Kai smiling if he did not win?',['He got a prize for last place','He reached his own goal of running the whole race','He saw his friends','The race was short'],1,'He "ran the whole 5K without stopping."']]}];
 /* ================= the Library: Professor Hoot's reading comprehension =================
-   Reading levels 1-10. Each finished story moves the level: first-try score >= 90% +0.5,
-   >= 75% +0.25, 50-74% stays, under 50% -0.5. So kids climb slowly while in the 75-85% sweet spot. */
+   Reading levels 1-10. Each finished story moves the level: perfect +0.25, 75-99% +0.1,
+   50-74% -0.34, under 50% -0.75. Tuned by simulation so kids settle at about 80% right on the first try. */
 
 /* ================= village upgrades: spend coins to grow your own village ================= */
 const VIL=[
@@ -3029,7 +3029,7 @@ function libPick(k){const C=LIB,qq=C.qs[C.i];if(C.nextBtn)return;C.picked=k;cons
  if(k===qq.a){SFX.correct();if(C.tries===0)C.stars++;C.msg=pick(['Hoo-hoo! Correct!','Wise answer!','Yes! You found it!','Excellent reading!']);C.why='✅ '+esc(qq.why);C.nextBtn=true;save();}
  else{SFX.wrong();C.tries++;save();if(C.tries>=2){C.reveal=true;C.msg='Let\'s look at the right answer together.';C.why='💡 '+esc(qq.why);C.nextBtn=true;}else{C.msg='Hmm, not quite. Tap <b>📖 Look back at the story</b> and try again!';}}
  go('library');}
-function libAdjust(L,sc){const before=Math.floor(L.rl);const d=sc>=.9?.5:sc>=.75?.25:sc>=.5?0:-.5;L.rl=Math.max(LIB_LEVELS[0],Math.min(LIB_MAX+.99,L.rl+d));L.hist=(L.hist||[]).concat([Math.round(sc*100)]).slice(-10);return Math.floor(L.rl)-before;}
+function libAdjust(L,sc){const before=Math.floor(L.rl);const d=sc>=.99?.25:sc>=.74?.1:sc>=.5?-.34:-.75;L.rl=Math.max(LIB_LEVELS[0],Math.min(LIB_MAX+.99,L.rl+d));L.hist=(L.hist||[]).concat([Math.round(sc*100)]).slice(-10);return Math.floor(L.rl)-before;}
 function libNext(){const C=LIB;C.i++;C.tries=0;C.picked=null;C.reveal=false;C.why='';C.msg='';C.nextBtn=false;C.look=false;
  if(C.i<C.qs.length){go('library');return;}
  const p=P();C.stage='done';const NQ=C.qs.length,sc=C.stars/NQ;
