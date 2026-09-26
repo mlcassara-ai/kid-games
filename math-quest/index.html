@@ -461,6 +461,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .ascb #monS,.ascb .bk{filter:hue-rotate(var(--asch)) saturate(1.4) drop-shadow(0 0 14px rgba(255,215,0,.8))}.ascmap .node{filter:hue-rotate(var(--asch)) saturate(1.3)}.ascmap{box-shadow:inset 0 0 0 4px #ffd43b,0 0 24px rgba(255,212,59,.5)}.asctab{background:linear-gradient(135deg,#7048e8,#f59f00)!important;color:#fff}
 .z-haunt{background:linear-gradient(160deg,#fd7e14,#5f3dc4 55%,#1a1033)}.battle.z-haunt{background:linear-gradient(180deg,#5f3dc4,#1a1033)}
 .evbanner{display:block;width:100%;text-align:left;font:inherit;font-size:15px;border:0;border-radius:16px;padding:10px 14px;margin:10px 0;background:linear-gradient(90deg,#fd7e14,#7048e8);color:#fff;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25)}.evbanner.soon{cursor:default;opacity:.95}
+.tbchip{background:#2b2250;color:#ffe8a3}.tbchip.low{background:#e03131;color:#fff;animation:bob 1.2s ease-in-out infinite}.tbrow label{display:inline-flex;align-items:center;gap:4px}.restcard{max-width:520px;margin:40px auto}
 .vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}.vcard{background:#fff;color:var(--ink);border-radius:18px;padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center;box-shadow:0 4px 0 rgba(0,0,0,.2)}.vcard .ve{font-size:44px}.vstars{color:#f59f00;font-size:20px;letter-spacing:2px}.vperk{font-weight:700}.vnext{font-size:13px;color:#868e96;min-height:2.4em}
 .qdot{background:#ff6b6b;color:#fff;border-radius:999px;padding:0 7px;margin-left:4px}
 .qpanel{background:rgba(255,255,255,.95);color:var(--ink);border-radius:20px;padding:12px 14px;margin:12px 0}.qpanel h3{margin:0 0 8px}.qready{background:#ffd43b;color:#5c3c00;border-radius:999px;padding:2px 10px;font-size:14px;animation:bob 1.2s ease-in-out infinite;display:inline-block}
@@ -1181,7 +1182,37 @@ ${hat}</svg>`;
 /* ================= navigation / ui ================= */
 let curScreen='profiles',curArg=null;
 const SCREENS={};
-function go(s,arg){curScreen=s;curArg=arg;window.scrollTo(0,0);SCREENS[s](arg);}
+
+/* ================= play-time bank: 60 minutes to play, every 2 minutes away earns 1 back =================
+   Short sessions never lock anyone out. When the bank runs out, the break lasts until it is full again
+   (a full hour of play = a 2-hour break). A battle in progress is always allowed to finish. */
+const TB_FREE=['profiles','create','parent','rest'];let tbLastInput=Date.now();
+['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{tbLastInput=Date.now();},{passive:true}));
+const tbOn=p=>!!p&&p.tbOn!==false;const tbCap=p=>p.tbMin||60;
+function tbState(p){p.tb=p.tb||{bank:tbCap(p),t:Date.now(),locked:false};if(p.tb.bank>tbCap(p))p.tb.bank=tbCap(p);return p.tb;}
+function tbTick(p,active){const T=tbState(p);const now=Date.now();const dt=Math.max(0,Math.min(600,(now-T.t)/60000));T.t=now;
+ if(active)T.bank-=dt;else T.bank=Math.min(tbCap(p),T.bank+dt*.5);
+ if(T.locked&&T.bank>=tbCap(p)-.01){T.locked=false;T.bank=tbCap(p);}
+ if(T.bank<=0&&!T.locked){T.locked=true;T.bank=Math.max(T.bank,-15);}return T;}
+function tbLeft(p){return Math.max(0,Math.ceil(tbState(p).bank));}
+function tbBackAt(p){const T=tbState(p);const mins=(tbCap(p)-Math.max(0,T.bank))*2;return new Date(Date.now()+mins*60000);}
+const tbBlocked=p=>tbOn(p)&&tbState(p).locked;
+setInterval(()=>{try{const p=state&&state.cur&&P();if(!p||!p.setup)return;
+ const active=tbOn(p)&&!TB_FREE.includes(curScreen)&&document.visibilityState==='visible'&&Date.now()-tbLastInput<120000;
+ const before=tbState(p).bank;const T=tbTick(p,active);
+ state.players.forEach(o=>{if(o!==p&&o.tb)tbTick(o,false);});
+ if(active){if(before>10&&T.bank<=10)toast(`⏳ 10 minutes of play left, ${p.name}!`);else if(before>2&&T.bank<=2)toast('⏳ 2 minutes left! Finish up your battle.');}
+ if(T.locked&&curScreen!=='battle'&&!TB_FREE.includes(curScreen)){closeModal();go('rest');}
+ const c=document.getElementById('tbChip');if(c)c.textContent=tbOn(p)?`⏳ ${tbLeft(p)}m`:'';
+ tbSaves=(tbSaves+1)%4;if(!tbSaves||T.locked)save();}catch(e){}},15000);let tbSaves=0;
+SCREENS.rest=()=>{const p=P();if(!p){go('profiles');return;}tbTick(p,false);if(!tbBlocked(p)){go('map');return;}
+ const at=tbBackAt(p);const hm=at.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+ app.innerHTML=`<div class="page"><div class="cafe-card center restcard"><div class="big-emoji">🌙</div><h2>Time for a break, ${esc(p.name)}!</h2>
+ <p>You've used your play time. Heroes need rest too! 🧠💤</p><p style="font-size:22px">Come back at <b>${hm}</b></p>
+ <p class="muted">Every 2 minutes of rest earns 1 minute of play. Go outside, read a book, or help someone at home!</p>
+ <div class="row"><button class="btn gold" onclick="state.cur=null;go('profiles')">Switch player</button></div></div></div>`;};
+
+function go(s,arg){if(!TB_FREE.includes(s)&&s!=='battle'&&typeof state!=='undefined'&&state&&state.cur){const p=P();if(p&&p.setup&&tbOn(p)){tbTick(p,false);if(tbState(p).locked)s='rest';}}curScreen=s;curArg=arg;window.scrollTo(0,0);SCREENS[s](arg);}
 function modal(html){const m=$('#modal');m.innerHTML=html;m.classList.add('show');}
 function closeModal(){const m=$('#modal');m.classList.remove('show');m.innerHTML='';}
 let toastT=null;
@@ -1225,7 +1256,7 @@ function topbar(){
  return `<div class="topbar">
  <button class="tb-hero" title="Backpack" onclick="go('backpack')">${heroSVG(p.look,{spell:p.spell})}</button>
  <div class="tb-info"><div class="tb-name">${esc(p.name)}<span class="lv">Lv ${p.level}</span></div><div class="xpbar"><i style="width:${Math.min(100,p.xp/need*100)}%"></i></div></div>
- <div class="coins">🪙 ${p.coins}</div>
+ <div class="coins">🪙 ${p.coins}</div>${tbOn(p)?`<div class="coins tbchip ${tbLeft(p)<=10?'low':''}" id="tbChip" title="Play time left">⏳ ${tbLeft(p)}m</div>`:''}
  <button class="iconbtn tbi" title="Explore the world" aria-label="Explore the world" onclick="go('world')">${TB_ICONS.map}</button>
  <button class="iconbtn tbi" title="Backpack &amp; shop" aria-label="Backpack and shop" onclick="go('backpack')">${TB_ICONS.bag}${p.eggs?'<b class="dot"></b>':''}</button>
  <button class="iconbtn tbi" title="Pet home" aria-label="Pet home" onclick="go('pethome')">${TB_ICONS.pet}${spinReady(p)?'<b class="dot"></b>':''}</button>
@@ -3349,6 +3380,10 @@ function parentCard(p){
  <div class="kpis"><div><b>${tot}</b><span>problems answered</span></div><div><b>${tot?Math.round(right/tot*100):0}%</b><span>correct</span></div><div><b>${fmtTime(p.time)}</b><span>time in battles</span></div><div><b>${p.battles}</b><span>battles won</span></div><div><b>${p.bestStreak}</b><span>best streak</span></div></div>
  <div class="tblwrap"><table class="optable"><tr><th>Skill</th><th>Working on now</th><th>Accuracy</th><th>Level</th></tr>
  ${OPS.map(o=>{const s=p.stats[o],n=s.r+s.w,L=lvl(p,o);return `<tr id="lv-${p.id}-${o}"><td><b>${OPNAME[o]}</b></td><td>${LEVEL_DESC[o][L]}</td><td>${n?Math.round(s.r/n*100)+'% <span class="muted">of '+n+'</span>':'—'}</td><td style="white-space:nowrap"><button class="mini" onclick="adjLevel('${p.id}','${o}',-1)">−</button> ${L} <button class="mini" onclick="adjLevel('${p.id}','${o}',1)">+</button></td></tr>`;}).join('')}</table></div>
+ <div class="row tbrow" style="justify-content:flex-start;margin:6px 0;align-items:center">⏳ <b>Play time:</b> <label><input type="checkbox" ${tbOn(p)?'checked':''} onchange="tbSet('${p.id}','on',this.checked)"> limit on</label>
+  <label>Play <select class="sel" onchange="tbSet('${p.id}','min',this.value)">${[30,45,60,90,120].map(m=>`<option ${m===tbCap(p)?'selected':''} value="${m}">${m} min</option>`).join('')}</select> then rest twice as long</label>
+  <span class="muted">${tbOn(p)?(tbBlocked(p)?`On a break until ${tbBackAt(p).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:`${tbLeft(p)} min left`):'No limit'}</span>
+  <button class="btn small" onclick="tbSet('${p.id}','add',15)">+15 min</button><button class="btn small ghost dark" onclick="tbSet('${p.id}','full',1)">Refill</button></div>
  <div class="row" style="justify-content:flex-start;margin:6px 0"><button class="btn small" onclick="state.cur='${p.id}';SKC=null;closeModal();go('skillcheck')">🎯 Run a skill check for ${esc(p.name)}</button>${p.skillChecked?`<span class="muted">Last skill check: ${p.skillChecked}</span>`:''}</div>
  ${parentSchool(p)}
  <h4>Last 7 days</h4>${daysChart(p)}
@@ -3472,6 +3507,9 @@ function refreshParent(anchorId,flash){
  if(b&&flash){b.classList.add('flash');setTimeout(()=>b.classList.remove('flash'),900);}
 }
 function adjLevel(id,op,d){const p=state.players.find(x=>x.id===id);const L=lvl(p,op),to=clamp(L+d,1,maxLv(op));if(to===L)return;applyLevel(p,op,to);p.recent[op]=[];save();refreshParent(`lv-${id}-${op}`,true);}
+function tbSet(id,k,v){const p=state.players.find(x=>x.id===id);const T=tbState(p);tbTick(p,false);
+ if(k==='on')p.tbOn=!!v;else if(k==='min'){p.tbMin=+v;T.bank=Math.min(T.bank,+v);}else if(k==='add'){T.bank=Math.max(0,T.bank)+(+v);T.locked=false;}else if(k==='full'){T.bank=tbCap(p);T.locked=false;}
+ save();refreshParent(`pp-${id}`,true);toast(k==='add'?`Added 15 minutes for ${p.name}.`:'Saved.');}
 function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;if(p.spellSig!==undefined)p.spellSig=spellSchool(p).map(x=>x.w).join('|');save();refreshParent(`pp-${id}`,true);toast(`Grade set to ${g}.`);}
 function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}const np=newPlayer(n,+$('#npGrade').value);state.players.push(np);save();refreshParent(null);const c=document.getElementById('pp-'+np.id);if(c){c.scrollIntoView({block:'center',behavior:'smooth'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),900);}}
 function confirmReset(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Reset ${esc(p.name)}?</h2><p>This clears coins, pets, items, map progress and stats. It can't be undone.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doReset('${id}')">Reset</button></div></div>`);}
