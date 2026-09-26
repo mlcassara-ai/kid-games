@@ -97,13 +97,13 @@ input{font-family:inherit}
 .err{color:var(--redd);font-weight:600;min-height:1em}
 
 /* game */
-.topbar{display:flex;align-items:center;gap:8px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));background:var(--paper);border-bottom:3px solid var(--line);flex-wrap:nowrap}
-.turnchip{display:flex;align-items:center;gap:6px;font-weight:700;font-size:17px;padding:4px 12px 4px 4px;border-radius:999px;border:3px solid var(--line);min-width:0;overflow:hidden;white-space:nowrap}
+.topbar{display:flex;align-items:center;gap:8px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));background:linear-gradient(180deg,#26235a,#1d1b48);border-bottom:3px solid var(--line);flex-wrap:nowrap;color:#fff}
+.turnchip{display:flex;align-items:center;gap:6px;font-weight:700;font-size:17px;padding:4px 12px 4px 4px;border-radius:999px;border:3px solid var(--line);min-width:0;overflow:hidden;white-space:nowrap;color:var(--ink)}
 .turnchip .av{font-size:22px;width:34px;height:34px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .turnchip span.nm{overflow:hidden;text-overflow:ellipsis}
 .round{font-weight:600;color:var(--muted);font-size:15px;white-space:nowrap}
-.gold{font-weight:700;font-size:18px;margin-left:auto;white-space:nowrap}
-.gold small{color:var(--greend);font-size:14px}
+.gold{font-weight:700;font-size:18px;margin-left:auto;white-space:nowrap;background:rgba(255,255,255,.12);padding:4px 12px;border-radius:999px}
+.gold small{color:#8ff0b4;font-size:14px}
 .endturn{white-space:nowrap}
 .scores{display:flex;gap:8px;padding:6px 10px;background:rgba(255,255,255,.6);border-bottom:2px solid rgba(45,42,74,.25);overflow-x:auto}
 .sc{display:flex;align-items:center;gap:5px;font-weight:600;font-size:15px;padding:2px 10px 2px 3px;border-radius:999px;border:2px solid;background:#fff;white-space:nowrap}
@@ -113,9 +113,20 @@ input{font-family:inherit}
 .banner{display:none;text-align:center;font-weight:700;padding:8px;font-size:16px;background:var(--gold);border-bottom:3px solid var(--line)}
 .banner.on{display:block}
 .banner.wait{background:#e9e6ff}
-.mapwrap{flex:1;overflow:auto;position:relative;background:#86c95d;touch-action:pan-x pan-y}
+.mapwrap{flex:1;overflow:auto;position:relative;background:#d3dbe8;touch-action:pan-x pan-y}
 #mapInner{position:relative}
-#mapInner svg{display:block}
+#mapInner canvas{position:absolute;left:0;top:0;display:block;image-rendering:auto}
+#mapInner svg{position:absolute;left:0;top:0;display:block}
+.army .walker{transform-box:fill-box;transform-origin:center bottom}
+.army.moving .walker{animation:bob .26s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-4px) rotate(6deg)}}
+.boom{animation:boom .8s ease-out forwards;transform-box:fill-box;transform-origin:center}
+@keyframes boom{0%{transform:scale(.3);opacity:0}25%{transform:scale(1.25);opacity:1}100%{transform:scale(1);opacity:0}}
+.sel-sq{animation:throb 1s ease-in-out infinite}
+.banner.rep{background:#2d2a4a;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px}
+.banner.rep .btn{color:#2d2a4a}
+.topbar .btn{color:var(--ink)}
+.topbar .btn.red{color:#fff}
 .gbody{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
 .zoom{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:8px;z-index:5}
 .panel{background:var(--paper);border-top:3px solid var(--line);padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));max-height:46vh;overflow:auto}
@@ -219,6 +230,9 @@ input{font-family:inherit}
 }
 @media (max-width:400px){ .turnchip span.nm{max-width:70px} }
 
+.ver{margin-top:28px;color:var(--muted);font-size:13px;font-weight:600;text-align:center}
+.banner.rep .rt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+
 </style>
 </head>
 <body>
@@ -236,6 +250,7 @@ input{font-family:inherit}
       </div>
       <h2 class="sub" id="myGamesH">My Games</h2>
       <div id="myGames" class="games-list"></div>
+      <p class="ver">Castle Quest v3.0 · Sep 25, 2026, 8:43 PM</p>
     </div>
   </section>
 
@@ -252,12 +267,7 @@ input{font-family:inherit}
       </div>
       <div id="slotCards"></div>
       <div class="card">
-        <h3>How long?</h3>
-        <div class="seg" id="lenSeg">
-          <button data-len="short">Short</button><button data-len="normal">Normal</button><button data-len="long">Long</button>
-        </div>
-        <p class="hint" id="lenHint"></p>
-        <h3 style="margin-top:14px">Clouds over the map?</h3>
+        <h3>Clouds over the map?</h3>
         <div class="seg" id="fogSeg">
           <button data-fog="1">☁️ Yes, explore!</button><button data-fog="0">🗺️ No, show everything</button>
         </div>
@@ -304,7 +314,7 @@ input{font-family:inherit}
   <div id="toast" class="toast"></div>
 </div>
 <script>
-/* ===== Castle Quest engine (pure logic, no DOM) ===== */
+/* ===== Castle Quest engine v3: tile map (pure logic, no DOM) ===== */
 var CQ = (function () {
   'use strict';
 
@@ -316,16 +326,33 @@ var CQ = (function () {
     d: { key: 'd', name: 'Dragon', plural: 'Dragons', emoji: '🐉', cost: 14, atk: 9, def: 8, fly: true }
   };
   var UK = ['s', 'a', 'k', 'd'];
+  var SPEED = { s: 12, a: 12, k: 18, d: 20 };
+  var HERO_SPEED = 18;
   var SIZES = {
     village: { income: 2, label: 'Village' },
     castle: { income: 3, label: 'Castle' },
     fortress: { income: 5, label: 'Fortress', roost: true }
   };
   var HOME_INCOME = 5;
-  var WALL_COST = [8, 12];          // cost to go to level 1, level 2
+  var WALL_COST = [8, 12];
   var WALL_BONUS = [0, 0.25, 0.5];
-  var POW = 1.6;                    // combat sharpness
+  var POW = 1.6;
   var MAX_HERO = 4;
+  var MAX_ARMIES = 3;
+  var R_CASTLE = 4.5, R_ARMY = 5.5;
+  // terrain: g ground, f forest, h hills, m mountain, w water, r road, b bridge
+  var COST = { g: 2, f: 3, h: 3, r: 1, b: 1 };
+  var TERR_NAME = { g: 'Grass', f: 'Forest', h: 'Hills', m: 'Mountains', w: 'Water', r: 'Road', b: 'Bridge' };
+  var BIOMES = {
+    M: { name: 'Meadow', names: ['Sunny Meadows', 'Buttercup Fields', 'Honey Hills', 'Clover Plains'] },
+    W: { name: 'Woods', names: ['Whispering Woods', 'Mossy Forest', 'Acorn Woods', 'Owl Grove'] },
+    S: { name: 'Spooky', names: ['Spooky Hollow', 'Gloomy Glen', 'Ghostly Moor', 'Batwing Bog'] },
+    D: { name: 'Desert', names: ['Dusty Dunes', 'Cactus Canyon', 'Sandy Sands', 'Sunbaked Flats'] },
+    N: { name: 'Snow', names: ['Frosty Peaks', 'Snowball Valley', 'Icicle Heights', 'Penguin Point'] },
+    L: { name: 'Lava', names: ['Lava Lands', 'Volcano Valley', 'Ember Wastes', 'Dragon\'s Breath'] },
+    P: { name: 'Swamp', names: ['Soggy Swamp', 'Froggy Marsh', 'Mucky Mire', 'Lilypad Lake'] }
+  };
+  var BIOME_KEYS = ['W', 'S', 'D', 'N', 'L', 'P', 'M', 'W', 'S', 'D', 'N', 'L', 'P'];
   var COLORS = [
     { key: 'red', name: 'Red', main: '#e5484d', light: '#ffb3b5', dark: '#a8262b' },
     { key: 'blue', name: 'Blue', main: '#3b82f6', light: '#b3d1ff', dark: '#1d4ea8' },
@@ -334,6 +361,7 @@ var CQ = (function () {
   var AVATARS = ['🧙', '🧝', '🦸', '🧚', '🤴', '👸', '🥷', '🧛', '🦄', '🐱', '🐶', '🦊', '🐸', '🐼', '🦁', '🤖'];
   var AI_NAMES = ['Sir Grumblebeard', 'Lady Pickles', 'Baron Wobble', 'Queen Snorkel', 'Duke Noodle', 'Count Crumpet'];
   var AI_AVATARS = ['🤖', '👹', '🧌', '🐲', '👺', '🦹'];
+  var D8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
 
   // ---------- rng ----------
   function hashStr(str) {
@@ -361,296 +389,258 @@ var CQ = (function () {
     for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
     return arr;
   }
-
-  // ---------- geometry ----------
-  function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
-  function segDist(p, a, b) {
-    var dx = b.x - a.x, dy = b.y - a.y, L = dx * dx + dy * dy;
-    var t = L ? ((p.x - a.x) * dx + (p.y - a.y) * dy) / L : 0;
-    t = Math.max(0, Math.min(1, t));
-    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
-  }
-  function segInter(p1, p2, p3, p4) {
-    var d = (p4.y - p3.y) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.y - p1.y);
-    if (d === 0) return null;
-    var ua = ((p4.x - p3.x) * (p1.y - p3.y) - (p4.y - p3.y) * (p1.x - p3.x)) / d;
-    var ub = ((p2.x - p1.x) * (p1.y - p3.y) - (p2.y - p1.y) * (p1.x - p3.x)) / d;
-    if (ua < 0 || ua > 1 || ub < 0 || ub > 1) return null;
-    return { x: p1.x + ua * (p2.x - p1.x), y: p1.y + ua * (p2.y - p1.y), ang: Math.atan2(p4.y - p3.y, p4.x - p3.x) };
-  }
-  function inPoly(p, poly) {
-    var inside = false;
-    for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-      var xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
-      if (((yi > p.y) !== (yj > p.y)) && (p.x < (xj - xi) * (p.y - yi) / (yj - yi) + xi)) inside = !inside;
+  function makeNoise(seed) {
+    var h = hashStr(String(seed));
+    function hv(x, y) { var n = Math.imul(x, 374761393) + Math.imul(y, 668265263) + h; n = Math.imul(n ^ (n >>> 13), 1274126177); return ((n ^ (n >>> 16)) >>> 0) / 4294967296 * 2 - 1; }
+    function sm(t) { return t * t * (3 - 2 * t); }
+    function vn(x, y) {
+      var x0 = Math.floor(x), y0 = Math.floor(y), fx = sm(x - x0), fy = sm(y - y0);
+      var a = hv(x0, y0), b = hv(x0 + 1, y0), c = hv(x0, y0 + 1), d = hv(x0 + 1, y0 + 1);
+      return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
     }
-    return inside;
+    return function (x, y) { return vn(x, y) * 0.6 + vn(x * 2.1 + 17, y * 2.1 + 9) * 0.28 + vn(x * 4.3 + 5, y * 4.3 + 31) * 0.12; };
   }
-  function polyDist(p, pts, closed) {
-    var m = Infinity;
-    for (var i = 0; i < pts.length - 1; i++) m = Math.min(m, segDist(p, pts[i], pts[i + 1]));
-    if (closed) m = Math.min(m, segDist(p, pts[pts.length - 1], pts[0]));
-    return m;
-  }
+
+  // ---------- heap ----------
+  function Heap() { this.a = []; }
+  Heap.prototype.push = function (k, v) {
+    var a = this.a; a.push([k, v]); var i = a.length - 1;
+    while (i > 0) { var p = (i - 1) >> 1; if (a[p][0] <= a[i][0]) break; var t = a[p]; a[p] = a[i]; a[i] = t; i = p; }
+  };
+  Heap.prototype.pop = function () {
+    var a = this.a, top = a[0], last = a.pop();
+    if (a.length) {
+      a[0] = last; var i = 0;
+      for (;;) { var l = i * 2 + 1, r = l + 1, m = i; if (l < a.length && a[l][0] < a[m][0]) m = l; if (r < a.length && a[r][0] < a[m][0]) m = r; if (m === i) break; var t = a[m]; a[m] = a[i]; a[i] = t; i = m; }
+    }
+    return top;
+  };
+  Heap.prototype.size = function () { return this.a.length; };
 
   // ---------- names ----------
-  var PRE = ['Honey', 'Moss', 'Pebble', 'Sugar', 'Thistle', 'Muffin', 'Clover', 'Bramble', 'Pudding', 'Sprinkle', 'Willow', 'Bubble', 'Cinder', 'Frost', 'Maple', 'Button', 'Puddle', 'Sunny', 'Acorn', 'Marble', 'Toffee', 'Fern', 'Biscuit', 'Wiggle', 'Pumpkin', 'Cocoa', 'Minty', 'Daisy', 'Nutmeg', 'Sparkle'];
-  var SUF = ['keep', 'hold', 'ton', 'burg', 'gate', 'spire', 'haven', 'crest', 'moor', 'dale', 'watch', 'tower', 'ford', 'wick'];
+  var PRE = ['Honey', 'Moss', 'Pebble', 'Sugar', 'Thistle', 'Muffin', 'Clover', 'Bramble', 'Pudding', 'Sprinkle', 'Willow', 'Bubble', 'Cinder', 'Frost', 'Maple', 'Button', 'Puddle', 'Sunny', 'Acorn', 'Marble', 'Toffee', 'Fern', 'Biscuit', 'Wiggle', 'Pumpkin', 'Cocoa', 'Minty', 'Daisy', 'Nutmeg', 'Sparkle', 'Jelly', 'Pickle', 'Waffle', 'Noodle', 'Cookie', 'Berry', 'Gumdrop', 'Snickle', 'Tumble', 'Pepper', 'Ginger', 'Cherry', 'Rumble', 'Fizzle', 'Doodle', 'Crumble', 'Bumble', 'Plum', 'Tulip', 'Otter', 'Squash', 'Tinsel', 'Hazel', 'Juniper', 'Barley', 'Raisin'];
+  var SUF = ['keep', 'hold', 'ton', 'burg', 'gate', 'spire', 'haven', 'crest', 'moor', 'dale', 'watch', 'tower', 'ford', 'wick', 'stead', 'bury'];
   var FORT_SUF = [' Citadel', ' Stronghold', ' Dragonroost', ' Fortress'];
 
   // ---------- map generation ----------
   function genMap(seed, n) {
     var best = null;
-    for (var attempt = 0; attempt < 40; attempt++) {
-      var rng = rngFrom(seed + ':map:' + attempt);
-      var m = tryMap(rng, n);
+    for (var attempt = 0; attempt < 14; attempt++) {
+      var m = tryMap(rngFrom(seed + ':map:' + attempt), seed + ':' + attempt, n);
       if (!m) continue;
       if (!best || m.score < best.score) best = m;
-      if (best.score < 0.6 && attempt > 8) break;
+      if (attempt >= 3) break;
     }
     if (!best) throw new Error('map generation failed');
-    var rng2 = rngFrom(seed + ':deco');
-    addDeco(rng2, best);
     delete best.score;
     return best;
   }
-
-  function tryMap(rng, n) {
-    var W = n === 2 ? 1000 : 1100, H = n === 2 ? 660 : 820, N = n === 2 ? 13 : 19;
-    var water = { rivers: [], lakes: [] };
-    if (n === 2) {
-      var rx = W / 2 + ri(rng, -40, 40), pts = [];
-      for (var i = 0; i <= 8; i++) pts.push({ x: rx + (i === 0 || i === 8 ? 0 : ri(rng, -70, 70)), y: -30 + i * (H + 60) / 8 });
-      water.rivers.push(pts);
-    } else {
-      var cx = W / 2 + ri(rng, -30, 30), cy = H * 0.47 + ri(rng, -20, 20), R = ri(rng, 62, 80), lake = [];
-      for (var k = 0; k < 18; k++) { var an = k / 18 * Math.PI * 2, rr = R * (0.8 + rng() * 0.35); lake.push({ x: cx + Math.cos(an) * rr * 1.25, y: cy + Math.sin(an) * rr }); }
-      water.lakes.push({ pts: lake, cx: cx, cy: cy, r: R * 1.4 });
-      var pts2 = [{ x: cx, y: cy - R * 0.6 }], yy = cy - R * 0.6, xx = cx;
-      var steps = 5;
-      for (var s = 1; s <= steps; s++) { yy = cy - R * 0.6 - s * (cy - R * 0.6 + 30) / steps; xx = cx + (s === steps ? ri(rng, -20, 20) : ri(rng, -60, 60)); pts2.push({ x: xx, y: yy }); }
-      water.rivers.push(pts2);
-      // second little river from lake to bottom-left or right edge? keep one extra stream to the east
-      var side = rng() < 0.5 ? -1 : 1, pts3 = [{ x: cx + side * R * 1.1, y: cy + R * 0.2 }];
-      for (var s2 = 1; s2 <= 5; s2++) pts3.push({ x: cx + side * (R * 1.1 + s2 * (W / 2 - R * 1.1 + 30) / 5), y: cy + R * 0.2 + (s2 === 5 ? ri(rng, 40, 120) : ri(rng, -30, 70)) * (s2 / 5) + ri(rng, -25, 25) });
-      water.rivers.push(pts3);
-    }
-    function waterDist(p) {
-      var d = Infinity;
-      water.rivers.forEach(function (r) { d = Math.min(d, polyDist(p, r, false) - 16); });
-      water.lakes.forEach(function (l) { d = Math.min(d, inPoly(p, l.pts) ? -1 : polyDist(p, l.pts, true)); });
-      return d;
-    }
+  function tryMap(rng, nseed, n) {
+    var W = n === 2 ? 64 : 80, H = n === 2 ? 44 : 58, NC = n === 2 ? 35 : 50;
+    var N = W * H, t = new Array(N), bm = new Array(N);
+    var elev = makeNoise(nseed + 'e'), moist = makeNoise(nseed + 'm'), jit = makeNoise(nseed + 'j');
+    function I(x, y) { return y * W + x; }
+    function inb(x, y) { return x >= 0 && y >= 0 && x < W && y < H; }
     var anchors = n === 2
-      ? [{ x: W * 0.09, y: H * 0.5 }, { x: W * 0.91, y: H * 0.5 }]
-      : [{ x: W * 0.11, y: H * 0.16 }, { x: W * 0.89, y: H * 0.16 }, { x: W * 0.5, y: H * 0.9 }];
-    var castles = [];
-    anchors.forEach(function (a) {
-      castles.push({ x: a.x + ri(rng, -20, 20), y: a.y + ri(rng, -30, 30), home: true });
-    });
-    for (var h = 0; h < castles.length; h++) if (waterDist(castles[h]) < 50) return null;
-    var minD = n === 2 ? 150 : 160, tries = 0;
-    while (castles.length < N && tries < 4000) {
-      tries++;
-      var p = { x: ri(rng, 55, W - 55), y: ri(rng, 55, H - 55) };
-      if (waterDist(p) < 48) continue;
-      var ok = true;
-      for (var c = 0; c < castles.length; c++) if (dist(p, castles[c]) < minD) { ok = false; break; }
-      if (ok) castles.push(p);
+      ? [{ x: 5, y: Math.floor(H / 2) - 1 }, { x: W - 7, y: Math.floor(H / 2) - 1 }]
+      : [{ x: 5, y: 5 }, { x: W - 7, y: 5 }, { x: Math.floor(W / 2) - 1, y: H - 7 }];
+    anchors.forEach(function (a) { a.x += ri(rng, -1, 1); a.y += ri(rng, -2, 2); });
+    var K = n === 2 ? 11 : 16, seeds = [], keys = shuffle(rng, BIOME_KEYS.slice());
+    anchors.forEach(function (a) { seeds.push({ x: a.x + 1, y: a.y + 1, b: 'M' }); });
+    for (var k = 0; seeds.length < K + anchors.length && k < 800; k++) {
+      var p = { x: ri(rng, 2, W - 3), y: ri(rng, 2, H - 3) };
+      if (seeds.some(function (s) { return Math.hypot(s.x - p.x, s.y - p.y) < 11; })) continue;
+      var nearHome = anchors.some(function (a) { return Math.hypot(a.x - p.x, a.y - p.y) < 14; });
+      p.b = nearHome ? (rng() < 0.6 ? 'M' : 'W') : keys[seeds.length % keys.length];
+      seeds.push(p);
     }
-    if (castles.length < N) return null;
-    castles.forEach(function (c, i) { c.id = i; });
-
-    // edges: Gabriel graph
-    var edges = [];
-    for (var i2 = 0; i2 < castles.length; i2++) for (var j = i2 + 1; j < castles.length; j++) {
-      var A = castles[i2], B = castles[j], mid = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 }, r = dist(A, B) / 2, good = true;
-      if (r * 2 > 330) continue;
-      for (var q = 0; q < castles.length; q++) {
-        if (q === i2 || q === j) continue;
-        if (dist(mid, castles[q]) < r * 1.02) { good = false; break; }
-        if (segDist(castles[q], A, B) < 42) { good = false; break; }
+    var regions = [], usedNames = {};
+    seeds.forEach(function (s, i) {
+      var names = BIOMES[s.b].names, nm = names[(i + ri(rng, 0, 3)) % names.length], z = 0;
+      while (usedNames[nm] && z < 5) { nm = names[(names.indexOf(nm) + 1) % names.length]; z++; }
+      if (usedNames[nm]) return;
+      usedNames[nm] = 1; regions.push({ x: s.x, y: s.y, b: s.b, name: nm });
+    });
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var bi = 0, bd = Infinity;
+      for (var s = 0; s < seeds.length; s++) {
+        var d = Math.hypot(seeds[s].x - x, seeds[s].y - y) + jit(x / 5, y / 5) * 5;
+        if (d < bd) { bd = d; bi = s; }
       }
-      if (good) edges.push({ a: i2, b: j, len: r * 2 });
+      var b = seeds[bi].b; bm[I(x, y)] = b;
+      var e = elev(x / 9, y / 9), mo = moist(x / 11, y / 11), tt = 'g';
+      if (e < -0.46) tt = 'w';
+      else if (e > 0.5) tt = 'm';
+      else if (e > 0.33) tt = 'h';
+      else {
+        var fth = b === 'W' ? -0.05 : b === 'D' || b === 'L' ? 0.5 : b === 'P' || b === 'S' ? 0.15 : 0.28;
+        if (mo > fth) tt = 'f';
+      }
+      if (b === 'P' && tt === 'g' && mo < -0.35) tt = 'w';
+      t[I(x, y)] = tt;
     }
-    // classify crossings
-    var land = [], cross = [];
-    edges.forEach(function (e) {
-      var A = castles[e.a], B = castles[e.b], hit = null, lakeHit = false;
-      water.rivers.forEach(function (rv) {
-        for (var s = 0; s < rv.length - 1; s++) { var x = segInter(A, B, rv[s], rv[s + 1]); if (x) hit = x; }
-      });
-      water.lakes.forEach(function (l) {
-        for (var s = 0; s < l.pts.length; s++) if (segInter(A, B, l.pts[s], l.pts[(s + 1) % l.pts.length])) lakeHit = true;
-        if (segDist({ x: l.cx, y: l.cy }, A, B) < l.r * 0.75) lakeHit = true;
-      });
-      if (lakeHit) { e.lake = true; cross.push(e); }
-      else if (hit) { e.hit = hit; cross.push(e); }
-      else land.push(e);
+    // rivers
+    var nr = n === 2 ? 1 : 2;
+    for (var rv = 0; rv < nr; rv++) {
+      var side = n === 2 ? (rng() < 0.5 ? 0 : 1) : ri(rng, 0, 3), cx, cy, dx, dy;
+      if (side === 0) { cx = ri(rng, Math.floor(W * 0.38), Math.floor(W * 0.62)); cy = 0; dx = 0; dy = 1; }
+      else if (side === 1) { cx = ri(rng, Math.floor(W * 0.38), Math.floor(W * 0.62)); cy = H - 1; dx = 0; dy = -1; }
+      else if (side === 2) { cx = 0; cy = ri(rng, Math.floor(H * 0.3), Math.floor(H * 0.7)); dx = 1; dy = 0; }
+      else { cx = W - 1; cy = ri(rng, Math.floor(H * 0.3), Math.floor(H * 0.7)); dx = -1; dy = 0; }
+      var wig = makeNoise(nseed + 'r' + rv), len = 0, maxLen = n === 2 ? W + H : Math.floor((dx ? W : H) * (0.55 + rng() * 0.3));
+      while (inb(cx, cy) && len++ < maxLen) {
+        t[I(cx, cy)] = 'w';
+        if (rng() < 0.35) { var ox = cx + (dy !== 0 ? 1 : 0), oy = cy + (dx !== 0 ? 1 : 0); if (inb(ox, oy)) t[I(ox, oy)] = 'w'; }
+        var turn = wig(len / 6, rv * 10);
+        if (Math.abs(turn) > 0.18) { if (dy !== 0) cx += turn > 0 ? 1 : -1; else cy += turn > 0 ? 1 : -1; if (inb(cx, cy)) t[I(cx, cy)] = 'w'; }
+        cx += dx; cy += dy;
+      }
+    }
+    anchors.forEach(function (a) {
+      for (var yy = a.y - 4; yy <= a.y + 5; yy++) for (var xx = a.x - 4; xx <= a.x + 5; xx++) if (inb(xx, yy)) {
+        var ti = I(xx, yy); if (t[ti] === 'w' || t[ti] === 'm') t[ti] = 'g';
+        if (Math.abs(xx - a.x - 0.5) < 3 && Math.abs(yy - a.y - 0.5) < 3) t[ti] = 'g';
+      }
     });
-    // union find
+    var occ = new Int16Array(N).fill(-1), castles = [];
+    function footOK(x, y) {
+      if (x < 1 || y < 1 || x + 2 >= W || y + 2 >= H) return false;
+      for (var yy = y - 1; yy <= y + 2; yy++) for (var xx = x - 1; xx <= x + 2; xx++) { var tt = t[I(xx, yy)]; if (tt === 'w' || tt === 'm') return false; }
+      return true;
+    }
+    function place(x, y, home) {
+      var c = { id: castles.length, x: x, y: y, home: !!home };
+      castles.push(c);
+      for (var yy = y; yy < y + 2; yy++) for (var xx = x; xx < x + 2; xx++) { occ[I(xx, yy)] = c.id; t[I(xx, yy)] = 'g'; }
+      return c;
+    }
+    anchors.forEach(function (a) { place(a.x, a.y, true); });
+    var minD = n === 2 ? 6.4 : 6.6, tries = 0;
+    while (castles.length < NC && tries < 30000) {
+      tries++;
+      var px = ri(rng, 1, W - 3), py = ri(rng, 1, H - 3);
+      if (!footOK(px, py)) continue;
+      var ok = true;
+      for (var c2 = 0; c2 < castles.length; c2++) {
+        var md = castles[c2].home ? minD + 2.5 : minD;
+        if (Math.hypot(castles[c2].x - px, castles[c2].y - py) < md) { ok = false; break; }
+      }
+      if (ok) place(px, py, false);
+    }
+    if (castles.length < NC) return null;
+    // roads
+    function cc(c) { return { x: c.x + 0.5, y: c.y + 0.5 }; }
+    var edges = [];
+    for (var a1 = 0; a1 < castles.length; a1++) for (var b1 = a1 + 1; b1 < castles.length; b1++) {
+      var A = cc(castles[a1]), B = cc(castles[b1]), dab = Math.hypot(A.x - B.x, A.y - B.y);
+      if (dab > 17) continue;
+      var rn = true;
+      for (var q = 0; q < castles.length && rn; q++) {
+        if (q === a1 || q === b1) continue;
+        var Q = cc(castles[q]);
+        if (Math.max(Math.hypot(A.x - Q.x, A.y - Q.y), Math.hypot(B.x - Q.x, B.y - Q.y)) < dab) rn = false;
+      }
+      if (rn || rng() < 0.04) edges.push([a1, b1, dab]);
+    }
+    edges.sort(function (x, y) { return x[2] - y[2]; });
+    function carve(a, b) {
+      var ca = castles[a], cb = castles[b], g2 = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), hp = new Heap();
+      for (var yy = ca.y; yy < ca.y + 2; yy++) for (var xx = ca.x; xx < ca.x + 2; xx++) { g2[I(xx, yy)] = 0; hp.push(0, I(xx, yy)); }
+      var goal = -1;
+      while (hp.size()) {
+        var top = hp.pop(), cur = top[1];
+        if (occ[cur] === b) { goal = cur; break; }
+        var x0 = cur % W, y0 = (cur / W) | 0;
+        for (var d = 0; d < 4; d++) {
+          var nx = x0 + D8[d][0], ny = y0 + D8[d][1]; if (!inb(nx, ny)) continue;
+          var ni = I(nx, ny), tt = t[ni];
+          if (occ[ni] >= 0 && occ[ni] !== b && occ[ni] !== a) continue;
+          var cst = tt === 'r' || tt === 'b' ? 0.35 : tt === 'g' ? 1 : tt === 'f' ? 1.8 : tt === 'h' ? 2.4 : tt === 'w' ? 7 : 60;
+          var ng = g2[cur] + cst;
+          if (ng < g2[ni]) { g2[ni] = ng; prev[ni] = cur; hp.push(ng + Math.max(Math.abs(nx - cb.x), Math.abs(ny - cb.y)) * 0.35, ni); }
+        }
+      }
+      if (goal < 0) return false;
+      var p2 = prev[goal];
+      while (p2 >= 0 && occ[p2] !== a) { if (occ[p2] < 0) t[p2] = (t[p2] === 'w' || t[p2] === 'b') ? 'b' : 'r'; p2 = prev[p2]; }
+      return true;
+    }
     var par = castles.map(function (_, i) { return i; });
     function f(x) { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; }
-    function u(a, b) { a = f(a); b = f(b); if (a === b) return false; par[a] = b; return true; }
-    land.forEach(function (e) { e.type = 'road'; u(e.a, e.b); });
-    var bridges = [], cand = cross.filter(function (e) { return !e.lake; }).sort(function (x, y) { return x.len - y.len; });
-    // connect components, spreading bridges apart
-    cand.forEach(function (e) {
-      if (f(e.a) !== f(e.b)) {
-        var far = bridges.every(function (b) { return dist(b.hit, e.hit) > 120; });
-        if (far || bridges.length > 4) { u(e.a, e.b); e.type = 'bridge'; bridges.push(e); }
-      }
-    });
-    cand.forEach(function (e) { if (!e.type && f(e.a) !== f(e.b)) { u(e.a, e.b); e.type = 'bridge'; bridges.push(e); } });
-    var want = n === 2 ? 3 : 4;
-    cand.forEach(function (e) {
-      if (e.type || bridges.length >= want) return;
-      if (bridges.every(function (b) { return dist(b.hit, e.hit) > 170; })) { e.type = 'bridge'; bridges.push(e); }
-    });
-    if (n === 2 && bridges.length < 2) return null;
-    var root = f(0);
-    for (var z = 0; z < castles.length; z++) if (f(z) !== root) return null;
-    cross.forEach(function (e) { if (!e.type) e.type = e.len < 400 ? 'fly' : null; });
-    var allE = land.concat(cross).filter(function (e) { return e.type; });
-
-    // adjacency & distances
-    var adj = castles.map(function () { return []; });
-    allE.forEach(function (e) { if (e.type !== 'fly') { adj[e.a].push(e.b); adj[e.b].push(e.a); } });
+    edges.forEach(function (e) { if (carve(e[0], e[1])) par[f(e[0])] = f(e[1]); });
+    for (var guard = 0; guard < 30; guard++) {
+      var roots = {}; castles.forEach(function (c) { roots[f(c.id)] = 1; });
+      if (Object.keys(roots).length <= 1) break;
+      var bp = null;
+      castles.forEach(function (c1) { castles.forEach(function (c3) { if (f(c1.id) === f(c3.id)) return; var dd = Math.hypot(c1.x - c3.x, c1.y - c3.y); if (!bp || dd < bp[2]) bp = [c1.id, c3.id, dd]; }); });
+      if (!bp || !carve(bp[0], bp[1])) return null;
+      par[f(bp[0])] = f(bp[1]);
+    }
     var homes = castles.filter(function (c) { return c.home; }).map(function (c) { return c.id; });
-    var hd = homes.map(function (h) { return bfs(adj, h); });
-    // homes must be >= 3 hops apart
-    for (var a1 = 0; a1 < homes.length; a1++) for (var b1 = a1 + 1; b1 < homes.length; b1++) if (hd[a1][homes[b1]] < 3) return null;
-    // each home needs 2+ neighbors
-    for (var hh = 0; hh < homes.length; hh++) if (adj[homes[hh]].length < 2) return null;
-
-    // sizes
+    var tstr = t.join('');
+    var hd = homes.map(function (h) { return tileDist(tstr, W, H, castles[h]); });
+    function cd(di, c) { return di[I(c.x, c.y)]; }
+    for (var c4 = 0; c4 < castles.length; c4++) if (!isFinite(cd(hd[0], castles[c4]))) return null;
+    for (var a2 = 0; a2 < homes.length; a2++) for (var b2 = a2 + 1; b2 < homes.length; b2++) if (cd(hd[a2], castles[homes[b2]]) < 60) return null;
     var others = castles.filter(function (c) { return !c.home; });
-    others.forEach(function (c) {
-      var ds = hd.map(function (d) { return d[c.id]; });
-      c.minH = Math.min.apply(null, ds); c.spread = Math.max.apply(null, ds) - c.minH;
+    others.forEach(function (c) { var ds = hd.map(function (di) { return cd(di, c); }); c.minH = Math.min.apply(null, ds); c.spread = Math.max.apply(null, ds) - c.minH; });
+    var nf = n === 2 ? 4 : 6, forts = [];
+    others.slice().sort(function (x, y) { return (x.spread - x.minH * 0.2) - (y.spread - y.minH * 0.2); }).forEach(function (c) {
+      if (forts.length < nf && c.minH > 30 && forts.every(function (o) { return Math.hypot(o.x - c.x, o.y - c.y) > 14; })) forts.push(c);
     });
-    var nf = n === 2 ? 2 : 3;
-    var fc = others.slice().sort(function (x, y) { return (y.minH - y.spread * 1.2) - (x.minH - x.spread * 1.2) + (rng() - 0.5) * 0.6; });
-    var forts = [];
-    fc.forEach(function (c) { if (forts.length < nf && c.minH >= 2 && forts.every(function (o) { return dist(o, c) > 260; })) forts.push(c); });
     forts.forEach(function (c) { c.size = 'fortress'; });
-    others.forEach(function (c) {
-      if (c.size) return;
-      c.size = c.minH <= 1 ? 'village' : (rng() < 0.5 ? 'castle' : 'village');
-    });
+    others.forEach(function (c) { if (!c.size) c.size = c.minH < 22 ? 'village' : (rng() < 0.42 ? 'castle' : 'village'); });
     castles.forEach(function (c) { if (c.home) c.size = 'castle'; });
-
-    // fairness score: weighted value reachable per home
-    var vals = hd.map(function (d) {
-      var s = 0;
-      others.forEach(function (c) { s += (c.size === 'fortress' ? 5 : c.size === 'castle' ? 3 : 2) / Math.pow(1 + d[c.id], 1.5); });
-      return s;
-    });
-    var near = hd.map(function (d) { return others.filter(function (c) { return d[c.id] === 1; }).length; });
-    var score = (Math.max.apply(null, vals) - Math.min.apply(null, vals)) + (Math.max.apply(null, near) - Math.min.apply(null, near)) * 0.4;
-    var hopD = [];
-    for (var a2 = 0; a2 < homes.length; a2++) for (var b2 = a2 + 1; b2 < homes.length; b2++) hopD.push(hd[a2][homes[b2]]);
-    score += (Math.max.apply(null, hopD) - Math.min.apply(null, hopD)) * 0.5;
-
-    // names
+    var vals = hd.map(function (di) { var s2 = 0; others.forEach(function (c) { s2 += (c.size === 'fortress' ? 5 : c.size === 'castle' ? 3 : 2) / Math.pow(1 + cd(di, c) / 14, 1.6); }); return s2; });
+    var score = Math.max.apply(null, vals) - Math.min.apply(null, vals);
     var pre = shuffle(rng, PRE.slice()), used = {};
     castles.forEach(function (c, i) {
-      var nm;
-      do { nm = pre[i % pre.length] + (c.size === 'fortress' ? pick(rng, FORT_SUF) : pick(rng, SUF)); } while (used[nm]);
+      var nm, z = 0;
+      do { nm = pre[(i + z) % pre.length] + (c.size === 'fortress' ? pick(rng, FORT_SUF) : pick(rng, SUF)); z++; } while (used[nm]);
       used[nm] = 1; c.name = nm;
     });
-
-    // neutral garrisons
     castles.forEach(function (c) {
-      c.x = Math.round(c.x); c.y = Math.round(c.y);
       if (c.home) { c.g = { s: 3, a: 1, k: 0, d: 0 }; c.walls = 1; c.treasure = 0; return; }
-      var far = c.minH >= 3 ? 1 : 0;
-      if (c.size === 'village') c.g = { s: ri(rng, 1, 2) + far, a: c.minH >= 2 && rng() < 0.5 ? 1 : 0, k: 0, d: 0 };
-      else if (c.size === 'castle') c.g = { s: ri(rng, 2, 3), a: ri(rng, 1, 2) + far, k: 0, d: 0 };
-      else c.g = { s: 2, a: 3, k: 1 + far, d: 0 };
+      var far = Math.min(3, Math.floor(c.minH / 26));
+      if (c.size === 'village') c.g = { s: ri(rng, 1, 2) + (far >= 1 ? 1 : 0), a: far >= 2 ? ri(rng, 0, 1) : 0, k: 0, d: 0 };
+      else if (c.size === 'castle') c.g = { s: ri(rng, 2, 3), a: ri(rng, 1, 2) + (far >= 2 ? 1 : 0), k: far >= 3 ? 1 : 0, d: 0 };
+      else c.g = { s: 2, a: 3, k: 1 + (far >= 3 ? 1 : 0), d: 0 };
       c.walls = c.size === 'fortress' ? 1 : 0;
-      c.treasure = c.size === 'fortress' ? 12 : (rng() < 0.35 ? ri(rng, 5, 10) : 0);
+      c.treasure = c.size === 'fortress' ? 12 : (rng() < 0.3 ? ri(rng, 5, 10) : 0);
     });
-
     return {
-      w: W, h: H, water: water, score: score,
-      castles: castles.map(function (c) { return { id: c.id, x: c.x, y: c.y, name: c.name, size: c.size, home: !!c.home, g: c.g, walls: c.walls, treasure: c.treasure }; }),
-      edges: allE.map(function (e) {
-        var o = { a: e.a, b: e.b, t: e.type };
-        if (e.type === 'bridge') o.br = { x: Math.round(e.hit.x), y: Math.round(e.hit.y), ang: +(Math.atan2(castles[e.b].y - castles[e.a].y, castles[e.b].x - castles[e.a].x)).toFixed(3) };
-        return o;
-      }),
+      w: W, h: H, t: tstr, bm: bm.join(''), score: score, regions: regions,
+      castles: castles.map(function (c) { return { id: c.id, x: c.x, y: c.y, name: c.name, size: c.size, home: c.home, g: c.g, walls: c.walls, treasure: c.treasure }; }),
       homes: homes
     };
   }
-
-  function addDeco(rng, map) {
-    var deco = [], tries = 0, target = map.castles.length * 7;
-    function waterD(p) {
-      var d = Infinity;
-      map.water.rivers.forEach(function (r) { d = Math.min(d, polyDist(p, r, false) - 16); });
-      map.water.lakes.forEach(function (l) { d = Math.min(d, inPoly(p, l.pts) ? -1 : polyDist(p, l.pts, true)); });
-      return d;
-    }
-    while (deco.length < target && tries < 3000) {
-      tries++;
-      var p = { x: ri(rng, 15, map.w - 15), y: ri(rng, 15, map.h - 15) };
-      if (waterD(p) < 14) continue;
-      var bad = false;
-      for (var i = 0; i < map.castles.length; i++) if (dist(p, map.castles[i]) < 62) { bad = true; break; }
-      if (bad) continue;
-      for (var e = 0; e < map.edges.length; e++) {
-        var E = map.edges[e]; if (E.t === 'fly') continue;
-        if (segDist(p, map.castles[E.a], map.castles[E.b]) < 20) { bad = true; break; }
+  function tileDist(t, W, H, c) {
+    var N = W * H, D = new Float64Array(N).fill(Infinity), hp = new Heap();
+    for (var yy = c.y; yy < c.y + 2; yy++) for (var xx = c.x; xx < c.x + 2; xx++) { D[yy * W + xx] = 0; hp.push(0, yy * W + xx); }
+    while (hp.size()) {
+      var top = hp.pop(), cur = top[1]; if (top[0] > D[cur]) continue;
+      var x0 = cur % W, y0 = (cur / W) | 0;
+      for (var d = 0; d < 8; d++) {
+        var nx = x0 + D8[d][0], ny = y0 + D8[d][1]; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        var ni = ny * W + nx, cst = COST[t[ni]]; if (!cst) continue;
+        if (D[cur] + cst < D[ni]) { D[ni] = D[cur] + cst; hp.push(D[ni], ni); }
       }
-      if (bad) continue;
-      for (var d = 0; d < deco.length; d++) if (dist(p, deco[d]) < 26) { bad = true; break; }
-      if (bad) continue;
-      var r = rng(), t = r < 0.45 ? 'tree' : r < 0.62 ? 'pine' : r < 0.74 ? 'hill' : r < 0.86 ? 'flower' : r < 0.94 ? 'rock' : 'mush';
-      deco.push({ x: p.x, y: p.y, t: t, s: +(0.8 + rng() * 0.45).toFixed(2) });
     }
-    deco.sort(function (a, b) { return a.y - b.y; });
-    map.deco = deco;
+    return D;
   }
 
-  function bfs(adj, start) {
-    var d = adj.map(function () { return Infinity; }); d[start] = 0; var q = [start];
-    while (q.length) { var x = q.shift(); adj[x].forEach(function (y) { if (d[y] === Infinity) { d[y] = d[x] + 1; q.push(y); } }); }
-    return d;
-  }
-
-
-  // ---------- movement / fog constants ----------
-  var STEP = 70;                         // map pixels per march step
-  var SPEED = { s: 4, a: 4, k: 6, d: 7 };
-  var HERO_SPEED = 6;
-  var FOG_CELL = 40, R_CASTLE = 230, R_ARMY = 200;
-
-  // ---------- helpers on game ----------
+  // ---------- helpers ----------
   function zero() { return { s: 0, a: 0, k: 0, d: 0 }; }
   function cnt(u) { return u.s + u.a + u.k + u.d; }
   function copyU(u) { u = u || {}; return { s: u.s || 0, a: u.a || 0, k: u.k || 0, d: u.d || 0 }; }
   function addU(a, b) { UK.forEach(function (k) { a[k] += b[k]; }); return a; }
   function income(g, cid) { var c = g.map.castles[cid]; return c.home ? HOME_INCOME : SIZES[c.size].income; }
   function canRoost(g, cid) { var c = g.map.castles[cid]; return c.home || c.size === 'fortress'; }
-  function neighbors(g, cid, flyOK) {
-    var out = [];
-    g.map.edges.forEach(function (e) {
-      if (e.t === 'fly' && !flyOK) return;
-      if (e.a === cid) out.push({ id: e.b, t: e.t });
-      else if (e.b === cid) out.push({ id: e.a, t: e.t });
-    });
-    return out;
-  }
-  function edgeType(g, a, b) {
-    for (var i = 0; i < g.map.edges.length; i++) { var e = g.map.edges[i]; if ((e.a === a && e.b === b) || (e.a === b && e.b === a)) return e.t; }
-    return null;
-  }
-  function edgeLen(g, a, b) { var A = g.map.castles[a], B = g.map.castles[b]; return Math.max(2, Math.round(dist(A, B) / STEP)); }
   function avail(g, cid) { var c = g.cs[cid], o = zero(); UK.forEach(function (k) { o[k] = Math.max(0, c.u[k] - c.m[k]); }); return o; }
   function castlesOf(g, slot) { var r = []; g.cs.forEach(function (c, i) { if (c.owner === slot) r.push(i); }); return r; }
   function armiesOf(g, slot) { return g.armies.filter(function (a) { return a.o === slot; }); }
   function armyById(g, id) { for (var i = 0; i < g.armies.length; i++) if (g.armies[i].id === id) return g.armies[i]; return null; }
+  function armyAt(g, x, y, notId) { for (var i = 0; i < g.armies.length; i++) { var A = g.armies[i]; if (A.x === x && A.y === y && A.id !== notId) return A; } return null; }
   function incomeOf(g, slot) { return castlesOf(g, slot).reduce(function (s, c) { return s + income(g, c); }, 0); }
   function activeSlots(g) { var r = []; g.slots.forEach(function (s, i) { if (s.kind !== 'empty') r.push(i); }); return r; }
   function aliveSlots(g) { return activeSlots(g).filter(function (i) { return g.slots[i].alive; }); }
@@ -671,60 +661,94 @@ var CQ = (function () {
     return sp === 99 ? (hero ? HERO_SPEED : 0) : sp;
   }
   function flyer(u) { return u.d > 0 && u.s + u.a + u.k === 0; }
-  function armyPos(g, A) {
-    var P = g.map.castles[A.a], Q = g.map.castles[A.b], L = edgeLen(g, A.a, A.b), t = Math.min(1, A.s / L);
-    return { x: P.x + (Q.x - P.x) * t, y: P.y + (Q.y - P.y) * t };
-  }
-  function heroOf(g, slot) { return g.heroes[slot]; }
   function heroInArmy(g, A) { var h = g.heroes[A.o]; return h && h.army === A.id ? h : null; }
   function heroAtCastle(g, cid) {
     for (var i = 0; i < g.heroes.length; i++) { var h = g.heroes[i]; if (h && h.army == null && h.c === cid) return { h: h, slot: i }; }
     return null;
   }
+  function terr(g, x, y) { return g.map.t[y * g.map.w + x]; }
+  function inb(g, x, y) { return x >= 0 && y >= 0 && x < g.map.w && y < g.map.h; }
+  var occCache = { m: null, occ: null };
+  function occ(g) {
+    if (occCache.m === g.map) return occCache.occ;
+    var o = new Int16Array(g.map.w * g.map.h).fill(-1);
+    g.map.castles.forEach(function (c) { for (var y = c.y; y < c.y + 2; y++) for (var x = c.x; x < c.x + 2; x++) o[y * g.map.w + x] = c.id; });
+    occCache = { m: g.map, occ: o };
+    return o;
+  }
+  function castleAt(g, x, y) { if (!inb(g, x, y)) return -1; return occ(g)[y * g.map.w + x]; }
+  function castleCenter(g, cid) { var c = g.map.castles[cid]; return { x: c.x + 1, y: c.y + 1 }; }
+  function tileCost(g, x, y, fly) { if (fly) return 2; return COST[terr(g, x, y)] || 0; }
+  function adjCastles(g, x, y) {
+    var out = [];
+    for (var d = 0; d < 8; d++) { var c = castleAt(g, x + D8[d][0], y + D8[d][1]); if (c >= 0 && out.indexOf(c) < 0) out.push(c); }
+    return out;
+  }
+  function turnsFor(steps, speed, mpNow) {
+    if (!speed) return Infinity;
+    var left = steps - (mpNow == null ? speed : mpNow);
+    return left <= 0 ? 0 : Math.ceil(left / speed);
+  }
+  function nearGate(C, x, y) { return x >= C.x - 1 && x <= C.x + 2 && y >= C.y - 1 && y <= C.y + 2; }
 
   // ---------- fog of war ----------
-  function fogDims(g) { return { cw: Math.ceil(g.map.w / FOG_CELL), ch: Math.ceil(g.map.h / FOG_CELL) }; }
-  function revealInto(arr, g, x, y, r) {
-    var d = fogDims(g), c0 = Math.max(0, Math.floor((x - r) / FOG_CELL)), c1 = Math.min(d.cw - 1, Math.floor((x + r) / FOG_CELL));
-    var r0 = Math.max(0, Math.floor((y - r) / FOG_CELL)), r1 = Math.min(d.ch - 1, Math.floor((y + r) / FOG_CELL));
-    for (var yy = r0; yy <= r1; yy++) for (var xx = c0; xx <= c1; xx++) {
-      var cx = (xx + 0.5) * FOG_CELL, cy = (yy + 0.5) * FOG_CELL;
-      if ((cx - x) * (cx - x) + (cy - y) * (cy - y) <= (r + FOG_CELL * 0.4) * (r + FOG_CELL * 0.4)) arr[yy * d.cw + xx] = '1';
-    }
-  }
-  // viewers = points a player currently sees from
   function viewers(g, slot) {
-    var v = [], C = g.map.castles;
-    castlesOf(g, slot).forEach(function (c) { v.push({ x: C[c].x, y: C[c].y, r: R_CASTLE, c: c }); });
-    armiesOf(g, slot).forEach(function (A) { var p = armyPos(g, A); v.push({ x: p.x, y: p.y, r: R_ARMY }); });
+    var v = [];
+    castlesOf(g, slot).forEach(function (c) { var C = g.map.castles[c]; v.push({ x: C.x + 0.5, y: C.y + 0.5, r: R_CASTLE + 0.5, c: c }); });
+    armiesOf(g, slot).forEach(function (A) { v.push({ x: A.x, y: A.y, r: R_ARMY }); });
     return v;
   }
+  function revealAround(g, slot, x, y, r) {
+    if (!g.fog || !g.fog[slot]) return;
+    var W = g.map.w, arr = null, R = Math.ceil(r), f = g.fog[slot];
+    for (var yy = Math.max(0, Math.floor(y - R)); yy <= Math.min(g.map.h - 1, Math.ceil(y + R)); yy++)
+      for (var xx = Math.max(0, Math.floor(x - R)); xx <= Math.min(W - 1, Math.ceil(x + R)); xx++)
+        if ((xx - x) * (xx - x) + (yy - y) * (yy - y) <= r * r && f[yy * W + xx] !== '1') { if (!arr) arr = f.split(''); arr[yy * W + xx] = '1'; }
+    if (arr) g.fog[slot] = arr.join('');
+    g.map.castles.forEach(function (c, i) {
+      var cx = c.x + 0.5, cy = c.y + 0.5;
+      if ((cx - x) * (cx - x) + (cy - y) * (cy - y) <= (r + 1) * (r + 1)) {
+        if (g.seen[slot][i] == null && g.found && g.turn === slot) g.found.push(i);
+        g.seen[slot][i] = g.cs[i].owner;
+      }
+    });
+  }
+  function updateVision(g, slot) {
+    if (slot < 0 || !g.fog || !g.fog[slot] || !g.slots[slot].alive) return;
+    viewers(g, slot).forEach(function (p) { revealAround(g, slot, p.x, p.y, p.r); });
+  }
   function visibleCastles(g, slot) {
-    var vis = g.map.castles.map(function () { return false; }), C = g.map.castles;
+    var vis = g.map.castles.map(function () { return false; });
     if (slot == null || slot < 0) return vis.map(function () { return true; });
-    viewers(g, slot).forEach(function (p) {
-      C.forEach(function (c, i) { if (!vis[i] && Math.hypot(c.x - p.x, c.y - p.y) <= p.r) vis[i] = true; });
-      if (p.c != null) { vis[p.c] = true; neighbors(g, p.c, false).forEach(function (n) { vis[n.id] = true; }); }
+    var vw = viewers(g, slot);
+    g.map.castles.forEach(function (c, i) {
+      if (g.cs[i].owner === slot) { vis[i] = true; return; }
+      var cx = c.x + 0.5, cy = c.y + 0.5;
+      for (var j = 0; j < vw.length; j++) if (Math.hypot(cx - vw[j].x, cy - vw[j].y) <= vw[j].r + 1) { vis[i] = true; break; }
     });
     return vis;
+  }
+  function visibleTiles(g, slot) {
+    var W = g.map.w, v = new Uint8Array(W * g.map.h);
+    viewers(g, slot).forEach(function (p) {
+      var R = Math.ceil(p.r);
+      for (var yy = Math.max(0, Math.floor(p.y - R)); yy <= Math.min(g.map.h - 1, Math.ceil(p.y + R)); yy++)
+        for (var xx = Math.max(0, Math.floor(p.x - R)); xx <= Math.min(W - 1, Math.ceil(p.x + R)); xx++)
+          if ((xx - p.x) * (xx - p.x) + (yy - p.y) * (yy - p.y) <= p.r * p.r) v[yy * W + xx] = 1;
+    });
+    return v;
   }
   function armyVisible(g, slot, A, vw) {
     if (A.o === slot) return true;
     vw = vw || viewers(g, slot);
-    var p = armyPos(g, A);
-    for (var i = 0; i < vw.length; i++) if (Math.hypot(p.x - vw[i].x, p.y - vw[i].y) <= vw[i].r) return true;
+    for (var i = 0; i < vw.length; i++) if (Math.hypot(A.x - vw[i].x, A.y - vw[i].y) <= vw[i].r) return true;
     return false;
   }
-  function updateVision(g, slot) {
-    if (slot < 0 || !g.fog || !g.fog[slot]) return;
-    var arr = g.fog[slot].split(''), C = g.map.castles;
-    viewers(g, slot).forEach(function (p) { revealInto(arr, g, p.x, p.y, p.r); });
-    var vis = visibleCastles(g, slot);
-    vis.forEach(function (v, i) { if (v) { g.seen[slot][i] = g.cs[i].owner; revealInto(arr, g, C[i].x, C[i].y, 70); } });
-    g.fog[slot] = arr.join('');
+  function explored(g, slot, cid) { return !g.seen || !g.seen[slot] || g.slots[slot].kind === 'ai' || g.seen[slot][cid] != null; }
+  function tileKnown(g, slot, x, y) {
+    if (!g.fogOn || !g.fog || !g.fog[slot]) return true;
+    return g.fog[slot][y * g.map.w + x] === '1';
   }
-  function updateAllVision(g) { activeSlots(g).forEach(function (s) { if (g.slots[s].alive) updateVision(g, s); }); }
-  function explored(g, slot, cid) { return !g.seen || !g.seen[slot] || g.seen[slot][cid] != null; }
 
   // ---------- new game ----------
   function newGame(opts) {
@@ -740,33 +764,33 @@ var CQ = (function () {
     var heroes = slots.map(function () { return null; });
     act.forEach(function (slot, i) {
       var h = hs[i]; cs[h].owner = slot; map.castles[h].homeOf = slot;
-      heroes[slot] = { c: h, army: null, lvl: 1, wins: 0, name: slots[slot].hero || heroName(rng, slots[slot]) };
+      heroes[slot] = { c: h, army: null, lvl: 1, wins: 0, name: slots[slot].hero || 'Hero the Brave' };
     });
     map.castles.forEach(function (c) { delete c.g; delete c.walls; delete c.treasure; });
-    var d = { cw: Math.ceil(map.w / FOG_CELL), ch: Math.ceil(map.h / FOG_CELL) }, blank = new Array(d.cw * d.ch + 1).join('0');
+    var blank = new Array(map.w * map.h + 1).join('0');
     var g = {
-      v: 2, id: opts.id || '', code: opts.code || '', mode: opts.mode || 'local', seed: seed, created: Date.now(),
+      v: 3, id: opts.id || '', code: opts.code || '', mode: opts.mode || 'local', seed: seed, created: Date.now(),
       slots: slots, map: map, cs: cs, heroes: heroes, gold: slots.map(function (s) { return s.kind === 'empty' ? 0 : 5; }),
       armies: [], an: 0, fogOn: opts.fog !== false,
       fog: slots.map(function (s) { return s.kind === 'empty' ? null : blank; }),
       seen: slots.map(function (s) { return s.kind === 'empty' ? null : map.castles.map(function () { return null; }); }),
-      turn: act[0], round: 1, maxRounds: opts.maxRounds || (act.length === 2 ? 25 : 30), bn: 0, log: [], logN: 0,
+      turn: act[0], round: 1, bn: 0, log: [], logN: 0, tc: 0, replays: {},
       winner: null, over: false, ver: 1, claims: {}
     };
-    updateAllVision(g);
-    log(g, -1, 'The quest begins! March out and explore the land.', 'round');
+    act.forEach(function (s) { updateVision(g, s); });
+    log(g, -1, 'The quest begins! March out and explore the land.', 'start');
     startTurn(g, g.turn);
     return g;
   }
-  var HERO_T = ['the Brave', 'the Bold', 'the Clever', 'the Mighty', 'the Swift', 'the Kind'];
-  function heroName(rng) { return 'Hero ' + pick(rng, HERO_T); }
-
   function startTurn(g, slot) {
     g.cs.forEach(function (c) { if (c.owner === slot) c.m = zero(); });
     armiesOf(g, slot).forEach(function (A) { A.mp = armySpeed(A.u, !!heroInArmy(g, A)); });
     var inc = incomeOf(g, slot);
     if (g.slots[slot].kind === 'ai' && g.slots[slot].level === 'hard') inc += 2;
     g.gold[slot] += inc;
+    g.tc = (g.tc || 0) + 1;
+    g.replays = g.replays || {};
+    g.replays[slot] = { tc: g.tc, round: g.round, owners: g.cs.map(function (c) { return c.owner; }), ev: [] };
     updateVision(g, slot);
     g.turnStart = { slot: slot, inc: inc, logN: g.logN };
   }
@@ -793,51 +817,84 @@ var CQ = (function () {
     return { ok: true };
   }
 
-  // ---------- routes ----------
-  // Shortest route (in steps) from castle `from` to `dest`. Armies may only pass THROUGH castles
-  // their owner holds; the first castle that isn't theirs must be the destination.
-  function route(g, slot, from, dest, u) {
-    if (from === dest) return null;
-    var fly = flyer(u), N = g.map.castles.length, D = [], prev = [], done = [];
-    for (var i = 0; i < N; i++) { D[i] = Infinity; prev[i] = -1; done[i] = false; }
-    D[from] = 0;
-    for (;;) {
-      var x = -1;
-      for (var j = 0; j < N; j++) if (!done[j] && D[j] < Infinity && (x < 0 || D[j] < D[x])) x = j;
-      if (x < 0) break;
-      done[x] = true;
-      if (x === dest) break;
-      if (x !== from && g.cs[x].owner !== slot) continue; // can't pass through
-      neighbors(g, x, fly).forEach(function (n) {
-        if (!explored(g, slot, n.id)) return;
-        var w = D[x] + edgeLen(g, x, n.id);
-        if (w < D[n.id]) { D[n.id] = w; prev[n.id] = x; }
-      });
+  // ---------- pathfinding ----------
+  // goal: {c: castleId} | {x, y} | {army: id}. Returns {path: [[x,y]...], cost} (start excluded) or null.
+  function findPath(g, slot, sx, sy, goal, u, selfId) {
+    var W = g.map.w, H = g.map.h, N = W * H, fly = flyer(u), o = occ(g);
+    var isGoal, gx, gy;
+    if (goal.c != null) {
+      var own = g.cs[goal.c].owner === slot, C = g.map.castles[goal.c];
+      gx = C.x + 0.5; gy = C.y + 0.5;
+      if (own) isGoal = function (i) { return o[i] === goal.c; };
+      else {
+        if (nearGate(C, sx, sy) && o[sy * W + sx] < 0) return { path: [], cost: 0 };
+        isGoal = function (i) { return o[i] < 0 && nearGate(C, i % W, (i / W) | 0); };
+      }
+    } else if (goal.army) {
+      var E = armyById(g, goal.army); if (!E) return null;
+      gx = E.x; gy = E.y; var ei = E.y * W + E.x; isGoal = function (i) { return i === ei; };
+    } else {
+      gx = goal.x; gy = goal.y; var ti = goal.y * W + goal.x;
+      if (ti === sy * W + sx) return { path: [], cost: 0 };
+      isGoal = function (i) { return i === ti; };
     }
-    if (D[dest] === Infinity) return null;
-    var path = [], c = dest;
-    while (c !== from) { path.unshift(c); c = prev[c]; }
-    return { path: path, steps: D[dest] };
+    var enemyAt = {};
+    g.armies.forEach(function (A) { if (A.o !== slot) enemyAt[A.y * W + A.x] = true; });
+    function hs(i) { var x = i % W, y = (i / W) | 0; return Math.max(0, Math.max(Math.abs(x - gx), Math.abs(y - gy)) - 1.5); }
+    var D = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), hp = new Heap(), si = sy * W + sx;
+    D[si] = 0; hp.push(hs(si), si);
+    var found = -1, it = 0;
+    while (hp.size() && it++ < 60000) {
+      var top = hp.pop(), cur = top[1];
+      if (top[0] - hs(cur) > D[cur] + 1e-9) continue;
+      if (cur !== si && isGoal(cur)) { found = cur; break; }
+      if (cur !== si && enemyAt[cur]) continue;
+      var x0 = cur % W, y0 = (cur / W) | 0;
+      for (var d = 0; d < 8; d++) {
+        var nx = x0 + D8[d][0], ny = y0 + D8[d][1]; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        var ni = ny * W + nx, oc = o[ni], cst;
+        if (oc >= 0) { if (g.cs[oc].owner !== slot) continue; cst = 1; }
+        else cst = tileCost(g, nx, ny, fly);
+        if (!cst) continue;
+        if (enemyAt[ni] && !isGoal(ni)) continue;
+        var nd = D[cur] + cst;
+        if (nd < D[ni]) { D[ni] = nd; prev[ni] = cur; hp.push(nd + hs(ni), ni); }
+      }
+    }
+    if (found < 0) return null;
+    var path = [], c2 = found;
+    while (c2 !== si) { path.unshift([c2 % W, (c2 / W) | 0]); c2 = prev[c2]; }
+    return { path: path, cost: D[found] };
   }
-  // route for an army already on a road
-  function routeFromArmy(g, A, dest) {
-    var L = edgeLen(g, A.a, A.b), best = null;
-    [[A.b, L - A.s, false], [A.a, A.s, true]].forEach(function (o) {
-      var end = o[0], cost = o[1], rev = o[2], r;
-      if (end === dest) r = { path: [dest], steps: cost };
-      else if (g.cs[end].owner === A.o) { var rr = route(g, A.o, end, dest, A.u); if (rr) r = { path: [end].concat(rr.path), steps: cost + rr.steps }; }
-      if (r && (!best || r.steps < best.steps)) { best = r; best.rev = rev; }
-    });
-    return best;
+  function pathFor(g, A, goal) {
+    goal = goal || A.goal; if (!goal) return null;
+    return findPath(g, A.o, A.x, A.y, goal, A.u, A.id);
   }
-  function turnsFor(steps, speed, mpNow) {
-    if (!speed) return Infinity;
-    var left = steps - (mpNow == null ? speed : mpNow);
-    return left <= 0 ? 0 : Math.ceil(left / speed);
+  function stepCost(g, A, x, y) { return castleAt(g, x, y) >= 0 ? 1 : tileCost(g, x, y, flyer(A.u)); }
+
+  // ---------- replay recording ----------
+  function rec(g, ev) {
+    var r = g.replays && g.replays[g.turn];
+    if (!r) return;
+    r.ev.push(ev);
+    if (r.ev.length > 600) r.ev.splice(0, r.ev.length - 600);
+  }
+  function armyLook(g, A) {
+    var em = [];
+    ['d', 'k', 'a', 's'].forEach(function (k) { for (var i = 0; i < A.u[k] && em.length < 3; i++) em.push(k); });
+    var h = heroInArmy(g, A);
+    return { u: em, n: cnt(A.u), h: h ? g.slots[A.o].avatar : null };
+  }
+  function recMove(g, A, fx, fy) {
+    var r = g.replays && g.replays[g.turn]; if (!r) return;
+    var last = r.ev[r.ev.length - 1];
+    if (last && last.k === 'mv' && last.id === A.id) { last.p.push([A.x, A.y]); last.l = armyLook(g, A); }
+    else rec(g, { k: 'mv', id: A.id, o: A.o, l: armyLook(g, A), p: [[fx, fy], [A.x, A.y]] });
   }
 
   // ---------- armies ----------
-  function sendArmy(g, slot, from, dest, counts, withHero) {
+  function spawnTile(g, cid) { var c = g.map.castles[cid]; return { x: c.x + 1, y: c.y + 1 }; }
+  function sendArmy(g, slot, from, goal, counts, withHero) {
     if (!canAct(g, slot)) return { ok: false, msg: 'Not your turn' };
     counts = copyU(counts);
     var src = g.cs[from];
@@ -847,32 +904,101 @@ var CQ = (function () {
     var h = g.heroes[slot];
     withHero = !!(withHero && h && h.army == null && h.c === from);
     if (cnt(counts) === 0 && !withHero) return { ok: false, msg: 'Pick some troops to send' };
-    if (cnt(counts) === 0 && g.cs[dest].owner !== slot) return { ok: false, msg: 'Your hero needs troops to attack' };
-    var r = route(g, slot, from, dest, counts);
-    if (!r) return { ok: false, msg: flyer(counts) ? 'There\'s no way to get there' : 'There\'s no road there from here. (Only dragons can fly over water!)' };
-    if (r.path[r.path.length - 1] !== dest) return { ok: false, msg: 'No way through' };
-    var A = { id: 'a' + (++g.an), o: slot, u: counts, a: from, b: r.path[0], s: 0, route: r.path.slice(), mp: 0 };
-    A.mp = armySpeed(counts, withHero);
+    if (armiesOf(g, slot).length >= MAX_ARMIES) return { ok: false, msg: 'You already have ' + MAX_ARMIES + ' armies out. Bring one home to a castle (or join two together) first!', max: true };
+    var sp = spawnTile(g, from), pth = findPath(g, slot, sp.x, sp.y, goal, counts);
+    if (!pth) return { ok: false, msg: flyer(counts) ? 'There\'s no way to get there' : 'Your troops can\'t walk there. (Only dragons can fly over water and mountains!)' };
+    var A = { id: 'a' + (++g.an), o: slot, u: counts, x: sp.x, y: sp.y, goal: goal, mp: armySpeed(counts, withHero) };
     UK.forEach(function (k) { src.u[k] -= counts[k]; });
     if (withHero) { h.army = A.id; h.c = null; }
     g.armies.push(A);
-    return { ok: true, id: A.id, steps: r.steps, turns: turnsFor(r.steps, A.mp, A.mp) };
+    rec(g, { k: 'new', id: A.id, o: slot, c: from, x: A.x, y: A.y, l: armyLook(g, A) });
+    return { ok: true, id: A.id, cost: pth.cost, turns: turnsFor(pth.cost, A.mp, A.mp) };
   }
-  function orderArmy(g, slot, id, dest) {
+  function orderArmy(g, slot, id, goal) {
     if (!canAct(g, slot)) return { ok: false, msg: 'Not your turn' };
     var A = armyById(g, id); if (!A || A.o !== slot) return { ok: false, msg: 'Not your army' };
-    if (dest == null) { A.route = []; return { ok: true }; }
-    if (cnt(A.u) === 0 && g.cs[dest].owner !== slot) return { ok: false, msg: 'Your hero needs troops to attack' };
-    var r = routeFromArmy(g, A, dest);
-    if (!r) return { ok: false, msg: 'There\'s no road there from here' };
-    if (r.rev) { var t = A.a; A.a = A.b; A.b = t; A.s = edgeLen(g, A.a, A.b) - A.s; }
-    A.route = r.path.slice();
-    return { ok: true, steps: r.steps, turns: turnsFor(r.steps, armySpeed(A.u, !!heroInArmy(g, A)), A.mp) };
+    if (goal == null) { A.goal = null; return { ok: true }; }
+    var pth = findPath(g, slot, A.x, A.y, goal, A.u);
+    if (!pth) return { ok: false, msg: flyer(A.u) ? 'Your dragons can\'t get there' : 'Your army can\'t walk there' };
+    A.goal = goal;
+    return { ok: true, cost: pth.cost, turns: turnsFor(pth.cost, armySpeed(A.u, !!heroInArmy(g, A)), A.mp) };
   }
-
+  function gatesList(g, A) { return adjCastles(g, A.x, A.y).filter(function (c) { return g.cs[c].owner !== A.o; }); }
+  function atGates(g, A) {
+    if (!A) return null;
+    var list = gatesList(g, A);
+    if (!list.length) return null;
+    if (A.goal && A.goal.c != null && list.indexOf(A.goal.c) >= 0) return A.goal.c;
+    if (A.lastGate != null && list.indexOf(A.lastGate) >= 0) return A.lastGate;
+    return list[0];
+  }
+  function attack(g, slot, id, cid) {
+    if (!canAct(g, slot)) return { ok: false, msg: 'Not your turn' };
+    var A = armyById(g, id); if (!A || A.o !== slot) return { ok: false, msg: 'Not your army' };
+    var list = gatesList(g, A);
+    if (cid == null) cid = atGates(g, A);
+    if (cid == null || list.indexOf(cid) < 0) return { ok: false, msg: 'Walk right up to the castle first' };
+    if (A.mp <= 0) return { ok: false, msg: 'Your army is out of steps. It can attack next turn!' };
+    if (cnt(A.u) === 0) return { ok: false, msg: 'Your hero needs troops to attack' };
+    A.mp = 0; A.goal = null;
+    var out = siege(g, A, cid);
+    rec(g, { k: 'bt', b: out });
+    return out;
+  }
+  function stepArmy(g, id) {
+    var A = armyById(g, id);
+    if (!A || A.mp <= 0 || g.over || !A.goal) return null;
+    g.found = [];
+    var G = A.goal;
+    if (G.c != null && g.cs[G.c].owner !== A.o && nearGate(g.map.castles[G.c], A.x, A.y) && castleAt(g, A.x, A.y) < 0) {
+      A.goal = null; A.lastGate = G.c; return { kind: 'gates', id: A.id, c: G.c };
+    }
+    var pth = pathFor(g, A);
+    if (!pth) { A.goal = null; return { kind: 'blocked', id: A.id }; }
+    if (!pth.path.length) { A.goal = null; return { kind: 'arrive-pt', id: A.id }; }
+    var nx = pth.path[0][0], ny = pth.path[0][1], cost = stepCost(g, A, nx, ny);
+    if (cost > A.mp) { A.mp = 0; return { kind: 'tired', id: A.id }; }
+    var other = armyAt(g, nx, ny, A.id);
+    if (other && other.o !== A.o) {
+      A.mp -= cost;
+      var fb = fieldBattle(g, A, other);
+      rec(g, { k: 'bt', b: fb });
+      return fb;
+    }
+    var fx = A.x, fy = A.y;
+    A.mp -= cost; A.x = nx; A.y = ny;
+    recMove(g, A, fx, fy);
+    revealAround(g, A.o, A.x, A.y, R_ARMY);
+    var ev = { kind: 'step', id: A.id, fx: fx, fy: fy, x: nx, y: ny, found: g.found.slice() };
+    var oc = castleAt(g, nx, ny);
+    if (oc >= 0 && g.cs[oc].owner === A.o && (G.c === oc || pth.path.length === 1)) {
+      mergeInto(g, A, oc); rec(g, { k: 'in', id: A.id, c: oc });
+      ev.kind = 'arrive'; ev.to = oc; return ev;
+    }
+    if (other && other.o === A.o && pth.path.length === 1) {
+      addU(other.u, A.u); other.mp = Math.min(other.mp, A.mp);
+      var h = heroInArmy(g, A); if (h) h.army = other.id;
+      removeArmy(g, A); rec(g, { k: 'mg', id: A.id, into: other.id });
+      ev.kind = 'joined'; ev.into = other.id; return ev;
+    }
+    if (G.c != null && g.cs[G.c].owner !== A.o && nearGate(g.map.castles[G.c], A.x, A.y) && oc < 0) { A.goal = null; A.lastGate = G.c; ev.kind = 'gates'; ev.c = G.c; }
+    else if (pth.path.length === 1 && G.c == null) { A.goal = null; ev.kind = 'arrive-pt'; }
+    return ev;
+  }
+  function marchArmy(g, id) {
+    var ev, evs = [], n = 0;
+    while (n++ < 60 && (ev = stepArmy(g, id))) { evs.push(ev); if (ev.kind !== 'step') break; }
+    return evs;
+  }
+  function marchAll(g, slot) {
+    var evs = [];
+    armiesOf(g, slot).forEach(function (A) { if (!g.over && armyById(g, A.id)) evs = evs.concat(marchArmy(g, A.id)); });
+    return evs;
+  }
+  function removeArmy(g, A) { g.armies = g.armies.filter(function (x) { return x !== A; }); }
   function nearestOwned(g, slot, x, y) {
     var best = -1, bd = Infinity;
-    g.cs.forEach(function (c, i) { if (c.owner === slot) { var C = g.map.castles[i], d = Math.hypot(C.x - x, C.y - y); if (d < bd) { bd = d; best = i; } } });
+    g.cs.forEach(function (c, i) { if (c.owner === slot) { var C = g.map.castles[i], d = Math.hypot(C.x + 0.5 - x, C.y + 0.5 - y); if (d < bd) { bd = d; best = i; } } });
     return best;
   }
   function heroFlee(g, slot, x, y) {
@@ -882,9 +1008,14 @@ var CQ = (function () {
     if (dest < 0) { g.heroes[slot] = null; return null; }
     h.c = dest; return dest;
   }
-  function removeArmy(g, A) { g.armies = g.armies.filter(function (x) { return x !== A; }); }
+  function mergeInto(g, A, cid) {
+    var c = g.cs[cid];
+    addU(c.u, A.u); addU(c.m, A.u);
+    var h = heroInArmy(g, A); if (h) { h.army = null; h.c = cid; }
+    removeArmy(g, A);
+  }
 
-  // battle strengths
+  // ---------- combat ----------
   function atkStr(key, heroLvl) { return UNITS[key].atk + (heroLvl || 0); }
   function defStr(key, heroLvl, walls) { return (UNITS[key].def + (heroLvl || 0)) * (1 + WALL_BONUS[walls || 0]); }
   function fight(rng, att, aHero, def, dHero, walls, record) {
@@ -908,7 +1039,6 @@ var CQ = (function () {
     return { u: c.u, hero: dHero, walls: c.walls };
   }
   function winChance(g, slot, counts, withHero, target, runs) {
-    // target: {castle: id} or {army: id}
     runs = runs || 400;
     var d;
     if (target.army) { var E = armyById(g, target.army); if (!E) return 1; var eh = heroInArmy(g, E); d = { u: E.u, hero: eh ? eh.lvl : 0, walls: 0 }; }
@@ -923,83 +1053,25 @@ var CQ = (function () {
     var nl = Math.min(MAX_HERO, 1 + Math.floor(h.wins / 2));
     if (nl > h.lvl) { h.lvl = nl; if (out) out.levelUp = nl; }
   }
-
-  // enemy armies on the same road, in A's frame (distance from A.a)
-  function enemiesOnRoad(g, A) {
-    var L = edgeLen(g, A.a, A.b), out = [];
-    g.armies.forEach(function (E) {
-      if (E === A || E.o === A.o) return;
-      if (E.a === A.a && E.b === A.b) out.push({ E: E, p: E.s });
-      else if (E.a === A.b && E.b === A.a) out.push({ E: E, p: L - E.s });
-    });
-    return out;
-  }
-
-  // Move army one step. Returns an event, or null if it can't move.
-  function stepArmy(g, id) {
-    var A = armyById(g, id);
-    if (!A || !A.route.length || A.mp <= 0 || g.over) return null;
-    if (A.b !== A.route[0]) {
-      if (A.a === A.route[0]) { var t = A.a; A.a = A.b; A.b = t; A.s = edgeLen(g, A.a, A.b) - A.s; }
-      else { A.route = []; return null; }
-    }
-    var L = edgeLen(g, A.a, A.b), ns = A.s + 1;
-    // meeting an enemy army on the road?
-    var hit = enemiesOnRoad(g, A).filter(function (o) { return o.p > A.s && o.p <= Math.min(ns, L - 1); }).sort(function (x, y) { return x.p - y.p; })[0];
-    if (hit) return fieldBattle(g, A, hit.E);
-    A.mp--;
-    if (ns < L) {
-      A.s = ns;
-      revealArmy(g, A);
-      return { kind: 'step', id: A.id };
-    }
-    // arrive at castle b
-    var cid = A.b; A.route.shift(); A.s = L;
-    var c = g.cs[cid];
-    if (c.owner === A.o) {
-      if (!A.route.length) { mergeInto(g, A, cid); return { kind: 'arrive', id: A.id, to: cid }; }
-      A.a = cid; A.b = A.route[0]; A.s = 0; revealArmy(g, A);
-      return { kind: 'pass', id: A.id, to: cid };
-    }
-    return siege(g, A, cid);
-  }
-  function revealArmy(g, A) {
-    if (!g.fog || !g.fog[A.o]) return;
-    var p = armyPos(g, A), arr = g.fog[A.o].split('');
-    revealInto(arr, g, p.x, p.y, R_ARMY);
-    g.fog[A.o] = arr.join('');
-    g.map.castles.forEach(function (c, i) { if (Math.hypot(c.x - p.x, c.y - p.y) <= R_ARMY) g.seen[A.o][i] = g.cs[i].owner; });
-  }
-  function mergeInto(g, A, cid) {
-    var c = g.cs[cid];
-    addU(c.u, A.u); addU(c.m, A.u);
-    var h = heroInArmy(g, A); if (h) { h.army = null; h.c = cid; }
-    removeArmy(g, A);
-    updateVision(g, A.o);
-  }
   function siege(g, A, cid) {
     var slot = A.o, c = g.cs[cid], prev = c.owner, M = g.map.castles, h = heroInArmy(g, A), nm = g.slots[slot].name;
-    var d = castleDefender(g, cid), hl = h ? h.lvl : 0;
-    if (cnt(A.u) === 0) { // hero alone can't attack
-      removeArmy(g, A); var fl = heroFlee(g, slot, M[cid].x, M[cid].y);
-      return { kind: 'fled', id: A.id, to: cid, heroTo: fl };
-    }
+    var d = castleDefender(g, cid), hl = h ? h.lvl : 0, cx = M[cid].x + 0.5, cy = M[cid].y + 0.5;
     var rng = rngFrom(g.seed + ':b:' + (g.bn++));
     var before = { att: copyU(A.u), def: copyU(c.u), aHero: hl, dHero: d.hero, walls: d.walls };
     var res = cnt(c.u) === 0 ? { win: true, aLeft: copyU(A.u), dLeft: zero(), duels: [] } : fight(rng, A.u, hl, c.u, d.hero, d.walls, true);
-    var out = { kind: 'battle', field: false, id: A.id, slot: slot, win: res.win, from: A.a, to: cid, prev: prev, before: before, duels: res.duels, aLeft: res.aLeft, dLeft: res.dLeft, treasure: 0, heroFled: null, eliminated: null, attHero: !!h };
+    var out = { kind: 'battle', field: false, id: A.id, slot: slot, win: res.win, ax: A.x, ay: A.y, to: cid, prev: prev, before: before, duels: res.duels, aLeft: res.aLeft, dLeft: res.dLeft, treasure: 0, heroFled: null, eliminated: null, attHero: !!h };
     removeArmy(g, A);
     if (res.win) {
       c.owner = slot; c.u = copyU(res.aLeft); c.m = copyU(res.aLeft);
       var dh = heroAtCastle(g, cid);
-      if (dh && dh.slot !== slot) { out.heroFled = heroFlee(g, dh.slot, M[cid].x, M[cid].y); out.fledSlot = dh.slot; }
+      if (dh && dh.slot !== slot) { out.heroFled = heroFlee(g, dh.slot, cx, cy); out.fledSlot = dh.slot; }
       if (h) { h.army = null; h.c = cid; h.wins++; lvlUp(h, out); }
       if (c.treasure) { g.gold[slot] += c.treasure; out.treasure = c.treasure; c.treasure = 0; }
       log(g, slot, nm + ' captured ' + M[cid].name + (prev >= 0 ? ' from ' + slotName(g, prev) : '') + '!' + (out.treasure ? ' Found ' + out.treasure + ' gold!' : ''), 'capture', cid, prev);
       if (prev >= 0 && castlesOf(g, prev).length === 0) eliminate(g, prev, out);
     } else {
       c.u = copyU(res.dLeft); UK.forEach(function (k) { c.m[k] = Math.min(c.m[k], c.u[k]); });
-      if (h) out.heroRetreat = heroFlee(g, slot, M[cid].x, M[cid].y);
+      if (h) out.heroRetreat = heroFlee(g, slot, cx, cy);
       var dh2 = heroAtCastle(g, cid); if (dh2 && dh2.slot === prev) { dh2.h.wins++; lvlUp(dh2.h); }
       log(g, slot, nm + ' attacked ' + M[cid].name + (prev >= 0 ? ' (' + slotName(g, prev) + ')' : '') + ' but was driven back.', prev >= 0 ? 'defend' : 'fail', cid, prev);
     }
@@ -1008,25 +1080,24 @@ var CQ = (function () {
     return out;
   }
   function fieldBattle(g, A, E) {
-    var ha = heroInArmy(g, A), he = heroInArmy(g, E), p = armyPos(g, A);
+    var ha = heroInArmy(g, A), he = heroInArmy(g, E);
     var rng = rngFrom(g.seed + ':b:' + (g.bn++));
     var before = { att: copyU(A.u), def: copyU(E.u), aHero: ha ? ha.lvl : 0, dHero: he ? he.lvl : 0, walls: 0 };
     var res;
     if (cnt(A.u) === 0) res = { win: false, aLeft: zero(), dLeft: copyU(E.u), duels: [] };
     else if (cnt(E.u) === 0) res = { win: true, aLeft: copyU(A.u), dLeft: zero(), duels: [] };
     else res = fight(rng, A.u, before.aHero, E.u, before.dHero, 0, true);
-    var out = { kind: 'battle', field: true, id: A.id, slot: A.o, win: res.win, prev: E.o, before: before, duels: res.duels, aLeft: res.aLeft, dLeft: res.dLeft, x: p.x, y: p.y, attHero: !!ha, road: [A.a, A.b] };
-    var near = g.map.castles[A.s * 2 < edgeLen(g, A.a, A.b) ? A.a : A.b].name;
+    var out = { kind: 'battle', field: true, id: A.id, eid: E.id, slot: A.o, win: res.win, prev: E.o, before: before, duels: res.duels, aLeft: res.aLeft, dLeft: res.dLeft, ax: A.x, ay: A.y, x: E.x, y: E.y, attHero: !!ha };
     if (res.win) {
-      A.u = copyU(res.aLeft); A.mp = 0;
-      removeArmy(g, E); if (he) { out.heroFled = heroFlee(g, E.o, p.x, p.y); out.fledSlot = E.o; }
+      A.u = copyU(res.aLeft); A.mp = 0; A.goal = null;
+      removeArmy(g, E); if (he) { out.heroFled = heroFlee(g, E.o, E.x, E.y); out.fledSlot = E.o; }
       if (ha) { ha.wins++; lvlUp(ha, out); }
-      log(g, A.o, g.slots[A.o].name + '\'s army beat ' + slotName(g, E.o) + '\'s army on the road near ' + near + '!', 'field', null, E.o);
+      log(g, A.o, g.slots[A.o].name + '\'s army beat ' + slotName(g, E.o) + '\'s army in battle!', 'field', null, E.o);
     } else {
       E.u = copyU(res.dLeft);
-      removeArmy(g, A); if (ha) out.heroRetreat = heroFlee(g, A.o, p.x, p.y);
+      removeArmy(g, A); if (ha) out.heroRetreat = heroFlee(g, A.o, A.x, A.y);
       if (he) { he.wins++; lvlUp(he); }
-      log(g, E.o, slotName(g, E.o) + '\'s army stopped ' + g.slots[A.o].name + '\'s army on the road near ' + near + '!', 'field', null, A.o);
+      log(g, E.o, slotName(g, E.o) + '\'s army stopped ' + g.slots[A.o].name + '\'s army!', 'field', null, A.o);
     }
     updateVision(g, A.o); updateVision(g, E.o);
     return out;
@@ -1036,128 +1107,144 @@ var CQ = (function () {
     g.armies = g.armies.filter(function (a) { return a.o !== slot; });
     log(g, slot, slotName(g, slot) + ' has lost every castle and is out of the quest!', 'out');
   }
-  function marchArmy(g, id) {
-    var ev, evs = [], n = 0;
-    while (n++ < 60 && (ev = stepArmy(g, id))) { evs.push(ev); if (ev.kind === 'battle' || ev.kind === 'arrive' || ev.kind === 'fled') break; }
-    return evs;
-  }
-  function marchAll(g, slot) {
-    var evs = [];
-    armiesOf(g, slot).forEach(function (A) { if (!g.over) evs = evs.concat(marchArmy(g, A.id)); });
-    return evs;
-  }
-  function pendingMarch(g, slot) { return armiesOf(g, slot).some(function (A) { return A.route.length && A.mp > 0; }); }
-
   function checkWin(g) {
     if (g.over) return;
     var alive = aliveSlots(g);
     if (alive.length === 1) { g.over = true; g.winner = alive[0]; log(g, alive[0], g.slots[alive[0]].name + ' rules the whole land! 👑', 'win'); }
   }
   function standings(g) {
-    return aliveSlots(g).map(function (s) { return { slot: s, castles: castlesOf(g, s).length, power: armyPower(g, s), gold: g.gold[s] }; })
-      .sort(function (a, b) { return b.castles - a.castles || b.power - a.power || b.gold - a.gold; });
+    return activeSlots(g).map(function (s) { return { slot: s, castles: castlesOf(g, s).length, power: armyPower(g, s), gold: g.gold[s], alive: g.slots[s].alive }; })
+      .sort(function (a, b) { return (b.alive - a.alive) || b.castles - a.castles || b.power - a.power || b.gold - a.gold; });
   }
+  function nextSlot(g, slot) {
+    var order = activeSlots(g), idx = order.indexOf(slot);
+    for (var i = 1; i <= order.length; i++) {
+      var j = (idx + i) % order.length;
+      if (g.slots[order[j]].alive) return { slot: order[j], wrapped: j <= idx };
+    }
+    return null;
+  }
+  function pendingMarch(g, slot) { return armiesOf(g, slot).some(function (A) { return A.goal && A.mp > 0; }); }
   function endTurn(g, slot) {
     if (!canAct(g, slot)) return { ok: false, msg: 'Not your turn' };
     var evs = marchAll(g, slot);
     if (g.over) return { ok: true, over: true, events: evs };
-    var order = activeSlots(g), idx = order.indexOf(slot), next = null, wrapped = false;
-    for (var i = 1; i <= order.length; i++) {
-      var j = (idx + i) % order.length; if (j <= idx) wrapped = true;
-      if (g.slots[order[j]].alive) { next = order[j]; break; }
+    var nx = nextSlot(g, slot);
+    if (nx.wrapped) g.round++;
+    g.turn = nx.slot;
+    startTurn(g, nx.slot);
+    return { ok: true, next: nx.slot, events: evs };
+  }
+  function surrender(g, slot) {
+    if (g.over || !g.slots[slot] || !g.slots[slot].alive) return { ok: false };
+    var wasTurn = g.turn === slot;
+    g.cs.forEach(function (c) { if (c.owner === slot) c.owner = -1; });
+    g.armies = g.armies.filter(function (a) { return a.o !== slot; });
+    g.slots[slot].alive = false; g.heroes[slot] = null;
+    log(g, slot, slotName(g, slot) + ' gave up the quest. Their castles are neutral now.', 'out');
+    checkWin(g);
+    if (!g.over && wasTurn) {
+      var nx = nextSlot(g, slot);
+      if (nx.wrapped) g.round++;
+      g.turn = nx.slot; startTurn(g, nx.slot);
     }
-    if (wrapped) {
-      if (g.round >= g.maxRounds) {
-        var st = standings(g); g.over = true;
-        if (st.length > 1 && st[0].castles === st[1].castles && st[0].power === st[1].power) { g.winner = -1; log(g, -1, 'Time is up! It\'s a tie!', 'win'); }
-        else { g.winner = st[0].slot; log(g, st[0].slot, 'Time is up! ' + g.slots[st[0].slot].name + ' wins with ' + st[0].castles + ' castles! 👑', 'win'); }
-        return { ok: true, over: true, events: evs };
-      }
-      g.round++;
-      log(g, -1, 'Round ' + g.round + ' of ' + g.maxRounds, 'round');
-    }
-    g.turn = next;
-    startTurn(g, next);
-    return { ok: true, next: next, events: evs };
+    return { ok: true };
   }
 
-  // ---------- AI ----------
+  // ---------- AI (computer players see through the clouds) ----------
   var AI_LV = {
-    easy: { thr: 0.9, spend: 0.5, wallsOn: false, dragons: false, blunder: 0.35 },
-    normal: { thr: 0.66, spend: 1, wallsOn: true, dragons: true, blunder: 0.05 },
-    hard: { thr: 0.56, spend: 1, wallsOn: true, dragons: true, blunder: 0 }
+    easy: { thr: 0.9, spend: 0.5, wallsOn: false, dragons: false, blunder: 0.35, reach: 2 },
+    normal: { thr: 0.66, spend: 1, wallsOn: true, dragons: true, blunder: 0.05, reach: 3 },
+    hard: { thr: 0.56, spend: 1, wallsOn: true, dragons: true, blunder: 0, reach: 3 }
   };
+  var distCache = {};
+  function dmap(g, cid) {
+    var k = g.seed + ':' + cid;
+    if (!distCache[k]) {
+      distCache[k] = tileDist(g.map.t, g.map.w, g.map.h, g.map.castles[cid]);
+      var ks = Object.keys(distCache); if (ks.length > 160) delete distCache[ks[0]];
+    }
+    return distCache[k];
+  }
+  function cdist(g, from, to) { var c = g.map.castles[to]; return dmap(g, from)[c.y * g.map.w + c.x]; }
   function enemyThreat(g, slot, cid) {
-    var t = 0;
-    neighbors(g, cid, true).forEach(function (n) {
-      var o = g.cs[n.id].owner; if (o < 0 || o === slot) return;
-      var u = g.cs[n.id].u;
-      if (n.t === 'fly') t += u.d * UNITS.d.atk; else UK.forEach(function (k) { t += u[k] * UNITS[k].atk; });
-    });
-    g.armies.forEach(function (A) {
-      if (A.o === slot) return;
-      if (A.b === cid || A.a === cid || A.route[A.route.length - 1] === cid) UK.forEach(function (k) { t += A.u[k] * UNITS[k].atk; });
+    var t = 0, C = g.map.castles[cid];
+    g.armies.forEach(function (A) { if (A.o !== slot && Math.max(Math.abs(A.x - C.x), Math.abs(A.y - C.y)) <= 10) UK.forEach(function (k) { t += A.u[k] * UNITS[k].atk; }); });
+    g.cs.forEach(function (c, i) {
+      if (c.owner < 0 || c.owner === slot) return;
+      if (cdist(g, cid, i) <= 18) UK.forEach(function (k) { t += c.u[k] * UNITS[k].atk * 0.6; });
     });
     return t;
   }
   function defValue(g, cid) { var c = g.cs[cid]; return UK.reduce(function (s, k) { return s + c.u[k] * UNITS[k].def; }, 0) * (1 + WALL_BONUS[c.walls]); }
-
   function aiTurn(g, slot) {
     var P = AI_LV[g.slots[slot].level] || AI_LV.normal, rng = rngFrom(g.seed + ':ai:' + g.round + ':' + slot + ':' + g.bn);
     var events = marchAll(g, slot);
     if (g.over) return events;
-    // idle armies: head home to the nearest castle we own
+    function gateCheck(A) {
+      if (!armyById(g, A.id) || g.over) return;
+      var c = atGates(g, A); if (c == null) return;
+      var h = heroInArmy(g, A), ch = winChance(g, slot, A.u, !!h, { castle: c }, 120);
+      if (ch >= P.thr * 0.9 || (ch >= 0.45 && rng() < 0.5)) { if (A.mp > 0) events.push(attack(g, slot, A.id, c)); }
+      else if (ch < 0.35) { var d = nearestOwned(g, slot, A.x, A.y); if (d >= 0) { orderArmy(g, slot, A.id, { c: d }); events = events.concat(marchArmy(g, A.id)); } }
+    }
+    armiesOf(g, slot).forEach(gateCheck);
+    if (g.over) return events;
     armiesOf(g, slot).forEach(function (A) {
-      if (A.route.length) return;
-      var p = armyPos(g, A), d = nearestOwned(g, slot, p.x, p.y);
-      if (d >= 0) { orderArmy(g, slot, A.id, d); events = events.concat(marchArmy(g, A.id)); }
+      if (A.goal || atGates(g, A) != null) return;
+      var d = nearestOwned(g, slot, A.x, A.y);
+      if (d >= 0) { orderArmy(g, slot, A.id, { c: d }); events = events.concat(marchArmy(g, A.id)); }
     });
     var targeted = {};
-    g.armies.forEach(function (A) { if (A.o === slot && A.route.length) targeted[A.route[A.route.length - 1]] = true; });
-    // attacks
-    for (var loop = 0; loop < 25 && !g.over; loop++) {
+    g.armies.forEach(function (A) { if (A.o === slot && A.goal && A.goal.c != null) targeted[A.goal.c] = true; });
+    for (var loop = 0; loop < 6 && !g.over && armiesOf(g, slot).length < MAX_ARMIES; loop++) {
       var best = null;
       castlesOf(g, slot).forEach(function (cid) {
-        var av = avail(g, cid); if (cnt(av) === 0) return;
-        var threat = enemyThreat(g, slot, cid);
-        neighbors(g, cid, true).forEach(function (n) {
-          var tc = g.cs[n.id]; if (tc.owner === slot || targeted[n.id] || !explored(g, slot, n.id)) return;
-          var send = copyU(av);
-          if (n.t === 'fly') { send = { s: 0, a: 0, k: 0, d: av.d }; if (!send.d) return; }
-          if (threat > 0 && n.t !== 'fly') {
-            var keepA = Math.min(send.a, Math.max(1, Math.ceil(threat / 8)));
-            send.a -= keepA;
-          }
-          if (cnt(send) === 0) return;
+        var av = avail(g, cid); if (cnt(av) < 2) return;
+        var threat = enemyThreat(g, slot, cid), send = copyU(av);
+        if (threat > 0) { var keepA = Math.min(send.a, Math.max(1, Math.ceil(threat / 8))); send.a -= keepA; }
+        if (cnt(send) < 2) return;
+        var sp = armySpeed(send, false);
+        var cands = [];
+        g.cs.forEach(function (tc, tid) { if (tc.owner !== slot && !targeted[tid]) cands.push({ tid: tid, d: cdist(g, cid, tid) }); });
+        cands.sort(function (a, b) { return a.d - b.d; });
+        cands.slice(0, 6).forEach(function (cd) {
+          var tid = cd.tid, tc = g.cs[tid], d = cd.d; if (!isFinite(d)) return;
+          var far = d > sp * P.reach;
           var h = g.heroes[slot], wh = !!(h && h.army == null && h.c === cid);
-          var ch = winChance(g, slot, send, wh, { castle: n.id }, 120);
-          var val = income(g, n.id) + tc.treasure / 3 + (tc.owner >= 0 ? 2 : 0) + (g.map.castles[n.id].home ? 3 : 0);
+          var ch = winChance(g, slot, send, wh, { castle: tid }, 50);
+          var val = income(g, tid) + tc.treasure / 3 + (tc.owner >= 0 ? 2 : 0) + (g.map.castles[tid].home ? 3 : 0);
           if (tc.owner >= 0 && g.slots[slot].level === 'hard' && g.slots[tc.owner].kind === 'human') val += 1;
-          var score = val * ch - cnt(send) * 0.05 - edgeLen(g, cid, n.id) * 0.1;
-          if (ch >= P.thr && (!best || score > best.score)) best = { from: cid, to: n.id, send: send, wh: wh, score: score };
+          var score = val * ch / (1 + d / sp * 0.6) - cnt(send) * 0.03 - (far ? 3 : 0);
+          if (ch >= P.thr && (!best || score > best.score)) best = { from: cid, to: tid, send: send, wh: wh, score: score };
         });
       });
       if (!best || rng() < P.blunder) break;
-      var r = sendArmy(g, slot, best.from, best.to, best.send, best.wh);
-      if (!r.ok) break;
+      var r = sendArmy(g, slot, best.from, { c: best.to }, best.send, best.wh);
+      if (!r.ok) { targeted[best.to] = true; continue; }
       targeted[best.to] = true;
       events = events.concat(marchArmy(g, r.id));
+      var NA = armyById(g, r.id); if (NA) gateCheck(NA);
     }
     if (g.over) return events;
-    // consolidate interior troops toward the frontier
-    var mine = castlesOf(g, slot);
-    var frontier = mine.filter(function (c) { return neighbors(g, c, false).some(function (n) { return g.cs[n.id].owner !== slot; }); });
-    mine.forEach(function (c) {
-      if (frontier.indexOf(c) >= 0 || !frontier.length) return;
-      var av = avail(g, c); if (cnt(av) === 0) return;
-      var bestF = null;
-      frontier.forEach(function (f) { var r = route(g, slot, c, f, av); if (r && (!bestF || r.steps < bestF.steps)) bestF = { f: f, steps: r.steps }; });
-      if (!bestF) return;
-      var h = g.heroes[slot], wh = !!(h && h.army == null && h.c === c);
-      var s = sendArmy(g, slot, c, bestF.f, av, wh);
-      if (s.ok) events = events.concat(marchArmy(g, s.id));
-    });
-    // walls
+    // gather spare troops at the castle closest to the enemy, so a big army can form
+    if (armiesOf(g, slot).length < MAX_ARMIES) {
+      var mineC = castlesOf(g, slot), stage = null;
+      mineC.forEach(function (c) {
+        var dmin = Infinity; g.cs.forEach(function (o, i) { if (o.owner !== slot) dmin = Math.min(dmin, cdist(g, c, i)); });
+        if (!stage || dmin < stage.d) stage = { c: c, d: dmin };
+      });
+      if (stage) {
+        var bestSrc = null;
+        mineC.forEach(function (c) {
+          if (c === stage.c) return; var av = avail(g, c); if (cnt(av) < 3) return;
+          if (enemyThreat(g, slot, c) > 0) { av.a = Math.max(0, av.a - 1); av.s = Math.max(0, av.s - (av.a ? 0 : 1)); }
+          if (cnt(av) < 3) return;
+          var d = cdist(g, c, stage.c); if (!bestSrc || cnt(av) - d / 20 > bestSrc.v) bestSrc = { c: c, av: av, v: cnt(av) - d / 20 };
+        });
+        if (bestSrc) { var sr = sendArmy(g, slot, bestSrc.c, { c: stage.c }, bestSrc.av, false); if (sr.ok) events = events.concat(marchArmy(g, sr.id)); }
+      }
+    }
     if (P.wallsOn) {
       castlesOf(g, slot).forEach(function (c) {
         var mc = g.map.castles[c];
@@ -1166,23 +1253,19 @@ var CQ = (function () {
         }
       });
     }
-    // recruit
-    var budget = Math.floor(g.gold[slot] * P.spend), spent = 0, guardN = 0;
+    var budget = Math.floor(g.gold[slot] * P.spend), spent = 0, guardN = 0, mine = castlesOf(g, slot);
+    if (!mine.length) return events;
+    var fr = mine.filter(function (c) { return g.cs.some(function (o, i) { return o.owner !== slot && cdist(g, c, i) <= 24; }); });
+    if (!fr.length) fr = mine;
     while (g.gold[slot] >= 3 && spent + 3 <= budget && guardN++ < 40) {
-      mine = castlesOf(g, slot);
-      if (!mine.length) break;
-      var fr = mine.filter(function (c) { return neighbors(g, c, true).some(function (n) { return g.cs[n.id].owner !== slot; }); });
-      if (!fr.length) fr = mine;
       var worst = null;
       fr.forEach(function (c) { var th = enemyThreat(g, slot, c), dv = defValue(g, c); if (th > dv * 0.9 && (!worst || th - dv > worst.gap)) worst = { c: c, gap: th - dv }; });
       var key, where;
       if (worst) { where = worst.c; key = 'a'; }
       else {
-        var bt = null;
-        fr.forEach(function (c) { neighbors(g, c, true).forEach(function (n) { var t = g.cs[n.id]; if (t.owner === slot) return; var v = income(g, n.id) - defValue(g, n.id) * 0.1 + rng() * 0.5; if (!bt || v > bt.v) bt = { c: c, v: v }; }); });
-        where = bt ? bt.c : fr[0];
-        if (P.dragons && canRoost(g, where) && g.gold[slot] >= UNITS.d.cost && rng() < 0.6) key = 'd';
-        else if (g.gold[slot] >= UNITS.k.cost && rng() < 0.65) key = 'k';
+        where = fr[Math.floor(rng() * fr.length)];
+        if (P.dragons && canRoost(g, where) && g.gold[slot] >= UNITS.d.cost && rng() < 0.5) key = 'd';
+        else if (g.gold[slot] >= UNITS.k.cost && rng() < 0.6) key = 'k';
         else key = g.gold[slot] >= 4 && rng() < 0.4 ? 'a' : 's';
       }
       if (g.gold[slot] < UNITS[key].cost) key = 's';
@@ -1207,26 +1290,21 @@ var CQ = (function () {
     if (!g) return g;
     if (!g.claims) g.claims = {};
     if (g.logN == null) g.logN = g.log ? g.log.length : 0;
-    if (!g.armies) {
-      // v1 games: no fog, no field armies
-      g.armies = []; g.an = 0; g.fogOn = false; g.v = 2;
-      g.heroes.forEach(function (h) { if (h) { h.army = null; delete h.moved; } });
-      var d = fogDims(g), full = new Array(d.cw * d.ch + 1).join('1');
-      g.fog = g.slots.map(function (s) { return s.kind === 'empty' ? null : full; });
-      g.seen = g.slots.map(function (s) { return s.kind === 'empty' ? null : g.cs.map(function (c) { return c.owner; }); });
-    }
+    if (!g.map || !g.map.t) { g.legacy = true; return g; }
+    if (!g.replays) g.replays = {};
     return g;
   }
 
   return {
-    UNITS: UNITS, UK: UK, SIZES: SIZES, COLORS: COLORS, AVATARS: AVATARS, WALL_BONUS: WALL_BONUS, HOME_INCOME: HOME_INCOME, SPEED: SPEED, HERO_SPEED: HERO_SPEED, FOG_CELL: FOG_CELL,
+    UNITS: UNITS, UK: UK, SIZES: SIZES, COLORS: COLORS, AVATARS: AVATARS, WALL_BONUS: WALL_BONUS, HOME_INCOME: HOME_INCOME, SPEED: SPEED, HERO_SPEED: HERO_SPEED,
+    COST: COST, TERR_NAME: TERR_NAME, BIOMES: BIOMES, MAX_ARMIES: MAX_ARMIES, D8: D8,
     rngFrom: rngFrom, hashStr: hashStr, genMap: genMap, newGame: newGame, recruit: recruit, upgradeWalls: upgradeWalls, wallCost: wallCost,
-    sendArmy: sendArmy, orderArmy: orderArmy, stepArmy: stepArmy, marchArmy: marchArmy, marchAll: marchAll, pendingMarch: pendingMarch,
-    route: route, routeFromArmy: routeFromArmy, turnsFor: turnsFor, armySpeed: armySpeed, armyPos: armyPos, armyById: armyById, armiesOf: armiesOf, heroInArmy: heroInArmy, heroAtCastle: heroAtCastle,
-    endTurn: endTurn, winChance: winChance, avail: avail, neighbors: neighbors, edgeType: edgeType, edgeLen: edgeLen, flyer: flyer,
+    sendArmy: sendArmy, orderArmy: orderArmy, attack: attack, atGates: atGates, gatesList: gatesList, stepArmy: stepArmy, marchArmy: marchArmy, marchAll: marchAll, pendingMarch: pendingMarch,
+    findPath: findPath, pathFor: pathFor, stepCost: stepCost, turnsFor: turnsFor, armySpeed: armySpeed, armyById: armyById, armyAt: armyAt, armiesOf: armiesOf, heroInArmy: heroInArmy, heroAtCastle: heroAtCastle,
+    endTurn: endTurn, surrender: surrender, winChance: winChance, avail: avail, flyer: flyer, castleAt: castleAt, castleCenter: castleCenter, terr: terr, tileCost: tileCost,
     castlesOf: castlesOf, incomeOf: incomeOf, income: income, canRoost: canRoost, activeSlots: activeSlots, aliveSlots: aliveSlots,
-    standings: standings, armyPower: armyPower, power: power, cnt: cnt, zero: zero, copyU: copyU, aiTurn: aiTurn, runAI: runAI,
-    migrate: migrate, slotName: slotName, visibleCastles: visibleCastles, armyVisible: armyVisible, viewers: viewers, explored: explored, fogDims: fogDims, updateVision: updateVision
+    standings: standings, armyPower: armyPower, power: power, cnt: cnt, zero: zero, copyU: copyU, aiTurn: aiTurn, runAI: runAI, armyLook: armyLook,
+    migrate: migrate, slotName: slotName, visibleCastles: visibleCastles, visibleTiles: visibleTiles, armyVisible: armyVisible, viewers: viewers, explored: explored, tileKnown: tileKnown, updateVision: updateVision
   };
 })();
 if (typeof module !== 'undefined') module.exports = CQ;
@@ -1453,65 +1531,6 @@ var NET = (function () {
     }
     return '<g transform="scale(' + sc + ')">' + s + '</g>';
   }
-  function smoothPath(pts, closed) {
-    var p = pts.slice(); if (closed) { p = [pts[pts.length - 1]].concat(pts, [pts[0], pts[1]]); } else { p = [pts[0]].concat(pts, [pts[pts.length - 1]]); }
-    var d = 'M' + p[1].x.toFixed(1) + ' ' + p[1].y.toFixed(1);
-    for (var i = 1; i < p.length - 2; i++) {
-      var p0 = p[i - 1], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2];
-      d += ' C' + (p1.x + (p2.x - p0.x) / 6).toFixed(1) + ' ' + (p1.y + (p2.y - p0.y) / 6).toFixed(1) + ' ' + (p2.x - (p3.x - p1.x) / 6).toFixed(1) + ' ' + (p2.y - (p3.y - p1.y) / 6).toFixed(1) + ' ' + p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
-    }
-    return d + (closed ? ' Z' : '');
-  }
-  function decoSVG(d) {
-    var s = '<g transform="translate(' + d.x + ' ' + d.y + ') scale(' + d.s + ')">';
-    if (d.t === 'tree') s += '<ellipse cx="0" cy="13" rx="12" ry="4" fill="rgba(0,0,0,.15)"/><rect x="-3" y="2" width="6" height="11" rx="2" fill="#8a5a35"/><circle cx="0" cy="-6" r="12" fill="#3fa34d" stroke="' + INK + '" stroke-width="2"/><circle cx="-4" cy="-10" r="4" fill="#6cc76a"/>';
-    else if (d.t === 'pine') s += '<ellipse cx="0" cy="14" rx="10" ry="3.5" fill="rgba(0,0,0,.15)"/><rect x="-2.5" y="6" width="5" height="8" fill="#7a4e2d"/><path d="M0 -22 L12 0 L-12 0 Z M0 -12 L14 8 L-14 8 Z" fill="#2f8f5b" stroke="' + INK + '" stroke-width="2" stroke-linejoin="round"/>';
-    else if (d.t === 'hill') s += '<path d="M-24 12 L-4 -18 L6 -4 L12 -12 L26 12 Z" fill="#a39e94" stroke="' + INK + '" stroke-width="2" stroke-linejoin="round"/><path d="M-9 -10 L-4 -18 L1 -11 L-2 -9 L-5 -12 Z" fill="#fff"/>';
-    else if (d.t === 'flower') s += '<circle cx="-5" cy="0" r="3.5" fill="#ff8fb8"/><circle cx="4" cy="-3" r="3.5" fill="#ffe066"/><circle cx="2" cy="5" r="3.5" fill="#fff"/><circle cx="-5" cy="0" r="1.2" fill="#b0306a"/>';
-    else if (d.t === 'rock') s += '<ellipse cx="0" cy="2" rx="10" ry="7" fill="#b9b4ab" stroke="' + INK + '" stroke-width="2"/><ellipse cx="-3" cy="-1" rx="3" ry="2" fill="#ddd8cf"/>';
-    else if (d.t === 'mush') s += '<rect x="-2.5" y="-2" width="5" height="8" rx="2" fill="#f7efe0" stroke="' + INK + '" stroke-width="1.5"/><path d="M-9 0 A9 8 0 0 1 9 0 Z" fill="#ff5a5f" stroke="' + INK + '" stroke-width="1.5"/><circle cx="-3" cy="-4" r="1.6" fill="#fff"/><circle cx="3" cy="-3" r="1.3" fill="#fff"/>';
-    return s + '</g>';
-  }
-  function staticMap(g) {
-    var m = g.map, s = '', rng = CQ.rngFrom(g.seed + ':art');
-    s += '<defs><filter id="fogblur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="16"/></filter>' +
-      '<pattern id="cloudpat" width="180" height="140" patternUnits="userSpaceOnUse"><rect width="180" height="140" fill="#d9e2ee"/>' +
-      '<g fill="#eef3f9"><circle cx="30" cy="40" r="26"/><circle cx="58" cy="32" r="30"/><circle cx="88" cy="44" r="22"/><circle cx="130" cy="105" r="24"/><circle cx="155" cy="96" r="28"/><circle cx="178" cy="108" r="18"/><circle cx="0" cy="108" r="18"/></g>' +
-      '<g fill="#c9d4e3"><circle cx="110" cy="20" r="6"/><circle cx="20" cy="120" r="5"/><circle cx="75" cy="95" r="4"/></g></pattern></defs>';
-    s += '<defs><radialGradient id="vig" cx="50%" cy="50%" r="75%"><stop offset="70%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#1d4a1a" stop-opacity=".25"/></radialGradient></defs>';
-    s += '<rect x="0" y="0" width="' + m.w + '" height="' + m.h + '" fill="#9bd770"/>';
-    for (var i = 0; i < 45; i++) s += '<ellipse cx="' + Math.round(rng() * m.w) + '" cy="' + Math.round(rng() * m.h) + '" rx="' + Math.round(40 + rng() * 90) + '" ry="' + Math.round(25 + rng() * 50) + '" fill="' + (rng() < 0.5 ? '#8fcf63' : '#a8df80') + '" opacity=".7"/>';
-    // water
-    m.water.lakes.forEach(function (l) {
-      var d = smoothPath(l.pts, true);
-      s += '<path d="' + d + '" fill="#62b9f2" stroke="#3d8fd1" stroke-width="10" stroke-linejoin="round"/>';
-      s += '<path d="' + d + '" fill="none" stroke="#9fd8ff" stroke-width="3" stroke-dasharray="14 18" transform="translate(0 0)"/>';
-    });
-    m.water.rivers.forEach(function (r) {
-      var d = smoothPath(r, false);
-      s += '<path d="' + d + '" fill="none" stroke="#3d8fd1" stroke-width="40" stroke-linecap="round"/>';
-      s += '<path d="' + d + '" fill="none" stroke="#62b9f2" stroke-width="31" stroke-linecap="round"/>';
-      s += '<path d="' + d + '" fill="none" stroke="#a6dcff" stroke-width="3" stroke-dasharray="12 22" stroke-linecap="round"/>';
-    });
-    m.water.lakes.forEach(function (l) { s += '<path d="' + smoothPath(l.pts, true) + '" fill="#62b9f2" stroke="none"/>'; });
-    // roads
-    var C = m.castles;
-    m.edges.forEach(function (e) { if (e.t === 'fly') return; s += '<line x1="' + C[e.a].x + '" y1="' + C[e.a].y + '" x2="' + C[e.b].x + '" y2="' + C[e.b].y + '" stroke="#b98f58" stroke-width="14" stroke-linecap="round"/>'; });
-    m.edges.forEach(function (e) { if (e.t === 'fly') return; s += '<line x1="' + C[e.a].x + '" y1="' + C[e.a].y + '" x2="' + C[e.b].x + '" y2="' + C[e.b].y + '" stroke="#efd6a0" stroke-width="8" stroke-linecap="round"/>'; });
-    // bridges
-    m.edges.forEach(function (e) {
-      if (e.t !== 'bridge') return;
-      var b = e.br, a = b.ang * 180 / Math.PI;
-      s += '<g transform="translate(' + b.x + ' ' + b.y + ') rotate(' + a.toFixed(1) + ')">' +
-        '<rect x="-30" y="-11" width="60" height="22" rx="4" fill="#b07a45" stroke="' + INK + '" stroke-width="2.5"/>';
-      for (var k = -24; k <= 24; k += 8) s += '<line x1="' + k + '" y1="-10" x2="' + k + '" y2="10" stroke="#7a4e2d" stroke-width="2"/>';
-      s += '<line x1="-30" y1="-13" x2="30" y2="-13" stroke="' + INK + '" stroke-width="3" stroke-linecap="round"/><line x1="-30" y1="13" x2="30" y2="13" stroke="' + INK + '" stroke-width="3" stroke-linecap="round"/></g>';
-    });
-    m.deco.forEach(function (d) { s += decoSVG(d); });
-    s += '<rect x="0" y="0" width="' + m.w + '" height="' + m.h + '" fill="url(#vig)" pointer-events="none"/>';
-    return s;
-  }
-
   // ---------- game helpers ----------
   function E() { return S.cur ? S.store.games[S.cur] : null; }
   function G() { var e = E(); return e ? e.g : null; }
@@ -1555,7 +1574,7 @@ var NET = (function () {
       else if (canMove(e)) st = '<span class="st yours">Your turn!</span>';
       else st = '<span class="st wait">' + esc(g.slots[g.turn].kind === 'ai' ? 'Computer…' : 'Waiting for ' + whoName(g, g.turn)) + '</span>';
       var names = act.map(function (i) { return esc(g.slots[i].name); }).join(' vs ');
-      return '<div class="gcard" data-id="' + esc(id) + '"><div class="gp">' + ps + '</div><div class="gi"><b>' + names + '</b><small>' + (e.online ? '🌐 Online · ' : '📱 This device · ') + (g.over ? 'Finished' : 'Round ' + g.round + ' of ' + g.maxRounds) + '</small></div>' + st + '<button class="x" data-del="' + esc(id) + '" aria-label="Remove">✕</button></div>';
+      return '<div class="gcard" data-id="' + esc(id) + '"><div class="gp">' + ps + '</div><div class="gi"><b>' + names + '</b><small>' + (e.online ? '🌐 Online · ' : '📱 This device · ') + (g.over ? 'Finished' : 'Turn ' + g.round) + '</small></div>' + st + '<button class="x" data-del="' + esc(id) + '" aria-label="Remove">✕</button></div>';
     }).join('');
     $('#myGames').innerHTML = h || '';
     $$('#myGames .gcard').forEach(function (c) {
@@ -1624,11 +1643,7 @@ var NET = (function () {
       return x + '</div>';
     }).join('');
     $('#slotCards').innerHTML = h;
-    $$('#lenSeg button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-len') === setup.len); });
     $$('#fogSeg button').forEach(function (b) { b.classList.toggle('on', (b.getAttribute('data-fog') === '1') === (setup.fog !== false)); });
-    var n = setup.slots.filter(function (s) { return s.kind !== 'empty'; }).length;
-    var R = roundsFor(n || 2, setup.len);
-    $('#lenHint').textContent = R + ' rounds. If nobody has conquered everyone by then, whoever has the most castles wins.';
     // wire
     $$('[data-kind]').forEach(function (seg) { var i = +seg.getAttribute('data-kind'); $$('button', seg).forEach(function (b) { b.onclick = function () { SFX.tap(); setup.slots[i].kind = b.getAttribute('data-v'); renderSetup(); }; }); });
     $$('[data-level]').forEach(function (seg) { var i = +seg.getAttribute('data-level'); $$('button', seg).forEach(function (b) { b.onclick = function () { SFX.tap(); setup.slots[i].level = b.getAttribute('data-v'); renderSetup(); }; }); });
@@ -1659,7 +1674,7 @@ var NET = (function () {
     var first = sl.find(function (s) { return s.kind === 'human' && (setup.mode === 'local' || s.where === 'here'); });
     S.store.profile = { name: first.name.trim(), avatar: first.avatar, hero: first.hero };
     var opts = {
-      mode: setup.mode, maxRounds: roundsFor(act.length, setup.len), fog: setup.fog !== false,
+      mode: setup.mode, fog: setup.fog !== false,
       slots: sl.map(function (s, i) {
         var here = setup.mode === 'local' || s.where === 'here';
         if (s.kind === 'human') return { kind: 'human', name: here ? s.name.trim() : COLORS[i].name + ' Player', avatar: here ? s.avatar : '❔', hero: here ? (s.hero.trim() || HERO_NAMES[i * 3 % HERO_NAMES.length]) : HERO_NAMES[(i * 3 + 1) % HERO_NAMES.length], remote: !here };
@@ -1845,13 +1860,17 @@ var NET = (function () {
     var n0 = g.logN; CQ.runAI(g, 3); bump(e); rerender(); schedulePush(e, 10);
     if (canMove(e)) yourTurnAlert(e, n0);
   }
-  function yourTurnAlert(e) {
+  async function yourTurnAlert(e) {
     if (S.turnAlertUp) return;
     S.turnAlertUp = true;
     SFX.turn();
     document.title = '🔔 Your turn! – Castle Quest';
     if (navigator.vibrate) try { navigator.vibrate([80, 60, 80]); } catch (x) { }
-    showSinceSeen(e, true).then(function () { S.turnAlertUp = false; });
+    try {
+      closeAllModals();
+      await playReplays(e, viewer(e));
+      await showSinceSeen(e, true);
+    } finally { S.turnAlertUp = false; }
   }
   function showSinceSeen(e, isTurn) {
     var g = e.g, items = logFor(e, g.log.filter(function (l) { return l.n > (e.seen || 0); }));
@@ -1870,10 +1889,17 @@ var NET = (function () {
   }
 
   // ---------- GAME SCREEN ----------
+  var T = 32; // pixels per tile
   async function openGame(id, fresh) {
     var e = S.store.games[id]; if (!e) return;
-    S.cur = id; S.sel = null; S.zoom = null; e.touched = Date.now();
-    CQ.migrate(e.g); applyClaims(e.g);
+    CQ.migrate(e.g);
+    if (e.g.legacy) {
+      var v = await modal('<div class="big-emoji">🗺️</div><h2>Old game</h2><p class="center">This game was made with an older version of Castle Quest and can\'t be played anymore. Start a new one. It has a brand-new world!</p><div class="mbtns"><button class="btn white" data-close="keep">Keep it</button><button class="btn red" data-close="del">Remove it</button></div>');
+      if (v === 'del') { delete S.store.games[id]; save(); renderHome(); }
+      return;
+    }
+    S.cur = id; S.sel = null; S.selArmy = null; S.zoom = null; S.rep = null; e.touched = Date.now();
+    applyClaims(e.g);
     show('game'); S.cur = id;
     buildMap();
     rerender();
@@ -1882,44 +1908,105 @@ var NET = (function () {
     var g = e.g;
     if (!e.online && !g.over && g.slots[g.turn].kind === 'ai') { await runComputer(); }
     if (g.over) { gameOverCheck(); return; }
-    if (fresh) { e.seen = g.logN; save(); return; }
+    if (fresh) { markSeen(e); return; }
     if (e.online) { if (canMove(e)) yourTurnAlert(e); else showSinceSeen(e, false); }
-    else { if ((e.seen || 0) > 0 && humansHere(e) > 1) handoff(e); e.seen = g.logN; save(); }
+    else if (canMove(e)) { if (humansHere(e) > 1 && (e.seen || 0) > 0) await handoff(e); await playReplays(e, g.turn); markSeen(e); }
+  }
+  function markSeen(e) {
+    var g = e.g; e.seen = g.logN; e.repSeen = e.repSeen || {};
+    var v = viewer(e); e.repSeen[v] = g.tc; save();
   }
   function humansHere(e) { return mySlots(e).length; }
+
+  // ---------- terrain drawing (canvas) ----------
+  var BCOL = { M: ['#a8de76', '#9dd66a'], W: ['#72c25d', '#68b953'], S: ['#ab9ccc', '#a091c3'], D: ['#eed598', '#e6cb89'], N: ['#eaf1f8', '#dfe8f2'], L: ['#bc6a4e', '#b06045'], P: ['#8abba6', '#7fb19b'] };
+  var WCOL = ['#4ea3e3', '#4699da'], RCOL = ['#e8cb97', '#e0c18a'];
+  var DECO = { M: ['🌼', '🌷', '🍄', '🌼'], W: ['🌿', '🍄', '🌱'], S: ['🪦', '🕯️', '🦴', '🍄'], D: ['🌵', '🦴', '🌵'], N: ['❄️', '⛄', '🐧'], L: ['🔥', '♨️', '🔥'], P: ['🐸', '🌿', '🪷'] };
+  var FOREST = { M: ['🌳', '🌲'], W: ['🌲', '🌳'], S: ['🌲'], D: ['🌵', '🌴'], N: ['🌲'], L: ['🪵'], P: ['🌳', '🌿'] };
+  var HILL = { M: '🪨', W: '🪨', S: '🗿', D: '🪨', N: '🪨', L: '🪨', P: '🪨' };
+  var MOUNT = { M: '⛰️', W: '⛰️', S: '⛰️', D: '🏜️', N: '🏔️', L: '🌋', P: '⛰️' };
+  var EF = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  function shade(hex, f) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, gg = (n >> 8) & 255, b = n & 255;
+    r = Math.round(r * f); gg = Math.round(gg * f); b = Math.round(b * f);
+    return 'rgb(' + Math.min(255, r) + ',' + Math.min(255, gg) + ',' + Math.min(255, b) + ')';
+  }
+  function drawTerrain(g, cv) {
+    var m = g.map, W = m.w, H = m.h, ctx = cv.getContext('2d'), rng = CQ.rngFrom(g.seed + ':art');
+    cv.width = W * T; cv.height = H * T;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    var o = new Int16Array(W * H).fill(-1);
+    m.castles.forEach(function (c) { for (var y = c.y; y < c.y + 2; y++) for (var x = c.x; x < c.x + 2; x++) o[y * W + x] = c.id; });
+    var emo = [];
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var i = y * W + x, t = m.t[i], b = m.bm[i], ck = (x + y) & 1, fill;
+      if (t === 'w') fill = WCOL[ck];
+      else if (t === 'r') fill = RCOL[ck];
+      else if (t === 'b') fill = '#b98150';
+      else if (t === 'm') fill = shade(BCOL[b][ck], 0.86);
+      else fill = BCOL[b][ck];
+      if (o[i] >= 0) fill = RCOL[ck];
+      ctx.fillStyle = fill; ctx.fillRect(x * T, y * T, T, T);
+      var cx = x * T + T / 2, cy = y * T + T / 2, r = rng();
+      if (t === 'b') {
+        ctx.fillStyle = '#8a5a30';
+        for (var k = 4; k < T; k += 7) ctx.fillRect(x * T + k, y * T + 2, 2, T - 4);
+      } else if (t === 'w') { if (r < 0.06) emo.push(['〰️', cx, cy, 16]); }
+      else if (t === 'f') emo.push([pickA(FOREST[b], rng), cx + (rng() - 0.5) * 4, cy - 2, 24]);
+      else if (t === 'h') emo.push([HILL[b], cx, cy, 20]);
+      else if (t === 'm') emo.push([MOUNT[b], cx, cy - 2, 28]);
+      else if (t === 'g' && o[i] < 0 && r < 0.06) emo.push([pickA(DECO[b], rng), cx, cy, 16]);
+    }
+    // soft shadow along water edges
+    ctx.fillStyle = 'rgba(255,255,255,.22)';
+    for (var y2 = 0; y2 < H; y2++) for (var x2 = 0; x2 < W; x2++) {
+      var i2 = y2 * W + x2; if (m.t[i2] !== 'w') continue;
+      if (y2 > 0 && m.t[i2 - W] !== 'w' && m.t[i2 - W] !== 'b') ctx.fillRect(x2 * T, y2 * T, T, 3);
+    }
+    emo.sort(function (a, b) { return a[2] - b[2]; });
+    emo.forEach(function (e) { ctx.font = e[3] + 'px ' + EF; ctx.fillText(e[0], e[1], e[2]); });
+  }
+  function pickA(a, rng) { return a[Math.floor(rng() * a.length)]; }
+
   function buildMap() {
     var g = G(), m = g.map;
-    $('#mapInner').innerHTML = '<svg id="mapSvg" viewBox="0 0 ' + m.w + ' ' + m.h + '" xmlns="http://www.w3.org/2000/svg"><g id="stat">' + staticMap(g) + '</g><g id="dyn"></g><g id="fog"></g></svg>';
+    $('#mapInner').innerHTML = '<canvas id="terrain"></canvas><svg id="mapSvg" viewBox="0 0 ' + (m.w * T) + ' ' + (m.h * T) + '" xmlns="http://www.w3.org/2000/svg"><g id="labels"></g><g id="dyn"></g><g id="rep"></g><g id="fog"></g><g id="fx"></g></svg>';
+    drawTerrain(g, $('#terrain'));
     fogKey = '';
     $('#mapSvg').addEventListener('click', onMapClick);
   }
   function fitMap(center) {
     var g = G(); if (!g) return;
-    var wrap = $('#mapWrap'), cw = wrap.clientWidth, ch = wrap.clientHeight;
-    var fit = Math.min(cw / g.map.w, ch / g.map.h);
-    if (S.zoom == null) S.zoom = Math.max(fit, cw < 700 ? 0.62 : 0.85);
-    var svg = $('#mapSvg'); svg.setAttribute('width', Math.round(g.map.w * S.zoom)); svg.setAttribute('height', Math.round(g.map.h * S.zoom));
-    // center wrapper when smaller than view
-    var inner = $('#mapInner');
-    inner.style.marginLeft = Math.max(0, (cw - g.map.w * S.zoom) / 2) + 'px';
-    inner.style.marginTop = Math.max(0, (ch - g.map.h * S.zoom) / 2) + 'px';
+    var wrap = $('#mapWrap'), cw = wrap.clientWidth, ch = wrap.clientHeight, PW = g.map.w * T, PH = g.map.h * T;
+    var fit = Math.min(cw / PW, ch / PH);
+    if (S.zoom == null) S.zoom = Math.max(fit, cw < 700 ? 0.8 : 1);
+    var w = Math.round(PW * S.zoom), h = Math.round(PH * S.zoom);
+    var svg = $('#mapSvg'), cv = $('#terrain');
+    svg.setAttribute('width', w); svg.setAttribute('height', h);
+    cv.style.width = w + 'px'; cv.style.height = h + 'px';
+    var inner = $('#mapInner'); inner.style.width = w + 'px'; inner.style.height = h + 'px';
+    inner.style.marginLeft = Math.max(0, (cw - w) / 2) + 'px';
+    inner.style.marginTop = Math.max(0, (ch - h) / 2) + 'px';
     if (center) {
-      var e = E(), slot = viewer(e), hc = CQ.castlesOf(g, slot)[0];
-      var h = g.heroes[slot]; if (h && h.army == null) hc = h.c;
-      if (hc != null) { var c = g.map.castles[hc]; wrap.scrollLeft = c.x * S.zoom - cw / 2; wrap.scrollTop = c.y * S.zoom - ch / 2; }
+      var e = E(), slot = viewer(e), hc = CQ.castlesOf(g, slot)[0], pt = null;
+      var hh = g.heroes[slot]; if (hh && hh.army == null) hc = hh.c;
+      if (hc != null) { var c = g.map.castles[hc]; pt = { x: (c.x + 1) * T, y: (c.y + 1) * T }; }
+      else { var A0 = CQ.armiesOf(g, slot)[0]; if (A0) pt = tileMid(A0.x, A0.y); }
+      if (pt) { wrap.scrollLeft = pt.x * S.zoom - cw / 2; wrap.scrollTop = pt.y * S.zoom - ch / 2; }
     }
   }
+  function tileMid(x, y) { return { x: (x + 0.5) * T, y: (y + 0.5) * T }; }
   function ensureVisible(pt, instant) {
-    var wrap = $('#mapWrap'), x = pt.x * S.zoom, y = pt.y * S.zoom, pad = 80;
+    var wrap = $('#mapWrap'), x = pt.x * S.zoom, y = pt.y * S.zoom, pad = 90;
     var sl = wrap.scrollLeft, st = wrap.scrollTop, w = wrap.clientWidth, h = wrap.clientHeight;
     var nl = x < sl + pad ? x - pad : x > sl + w - pad ? x - w + pad : sl;
     var nt = y < st + pad ? y - pad : y > st + h - pad ? y - h + pad : st;
-    if (nl !== sl || nt !== st) try { wrap.scrollTo({ left: nl, top: nt, behavior: instant ? 'auto' : 'smooth' }); } catch (e) { wrap.scrollLeft = nl; wrap.scrollTop = nt; }
+    if (Math.abs(nl - sl) > 1 || Math.abs(nt - st) > 1) try { wrap.scrollTo({ left: nl, top: nt, behavior: instant ? 'auto' : 'smooth' }); } catch (e) { wrap.scrollLeft = nl; wrap.scrollTop = nt; }
   }
   function zoomBy(f) {
     var wrap = $('#mapWrap'), g = G(), cx = (wrap.scrollLeft + wrap.clientWidth / 2) / S.zoom, cy = (wrap.scrollTop + wrap.clientHeight / 2) / S.zoom;
-    var fit = Math.min(wrap.clientWidth / g.map.w, wrap.clientHeight / g.map.h);
-    S.zoom = Math.max(Math.min(fit, 0.5), Math.min(2, S.zoom * f));
+    var fit = Math.min(wrap.clientWidth / (g.map.w * T), wrap.clientHeight / (g.map.h * T));
+    S.zoom = Math.max(Math.min(fit, 0.4), Math.min(1.8, S.zoom * f));
     fitMap(false);
     wrap.scrollLeft = cx * S.zoom - wrap.clientWidth / 2; wrap.scrollTop = cy * S.zoom - wrap.clientHeight / 2;
   }
@@ -1929,146 +2016,184 @@ var NET = (function () {
     var e = E(), g = e.g, t = g.turn, c = COLORS[t], v = viewer(e);
     $('#turnChip').style.background = c.light;
     $('#turnChip').innerHTML = '<span class="av">' + esc(g.slots[t].avatar) + '</span><span class="nm">' + (g.over ? 'Game over' : esc(g.slots[t].name) + (canMove(e) ? '' : '\'s turn')) + '</span>';
-    $('#roundBox').textContent = 'Round ' + g.round + '/' + g.maxRounds;
+    $('#roundBox').textContent = '';
     var inc = CQ.incomeOf(g, v);
     $('#goldBox').innerHTML = '💰 ' + g.gold[v] + ' <small>+' + inc + '</small>';
-    $('#btnEnd').style.display = canMove(e) ? '' : 'none';
+    $('#btnEnd').style.display = canMove(e) && !S.rep ? '' : 'none';
     var sc = CQ.activeSlots(g).map(function (i) {
       return '<span class="sc ' + (g.slots[i].alive ? '' : 'out') + (i === t && !g.over ? ' now' : '') + '" style="border-color:' + COLORS[i].main + '"><span class="av">' + esc(g.slots[i].avatar) + '</span>' + esc(whoName(g, i)) + ' · 🏰' + CQ.castlesOf(g, i).length + '</span>';
     }).join('');
     if (e.online) sc += '<span class="sc" id="syncBadge" style="border-color:#ccc;margin-left:auto">' + syncHTML() + '</span>';
     $('#scores').innerHTML = sc;
     var b = $('#banner');
-    if (g.over) { b.className = 'banner on'; b.textContent = g.winner >= 0 ? '🏆 ' + g.slots[g.winner].name + ' won the quest!' : '🤝 It\'s a tie!'; }
+    if (S.rep) { b.className = 'banner on rep'; b.innerHTML = '<span class="rt">👀 Watching <b>' + esc(g.slots[S.rep.slot].name) + '</b>\'s turn…</span><button class="btn small white" id="repSkip">Skip ⏩</button>'; $('#repSkip').onclick = function () { S.rep.skip = true; }; }
+    else if (g.over) { b.className = 'banner on'; b.textContent = g.winner >= 0 ? '🏆 ' + g.slots[g.winner].name + ' won the quest!' : '🤝 It\'s a tie!'; }
     else if (canMove(e)) { b.className = 'banner'; document.title = (e.online ? '🔔 Your turn! – ' : '') + 'Castle Quest'; }
     else { b.className = 'banner on wait'; b.textContent = g.slots[t].kind === 'ai' ? '🤖 The computer is thinking…' : '⏳ Waiting for ' + whoName(g, t) + ' to play…'; document.title = 'Castle Quest'; }
   }
-  // ---------- vision helpers ----------
+
+  // ---------- vision ----------
   function view(e) {
     e = e || E(); var g = e.g, slot = viewer(e), fog = !!(g.fogOn && !g.over);
     var vis = fog ? CQ.visibleCastles(g, slot) : g.map.castles.map(function () { return true; });
     return { slot: slot, fog: fog, vis: vis, vw: fog ? CQ.viewers(g, slot) : null };
   }
-  function knows(g, V, cid) { return !V.fog || CQ.explored(g, V.slot, cid); }
-  function shownOwner(g, V, cid) { return V.vis[cid] ? g.cs[cid].owner : g.seen[V.slot][cid]; }
+  function knows(g, V, cid) { return !V.fog || g.seen[V.slot][cid] != null || g.cs[cid].owner === V.slot; }
+  function shownOwner(g, V, cid) {
+    if (S.rep && V.vis[cid]) return S.rep.owners[cid];
+    return V.vis[cid] ? g.cs[cid].owner : g.seen[V.slot][cid];
+  }
   function armyShown(g, V, A) { return !V.fog || CQ.armyVisible(g, V.slot, A, V.vw); }
   function leadUnit(u) { var k = ['d', 'k', 'a', 's'].filter(function (x) { return u[x] > 0; })[0]; return k ? U[k].emoji : '🚩'; }
 
   var fogKey = '';
-  function fogSVG(g, V) {
-    if (!V.fog) return '';
-    var str = g.fog[V.slot], d = CQ.fogDims(g), F = CQ.FOG_CELL, c = '';
-    for (var i = 0; i < str.length; i++) if (str[i] === '1') c += '<circle cx="' + ((i % d.cw) + 0.5) * F + '" cy="' + (Math.floor(i / d.cw) + 0.5) * F + '" r="' + (F * 0.8) + '"/>';
-    return '<mask id="fogmask" maskUnits="userSpaceOnUse" x="0" y="0" width="' + g.map.w + '" height="' + g.map.h + '"><rect x="0" y="0" width="' + g.map.w + '" height="' + g.map.h + '" fill="#fff"/><g fill="#000" filter="url(#fogblur)">' + c + '</g></mask>' +
-      '<rect x="0" y="0" width="' + g.map.w + '" height="' + g.map.h + '" fill="url(#cloudpat)" mask="url(#fogmask)" pointer-events="none"/>';
+  function renderFog(force) {
+    var e = E(), g = e.g, V = view(e), W = g.map.w, H = g.map.h;
+    if (!V.fog) { if (fogKey !== 'off') { $('#fog').innerHTML = ''; fogKey = 'off'; } return; }
+    var vt = CQ.visibleTiles(g, V.slot), f = g.fog[V.slot], key = V.slot + f + vt.join('');
+    if (key === fogKey && !force) return;
+    fogKey = key;
+    var p0 = '', p1 = '', dim = '';
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var i = y * W + x, sq = 'M' + x * T + ' ' + y * T + 'h' + T + 'v' + T + 'h-' + T + 'z';
+      if (f[i] !== '1') { if ((x + y) & 1) p1 += sq; else p0 += sq; }
+      else if (!vt[i]) dim += sq;
+    }
+    $('#fog').innerHTML = '<path d="' + dim + '" fill="rgba(30,28,70,.26)" pointer-events="none"/><path d="' + p0 + '" fill="#d3dbe8" pointer-events="none"/><path d="' + p1 + '" fill="#dde4ef" pointer-events="none"/>';
   }
-  function renderFog() {
-    var e = E(), g = e.g, V = view(e), key = V.fog ? V.slot + ':' + g.fog[V.slot] : 'off';
-    if (key === fogKey) return;
-    fogKey = key; $('#fog').innerHTML = fogSVG(g, V);
-  }
-
-  function reachable(g, t, from) {
-    var av = CQ.avail(g, from), h = g.heroes[t], heroHere = !!(h && h.army == null && h.c === from);
-    if (!CQ.cnt(av) && !heroHere) return null;
-    var out = {};
-    g.map.castles.forEach(function (c, j) {
-      if (j === from || !CQ.explored(g, t, j)) return;
-      if (!CQ.cnt(av) && g.cs[j].owner !== t) return;
-      var r = CQ.route(g, t, from, j, av);
-      if (!r && av.d) r = CQ.route(g, t, from, j, { s: 0, a: 0, k: 0, d: av.d });
-      if (r) out[j] = r;
+  function renderLabels(g, V) {
+    var s = '';
+    (g.map.regions || []).forEach(function (r) {
+      if (V.fog && !CQ.tileKnown(g, V.slot, r.x, r.y)) return;
+      var ly = r.y, lx = r.x;
+      for (var k = 0; k < 8 && g.map.castles.some(function (c) { return Math.abs(c.x + 0.5 - lx) < 3.5 && Math.abs(c.y + 0.5 - ly) < 2.5; }); k++) ly += (k % 2 ? 3 : -3) * (k + 1) / 2;
+      var w = r.name.length * 7.4 + 22, x = (lx + 0.5) * T, y = (ly + 0.5) * T;
+      s += '<g transform="translate(' + x + ' ' + y + ')" pointer-events="none" opacity=".92"><rect x="' + (-w / 2) + '" y="-12" width="' + w + '" height="24" rx="12" fill="#2d2a4a"/><text y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">' + esc(r.name) + '</text></g>';
     });
-    return out;
+    $('#labels').innerHTML = s;
   }
 
+  // ---------- drawing castles & armies ----------
+  function armyTokenSVG(o, look, x, y, id, sel, moving, mine) {
+    var cc = COLORS[o], s = '<g class="army' + (moving ? ' moving' : '') + '" data-army="' + (id || '') + '" transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')">';
+    s += '<rect x="-17" y="-17" width="34" height="34" fill="transparent"/>';
+    if (sel) s += '<rect class="sel-sq" x="-19" y="-19" width="38" height="38" rx="6" fill="rgba(255,236,120,.35)" stroke="#ffcf33" stroke-width="3.5" stroke-dasharray="7 5"/>';
+    s += '<ellipse cx="0" cy="13" rx="14" ry="4" fill="rgba(0,0,0,.25)"/>';
+    s += '<rect x="-14" y="-14" width="28" height="26" rx="7" fill="' + cc.light + '" stroke="' + cc.main + '" stroke-width="3"/>';
+    var us = look.u || [];
+    s += '<g class="walker"><text y="6" font-size="19" text-anchor="middle">' + (us.length ? U[us[0]].emoji : '🚩') + '</text></g>';
+    s += '<g transform="translate(13 11)"><circle r="9" fill="' + cc.main + '" stroke="' + INK + '" stroke-width="2"/><text y="3.8" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">' + look.n + '</text></g>';
+    if (look.h) s += '<g transform="translate(-13 -13)"><circle r="9" fill="#fff" stroke="' + cc.main + '" stroke-width="2.5"/><text y="4" font-size="11" text-anchor="middle">' + esc(look.h) + '</text></g>';
+    s += '<path d="M-3 -14 L-3 -27" stroke="' + INK + '" stroke-width="1.8"/><path d="M-3 -27 L9 -23 L-3 -19 Z" fill="' + cc.main + '" stroke="' + INK + '" stroke-width="1.2"/>';
+    return s + '</g>';
+  }
   function renderDyn() {
     var e = E(), g = e.g, m = g.map, C = m.castles, s = '', me = canMove(e), V = view(e), t = g.turn;
+    renderLabels(g, V);
     var selC = S.sel, selA = S.selArmy ? CQ.armyById(g, S.selArmy) : null;
     if (S.selArmy && !selA) S.selArmy = null;
-    var reach = (me && selC != null && g.cs[selC].owner === t) ? reachable(g, t, selC) : null;
-    // routes of my armies
-    g.armies.forEach(function (A) {
-      if (A.o !== V.slot || !A.route.length) return;
-      var p = CQ.armyPos(g, A), pts = [p].concat(A.route.map(function (c) { return C[c]; }));
-      var d = 'M' + pts.map(function (q) { return q.x.toFixed(0) + ' ' + q.y.toFixed(0); }).join(' L');
-      var on = selA === A;
-      s += '<path d="' + d + '" fill="none" stroke="' + (on ? '#fff3a8' : '#ffffff') + '" stroke-width="' + (on ? 9 : 5) + '" stroke-dasharray="3 12" stroke-linecap="round" opacity="' + (on ? 1 : 0.8) + '"/>';
-      var last = C[A.route[A.route.length - 1]];
-      s += '<text x="' + (last.x + 6) + '" y="' + (last.y - 50) + '" font-size="26" pointer-events="none">🚩</text>';
-    });
+    // path preview for my selected army
+    if (selA && selA.o === V.slot && selA.goal) {
+      var pth = CQ.pathFor(g, selA), mp = me ? selA.mp : CQ.armySpeed(selA.u, !!CQ.heroInArmy(g, selA)), used = 0;
+      if (pth) pth.path.forEach(function (p, k) {
+        used += CQ.stepCost(g, selA, p[0], p[1]);
+        var ok = used <= mp, c = tileMid(p[0], p[1]), last = k === pth.path.length - 1;
+        s += '<circle cx="' + c.x + '" cy="' + c.y + '" r="' + (last ? 7 : 4.5) + '" fill="' + (ok ? '#2fd46f' : '#ff6b6b') + '" stroke="' + INK + '" stroke-width="1.5" pointer-events="none"/>';
+      });
+      if (pth && pth.path.length) { var lp = pth.path[pth.path.length - 1], lc = tileMid(lp[0], lp[1]); s += '<text x="' + (lc.x + 6) + '" y="' + (lc.y - 8) + '" font-size="22" pointer-events="none">🚩</text>'; }
+      if (selA.goal.c != null && g.cs[selA.goal.c].owner !== V.slot) { var gc = C[selA.goal.c]; s += '<rect x="' + (gc.x * T - 3) + '" y="' + (gc.y * T - 3) + '" width="' + (2 * T + 6) + '" height="' + (2 * T + 6) + '" rx="8" fill="none" stroke="#ff4a50" stroke-width="4" stroke-dasharray="8 5" pointer-events="none"/>'; }
+    }
     C.forEach(function (c, i) {
       if (!knows(g, V, i)) return;
-      var st = g.cs[i], vis = V.vis[i], o = vis ? st.owner : shownOwner(g, V, i), cc = col(o == null ? -1 : o), n = CQ.cnt(st.u);
-      s += '<g class="c-hit" data-c="' + i + '" transform="translate(' + c.x + ' ' + c.y + ')"><circle r="48" fill="transparent"/>';
-      if (selC === i) s += '<circle class="sel-ring" r="52" fill="rgba(255,236,120,.35)" stroke="#ffcf33" stroke-width="5" stroke-dasharray="12 8"/>';
-      if (reach && reach[i]) { var rc = st.owner === t ? '#2fbf6a' : '#ff4a50'; s += '<circle class="tgt-ring" r="50" fill="' + rc + '" fill-opacity=".14" stroke="' + rc + '" stroke-width="4"/>'; }
-      s += castleSVG(c.size, c.home, o == null ? -1 : o);
-      s += '<text class="c-name" y="' + (c.size === 'village' && !c.home ? 42 : 46) + '" text-anchor="middle">' + esc(c.name) + '</text>';
-      s += '<g class="c-badge" transform="translate(33 14)"><circle r="15" fill="' + cc.main + '" stroke="' + INK + '" stroke-width="2.5"/><text y="5.5" text-anchor="middle">' + (vis ? n : '?') + '</text></g>';
-      if (st.treasure) s += '<text x="30" y="-30" font-size="20" text-anchor="middle">💰</text>';
+      var st = g.cs[i], vis = V.vis[i], o = shownOwner(g, V, i); if (o == null) o = -1;
+      var cc = col(o), n = CQ.cnt(st.u), cx = (c.x + 1) * T, cy = (c.y + 1) * T;
+      s += '<g class="c-hit" data-c="' + i + '" transform="translate(' + cx + ' ' + cy + ')"><rect x="-' + T + '" y="-' + T + '" width="' + (2 * T) + '" height="' + (2 * T) + '" fill="transparent"/>';
+      s += '<rect x="-' + (T - 2) + '" y="-' + (T - 2) + '" width="' + (2 * T - 4) + '" height="' + (2 * T - 4) + '" rx="6" fill="' + cc.main + '" fill-opacity=".22" stroke="' + cc.main + '" stroke-width="2.5" stroke-opacity=".8"/>';
+      if (selC === i) s += '<rect class="sel-sq" x="-' + (T + 3) + '" y="-' + (T + 3) + '" width="' + (2 * T + 6) + '" height="' + (2 * T + 6) + '" rx="8" fill="none" stroke="#ffcf33" stroke-width="4.5" stroke-dasharray="10 6"/>';
+      s += '<g transform="translate(0 2) scale(.68)">' + castleSVG(c.size, c.home, o) + '</g>';
+      var lw = c.name.length * 6.6 + 16;
+      s += '<g transform="translate(0 ' + (T + 10) + ')"><rect x="' + (-lw / 2) + '" y="-10" width="' + lw + '" height="20" rx="10" fill="#2d2a4a" opacity=".9"/><text y="4.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" pointer-events="none">' + esc(c.name) + '</text></g>';
+      s += '<g transform="translate(' + (T - 6) + ' ' + (T - 12) + ')"><circle r="12" fill="' + cc.main + '" stroke="' + INK + '" stroke-width="2.5"/><text y="4.5" font-size="13" font-weight="700" fill="#fff" text-anchor="middle" pointer-events="none">' + (vis ? n : '?') + '</text></g>';
+      if (st.treasure) s += '<text x="' + (T - 8) + '" y="' + (-T + 8) + '" font-size="17" text-anchor="middle" pointer-events="none">💰</text>';
+      var hh = CQ.heroAtCastle(g, i);
+      if (hh && (vis || hh.slot === V.slot)) s += '<g transform="translate(' + (-T + 6) + ' ' + (-T + 6) + ')" pointer-events="none"><circle r="12" fill="#fff" stroke="' + COLORS[hh.slot].main + '" stroke-width="3"/><text y="5" font-size="14" text-anchor="middle">' + esc(g.slots[hh.slot].avatar) + '</text><g transform="translate(9 9)"><circle r="7" fill="#ffc83d" stroke="' + INK + '" stroke-width="1.5"/><text y="3.5" font-size="9" font-weight="700" text-anchor="middle" fill="' + INK + '">' + hh.h.lvl + '</text></g></g>';
       s += '</g>';
     });
-    // heroes in castles
-    g.heroes.forEach(function (h, i) {
-      if (!h || h.army != null || (!V.vis[h.c] && i !== V.slot)) return; var c = C[h.c];
-      s += heroBadge(g, i, h, c.x - 34, c.y - 30);
-    });
-    // armies
-    var spots = {};
     g.armies.forEach(function (A) {
+      if (S.rep && S.rep.hide[A.id]) return;
       if (!armyShown(g, V, A)) return;
-      var p = CQ.armyPos(g, A), key = Math.round(p.x / 20) + ',' + Math.round(p.y / 20), k = spots[key] = (spots[key] || 0) + 1;
-      var x = p.x + (k - 1) * 30, y = p.y - (k - 1) * 12, cc = COLORS[A.o], h = CQ.heroInArmy(g, A), n = CQ.cnt(A.u);
-      s += '<g class="c-hit" data-army="' + A.id + '" transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')">';
-      if (selA === A) s += '<circle class="sel-ring" r="33" fill="rgba(255,236,120,.4)" stroke="#ffcf33" stroke-width="4" stroke-dasharray="8 6"/>';
-      s += '<circle r="34" fill="transparent"/><ellipse cx="0" cy="21" rx="20" ry="6" fill="rgba(0,0,0,.22)"/><circle r="24" fill="' + cc.light + '" stroke="' + cc.main + '" stroke-width="5"/><circle r="27" fill="none" stroke="' + INK + '" stroke-width="2.5"/>';
-      s += '<text y="9" font-size="27" text-anchor="middle">' + leadUnit(A.u) + '</text>';
-      s += '<g transform="translate(22 16)"><circle r="13" fill="' + cc.main + '" stroke="' + INK + '" stroke-width="2.5"/><text y="5" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">' + n + '</text></g>';
-      if (h) s += '<g transform="translate(-23 -20)"><circle r="14" fill="#fff" stroke="' + cc.main + '" stroke-width="3"/><text y="6" font-size="17" text-anchor="middle">' + esc(g.slots[A.o].avatar) + '</text></g>';
-      if (A.o === V.slot && A.route.length && A.mp > 0 && me) s += '<text x="0" y="-31" font-size="18" text-anchor="middle">🥾</text>';
-      s += '</g>';
+      var p = tileMid(A.x, A.y);
+      s += armyTokenSVG(A.o, CQ.armyLook(g, A), p.x, p.y, A.id, selA === A, false, A.o === V.slot);
+      if (A.o === V.slot && me && A.mp > 0 && !S.rep) s += '<text x="' + (p.x + 14) + '" y="' + (p.y - 14) + '" font-size="12" pointer-events="none">🥾</text>';
+      if (A.o === V.slot && CQ.atGates(g, A) != null && !S.rep) s += '<text x="' + (p.x - 16) + '" y="' + (p.y + 22) + '" font-size="13" pointer-events="none">⚔️</text>';
     });
     $('#dyn').innerHTML = s;
     renderFog();
   }
-  function heroBadge(g, i, h, x, y) {
-    return '<g transform="translate(' + x + ' ' + y + ')" pointer-events="none"><circle r="16" fill="#fff" stroke="' + COLORS[i].main + '" stroke-width="4"/><text y="6.5" font-size="19" text-anchor="middle">' + esc(g.slots[i].avatar) + '</text>' +
-      '<g transform="translate(12 12)"><circle r="8.5" fill="#ffc83d" stroke="' + INK + '" stroke-width="2"/><text y="4" font-size="11" font-weight="700" text-anchor="middle" fill="' + INK + '">' + h.lvl + '</text></g></g>';
-  }
 
-  function onMapClick(ev) {
-    if (S.busy) return;
-    var ae = ev.target.closest('[data-army]'), ce = ev.target.closest('[data-c]'), e = E(), g = e.g, me = canMove(e);
-    if (!ae && !ce) { S.sel = null; S.selArmy = null; renderDyn(); renderPanel(); fitMap(false); return; }
-    SFX.tap();
-    if (ce && !ae) {
-      var i = +ce.getAttribute('data-c');
-      var A = S.selArmy && CQ.armyById(g, S.selArmy);
-      if (me && A && A.o === g.turn) { orderTo(A, i); return; }
-      if (me && S.sel != null && S.sel !== i && g.cs[S.sel].owner === g.turn) {
-        var reach = reachable(g, g.turn, S.sel);
-        if (reach && reach[i]) { sendDialog(S.sel, i); return; }
-        if (reach && g.cs[i].owner !== g.turn) { toast('Your army can\'t reach ' + g.map.castles[i].name + ' yet. Capture the castles on the way first!', 3200); return; }
-      }
-      S.sel = S.sel === i ? null : i; S.selArmy = null;
-    } else {
-      var id = ae.getAttribute('data-army');
-      S.selArmy = S.selArmy === id ? null : id; S.sel = null;
-    }
-    renderDyn(); renderPanel(); fitMap(false);
-    if (S.sel != null) ensureVisible(g.map.castles[S.sel]);
-    else if (S.selArmy) ensureVisible(CQ.armyPos(g, CQ.armyById(g, S.selArmy)));
+  // ---------- tapping the map ----------
+  function tileFromEvent(ev) {
+    var r = $('#mapInner').getBoundingClientRect(), g = G();
+    var x = Math.floor((ev.clientX - r.left) / (T * S.zoom)), y = Math.floor((ev.clientY - r.top) / (T * S.zoom));
+    if (x < 0 || y < 0 || x >= g.map.w || y >= g.map.h) return null;
+    return { x: x, y: y };
   }
-  async function orderTo(A, cid) {
+  function onMapClick(ev) {
+    if (S.busy || S.rep) return;
+    var e = E(), g = e.g, me = canMove(e), V = view(e), t = g.turn;
+    var tile = tileFromEvent(ev); if (!tile) return;
+    var ae = ev.target.closest('[data-army]'), armyId = ae ? ae.getAttribute('data-army') : null;
+    var tapArmy = armyId ? CQ.armyById(g, armyId) : null;
+    if (!tapArmy) { var at = CQ.armyAt(g, tile.x, tile.y); if (at && armyShown(g, V, at)) tapArmy = at; }
+    var cid = CQ.castleAt(g, tile.x, tile.y); if (cid >= 0 && !knows(g, V, cid)) cid = -1;
+    var selA = S.selArmy ? CQ.armyById(g, S.selArmy) : null;
+    SFX.tap();
+    // 1) my army is selected: give it an order
+    if (me && selA && selA.o === t) {
+      if (tapArmy === selA) { S.selArmy = null; rerender(); return; }
+      if (tapArmy && tapArmy.o !== t) { armyAttackArmy(selA, tapArmy); return; }
+      if (tapArmy && tapArmy.o === t) { orderTo(selA, { x: tapArmy.x, y: tapArmy.y }, tile); return; }
+      if (cid >= 0) {
+        if (g.cs[cid].owner !== t && CQ.gatesList(g, selA).indexOf(cid) >= 0) { attackDialog(selA, cid); return; }
+        orderTo(selA, { c: cid }, tile); return;
+      }
+      var wt = walkable(g, tile, selA.u); if (!wt) { toast('🚧 Your army can\'t walk there.', 2500); return; }
+      orderTo(selA, wt, tile); return;
+    }
+    // 2) my castle is selected: send an army
+    if (me && S.sel != null && g.cs[S.sel].owner === t && cid !== S.sel) {
+      if (tapArmy && tapArmy.o === t) { S.sel = null; S.selArmy = tapArmy.id; rerender(); return; }
+      var goal = tapArmy ? { army: tapArmy.id } : cid >= 0 ? { c: cid } : walkable(g, tile, CQ.avail(g, S.sel));
+      if (!goal) { toast('🚧 Nobody can walk there.', 2500); return; }
+      if (CQ.cnt(CQ.avail(g, S.sel)) || (g.heroes[t] && g.heroes[t].army == null && g.heroes[t].c === S.sel)) { sendDialog(S.sel, goal); return; }
+    }
+    // 3) otherwise: select what was tapped
+    if (tapArmy) { S.selArmy = tapArmy.id; S.sel = null; }
+    else if (cid >= 0) { S.sel = S.sel === cid ? null : cid; S.selArmy = null; }
+    else { S.sel = null; S.selArmy = null; }
+    renderDyn(); renderPanel(); fitMap(false);
+  }
+  // tapped a mountain or lake? pick the closest square you can stand on
+  function walkable(g, tile, u) {
+    var fly = CQ.flyer(u), best = null;
+    for (var r = 0; r <= 3 && !best; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      var x = tile.x + dx, y = tile.y + dy; if (x < 0 || y < 0 || x >= g.map.w || y >= g.map.h) continue;
+      if (CQ.castleAt(g, x, y) >= 0) continue;
+      if (!CQ.tileCost(g, x, y, fly)) continue;
+      var d = Math.hypot(dx, dy); if (!best || d < best.d) best = { x: x, y: y, d: d };
+    }
+    return best ? { x: best.x, y: best.y } : null;
+  }
+  async function orderTo(A, goal, tile) {
     var e = E(), g = e.g;
-    if (!CQ.explored(g, A.o, cid)) return;
-    var r = CQ.orderArmy(g, A.o, A.id, cid);
+    var same = A.goal && JSON.stringify(A.goal) === JSON.stringify(goal);
+    if (same && A.mp > 0) { await animateArmy(A.id); return; }
+    var r = CQ.orderArmy(g, A.o, A.id, goal);
     if (!r.ok) { toast(r.msg, 3000); return; }
-    bump(e);
-    toast('🚩 Marching to ' + g.map.castles[cid].name + (r.turns === 0 ? ' — gets there this turn!' : ' — ' + r.turns + ' more turn' + (r.turns > 1 ? 's' : '')), 2600);
-    rerender();
-    if (A.mp > 0) await animateArmy(A.id);
+    bump(e); rerender();
+    if (A.mp <= 0) { toast('🚩 Order set! This army is out of steps, so it will march next turn.', 3000); return; }
+    toast(r.turns === 0 ? '🚩 Tap again (or ▶ March) to go! It gets there this turn.' : '🚩 Tap again (or ▶ March) to go! About ' + (r.turns + 1) + ' turns to get there.', 3000);
   }
 
   function troopsHTML(u, avail) {
@@ -2079,24 +2204,24 @@ var NET = (function () {
     return h || '<span class="troop"><small>No troops</small></span>';
   }
   function renderPanel() {
-    var e = E(), g = e.g, P = $('#panel'), me = canMove(e), t = g.turn, i = S.sel, V = view(e);
+    var e = E(), g = e.g, P = $('#panel'), me = canMove(e) && !S.rep, t = g.turn, i = S.sel, V = view(e);
     var A = S.selArmy ? CQ.armyById(g, S.selArmy) : null;
     if (A) { renderArmyPanel(A); return; }
     if (i == null) {
       if (g.over) P.innerHTML = '<p class="phint">The quest is over. Tap ☰ for the menu.</p>';
       else if (me) {
-        var marching = CQ.armiesOf(g, t).filter(function (x) { return x.route.length; }).length;
-        P.innerHTML = '<div class="ph"><h3>' + esc(g.slots[t].avatar) + ' ' + esc(g.slots[t].name) + '\'s turn</h3><span class="chip">💰 ' + g.gold[t] + ' gold</span></div><p class="phint">Tap one of your <b style="color:' + COLORS[t].dark + '">' + COLORS[t].name.toLowerCase() + '</b> castles to build troops, then tap a castle to march there. ' + (marching ? 'Your armies on the road (🚩) keep marching when you tap <b>End Turn</b>.' : 'When you\'re done, tap <b>End Turn</b>.') + '</p>';
+        var out = CQ.armiesOf(g, t).length;
+        P.innerHTML = '<div class="ph"><h3>' + esc(g.slots[t].avatar) + ' ' + esc(g.slots[t].name) + '\'s turn</h3><span class="chip">💰 ' + g.gold[t] + ' gold</span><span class="chip">🚩 Armies ' + out + '/' + CQ.MAX_ARMIES + '</span></div><p class="phint">Tap one of your <b style="color:' + COLORS[t].dark + '">' + COLORS[t].name.toLowerCase() + '</b> castles to build troops, then tap anywhere on the map to send an army walking there. Tap an army to move it.' + (out ? ' Armies with a 🚩 keep walking when you tap <b>End Turn</b>.' : '') + '</p>';
       }
       else P.innerHTML = '<p class="phint">Tap any castle or army to peek.</p>';
       return;
     }
-    var c = g.map.castles[i], st = g.cs[i], vis = V.vis[i], o = vis ? st.owner : shownOwner(g, V, i), cc = col(o == null ? -1 : o);
+    var c = g.map.castles[i], st = g.cs[i], vis = V.vis[i], o = shownOwner(g, V, i); if (o == null) o = -1;
+    var cc = col(o);
     var h = '<div class="ph"><h3>' + esc(c.name) + '</h3><span class="chip" style="background:' + cc.light + '">' + (o >= 0 ? esc(g.slots[o].avatar) + ' ' + esc(g.slots[o].name) : '🏳️ Neutral') + '</span></div>';
     h += '<div class="stats"><span class="chip">' + (c.home ? '👑 Home castle' : CQ.SIZES[c.size].label) + '</span><span class="chip">💰 +' + CQ.income(g, i) + '/turn</span>' + (vis ? '<span class="chip">🧱 Walls ' + st.walls + '/2' + (st.walls ? ' (+' + Math.round(CQ.WALL_BONUS[st.walls] * 100) + '% defense)' : '') + '</span>' : '') + (CQ.canRoost(g, i) ? '<span class="chip">🥚 Dragon nest</span>' : '') + (st.treasure ? '<span class="chip">💰 Treasure: ' + st.treasure + '</span>' : '') + '</div>';
-    if (!vis) {
-      h += '<p class="phint">☁️ You can\'t see inside from here. Get an army or castle close by to spy on it.</p>';
-    } else {
+    if (!vis) h += '<p class="phint">☁️ You can\'t see inside from here. Walk an army close by to spy on it.</p>';
+    else {
       h += '<div class="troops">' + troopsHTML(st.u, o === t ? CQ.avail(g, i) : null);
       var hh = CQ.heroAtCastle(g, i);
       if (hh) h += '<span class="troop" style="border-color:' + COLORS[hh.slot].main + '">' + esc(g.slots[hh.slot].avatar) + ' ' + esc(hh.h.name) + ' <small>⭐' + hh.h.lvl + ' (+' + hh.h.lvl + ' to every troop)</small></span>';
@@ -2109,10 +2234,9 @@ var NET = (function () {
       }).join('') + '</div>';
       var wc = CQ.wallCost(g, i);
       h += '<div class="acts">' + (wc != null ? '<button class="btn small gold" id="btnWalls"' + (g.gold[t] < wc ? ' disabled' : '') + '>🧱 Stronger walls (💰 ' + wc + ')</button>' : '') + '</div>';
-      var rc = reachable(g, t, i), any = rc && Object.keys(rc).length;
-      h += '<p class="phint">' + (any ? '👉 Tap a <b>glowing</b> castle to march there. ' : '') + 'New troops can march next turn.</p>';
+      h += '<p class="phint">👉 To send an army, tap a spot on the map (or a castle). New troops can march next turn.</p>';
     } else if (me && o !== t) {
-      h += '<p class="phint">To attack, tap one of your castles first, then tap this one.</p>';
+      h += '<p class="phint">To attack: walk an army right up next to this castle, then tap the castle.</p>';
     }
     P.innerHTML = h;
     $$('[data-rec]', P).forEach(function (b) {
@@ -2125,65 +2249,68 @@ var NET = (function () {
     var bw = $('#btnWalls', P); if (bw) bw.onclick = function () { var r = CQ.upgradeWalls(g, t, i); if (!r.ok) { toast(r.msg); return; } SFX.coin(); bump(e); rerender(); };
   }
   function renderArmyPanel(A) {
-    var e = E(), g = e.g, P = $('#panel'), me = canMove(e) && A.o === g.turn, V = view(e), mine = A.o === V.slot, C = g.map.castles, cc = COLORS[A.o], h = CQ.heroInArmy(g, A);
-    var sp = CQ.armySpeed(A.u, !!h);
-    var x = '<div class="ph"><h3>' + leadUnit(A.u) + ' ' + esc(g.slots[A.o].name) + '\'s army</h3><span class="chip" style="background:' + cc.light + '">on the road</span></div>';
+    var e = E(), g = e.g, P = $('#panel'), me = canMove(e) && A.o === g.turn && !S.rep, V = view(e), mine = A.o === V.slot, C = g.map.castles, cc = COLORS[A.o], h = CQ.heroInArmy(g, A);
+    var sp = CQ.armySpeed(A.u, !!h), terr = CQ.TERR_NAME[CQ.terr(g, A.x, A.y)];
+    var x = '<div class="ph"><h3>' + leadUnit(A.u) + ' ' + esc(g.slots[A.o].name) + '\'s army</h3><span class="chip" style="background:' + cc.light + '">' + (mine ? '🥾 ' + A.mp + '/' + sp + ' steps left' : 'on the ' + terr.toLowerCase()) + '</span></div>';
     x += '<div class="troops">' + troopsHTML(A.u, null) + (h ? '<span class="troop" style="border-color:' + cc.main + '">' + esc(g.slots[A.o].avatar) + ' ' + esc(h.name) + ' <small>⭐' + h.lvl + '</small></span>' : '') + '</div>';
     if (mine) {
-      if (A.route.length) {
-        var dest = A.route[A.route.length - 1], r = CQ.routeFromArmy(g, A, dest), turns = r ? CQ.turnsFor(r.steps, sp, A.mp) : '?';
-        x += '<p class="phint">🚩 Marching to <b>' + esc(C[dest].name) + '</b>. ' + (turns === 0 ? 'Gets there this turn!' : 'About ' + turns + ' more turn' + (turns > 1 ? 's' : '') + '.') + ' 🥾 Speed ' + sp + (me ? ', ' + A.mp + ' steps left this turn.' : '.') + '</p>';
-      } else x += '<p class="phint">✋ Waiting on the road.</p>';
+      var gates = CQ.gatesList(g, A);
+      if (A.goal) {
+        var pth = CQ.pathFor(g, A), dest = A.goal.c != null ? C[A.goal.c].name : A.goal.army ? 'the enemy army' : 'the 🚩';
+        var turns = pth ? CQ.turnsFor(pth.cost, sp, A.mp) : '?';
+        x += '<p class="phint">🚩 Heading to <b>' + esc(dest) + '</b>. ' + (pth ? (turns === 0 ? 'Gets there this turn!' : 'About ' + (turns + 1) + ' turns away.') : 'Can\'t find a way!') + ' <span style="color:#1f8a4b">●</span> this turn, <span style="color:#c93338">●</span> later.</p>';
+      } else if (!gates.length) x += '<p class="phint">✋ Waiting here. Tap anywhere on the map to walk there.</p>';
       if (me) {
-        x += '<div class="acts">' + (A.route.length && A.mp > 0 ? '<button class="btn small green" id="btnGo">▶ March now</button>' : '') + (A.route.length ? '<button class="btn small white" id="btnStop">✋ Stop here</button>' : '') + '</div>';
-        x += '<p class="phint">👉 Tap any castle to send this army there instead.</p>';
+        x += '<div class="acts">';
+        gates.forEach(function (cid) { x += '<button class="btn small red" data-atk="' + cid + '"' + (A.mp > 0 ? '' : ' disabled') + '>⚔️ Attack ' + esc(C[cid].name) + '</button>'; });
+        if (A.goal && A.mp > 0) x += '<button class="btn small green" id="btnGo">▶ March</button>';
+        if (A.goal) x += '<button class="btn small white" id="btnStop">✋ Stop</button>';
+        x += '<button class="btn small white" id="btnHome">🏠 Go to nearest castle</button></div>';
+        if (gates.length && A.mp <= 0) x += '<p class="phint">😴 Out of steps. It can attack next turn!</p>';
+        x += '<p class="phint">Up to ' + CQ.MAX_ARMIES + ' armies can be out at once. Walk one army onto another to join them.</p>';
       }
     } else x += '<p class="phint">Where is it going? Nobody knows… 👀</p>';
     P.innerHTML = x;
+    $$('[data-atk]', P).forEach(function (b) { b.onclick = function () { attackDialog(A, +b.getAttribute('data-atk')); }; });
     var go = $('#btnGo', P); if (go) go.onclick = function () { SFX.tap(); animateArmy(A.id); };
     var stp = $('#btnStop', P); if (stp) stp.onclick = function () { CQ.orderArmy(g, A.o, A.id, null); bump(e); rerender(); };
+    var hm = $('#btnHome', P); if (hm) hm.onclick = function () {
+      var best = null; CQ.castlesOf(g, A.o).forEach(function (c) { var d = Math.hypot(C[c].x + 0.5 - A.x, C[c].y + 0.5 - A.y); if (!best || d < best.d) best = { c: c, d: d }; });
+      if (best) orderTo(A, { c: best.c });
+    };
   }
 
   // ---------- SEND ARMY ----------
-  function sendDialog(from, to) {
+  function goalName(g, goal) {
+    if (goal.c != null) return g.map.castles[goal.c].name;
+    if (goal.army) return 'the enemy army';
+    return 'here';
+  }
+  function sendDialog(from, goal) {
     var e = E(), g = e.g, t = g.turn, av = CQ.avail(g, from), V = view(e), C = g.map.castles;
     var h = g.heroes[t], heroHere = !!(h && h.army == null && h.c === from);
-    var dst = g.cs[to], attack = dst.owner !== t;
-    var counts = CQ.copyU(av);
-    if (!CQ.route(g, t, from, to, counts) && av.d) counts = { s: 0, a: 0, k: 0, d: av.d };
-    var withHero = heroHere && (attack || !CQ.cnt(counts));
+    var attackC = goal.c != null && g.cs[goal.c].owner !== t, enemyArmy = goal.army ? CQ.armyById(g, goal.army) : null;
+    var counts = CQ.copyU(av), withHero = heroHere && (attackC || !!enemyArmy || !CQ.cnt(counts));
+    var sp0 = CQ.castleCenter(g, from);
     function body() {
-      var r = CQ.route(g, t, from, to, counts), sp = CQ.armySpeed(counts, withHero);
-      var x = '<h2>' + (attack ? '⚔️ March on ' : '🚩 March to ') + esc(C[to].name) + '</h2>';
-      if (r) {
-        var turns = CQ.turnsFor(r.steps, sp, sp);
-        x += '<p class="center hint">🥾 ' + (turns === 0 ? 'Gets there <b>this turn</b>!' : 'Takes about <b>' + (turns + 1) + ' turns</b> to get there.') + (r.path.length > 1 ? ' Goes through ' + r.path.slice(0, -1).map(function (c) { return esc(C[c].name); }).join(', ') + '.' : '') + '</p>';
-      } else if (CQ.cnt(counts) || withHero) {
-        x += '<p class="center hint">🌊 These troops can\'t get there. ' + (av.d ? 'Only dragons can fly across the water!' : '') + '</p>';
-      }
-      if (attack) {
-        if (V.vis[to]) {
-          var d = g.cs[to], dh = CQ.heroAtCastle(g, to);
-          x += '<div class="vs"><div class="side"><h4>Your army</h4><div class="units">' + unitsRow(counts) + (withHero ? '<span>' + esc(g.slots[t].avatar) + '</span>' : '') + '</div></div><div class="mid">⚔️</div><div class="side"><h4>' + (d.owner >= 0 ? esc(g.slots[d.owner].name) : 'Neutral') + '</h4><div class="units">' + (unitsRow(d.u) || '<small>empty!</small>') + (dh && dh.slot === d.owner ? '<span>' + esc(g.slots[dh.slot].avatar) + '</span>' : '') + '</div>' + (d.walls ? '<div class="center hint">🧱 +' + Math.round(CQ.WALL_BONUS[d.walls] * 100) + '% walls</div>' : '') + '</div></div>';
-        } else x += '<p class="center">☁️ You can\'t see who\'s inside ' + esc(C[to].name) + '. Could be a few squires… or a dragon!</p>';
-      }
+      var sp = CQ.armySpeed(counts, withHero), pth = (CQ.cnt(counts) || withHero) ? CQ.findPath(g, t, sp0.x, sp0.y, goal, counts) : null;
+      var title = goal.c != null ? (attackC ? '⚔️ March to ' + esc(C[goal.c].name) : '🏰 Move to ' + esc(C[goal.c].name)) : enemyArmy ? '⚔️ Chase the enemy army!' : '🚩 Explore!';
+      var x = '<h2>' + title + '</h2>';
+      if (CQ.armiesOf(g, t).length >= CQ.MAX_ARMIES) x += '<div class="warn">You already have ' + CQ.MAX_ARMIES + ' armies out. Bring one home or join two together first!</div>';
+      if (pth) {
+        var turns = CQ.turnsFor(pth.cost, sp, sp);
+        x += '<p class="center hint">🥾 ' + (turns === 0 ? 'Gets there <b>this turn</b>!' : 'About <b>' + (turns + 1) + ' turns</b> of walking.') + (attackC ? ' The army stops outside the walls. Then you choose to attack.' : '') + '</p>';
+      } else if (CQ.cnt(counts) || withHero) x += '<p class="center hint">🌊 These troops can\'t walk there.' + (av.d ? ' Try sending only dragons. They fly!' : '') + '</p>';
       UK.forEach(function (k) {
         if (!av[k]) return;
         x += '<div class="srow"><span class="e">' + U[k].emoji + '</span><div class="n">' + U[k].plural + '<small>⚔️' + U[k].atk + ' 🛡️' + U[k].def + ' 🥾' + CQ.SPEED[k] + ' · ' + av[k] + ' ready</small></div><div class="step"><button data-dn="' + k + '">−</button><span>' + counts[k] + '</span><button data-up="' + k + '">+</button><button class="all" data-all="' + k + '">All</button></div></div>';
       });
-      if (heroHere) x += '<div class="herotog ' + (withHero ? 'on' : '') + '" id="heroTog"><span class="box">' + (withHero ? '✓' : '') + '</span><span style="font-size:26px">' + esc(g.slots[t].avatar) + '</span><div><b>Bring ' + esc(h.name) + '</b><div class="hint" style="margin:0">+' + h.lvl + ' power to every troop' + (attack ? '. Wins make your hero level up!' : '') + '</div></div></div>';
-      if (attack && V.vis[to] && r) {
-        var ch = CQ.cnt(counts) ? CQ.winChance(g, t, counts, withHero, { castle: to }, 500) : 0, pct = Math.round(ch * 100);
-        var colr = ch >= 0.75 ? '#35c16f' : ch >= 0.45 ? '#ffc83d' : '#ff5a5f';
-        var word = !CQ.cnt(counts) ? 'Pick some troops!' : ch >= 0.9 ? 'Easy win! ' : ch >= 0.75 ? 'Great chance! ' : ch >= 0.5 ? 'Good chance ' : ch >= 0.3 ? 'Risky… ' : 'Very risky! ';
-        x += '<div class="meter"><i style="width:' + pct + '%;background:' + colr + '"></i><b>' + word + (CQ.cnt(counts) ? pct + '% to win' : '') + '</b></div>';
-        if (r.steps > sp) x += '<p class="center hint" style="margin-top:4px">(If nothing changes before you arrive!)</p>';
-      }
+      if (heroHere) x += '<div class="herotog ' + (withHero ? 'on' : '') + '" id="heroTog"><span class="box">' + (withHero ? '✓' : '') + '</span><span style="font-size:26px">' + esc(g.slots[t].avatar) + '</span><div><b>Bring ' + esc(h.name) + '</b><div class="hint" style="margin:0">+' + h.lvl + ' power to every troop. Wins make your hero level up!</div></div></div>';
       var left = CQ.cnt(g.cs[from].u) - CQ.cnt(counts);
       if (left === 0 && CQ.cnt(counts) > 0) x += '<div class="warn">⚠️ ' + esc(C[from].name) + ' will be left with no guards!</div>';
-      var ok = !!r && (CQ.cnt(counts) > 0 || (!attack && withHero));
-      x += '<div class="mbtns"><button class="btn white" data-close="x">Cancel</button><button class="btn ' + (attack ? 'red' : 'green') + '" id="sdGo"' + (ok ? '' : ' disabled') + '>🚩 March!</button></div>';
-      x += '<p class="center" style="margin:10px 0 0"><button class="btn small white" id="sdLook">👆 Just look at ' + esc(C[to].name) + '</button></p>';
+      var ok = !!pth && (CQ.cnt(counts) > 0 || (withHero && !attackC && !enemyArmy)) && CQ.armiesOf(g, t).length < CQ.MAX_ARMIES;
+      x += '<div class="mbtns"><button class="btn white" data-close="x">Cancel</button><button class="btn green" id="sdGo"' + (ok ? '' : ' disabled') + '>🚩 March!</button></div>';
+      if (goal.c != null) x += '<p class="center" style="margin:10px 0 0"><button class="btn small white" id="sdLook">👆 Just look at ' + esc(C[goal.c].name) + '</button></p>';
       return x;
     }
     modal(body(), function (box, close) {
@@ -2193,10 +2320,10 @@ var NET = (function () {
         $$('[data-all]', box).forEach(function (b) { b.onclick = function () { var k = b.getAttribute('data-all'); counts[k] = counts[k] === av[k] ? 0 : av[k]; SFX.tap(); re(); }; });
         var ht = $('#heroTog', box); if (ht) ht.onclick = function () { withHero = !withHero; SFX.tap(); re(); };
         $('[data-close]', box).onclick = function () { close('x'); };
-        $('#sdLook', box).onclick = function () { close('x'); S.sel = to; S.selArmy = null; rerender(); };
+        var lk = $('#sdLook', box); if (lk) lk.onclick = function () { close('x'); S.sel = goal.c; S.selArmy = null; rerender(); };
         $('#sdGo', box).onclick = function () {
-          var r = CQ.sendArmy(g, t, from, to, counts, withHero);
-          if (!r.ok) { toast(r.msg, 3000); return; }
+          var r = CQ.sendArmy(g, t, from, goal, counts, withHero);
+          if (!r.ok) { toast(r.msg, 3200); return; }
           close('ok'); bump(e); SFX.tap();
           S.sel = null; S.selArmy = r.id; rerender();
           animateArmy(r.id);
@@ -2209,22 +2336,98 @@ var NET = (function () {
   function unitsRow(u) { var s = ''; UK.forEach(function (k) { for (var i = 0; i < u[k]; i++) s += '<span>' + U[k].emoji + '</span>'; }); return s; }
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
-  // march one army step by step, with battles
+  function vsHTML(g, t, counts, heroLvl, defU, defName, defHero, walls) {
+    return '<div class="vs"><div class="side"><h4>Your army' + (heroLvl ? ' + ⭐' + heroLvl : '') + '</h4><div class="units">' + unitsRow(counts) + '</div></div><div class="mid">⚔️</div><div class="side"><h4>' + esc(defName) + (defHero ? ' + ⭐' + defHero : '') + '</h4><div class="units">' + (unitsRow(defU) || '<small>empty!</small>') + '</div>' + (walls ? '<div class="center hint">🧱 +' + Math.round(CQ.WALL_BONUS[walls] * 100) + '% walls</div>' : '') + '</div></div>';
+  }
+  function meterHTML(ch) {
+    var pct = Math.round(ch * 100), colr = ch >= 0.75 ? '#35c16f' : ch >= 0.45 ? '#ffc83d' : '#ff5a5f';
+    var word = ch >= 0.9 ? 'Easy win! ' : ch >= 0.75 ? 'Great chance! ' : ch >= 0.5 ? 'Good chance ' : ch >= 0.3 ? 'Risky… ' : 'Very risky! ';
+    return '<div class="meter"><i style="width:' + pct + '%;background:' + colr + '"></i><b>' + word + pct + '% to win</b></div>';
+  }
+  async function attackDialog(A, cid) {
+    var e = E(), g = e.g, t = g.turn, c = g.cs[cid], C = g.map.castles[cid], h = CQ.heroInArmy(g, A), dh = CQ.heroAtCastle(g, cid);
+    if (A.mp <= 0) { toast('😴 Your army is out of steps. It can attack next turn!', 3000); return; }
+    var ch = CQ.winChance(g, t, A.u, !!h, { castle: cid }, 600);
+    var x = '<h2>⚔️ Attack ' + esc(C.name) + '?</h2>' + vsHTML(g, t, A.u, h ? h.lvl : 0, c.u, c.owner >= 0 ? g.slots[c.owner].name : 'Neutral', dh && dh.slot === c.owner ? dh.h.lvl : 0, c.walls) + meterHTML(ch) +
+      '<div class="mbtns"><button class="btn white" data-close="no">Not yet</button><button class="btn red" data-close="yes">⚔️ Attack!</button></div>';
+    var v = await modal(x);
+    if (v !== 'yes') return;
+    var p = tileMid(A.x, A.y), q = { x: (C.x + 1) * T, y: (C.y + 1) * T };
+    await lunge(A.id, p, q);
+    var r = CQ.attack(g, t, A.id, cid);
+    if (!r.ok && r.kind !== 'battle') { toast(r.msg || 'Can\'t attack', 3000); rerender(); return; }
+    S.selArmy = null; S.sel = r.win ? cid : null;
+    bump(e); rerender();
+    await battleView(r);
+    rerender(); gameOverCheck();
+  }
+  async function armyAttackArmy(A, E2) {
+    var e = E(), g = e.g, t = g.turn, h = CQ.heroInArmy(g, A), eh = CQ.heroInArmy(g, E2);
+    var ch = CQ.winChance(g, t, A.u, !!h, { army: E2.id }, 600);
+    var x = '<h2>⚔️ Attack the enemy army?</h2>' + vsHTML(g, t, A.u, h ? h.lvl : 0, E2.u, g.slots[E2.o].name, eh ? eh.lvl : 0, 0) + meterHTML(ch) +
+      '<p class="center hint">Your army will walk over and fight when it reaches them.</p><div class="mbtns"><button class="btn white" data-close="no">Not yet</button><button class="btn red" data-close="yes">⚔️ Charge!</button></div>';
+    var v = await modal(x);
+    if (v !== 'yes') return;
+    var r = CQ.orderArmy(g, t, A.id, { army: E2.id });
+    if (!r.ok) { toast(r.msg, 3000); return; }
+    bump(e); rerender();
+    if (A.mp > 0) await animateArmy(A.id); else toast('Out of steps. It will charge next turn!', 2500);
+  }
+
+  // ---------- animation ----------
+  function tween(el, from, to, ms) {
+    return new Promise(function (res) {
+      if (!el) { res(); return; }
+      el.classList.add('moving');
+      var t0 = performance.now();
+      function f(now) {
+        var k = Math.min(1, (now - t0) / ms), x = from.x + (to.x - from.x) * k, y = from.y + (to.y - from.y) * k;
+        el.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+        if (k < 1) requestAnimationFrame(f); else { el.classList.remove('moving'); res(); }
+      }
+      requestAnimationFrame(f);
+    });
+  }
+  function boom(p, big) {
+    var fx = $('#fx'); if (!fx) return;
+    var id = 'b' + Math.random().toString(36).slice(2);
+    fx.insertAdjacentHTML('beforeend', '<g id="' + id + '" transform="translate(' + p.x + ' ' + p.y + ')" pointer-events="none"><g class="boom"><text font-size="' + (big ? 44 : 34) + '" text-anchor="middle" y="12">💥</text><text font-size="22" text-anchor="middle" x="18" y="-12">⚔️</text></g></g>');
+    setTimeout(function () { var el = document.getElementById(id); if (el) el.remove(); }, 900);
+  }
+  async function lunge(id, p, q) {
+    var el = document.querySelector('#dyn [data-army="' + id + '"]');
+    var mid = { x: p.x + (q.x - p.x) * 0.45, y: p.y + (q.y - p.y) * 0.45 };
+    ensureVisible(q);
+    await tween(el, p, mid, 180); SFX.clash(); boom(mid, true); await sleep(420);
+  }
   async function animateArmy(id) {
     var e = E(), g = e.g, n = 0;
     S.busy = true;
     try {
       while (n++ < 80) {
+        var A0 = CQ.armyById(g, id); if (!A0) break;
+        var from = tileMid(A0.x, A0.y);
         var ev = CQ.stepArmy(g, id);
         if (!ev) break;
-        renderDyn();
-        var A = CQ.armyById(g, id);
-        if (A) ensureVisible(CQ.armyPos(g, A), true);
-        if (ev.kind === 'battle') { S.selArmy = null; S.sel = ev.win && !ev.field ? ev.to : null; if (ev.win && ev.field) S.selArmy = id; await battleView(ev); break; }
-        if (ev.kind === 'fled') { toast('🏃 Your hero can\'t attack alone, so they went back to ' + g.map.castles[ev.heroTo].name + '.', 3200); break; }
+        if (ev.kind === 'step' || ev.kind === 'arrive' || ev.kind === 'joined' || ev.kind === 'gates' && ev.x != null || ev.kind === 'arrive-pt' && ev.x != null) {
+          var el = document.querySelector('#dyn [data-army="' + id + '"]'), to = tileMid(ev.x, ev.y);
+          ensureVisible(to, true);
+          tone([480 + (n % 2) * 80], 0.04, 'triangle', 0.04);
+          await tween(el, from, to, 130);
+          renderFog();
+          if (ev.found && ev.found.length) { renderDyn(); ev.found.forEach(function (c) { toast('👀 You found ' + g.map.castles[c].name + '!', 2200); }); }
+        }
+        if (ev.kind === 'battle') {
+          var q = tileMid(ev.x, ev.y); await lunge(id, from, q);
+          S.selArmy = ev.win ? id : null; bump(e); rerender();
+          await battleView(ev); break;
+        }
         if (ev.kind === 'arrive') { S.selArmy = null; S.sel = ev.to; SFX.coin(); break; }
-        tone([520 + (n % 2) * 90], 0.05, 'triangle', 0.05);
-        await sleep(150);
+        if (ev.kind === 'joined') { S.selArmy = ev.into; SFX.coin(); toast('🤝 Armies joined together!', 2000); break; }
+        if (ev.kind === 'gates') { toast('🏰 Your army is outside ' + g.map.castles[ev.c].name + '! Tap the castle to peek and attack.', 3200); break; }
+        if (ev.kind === 'blocked') { toast('🚧 Your army can\'t find a way there.', 2600); break; }
+        if (ev.kind === 'tired') break;
+        if (ev.kind === 'arrive-pt') break;
       }
     } finally {
       S.busy = false;
@@ -2232,36 +2435,40 @@ var NET = (function () {
     }
   }
 
-  function battleView(r) {
-    var g = G(), t = r.slot, C = g.map.castles, b = r.before;
+  // ---------- battle popup ----------
+  function battleView(r, isReplay) {
+    var g = G(), t = r.slot, C = g.map.castles, b = r.before, me = viewer(E());
     function row(u, side) { var s = ''; var order = side === 'd' ? UK.slice().sort(function (x, y) { return U[x].def - U[y].def; }) : UK; order.forEach(function (k) { for (var i = 0; i < u[k]; i++) s += '<span data-k="' + k + '">' + U[k].emoji + '</span>'; }); return s; }
-    var defName = r.prev >= 0 ? g.slots[r.prev].name : 'Neutral';
-    var title = r.field ? 'Battle on the road!' : 'Battle for ' + esc(C[r.to].name) + '!';
-    var h = '<h2>' + title + '</h2><div class="vs"><div class="side" style="border-color:' + COLORS[t].main + '"><h4>' + esc(g.slots[t].name) + (b.aHero ? ' + ⭐' + b.aHero : '') + '</h4><div class="units" id="bA">' + row(b.att, 'a') + '</div></div><div class="mid">⚔️</div><div class="side" style="border-color:' + col(r.prev).main + '"><h4>' + esc(defName) + (b.dHero ? ' + ⭐' + b.dHero : '') + (b.walls ? ' 🧱' : '') + '</h4><div class="units" id="bD">' + (row(b.def, 'd') || '<small>nobody home!</small>') + '</div></div></div>' +
+    var attName = g.slots[t].name, defName = r.prev >= 0 ? g.slots[r.prev].name : 'Neutral';
+    var title = r.field ? 'Battle in the field!' : attName + ' attacks ' + esc(C[r.to].name) + '!';
+    var h = '<h2>' + title + '</h2><div class="vs"><div class="side" style="border-color:' + COLORS[t].main + '"><h4>' + esc(attName) + (b.aHero ? ' + ⭐' + b.aHero : '') + '</h4><div class="units" id="bA">' + row(b.att, 'a') + '</div></div><div class="mid">⚔️</div><div class="side" style="border-color:' + col(r.prev).main + '"><h4>' + esc(defName) + (b.dHero ? ' + ⭐' + b.dHero : '') + (b.walls ? ' 🧱' : '') + '</h4><div class="units" id="bD">' + (row(b.def, 'd') || '<small>nobody home!</small>') + '</div></div></div>' +
       '<div class="result" id="bRes"></div><div id="bBonus"></div><div class="mbtns"><button class="btn white" id="bSkip">Skip ⏩</button></div>';
     return modal(h, function (box, close) {
-      var A = $('#bA', box), D = $('#bD', box), i = 0, fast = false, delay = Math.max(140, Math.min(480, 3600 / Math.max(1, r.duels.length)));
+      var A = $('#bA', box), D = $('#bD', box), i = 0, fast = !!(isReplay && S.rep && S.rep.skip), delay = Math.max(140, Math.min(480, 3600 / Math.max(1, r.duels.length)));
       function alive(el, k) { return $$('span[data-k="' + k + '"]:not(.dead)', el)[0]; }
       function finish() {
-        $$('span', A).forEach(function (s) { s.classList.remove('fight'); }); $$('span', D).forEach(function (s) { s.classList.remove('fight'); });
-        var res = $('#bRes', box);
-        res.innerHTML = r.win ? (r.field ? '🎉 Victory! The enemy army is beaten!' : '🎉 Victory! ' + esc(C[r.to].name) + ' is yours!') : (r.field ? '💨 Your army was beaten!' : '💨 Driven back!');
-        res.style.color = r.win ? '#1f8a4b' : '#c93338';
+        var res = $('#bRes', box), good = (t === me && r.win) || (r.prev === me && !r.win), mineInvolved = t === me || r.prev === me;
+        var txt;
+        if (t === me) txt = r.win ? (r.field ? '🎉 Victory! The enemy army is beaten!' : '🎉 Victory! ' + esc(C[r.to].name) + ' is yours!') : (r.field ? '💨 Your army was beaten!' : '💨 Driven back!');
+        else txt = r.win ? (r.field ? '⚔️ ' + esc(attName) + ' won the battle!' : '🏰 ' + esc(attName) + ' captured ' + esc(C[r.to].name) + '!') : (r.field ? '🛡️ ' + esc(defName) + ' won the battle!' : '🛡️ ' + esc(C[r.to].name) + ' held strong!');
+        res.innerHTML = txt;
+        res.style.color = !mineInvolved ? '#2d2a4a' : good ? '#1f8a4b' : '#c93338';
         var bonus = [];
-        if (r.treasure) bonus.push('💰 You found ' + r.treasure + ' gold of treasure!');
-        if (r.levelUp) bonus.push('⭐ ' + esc(g.heroes[t] ? g.heroes[t].name : 'Your hero') + ' reached level ' + r.levelUp + '!');
+        if (r.treasure) bonus.push('💰 ' + (t === me ? 'You' : esc(attName)) + ' found ' + r.treasure + ' gold of treasure!');
+        if (r.levelUp && g.heroes[t]) bonus.push('⭐ ' + esc(g.heroes[t].name) + ' reached level ' + r.levelUp + '!');
         if (r.heroFled != null && r.fledSlot != null) bonus.push('🏃 ' + esc(g.slots[r.fledSlot].name) + '\'s hero ran away to ' + esc(C[r.heroFled].name) + '.');
         if (r.eliminated != null) bonus.push('💀 ' + esc(g.slots[r.eliminated].name) + ' has no castles left!');
-        if (!r.win && r.attHero && r.heroRetreat != null) bonus.push('🏃 Your hero made it safely back to ' + esc(C[r.heroRetreat].name) + '.');
+        if (!r.win && r.attHero && r.heroRetreat != null) bonus.push('🏃 ' + (t === me ? 'Your' : esc(attName) + '\'s') + ' hero made it safely back to ' + esc(C[r.heroRetreat].name) + '.');
         $('#bBonus', box).innerHTML = bonus.map(function (x) { return '<p class="bonus">' + x + '</p>'; }).join('');
-        r.win ? SFX.win() : SFX.lose();
-        var bs = $('#bSkip', box); bs.textContent = 'Continue ➜'; bs.className = 'btn ' + (r.win ? 'green' : 'blue'); bs.onclick = function () { close('ok'); };
+        if (mineInvolved) { good ? SFX.win() : SFX.lose(); }
+        var bs = $('#bSkip', box); bs.textContent = 'Continue ➜'; bs.className = 'btn ' + (good ? 'green' : 'blue'); bs.onclick = function () { close('ok'); };
+        if (isReplay && S.rep && S.rep.skip) setTimeout(function () { close('ok'); }, 250);
       }
       function step() {
         if (i >= r.duels.length) { finish(); return; }
         var d = r.duels[i++], a = alive(A, d.a), df = alive(D, d.d);
         if (a) a.classList.add('fight'); if (df) df.classList.add('fight');
-        SFX.clash();
+        if (!fast) SFX.clash();
         setTimeout(function () {
           if (a) a.classList.remove('fight'); if (df) df.classList.remove('fight');
           var loser = d.w === 'a' ? df : a; if (loser) { loser.classList.add('hit'); setTimeout(function () { loser.classList.remove('hit'); loser.classList.add('dead'); }, fast ? 0 : delay * 0.35); }
@@ -2269,24 +2476,99 @@ var NET = (function () {
         }, fast ? 0 : delay * 0.45);
       }
       $('#bSkip', box).onclick = function () { fast = true; };
-      setTimeout(step, 350);
+      setTimeout(step, fast ? 0 : 350);
     });
   }
   function afterAction() { rerender(); gameOverCheck(); }
 
+  // ---------- replays: watch what the others did ----------
+  function ptVisible(V, g, x, y) {
+    if (!V.fog) return true;
+    for (var i = 0; i < V.vw.length; i++) if (Math.hypot(x - V.vw[i].x, y - V.vw[i].y) <= V.vw[i].r) return true;
+    return false;
+  }
+  async function playReplays(e, forSlot) {
+    var g = e.g; e.repSeen = e.repSeen || {};
+    var since = e.repSeen[forSlot] || 0;
+    var recs = Object.keys(g.replays || {}).map(function (k) { var r = g.replays[k]; r.slot = +k; return r; })
+      .filter(function (r) { return r.slot !== forSlot && r.tc > since && r.ev && r.ev.length; })
+      .sort(function (a, b) { return a.tc - b.tc; });
+    for (var ri2 = 0; ri2 < recs.length; ri2++) await playOne(e, recs[ri2]);
+    e.repSeen[forSlot] = g.tc; save();
+  }
+  async function playOne(e, R) {
+    var g = e.g, V = view(e), ghosts = {}, hide = {}, anyShown = false;
+    R.ev.forEach(function (ev) { if (ev.id) hide[ev.id] = true; if (ev.b && ev.b.eid) hide[ev.b.eid] = true; });
+    // is any of it visible to me?
+    var visible = R.ev.some(function (ev) {
+      if (ev.k === 'mv') return ev.p.some(function (p) { return ptVisible(V, g, p[0], p[1]); });
+      if (ev.k === 'bt') { var b = ev.b; return b.slot === V.slot || b.prev === V.slot || ptVisible(V, g, b.ax, b.ay); }
+      return false;
+    });
+    if (!visible) return;
+    S.rep = { slot: R.slot, owners: R.owners.slice(), hide: hide, skip: false };
+    S.sel = null; S.selArmy = null;
+    rerender();
+    function drawGhosts() {
+      var s = '';
+      Object.keys(ghosts).forEach(function (id) { var gh = ghosts[id]; if (gh.show) s += armyTokenSVG(gh.o, gh.l, gh.x, gh.y, 'g_' + id, false, false, false); });
+      $('#rep').innerHTML = s;
+    }
+    try {
+      for (var i = 0; i < R.ev.length; i++) {
+        var ev = R.ev[i];
+        if (ev.k === 'new') { var p0 = tileMid(ev.x, ev.y); ghosts[ev.id] = { o: ev.o, l: ev.l, x: p0.x, y: p0.y, show: ptVisible(V, g, ev.x, ev.y) }; drawGhosts(); }
+        else if (ev.k === 'mv') {
+          var gh = ghosts[ev.id];
+          if (!gh) { var s0 = tileMid(ev.p[0][0], ev.p[0][1]); gh = ghosts[ev.id] = { o: ev.o, l: ev.l, x: s0.x, y: s0.y, show: false }; }
+          gh.l = ev.l;
+          for (var k = 1; k < ev.p.length; k++) {
+            var a = ev.p[k - 1], b = ev.p[k], sh = ptVisible(V, g, a[0], a[1]) || ptVisible(V, g, b[0], b[1]), to = tileMid(b[0], b[1]);
+            if (sh && !S.rep.skip) {
+              gh.show = true; drawGhosts();
+              var el = document.querySelector('#rep [data-army="g_' + ev.id + '"]');
+              ensureVisible(to, true);
+              await tween(el, { x: gh.x, y: gh.y }, to, 120);
+              anyShown = true;
+            }
+            gh.x = to.x; gh.y = to.y; gh.show = sh || ptVisible(V, g, b[0], b[1]);
+          }
+          drawGhosts();
+        }
+        else if (ev.k === 'in' || ev.k === 'mg') { delete ghosts[ev.id]; drawGhosts(); }
+        else if (ev.k === 'bt') {
+          var B = ev.b, show = B.slot === V.slot || B.prev === V.slot || ptVisible(V, g, B.ax, B.ay);
+          var q = B.field ? tileMid(B.x, B.y) : { x: (g.map.castles[B.to].x + 1) * T, y: (g.map.castles[B.to].y + 1) * T };
+          if (show) {
+            ensureVisible(q, true);
+            if (!S.rep.skip) { SFX.clash(); boom(q, true); await sleep(450); }
+            await battleView(B, true);
+            anyShown = true;
+          }
+          if (!B.field) { if (B.win) S.rep.owners[B.to] = B.slot; delete ghosts[B.id]; }
+          else { if (B.win) { delete ghosts[B.eid]; } else delete ghosts[B.id]; }
+          drawGhosts(); renderDyn();
+        }
+      }
+      if (anyShown && !S.rep.skip) await sleep(300);
+    } finally {
+      S.rep = null; $('#rep').innerHTML = ''; rerender();
+    }
+  }
+
   // ---------- END TURN ----------
   async function endTurn() {
-    var e = E(), g = e.g; if (!canMove(e) || S.busy) return;
+    var e = E(), g = e.g; if (!canMove(e) || S.busy || S.rep) return;
     if (g.gold[g.turn] >= 6) {
       var v = await modal('<h2>End your turn?</h2><p class="center">You still have <b>💰 ' + g.gold[g.turn] + ' gold</b>. You can save it for next turn, or build troops first.</p><div class="mbtns"><button class="btn white" data-close="no">Keep playing</button><button class="btn red" data-close="yes">End Turn</button></div>');
       if (v !== 'yes') return;
     }
     var prev = g.turn;
-    // armies with orders march first (animated)
-    var marchers = CQ.armiesOf(g, prev).filter(function (A) { return A.route.length && A.mp > 0; });
+    var marchers = CQ.armiesOf(g, prev).filter(function (A) { return A.goal && A.mp > 0; });
     for (var i = 0; i < marchers.length && !g.over; i++) if (CQ.armyById(g, marchers[i].id)) await animateArmy(marchers[i].id);
     if (g.over) return;
     S.busy = true;
+    e.repSeen = e.repSeen || {}; e.repSeen[prev] = g.tc;
     CQ.endTurn(g, prev); S.sel = null; S.selArmy = null; bump(e);
     rerender();
     if (!g.over && g.slots[g.turn].kind === 'ai') await runComputer();
@@ -2295,29 +2577,31 @@ var NET = (function () {
     if (e.online) { push(e); }
     rerender();
     if (g.over) { gameOverCheck(); return; }
-    if (!e.online && canMove(e) && humansHere(e) > 1 && g.turn !== prev) handoff(e);
+    if (!e.online && canMove(e)) {
+      if (humansHere(e) > 1 && g.turn !== prev) await handoff(e);
+      await playReplays(e, g.turn);
+      markSeen(e);
+    }
   }
   function logFor(e, items) {
     var g = e.g, V = view(e), me = V.slot;
     if (!V.fog) return items;
     return items.filter(function (l) {
-      if (l.k === 'round' || l.k === 'win' || l.k === 'out') return true;
+      if (l.k === 'round' || l.k === 'win' || l.k === 'out' || l.k === 'start') return true;
       if (l.s === me || l.p === me) return true;
       return l.c != null && V.vis[l.c];
     });
   }
   async function runComputer() {
-    var e = E(), g = e.g, n0 = g.logN;
+    var e = E(), g = e.g;
     rerender();
-    await sleep(700);
+    await sleep(500);
     CQ.runAI(g, 3); bump(e); rerender();
-    var items = logFor(e, g.log.filter(function (l) { return l.n > n0 && l.k !== 'round'; }));
-    if (items.length) await modal('<div class="big-emoji">🤖</div><h2>The computer played</h2><div class="loglist">' + items.map(logLine).join('') + '</div><div class="mbtns"><button class="btn blue" data-close="ok">OK</button></div>');
   }
   function handoff(e) {
     var g = e.g, s = g.slots[g.turn], c = COLORS[g.turn];
     SFX.turn();
-    fogKey = ''; rerender(); fitMap(true);
+    fogKey = ''; S.sel = null; S.selArmy = null; rerender(); fitMap(true);
     return modal('<div class="big-emoji">' + esc(s.avatar) + '</div><h2 style="color:' + c.dark + '">' + esc(s.name) + '\'s turn!</h2><p class="center">Pass the device to <b>' + esc(s.name) + '</b>.' + (g.fogOn ? '<br>No peeking, everyone else! 🙈' : '') + '<br>You have 💰 ' + g.gold[g.turn] + ' gold (+' + g.turnStart.inc + ' this turn).</p><div class="mbtns"><button class="btn green big" data-close="ok">I\'m ready! ⚔️</button></div>', null, { solid: g.fogOn });
   }
   var shownOver = {};
@@ -2343,13 +2627,33 @@ var NET = (function () {
       (e && e.online ? '<button class="btn blue" data-close="invite">🔗 Invite link &amp; code</button>' : '') +
       '<button class="btn white" data-close="help">📖 How to Play</button>' +
       '<button class="btn white" data-close="sound">' + (S.store.muted ? '🔇 Sound is off' : '🔊 Sound is on') + '</button>' +
-      '<button class="btn white" data-close="x">Close</button></div>';
+      (e && !e.g.over && giveUpSlot(e) != null ? '<button class="btn white" data-close="giveup">🏳️ Give up</button>' : '') +
+      '<button class="btn white" data-close="x">Close</button></div><p class="ver" style="margin-top:14px">Castle Quest v3.0 · Sep 25, 2026, 8:43 PM</p>';
     modal(h).then(function (v) {
       if (v === 'home') show('home');
       else if (v === 'invite') showInvite();
       else if (v === 'help') showHelp();
       else if (v === 'sound') { S.store.muted = !S.store.muted; save(); toast(S.store.muted ? 'Sound off' : 'Sound on'); }
+      else if (v === 'giveup') giveUp();
     });
+  }
+  function giveUpSlot(e) {
+    var g = e.g, mine = mySlots(e).filter(function (s) { return g.slots[s].alive; });
+    if (!mine.length) return null;
+    if (mine.indexOf(g.turn) >= 0) return g.turn;
+    return e.online ? mine[0] : null;
+  }
+  async function giveUp() {
+    var e = E(); if (!e) return; var s = giveUpSlot(e); if (s == null) return;
+    var g = e.g;
+    var v = await modal('<div class="big-emoji">🏳️</div><h2>Give up?</h2><p class="center"><b>' + esc(g.slots[s].name) + '</b> will leave the quest. Their castles become neutral. This can\'t be undone!</p><div class="mbtns"><button class="btn white" data-close="no">Keep playing</button><button class="btn red" data-close="yes">Give up</button></div>');
+    if (v !== 'yes') return;
+    CQ.surrender(g, s); S.sel = null; S.selArmy = null; bump(e);
+    if (e.online) push(e);
+    rerender();
+    if (g.over) { gameOverCheck(); return; }
+    if (!e.online && g.slots[g.turn].kind === 'ai') { await runComputer(); rerender(); }
+    if (!e.online && canMove(e)) { if (humansHere(e) > 1) await handoff(e); await playReplays(e, g.turn); markSeen(e); }
   }
   function inviteURL(code) { return location.origin + location.pathname + '?game=' + encodeURIComponent(code); }
   function showInvite() {
@@ -2369,18 +2673,19 @@ var NET = (function () {
   function showHelp() {
     var rows = UK.map(function (k) { var u = U[k]; return '<tr><td style="font-size:24px">' + u.emoji + '</td><td><b>' + u.name + '</b></td><td>💰' + u.cost + '</td><td>⚔️' + u.atk + '</td><td>🛡️' + u.def + '</td></tr>'; }).join('');
     var h = '<h2>How to Play</h2><div class="helpbox">' +
-      '<h3>🎯 The goal</h3><p>Take over castles until you rule the land! If time runs out, whoever has the most castles wins.</p>' +
-      '<h3>🔁 Your turn</h3><ol><li>You get <b>gold</b> from every castle you own.</li><li>Tap your castle to <b>build troops</b> or stronger <b>walls</b>.</li><li>Tap a glowing castle to <b>march</b> an army there. 🚩</li><li>Tap <b>End Turn</b>.</li></ol>' +
-      '<h3>🥾 Marching</h3><p>Armies walk along the roads. Each troop has a speed (🥾): Squires and Archers walk 4 steps a turn, Knights 6, Dragons fly 7. An army moves as fast as its slowest troop. Far-away castles take a few turns to reach.</p>' +
-      '<p>Armies keep marching toward their 🚩 every time you end your turn. Tap an army to change where it\'s going, or to stop it. If two enemy armies meet on a road, they fight!</p>' +
-      '<p>To reach a castle, your army can only pass through castles you own. Capture the ones in the way first.</p>' +
-      '<h3>☁️ Clouds</h3><p>You can only see the land your castles and armies have explored. You can always see the castles right next to yours. To see inside a castle or spot enemy armies, you need to be close by.</p>' +
+      '<h3>🎯 The goal</h3><p>Conquer the land! The quest goes on until only one kingdom is left. (Anyone can give up from the ☰ menu.)</p>' +
+      '<h3>🔁 Your turn</h3><ol><li>First you watch what the other players did on their turn (the parts you can see).</li><li>You get <b>gold</b> from every castle you own.</li><li>Tap your castle to <b>build troops</b> or stronger <b>walls</b>.</li><li>Tap anywhere on the map to send an <b>army</b> walking there. 🚩</li><li>Tap <b>End Turn</b>.</li></ol>' +
+      '<h3>🥾 Walking</h3><p>Every army gets a number of steps each turn: Squires and Archers 12, Knights 18, Dragons 20. An army moves as fast as its slowest troop. Roads cost 1 step per square, grass 2, forests and hills 3. Mountains and water block the way, but an army of only dragons flies over everything!</p>' +
+      '<p>Tap your army, then tap where to go. The dots show the path: <span style="color:#1f8a4b">green</span> this turn, <span style="color:#c93338">red</span> later turns. Tap again (or ▶ March) to go. Armies keep walking to their 🚩 when you end your turn.</p>' +
+      '<p>You can have up to 3 armies out at once. Walk one army onto another to join them together.</p>' +
+      '<h3>🏰 Attacking</h3><p>Walk your army right up next to a castle. It stops outside the walls. Tap the castle to peek inside and see your chance to win, then ⚔️ Attack! Attacking needs at least 1 step left, so sometimes you must wait until next turn. Tap an enemy army to charge at it.</p>' +
+      '<h3>☁️ Clouds</h3><p>The world starts hidden under clouds. Castles appear when your armies get close. Darker squares are places you have explored but can\'t see right now.</p>' +
       '<h3>⚔️ Troops</h3><table><tr><th></th><th>Troop</th><th>Cost</th><th>Attack</th><th>Defend</th></tr>' + rows + '</table>' +
       '<p>⚔️ Attack matters when you charge in. 🛡️ Defend matters when you guard a castle. Archers are great guards; Knights are great attackers.</p>' +
-      '<p>New troops rest 💤 until your next turn. 🐉 <b>Dragons</b> hatch only at a castle with a 🥚 dragon nest (Fortresses and Home castles). An army of only dragons can fly straight over rivers and lakes!</p>' +
+      '<p>New troops rest 💤 until your next turn. 🐉 <b>Dragons</b> hatch only at a castle with a 🥚 dragon nest (Fortresses and Home castles).</p>' +
       '<h3>⭐ Your hero</h3><p>Your hero adds their level to every troop they travel with. Win battles to level up (up to ⭐4). Heroes never die. If they lose, they run away to safety.</p>' +
       '<h3>🏰 Castles</h3><p>Villages give 💰2, Castles 💰3, Fortresses 💰5, and your Home 💰5 each turn. 🧱 Walls make defenders stronger. 💰 on the map means hidden treasure. Capture it to grab the gold!</p>' +
-      '<h3>🤖 Computer players</h3><p>😊 Easy is gentle. 😐 Normal plays smart. 😈 Hard plays smart <i>and</i> gets 2 bonus gold every turn.</p>' +
+      '<h3>🤖 Computer players</h3><p>😊 Easy is gentle. 😐 Normal plays smart. 😈 Hard plays smart <i>and</i> gets 2 bonus gold every turn. Computer players can see through the clouds.</p>' +
       '</div><div class="mbtns"><button class="btn green" data-close="x">Got it!</button></div>';
     return modal(h);
   }
@@ -2397,7 +2702,6 @@ var NET = (function () {
         renderSetup();
       };
     });
-    $$('#lenSeg button').forEach(function (b) { b.onclick = function () { SFX.tap(); setup.len = b.getAttribute('data-len'); renderSetup(); }; });
     $$('#fogSeg button').forEach(function (b) { b.onclick = function () { SFX.tap(); setup.fog = b.getAttribute('data-fog') === '1'; renderSetup(); }; });
     $('#btnStart').onclick = startGame;
     $('#btnFind').onclick = function () { findGame($('#joinCode').value); };
