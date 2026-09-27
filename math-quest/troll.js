@@ -30,6 +30,7 @@ window.trollCheck=function(tile){
  start();return true;};
 /* ?trolldemo in the URL: the next unmarked step drops you in, and afterwards everything is put back exactly as it was (for parents to preview) */
 let DEMO=null;
+const DEMO_AGAIN=/trolldemo=again/.test(location.search);
 if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup){clearInterval(iv);DEMO=JSON.stringify({troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily});T(p).force=1;if(typeof toast==='function')toast('🧌 Troll preview: take a step on an empty square…');}}catch(e){}},500);}
 
 /* ---------- things the troll can take / give back ---------- */
@@ -184,6 +185,7 @@ const CSS=`
 .tr-qt{font-size:clamp(24px,5vw,36px);font-weight:700;margin:4px 0 8px}.tr-qt .xq{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}.tr-qt .xprompt{font-size:.55em;color:#e8e0ff;font-weight:500}.tr-qt .xline{font-size:.9em}.tr-qt svg{max-height:120px;background:#fff;border-radius:10px}.tr-qt sup{font-size:.6em;vertical-align:super;line-height:0}.tr-qt .ansbox{display:inline-block;min-width:70px;border-bottom:3px solid #ffd43b;color:#ffd43b}
 .tr-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.tr-pad button.go{grid-column:span 3}.tr-pad button{background:#3a2d55;color:#fff;border:none;border-radius:12px;font:700 22px Fredoka,sans-serif;padding:9px 0}
 .tr-pad button.go{background:#2ecc71}.tr-pad button.neg{visibility:hidden}.tr-pad.negon button.neg{visibility:visible}
+.tr-timer{position:relative;height:18px;border-radius:9px;background:rgba(255,255,255,.12);margin:2px 0 6px;overflow:hidden}.tr-timer i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#2ecc71,#7be495);border-radius:9px;transition:width .25s linear}.tr-timer b{position:relative;display:block;text-align:center;font-size:12px;line-height:18px;color:#fff;text-shadow:0 1px 2px #000}.tr-timer.warn i{background:linear-gradient(90deg,#f39c12,#f7c04a)}.tr-timer.hurry i{background:linear-gradient(90deg,#e74c3c,#ff7b6b)}.tr-timer.hurry{animation:trpulse .5s infinite alternate}@keyframes trpulse{to{transform:scale(1.03)}}
 .tr-dots{display:flex;gap:6px;justify-content:center;margin-bottom:4px}.tr-dots i{width:14px;height:14px;border-radius:50%;background:#555}.tr-dots i.ok{background:#2ecc71}.tr-dots i.no{background:#ff5a5f}.tr-dots i.cur{background:#ffd43b}
 .tr-toss{animation:trtoss 1.9s cubic-bezier(.35,.1,.6,1) forwards}@keyframes trtoss{from{transform:translate(var(--sx),var(--sy)) rotate(0)}30%{transform:translate(calc(var(--sx) + 3vw),calc(var(--sy) - 25vh)) rotate(260deg)}to{transform:translate(calc(var(--sx) + 10vw),-130vh) rotate(900deg)}}
 .tr-walk .tr-troll{animation:trbob .36s ease-in-out infinite alternate}@keyframes trbob{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-10px) rotate(2deg)}}
@@ -221,7 +223,8 @@ function growl(){snd(90,.5,'sawtooth',.09);snd(70,.6,'sawtooth',.08,.15);}
 async function start(){
  const p=P();const t=T(p);busy=true;window.trollBusy=true;skip=false;
  root=el('<div class="tr-root"><div class="tr-fade on"></div></div>');document.body.appendChild(root);
- const first=!t.visits||!!DEMO;
+ if(DEMO&&DEMO_AGAIN&&!t.visits)t.visits=1;
+ const first=!t.visits||(!!DEMO&&!DEMO_AGAIN);
  if(!first){const sk=el('<button class="tr-skip">Skip ▸▸</button>');sk.onclick=()=>{skip=true;sk.remove();};root.appendChild(sk);}
  const fade=root.querySelector('.tr-fade');
  // 1. trap door + fall
@@ -260,9 +263,25 @@ async function start(){
   await say(bub,`HAR HAR! I am ${TNAME}, and you fell into MY cave! You're trapped, never to escape! You will never see the sky again…`,900);
   await say(bub,'…unless you can answer my THREE QUESTIONS! No spells, no help. Just YOU!',600);
  }else{
-  root.appendChild(stage);dark.classList.add('lit');tbox.classList.remove('hidden');cage.classList.add('on');fade.classList.remove('on');bub.style.display='';
-  const hi=[`Well, well! Back again? I KNEW you'd drop in! Hee hee.`,`Visitor! Oh, I mean… GRRR! You're trapped again!`,`My trap door never misses! Three questions, little one!`];
-  await say(bub,hi[t.visits%hi.length]+(t.hoard.length?` I'm still keeping ${t.hoard.length===1?'something':'some things'} of yours… answer right and maybe you'll win ${t.hoard.length===1?'it':'them'} back!`:''),700);
+  // RETURN VISIT — you both remember each other!
+  const n=t.visits,pick=a=>a[n%a.length],me=`🙂 ${(p.name||'You')}`;
+  const bl=el('<div class="tr-scene"><div class="tr-blink"><i></i><i></i></div></div>');root.appendChild(bl);fade.classList.remove('on');
+  if(!skip)await tapWait('…',pick([
+   '<p>Ow… 😵 Dark again. <b>Pitch</b> dark.</p><p>Hmm… that smell. Old socks and mushrooms… You KNOW this place!</p>',
+   '<p>Oof! 😵 Not again!</p><p>It\'s dark… but you\'ve been here before. You know <b>exactly</b> where you are!</p>',
+   '<p>THUMP… 😵 Ouch, same spot as last time!</p><p>It\'s dark, and there\'s a very familiar <b>snoring</b> sound…</p>']));
+  growl();bl.appendChild(el('<div class="tr-eyesdark"><i></i><i></i></div>'));
+  if(!skip)await tapWait('🪄 Cast the light spell!','<p>Two big glowing eyes blink open in the dark… but this time you\'re <b>not</b> scared.</p><p>Oh, that\'s right — you remember your <b>light spell!</b></p>','gold');
+  bl.remove();
+  // light: you've landed right in his cage again, and there he is across the cave
+  root.appendChild(stage);cage.classList.add('on');const fl=stage.querySelector('.tr-flash');snd(880,.4,'triangle',.1);snd(1320,.5,'triangle',.08,.1);fl.classList.add('on');await sleep(skip?0:700);dark.classList.add('lit');tbox.classList.remove('hidden');await sleep(skip?0:500);fl.classList.remove('on');
+  bub.style.display='';
+  await say(bub,pick([`${TNAME}! It's you again! …And I'm in your cage again, aren't I?`,`Hi ${TNAME}! I knew it was you — I could smell the mushrooms!`,`Oh, hello ${TNAME}! Your trap door got me AGAIN?!`]),500,false,me);
+  stage.classList.add('tr-kind');
+  await say(bub,pick([`HAR HAR! I'm SO glad you fell into my trap again! Hello again, my friend! 😁`,`You're BACK! My favorite visitor! My trap door missed you SO much!`,`Well, well, well… look who dropped in! Welcome back, friend! 😁`]),700);
+  stage.classList.remove('tr-kind');
+  if(t.hoard.length)await say(bub,`And I'm still keeping ${t.hoard.length===1?'something':'some things'} of yours in my hoard… answer right and you can win ${t.hoard.length===1?'it':'them'} back!`,600);
+  await say(bub,pick([`Are you ready for my test? THREE questions! And remember… this time I'm NOT so generous! HAR!`,`Now… are you ready for my THREE questions? Wrong answers go in my hoard! HAR HAR!`,`Ready for my test, friend? Three questions — and they're HARD ones!`]),600);
  }
  // 7. three questions
  const res=[];const took=[],gave=[];
@@ -275,7 +294,7 @@ async function start(){
    await say(bub,g?`Hmph! Correct. Fine… here's ${label(g)} back.`:['Grrr… that is… CORRECT!','Right again?! Hmph.','Correct! How are you so SMART?'][i],900);}
   else{snd(240,.18,'sine',.1);snd(190,.25,'sine',.1,.12);
    let tk=null;if(!first)tk=take(p);if(tk){took.push(tk);stage.appendChild(el(`<div class="tr-stolen">${esc(label(tk))} ➜ 🧌</div>`));}
-   await say(bub,`WRONG! It was ${q.tpl&&typeof xAnsStr==='function'?xAnsStr(q):q.answer}. ${tk?`I'll keep ${label(tk)}! HAR HAR!`:'…but I\'ll give you credit for trying.'}`,1100);}
+   await say(bub,`${ans.timeout?'⏰ TIME\'S UP!':'WRONG!'} It was ${q.tpl&&typeof xAnsStr==='function'?xAnsStr(q):q.answer}. ${tk?`I'll keep ${label(tk)}! HAR HAR!`:'…but I\'ll give you credit for trying.'}`,1100);}
   save();
  }
  // 8. release
@@ -315,16 +334,22 @@ async function start(){
 function makeQ(p,i,up){let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+(up!=null?up:(i===2?2:1))));q=genQ(op,L);if(q){q.trollL=L;break;}}return q;}
 function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  await say(bub,(o.intro||['Question ONE!','Question TWO!','Last question… THREE!'])[i],200,true,o.who);const p=P();
- let inp='';const box=el(`<div class="tr-q">${o.story?'<div class="tr-story"></div>':''}<div class="tr-dots">${[0,1,2].map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-qt"></div>
+ let inp='';const box=el(`<div class="tr-q">${o.story?'<div class="tr-story"></div>':''}<div class="tr-dots">${[0,1,2].map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-timer"><i></i><b></b></div><div class="tr-qt"></div>
   <div class="tr-pad ${q.neg?'negon':''}">${['7','8','9','4','5','6','1','2','3','neg','0','del','go'].map(k=>`<button data-k="${k}" class="${k==='go'?'go':k==='neg'?'neg':''}">${k==='del'?'⌫':k==='go'?'✓ Answer':k==='neg'?'±':k}</button>`).join('')}</div></div>`);
  stage.appendChild(box);const qt=box.querySelector('.tr-qt');const st=box.querySelector('.tr-story');
- const featherBtn=()=>{const f=box.querySelector('.tr-feather');if(f)f.remove();if((p.feathers||0)>0&&o.easier&&!q.feathered){const b=el(`<button class="tr-feather">🪶 Use a Golden Feather — make this one easier (${p.feathers} left)</button>`);b.onclick=()=>{p.feathers--;q=o.easier();q.feathered=true;inp='';save();try{snd(1200,.3,'triangle',.08);}catch(e){}featherBtn();show();box.querySelector('.tr-pad').classList.toggle('negon',!!q.neg);};box.appendChild(b);}};
+ const featherBtn=()=>{const f=box.querySelector('.tr-feather');if(f)f.remove();if((p.feathers||0)>0&&o.easier&&!q.feathered){const b=el(`<button class="tr-feather">🪶 Use a Golden Feather — make this one easier (${p.feathers} left)</button>`);b.onclick=()=>{p.feathers--;q=o.easier();q.feathered=true;inp='';t0=Date.now();save();try{snd(1200,.3,'triangle',.08);}catch(e){}featherBtn();show();box.querySelector('.tr-pad').classList.toggle('negon',!!q.neg);};box.appendChild(b);}};
  const show=()=>{window.__surpriseQ=q;if(st)st.innerHTML=q.story||'';if(q.story){qt.innerHTML=`<span class="tr-ansl">Answer:</span> <span class="ansbox">${inp||'?'}</span>`;return;}if(q.tpl){const box=`<span class="ansbox">${typeof xInpFmt==='function'?xInpFmt(q,inp):(inp||'?')}</span>`;qt.innerHTML=`<div class="xq">${q.vis&&typeof visHTML==='function'?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div></div></div>`;}else qt.innerHTML=`${q.text} = <span class="ansbox">${inp||'?'}</span>`;};show();
  const press=k=>{if(k==='del')inp=inp.slice(0,-1);else if(k==='neg')inp=inp.startsWith('-')?inp.slice(1):'-'+inp;else if(k==='go'){if(!inp||inp==='-')return;finish();return;}else if(inp.length<7)inp=inp==='0'?k:inp+k;show();};
  const key=e=>{if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('del');else if(e.key==='-')press('neg');else if(e.key==='Enter')press('go');};
- window.addEventListener('keydown',key);featherBtn();
+ // ⏰ answer clock: 90 s for number questions, 2 min for story problems (fresh clock if a Golden Feather makes it easier)
+ const LIMIT=(o.secs||(o.story?120:90))*1000;let t0=Date.now(),lastS=-1,done=false,timedOut=false;const tbar=box.querySelector('.tr-timer i'),tlab=box.querySelector('.tr-timer b'),tbox=box.querySelector('.tr-timer');
+ const tick=()=>{if(done)return;const left=Math.max(0,LIMIT-(Date.now()-t0)),sec=Math.ceil(left/1000);tbar.style.width=(left/LIMIT*100)+'%';tlab.textContent=`⏰ ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
+  tbox.classList.toggle('warn',sec<=20);tbox.classList.toggle('hurry',sec<=10);if(sec<=10&&sec!==lastS&&sec>0){try{snd(sec<=3?1000:760,.06,'square',.04);}catch(e){}}lastS=sec;
+  if(left<=0){timedOut=true;finish();}};
+ const tiv=setInterval(tick,250);window.__surpriseClock=l=>{t0=Date.now()-LIMIT+(l||0);};
+ window.addEventListener('keydown',key);featherBtn();tick();
  box.querySelectorAll('.tr-pad button').forEach(b=>b.onclick=()=>{try{SFX.tap();}catch(e){}press(b.dataset.k);});
- const finish=()=>{window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));box.remove();resolve({ok,q});};
+ const finish=()=>{if(done)return;done=true;clearInterval(tiv);window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=!timedOut&&(v===q.answer||!!(q.alt&&q.alt.includes(v)));box.remove();resolve({ok,q,timeout:timedOut});};
 });}
 window.Troll={start,_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
 window.Surprise={say,tapWait,ask,label,take,giveBack,el,sleep,snd,makeQ,EAGLE_BIOMES,heroHTML,isDemo:()=>!!DEMO};

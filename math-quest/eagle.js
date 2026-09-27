@@ -227,7 +227,7 @@ async function start(){
   else{tone(300,.2,'sine',.08);stage.classList.add('eg-sad');
    let tk=null;if(!first)tk=S.take(p,e,SHINY);if(tk){took.push(tk);stage.appendChild(S.el(`<div class="eg-stolen">${esc(S.label(tk))} ➜ 🪺</div>`));}
    const a=q.tpl&&typeof xAnsStr==='function'?xAnsStr(q):q.answer;
-   await say(`Peep? Not quite — it was ${a}. ${tk?`Ooh, SHINY! I'll keep ${S.label(tk)} in my nest!`:'But thank you for trying!'}`);stage.classList.remove('eg-sad');}
+   await say(`${ans.timeout?'⏰ Time\'s up, little one! ':'Peep? Not quite — '}it was ${a}. ${tk?`Ooh, SHINY! I'll keep ${S.label(tk)} in my nest!`:'But thank you for trying!'}`);stage.classList.remove('eg-sad');}
   save();
  }
  const right=res.filter(Boolean).length;
@@ -273,6 +273,7 @@ function flyover(p){if(flying)return;flying=true;const S=SH();
  setTimeout(()=>{box.appendChild(S.el(`<div class="eg-what">😮 ${list[Math.floor(Math.random()*list.length)]}</div>`));},1100);
  setTimeout(()=>{box.remove();flying=false;},4200);}
 setInterval(()=>{try{const p=P();if(!p||!p.setup||document.hidden||busy||flying||window.trollBusy)return;
+ if(!FLYDEMO&&typeof tbLastInput!=='undefined'&&Date.now()-tbLastInput>90000)return; // idle screens don't roll (and don't touch saved data)
  if(typeof curScreen!=='undefined'&&curScreen!=='world')return;if(document.querySelector('#modal.show'))return;
  const t=flyRoll(p);if(!t)return;const e=p.eagle;
  if(FLYDEMO){FLYDEMO=false;flyover(p);return;}

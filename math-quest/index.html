@@ -1205,6 +1205,7 @@ setInterval(()=>{try{const p=state&&state.cur&&P();if(!p||!p.setup)return;
  if(active){if(before>10&&T.bank<=10)toast(`⏳ 10 minutes of play left, ${p.name}!`);else if(before>2&&T.bank<=2)toast('⏳ 2 minutes left! Finish up your battle.');}
  if(T.locked&&curScreen!=='battle'&&!TB_FREE.includes(curScreen)){closeModal();go('rest');}
  const c=document.getElementById('tbChip');if(c)c.textContent=tbOn(p)?`⏳ ${tbLeft(p)}m`:'';
+ if(active)p.upd=Date.now(); // this device is where this kid is playing right now
  tbSaves=(tbSaves+1)%4;if(!tbSaves||T.locked)save();}catch(e){}},15000);let tbSaves=0;
 SCREENS.rest=()=>{const p=P();if(!p){go('profiles');return;}tbTick(p,false);if(!tbBlocked(p)){go('map');return;}
  const at=tbBackAt(p);const hm=at.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
@@ -3935,7 +3936,9 @@ const cloudPayload=()=>({v:1,gifts:state.gifts||{},players:state.players,pin:sta
 
 /* each player remembers when it last changed, so the newest copy of each kid wins */
 const HASH=new Map();
-function stampChanges(init){state.players.forEach(p=>{const h=JSON.stringify(p,(k,v)=>k==='upd'?undefined:v);if(!init&&HASH.has(p.id)&&HASH.get(p.id)!==h)p.upd=Date.now();if(!init&&!HASH.has(p.id)&&!p.upd)p.upd=Date.now();HASH.set(p.id,h);});}
+/* the play-time clock ('tb') ticks on every open device for every kid, so it must NOT count as a change — otherwise a stale device
+   (a background tab, a sibling's iPad) marks everyone as 'newest' and overwrites real progress. The device a kid is actively playing on stamps them directly. */
+function stampChanges(init){state.players.forEach(p=>{const h=JSON.stringify(p,(k,v)=>k==='upd'||k==='tb'?undefined:v);if(!init&&HASH.has(p.id)&&HASH.get(p.id)!==h)p.upd=Date.now();if(!init&&!HASH.has(p.id)&&!p.upd)p.upd=Date.now();HASH.set(p.id,h);});}
 function mergeStates(remote,joining,keepId){
  const del=Object.assign({},remote.deleted||{},state.deleted||{});
  const map=new Map(),order=[];
