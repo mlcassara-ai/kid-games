@@ -63,13 +63,16 @@ function take(p,holder,kinds){holder=holder||T(p);const opts=takeable(p).filter(
  else if(it.k==='toy')p.toys.splice(p.toys.indexOf(it.id),1);
  else{const key=it.k+'s';p.owned[key]=p.owned[key].filter(x=>x!==it.id);}
  holder.hoard.push(it);return it;}
-function giveBack(p,holder){const t=holder||T(p);const it=t.hoard.pop();if(!it)return null;
+/* things you got back on your own (hatched the same pet again, etc.) leave the hoard — nothing to give back */
+function ownsAgain(p,it){if(it.k==='pet')return (p.pets||[]).includes(it.id);if(it.k==='coins'||it.k==='toy')return false;return ((p.owned||{})[it.k+'s']||[]).includes(it.id);}
+function reclaimed(p,holder){const h=holder.hoard||[];const got=h.filter(it=>ownsAgain(p,it));if(got.length)holder.hoard=h.filter(it=>!ownsAgain(p,it));return got;}
+function giveBack(p,holder){const t=holder||T(p);reclaimed(p,t);const it=t.hoard.pop();if(!it)return null;
  if(it.k==='coins')p.coins=(p.coins||0)+it.v;
  else if(it.k==='pet'){if(!p.pets.includes(it.id))p.pets.push(it.id);}
  else if(it.k==='toy')p.toys.push(it.id);
  else{const key=it.k+'s';p.owned[key]=p.owned[key]||[];if(!p.owned[key].includes(it.id))p.owned[key].push(it.id);}
  return it;}
-window.trollHoardHTML=function(p){const t=p.troll;if(!t||!t.hoard||!t.hoard.length)return '';
+window.trollHoardHTML=function(p){const t=p.troll;if(t&&t.hoard)reclaimed(p,t);if(!t||!t.hoard||!t.hoard.length)return '';
  return `<div class="tr-hoardbox"><b>🧌 ${TNAME} the Troll is holding:</b> ${t.hoard.map(label).map(esc).join(' · ')}<br><small>Answer his questions right next time he catches you to win them back!</small></div>`;};
 
 /* ---------- art ---------- */
@@ -284,6 +287,7 @@ async function start(){
   stage.classList.add('tr-kind');
   await say(bub,pick([`HAR HAR! I'm SO glad you fell into my trap again! Hello again, my friend! 😁`,`You're BACK! My favorite visitor! My trap door missed you SO much!`,`Well, well, well… look who dropped in! Welcome back, friend! 😁`]),700);
   stage.classList.remove('tr-kind');
+  const back=reclaimed(p,t);if(back.length)await say(bub,`Hmph! I see you got back your ${back.map(x=>label(x).replace(' your ',' ')).join(' and ')} all on your own! Clever… so I don't have to give ${back.length===1?'it':'them'} back.`,600);
   if(t.hoard.length)await say(bub,`And I'm still keeping ${t.hoard.length===1?'something':'some things'} of yours in my hoard… answer right and you can win ${t.hoard.length===1?'it':'them'} back!`,600);
   await say(bub,pick([`Are you ready for my test? THREE questions! And remember… this time I'm NOT so generous! HAR!`,`Now… are you ready for my THREE questions? Wrong answers go in my hoard! HAR HAR!`,`Ready for my test, friend? Three questions — and they're HARD ones!`]),600);
  }
@@ -356,5 +360,5 @@ function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  const finish=()=>{if(done)return;done=true;clearInterval(tiv);window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=!timedOut&&(v===q.answer||!!(q.alt&&q.alt.includes(v)));box.remove();resolve({ok,q,timeout:timedOut});};
 });}
 window.Troll={start,arm:k=>{ARM=k;},_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
-window.Surprise={say,tapWait,ask,label,take,giveBack,el,sleep,snd,makeQ,EAGLE_BIOMES,heroHTML,isDemo:()=>!!DEMO};
+window.Surprise={reclaimed,say,tapWait,ask,label,take,giveBack,el,sleep,snd,makeQ,EAGLE_BIOMES,heroHTML,isDemo:()=>!!DEMO};
 })();

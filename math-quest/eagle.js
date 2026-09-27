@@ -5,11 +5,11 @@
 const ENAME='Skyla',WHO='🦅 '+ENAME;
 const SH=()=>window.Surprise;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-let root=null,busy=false,DEMO=null;
+let root=null,busy=false,DEMO=null;const EAGLE_AGAIN=/eagledemo=again/.test(location.search);
 const SHINY=['coins','hat','robe','toy']; // eagles only take shiny things — never pets or spells
 
 function E(p){p.eagle=p.eagle||{};const e=p.eagle;e.visits=e.visits||0;e.hoard=e.hoard||[];return e;}
-window.eagleHoardHTML=function(p){const e=p.eagle;const f=p.feathers||0;let s='';
+window.eagleHoardHTML=function(p){const e=p.eagle;const f=p.feathers||0;let s='';if(e&&e.hoard)SH().reclaimed(p,e);
  if(f)s+=`<div class="tr-hoardbox" style="background:#5a3b00"><b>🪶 Golden Feathers: ${f}</b><br><small>Use one when the Troll or the Eagle asks a question that's too hard — it makes the question easier.</small></div>`;
  if(e&&e.hoard&&e.hoard.length)s+=`<div class="tr-hoardbox"><b>🦅 ${ENAME} the Eagle keeps in her nest:</b> ${e.hoard.map(SH().label).map(esc).join(' · ')}<br><small>Answer her questions right next time she grabs you to win them back!</small></div>`;
  return s;};
@@ -161,7 +161,8 @@ const CSS=`
 async function start(demo){
  const p=P();if(demo)DEMO=JSON.stringify({eagle:p.eagle||null,troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily,feathers:p.feathers||0});const e=E(p);busy=true;window.trollBusy=true;const S=SH();
  if(!document.getElementById('egCSS')){const s=document.createElement('style');s.id='egCSS';s.textContent=CSS;document.head.appendChild(s);}
- const first=!e.visits||!!DEMO;
+ if(DEMO&&EAGLE_AGAIN&&!e.visits)e.visits=1;
+ const first=!e.visits||(!!DEMO&&!EAGLE_AGAIN);const n=e.visits,pick=a=>a[n%a.length],me=`🙂 ${p.name||'You'}`;
  // snapshot the map WITHOUT the hero (the eagle is carrying you, so you shouldn't also be standing down there)
  window.__hideHero=true;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
  let snap='';try{const c=document.getElementById('wcv');if(c)snap=c.toDataURL('image/jpeg',.7);}catch(x){}
@@ -191,6 +192,7 @@ async function start(demo){
  sky.querySelector('.eg-stand').remove();sky.querySelector('.eg-held').classList.add('on');tone(300,.15,'square',.08);sky.querySelector('.eg-screech').remove();
  await sleep(500);
  if(first)await S.tapWait('😱','<p>GIANT TALONS grab you! A <b>huge eagle</b> is carrying you up into the sky!</p>',null,root);
+ else await S.tapWait('😄',pick(['<p>Those talons again! You know <b>exactly</b> who this is…</p><p>Skyla! 🦅</p>','<p>WHOOSH! Big feathers, yellow feet… it\'s <b>Skyla</b> again!</p>','<p>Up, up and away! You\'re not scared at all this time — it\'s your friend <b>Skyla</b>!</p>']),null,root);
  // 3. fly up — the map shrinks away below
  grp.style.transition='left 1.6s ease-in-out,top 1.6s ease-in-out,width 1.6s';grp.style.left=((innerWidth-Math.min(innerWidth*.9,760))/2)+'px';grp.style.top=(innerHeight*.14)+'px';grp.style.width=Math.min(innerWidth*.9,760)+'px';
  const held=sky.querySelector('.eg-held');const W2=Math.min(innerWidth*.9,760),H2=W2*380/640,hh=Math.min(W2*.2,130);held.style.transition='all 1.6s ease-in-out';held.style.top=(H2*.78)+'px';held.style.height=hh+'px';held.style.width=(hh*.77)+'px';held.style.marginLeft=(-hh*.385)+'px';
@@ -198,7 +200,7 @@ async function start(demo){
  setTimeout(()=>grp.classList.add('eg-bob'),1700);
  for(let i=0;i<4;i++)sky.appendChild(S.el(`<i class="eg-cloud" style="left:${5+i*24}%;animation-delay:${.6+i*.4}s"></i>`));
  [500,600,700,800].forEach((f,k)=>tone(f,.4,'triangle',.04,k*.3));
- if(first)await S.tapWait('…','<p>Higher and higher… Number Village looks <b>tiny</b> down there!</p>',null,root);else await sleep(2600);
+ if(first)await S.tapWait('…','<p>Higher and higher… Number Village looks <b>tiny</b> down there!</p>',null,root);else await S.tapWait('👋',pick(['<p>You wave at Number Village far below. You know where she\'s taking you…</p>','<p>Wheee! The wind in your hair — this is kind of fun now!</p>','<p>Higher and higher… back to the mountain nest!</p>']),null,root);
  dark.classList.add('on');await sleep(700);sky.remove();
  // 4. the nest on the mountain peak
  const stage=S.el(`<div class="eg-scene tr-stage">${PEAK}<div class="eg-mama">${PERCH}</div>
@@ -211,8 +213,14 @@ async function start(demo){
   await say(`SKREEE! An EGG THIEF! I saw you sneaking around down there! I am ${ENAME}, and these are MY chicks!`);
   await say('My chicks start Flight School tomorrow, and they need help with their homework. Solve THREE problems for them… and maybe I\'ll believe you\'re not a thief!');
  }else{
-  const hi=['You again! My chicks have NEW homework for you!','Peep peep! The chicks asked for YOU! Homework time!','Back in my nest! Three problems, clever one!'];
-  await say(hi[e.visits%hi.length]+(e.hoard.length?` I'm still keeping ${e.hoard.length===1?'something shiny':'some shiny things'} of yours… get them right and you can win ${e.hoard.length===1?'it':'them'} back!`:''));
+  await S.tapWait('🐣',pick(['<p>Back in the giant nest! The three eaglets flap and peep — they <b>remember you!</b></p>','<p>Plop! Right back in the nest. The chicks hop over to say hi!</p>','<p>The nest again! One of the chicks is wearing a tiny homework cap… 🎓</p>']),null,root);
+  await S.say(bub,pick([`Hi ${ENAME}! Hi chicks! Did you miss me?`,`${ENAME}! I knew that shadow was you!`,`Hello again, ${ENAME}! More homework, huh?`]),300,false,me);
+  stage.classList.add('eg-kind');
+  await say(pick(['SKREEE! My favorite homework helper is BACK! 💛','There\'s my friend! The chicks have been peeping about you ever since your last visit!','Welcome back to the nest, friend! We saved you a spot!']));
+  stage.classList.remove('eg-kind');
+  const back=S.reclaimed(p,e);if(back.length)await say(`Peep! I see you got your ${back.map(x=>S.label(x).replace(' your ',' ')).join(' and ')} back all by yourself! Good for you — I won\'t need to give ${back.length===1?'it':'them'} back.`);
+  if(e.hoard.length)await say(`I'm still keeping ${e.hoard.length===1?'something shiny':'some shiny things'} of yours in my nest… solve my chicks' homework and you can win ${e.hoard.length===1?'it':'them'} back!`);
+  await say(pick(['Flight School gave them NEW homework! Ready for three problems? Remember — miss one and I keep something SHINY!','The chicks are stuck on three tricky problems. Can you help? Wrong answers go in my shiny pile!','Ready, friend? Three homework problems — and I\'ve got my eye on your shiny things!']));
  }
  // 5. three story problems
  const res=[],took=[],gave=[];
@@ -233,15 +241,17 @@ async function start(demo){
  const right=res.filter(Boolean).length;
  if(right===3){p.feathers=(p.feathers||0)+1;tone(1046,.3,'triangle',.1);tone(1318,.3,'triangle',.1,.12);tone(1568,.4,'triangle',.1,.24);
   stage.appendChild(S.el('<div class="eg-feather">🪶</div>'));
-  await say('ALL THREE! You earned a GOLDEN FEATHER! 🪶 When the Troll or I ask a question that\'s too hard, use it to make the question easier.');}
+  if(!(e.fwon||e.best===3))await say('ALL THREE! You earned a GOLDEN FEATHER! 🪶 When the Troll or I ask a question that\'s too hard, use it to make the question easier.');
+  else await say(`ALL THREE again! Another GOLDEN FEATHER for you! 🪶 That makes ${p.feathers}!`);
+  e.fwon=(e.fwon||0)+1;}
  if(first){
   stage.classList.add('eg-kind');
   await say('You\'re no egg thief… you\'re a FRIEND! My chicks love you already. 💛');
   await say('But be careful! Next time, if you miss a problem, I\'ll keep something SHINY for my nest. Eagles LOVE shiny things!');
- }else await say(took.length?'Remember — get them right next time and you can win your shiny things back!':'Great job, friend!');
+ }else await say(right===3?'The chicks are going to ACE Flight School thanks to you! 💛':took.length?'Remember — get them right next time and you can win your shiny things back!':'Great job, friend! The chicks learned a lot today.');
  e.visits++;e.last=Date.now();e.best=Math.max(e.best||0,right);save();
  // 6. ride home on her back — friends now
- stage.classList.add('eg-kind');await say('Hop on my back — I\'ll fly you home, friend!');
+ stage.classList.add('eg-kind');await say(first?'Hop on my back — I\'ll fly you home, friend!':pick(['Climb aboard, friend — same seat as last time!','Hop on! Hold on to my feathers — let\'s fly!','Time to go home! Hop on my back, homework hero!']));
  dark.classList.add('on');await sleep(700);stage.remove();
  const ride=S.el(`<div class="eg-sky eg-down">${snap?`<div class="eg-ground small" style="background-image:url(${snap})"></div>`:'<div class="eg-ground small" style="background:linear-gradient(#9ccf66,#5fae4b)"></div>'}<div class="eg-flier eg-rideside eg-bob">${RIDE_BACK}<div class="eg-rider2">${S.heroHTML(p)}</div><div class="eg-rfront">${RIDE_FRONT}</div></div><div class="eg-screech" style="color:#ffe066;top:auto;bottom:12%">WOO-HOO!</div></div>`);
  for(let i=0;i<4;i++)ride.appendChild(S.el(`<i class="eg-cloud" style="left:${8+i*22}%;animation-delay:${i*.35}s"></i>`));
@@ -283,6 +293,6 @@ setInterval(()=>{try{const p=P();if(!p||!p.setup||document.hidden||busy||flying|
 let FLYDEMO=/shadowdemo/.test(location.search);
 window.eagleFlyover=()=>{try{flyover(P());}catch(x){}};
 /* ?eagledemo — parents can preview; everything is put back afterwards */
-if(/eagledemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&window.Troll&&Troll.arm&&typeof curScreen!=='undefined'&&curScreen==='world'){clearInterval(iv);Troll.arm('eagle');toast('🦅 Eagle preview: walk onto an empty square outside the village…');}}catch(x){}},500);}
+if(/eagledemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&window.Troll&&Troll.arm&&typeof curScreen!=='undefined'&&curScreen==='world'){clearInterval(iv);Troll.arm('eagle');toast('🦅 Eagle preview'+(EAGLE_AGAIN?' (return visit)':'')+': walk onto an empty square outside the village…');}}catch(x){}},500);}
 window.Eagle={start,_E:E,_q:storyQ};
 })();

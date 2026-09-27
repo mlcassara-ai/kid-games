@@ -2210,6 +2210,7 @@ SCREENS.backpack=()=>{
 };
 function shopClick(kind,id){
  const p=P();if(p.troll&&(p.troll.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🧌 Grumbleroot the Troll is holding that one! Win it back by answering his questions.');return;}
+ if(p.eagle&&(p.eagle.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🦅 Skyla the Eagle keeps that one in her nest! Win it back by solving her chicks\' homework.');return;}
  if(kind==='pet'){p.pet=id;save();SFX.tap();go('backpack');return;}
  const list=kind==='hat'?HATS:kind==='robe'?ROBES:SPELLS;const it=list.find(x=>x.id===id);
  const ownedList=p.owned[kind==='hat'?'hats':kind==='robe'?'robes':'spells'];
