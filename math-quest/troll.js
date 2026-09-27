@@ -180,7 +180,11 @@ const CSS=`
 .tr-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.tr-pad button.go{grid-column:span 3}.tr-pad button{background:#3a2d55;color:#fff;border:none;border-radius:12px;font:700 22px Fredoka,sans-serif;padding:9px 0}
 .tr-pad button.go{background:#2ecc71}.tr-pad button.neg{visibility:hidden}.tr-pad.negon button.neg{visibility:visible}
 .tr-dots{display:flex;gap:6px;justify-content:center;margin-bottom:4px}.tr-dots i{width:14px;height:14px;border-radius:50%;background:#555}.tr-dots i.ok{background:#2ecc71}.tr-dots i.no{background:#ff5a5f}.tr-dots i.cur{background:#ffd43b}
-.tr-lift{animation:trlift 1.6s ease-in forwards}@keyframes trlift{to{transform:translateY(-120vh)}}
+.tr-toss{animation:trtoss 1.9s cubic-bezier(.35,.1,.6,1) forwards}@keyframes trtoss{from{transform:translate(var(--sx),var(--sy)) rotate(0)}30%{transform:translate(calc(var(--sx) + 3vw),calc(var(--sy) - 25vh)) rotate(260deg)}to{transform:translate(calc(var(--sx) + 10vw),-130vh) rotate(900deg)}}
+.tr-walk .tr-troll{animation:trbob .36s ease-in-out infinite alternate}@keyframes trbob{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-10px) rotate(2deg)}}
+.tr-grab{top:34%;left:0;right:auto;width:50%;z-index:14;font-size:clamp(34px,8vw,60px);color:#ffd43b;animation:trpop .4s ease-out}
+.tr-whee{top:12%;left:0;right:auto;width:55%;z-index:14;font-size:clamp(34px,8vw,64px);color:#8fd3ff;animation:trwob .3s infinite alternate}
+.tr-next{display:block;margin:8px 0 0 auto;background:#6b4a2b;color:#fff;border:none;border-radius:12px;padding:7px 16px;font:700 16px Fredoka,sans-serif;cursor:pointer;animation:trnext 1.2s infinite}@keyframes trnext{50%{transform:translateX(4px)}}
 .tr-hoardbox{background:#2b2140;color:#fff;border-radius:14px;padding:10px 12px;margin:10px 0;font-size:14px}.tr-hoardbox small{color:#cbbfe6}
 .tr-stolen{position:absolute;left:18%;bottom:30%;z-index:13;font-size:clamp(18px,3vw,26px);font-weight:700;background:#ff5a5f;border-radius:14px;padding:6px 12px;animation:trsteal 1.6s ease-in forwards}
 @keyframes trsteal{60%{transform:translate(0,-40px)}100%{transform:translate(55vw,-10vh) scale(.4);opacity:0}}
@@ -195,8 +199,14 @@ function snd(f,d,t,v,w){try{tone(f,d,t||'sine',v||.12,w||0);}catch(e){}}
 function tapWait(btnText,box,cls){return new Promise(res=>{const t=el(`<div class="tr-text">${box}${btnText?`<div><button class="tr-btn ${cls||''}">${btnText}</button></div>`:''}</div>`);root.appendChild(t);
  const b=t.querySelector('button');const done=()=>{t.remove();res();};if(b)b.onclick=done;else{t.onclick=done;}
  if(skip)done();});}
-async function say(bub,text,ms){bub.innerHTML=`<b class="tr-name">🧌 ${TNAME}</b>`;const span=document.createElement('span');bub.appendChild(span);root.querySelector('.tr-stage').classList.add('tr-talk');
- for(let i=0;i<text.length;i+=2){span.textContent=text.slice(0,i+2);if(!skip)await sleep(22);}span.textContent=text;root.querySelector('.tr-stage').classList.remove('tr-talk');if(ms&&!skip)await sleep(ms);}
+/* the troll talks: text types out (tap to finish it), then a Next button waits for the kid — nothing rushes by */
+async function say(bub,text,ms,noNext){bub.style.display='';bub.innerHTML=`<b class="tr-name">🧌 ${TNAME}</b>`;const span=document.createElement('span');bub.appendChild(span);const st=root.querySelector('.tr-stage');st.classList.add('tr-talk');
+ let fast=false;bub.onclick=()=>{fast=true;};
+ for(let i=0;i<text.length&&!fast;i+=2){span.textContent=text.slice(0,i+2);await sleep(30);}span.textContent=text;st.classList.remove('tr-talk');bub.onclick=null;
+ if(noNext){if(ms)await sleep(ms);return;}
+ await new Promise(res=>{const b=document.createElement('button');b.className='tr-next';b.textContent='Next ▸';bub.appendChild(b);
+  const key=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();done();}};const done=()=>{window.removeEventListener('keydown',key);b.remove();res();};
+  b.onclick=e=>{e.stopPropagation();try{SFX.tap();}catch(x){}done();};window.addEventListener('keydown',key);});}
 function growl(){snd(90,.5,'sawtooth',.09);snd(70,.6,'sawtooth',.08,.15);}
 
 /* ---------- the sequence ---------- */
@@ -272,11 +282,21 @@ async function start(){
   await say(bub,right===3?`All three right! You win! Off you go, clever one.`:took.length?`Remember — answer right next time and you can win your things back!`:`Off you go. Come visit again… I mean, WATCH YOUR STEP!`,800);
  }
  t.visits++;t.last=Date.now();t.best=Math.max(t.best||0,right);save();
- // lift back up
- cage.classList.add('open');await sleep(skip?0:800);
- await say(bub,'Up you go! *boost*',400);
- hbox.classList.add('tr-lift');snd(400,.5,'triangle',.08);snd(600,.5,'triangle',.08,.2);snd(800,.5,'triangle',.08,.4);
- await sleep(skip?0:1300);fade.classList.add('on');await sleep(skip?0:700);
+ // the troll stomps over, grabs you and TOSSES you back up the hole
+ await say(bub,'Now OFF you go! Hold on tight…');bub.style.display='none';
+ const tr=tbox.getBoundingClientRect(),hr=hbox.getBoundingClientRect();const dx=Math.max(0,tr.left+tr.width*.2-(hr.right+hr.width*.2));
+ tbox.classList.add('tr-walk');tbox.style.transition='transform 1.8s linear';tbox.style.transform=`translateX(-${dx}px)`;
+ for(let i=0;i<5;i++){snd(70,.15,'square',.12);await sleep(360);}
+ tbox.classList.remove('tr-walk');
+ cage.classList.add('open');snd(300,.2,'square',.05);await sleep(700);
+ const gy=-Math.round(window.innerHeight*.16);hbox.style.transition='transform .6s ease-out';hbox.style.transform=`translate(${Math.round(hr.width*.4)}px,${gy}px)`;snd(200,.2,'triangle',.08);
+ const grab=el('<div class="tr-big tr-grab">GRAB!</div>');stage.appendChild(grab);await sleep(800);grab.remove();
+ tbox.style.transition='transform .35s ease-in';tbox.style.transform=`translateX(-${dx}px) scaleY(.93)`;await sleep(380);
+ tbox.style.transition='transform .25s ease-out';tbox.style.transform=`translateX(-${dx}px) scaleY(1.05)`;
+ hbox.style.setProperty('--sx',Math.round(hr.width*.4)+'px');hbox.style.setProperty('--sy',gy+'px');hbox.style.transition='none';hbox.classList.add('tr-toss');
+ const wh=el('<div class="tr-big tr-whee">WHEEEEE!</div>');stage.appendChild(wh);[400,550,700,900,1100].forEach((f,k)=>snd(f,.25,'triangle',.08,k*.12));
+ await sleep(600);bub.style.display='';bub.innerHTML=`<b class="tr-name">🧌 ${TNAME}</b>Bye bye, little friend! 👋 Watch your step!`;tbox.style.transform=`translateX(-${dx}px)`;
+ await sleep(1700);fade.classList.add('on');await sleep(700);
  root.remove();root=null;busy=false;window.trollBusy=false;
  if(DEMO){const s=JSON.parse(DEMO);DEMO=null;Object.assign(p,{coins:s.coins,pets:s.pets,owned:s.owned,toys:s.toys,daily:s.daily});if(s.troll)p.troll=s.troll;else delete p.troll;save();try{toast('🧌 That was a preview — nothing was changed.');go('world');}catch(e){}return;}
  const summary=[took.length?`🧌 The troll kept: ${took.map(label).join(', ')}`:'',gave.length?`↩ You won back: ${gave.map(label).join(', ')}`:''].filter(Boolean).join(' · ');
@@ -285,7 +305,7 @@ async function start(){
 }
 function makeQ(p){let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');q=genQ(op,lvl(p,op));if(q&&!q.tpl)break;}return q;}
 function ask(stage,bub,q,i,res){return new Promise(async resolve=>{
- await say(bub,['Question ONE!','Question TWO!','Last question… THREE!'][i],200);
+ await say(bub,['Question ONE!','Question TWO!','Last question… THREE!'][i],200,true);
  let inp='';const box=el(`<div class="tr-q"><div class="tr-dots">${[0,1,2].map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-qt"></div>
   <div class="tr-pad ${q.neg?'negon':''}">${['7','8','9','4','5','6','1','2','3','neg','0','del','go'].map(k=>`<button data-k="${k}" class="${k==='go'?'go':k==='neg'?'neg':''}">${k==='del'?'⌫':k==='go'?'✓ Answer':k==='neg'?'±':k}</button>`).join('')}</div></div>`);
  stage.appendChild(box);const qt=box.querySelector('.tr-qt');const show=()=>{qt.innerHTML=`${q.text} = <span class="ansbox">${inp||'?'}</span>`;};show();
