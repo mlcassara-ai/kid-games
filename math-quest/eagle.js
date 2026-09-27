@@ -108,7 +108,10 @@ async function start(){
  const p=P();const e=E(p);busy=true;window.trollBusy=true;const S=SH();
  if(!document.getElementById('egCSS')){const s=document.createElement('style');s.id='egCSS';s.textContent=CSS;document.head.appendChild(s);}
  const first=!e.visits||!!DEMO;
+ // snapshot the map WITHOUT the hero (the eagle is carrying you, so you shouldn't also be standing down there)
+ window.__hideHero=true;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
  let snap='';try{const c=document.getElementById('wcv');if(c)snap=c.toDataURL('image/jpeg',.7);}catch(x){}
+ window.__hideHero=false;
  root=S.el('<div class="eg-root"></div>');document.body.appendChild(root);
  const tone=(a,b,c,d,f)=>S.snd(a,b,c,d,f);
  // 1. a huge shadow sweeps over the map… SKREEE!
