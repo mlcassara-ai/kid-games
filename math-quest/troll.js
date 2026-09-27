@@ -159,12 +159,13 @@ const CSS=`
 .tr-trollbox{position:absolute;right:2%;bottom:6%;height:86%;width:min(56%,560px);z-index:5;transform-origin:bottom center;transition:transform 1.2s,filter 1.2s}
 .tr-trollbox.hidden{filter:brightness(0);transform:translateY(4%)}
 .tr-troll{width:100%;height:100%;overflow:visible}
+.tr-trollbox.tr-behind{right:auto;left:-8%;z-index:4}.tr-bleft .tr-bubble{right:auto;left:30%}
 .tr-body{animation:trbreathe 3.2s ease-in-out infinite;transform-origin:210px 520px}@keyframes trbreathe{50%{transform:scaleY(1.025)}}
 .tr-head{animation:trhead 4s ease-in-out infinite;transform-origin:210px 220px}@keyframes trhead{50%{transform:rotate(-2deg)}}
 .tr-eyes{animation:trteyes 5s infinite;transform-origin:210px 118px}@keyframes trteyes{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
 .tr-brow-kind{display:none}.tr-kind .tr-brow-kind{display:inline}.tr-kind .tr-brow-angry{display:none}
 .tr-drool{animation:trdrool 2.6s ease-in infinite;transform-origin:262px 204px}@keyframes trdrool{0%,40%{transform:scaleY(.2);opacity:0}70%{transform:scaleY(1.3);opacity:.9}100%{transform:translateY(40px) scaleY(.5);opacity:0}}
-.tr-eyesdark{position:absolute;right:26%;top:18%;width:130px;display:flex;justify-content:space-between;z-index:3;animation:trteyes 4s infinite}.tr-eyesdark i{width:34px;height:22px;border-radius:50%;background:radial-gradient(#fff7a0,#ffb000 55%,#ff5a00);box-shadow:0 0 22px 6px rgba(255,160,0,.6)}
+.tr-eyesdark{position:absolute;left:12%;top:14%;width:130px;display:flex;justify-content:space-between;z-index:3;animation:trteyes 4s infinite}.tr-eyesdark i{width:34px;height:22px;border-radius:50%;background:radial-gradient(#fff7a0,#ffb000 55%,#ff5a00);box-shadow:0 0 22px 6px rgba(255,160,0,.6)}
 .tr-mopen{display:none}.tr-talk .tr-mopen{display:inline;animation:trjaw .22s infinite alternate}.tr-talk .tr-mclosed{display:none}
 @keyframes trjaw{to{transform:translateY(4px)}}
 .tr-roar .tr-trollbox{animation:trshake .6s 2}
@@ -190,7 +191,7 @@ const CSS=`
 @keyframes trsteal{60%{transform:translate(0,-40px)}100%{transform:translate(55vw,-10vh) scale(.4);opacity:0}}
 .tr-given{position:absolute;right:22%;bottom:40%;z-index:13;font-size:clamp(18px,3vw,26px);font-weight:700;background:#2ecc71;border-radius:14px;padding:6px 12px;animation:trgive 1.6s ease-in forwards}
 @keyframes trgive{60%{transform:translate(0,-30px)}100%{transform:translate(-50vw,10vh) scale(.5);opacity:0}}
-@media(max-width:600px){.tr-trollbox{width:86%;height:74%;bottom:18%;right:-8%}.tr-bubble{width:62%;right:3%;top:4%}.tr-herobox{height:13%;left:6%;bottom:18%}.tr-cage{left:2%;bottom:16.5%;height:20%}}
+@media(max-width:600px){.tr-trollbox{width:86%;height:74%;bottom:18%;right:-30%}.tr-trollbox.tr-behind{left:-26%;right:auto}.tr-bubble{width:62%;right:3%;top:4%}.tr-herobox{height:13%;left:6%;bottom:18%}.tr-cage{left:2%;bottom:16.5%;height:20%}}
 `;
 
 /* ---------- helpers ---------- */
@@ -239,13 +240,14 @@ async function start(){
   await tapWait('🪄 Cast the light spell!','<p>Then you remember something. There is <b>one magic spell</b> you have never, ever used before…</p><p>A spell that makes <b>LIGHT!</b></p>','gold');
   bl.remove();
   // 4. light reveals the troll
-  root.appendChild(stage);const fl=stage.querySelector('.tr-flash');snd(880,.4,'triangle',.1);snd(1320,.5,'triangle',.08,.1);fl.classList.add('on');await sleep(700);dark.classList.add('lit');tbox.classList.remove('hidden');await sleep(500);fl.classList.remove('on');
+  tbox.classList.add('tr-behind');stage.classList.add('tr-bleft');root.appendChild(stage);const fl=stage.querySelector('.tr-flash');snd(880,.4,'triangle',.1);snd(1320,.5,'triangle',.08,.1);fl.classList.add('on');await sleep(700);dark.classList.add('lit');tbox.classList.remove('hidden');await sleep(500);fl.classList.remove('on');
   await sleep(900);stage.classList.add('tr-roar','tr-talk');growl();bub.style.display='';bub.innerHTML=`<b class="tr-name">🧌 ???</b><span style="font-size:1.25em;word-break:break-all">GRRRAAAWWRR!!</span>`;await sleep(1800);stage.classList.remove('tr-roar','tr-talk');
   await tapWait('😱','<p>A <b>GIANT TROLL!</b> The biggest, ugliest troll you have ever seen!</p>');
   // 5. faint
   bub.style.display='none';hbox.classList.add('faint');await sleep(900);fade.classList.add('on');
   await sleep(1200);
   // 6. wake up in a cage
+  tbox.style.transition='none';tbox.classList.remove('tr-behind');stage.classList.remove('tr-bleft');void tbox.offsetWidth;tbox.style.transition='';
   cage.classList.add('on');hbox.classList.remove('faint');fade.classList.remove('on');
   await tapWait('…','<p>You faint! 💫</p><p>When you wake up… you\'re locked in a <b>cage</b>!</p>');
   bub.style.display='';
