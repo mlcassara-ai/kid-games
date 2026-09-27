@@ -101,7 +101,7 @@ function host(p){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'
   coins:()=>p.coins,addCoins:(n)=>{p.coins+=n;save();},spend:(n)=>{if(p.coins<n)return false;p.coins-=n;save();return true;},
   save:()=>save(),trip:true,noRecharge:true,tripRock:HOST&&HOST.rock,medals:()=>medals(p),gateNeed:id=>GATE_NEED[id]||0,
   guideSVG:SVG,guideImg:img(),
-  mathQ:()=>{let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');q=genQ(op,lvl(p,op));if(!q.tpl&&typeof q.answer==='number')break;}return {q:q.text,a:q.answer};},
+  mathQ:()=>{let q=null,best=null;for(let k=0;k<30;k++){const op=pickOp(p,'mix');if(!['add','sub','mul','div'].includes(op))continue;q=genQ(op,Math.max(1,lvl(p,op)-1));if(q.tpl||typeof q.answer!=='number')continue;if(!best||String(q.text).length<String(best.text).length)best=q;if(String(q.text).length<=9)break;}q=best||genQ('add',1);return {q:q.text,a:q.answer};}, // quick-fire facts a little below the kid's level — Power Ups should feel snappy
   event:(t,d)=>{if(t==='power'){const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][d&&d.ok?'r':'w']++;if(d&&d.ok&&typeof wkAnswer==='function')wkAnswer(p,5);}},
   exit:()=>tripOver(p)};}
 function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;HOST=null;

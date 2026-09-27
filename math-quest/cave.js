@@ -459,10 +459,14 @@ const sw=c=>`<i class="cv-sw" style="background:${c}"></i>`;
 function testsOf(p){const o={};Object.keys(p.tests||{}).forEach(k=>{if(k.startsWith('scratch:'))o.hard=1;else if(LTESTS.some(t=>t.id===k))o[k]=1;});return Object.keys(o);}
 function crackGeode(i){const p=S.pack[i];const g=CD.GEODES.find(x=>x.id===p.id);S.pack.splice(i,1);const first=!S.geo[g.id];S.geo[g.id]=(S.geo[g.id]||0)+1;addCoins(g.c,'geode');S.rp+=first?8:2;save(true);
  modal(`<div class="cv-card"><div class="cv-geode" style="--gc:${g.col}"><i></i></div><h2>🔨 Crack! ${esc(g.n)}</h2><p>${esc(g.y)}</p><p class="cv-sub">A geode starts as a hollow bubble in rock. Mineral-rich water seeps in and, over thousands of years, crystals grow inward from the walls.</p><div class="cv-rew">+${g.c} 🪙 · +${first?8:2} 🔬</div><button class="cv-btn" data-close>Beautiful!</button></div>`);onClose=openLab;ev('geode',{id:g.id});}
+/* suspects are chosen so a real test can always tell them apart (no "what does it look like?" guessing) */
+const sig=id=>['magnet','acid','water','streak','hard'].concat(S.gear.uv?['uv']:[]).map(t=>JSON.stringify(tval(CD.MIN[id],t))).join('|');
 function candidates(p){if(p.cands&&p.cands.includes(p.id))return p.cands;const seen=CD.LAYERS.filter(L=>S.seen[L.id]).map(L=>L.id);const n=[3,4,6][TIER()];
  const R=rng(hash(p.k));let pool=Object.keys(CD.MIN).filter(id=>id!==p.id&&CD.MIN[id].L.some(l=>seen.includes(l)));
  if(pool.length<n-1)pool=Object.keys(CD.MIN).filter(id=>id!==p.id);
- p.cands=shuffle(R,[p.id,...shuffle(R,pool).slice(0,n-1)]);return p.cands;}
+ const pick2=src=>{const out=[p.id],sg=new Set([sig(p.id)]);shuffle(R,src).forEach(id=>{if(out.length<n&&!sg.has(sig(id))){out.push(id);sg.add(sig(id));}});return out;};
+ let c=pick2(pool);if(c.length<n)c=pick2(Object.keys(CD.MIN).filter(id=>id!==p.id));
+ p.cands=shuffle(R,c);return p.cands;}
 function alive(p){const m=CD.MIN[p.id],done=testsOf(p);return candidates(p).filter(c=>!(p.wrong||[]).includes(c)&&done.every(t=>tval(CD.MIN[c],t)===tval(m,t)));}
 /* ---------------- Field Lab: the Mystery Key ----------------
    One question at a time. Each test shows a picture of what happens; you read the result and pick the answer.
@@ -683,7 +687,7 @@ const pzR=id=>rng(hash(id+'|'+H.player.id+'|'+(S.pzTry=(S.pzTry||0)+1)));
 function pzLever(){const t=TIER(),R=pzR('lever');
  const Wt=[120,[160,200,240][Math.floor(R()*3)],[320,400,480,560][Math.floor(R()*4)]][t],F=[30,40,60][t];
  let d=5;
- const draw=(ang,msg)=>{const fx=20+d*26;const sh=modal(`<h2>🪨 The Giant Boulder</h2><p class="cv-sub">A ${Wt} kg boulder blocks the way down. You can push with ${F} kg of force. Slide the fulcrum (▲) along the 10 m plank, then push!</p>
+ const draw=(ang,msg)=>{const fx=20+d*26;const sh=modal(`<h2>🪨 The Giant Boulder</h2><p class="cv-sub">${t?`A ${Wt} kg boulder blocks the way down. You can push with ${F} kg of force. Slide the fulcrum (▲) along the 10 m plank, then push!`:'A giant boulder blocks the way down! Slide the yellow ▲ under the plank, then push. Can you find a spot where you are strong enough to lift it?'}</p>
   <svg viewBox="0 0 300 150" class="cv-pz"><rect x="0" y="130" width="300" height="20" fill="#5b4633"/>
    <g transform="rotate(${ang} ${fx} 104)"><rect x="20" y="98" width="260" height="10" rx="3" fill="#b98a52"/><circle cx="36" cy="72" r="26" fill="#7d7468"/><text x="36" y="78" text-anchor="middle" font-size="13" fill="#fff">${Wt}kg</text><text x="266" y="92" text-anchor="middle" font-size="26">${H.player.emoji||'🧑‍🚀'}</text></g>
    <path d="M${fx} 108 L${fx-14} 130 L${fx+14} 130 Z" fill="#ffd43b"/>
