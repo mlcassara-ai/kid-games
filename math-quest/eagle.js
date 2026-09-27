@@ -80,6 +80,11 @@ const CSS=`
 .eg-carried{position:absolute;left:50%;top:calc(22% + min(90vw,760px)*.56);width:min(15vw,110px);transform:translateX(-50%) rotate(8deg);z-index:6}
 .eg-rider{position:absolute;left:50%;top:calc(22% + min(90vw,760px)*.1);width:min(13vw,96px);transform:translateX(-50%);z-index:4}
 .eg-carried svg,.eg-rider svg{width:100%;height:auto}
+.eg-sky.eg-clear{background:transparent}.eg-skybg{position:absolute;inset:0;background:linear-gradient(#27456e,#6fa8dc 60%,#bfe0ff);opacity:0;transition:opacity 1.4s}.eg-skybg.on{opacity:1}
+.eg-ground2{position:absolute;background-size:100% 100%;transform-origin:center;transition:transform 3s ease-in,opacity 3s;z-index:1}.eg-ground2.small{transform:translateY(38vh) scale(.2);opacity:.6}
+.eg-stand{position:absolute;z-index:3}.eg-stand svg,.eg-held svg{width:100%;height:100%}
+.eg-grp{position:absolute;z-index:5;transition:transform 1.1s cubic-bezier(.5,0,.9,.6)}.eg-grp .eg-flysvg{position:relative;z-index:2}
+.eg-held{position:absolute;left:50%;display:none;z-index:1;transform:rotate(6deg)}.eg-held.on{display:block}
 .eg-flier{position:absolute}.eg-onback{position:absolute;left:50%;top:-14%;width:17%;transform:translateX(-50%);z-index:2}.eg-onback svg{width:100%;height:auto}
 .eg-bob{animation:egbob .5s ease-in-out infinite alternate}@keyframes egbob{to{margin-top:-10px}}
 .eg-scene{position:absolute;inset:0}
@@ -117,16 +122,32 @@ async function start(){
  // 1. a huge shadow sweeps over the map… SKREEE!
  root.appendChild(S.el(`<div class="eg-shadow">${FLY(false)}</div>`));
  [1500,1300,1100,900].forEach((f,k)=>tone(f,.25,'sawtooth',.05,k*.08));
- await sleep(1500);const dark=S.el('<div class="eg-dark"></div>');root.appendChild(dark);await sleep(30);dark.classList.add('on');await sleep(800);
- // 2. sky: the eagle dives and grabs you
- const sky=S.el(`<div class="eg-sky">${snap?`<div class="eg-ground" style="background-image:url(${snap})"></div>`:'<div class="eg-ground" style="background:linear-gradient(#9ccf66,#5fae4b)"></div>'}<div class="eg-flier eg-dive">${FLY(true)}</div><div class="eg-screech">SKREEEEE!</div></div>`);
- root.insertBefore(sky,dark);dark.classList.remove('on');tone(1400,.5,'sawtooth',.06);tone(1000,.5,'sawtooth',.05,.2);
- await sleep(1300);sky.querySelector('.eg-screech').remove();
- const hero=S.el(`<div class="eg-carried eg-bob">${S.heroHTML(p)}</div>`);sky.appendChild(hero);tone(300,.15,'square',.08);
+ const dark=S.el('<div class="eg-dark"></div>');root.appendChild(dark);
+ // 2. the eagle dives down onto the map and grabs you right where you are standing
+ const cv=document.getElementById('wcv');const rc=cv?cv.getBoundingClientRect():{left:0,top:0,width:innerWidth,height:innerHeight};
+ let hp={x:innerWidth/2,feet:innerHeight*.62,h:64};try{const cc=wCam(),ts=W.ts;hp={x:rc.left+W.drawX*ts-cc[0]+ts/2,feet:rc.top+W.drawY*ts-cc[1]+ts*.95,h:ts*1.35};}catch(x){}
+ const hw=hp.h*.77,Wf=Math.min(innerWidth*.92,Math.max(300,hp.h*6.5)),Hf=Wf*380/640;
+ const gx=hp.x-Wf/2,gy=hp.feet-hp.h-Hf*.8;
+ const HERO=S.heroHTML(p);
+ const sky=S.el(`<div class="eg-sky eg-clear"><div class="eg-skybg"></div>
+  <div class="eg-ground2" style="left:${rc.left}px;top:${rc.top}px;width:${rc.width}px;height:${rc.height}px;${snap?`background-image:url(${snap})`:'background:linear-gradient(#9ccf66,#5fae4b)'}"></div>
+  <div class="eg-stand" style="left:${hp.x-hw/2}px;top:${hp.feet-hp.h}px;width:${hw}px;height:${hp.h}px">${HERO}</div>
+  <div class="eg-grp" style="left:${gx}px;top:${gy}px;width:${Wf}px;transform:translateY(${-(gy+Hf+80)}px)">${FLY(true)}<div class="eg-held" style="top:${Hf*.78}px;width:${hw}px;height:${hp.h}px;margin-left:${-hw/2}px">${HERO}</div></div>
+  <div class="eg-screech">SKREEEEE!</div></div>`);
+ root.insertBefore(sky,dark);await sleep(1300);
+ root.querySelectorAll('.eg-shadow').forEach(x=>x.remove());
+ const grp=sky.querySelector('.eg-grp');tone(1400,.5,'sawtooth',.06);tone(1000,.5,'sawtooth',.05,.2);
+ await sleep(30);grp.style.transform='translateY(0)';await sleep(1150);
+ // GRAB!
+ sky.querySelector('.eg-stand').remove();sky.querySelector('.eg-held').classList.add('on');tone(300,.15,'square',.08);sky.querySelector('.eg-screech').remove();
+ await sleep(500);
  if(first)await S.tapWait('😱','<p>GIANT TALONS grab you! A <b>huge eagle</b> is carrying you up into the sky!</p>',null,root);
  // 3. fly up — the map shrinks away below
- sky.querySelector('.eg-flier').classList.remove('eg-dive');sky.querySelector('.eg-ground').classList.add('small');
- for(let i=0;i<4;i++)sky.appendChild(S.el(`<i class="eg-cloud" style="left:${5+i*24}%;animation-delay:${i*.4}s"></i>`));
+ grp.style.transition='left 1.6s ease-in-out,top 1.6s ease-in-out,width 1.6s';grp.style.left=((innerWidth-Math.min(innerWidth*.9,760))/2)+'px';grp.style.top=(innerHeight*.14)+'px';grp.style.width=Math.min(innerWidth*.9,760)+'px';
+ const held=sky.querySelector('.eg-held');const W2=Math.min(innerWidth*.9,760),H2=W2*380/640,hh=Math.min(W2*.2,130);held.style.transition='all 1.6s ease-in-out';held.style.top=(H2*.78)+'px';held.style.height=hh+'px';held.style.width=(hh*.77)+'px';held.style.marginLeft=(-hh*.385)+'px';
+ sky.classList.remove('eg-clear');sky.querySelector('.eg-skybg').classList.add('on');sky.querySelector('.eg-ground2').classList.add('small');
+ setTimeout(()=>grp.classList.add('eg-bob'),1700);
+ for(let i=0;i<4;i++)sky.appendChild(S.el(`<i class="eg-cloud" style="left:${5+i*24}%;animation-delay:${.6+i*.4}s"></i>`));
  [500,600,700,800].forEach((f,k)=>tone(f,.4,'triangle',.04,k*.3));
  if(first)await S.tapWait('…','<p>Higher and higher… Number Village looks <b>tiny</b> down there!</p>',null,root);else await sleep(2600);
  dark.classList.add('on');await sleep(700);sky.remove();
