@@ -136,7 +136,7 @@ CD.FOSSILS=[
  {id:'trilobite',n:'Trilobite',e:'trilobite',L:'cave',top:0,age:'500 million years ago',ageY:500e6,parts:['Head','Body','Tail'],
   y:'Trilobites were bug-like sea animals that lived before the dinosaurs. They had some of the first eyes ever!',o:'Trilobites appeared about 521 million years ago and had eyes made of calcite crystals. They lived for about 270 million years before dying out — much longer than the dinosaurs.'},
  {id:'stromatolite',n:'Stromatolite',e:'🪨',L:'river',top:0,age:'3.5 billion years ago',ageY:3.5e9,parts:['Base','Layers','Top'],
-  y:'Stromatolites were made by tiny living things. They are some of the oldest signs of life on Earth!',o:'Stromatolites are rocky layers built by mats of microbes (cyanobacteria). The oldest are about 3.5 billion years old. Later stromatolite builders, cyanobacteria, were the first to fill the air with oxygen!'}
+  y:'Stromatolites were made by tiny living things. They are some of the oldest signs of life on Earth!',o:'Stromatolites are rocky layers built by mats of microbes (cyanobacteria). The oldest are about 3.5 billion years old. Cyanobacteria like these were the first living things to fill the air with oxygen!'}
 ];
 
 /* ---------- critters ---------- */

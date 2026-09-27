@@ -31,7 +31,7 @@ function award(p,o){const s=S(p);if(s.tix.length>=TIX_MAX)return null;const t=pi
 function ticketLine(p,t,first){const sb=t.s,rk=t.rock&&window.CAVE_DATA&&CAVE_DATA.MIN[t.rock];
  return first?`And here's something special: a <b>🎟️ Shrink Ticket</b>! My friend <b>${NAME}</b> runs the <b>INNER SPACE</b> ride. It shrinks you down until you're as small as an ATOM! After a few more battles he'll drive over and pick you up. Your ride: <b>${sb.e} ${esc(sb.n)}</b>${rk?` — just like your ${esc(rk.n.toLowerCase())}!`:'.'}`
   :`Here's your <b>🎟️ Shrink Ticket</b>! ${NAME} will pick you up after a few battles for the <b>${sb.e} ${esc(sb.n)}</b> ride${rk?` — that's what your ${esc(rk.n.toLowerCase())} is made of`:''}.`;}
-function wants(p){if(!p||!p.setup)return false;if(DEMO)return true;const s=S(p);return s.tix.length>0&&(p.battles||0)>=(s.after||0)&&Date.now()>(s.snooze||0);}
+function wants(p){if(!p||!p.setup)return false;if(DEMO)return true;if(Date.now()<(window.visitorQuiet||0))return false;const s=S(p);return s.tix.length>0&&(p.battles||0)>=(s.after||0)&&Date.now()>(s.snooze||0);}
 
 /* ---------- sound (uses the game's sound switch) ---------- */
 function snd(f,d,type,v,delay){try{tone(f,d,type,(v||.05)*1.6,delay);}catch(e){}}
@@ -86,7 +86,7 @@ function meet(){if(busy)return;const p=P();if(!p)return;const s=S(p);busy=true;W
   modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av oz-av">${OZZY_CAR}</div><div class="qz-bub oz-bub"><b>🎢 ${NAME} · Ride Operator</b><div>${lines[i]}</div></div></div>
    <div class="row">${last?`<button class="btn ghost dark" id="ozNo">Not now</button><button class="btn green big" id="ozGo">🎢 Hop in!</button>`:`<button class="btn green big" id="ozNext">Next ➜</button>`}</div></div>`);
   const nx=document.getElementById('ozNext');if(nx)nx.onclick=()=>{i++;show();};
-  const go1=document.getElementById('ozGo');if(go1)go1.onclick=()=>{closeModal();busy=false;startRide(t);};
+  const go1=document.getElementById('ozGo');if(go1)go1.onclick=()=>{closeModal();busy=false;startRide(t);};window.visitorQuiet=Date.now()+90e3;
   const no=document.getElementById('ozNo');if(no)no.onclick=()=>{closeModal();busy=false;if(DEMO===true)DEMO=null;else{s.snooze=Date.now()+SNOOZE_MS;save();}toast(`🎢 ${NAME}: "No problem! I'll come back for you a little later."`);};};
  try{SFX.level();}catch(e){}show();}
 function startRide(t){const p=P();const s=S(p);
@@ -188,7 +188,7 @@ function inside(){const s=R.s,t=tier();frame(nar(esc(s.inside[t]).replace(/molec
 
 /* 4. one molecule */
 function mol(){const s=R.s,t=tier();const L=D.L[s.lay];
- frame(`<div class="is-panel" style="right:14px;top:60px"><h3>${s.elem?'Building block':'One molecule'} · <span style="font-size:24px">${s.f}</span></h3>${Object.entries(s.elem?{[Object.keys(s.atoms)[0]]:1}:s.atoms).map(([e,n])=>`<div class="is-cnt"><span class="is-ball" style="background:${EL[e].col};color:${EL[e].txt}">${e}</span>${s.elem?'':n+' × '}${EL[e].n}</div>`).join('')}
+ frame(`<div class="is-panel" style="right:14px;top:60px"><h3>${s.elem?'Building block':s.id==='salt'?(t>1?'One formula unit':'One salt pair'):'One molecule'} · <span style="font-size:24px">${s.f}</span></h3>${Object.entries(s.elem?{[Object.keys(s.atoms)[0]]:1}:s.atoms).map(([e,n])=>`<div class="is-cnt"><span class="is-ball" style="background:${EL[e].col};color:${EL[e].txt}">${e}</span>${s.elem?'':n+' × '}${EL[e].n}</div>`).join('')}
  ${!s.elem&&s.id!=='salt'?`<div style="margin-top:6px;color:#495057">= ${L.a.length} atoms in all</div>`:''}</div>
  ${nar(esc(s.mol[t]),'Go inside an atom ➜')}`);onNext();
  const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');

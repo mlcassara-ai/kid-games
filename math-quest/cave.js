@@ -44,7 +44,7 @@ const CHG=[{v:10,c:0,e:'🔌',n:'Basic Charger'},{v:15,c:250,r:10,e:'🔌',n:'Fa
 function now(){try{return H&&H.now?H.now():Date.now();}catch(e){return Date.now();}}
 const chgRate=()=>CHG[S.gear.chg||0].v;
 function charge(away){if(H&&H.noRecharge){S.batT=now();return;}const t=now();const last=S.batT||t;S.batT=t;const dt=Math.max(0,(t-last)/60000);if((S.y===0||away)&&S.bat<batMax())S.bat=Math.min(batMax(),S.bat+dt*chgRate());}
-function fullIn(){const m=(batMax()-S.bat)/chgRate();if(m<=0)return '';const s=Math.ceil(m*60);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
+function fullIn(){if(H&&H.noRecharge)return '';const m=(batMax()-S.bat)/chgRate();if(m<=0)return '';const s=Math.ceil(m*60);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
 const batMax=()=>CD.BATT[S.gear.bat].v, packMax=()=>CD.PACK[S.gear.pack].v, lampR=()=>CD.LAMP[S.gear.lamp].v;
 const drill=()=>CD.DRILLS[S.gear.drill], suit=()=>CD.SUITS[S.gear.suit];
 function save(force){const n=Date.now();if(force||n-lastSave>1500){lastSave=n;S.dug=encDug();try{H.save();}catch(e){}}}
@@ -220,7 +220,7 @@ function step(dx,dy){
   if(ny===CORE_ROW)say('🧱 Super-dense mantle rock. Look for the 💠 Core Door in this band.');
   else if(g&&g.id==='glow'&&!S.gear.uv)say('✨ Something on this wall glows very faintly… A 🔦 UV lamp would show it. (Gear shop)');
   else if(g&&g.id==='glow'&&!uvOn)say('✨ Turn on your 🔦 UV lamp to find the glowing door.');
-  else say(`🧱 This rock band is too tough to dig. Find the ${g?g.e+' '+g.n:'gate'} somewhere along it.`);return;}
+  else say(`🧱 This rock band is too tough to dig. Look along it for the ${g?g.e+' '+g.n:'gate'}${g&&gateNeed(g.id)>medals()?` (it shows a 🔒 until you have ${gateNeed(g.id)} 🏅 Boss Medals)`:''}.`);return;}
  if(t===T_GATE){const g=GATES[ny];if(gateNeed(g.id)>medals()){lockCard(g);return;}if(g.id==='glow'&&!uvOn){say(S.gear.uv?'✨ Turn on your 🔦 UV lamp — this door only shows up in UV light.':'✨ Something glows faintly here… You need a 🔦 UV lamp.');return;}openPuzzle(g.id);return;}
  if(t===T_DOOR){if(gateNeed('core')>medals()){lockCard({id:'core',n:'Core Door',e:'💠'});return;}if(S.gear.drill<4){say('💠 The Core Door! It is harder than anything but diamond. You need the 💎 Diamond Drill.');return;}
   if(suit().t<1300){say('💠 It is about 1,300 °C here. You need 🔥 Magma Armor to open the Core Door.');return;}
@@ -597,7 +597,7 @@ function mathQ(g){const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),p=Math.rand
 function powerLeft(){return MQ()?Math.max(0,batMax()-(S.tripPow||0)):Infinity;}
 function openPower(){charge();let Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3),inp='',streak=0,note='';
  const gain=()=>Math.max(1,Math.min(powerLeft(),Math.max(4,Math.round(batMax()*.06))));
- const draw=()=>{const bm=batMax();const sh=modal(`<h2>⚡ Power Up!</h2><p class="cv-sub">Every right answer adds <b>+${gain()} 🔋</b>. ${S.bat>=bm?'':'Or just wait — it charges by itself at camp (full in '+fullIn()+').'}</p>
+ const draw=()=>{const bm=batMax();const sh=modal(`<h2>⚡ Power Up!</h2><p class="cv-sub">Every right answer adds <b>+${gain()} 🔋</b>. ${S.bat>=bm||!fullIn()?'':'Or just wait — it charges by itself at camp (full in '+fullIn()+').'}</p>
   <div class="cv-meter ok"><i style="width:${S.bat/bm*100}%"></i></div><p class="cv-sub" style="text-align:center">🔋 ${Math.floor(S.bat)} / ${bm}${streak>1?` · 🔥 ${streak} in a row`:''}</p>
   ${S.bat>=bm-.5?`<div class="cv-card"><div class="cv-big">🔋</div><h2>Fully charged!</h2><button class="cv-btn" data-close>Go dig!</button></div>`:powerLeft()<=0?`<div class="cv-card">${guide('Phew — that is all the charge this battery can take on one trip! Finish up here, and bring me another 🪨 <b>mystery rock</b> from Math Quest to come back.')}<button class="cv-btn" data-close>OK</button></div>`:`
   <div class="cv-mq">${esc(Q.q)}${Q.x?'<small>x = ?</small>':' = ?'}</div><div class="cv-inp">${esc(inp)||'&nbsp;'}</div>${note}
@@ -989,7 +989,7 @@ const CSS=`
 .cv-mats{display:grid;gap:5px}.cv-mat{display:grid;grid-template-columns:30px 1fr auto auto auto;gap:6px;align-items:center;background:#f6f3ff;border-radius:10px;padding:5px 8px;font-size:14px}.cv-mat span{font-size:22px}.cv-mat small{color:#6d6490}.cv-mat button{background:#fff;border-radius:8px;padding:5px 8px;font-weight:600}.cv-mat button:disabled{opacity:.4}
 .cv-raftb{display:flex;gap:4px;align-items:center;justify-content:center;min-height:56px;background:linear-gradient(transparent 55%,#74c0fc 55%);border-radius:12px;margin-top:10px;padding:4px;transition:transform .8s}.cv-raftb.sink{transform:translateY(20px);opacity:.6}.cv-raftb button{font-size:28px;background:#b98a52;border-radius:6px;padding:2px 4px}.cv-me{font-size:30px}
 .cv-sockets,.cv-minsel{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0}
-.cv-sock{width:90px;height:100px;border-radius:16px;background:#1c1626;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 16px var(--g),inset 0 0 0 3px var(--g)}.cv-sock.sel{outline:4px solid #ffd43b}.cv-sock span{font-size:30px}
+.cv .cv-sock,.cv .cv-sock span,.cv .cv-sock small{color:#fff}.cv-sock{width:90px;height:100px;border-radius:16px;background:#1c1626;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 16px var(--g),inset 0 0 0 3px var(--g)}.cv-sock.sel{outline:4px solid #ffd43b}.cv-sock span{font-size:30px}
 .cv-minsel button{background:#1c1626;color:#fff;border-radius:14px;padding:6px 10px;display:flex;flex-direction:column;align-items:center;font-size:12px}
 .cv-nsel{display:flex;gap:6px;justify-content:center}.cv-nsel button{width:44px;height:44px;border-radius:12px;background:#f3f0ff;font-weight:700;font-size:18px}.cv-nsel button.on{background:#7c5cff;color:#fff}
 .cv-choices{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}

@@ -22,7 +22,9 @@ const T_SUB=[(a,b)=>`There were ${N(a,'feather','feathers')} in the nest. The wi
 const T_MUL=[(a,b)=>`${N(a,'chick','chicks')} each ate ${N(b,'worm','worms')}. How many worms did they eat in all?`,(a,b)=>`There ${a===1?'is':'are'} ${N(a,'nest','nests')} on the mountain and each nest has ${N(b,'egg','eggs')}. How many eggs altogether?`,(a,b)=>`I flap my wings ${N(b,'time','times')} every minute. How many flaps do I make in ${N(a,'minute','minutes')}?`];
 const T_DIV=[(a,b)=>b===1?`I found ${N(a,'berry','berries')} and gave them all to one chick. How many berries did that chick get?`:`${N(a,'berry','berries')} are shared equally between ${b} chicks. How many berries does each chick get?`,(a,b)=>b===1?`I put ${N(a,'twig','twigs')} into one big pile. How many twigs are in the pile?`:`I put ${N(a,'twig','twigs')} into ${b} equal piles. How many twigs are in each pile?`];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-function storyQ(p,up){let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+(up||0)));q=genQ(op,L);if(q)break;}
+function storyQ(p,up,seen){let q=null;for(let k=0;k<16;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+(up||0)));q=genQ(op,L);if(!q)continue;
+  const key=q.op+':'+(q.a!=null?[q.a,q.b,q.c].filter(x=>x!=null).sort((x,y)=>x-y).join(','):q.text); // same numbers in any order = a repeat
+  if(seen&&seen.has(key)&&k<15)continue;if(seen)seen.add(key);break;}
  if(q&&!q.tpl&&q.a!=null&&q.L<=10){
   if(q.op==='add')q.story=q.c!==undefined?pick(T_ADD3)(q.a,q.b,q.c):pick(T_ADD)(q.a,q.b);
   else if(q.op==='sub')q.story=pick(T_SUB)(q.a,q.b);
@@ -223,9 +225,9 @@ async function start(demo){
   await say(pick(['Flight School gave them NEW homework! Ready for three problems? Remember — miss one and I keep something SHINY!','The chicks are stuck on three tricky problems. Can you help? Wrong answers go in my shiny pile!','Ready, friend? Three homework problems — and I\'ve got my eye on your shiny things!']));
  }
  // 5. three story problems
- const res=[],took=[],gave=[];
+ const res=[],took=[],gave=[],seenQ=new Set();
  for(let i=0;i<3;i++){
-  let q=storyQ(p,0);
+  let q=storyQ(p,0,seenQ);
   const ans=await S.ask(stage,bub,q,i,res,{who:WHO,intro:['Homework problem ONE!','Problem TWO!','Last one… problem THREE!'],story:true,easier:()=>storyQ(p,-1)});
   const ok=ans.ok;q=ans.q;res.push(ok);
   const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;

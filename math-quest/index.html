@@ -104,7 +104,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .ta{font-size:16px;resize:vertical;min-height:120px}
 .qlist{margin:4px 0 8px;padding-left:20px}
 .qcard{position:relative}
-.hintbtn{position:absolute;top:-14px;right:-8px;background:#fff6d6;border:3px solid var(--gold);border-radius:999px;padding:4px 10px;font-size:15px;font-weight:700;color:#6b4a00;box-shadow:0 3px 0 rgba(0,0,0,.2);z-index:2;white-space:nowrap}
+.hintbtn{position:absolute;top:-24px;right:-8px;background:#fff6d6;border:3px solid var(--gold);border-radius:999px;padding:4px 10px;font-size:15px;font-weight:700;color:#6b4a00;box-shadow:0 3px 0 rgba(0,0,0,.2);z-index:2;white-space:nowrap}
 .hintbtn.off{background:#eee;border-color:#ccc;color:#888}
 .hintbtn small{font-weight:600}
 .dimbulb{filter:grayscale(1);opacity:.35}
@@ -156,7 +156,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{background:#f1edff;padding:7px 14px;border-radius:999px;font-size:16px;font-weight:600;border:3px solid transparent}
 .chip.on{border-color:var(--accent);background:#e3dbff}
-.sw{width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #ddd}
+.sw{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #ddd}
 .sw.on{box-shadow:0 0 0 4px var(--accent)}
 .shake-x{animation:shakex .4s}
 /* map */
@@ -231,6 +231,12 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
  .bmain{flex-direction:row}.arena{flex:1}.bctrl{width:48%;display:flex;flex-direction:column;justify-content:center;padding:6px}
  .qcard{width:100%}.pad{width:100%;margin:6px 0}.pad button{padding:4px 0;font-size:22px}
 }
+/* tall questions: shrink the arena first, then (wide screens) put the question beside the fight */
+.battle.squeeze .arena{min-height:160px}.battle.tight .hero-sprite svg{width:clamp(52px,8vh,72px)}.battle.tight .mon-sprite{font-size:clamp(46px,7vh,64px)}.battle.tight .boss .mon-sprite{font-size:clamp(54px,8vh,76px)}.battle.tight .petf{font-size:24px;left:-20px}.battle.tight .arena{padding-bottom:6px}.battle.tight .fighter{gap:2px}.battle.squeeze .qcard .vis svg,.battle.squeeze .qcard svg.vis{max-height:20vh;width:auto;max-width:100%}.battle.squeeze .qcard .vis{max-height:22vh}.battle.squeeze .hero-sprite svg{width:clamp(60px,11vh,100px)}.battle.squeeze .mon-sprite{font-size:clamp(50px,10vh,90px)}.battle.squeeze .boss .mon-sprite{font-size:clamp(60px,12vh,110px)}
+.battle.squeeze .pad{gap:6px;margin-top:6px}.battle.squeeze .pad button{padding:clamp(4px,1vh,10px) 0}.battle.squeeze .qcard{padding:6px 12px}
+.battle.squeeze2 .bmain{flex-direction:row}.battle.squeeze2 .arena{flex:1 1 42%;min-height:0}.battle.squeeze2 .bctrl{flex:1 1 58%;display:flex;flex-direction:column;justify-content:center;padding:6px 10px;min-width:0;overflow-y:auto}
+.battle.squeeze2 .qcard{width:100%}.battle.squeeze2 .pad{width:min(420px,100%)}
+@media (orientation:portrait){.battle.squeeze2 .bmain{flex-direction:column}.battle.squeeze2 .arena{flex:0 0 90px}.battle.squeeze2 .bctrl{flex:1 1 auto}}
 .proj{position:absolute;left:0;top:0;font-size:42px;pointer-events:none;z-index:4;filter:drop-shadow(0 0 10px #fff)}
 .proj.crit{font-size:58px}
 .proj.mine{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 18px #ffd84a)}
@@ -371,7 +377,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 @media(max-width:760px){.pethome{grid-template-columns:1fr}}
 .phcard{text-align:center;position:sticky;top:70px}
 @media(max-width:760px){.phcard{position:static}}
-.phstage{position:relative;padding:40px 0 6px;background:radial-gradient(ellipse at 50% 90%,#e3ffe9 0,#f6f3ff 60%);border-radius:18px;cursor:pointer;overflow:hidden;min-height:220px;user-select:none;-webkit-user-select:none}
+.phstage{position:relative;padding:66px 0 6px;background:radial-gradient(ellipse at 50% 90%,#e3ffe9 0,#f6f3ff 60%);border-radius:18px;cursor:pointer;overflow:hidden;min-height:220px;user-select:none;-webkit-user-select:none}
 .phstage .pav{animation:bob 2s ease-in-out infinite}
 .bubblesay{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#fff;border-radius:14px;padding:5px 12px;font-weight:600;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis}
 .phfx{position:absolute;bottom:40%;font-size:40px;pointer-events:none}
@@ -410,7 +416,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .xq{display:flex;align-items:center;justify-content:center;gap:14px;font-size:clamp(20px,3.6vh,30px);flex-wrap:wrap;letter-spacing:0}
 .xqr{display:flex;flex-direction:column;align-items:center;gap:4px}
 .xprompt{font-size:.66em;font-weight:600;line-height:1.3;max-width:340px}
-.xline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.xline{display:block;text-align:center;line-height:1.45}.xline sup{font-size:.62em;vertical-align:super;line-height:0}
 .xtip{font-size:12px;color:var(--muted);font-weight:600}
 .vis.pie,.vis.clock{width:clamp(78px,14vh,118px);height:auto;flex:none}
 .vis.fbar{display:grid;width:min(170px,40vw);height:26px;border:2px solid #5a3b00;border-radius:6px;overflow:hidden}
@@ -431,7 +437,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .warea{background:rgba(30,15,70,.8);color:#fff;font-weight:700;font-size:18px;padding:6px 14px;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.25)}
 .warea.pop{animation:wpop .5s ease-out}
 @keyframes wpop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:none;opacity:1}}
-.whelp{position:absolute;left:50%;top:58px;transform:translateX(-50%);background:rgba(255,255,255,.92);color:var(--ink);font-weight:600;font-size:14px;padding:6px 12px;border-radius:12px;transition:opacity 1s;pointer-events:none;text-align:center;max-width:92%}
+.whelp{width:max-content;position:absolute;left:50%;top:58px;transform:translateX(-50%);background:rgba(255,255,255,.92);color:var(--ink);font-weight:600;font-size:14px;padding:6px 12px;border-radius:12px;transition:opacity 1s;pointer-events:none;text-align:center;max-width:92%}
 .whelp.fade{opacity:0}
 .dpad{position:absolute;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));display:grid;grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:2px;opacity:.85}
 .dpad button{background:rgba(255,255,255,.9);border-radius:14px;font-size:22px;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.25);touch-action:none}
@@ -445,7 +451,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .lbcard h3{font-size:18px}
 .lbrow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:12px;font-size:17px}
 .lbrow.me{background:#f1ecff}
-.lbtabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 14px}.lbtabs button{font:inherit;font-weight:700;border:0;border-radius:20px;padding:8px 14px;background:rgba(124,92,255,.15);color:var(--ink);cursor:pointer}.lbtabs button.on{background:#ffd43b;color:#5a3b00}
+.lbtabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 14px}.lbtabs button{font:inherit;font-weight:700;border:0;border-radius:20px;padding:8px 14px;background:rgba(255,255,255,.88);color:#3b2a86;cursor:pointer}.lbtabs button.on{background:#ffd43b;color:#5a3b00}
 .cer{background:radial-gradient(ellipse at 50% 0,#6f4bff,#3a2596 70%);border-radius:24px;padding:20px 16px;color:#fff;box-shadow:0 0 0 4px #ffd43b,0 0 40px rgba(255,212,59,.35);margin-bottom:16px}
 .cer h2{margin:0;text-align:center}.cerwhen{text-align:center;opacity:.9;margin:4px 0 14px}.cerempty{background:rgba(255,255,255,.14);border-radius:14px;padding:16px;text-align:center;font-size:18px}
 .cerkids{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
@@ -468,7 +474,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .qpanel{background:rgba(255,255,255,.95);color:var(--ink);border-radius:20px;padding:12px 14px;margin:12px 0}.qpanel h3{margin:0 0 8px}.qready{background:#ffd43b;color:#5c3c00;border-radius:999px;padding:2px 10px;font-size:14px;animation:bob 1.2s ease-in-out infinite;display:inline-block}
 .qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}.qitem{display:flex;gap:8px;align-items:center;text-align:left;min-width:0;box-shadow:none;margin:0;background:#f8f6ff;border:2px solid #e5dbff;border-radius:14px;padding:8px}.qitem.done{border-color:#fcc419;background:#fff9db}
 .qnpc{font-size:34px;flex:none}.qbody{flex:1;min-width:0;font-size:14px}.qbody b{font-size:15px;display:block}.qbody small{color:#868e96}.qbar{height:8px;background:#e9ecef;border-radius:6px;overflow:hidden;margin:4px 0 1px}.qbar i{display:block;height:100%;background:linear-gradient(90deg,#7048e8,#be4bdb)}.qitem.done .qbar i{background:#fcc419}
-.nsteps{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}.nstep{font:inherit;font-size:13px;font-weight:700;border:0;border-radius:999px;background:#e7f5ff;color:#1864ab;padding:5px 11px;cursor:pointer}
+.nsteps{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}.nstep{font:inherit;font-size:14px;font-weight:700;border:0;border-radius:999px;background:#e7f5ff;color:#1864ab;padding:9px 13px;min-height:40px;cursor:pointer}
 .fbar.tiered{position:relative;overflow:visible}.fmark{position:absolute;top:-4px;bottom:-4px;width:4px;margin-left:-2px;background:#fff;border-radius:2px;box-shadow:0 0 0 2px rgba(0,0,0,.25)}.fmark.got{background:#ffd43b}
 .ftiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.ftier{background:rgba(255,255,255,.15);border-radius:12px;padding:6px 8px;text-align:center;display:flex;flex-direction:column;gap:1px}.ftier span{font-size:20px;font-weight:800}.ftier small{opacity:.9}.ftier.got{background:#ffd43b;color:#5c3c00}
 .fnote{font-size:12px;opacity:.8;margin-top:6px}
@@ -636,7 +642,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .note{color:#cfc6ff;text-align:center;font-size:14px}
 .sel{font-size:16px;padding:6px 8px;border-radius:10px;border:2px solid #ddd5ff}
 .pp h4{margin:18px 0 6px}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(150px);background:#241a3d;color:#fff;padding:12px 20px;border-radius:14px;font-weight:600;transition:transform .3s;z-index:60;max-width:90vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+#toast{pointer-events:none;width:max-content;position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(150px);background:#241a3d;color:#fff;padding:12px 20px;border-radius:14px;font-weight:600;transition:transform .3s;z-index:60;max-width:90vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.4)}
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast.top{bottom:auto;top:70px;transform:translateX(-50%) translateY(-200px)}
 #toast.top.show{transform:translateX(-50%) translateY(0)}
@@ -645,6 +651,22 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 @keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
 @keyframes shakex{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 @keyframes wobble{25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+
+/* QA pass (Sep 2026) */
+.xprow{display:flex;align-items:center;gap:4px}.xprow .xpbar{flex:1;min-width:0}.lv2{display:none;font-size:11px;font-weight:700;color:#ffe066;white-space:nowrap}
+.scfb{background:#fff4e6;color:#8a4b00;border-radius:12px;padding:8px 12px;margin:0 0 10px;font-size:16px;text-align:center}.scfb.ok{background:#ebfbee;color:#2b8a3e}
+.cpad .scneg{grid-column:1/-1;background:#fff4e6!important;color:#d9480f!important;font-size:18px!important}
+.chestrow{display:flex;gap:8px;justify-content:center;align-items:center}.chestneg{font-size:22px!important;min-width:52px}
+.cafe-hintbox{margin:10px auto 0;max-width:520px;background:#fff9db;border:2px solid #fcc419;border-radius:14px;padding:8px 12px;font-size:16px;text-align:left}
+.item.held{background:#fff4e6}.item.held small{color:#d9480f;font-weight:700}
+@media(max-width:520px){
+ .topbar .tb-hero{display:none}
+ .topbar .iconbtn.tbi[aria-label="Sound on or off"]{display:none}
+ .topbar{gap:4px!important;padding:8px 6px!important}.topbar .iconbtn.tbi{width:40px;height:40px}
+ .topbar .coins{padding:4px 6px;font-size:13px}.topbar .coins.tbchip{padding:4px 5px}
+ .tb-name .lv{display:none}.xprow .lv2{display:inline-block}
+ .tb-info{min-width:0;flex:1}.tb-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
 </style>
 </head>
 <body>
@@ -708,7 +730,7 @@ function genX(op,L){
  if(op==='frac'){
   if(L<=2){const n=L===1?pick([2,3,4]):pick([3,4,5,6,8]),k=rnd(1,n-1);const not=L===2&&Math.random()<.4;
    return fin({vis:{t:Math.random()<.5?'pie':'bar',n,k},prompt:`What fraction is ${not?'<b>NOT</b> ':''}shaded?`,tpl:frA(n),answer:not?n-k:k,text:`${not?'Unshaded':'Shaded'}: ${k} of ${n} parts`,
-    explain:`<p>There are <b>${n}</b> equal parts, so the bottom number is ${n}.</p><p>${not?`${n-k} parts are white`:`${k} parts are shaded`}, so the answer is <b>${fr(not?n-k:k,n)}</b>.</p>`,
+    explain:`<p>There are <b>${n}</b> equal parts, so the bottom number is ${n}.</p><p>${not?`${n-k} part${n-k===1?' is':'s are'} white`:`${k} part${k===1?' is':'s are'} shaded`}, so the answer is <b>${fr(not?n-k:k,n)}</b>.</p>`,
     nudge:`<p>Count the <b>${not?'white':'orange'}</b> parts. That number goes on top!</p>`});}
   if(L<=4){const d=L===3?pick([2,4]):pick([2,3,4,5]);const N=d*rnd(L===3?1:2,L===3?3:6);const e=pick(['🍎','🍓','⭐','🐟','🍪','🎈']);
    return fin({vis:{t:'set',n:N,e},prompt:`${fr(1,d)} of ${N} ${e}`,tpl:`${fr(1,d)} of ${N} = {A}`,answer:N/d,text:`1/${d} of ${N}`,
@@ -723,8 +745,8 @@ function genX(op,L){
   if(L===8){const n=pick([3,4,5,6,8,10]),k=rnd(2,n-1),N=n*rnd(2,8);
    return fin({tpl:`${fr(k,n)} of ${N} = {A}`,answer:N/n*k,text:`${k}/${n} of ${N}`,
     explain:`<p>First find ${fr(1,n)}: ${N} ÷ ${n} = ${N/n}.</p><p>Then take ${k} of them: ${N/n} × ${k} = <b>${N/n*k}</b></p>`,nudge:`<p>Find ${fr(1,n)} of ${N} first (divide by ${n}), then multiply by ${k}.</p>`});}
-  if(L===9){if(Math.random()<.6){const k=rnd(1,9);if(Math.random()<.5)return fin({vis:{t:'g100',cols:k},prompt:'The whole grid is 1. What fraction is shaded?',tpl:frA(10),answer:k,text:`Grid ${k}/10`,explain:`<p>Each column is <b>one tenth</b> of the grid. ${k} columns are shaded, so it's ${fr(k,10)}.</p>`,nudge:`<p>Count the shaded <b>columns</b>. There are 10 columns in all.</p>`});
-    return fin({vis:{t:'g100',cols:k},prompt:'Write the shaded part as hundredths.',tpl:`${fr(k,10)} = ${frA(100)}`,answer:k*10,text:`${k}/10 = ?/100`,explain:`<p>Each column has 10 little squares. ${k} columns = ${k*10} squares out of 100.</p><p>${fr(k,10)} = ${fr(k*10,100)}</p>`,nudge:`<p>Count the little squares that are shaded. How many out of 100?</p>`});}
+  if(L===9){if(Math.random()<.6){const k=rnd(1,9);if(Math.random()<.5)return fin({vis:{t:'g100',cols:k},prompt:'The whole grid is 1. What fraction is shaded?',tpl:frA(10),answer:k,text:`Grid ${k}/10`,explain:`<p>Each column is <b>one tenth</b> of the grid. ${k} column${k===1?' is':'s are'} shaded, so it's ${fr(k,10)}.</p>`,nudge:`<p>Count the shaded <b>columns</b>. There are 10 columns in all.</p>`});
+    return fin({vis:{t:'g100',cols:k},prompt:'Write the shaded part as hundredths.',tpl:`${fr(k,10)} = ${frA(100)}`,answer:k*10,text:`${k}/10 = ?/100`,explain:`<p>Each column has 10 little squares. ${k} column${k===1?'':'s'} = ${k*10} squares out of 100.</p><p>${fr(k,10)} = ${fr(k*10,100)}</p>`,nudge:`<p>Count the little squares that are shaded. How many out of 100?</p>`});}
    const n=pick([2,3,4,5,6,8]);if(Math.random()<.5){const w=rnd(2,4);return fin({prompt:`How many ${fr(1,n)} pieces make ${w} wholes?`,tpl:'{A}',answer:n*w,text:`${w} wholes in 1/${n}s`,explain:`<p>1 whole = ${n} pieces, so ${w} wholes = ${w} × ${n} = <b>${n*w}</b></p>`,nudge:`<p>How many pieces are in ONE whole? Now do that ${w} times.</p>`});}
    const w=rnd(1,3),r=rnd(1,n-1),top=w*n+r;return fin({tpl:`${fr(top,n)} = ${w} and ${frA(n)}`,answer:r,text:`${top}/${n} as a mixed number`,explain:`<p>${w} wholes use ${w} × ${n} = ${w*n} pieces.</p><p>${top} − ${w*n} = <b>${r}</b> left over.</p>`,nudge:`<p>How many pieces do ${w} wholes use? What is left over?</p>`});}
   if(Math.random()<.55){const a=rnd(1,8),x=rnd(1,99-a*10);const tot=a*10+x;return fin({vis:{t:'g100',cells:tot},tpl:`${fr(a,10)} + ${frA(100)} = ${fr(tot,100)}`,answer:x,text:`${a}/10 + ?/100 = ${tot}/100`,explain:`<p>Change ${fr(a,10)} to hundredths: ${fr(a*10,100)}.</p><p>${tot} − ${a*10} = <b>${x}</b>, so the missing fraction is ${fr(x,100)}.</p>`,nudge:`<p>${fr(a,10)} is the same as ${fr(a*10,100)}. How many more hundredths to get to ${tot}?</p>`});}
@@ -737,23 +759,24 @@ function genX(op,L){
    return fin({vis:{t:'coins',list},prompt:'How much money is this?',tpl:'{A} ¢',answer:t,text:`Coins: ${list.map(c=>c===100?'$1':c+'¢').join(' + ')}`,
     explain:`<p>Start with the biggest: ${list.map(c=>c===100?'100':c).join(' + ')} = <b>${t}¢</b>${t>=100?` (that's ${cents(t)})`:''}</p>`,
     nudge:`<p>Remember: 🪙 penny = 1¢, nickel = 5¢, dime = 10¢, quarter = 25¢, $1 = 100¢. Count the big ones first!</p>`});}
-  const items=[['🍎','apple'],['🍪','cookie'],['🧃','juice box'],['🍫','candy bar'],['🎈','balloon'],['✏️','pencil'],['🍦','ice cream'],['🧸','teddy']];
+  const items=[['🍎','apple'],['🍪','cookie'],['🧃','juice box'],['🍫','candy bar'],['🎈','balloon'],['✏️','pencil'],['🍦','ice cream cone'],['🧸','teddy bear']];
+  const an=n=>/^[aeiou]/i.test(n)?'An':'A',pl=(n,k)=>k===1?n:/(x|s|ch|sh)$/.test(n)?n+'es':n+'s';
   if(L===5){const [e1,n1]=pick(items);let [e2,n2]=pick(items);if(n2===n1)[e2,n2]=items[(items.findIndex(x=>x[1]===n1)+1)%items.length];const a=5*rnd(2,12),b=5*rnd(2,12);
-   return fin({prompt:`A ${e1} ${n1} costs ${a}¢. A ${e2} ${n2} costs ${b}¢.`,tpl:'Both together: {A} ¢',answer:a+b,text:`${a}¢ + ${b}¢`,explain:`<p>${a} + ${b} = <b>${a+b}¢</b></p>`,nudge:`<p>Add the two prices. Try the tens first: ${Math.floor(a/10)*10} + ${Math.floor(b/10)*10}.</p>`});}
+   return fin({prompt:`${an(n1)} ${n1} ${e1} costs ${a}¢. ${an(n2)} ${n2} ${e2} costs ${b}¢.`,tpl:'Both together: {A} ¢',answer:a+b,text:`${a}¢ + ${b}¢`,explain:`<p>${a} + ${b} = <b>${a+b}¢</b></p>`,nudge:`<p>Add the two prices. Try the tens first: ${Math.floor(a/10)*10} + ${Math.floor(b/10)*10}.</p>`});}
   if(L===6){const [e,n]=pick(items);const pr=5*rnd(3,19);
-   return fin({vis:{t:'coins',list:[100]},prompt:`You pay <b>$1</b> for a ${e} ${n} that costs <b>${pr}¢</b>.`,tpl:'Your change: {A} ¢',answer:100-pr,text:`Change from $1 for ${pr}¢`,explain:`<p>$1 = 100¢. &nbsp;100 − ${pr} = <b>${100-pr}¢</b></p><p class="tip">Count up from ${pr} to 100!</p>`,nudge:`<p>Count up from ${pr}¢ to 100¢. How far is it?</p>`});}
+   return fin({vis:{t:'coins',list:[100]},prompt:`You pay <b>$1</b> for ${an(n).toLowerCase()} ${n} ${e} that costs <b>${pr}¢</b>.`,tpl:'Your change: {A} ¢',answer:100-pr,text:`Change from $1 for ${pr}¢`,explain:`<p>$1 = 100¢. &nbsp;100 − ${pr} = <b>${100-pr}¢</b></p><p class="tip">Count up from ${pr} to 100!</p>`,nudge:`<p>Count up from ${pr}¢ to 100¢. How far is it?</p>`});}
   if(L===7){const d=rnd(1,9),c=5*rnd(1,19);const v=d*100+c;
    return fin({tpl:`$${d}.${pad2(c)} = {A} ¢`,answer:v,text:`$${d}.${pad2(c)} in cents`,explain:`<p>Each dollar is 100¢: ${d} × 100 = ${d*100}.</p><p>${d*100} + ${c} = <b>${v}¢</b></p>`,nudge:`<p>How many cents is ${d} dollar${d>1?'s':''}? Then add the ${c}¢.</p>`});}
   if(L===8){const [e,n]=pick(items);const pr=rnd(1,4)*100+25*rnd(0,3)+(Math.random()<.5?0:10);const v=500-pr;
-   return fin({prompt:`You pay <b>$5</b> for a ${e} ${n} that costs <b>${cents(pr)}</b>.`,tpl:'Change in cents: {A} ¢',answer:v,text:`Change from $5 for ${cents(pr)}`,explain:`<p>$5 = 500¢, ${cents(pr)} = ${pr}¢.</p><p>500 − ${pr} = <b>${v}¢</b> (${cents(v)})</p>`,nudge:`<p>Turn both into cents: $5 = 500¢. Then subtract.</p>`});}
+   return fin({prompt:`You pay <b>$5</b> for ${an(n).toLowerCase()} ${n} ${e} that costs <b>${cents(pr)}</b>.`,tpl:'Change in cents: {A} ¢',answer:v,text:`Change from $5 for ${cents(pr)}`,explain:`<p>$5 = 500¢, ${cents(pr)} = ${pr}¢.</p><p>500 − ${pr} = <b>${v}¢</b> (${cents(v)})</p>`,nudge:`<p>Turn both into cents: $5 = 500¢. Then subtract.</p>`});}
   if(L===9){const [e,n]=pick(items);const k=rnd(2,9),pr=rnd(2,12);
-   return fin({prompt:`${e.repeat(Math.min(k,6))}<br>${k} ${n}${k>1?'s':''} cost <b>$${pr}</b> each.`,tpl:'Total: $ {A}',answer:k*pr,text:`${k} × $${pr}`,explain:`<p>${k} × ${pr} = <b>$${k*pr}</b></p>`,nudge:`<p>Multiply how many by the price: ${k} × ${pr}</p>`});}
+   return fin({prompt:`${e.repeat(k)}<br>${k} ${pl(n,k)} cost <b>$${pr}</b> each.`,tpl:'Total: $ {A}',answer:k*pr,text:`${k} × $${pr}`,explain:`<p>${k} × ${pr} = <b>$${k*pr}</b></p>`,nudge:`<p>Multiply how many by the price: ${k} × ${pr}</p>`});}
   const have=pick([10,20,20,50]),a=rnd(2,Math.floor(have/3)),b=rnd(2,Math.floor(have/3));
   return fin({prompt:`You have <b>$${have}</b>. You buy a toy for <b>$${a}</b> and a book for <b>$${b}</b>.`,tpl:'Money left: $ {A}',answer:have-a-b,text:`$${have} − $${a} − $${b}`,explain:`<p>Spent: ${a} + ${b} = ${a+b}.</p><p>${have} − ${a+b} = <b>$${have-a-b}</b></p>`,nudge:`<p>Add up what you spent first, then take it away from $${have}.</p>`});
  }
  // time
  const clockQ=(h,m,extra)=>fin(Object.assign({vis:{t:'clock',h,m},prompt:'What time is it?',tpl:'{A}',kind:'clock',answer:h*100+m,alt:m===0?[h]:undefined,text:`Clock ${tfmt(h,m)}`,
-  explain:`<p>The short hand shows the <b>hour</b>: ${m===0?`it's on the ${h}`:`it's just past the ${h}`}.</p><p>The long pink hand shows the <b>minutes</b>: ${m===0?"straight up = o'clock":`${m/5===Math.floor(m/5)?`${m/5} × 5 = `:''}${m} minutes`}.</p><p>It's <b>${tfmt(h,m)}</b></p>`,
+  explain:`<p>The short hand shows the <b>hour</b>: ${m===0?`it's on the ${h}`:m<30?`it's just past the ${h}`:m===30?`it's halfway between the ${h} and the ${h%12+1}`:`it's between the ${h} and the ${h%12+1}. It hasn't reached the ${h%12+1} yet, so the hour is still ${h}`}.</p><p>The long pink hand shows the <b>minutes</b>: ${m===0?"straight up = o'clock":`${m/5===Math.floor(m/5)?`${m/5} × 5 = `:''}${m} minutes`}.</p><p>It's <b>${tfmt(h,m)}</b></p>`,
   nudge:`<p>Short hand = hour. Long pink hand = minutes. Count by 5s around the clock for the long hand!</p><p class="tip">Type 3:45 as 3 4 5</p>`},extra||{}));
  if(L===1)return clockQ(rnd(1,12),0);
  if(L===2)return clockQ(rnd(1,12),pick([0,30,30]));
@@ -775,7 +798,9 @@ const XDESC={
  frac:['','Fraction pictures','Fractions up to eighths','Half & quarter of a group','Fraction of a group','Adding fractions','Taking away fractions','Matching fractions','Fraction of a number','Tenths & hundredths','Adding tenths + hundredths'],
  money:['','Pennies & nickels','Dimes, nickels & pennies','Counting quarters','Coins and dollars','Adding prices','Change from $1','Dollars to cents','Change from $5','Buying lots','Shopping trip'],
  time:['',"O'clock",'Half past','Quarter past & to','5-minute times','Any minute','Minutes in hours','Minutes later','How long?','Minutes earlier','Long trips']};
-function xAnsStr(q){if(q.kind==='clock')return tfmt(Math.floor(q.answer/100),q.answer%100);return q.tpl&&q.tpl.includes('$')?'$'+q.answer:q.tpl&&q.tpl.includes('¢')?q.answer+'¢':String(q.answer);}
+function xAnsStr(q,alone){if(q.kind==='clock')return tfmt(Math.floor(q.answer/100),q.answer%100);const t=q.tpl||'',a=q.answer<0?'−'+(-q.answer):String(q.answer);
+ if(/\{A\}\s*¢/.test(t))return alone?a+'¢':a;if(/\$\s*\{A\}/.test(t))return alone?'$'+a:a; // the template already shows the unit next to the answer
+ return t.includes('$')?'$'+a:t.includes('¢')?a+'¢':a;}
 function xInpFmt(q,inp){if(!inp)return '?';if(inp.startsWith('-'))return '−'+(inp.slice(1)||'?');if(q.kind==='clock'&&inp.length>=3)return inp.slice(0,-2)+':'+inp.slice(-2);return inp;}
 function xShowQ(q,inp){
  const box=`<span class="ansbox">${xInpFmt(q,inp)}</span>`;
@@ -823,7 +848,7 @@ function genG5(op,L){
   if(L===3){const top=rnd(4,12),n=rnd(2,5);return fin({prompt:`The top layer has <b>${top}</b> cubes. There are <b>${n}</b> layers.`,tpl:'Volume = {A} cubic units',answer:top*n,text:`${top} per layer × ${n} layers`,explain:`<p>Each layer has ${top} cubes. ${top} × ${n} = <b>${top*n}</b></p>`,nudge:`<p>Same number in every layer. Multiply!</p>`});}
   if(L===4){const l=rnd(3,6),w=rnd(2,4),h=rnd(2,4);return fin({vis:{t:'iso',b:[{x:0,l,w,h}],lb:[{l,w,h}]},prompt:'Find the volume.',tpl:'{A} cubic units',answer:l*w*h,text:`Box ${l}×${w}×${h}`,explain:`<p>Volume = length × width × height</p><p>${l} × ${w} × ${h} = <b>${l*w*h}</b></p>`,nudge:`<p>Multiply length × width × height.</p>`});}
   if(L===5){const l=rnd(4,12),w=rnd(2,8),h=rnd(2,9);const u=pick(['inches','feet','cm','units']);return fin({prompt:`A box is <b>${l} ${u}</b> long, <b>${w} ${u}</b> wide and <b>${h} ${u}</b> tall.`,tpl:`Volume = {A} cubic ${u}`,answer:l*w*h,text:`${l}×${w}×${h} box`,explain:`<p>${l} × ${w} = ${l*w} (area of the base)</p><p>${l*w} × ${h} = <b>${l*w*h}</b> cubic ${u}</p>`,nudge:`<p>Find the base first: ${l} × ${w}. Then times the height.</p>`});}
-  if(L===6){const a=rnd(2,10);return fin({vis:{t:'iso',b:[{x:0,l:Math.min(a,4),w:Math.min(a,4),h:Math.min(a,4)}],lb:[{l:a,w:a,h:a}]},prompt:`A cube-shaped box is <b>${a} inches</b> on each side.`,tpl:'Volume = {A} cubic inches',answer:a*a*a,text:`Cube side ${a}`,explain:`<p>Every side of a cube is the same: ${a} × ${a} × ${a}</p><p>${a*a} × ${a} = <b>${a*a*a}</b></p>`,nudge:`<p>A cube is ${a} long, ${a} wide AND ${a} tall.</p>`});}
+  if(L===6){const a=rnd(2,10);return fin({vis:a<=4?{t:'iso',b:[{x:0,l:a,w:a,h:a}],lb:[{l:a,w:a,h:a}]}:undefined,prompt:`A cube-shaped box is <b>${a} inches</b> on each side.`,tpl:'Volume = {A} cubic inches',answer:a*a*a,text:`Cube side ${a}`,explain:`<p>Every side of a cube is the same: ${a} × ${a} × ${a}</p><p>${a*a} × ${a} = <b>${a*a*a}</b></p>`,nudge:`<p>A cube is ${a} long, ${a} wide AND ${a} tall.</p>`});}
   if(L===7||L===10){const A={l:rnd(2,4),w:rnd(2,3),h:rnd(2,4)},Bb={l:rnd(1,3),w:A.w,h:rnd(1,A.h-1||1)};const va=A.l*A.w*A.h,vb=Bb.l*Bb.w*Bb.h;
    if(L===10&&Math.random()<.5){const less=rnd(3,Math.min(20,va+vb-2));return fin({vis:{t:'iso',b:[{x:0,...A},{x:A.l,...Bb}]},prompt:`This figure is a ${A.l}×${A.w}×${A.h} box plus a ${Bb.l}×${Bb.w}×${Bb.h} box. Kara made a figure that is <b>${less} cubic units smaller</b>. What is the volume of Kara's figure?`,tpl:'{A} cubic units',answer:va+vb-less,text:`Composite minus ${less}`,explain:`<p>Blue: ${A.l}×${A.w}×${A.h} = ${va}. Green: ${Bb.l}×${Bb.w}×${Bb.h} = ${vb}.</p><p>Total ${va+vb}, then ${va+vb} − ${less} = <b>${va+vb-less}</b></p>`,nudge:`<p>Find the whole figure's volume first, then take away ${less}.</p>`});}
    return fin({vis:{t:'iso',b:[{x:0,...A},{x:A.l,...Bb}],lb:[{name:'A'},{name:'B'}]},prompt:`Box <b style="color:#2f6fd6">A</b> is ${A.l} × ${A.w} × ${A.h}. Box <b style="color:#1e9a53">B</b> is ${Bb.l} × ${Bb.w} × ${Bb.h}. What is the total volume?`,tpl:'{A} cubic units',answer:va+vb,text:`Composite ${A.l}×${A.w}×${A.h} + ${Bb.l}×${Bb.w}×${Bb.h}`,explain:`<p>A = ${A.l} × ${A.w} × ${A.h} = ${va}</p><p>B = ${Bb.l} × ${Bb.w} × ${Bb.h} = ${vb}</p><p>${va} + ${vb} = <b>${va+vb}</b></p>`,nudge:`<p>Find the volume of box A and box B, then add them.</p>`});}
@@ -855,8 +880,8 @@ function genG5(op,L){
  }
  // word problems
  const name=pick(['Mario','Heather','Julia','Aiden','Phillip','Jasmine','Kaya','Celine']);const sib=pick(['sister','brother','cousin']);
- if(L===1){const a=rnd(3,12),k=rnd(2,6);const [thing,verb]=pick([['books','read'],['rocks','found'],['pushups','did'],['strawberries','picked']]);
-  return fin({prompt:`${name} ${verb} <b>${a}</b> ${thing}. Their ${sib} ${verb} <b>${k} times as many</b>.`,tpl:`{A} ${thing}`,answer:a*k,text:`${a} × ${k} (times as many)`,explain:`<p>"${k} times as many" means multiply: ${a} × ${k} = <b>${a*k}</b></p>`,nudge:`<p>"Times as many" means <b>multiply</b>!</p>`});}
+ if(L===1){const a=rnd(3,12),k=rnd(2,6);const [thing,verb,base]=pick([['books','read','read'],['rocks','found','find'],['pushups','did','do'],['strawberries','picked','pick']]);
+  return fin({prompt:`${name} ${verb} <b>${a}</b> ${thing}. Their ${sib} ${verb} <b>${k} times as many</b>. How many ${thing} did the ${sib} ${base}?`,tpl:`{A} ${thing}`,answer:a*k,text:`${a} × ${k} (times as many)`,explain:`<p>"${k} times as many" means multiply: ${a} × ${k} = <b>${a*k}</b></p>`,nudge:`<p>"Times as many" means <b>multiply</b>!</p>`});}
  if(L===2){const b=rnd(4,15),k=rnd(2,9);const [big,small]=pick([['backpack','lunchbox'],['bike','helmet'],['necklace','bracelet'],['jacket','hat']]);
   return fin({prompt:`A ${big} costs <b>$${b*k}</b>. That is <b>${k} times as much</b> as a ${small}. How much does the ${small} cost?`,tpl:'$ {A}',answer:b,text:`$${b*k} is ${k}× the ${small}`,explain:`<p>The ${small} is the smaller amount, so divide: ${b*k} ÷ ${k} = <b>$${b}</b></p>`,nudge:`<p>The ${big} is ${k} times bigger. To find the ${small}, <b>divide</b> by ${k}.</p>`});}
  if(L===3){const b=rnd(3,12),k=rnd(2,9);const [big,small]=pick([['backpack','lunchbox'],['necklace','bracelet'],['game','book']]);
@@ -864,12 +889,12 @@ function genG5(op,L){
  if(L===4){const d=rnd(2,9),n=rnd(6,19);const [a1,a2,a3]=pick([['cups of flour','cups','loaf of bread'],['cups of pecans','cups','pecan pie'],['stickers','stickers','page']]);
   return fin({prompt:`A bakeshop has <b>${d*n}</b> ${a1}. It takes <b>${d}</b> ${a2} to make one ${a3}. How many can it make?`,tpl:'{A}',answer:n,text:`${d*n} ÷ ${d}`,explain:`<p>${d*n} ÷ ${d} = <b>${n}</b></p>`,nudge:`<p>Share ${d*n} into groups of ${d}. Divide!</p>`});}
  if(L===5){const d=rnd(3,9),n=rnd(12,40);const [t1,t2]=pick([['action figures','box'],['flowers','vase'],['pencils','package'],['minutes of reading','night']]);
-  const pr=t2==='night'?`${name} read <b>${d*n}</b> minutes in <b>${d}</b> days, the same amount each night. How many minutes each night?`:`There are <b>${d*n}</b> ${t1}. Each ${t2} holds <b>${d}</b>. How many ${t2}${t2==='box'?'es':'s'} are needed?`;
+  const pr=t2==='night'?`${name} read <b>${d*n}</b> minutes in <b>${d}</b> nights, the same amount each night. How many minutes each night?`:`There are <b>${d*n}</b> ${t1}. Each ${t2} holds <b>${d}</b>. How many ${t2}${t2==='box'?'es':'s'} are needed?`;
   return fin({prompt:pr,tpl:'{A}',answer:n,text:`${d*n} ÷ ${d}`,explain:`<p>${d*n} ÷ ${d} = <b>${n}</b></p><p class="tip">Check: ${n} × ${d} = ${d*n} ✓</p>`,nudge:`<p>Divide ${d*n} by ${d}. Try: ${d} × 10 = ${d*10}, then keep going.</p>`});}
  if(L===6){const d=rnd(4,9),n=rnd(8,30),r=rnd(1,d-1);const tot=d*n+r;const up=Math.random()<.6;
   return fin({prompt:up?`<b>${tot}</b> people are coming to a party. Each table seats <b>${d}</b>. How many tables are needed so everyone can sit?`:`A baker has <b>${tot}</b> cookies. Each box holds <b>${d}</b>. How many boxes can be <b>completely filled</b>?`,tpl:'{A}',answer:up?n+1:n,text:`${tot} ÷ ${d} (${up?'round up':'full boxes'})`,
    explain:`<p>${tot} ÷ ${d} = ${n} remainder ${r}.</p><p>${up?`The ${r} extra people still need a table, so <b>${n+1}</b>.`:`Only full boxes count, so <b>${n}</b>.`}</p>`,nudge:`<p>Divide, then think: what do you do with the leftover ${up?'people':'cookies'}?</p>`});}
- if(L===7){const len=rnd(5,6);let num='';for(let i=0;i<len;i++)num+=i===0?rnd(1,9):rnd(0,9);const pos=rnd(0,len-1);const dg=+num[pos];if(!dg)return genG5(op,L);const val=dg*Math.pow(10,len-1-pos);
+ if(L===7){const len=rnd(5,6);let num='';for(let i=0;i<len;i++)num+=i===0?rnd(1,9):rnd(0,9);const pos=rnd(0,len-1);const dg=+num[pos];if(!dg||num.split(String(dg)).length>2)return genG5(op,L);const val=dg*Math.pow(10,len-1-pos);
   return fin({prompt:`What is the <b>value</b> of the <b>${dg}</b> in <b>${fmtN(+num)}</b>?`,tpl:'{A}',answer:val,text:`Value of ${dg} in ${num}`,explain:`<p>The ${dg} is in the <b>${['ones','tens','hundreds','thousands','ten thousands','hundred thousands'][len-1-pos]}</b> place, so its value is <b>${fmtN(val)}</b>.</p>`,nudge:`<p>Which place is the ${dg} in? Ones, tens, hundreds, thousands…?</p>`});}
  if(L===8){const t=rnd(5,19),h=rnd(1,9);return fin({prompt:'Write it as one number.',tpl:`${t} tens + ${h} hundreds = {A}`,answer:t*10+h*100,text:`${t} tens + ${h} hundreds`,explain:`<p>${t} tens = ${t*10}. ${h} hundreds = ${h*100}.</p><p>${t*10} + ${h*100} = <b>${t*10+h*100}</b></p>`,nudge:`<p>${t} tens is ${t} × 10. ${h} hundreds is ${h} × 100.</p>`});}
  if(L===9){const a=rnd(4,12),k=rnd(2,6);const thing=pick(['pushups','strawberries','books','rocks']);
@@ -886,7 +911,7 @@ Object.assign(XDESC,{
 const G3OPS=['graph','grp'];
 const G3NAMES=['Jason','Dora','Elvira','Madison','Leo','Sofia','Omar','Ava','Ben','Maya'];
 const GTHEMES=[
- {t:'Favorite fruit',u:'kids',e:'🍎',c:[['Apples'],['Bananas'],['Grapes'],['Peaches']]},
+ {t:'Favorite fruit',u:'kids',e:'🙂',c:[['Apples'],['Bananas'],['Grapes'],['Peaches']]},
  {t:'Favorite pet',u:'kids',e:'🐾',c:[['Dogs'],['Cats'],['Fish'],['Birds']]},
  {t:'Favorite sport',u:'kids',e:'⚽',c:[['Soccer'],['Tennis'],['Hoops'],['Swim']]},
  {t:'Books read',u:'books',e:'📘',c:[['Mon'],['Tue'],['Wed'],['Thu']]},
@@ -895,7 +920,7 @@ const GTHEMES=[
 function pgraphHTML(v){
  const rows=v.rows.map(([n,val])=>{const full=Math.floor(val/v.key),half=val%v.key?1:0;
   return `<tr><td class="pgl">${n}</td><td class="pgi">${`<span>${v.e}</span>`.repeat(full)}${half?`<span class="half">${v.e}</span>`:''}</td></tr>`;}).join('');
- return `<div class="vis pgraph"><div class="pgt">${v.title}</div><table>${rows}</table><div class="pgk">Key: each ${v.e} = <b>${v.key}</b> ${v.u}${v.rows.some(r=>r[1]%v.key)?` · half ${v.e} = ${v.key/2}`:''}</div></div>`;}
+ return `<div class="vis pgraph"><div class="pgt">${v.title}</div><table>${rows}</table><div class="pgk">Key: each ${v.e} = <b>${v.key}</b> ${v.key===1?v.u.replace(/s$/,''):v.u}${v.rows.some(r=>r[1]%v.key)?` · half ${v.e} = ${v.key/2}`:''}</div></div>`;}
 function bgraphHTML(v){
  const n=v.cats.length,W=44+n*70,H=170,top=16,bot=140,max=v.max;const y=val=>bot-(val/max)*(bot-top);
  let g='';for(let t=0;t<=max;t+=v.scale){g+=`<line x1="34" x2="${W-6}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}" stroke="#d6d0f0" stroke-width="1"/><text x="30" y="${(y(t)+4).toFixed(1)}" font-size="11" font-weight="700" fill="#5a4a9a" text-anchor="end">${t}</text>`;}
@@ -954,7 +979,7 @@ const WDIV=[
 function g3Grp(L){
  const q={op:'grp',L,fast:12};const fin=o=>Object.assign(q,o);const e=pick(GRPE);
  if(L===1){const g=rnd(2,4),n=rnd(2,5);return fin({vis:{t:'groups',g,n,e},prompt:'How many in all?',tpl:`${g} groups of ${n} = {A}`,answer:g*n,text:`${g} groups of ${n}`,explain:`<p>${g} groups with ${n} in each.</p><p>${Array(g).fill(n).join(' + ')} = <b>${g*n}</b>, and that's ${g} × ${n}!</p>`,nudge:`<p>Count by <b>${n}s</b>, one group at a time.</p>`});}
- if(L===2){const r=rnd(2,5),c=rnd(2,6);return fin({vis:{t:'array',r,c,e},prompt:'This is an <b>array</b>. How many in all?',tpl:`${r} rows of ${c} = {A}`,answer:r*c,text:`Array ${r}×${c}`,explain:`<p>Rows go across. There are ${r} rows with ${c} in each row.</p><p>${r} × ${c} = <b>${r*c}</b></p>`,nudge:`<p>Count one row. Then skip-count by that number for each row!</p>`});}
+ if(L===2){const r=rnd(2,5),c=rnd(2,6);return fin({vis:{t:'array',r,c,e},prompt:'This is an <b>array</b>. How many in all?',tpl:`${r} row${r===1?'':'s'} of ${c} = {A}`,answer:r*c,text:`Array ${r}×${c}`,explain:`<p>Rows go across. There are ${r} rows with ${c} in each row.</p><p>${r} × ${c} = <b>${r*c}</b></p>`,nudge:`<p>Count one row. Then skip-count by that number for each row!</p>`});}
  if(L===3){const r=rnd(2,6),c=rnd(2,7);return fin({vis:{t:'array',r,c,e},prompt:`There are <b>${r}</b> rows. How many are in <b>each row</b>?`,tpl:`${r} × {A} = ${r*c}`,answer:c,text:`${r}×?=${r*c}`,explain:`<p>Count across one row: <b>${c}</b>.</p><p>${r} rows × ${c} in each row = ${r*c}</p>`,nudge:`<p>Count the pictures going <b>across</b> in just one row.</p>`});}
  if(L===4){const s=pick([2,3,4,5,6,3,6]),j=rnd(2,s>=5?5:7);return fin({vis:{t:'nline',j,s},prompt:`Make <b>${j}</b> jumps of <b>${s}</b>. Where do you land?`,tpl:`${j} × ${s} = {A}`,answer:j*s,text:`${j} jumps of ${s}`,explain:`<p>The first number (${j}) is how many jumps. The second (${s}) is how big each jump is.</p><p>${Array.from({length:j},(_,i)=>(i+1)*s).join(', ')} → <b>${j*s}</b></p>`,nudge:`<p>Start at 0. Hop ${s} spaces, ${j} times. Count the pink jumps!</p>`});}
  if(L===5){const g=rnd(2,5),n=rnd(2,6),t=g*n;return fin({vis:{t:'set',n:t,e},prompt:`Share <b>${t}</b> ${e} into <b>${g}</b> equal groups. How many in <b>each</b> group?`,tpl:`${t} ÷ ${g} = {A}`,answer:n,text:`${t}÷${g} share`,explain:`<p>Deal them out one at a time into ${g} groups, like dealing cards.</p><p>Each group gets <b>${n}</b>, because ${g} × ${n} = ${t}.</p>`,nudge:`<p>Think: ${g} × <b>?</b> = ${t}</p>`});}
@@ -968,7 +993,7 @@ function g3Grp(L){
   return fin({tpl:`${a} × ${b} = {A}`,answer:a*b,text:`${a}×${b}`,explain:a===6?`<p>6 is double 3! ${b} × 3 = ${b*3}, and double that is <b>${a*b}</b>.</p>`:a===3?`<p>${b} × 2 = ${b*2}, plus one more ${b} = <b>${a*b}</b>.</p>`:`<p>${a} × ${b} = <b>${a*b}</b></p>`,nudge:a===6?`<p>Do ${b} × 3 first, then double it!</p>`:`<p>Skip-count by ${a}s, ${b} times.</p>`});}
  const k=rnd(0,2);
  if(k===0){const bx=rnd(3,6),per=pick([4,6,3]),ate=rnd(2,per*bx-4);return fin({prompt:`There are <b>${bx}</b> boxes with <b>${per}</b> muffins in each. The class eats <b>${ate}</b>. How many are left?`,tpl:'{A} muffins',answer:bx*per-ate,text:`${bx}×${per}−${ate}`,explain:`<p>Step 1: ${bx} × ${per} = ${bx*per} muffins.</p><p>Step 2: ${bx*per} − ${ate} = <b>${bx*per-ate}</b></p>`,nudge:`<p>First find how many muffins in all. Then take away the ones eaten.</p>`});}
- if(k===1){const pk=rnd(2,4),per=pick([6,4,3]),fr=pick([2,3,4]);let tot=pk*per;if(tot%fr)return g3Grp(L);return fin({prompt:`${pick(G3NAMES)} has <b>${pk}</b> packs of <b>${per}</b> stickers and shares them equally with <b>${fr}</b> friends. How many does each friend get?`,tpl:'{A} stickers',answer:tot/fr,text:`${pk}×${per}÷${fr}`,explain:`<p>Step 1: ${pk} × ${per} = ${tot} stickers.</p><p>Step 2: ${tot} ÷ ${fr} = <b>${tot/fr}</b></p>`,nudge:`<p>Find the total first, then share it.</p>`});}
+ if(k===1){const pk=rnd(2,4),per=pick([6,4,3]),fr=pick([2,3,4]);let tot=pk*per;if(tot%fr)return g3Grp(L);return fin({prompt:`${pick(G3NAMES)} has <b>${pk}</b> packs of <b>${per}</b> stickers and gives them all to <b>${fr}</b> friends, the same number each. How many does each friend get?`,tpl:'{A} stickers',answer:tot/fr,text:`${pk}×${per}÷${fr}`,explain:`<p>Step 1: ${pk} × ${per} = ${tot} stickers.</p><p>Step 2: ${tot} ÷ ${fr} = <b>${tot/fr}</b></p>`,nudge:`<p>Find the total first, then share it.</p>`});}
  const t=pick([3,6]);const a=rnd(2,9),b=rnd(2,9);return fin({prompt:`${pick(G3NAMES)} made <b>${a}</b> triangles and <b>${b}</b> hexagons out of straws. How many straws? (triangle = 3, hexagon = 6)`,tpl:'{A} straws',answer:a*3+b*6,text:`${a}×3+${b}×6`,explain:`<p>Triangles: ${a} × 3 = ${a*3}. Hexagons: ${b} × 6 = ${b*6}.</p><p>${a*3} + ${b*6} = <b>${a*3+b*6}</b></p>`,nudge:`<p>Find the triangle straws and the hexagon straws, then add.</p>`});
 }
 function genG3(op,L){return op==='graph'?g3Graph(L):g3Grp(L);}
@@ -1191,9 +1216,9 @@ const SCREENS={};
 const TB_FREE=['profiles','create','parent','rest'];let tbLastInput=Date.now();
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{tbLastInput=Date.now();},{passive:true}));
 const tbOn=p=>!!p&&p.tbOn!==false;const tbCap=p=>p.tbMin||60;
-function tbState(p){p.tb=p.tb||{bank:tbCap(p),t:Date.now(),locked:false};if(p.tb.bank>tbCap(p))p.tb.bank=tbCap(p);return p.tb;}
+function tbState(p){p.tb=p.tb||{bank:tbCap(p),t:Date.now(),locked:false};const cap=tbCap(p)+(p.tb.bonus||0);if(p.tb.bank>cap)p.tb.bank=cap;if(p.tb.bonus&&p.tb.bank<=tbCap(p))p.tb.bonus=0;return p.tb;} /* bonus = extra minutes a parent added on top of a full bank */
 function tbTick(p,active){const T=tbState(p);const now=Date.now();const dt=Math.max(0,Math.min(600,(now-T.t)/60000));T.t=now;
- if(active)T.bank-=dt;else T.bank=Math.min(tbCap(p),T.bank+dt*.5);
+ if(active)T.bank-=dt;else T.bank=Math.min(Math.max(tbCap(p),T.bank),T.bank+dt*.5);
  if(T.locked&&T.bank>=tbCap(p)-.01){T.locked=false;T.bank=tbCap(p);}
  if(T.bank<=0&&!T.locked){T.locked=true;T.bank=Math.max(T.bank,-15);}return T;}
 function tbLeft(p){return Math.max(0,Math.ceil(tbState(p).bank));}
@@ -1219,7 +1244,7 @@ function go(s,arg){if(!TB_FREE.includes(s)&&s!=='battle'&&typeof state!=='undefi
 function modal(html){const m=$('#modal');m.innerHTML=html;m.classList.add('show');}
 function closeModal(){const m=$('#modal');m.classList.remove('show');m.innerHTML='';}
 let toastT=null;
-function toast(msg){const t=$('#toast');t.classList.toggle('top',curScreen==='battle'||curScreen==='create');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+function toast(msg){const t=$('#toast');t.classList.toggle('top',curScreen==='battle'||curScreen==='create');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),Math.min(7000,2600+Math.max(0,String(msg).length-45)*45));}
 function toggleSound(){state.sound=!state.sound;save();go(curScreen,curArg);}
 const TB_ICONS={
 map:`<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16b3a6"/><rect y="40" width="64" height="24" rx="0" fill="#0f9a8e" opacity=".35"/>
@@ -1258,7 +1283,7 @@ function topbar(){
  const p=P();const need=xpNeed(p.level);
  return `<div class="topbar">
  <button class="tb-hero" title="Backpack" onclick="go('backpack')">${heroSVG(p.look,{spell:p.spell})}</button>
- <div class="tb-info"><div class="tb-name">${esc(p.name)}<span class="lv">Lv ${p.level}</span></div><div class="xpbar"><i style="width:${Math.min(100,p.xp/need*100)}%"></i></div></div>
+ <div class="tb-info"><div class="tb-name">${esc(p.name)}<span class="lv">Lv ${p.level}</span></div><div class="xprow"><div class="xpbar"><i style="width:${Math.min(100,p.xp/need*100)}%"></i></div><span class="lv2">Lv ${p.level}</span></div></div>
  <div class="coins">🪙 ${p.coins}</div>${tbOn(p)?`<div class="coins tbchip ${tbLeft(p)<=10?'low':''}" id="tbChip" title="Play time left">⏳ ${tbLeft(p)}m</div>`:''}
  <button class="iconbtn tbi" title="Explore the world" aria-label="Explore the world" onclick="go('world')">${TB_ICONS.map}</button>
  <button class="iconbtn tbi" title="Backpack &amp; shop" aria-label="Backpack and shop" onclick="go('backpack')">${TB_ICONS.bag}${p.eggs?'<b class="dot"></b>':''}</button>
@@ -1272,9 +1297,9 @@ SCREENS.profiles=()=>{
  app.innerHTML=`<div class="page">
  <div class="logo"><div class="logo-top">MATH</div><div class="logo-main">QUEST</div><div class="logo-sub"><span class="floaty">➕</span> The Quest Realms <span class="floaty">✖️</span></div></div>
  <h2 class="title">Who's playing?</h2>
- <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?(petOf(p)?petOf(p).e+' ':'')+'Tap to play'+(p.lock?' 🔒':''):'New hero!'}</div></button>`).join('')}
+ <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?(tbOn(p)&&tbState(p).locked?'😴 On a break':(petOf(p)?petOf(p).e+' ':'')+'Tap to play'+(p.lock?' 🔒':'')):'New hero!'}</div></button>`).join('')}
  <button class="pcard add" onclick="go('create')"><div class="plus">＋</div><div class="pname">New Hero</div><div class="plv">Add a player</div></button></div>
- <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button><div class="note" id="cloudBadge" style="margin-top:8px">${cloudBadgeText()}</div></div></div>`;
+ <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button> <button class="btn ghost small" onclick="toggleSound()">${state.sound?'🔊 Sound on':'🔇 Sound off'}</button><div class="note" id="cloudBadge" style="margin-top:8px">${cloudBadgeText()}</div></div></div>`;
 };
 const PICS=['🐶','🐱','🦊','🐸','🦄','🐙','🚀','🍕','⚽'];
 function choose(id){
@@ -1312,7 +1337,7 @@ let draft=null;
 SCREENS.create=id=>{
  const ex=id?state.players.find(p=>p.id===id):null;
  draft={id:ex?ex.id:null,name:ex?ex.name:'',grade:ex?ex.grade:3,look:Object.assign({skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:'purple'},ex?ex.look:{}),edit:!!(ex&&ex.setup&&ex.welcomed),lock:ex&&ex.lock?[...ex.lock]:[]};
- draft.saved=ex&&ex.setup?heroSnap():null;
+ draft.saved=ex&&ex.setup?heroSnap():null;draft.init=heroSnap();draft.pickGrade=!(ex&&ex.setup);
  renderCreate();
 };
 function renderCreate(){
@@ -1325,11 +1350,11 @@ function renderCreate(){
  <div class="opts">
   <label class="lbl">Boy or girl?</label><div class="chips"><button class="chip big ${draft.look.kind==='boy'?'on':''}" onclick="draft.look.kind='boy';renderCreate()">🧙‍♂️ Boy wizard</button><button class="chip big ${draft.look.kind==='girl'?'on':''}" onclick="draft.look.kind='girl';renderCreate()">🧙‍♀️ Girl wizard</button></div>
   <label class="lbl">Hero name</label><input id="nm" class="inp" maxlength="16" value="${esc(draft.name)}" placeholder="Type a name" oninput="draft.name=this.value">
-  ${draft.id?'':`<label class="lbl">School grade</label><div class="chips">${[1,2,3,4,5,6,7,8,9,10,11,12].map(g=>`<button class="chip ${draft.grade===g?'on':''}" onclick="draft.grade=${g};renderCreate()">${g}</button>`).join('')}</div>`}
+  ${!draft.pickGrade?'':`<label class="lbl">School grade</label><div class="chips">${[1,2,3,4,5,6,7,8,9,10,11,12].map(g=>`<button class="chip ${draft.grade===g?'on':''}" onclick="draft.grade=${g};renderCreate()">${g}</button>`).join('')}</div>`}
   <label class="lbl">Skin</label><div class="chips">${SKINS.map(c=>sw(c,draft.look.skin===c,`draft.look.skin='${c}'`)).join('')}</div>
   <label class="lbl">Hair</label><div class="chips">${HAIRS.map(c=>sw(c,draft.look.hair===c,`draft.look.hair='${c}'`)).join('')}</div>
   <label class="lbl">Robe</label><div class="chips">${robes.map(r=>sw(r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c,draft.look.robe===r.id,`draft.look.robe='${r.id}'`)).join('')}</div>
-  <label class="lbl">Secret pictures <span class="muted">(optional: tap 2 in order so only you can play as you)</span></label><div class="chips"><button class="chip ${!draft.lock||!draft.lock.length?'on':''}" onclick="draft.lock=[];renderCreate()">${draft.lock&&draft.lock.length?'Clear':'None'}</button>${PICS.map(e=>{const k=(draft.lock||[]).indexOf(e);return `<button class="chip pic ${k>=0?'on':''}" onclick="pickLock('${e}')">${e}${k>=0?`<sup>${k+1}</sup>`:''}</button>`;}).join('')}</div>
+  <label class="lbl">Secret pictures <span class="muted">(if you want: tap 2 pictures. Only you will know them!)</span></label><div class="chips"><button class="chip ${!draft.lock||!draft.lock.length?'on':''}" onclick="draft.lock=[];renderCreate()">${draft.lock&&draft.lock.length?'Clear':'None'}</button>${PICS.map(e=>{const k=(draft.lock||[]).indexOf(e);return `<button class="chip pic ${k>=0?'on':''}" onclick="pickLock('${e}')">${e}${k>=0?`<sup>${k+1}</sup>`:''}</button>`;}).join('')}</div>
   <label class="lbl">Hat</label><div class="chips">${hats.map(h=>`<button class="chip ${draft.look.hat===h.id?'on':''}" onclick="draft.look.hat='${h.id}';renderCreate()">${h.name}</button>`).join('')}</div>
  </div></div>
  <div class="row"><button class="btn ghost" onclick="leaveCreate()">← Back</button><button class="btn green big" onclick="saveHero('save')">💾 Save${heroDirty()?'':'d ✓'}</button><button class="btn gold big" onclick="saveHero('${draft.edit?'done':'start'}')">${draft.edit?'Done ✓':'Start the adventure! ⚔️'}</button></div></div>`;
@@ -1337,13 +1362,14 @@ function renderCreate(){
 function pickLock(e){draft.lock=draft.lock||[];if(draft.lock.length>=2||draft.lock.includes(e))draft.lock=[];draft.lock.push(e);renderCreate();}
 function heroSnap(){return JSON.stringify({n:draft.name.trim(),l:draft.look,k:draft.lock||[],g:draft.grade});}
 function heroDirty(){return draft.saved!==heroSnap();}
+function heroChanged(){return (draft.saved||draft.init)!==heroSnap();}
 function saveHero(mode){
  const name=draft.name.trim();
  if(draft.look.kind!=='boy'&&draft.look.kind!=='girl'){toast('Pick a boy or girl wizard first!');return false;}
  if(draft.lock&&draft.lock.length===1){toast('Pick one more secret picture (or tap Clear).');return false;}
  if(!name){const i=$('#nm');i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');i.focus();toast('Give your hero a name!');return false;}
  let p=draft.id?state.players.find(x=>x.id===draft.id):null;
- if(!p){p=newPlayer(name,draft.grade);p.welcomed=false;state.players.push(p);}
+ if(!p){p=newPlayer(name,draft.grade);p.welcomed=false;state.players.push(p);}else if(draft.pickGrade&&!p.setup)p.grade=draft.grade;
  p.name=name;p.look=JSON.parse(JSON.stringify(draft.look));p.lock=draft.lock&&draft.lock.length?[...draft.lock]:null;p.setup=true;state.cur=p.id;save();
  draft.id=p.id;draft.name=name;draft.saved=heroSnap();
  if(mode==='save'){SFX.coin();toast('Saved! ✓');renderCreate();return true;}
@@ -1352,48 +1378,51 @@ function saveHero(mode){
 }
 function leaveCreate(){
  const back=()=>{const p=draft.id&&state.players.find(x=>x.id===draft.id);go(draft.edit?'backpack':'profiles');};
- if(!heroDirty()){back();return;}
+ if(!heroChanged()){back();return;}
  modal(`<div class="mcard"><h2>Save your hero?</h2><p>You changed your hero but didn't save yet.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Keep editing</button><button class="btn danger" onclick="closeModal();draft.saved=heroSnap();leaveCreate()">Don't save</button><button class="btn green" onclick="closeModal();if(saveHero('save'))leaveCreate()">💾 Save</button></div></div>`);
 }
 function welcomeIfNew(p){
  if(p.welcomed)return;p.welcomed=true;save();
  modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>Welcome, ${esc(p.name)}!</h2>
  <p>Number Monsters have taken over the Quest Realms. Only a math hero can stop them!</p>
- <div class="hint" style="text-align:left">✅ Right answers cast spells at the monster.<br>⚡ Answer fast for a <b>CRITICAL</b> hit!<br>🔥 Keep a streak going for extra power.<br>💡 Wrong answers let the monster hit back, but you'll see the trick to solve it.</div>
+ <div class="hint" style="text-align:left">✅ Right answers zap the monster with magic.<br>⚡ Fast answers hit extra hard!<br>🔥 Get lots right in a row for more power.<br>💡 If you miss, the monster hits back — and you'll see how to solve it.</div>
  <p><b>🥚 You found a mystery egg!</b> Hatch it in your backpack.</p>
- <p class="muted">First, a quick 🎯 <b>skill check</b> (about 2 minutes) so your monsters start at just the right level.</p>
- <div class="row"><button class="btn gold big" onclick="closeModal();SKC=null;go('skillcheck')">🎯 Start the skill check</button><button class="btn ghost dark" onclick="closeModal();go('backpack')">Skip, hatch my egg</button></div></div>`);
+ <p class="muted">First, a quick 🎯 <b>skill check</b> (a few minutes) so your monsters start at just the right level.</p>
+ <div class="row"><button class="btn gold big" onclick="closeModal();SKC=null;go('skillcheck')">🎯 Start the skill check</button><button class="btn ghost dark" onclick="closeModal();scSkip(P());go('backpack')">Skip, hatch my egg</button></div></div>`);
 }
 /* ---------- skill check: quick placement for + − × ÷ ---------- */
 let SKC=null;const SC_OPS=['add','sub','mul','div'];
 function scStart(p){const L0=clamp(gradeExp(p)-2,1,15);SKC={i:0,L:L0,start:L0,ok:0,asked:0,passed:{},failedAt:{},q:null,input:'',n:0,msg:'',done:false};scNextQ();}
 function scNextQ(){const op=SC_OPS[SKC.i];SKC.q=genQ(op,SKC.L);SKC.input='';SKC.n++;}
 function scFinishOp(){const op=SC_OPS[SKC.i];SKC.i++;SKC.ok=0;SKC.asked=0;if(SKC.i>=SC_OPS.length){scApply();return;}SKC.L=SKC.start;scNextQ();}
-function scAnswer(){const p=P();const q=SKC.q;const v=parseInt(SKC.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const op=SC_OPS[SKC.i];
+function scAnswer(){const p=P();const q=SKC.q;if(!SKC.input||SKC.input==='-')return;const v=parseInt(SKC.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const op=SC_OPS[SKC.i];
  SKC.asked++;if(ok){SFX.correct();SKC.ok++;}else SFX.wrong();
- SKC.msg=ok?pick(['Nice!','Yes!','Correct!','👍']):`The answer was ${q.answer}. No worries!`;
+ SKC.msg=ok?'✅ '+pick(['Nice!','Yes!','Correct!','Great!']):`Last question: the answer was <b>${q.tpl?xAnsStr(q,true):(q.answer<0?'−'+(-q.answer):q.answer)}</b>. No worries — here's a new one!`;SKC.msgOk=ok;
  const tries=Object.keys(SKC.passed).length;
  if(!ok){SKC.failedAt[op]=Math.min(SKC.failedAt[op]||99,SKC.L);if(SKC.passed[op]){scFinishOp();}else if(SKC.L<=1){SKC.passed[op]=1;scFinishOp();}else{SKC.L=Math.max(1,SKC.L-2);SKC.ok=0;SKC.asked=0;scNextQ();}}
- else if(SKC.ok>=2){SKC.passed[op]=SKC.L;const nx=Math.min(maxLv(op),SKC.L+2);if(nx===SKC.L||nx>=(SKC.failedAt[op]||99)){scFinishOp();}else{SKC.L=nx;SKC.ok=0;SKC.asked=0;scNextQ();}}
+ else if(SKC.ok>=2){SKC.passed[op]=SKC.L;const nx=Math.min(maxLv(op),SKC.L+2,(p.grade||3)>=7?20:15); /* algebra levels (16+) only for grade 7 and up */if(nx===SKC.L||nx>=(SKC.failedAt[op]||99)){scFinishOp();}else{SKC.L=nx;SKC.ok=0;SKC.asked=0;scNextQ();}}
  else scNextQ();
- if(SKC.n>40&&!SKC.done)scApply();
+ if(SKC.n>50&&!SKC.done)scApply();
  go('skillcheck');}
 function scApply(){const p=P();SKC.done=true;SKC.res={};
  SC_OPS.forEach(op=>{const to=SKC.passed[op]||1;SKC.res[op]=to;if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});
  const avg=SC_OPS.reduce((a,o)=>a+(SKC.passed[o]||1),0)/4;
  if(avg>=6)XOPS.forEach(op=>{const to=Math.min(10,Math.floor(avg-2));if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});
  p.skillChecked=dayKey();save();}
-function scKey(k){if(!SKC||SKC.done)return;if(k==='del')SKC.input=SKC.input.slice(0,-1);else if(SKC.input.length<7)SKC.input+=k;SFX.tap();go('skillcheck');}
+function scKey(k){if(!SKC||SKC.done)return;if(k==='del')SKC.input=SKC.input.slice(0,-1);else if(k==='neg')SKC.input=SKC.input.startsWith('-')?SKC.input.slice(1):'-'+SKC.input;else if(SKC.input.length<7)SKC.input+=k;SFX.tap();go('skillcheck');}
+/* leaving the skill check early (or skipping it) still gives a sensible start: tested skills keep what they showed, untested ones start near the kid's grade */
+function scLeave(){const p=P();if(!p)return;if(SKC&&!SKC.done){const L0=SKC.start;SC_OPS.forEach((op,i)=>{const to=SKC.passed[op]||(i<SKC.i?1:i===SKC.i?Math.max(1,Math.min(L0,SKC.L)-2):Math.max(1,L0-2));if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});save();}SKC=null;}
+function scSkip(p){if(p.skillChecked||SC_OPS.some(op=>lvl(p,op)>1))return;const L0=Math.max(1,clamp(gradeExp(p)-2,1,15)-2);SC_OPS.forEach(op=>{if(L0>lvl(p,op)){applyLevel(p,op,L0);p.recent[op]=[];}});save();}
 SCREENS.skillcheck=()=>{const p=P();if(!SKC)scStart(p);
- const head=`<div class="zhead"><button class="btn ghost small" onclick="SKC=null;go('map')">← Map</button><h2 class="title">🎯 Skill Check</h2></div>`;
+ const head=`<div class="zhead"><button class="btn ghost small" onclick="scLeave();go('map')">← Map</button><h2 class="title">🎯 Skill Check</h2></div>`;
  if(SKC.done){app.innerHTML=topbar()+`<div class="page">${head}<div class="cafe-card center"><div class="big-emoji">🧙</div><h3>All done, ${esc(p.name)}!</h3><p>Your monsters will start at these levels. They'll keep adjusting as you play.</p>
   <div class="scres">${SC_OPS.map(o=>`<div><b>${OPNAME[o]}</b><span>Level ${lvl(p,o)}</span><small>${KID_DESC[o][lvl(p,o)]}</small></div>`).join('')}</div>
   <div class="row"><button class="btn green big" onclick="SKC=null;go('map')">To the map! 🗺️</button>${p.eggs?`<button class="btn gold" onclick="SKC=null;go('backpack')">Hatch my egg 🥚</button>`:''}</div></div></div>`;return;}
- const q=SKC.q,op=SC_OPS[SKC.i];const box=`<span class="ansbox">${SKC.input||'?'}</span>`;
+ const q=SKC.q,op=SC_OPS[SKC.i];const box=`<span class="ansbox">${SKC.input?SKC.input.replace('-','−'):'?'}</span>`;
  const qh=q.tpl?`<div class="xq">${q.vis?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div></div></div>`:`<div class="scq">${q.text} = ${box}</div>`;
  app.innerHTML=topbar()+`<div class="page">${head}<div class="scsteps">${SC_OPS.map((o,k)=>`<span class="${k<SKC.i?'done':k===SKC.i?'on':''}">${{add:'+',sub:'−',mul:'×',div:'÷'}[o]}</span>`).join('')}</div>
- <div class="cafe-card"><div class="cafe-lab">${OPNAME[op]} · try your best, it's okay to miss!</div>${qh}${SKC.msg?`<div class="muted center">${SKC.msg}</div>`:''}
- <div class="cpad">${['1','2','3','4','5','6','7','8','9','del','0'].map(k=>`<button onclick="scKey('${k}')">${k==='del'?'⌫':k}</button>`).join('')}<button class="go" style="grid-column:auto" onclick="scAnswer()">✓</button></div>
+ <div class="cafe-card">${SKC.msg?`<div class="scfb ${SKC.msgOk?'ok':''}">${SKC.msg}</div>`:''}<div class="cafe-lab">${OPNAME[op]} · it's okay to miss!</div>${qh}
+ <div class="cpad">${['1','2','3','4','5','6','7','8','9','del','0'].map(k=>`<button onclick="scKey('${k}')">${k==='del'?'⌫':k}</button>`).join('')}<button class="go" style="grid-column:auto" onclick="scAnswer()">✓</button>${q.neg?`<button class="scneg" onclick="scKey('neg')">± make it negative</button>`:''}</div>
  <div class="row"><button class="btn ghost dark small" onclick="scFinishOp();go('skillcheck')">I don't know these yet ➜</button></div></div></div>`;
 };
 
@@ -1452,7 +1481,7 @@ const ALG_DESC={
  div:['Negative ÷ positive','Exponent rules (divide)','Solve −ax = b','Two-step with negatives','Slope from an equation']};
 ['add','sub','mul','div'].forEach(o=>{ALG_DESC[o].forEach((d,i)=>{KID_DESC[o][16+i]=d;LEVEL_DESC[o][16+i]=d;});});
 const nz=(lo,hi)=>{let v=0;while(!v)v=rnd(lo,hi);return v;};const sgn=n=>n<0?`− ${-n}`:`+ ${n}`;const par=n=>n<0?`(−${-n})`:`${n}`;
-const algFix=s=>s&&s.replace(/(^|[\s(,=>:])-(\d)/g,'$1−$2').replace(/([+−] )1x/g,'$1x');
+const algFix=s=>s&&s.replace(/(^|[\s(,=>:])-(\d)/g,'$1−$2').replace(/([+−] )1x/g,'$1x').replace(/(^|[^\d.])1x/g,'$1x').replace(/ \+ 0x /g,' ').replace(/ \+ 0(?=\s*($|=|&|<))/g,'');
 function genAlg(op,L){const q={op,L,fast:20,neg:true};const fin=o=>{Object.assign(q,o);['tpl','prompt','explain','nudge'].forEach(k=>{if(q[k])q[k]=algFix(q[k]);});return q;};const k=L-15;
  const eqn=(prompt,tpl,text,ans,explain,nudge)=>fin({prompt,tpl,text,answer:ans,explain,nudge});
  if(op==='add'){
@@ -1460,14 +1489,14 @@ function genAlg(op,L){const q={op,L,fast:20,neg:true};const fin=o=>{Object.assig
   if(k===2){const a=rnd(2,9),b=rnd(2,9),c=rnd(2,15);return eqn('Simplify',`${a}x + ${b}x − ${c}x = {A}x`,`${a}x+${b}x-${c}x`,a+b-c,`<p>Add and subtract the numbers in front of x: ${a} + ${b} − ${c} = <b>${a+b-c}</b>, so it's ${a+b-c}x.</p>`,`<p>Like terms: just combine the numbers in front of x.</p>`);}
   if(k===3){let a,c,x;do{a=rnd(2,9);c=rnd(1,8);}while(a===c);x=nz(-9,9);const b=rnd(-12,12),d=a*x+b-c*x;return eqn('Find <b>x</b>',`${a}x ${sgn(b)} = ${c}x ${sgn(d)} &nbsp; → &nbsp; x = {A}`,`${a}x${sgn(b)}=${c}x${sgn(d)}`,x,`<p>Move the x's to one side: ${a}x − ${c}x = ${a-c}x. Move the numbers: ${d} − ${par(b)} = ${d-b}. So ${a-c}x = ${d-b}, and x = <b>${x}</b>.</p>`,`<p>Get all the x's on one side and the plain numbers on the other.</p>`);}
   if(k===4){const x=nz(-9,12),y=nz(-9,12);return eqn('Solve the system. Find <b>x</b>',`x + y = ${x+y}, &nbsp; x − y = ${x-y} &nbsp; → &nbsp; x = {A}`,`x+y=${x+y}, x-y=${x-y}`,x,`<p>Add the two equations: 2x = ${x+y} + ${par(x-y)} = ${2*x}, so x = <b>${x}</b>.</p>`,`<p>Adding the equations makes the y's cancel out.</p>`);}
-  const b=rnd(-6,6),c=rnd(-9,9),x=nz(-5,5);return eqn(`Find the value when <b>x = ${x<0?'−'+(-x):x}</b>`,`x² ${sgn(b)}x ${sgn(c)} = {A}`,`x^2${sgn(b)}x${sgn(c)}, x=${x}`,x*x+b*x+c,`<p>${par(x)}² = ${x*x}. ${b} × ${par(x)} = ${b*x}. Add them up: ${x*x} ${sgn(b*x)} ${sgn(c)} = <b>${x*x+b*x+c}</b>.</p>`,`<p>A negative number squared is positive!</p>`);
+  const b=nz(-6,6),c=nz(-9,9),x=nz(-5,5);return eqn(`Find the value when <b>x = ${x<0?'−'+(-x):x}</b>`,`x² ${sgn(b)}x ${sgn(c)} = {A}`,`x^2${sgn(b)}x${sgn(c)}, x=${x}`,x*x+b*x+c,`<p>${par(x)}² = ${x*x}. ${b} × ${par(x)} = ${b*x}. Add them up: ${x*x} ${sgn(b*x)} ${sgn(c)} = <b>${x*x+b*x+c}</b>.</p>`,`<p>A negative number squared is positive!</p>`);
  }
  if(op==='sub'){
   if(k===1){const a=rnd(2,40),b=rnd(a+1,a+40);return fin({tpl:`${a} − ${b} = {A}`,text:`${a} - ${b}`,answer:a-b,explain:`<p>${b} is bigger than ${a}, so the answer is negative: ${b} − ${a} = ${b-a}, so it's <b>−${b-a}</b>.</p>`,nudge:`<p>Find the difference, then put a − in front.</p>`});}
   if(k===2){const a=rnd(2,40),b=rnd(2,40);return fin({tpl:`(−${a}) − ${b} = {A}`,text:`-${a} - ${b}`,answer:-a-b,explain:`<p>Start at −${a} and go ${b} more to the left: <b>−${a+b}</b>.</p>`,nudge:`<p>Negative minus positive goes further negative.</p>`});}
   if(k===3){const a=rnd(2,30),b=rnd(2,30);return fin({tpl:`|−${a}| − |${b}| = {A}`,text:`|-${a}|-|${b}|`,answer:a-b,explain:`<p>Absolute value is the distance from 0: |−${a}| = ${a}, |${b}| = ${b}. ${a} − ${b} = <b>${a-b}</b>.</p>`,nudge:`<p>|−${a}| is just ${a}.</p>`});}
   if(k===4){const m=nz(-6,6),x1=rnd(-5,5),y1=rnd(-9,9),dx=rnd(1,5),x2=x1+dx,y2=y1+m*dx;return eqn('What is the slope?',`(${x1}, ${y1}) and (${x2}, ${y2}) &nbsp; → &nbsp; slope = {A}`,`slope (${x1},${y1}) (${x2},${y2})`,m,`<p>Slope = rise ÷ run = (${y2} − ${par(y1)}) ÷ (${x2} − ${par(x1)}) = ${y2-y1} ÷ ${dx} = <b>${m}</b>.</p>`,`<p>Change in y divided by change in x.</p>`);}
-  const a=rnd(1,4),c=rnd(-9,9),x=nz(-4,4);return eqn(`f(x) = ${a}x² ${sgn(c)}. Find <b>f(${x})</b>`,`f(${x}) = {A}`,`f(x)=${a}x^2${sgn(c)}, f(${x})`,a*x*x+c,`<p>${par(x)}² = ${x*x}. ${a} × ${x*x} = ${a*x*x}. Then ${a*x*x} ${sgn(c)} = <b>${a*x*x+c}</b>.</p>`,`<p>Square first, then multiply, then add.</p>`);
+  const a=rnd(1,4),c=nz(-9,9),x=nz(-4,4);return eqn(`f(x) = ${a}x² ${sgn(c)}. Find <b>f(${x})</b>`,`f(${x}) = {A}`,`f(x)=${a}x^2${sgn(c)}, f(${x})`,a*x*x+c,`<p>${par(x)}² = ${x*x}. ${a} × ${x*x} = ${a*x*x}. Then ${a*x*x} ${sgn(c)} = <b>${a*x*x+c}</b>.</p>`,`<p>Square first, then multiply, then add.</p>`);
  }
  if(op==='mul'){
   if(k===1){const a=rnd(2,12),b=rnd(2,12);return fin({tpl:`(−${a}) × ${b} = {A}`,text:`-${a} x ${b}`,answer:-a*b,explain:`<p>Negative × positive = negative. ${a} × ${b} = ${a*b}, so <b>−${a*b}</b>.</p>`,nudge:`<p>Different signs make a negative answer.</p>`});}
@@ -1483,7 +1512,7 @@ function genAlg(op,L){const q={op,L,fast:20,neg:true};const fin=o=>{Object.assig
  const a=rnd(2,5),m=nz(-6,6),b=nz(-9,9);return eqn('What is the slope?',`${a}y = ${a*m}x ${sgn(a*b)} &nbsp; → &nbsp; slope = {A}`,`${a}y = ${a*m}x ${sgn(a*b)}`,m,`<p>Divide everything by ${a}: y = ${m}x ${sgn(b)}. The slope is the number in front of x: <b>${m}</b>.</p>`,`<p>Get y by itself. The slope is the number next to x.</p>`);
 }
 
-function genHigh(op,L){const q={op,L,fast:14};const fin=o=>Object.assign(q,o);const eq=(expr,ans,explain,nudge,prompt)=>fin({tpl:`${expr} = {A}`,text:expr.replace(/<sup>(\d+)<\/sup>/g,'^$1').replace(/<[^>]+>/g,''),answer:ans,explain,nudge,prompt});
+function genHigh(op,L){const q={op,L,fast:14};const fin=o=>{Object.assign(q,o);['tpl','prompt','explain','nudge'].forEach(k=>{if(q[k])q[k]=algFix(q[k]);});return q;};const eq=(expr,ans,explain,nudge,prompt)=>fin({tpl:`${expr} = {A}`,text:expr.replace(/<sup>(\d+)<\/sup>/g,'^$1').replace(/<[^>]+>/g,''),answer:ans,explain,nudge,prompt});
  const k=L-10;
  if(op==='add'){
   if(k===1){const a=-rnd(3,40),b=rnd(-a+1,-a+50);return eq(`${NEG(a)} + ${b}`,a+b,`<p>Start at <b>${a}</b> on a number line and move <b>${b}</b> steps to the right. You pass 0 after ${-a} steps, then go ${a+b} more.</p><p>Answer: <b>${a+b}</b></p>`,`<p>A negative plus a bigger positive: subtract the sizes. ${b} − ${-a} = ?</p>`);}
@@ -1573,6 +1602,8 @@ function practiceFact(p,op){
  if(!c.length)return null;
  c.sort((x,y)=>y.n-x.n);return pick(c.slice(0,5)).q;
 }
+function pickOpFair(p){const g=p.grade||3;const ok=BASIC_OPS.filter(o=>o==='add'||o==='sub'||g>=3||((p.stats[o]||{}).r||0)>=10);
+ const w=ok.map(o=>{const s=p.stats[o]||{r:0,w:0};return 1+3*(s.w/(s.r+s.w+2));});let r=Math.random()*w.reduce((x,y)=>x+y,0);for(let i=0;i<ok.length;i++){r-=w[i];if(r<=0)return ok[i];}return ok[0];}
 function pickOp(p,zop){
  if(zop!=='mix')return zop;
  const w=BASIC_OPS.map(o=>{const s=p.stats[o];return 1+3*(s.w/(s.r+s.w+2));});
@@ -1647,7 +1678,7 @@ function hintHTML(q){
    else if(a===5||b===5){trick=`<p class="tip">5s always end in 0 or 5!</p>`;}
    else if(a===2||b===2){trick=`<p class="tip">2s trick: double it! ${other(2)} + ${other(2)} = ${a*b}</p>`;}
    else if(a===4||b===4){const o=other(4);trick=`<p class="tip">4s trick: double, then double again: ${o} → ${o*2} → ${o*4}</p>`;}
-   return `${a*b<=40?`<p>${rows} rows of ${cols}:</p>${arrayHTML(rows,cols)}`:''}<p>Count by ${cols}s:<br><b>${Array.from({length:rows},(_,i)=>(i+1)*cols).join(', ')}</b></p>${trick}`;
+   return `${a*b<=40?`<p>${rows} row${rows===1?'':'s'} of ${cols}:</p>${arrayHTML(rows,cols)}`:''}<p>Count by ${cols}s:<br><b>${Array.from({length:rows},(_,i)=>(i+1)*cols).join(', ')}</b></p>${trick}`;
   }
   const split=b>12?'b':'a';const big=split==='a'?a:b,oth=split==='a'?b:a;const parts=placeParts(big);
   return `<p>Split it up, then add:</p>
@@ -1940,15 +1971,17 @@ function nextQ(){
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
  B.q=q;B.input='';B.t0=performance.now();B.busy=false;
  B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?(()=>{const md=medianThink(p),fl=fastLimit(q)*(B.round>=5?2:2.5);return Math.max(B.round>=5?6:8,md?Math.min(fl,md*(B.round>=5?2.5:3)):fl,md*(B.round>=5?1.8:2.2));})():0;
- p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick,petSince:B.petSince,bufN:B.bufN||0,asc:B.asc||0};save();
+ snapBattle(p);
  $('#qlabel').textContent=label;
  $('#qcard').classList.remove('right');
  showQ();
 }
+function snapBattle(p){if(!B||B.over||!B.z)return;
+ p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick,petSince:B.petSince,bufN:B.bufN||0,asc:B.asc||0};save();}
 function showQ(){
  updateHintBtn();
  if(B.mode!=='math'){questShowQ();return;}
- const q=B.q,inp=B.input||'?';{const mp=$('#mpad');if(mp)mp.classList.toggle('negon',!!q.neg);}
+ const q=B.q,inp=B.input||'?';{const mp=$('#mpad');if(mp)mp.classList.toggle('negon',!!q.neg);}setTimeout(fitBattle,0);
  if(q.tpl){xShowQ(q,B.input);return;}
  if(isVertical(q)){
   const nums=q.c!==undefined?[q.a,q.b,q.c]:[q.a,q.b];const sym=q.op==='add'?'+':q.op==='sub'?'−':'×';
@@ -1970,6 +2003,11 @@ function press(k){
  else if(B.input.length<7)B.input=B.input==='0'?k:B.input+k;
  SFX.tap();showQ();
 }
+/* tall question pictures (graphs, cubes) must never push the ✓ key off the screen */
+function fitBattle(){const bt=document.querySelector('.battle'),pad=$('#mpad');if(!bt||!pad)return;const ar=$('#arena');const tight=()=>{if(ar)bt.classList.toggle('tight',ar.getBoundingClientRect().height<215);};setTimeout(tight,30);const over=()=>pad.getBoundingClientRect().bottom>window.innerHeight-2;
+ if(!over()){if(bt.classList.contains('squeeze2')||bt.classList.contains('squeeze')){bt.classList.remove('squeeze','squeeze2');if(over())bt.classList.add('squeeze');if(over())bt.classList.add('squeeze2');}return;}
+ bt.classList.add('squeeze');if(over())bt.classList.add('squeeze2');}
+window.addEventListener('resize',()=>{if(typeof curScreen!=='undefined'&&curScreen==='battle')fitBattle();});
 function answer(){
  const p=P(),q=B.q,secs=(performance.now()-B.t0)/1000;
  const v=parseInt(B.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const med=medianThink(p);const fast=med?secs<med*0.85:secs<fastLimit(q);const slip=!ok&&!q.tpl&&isSlip(q,B.input);
@@ -2010,7 +2048,7 @@ function answer(){
   const m=p.missed[q.text]||{n:0,a:q.answer,op:q.op};m.n++;m.last=dayKey();m.fixed=0;m.q=q.tpl?Object.assign({},q,{again:undefined,practice:undefined,hinted:undefined}):{op:q.op,L:q.L,a:q.a,b:q.b,c:q.c,answer:q.answer,text:q.text};p.missed[q.text]=m;
   const keys=Object.keys(p.missed);if(keys.length>250){keys.sort((x,y)=>p.missed[x].n-p.missed[y].n).slice(0,50).forEach(k=>delete p.missed[k]);}
   if(!q.again)B.review.push({q:Object.assign({},q),wait:3});
-  bufferMiss(p);save();SFX.wrong();
+  bufferMiss(p);snapBattle(p);SFX.wrong();
   const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
   const said=B.input;monsterAttack(()=>{if(B.hhp>0&&(kindMath(q)||(B.hhp<B.hmax*.3&&B.wrong>=4&&Math.random()<.25&&kindBless('low'))))return;showFeedback(q,said,slip);});
  }
@@ -2028,7 +2066,7 @@ function castSpell(spell,crit,done,kind){
  const tr=setInterval(()=>{if(!el.isConnected){clearInterval(tr);return;}const r=el.getBoundingClientRect();const d=document.createElement('div');d.className='trail';d.style.background=Math.random()<.5?spell.color:'#fff';d.style.boxShadow='0 0 10px '+spell.color;
   d.style.left=(r.left-a.left+r.width/2-7)+'px';d.style.top=(r.top-a.top+r.height/2-7)+'px';arena.appendChild(d);
   d.animate([{transform:'scale(1)',opacity:.9},{transform:'scale(.1)',opacity:0}],{duration:400}).onfinish=()=>d.remove();},35);
- an.onfinish=()=>{clearInterval(tr);el.remove();burst(x1+sz/2,y1+sz/2,spell.color,big?22:crit?14:9);done();};
+ an.onfinish=()=>{clearInterval(tr);el.remove();if(curScreen!=='battle'||!$('#monS'))return;burst(x1+sz/2,y1+sz/2,spell.color,big?22:crit?14:9);done();};
 }
 function burst(x,y,color,n){
  const arena=$('#arena');if(!arena)return;
@@ -2139,7 +2177,7 @@ function winBattle(){
  const newBest=!old||secs<old.t;if(newBest)p.pb[key]={t:secs,streak:Math.max(B.best,old?old.streak:0)};else if(B.best>old.streak)old.streak=B.best;
  const bestLine=old?(newBest?`<div class="pbest">⏱ ${fmtClock(secs)} · NEW PERSONAL BEST!</div>`:`<div class="pbest dim">⏱ ${fmtClock(secs)} · your best is ${fmtClock(old.t)}</div>`):'';
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
- let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
+ let questDone=false,questEgg=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length){p.eggs++;questEgg=true;}else{p.coins+=150;B.coins+=150;}}
  const gangN=(B.foes||[]).length;if(gangN>1)bonus+=25*(gangN-1);
  p.coins+=bonus;B.coins+=bonus;B.xp+=(B.isBoss?60:20)+(gangN>1?15*(gangN-1):0);questEvent(p,'win',1);if(B.isBoss)questEvent(p,'boss',1);if(B.isBoss&&first&&!B.asc)questEvent(p,'medal',R);
  const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1)*(p.pets.length>=20?.5:1);const egg=Math.random()<chance;if(egg){p.eggs++;if(petPerk(p)==='lucky'&&!(B.isBoss&&first))petCredit(p,'egg',1);}
@@ -2149,13 +2187,13 @@ function winBattle(){
   B.endModal=()=>`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You beat ${(B.foes||[]).length>1?`<b>the whole gang</b> ${B.foes.map(f=>f.e).join('')}`:`<b>${esc(B.name)}</b>`}!${B.best>=3?` Best streak: 🔥${B.best}`:''}</p>
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}${B.rock?Quartz.DROP_HTML:''}</div>${bestLine}
-  ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${regHave(p)<REG_PETS.length||p.eggs?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
+  ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${questEgg?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
   ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${petMilestones(p).length?`<button class="btn gold" style="margin-top:10px" onclick="offerPet()">🎁 Choose your new pet buddy!</button>`:''}${downsNote()}
   ${B.isBoss&&first&&R===1?`<p><b>👑 You freed ${B.z.name}!</b>${B.z.id!=='tower'&&bossesBeaten(p)===2?' The Chaos Tower is now open!':''}</p>`:''}
   ${rhtml}
   <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button>
   ${i<5?`<button class="btn green" onclick="startBattle('${z}',${i+1})">Next battle ⚔️</button>`:''}
-  ${egg||questDone?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`;modal(B.endModal());
+  ${egg||questEgg?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`;modal(B.endModal());
   if(up)setTimeout(SFX.level,400);
  },750);
 }
@@ -2168,6 +2206,7 @@ function loseBattle(){
   ${downsNote()}<div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button><button class="btn green" onclick="startBattle('${z}',${i})">Try again 💪</button></div></div>`);
 }
 function fleeBattle(){
+ if(B&&!B.over&&B.busy&&B.mhp<=0)return; // the winning spell is still flying
  if(!B||B.over){if(B&&B.backTo)go(B.backTo,B.backArg);else go('zone',B?B.z.id:'forest');return;}
  modal(`<div class="mcard"><div class="big-emoji">🏃</div><h2>Run away?</h2><p>You'll keep the coins you earned in this battle.</p>
  <div class="row"><button class="btn green" onclick="closeModal()">Keep fighting!</button><button class="btn ghost dark" onclick="doFlee()">Run away</button></div></div>`);
@@ -2188,35 +2227,37 @@ document.addEventListener('keydown',e=>{
 SCREENS.backpack=()=>{
  const p=P();const pet=petOf(p);const sp=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
  const item=(kind,id,prev,name,price,owned,eq,sub,need)=>{const locked=!owned&&need&&p.level<need;return `<button class="item ${eq?'eq':''} ${!owned&&(p.coins<price||locked)?'need':''}" onclick="shopClick('${kind}','${id}')">${prev}<div>${name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${owned?(eq?'✓ Using':'Use'):locked?'🔒 Level '+need:'🪙 '+price}</div></button>`;};
- app.innerHTML=topbar()+`<div class="page"><h2 class="title">🎒 Backpack &amp; Shop</h2><div class="bp">
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🎒 Backpack &amp; Shop</h2></div><div class="bp">
  <div class="bp-hero"><div class="hv">${heroSVG(p.look,{spell:p.spell})}${pet?`<div class="bp-pet">${pet.e}</div>`:''}</div>
   <div class="bp-stats"><b style="font-size:20px">${esc(p.name)}</b><br>Level ${p.level} · ❤️ ${heroMax(p)} HP<br>Spell: ${sp.e} ${sp.name}<br>${pet?`Pet: ${pet.e} ${pet.name}<br><small>${PERKS[pet.perk]}</small>`:'No pet yet'}</div>
   <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>
  <div>${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}${typeof eagleHoardHTML==='function'?eagleHoardHTML(p):''}${window.Quartz?Quartz.bagHTML(p):''}${window.Inner?Inner.bagHTML(p):''}
   ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
   ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
-  ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards</h3><div class="awards">${p.awards.slice().reverse().map(a=>`<div class="award"><b>🏅 ${esc(a.t)}</b><small>${esc(a.d)}</small></div>`).join('')}</div></div>`:''}
-  <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(pet.name)}'s home (feed, play &amp; pet shop)</button>`:''}
+  ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards</h3><div class="awards">${p.awards.slice().reverse().map(a=>`<div class="award"><b>🏅 ${esc(a.t)}</b><small>${esc(niceDate(a.d))}</small></div>`).join('')}</div></div>`:''}
+  <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(poss(pet.name))} home (feed, play &amp; pet shop)</button>`:''}
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs})</button>`:''}
    ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="muted" style="margin-bottom:6px">Pets found: <b>${regHave(p)} / ${REG_PETS.length}</b></div>
-   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}
-   <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n} · ${petMeter(petData(p,x.id))}`):`<div class="item mystery"><div class="ie"><span class="cloud">☁️</span><span class="qm">❓</span></div><div>???</div><small>A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal it.</small></div>`).join('')}</div>
+   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}
+   <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):`<div class="item mystery"><div class="ie"><span class="cloud">☁️</span><span class="qm">❓</span></div><div>???</div><small>A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal it.</small></div>`).join('')}</div>
    ${EVENT_PETS.some(x=>p.pets.includes(x.id))||eventOpen()||eventSoon()?`<h4 class="tierh" style="color:#fd7e14">🎃 Halloween <span class="muted">${EVENT_PETS.filter(x=>p.pets.includes(x.id)).length} / ${EVENT_PETS.length}</span></h4><div class="items">${EVENT_PETS.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}`):`<div class="item mystery"><div class="ie" style="filter:brightness(0);opacity:.3">${x.e}</div><div>???</div><small>Beat the Haunted Hollow boss (Oct 18 to Nov 1).</small></div>`).join('')}</div>`:''}</div>
   <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
   <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.filter(h=>!h.event||p.owned.hats.includes(h.id)).map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
   <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.filter(r=>!r.event||p.owned.robes.includes(r.id)).map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
  </div></div></div>`;
 };
+function goStay(s,a){const y=window.scrollY;go(s,a);window.scrollTo(0,y);} // re-draw without jumping back to the top
+const poss=n=>n+(/s$/i.test(n)?"'":"'s");
 function shopClick(kind,id){
  const p=P();if(p.troll&&(p.troll.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🧌 Grumbleroot the Troll is holding that one! Win it back by answering his questions.');return;}
  if(p.eagle&&(p.eagle.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🦅 Skyla the Eagle keeps that one in her nest! Win it back by solving her chicks\' homework.');return;}
- if(kind==='pet'){p.pet=id;save();SFX.tap();go('backpack');return;}
+ if(kind==='pet'){p.pet=id;save();SFX.tap();goStay('backpack');return;}
  const list=kind==='hat'?HATS:kind==='robe'?ROBES:SPELLS;const it=list.find(x=>x.id===id);
  const ownedList=p.owned[kind==='hat'?'hats':kind==='robe'?'robes':'spells'];
  const equip=()=>{if(kind==='hat')p.look.hat=id;else if(kind==='robe')p.look.robe=id;else p.spell=id;};
- if(ownedList.includes(id)){equip();save();SFX.tap();go('backpack');return;}
+ if(ownedList.includes(id)){equip();save();SFX.tap();goStay('backpack');return;}
  if(it.lvl&&p.level<it.lvl){toast(`🔒 ${it.name} unlocks at level ${it.lvl}. You are level ${p.level}!`);return;}
  if(p.coins<it.price){toast(`You need ${it.price-p.coins} more coins. Win battles to earn more!`);return;}
  modal(`<div class="mcard"><h2>Buy ${it.name}?</h2><p>It costs <b>🪙 ${it.price}</b>. You have 🪙 ${p.coins}.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">No</button><button class="btn gold" onclick="buyItem('${kind}','${id}')">Buy it!</button></div></div>`);
@@ -2226,11 +2267,12 @@ function buyItem(kind,id){
  if(p.coins<it.price||(it.lvl&&p.level<it.lvl)){closeModal();return;}
  p.coins-=it.price;p.owned[kind==='hat'?'hats':kind==='robe'?'robes':'spells'].push(id);
  if(kind==='hat')p.look.hat=id;else if(kind==='robe')p.look.robe=id;else p.spell=id;
- save();SFX.coin();closeModal();go('backpack');toast(`You got ${it.name}!`);
+ save();SFX.coin();closeModal();goStay('backpack');toast(`You got ${it.name}!`);
 }
-function buyEgg(){
+function buyEgg(sure){
  const p=P();const price=eggPrice(p);if(p.coins<price){toast(`You need ${price-p.coins} more coins for an egg!`);return;}
- p.coins-=price;p.eggs++;save();SFX.coin();go('backpack');toast('You got an egg! 🥚');
+ if(!sure){modal(`<div class="mcard"><div class="big-emoji">🥚</div><h2>Buy an egg?</h2><p>It costs <b>🪙 ${price}</b>. You have 🪙 ${p.coins}.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">No</button><button class="btn gold" onclick="closeModal();buyEgg(true)">Buy it!</button></div></div>`);return;}
+ p.coins-=price;p.eggs++;save();SFX.coin();goStay('backpack');toast('You got an egg! 🥚');
 }
 function rollEggPet(p,legend){
  if(legend){for(const k of (Math.random()<.35?['legend','epic']:['epic','legend'])){const pool=PETS.filter(x=>x.tier===k&&!p.pets.includes(x.id));if(pool.length)return pick(pool);}}
@@ -2238,6 +2280,7 @@ function rollEggPet(p,legend){
  const idx=TIER_ORDER.indexOf(t);const tries=[t,...TIER_ORDER.slice(0,idx).reverse()];
  if(t==='common')tries.push('rare');else if(t==='rare')tries.push('epic');
  for(const k of tries){const pool=PETS.filter(x=>x.tier===k&&!p.pets.includes(x.id));if(pool.length)return pick(pool);}
+ for(const k of ['epic','legend']){const pool=PETS.filter(x=>x.tier===k&&!p.pets.includes(x.id));if(pool.length)return pick(pool);}
  return null;
 }
 function hatchEgg(legend){
@@ -2302,7 +2345,7 @@ SCREENS.pethome=()=>{
  const pct=nx?Math.min(100,(pd.xp-st.xp)/(nx.xp-st.xp)*100):100;const today=dayKey();pd.played=pd.played||{};
  const pantry=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0);
  const shopItem=(kind,it,owned,eq,sub)=>`<button class="item ${eq?'eq':''} ${!owned&&p.coins<it.price?'need':''}" onclick="petShop('${kind}','${it.id}')"><div class="ie">${it.e}</div><div>${it.name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${kind==='food'?`🪙 ${it.price}`:owned?(eq?'✓ Wearing':kind==='toy'?'✓ Yours':'Wear'):'🪙 '+it.price}</div></button>`;
- app.innerHTML=topbar()+`<div class="page"><h2 class="title">🏠 ${esc(pet.name)}'s Home</h2>
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 ${esc(poss(pet.name))} Home</h2></div>
  <div class="pethome">
   <div class="panel phcard">
    <div class="phstage" id="phStage" onclick="patPet()">${petAvatar(p,pet,'big')}<div class="bubblesay" id="petSay">${esc(petSays(pd,pet))}</div></div>
@@ -2345,14 +2388,17 @@ function playPet(id){const p=P(),pet=petOf(p);const t=PET_TOYS.find(x=>x.id===id
  const s=$('#phStage');if(s){const el=document.createElement('div');el.className='phfx';el.textContent=t.e;el.style.left='10%';s.appendChild(el);
   el.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate(120px,-80px) rotate(360deg)',opacity:1},{transform:'translate(240px,0) rotate(720deg)',opacity:0}],{duration:1000}).onfinish=()=>el.remove();}
  petBounce();setTimeout(()=>petFx('💖'),400);setTimeout(()=>{if(curScreen==='pethome')go('pethome');toast(`${pet.e} ${pet.name} had fun with the ${t.name}! +3 pet XP`);},1100);}
-function petShop(kind,id){const p=P(),pet=petOf(p);const pd=pet&&petData(p,pet.id);
- if(kind==='gear'&&(id===''||p.petGear.includes(id))){pd.acc=id||null;save();SFX.tap();go('pethome');return;}
+function heldBy(p,id,k){k=k||'pet';if(p.troll&&(p.troll.hoard||[]).some(x=>x.k===k&&x.id===id))return '🧌 Grumbleroot has it';if(p.eagle&&(p.eagle.hoard||[]).some(x=>x.k===k&&x.id===id))return '🦅 In Skyla\'s nest';return '';}
+function petShop(kind,id,sure){const p=P(),pet=petOf(p);const pd=pet&&petData(p,pet.id);
+ if(kind==='toy'&&heldBy(p,id,'toy')){toast(`${heldBy(p,id,'toy')}! Win it back instead of buying it again.`);return;}
+ if(kind==='gear'&&(id===''||p.petGear.includes(id))){pd.acc=id||null;save();SFX.tap();goStay('pethome');return;}
  if(kind==='toy'&&p.toys.includes(id)){toast('You already have that toy! Play with it above. 🎾');return;}
  const it=(kind==='food'?PET_FOODS:kind==='toy'?PET_TOYS:PET_GEAR).find(x=>x.id===id);
  if(p.coins<it.price){toast(`You need ${it.price-p.coins} more coins. Win battles to earn more! 🪙`);return;}
+ if(it.price>=100&&!sure){modal(`<div class="mcard"><div class="big-emoji">${it.e}</div><h2>Buy the ${esc(it.name)}?</h2><p>It costs <b>🪙 ${it.price}</b>. You have 🪙 ${p.coins}.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">No</button><button class="btn gold" onclick="closeModal();petShop('${kind}','${id}',true)">Buy it!</button></div></div>`);return;}
  p.coins-=it.price;
  if(kind==='food')p.pantry[id]=(p.pantry[id]||0)+1;else if(kind==='toy')p.toys.push(id);else{p.petGear.push(id);pd.acc=id;}
- save();SFX.coin();go('pethome');toast(kind==='food'?`${it.e} ${it.name} added to your food bag!`:kind==='toy'?`${it.e} You got the ${it.name}!`:`${pet.e} ${pet.name} looks great in the ${it.name}!`);}
+ save();SFX.coin();goStay('pethome');toast(kind==='food'?`${it.e} ${it.name} added to your food bag!`:kind==='toy'?`${it.e} You got the ${it.name}!`:`${pet.e} ${pet.name} looks great in the ${it.name}!`);}
 /* ---------- daily spin ---------- */
 const SPIN_PRIZES=[{t:'coins',n:10,e:'🪙',l:'10',w:18,c:'#ffd84a'},{t:'food',id:'apple',e:'🍎',l:'Apple',w:14,c:'#ff8a8a'},{t:'coins',n:25,e:'🪙',l:'25',w:16,c:'#7fe3ff'},
  {t:'food',id:'cookie',e:'🍪',l:'Cookie',w:12,c:'#ffb86b'},{t:'coins',n:50,e:'💰',l:'50',w:9,c:'#8dffb0'},{t:'food',id:'cake',e:'🎂',l:'Cake',w:6,c:'#ff9ce0'},
@@ -2372,7 +2418,7 @@ function doSpin(){const p=P();if(!spinReady(p))return;const b=$('#spinBtn');if(b
  const w=$('#wheel');let ticks=0;const tk=setInterval(()=>{if(ticks++>22){clearInterval(tk);return;}tone(500+ticks*20,.03,'square',.04);},110);
  w.animate([{transform:'rotate(0deg)'},{transform:`rotate(${end}deg)`}],{duration:3200,easing:'cubic-bezier(.15,.7,.2,1)',fill:'forwards'}).onfinish=()=>{
   clearInterval(tk);SFX.win();const f=pr.t==='food'&&PET_FOODS.find(x=>x.id===pr.id);
-  $('#spinOut').innerHTML=`<div class="big-emoji" style="font-size:60px">${pr.e}</div><h2>${pr.t==='coins'?`You won ${pr.n} coins!`:pr.t==='egg'?'A MYSTERY EGG! 🎉':`You won a ${f.name}!`}</h2>${pr.t==='food'?`<p class="muted">It's in your pet's food bag.</p>`:pr.t==='egg'?`<p class="muted">Hatch it in your backpack!</p>`:''}<div class="row"><button class="btn green big" onclick="closeModal();go(curScreen,curArg)">Awesome!</button></div>`;};}
+  $('#spinOut').innerHTML=`<div class="big-emoji" style="font-size:60px">${pr.e}</div><h2>${pr.t==='coins'?`You won ${pr.n} coins!`:pr.t==='egg'?'A MYSTERY EGG! 🎉':`You won ${/^[aeiou]/i.test(f.name)?'an':'a'} ${f.name}!`}</h2>${pr.t==='food'?`<p class="muted">It's in your pet's food bag.</p>`:pr.t==='egg'?`<p class="muted">Hatch it in your backpack!</p>`:''}<div class="row"><button class="btn green big" onclick="closeModal();go(curScreen,curArg)">Awesome!</button></div>`;};}
 
 /* ================= explore: the walkable world ================= */
 const WCOLS=60,WROWS=34;
@@ -2455,8 +2501,10 @@ SCREENS.world=()=>{
  if(!W.mobs.some(m=>m.principal)||W.prFor!==p.id){W.prFor=p.id;principalSpawn();}
  app.innerHTML=topbar()+`<div class="world" id="world"><canvas id="wcv"></canvas>
  <div class="wtop"><div class="warea" id="warea"></div><button class="btn small" onclick="go('map')">📜 Quests${(()=>{const n=qState(p).active.filter(a=>a.done).length;return n?` <b class="qdot">${n}</b>`:'';})()}</button></div>
- <div class="whelp" id="whelp">Tap anywhere to walk · Bump into monsters to battle · Find the 🎁 treasure!</div>
+ ${(p.wHelp||0)<4?'<div class="whelp" id="whelp">Tap anywhere to walk · Bump into monsters to battle · Find the 🎁 treasure!</div>':''}
  <div class="dpad"><button data-d="0,-1" style="grid-area:u">▲</button><button data-d="-1,0" style="grid-area:l">◀</button><button data-d="1,0" style="grid-area:r">▶</button><button data-d="0,1" style="grid-area:d">▼</button></div></div>`;
+ if((p.wHelp||0)<4){p.wHelp=(p.wHelp||0)+1;saveLocal();}
+ {const tb=document.querySelector('.topbar'),wd=$('#world');if(tb&&wd)wd.style.height=`calc(100dvh - ${tb.offsetHeight}px)`;} // exactly fills the screen (no little page scroll)
  const cv=$('#wcv');wResize();
  cv.addEventListener('pointerdown',wTap);
  document.querySelectorAll('.dpad button').forEach(b=>{const [dx,dy]=b.dataset.d.split(',').map(Number);let iv=null;
@@ -2584,7 +2632,7 @@ function principalLines(p){
  if(dayStreak(p)>=2)praise.push(`You've practiced ${dayStreak(p)} days in a row. Showing up every day is how champions are made.`);
  if(p.pets.length>=5)praise.push(`And ${p.pets.length} pet buddies! You must be taking wonderful care of them. 🐾`);
  praise.slice(0,3).forEach(x=>L.push(x));
- if(!struggling)L.push(`You work hard, you're kind to your pets, and you never give up on a tricky problem. I'm proud of you.`);
+ if(!struggling)L.push(`You work hard, you're kind${(P().pets||[]).length?' to your pets':' to everyone'}, and you never give up on a tricky problem. I'm proud of you.`);
  const work=[];
  if(weak)work.push(`Now, every great student has something to work on. For you, I think it's ${OPNAME[weak.o].toLowerCase()}. It's tricky right now, but I've seen how quickly you learn. A little practice every day and you'll get there!`);
  if(tricky)work.push(`I also noticed the word "${tricky[0]}" has been sneaky. Try it a few more times in Spelling Grove. You'll have it in no time!`);
@@ -2642,7 +2690,7 @@ function principalMapSVG(){return `<svg xmlns="http://www.w3.org/2000/svg" viewB
 let PR_IMG=null;function prImg(){if(!PR_IMG){PR_IMG=new Image();PR_IMG.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(principalMapSVG());}return PR_IMG;}
 let PR_STATE=null;
 function principalMeet(){
- const p=P();p.prSpawnAt=null;if(!W)return;W.path=[];W.mobs=W.mobs.filter(m=>!m.principal);p.wpos={x:W.hx,y:W.hy};
+ const p=P();p.prSpawnAt=null;window.visitorQuiet=Date.now()+120e3;if(!W)return;W.path=[];W.mobs=W.mobs.filter(m=>!m.principal);p.wpos={x:W.hx,y:W.hy};
  PR_STATE={lines:principalLines(p),i:0};SFX.level();go('office');}
 SCREENS.inner=()=>{const p=P();app.innerHTML='<div style="position:fixed;inset:0;background:#140a2e"></div>';if(!window.Inner){go('world');return;}Inner.open(p);};
 SCREENS.cave=()=>{const p=P();app.innerHTML='<div style="position:fixed;inset:0;background:#120b16"></div>';if(!window.Cave||!window.Quartz){go('world');return;}Quartz.openCave(p);};
@@ -2811,7 +2859,7 @@ const CAFE_READ=[
  {t:'Taco Tuesday! Soft corn tortillas filled with chicken, lettuce, and tomatoes, with an orange on the side.',q:'What word describes the tortillas?',c:['soft','orange','Tuesday','filled'],a:0,why:'"Soft" describes the tortillas. It\'s an adjective!'},
  {t:'The soup of the day is chicken noodle soup. It comes with a warm dinner roll and a crisp green salad.',q:'Which food is a grain?',c:['chicken','dinner roll','salad','soup'],a:1,why:'Bread, like a dinner roll, is a grain.'},
  {t:'Picnic lunch! A peanut butter sandwich, a bunch of purple grapes, cucumber slices, and a carton of milk.',q:'What color are the grapes?',c:['green','red','purple','blue'],a:2,why:'The story says "purple grapes". Good reading!'},
- {t:'Fish sticks are on the menu today, with brown rice, steamed broccoli, and apple slices.',q:'Which TWO words tell how the broccoli was cooked?',c:['steamed','brown','apple','sticks'],a:0,why:'"Steamed" tells how the broccoli was cooked.'},
+ {t:'Fish sticks are on the menu today, with brown rice, steamed broccoli, and apple slices.',q:'Which word tells how the broccoli was cooked?',c:['steamed','brown','apple','sticks'],a:0,why:'"Steamed" tells how the broccoli was cooked.'},
  {t:'For the class party, Ms. Rosa made a fruit salad with melon, blueberries, and kiwi. Everyone also got one small cupcake.',q:'How many cupcakes did each student get?',c:['none','one','two','a dozen'],a:1,why:'"Everyone also got one small cupcake."'}];
 const CAFE_FUEL=[
  {q:'Which snack gives you longer-lasting energy before a big boss battle?',c:['🍎 Apple + peanut butter','🍬 Candy'],a:0,why:'Fruit plus protein keeps your energy up longer. Candy is fine as a treat once in a while!'},
@@ -2833,12 +2881,17 @@ function cafeMathQ(p){const g=p.grade||3;
   if(k===0)return {kind:'num',q:'Your plate has 4 equal parts. 2 parts are fruits and veggies. What fraction of the plate is fruits and veggies?',pre:'',post:' / 4',a:2,hint:'Count the fruit and veggie parts on the plate. There are 2!'};
   if(k===1)return {kind:'num',q:'Your plate has 4 equal parts. How many parts are NOT fruits and veggies?',pre:'',post:' parts',a:2,hint:'4 parts in all, minus the 2 fruit and veggie parts.'};
   const n=rnd(3,6),e=pick([3,4,6]);return {kind:'num',q:`Ms. Rosa puts ${e} carrot sticks on each plate. How many carrot sticks for ${n} plates?`,pre:'',post:' carrot sticks',a:n*e,hint:`${n} plates × ${e} sticks. Count by ${e}s!`};}
+ if(g>=6&&Math.random()<.5){const b=pick([2,4]),c=pick([3,5,6]),n=b*rnd(2,5);return {kind:'num',q:`Ms. Rosa's rice recipe feeds ${b} people and uses ${c} cups of rice. How many cups for ${n} people?`,pre:'',post:' cups',a:c*n/b,hint:`${n} people is ${n/b} times as many as ${b}. So ${c} × ${n/b}.`};}
  const k=rnd(0,2);
  if(k===0){const n=pick([8,12,16,20]);return {kind:'num',q:`${n} kids each need 3/4 cup of carrots. How many cups of carrots in all?`,pre:'',post:' cups',a:n*3/4,hint:`${n} ÷ 4 = ${n/4}, then × 3.`};}
  if(k===1){const n=pick([6,9,12,15]);return {kind:'num',q:`The recipe needs 2/3 cup of rice per plate. How many cups of rice for ${n} plates?`,pre:'',post:' cups',a:n*2/3,hint:`${n} ÷ 3 = ${n/3}, then × 2.`};}
  const pz=rnd(4,7),s=8,e=rnd(10,pz*s-3);return {kind:'num',q:`Ms. Rosa cut ${pz} pizzas into ${s} slices each. ${e} slices were eaten. How many slices are left?`,pre:'',post:' slices',a:pz*s-e,hint:`First ${pz} × ${s} = ${pz*s}. Then subtract ${e}.`};}
 function cafeMoneyQ(p){const g=p.grade||3;
  const items=[['🌮','Taco plate'],['🍝','Pasta bowl'],['🍕','Pizza slice'],['🥪','Sandwich'],['🥛','Milk'],['🍊','Orange'],['🍎','Apple'],['🥗','Salad']].sort(()=>Math.random()-.5).slice(0,4).map(([e,n],i)=>({e,n,pr:i<2?rnd(35,55)*5:rnd(6,14)*5}));
+ if(g<=2){items.forEach((it,i)=>it.pr=(i<2?rnd(3,5):rnd(1,2))*100);const a=items[0],b=items[2];const tot=(a.pr+b.pr)/100;const pay=tot<5?5:10;
+  return {kind:'num',money:true,menu:items,q:`You have $${pay}. You buy the ${a.n.toLowerCase()} and the ${b.n.toLowerCase()}. How much money is left?`,pre:'$ ',post:'',a:pay-tot,hint:`$${a.pr/100} + $${b.pr/100} = $${tot}. Then $${pay} − $${tot}.`};}
+ if(g>=6&&Math.random()<.5){const it=items.find(x=>!['Milk','Orange','Apple'].includes(x.n))||items[0];const pc=pick([10,20,25,50]);const base=pick([6,8,10,12]);it.pr=base*100;const sale=Math.round(base*(100-pc))/100;
+  return {kind:'num',money:true,menu:items,q:`Today the ${it.n.toLowerCase()} is ${pc}% off! It usually costs $${base}.00. What is the sale price?`,pre:'$ ',post:'',a:sale,hint:`${pc}% of $${base} is $${cents2(base*pc/100)}. Then $${base}.00 − $${cents2(base*pc/100)}.`};}
  if(g<=3){const a=items[0],b=items[2];const tot=a.pr+b.pr;const pay=tot<=300?300:500;
   return {kind:'num',money:true,menu:items,q:`You have $${pay/100}.00. You buy the ${a.n.toLowerCase()} and the ${b.n.toLowerCase()}. How much change do you get?`,pre:'$ ',post:'',a:(pay-tot)/100,hint:`$${cents2(a.pr/100)} + $${cents2(b.pr/100)} = $${cents2(tot/100)}. Then $${pay/100}.00 − $${cents2(tot/100)}.`};}
  if(Math.random()<.5){const n=pick([2,3,4]),each=rnd(70,130)*5;const tot=each*n;return {kind:'num',money:true,menu:items,q:`${n} friends split a pizza order that costs $${cents2(tot/100)}. They each pay the same. How much does each friend pay?`,pre:'$ ',post:'',a:each/100,hint:`$${cents2(tot/100)} ÷ ${n}.`};}
@@ -2889,7 +2942,7 @@ SCREENS.cafe=()=>{const p=P();const today=dayKey();
    <div class="row" style="margin-top:10px"><button class="btn ${ok?'green':'ghost dark'} big" ${ok?'':'disabled'} onclick="cafeServe()">🍽️ Serve my lunch!</button>${tot>1?`<button class="btn ghost dark small" onclick="cafeStart();go('cafe')">↺ Start over</button>`:''}</div></div></div>`;}
  else if(C.step<=4){const q=C.qs[C.step-1];const lab=['','🧮 Math bite','💵 Lunch line money','📖 Read the menu','⚡ Fuel for heroes'][C.step];
   const say=['','Now a little lunchroom math!','Time to pay at the register!','Can you read today\'s menu board?','One last question about food and energy!'][C.step];
-  let qh='';if(q.kind==='num'){qh=`${q.menu?`<div class="cafe-menu">${q.menu.map(m=>`<div><span>${m.e} ${m.n}</span><span>$${cents2(m.pr/100)}</span></div>`).join('')}</div>`:''}<div class="cafe-q">${esc(q.q)}</div><div class="cafe-ans">${q.pre}<span class="ansbox">${esc(C.input||'?')}</span>${q.post}</div>
+  let qh='';if(q.kind==='num'){qh=`${q.menu?`<div class="cafe-menu">${q.menu.map(m=>`<div><span>${m.e} ${m.n}</span><span>$${cents2(m.pr/100)}</span></div>`).join('')}</div>`:''}<div class="cafe-q">${esc(q.q)}</div><div class="cafe-ans">${q.pre}<span class="ansbox">${esc(C.input||'?')}</span>${q.post}</div>${C.tries&&C.msg?`<div class="cafe-hintbox">💡 ${C.msg}</div>`:''}
    <div class="cpad">${['1','2','3','4','5','6','7','8','9',q.money?'.':'','0','del'].map(k=>k?`<button onclick="cafeKey('${k}')">${k==='del'?'⌫':k}</button>`:'<span></span>').join('')}<button class="go" onclick="cafeCheck()">✓</button></div>`;}
   else qh=`${q.read?`<div class="cafe-read">${esc(q.read)}</div>`:''}<div class="cafe-q">${esc(q.q)}</div><div class="cafe-mc">${q.c.map((c,i)=>`<button class="btn big ${C.picked===i?(i===q.a?'green':'red'):''}" onclick="cafePick(${i})">${esc(c)}</button>`).join('')}</div>`;
   body=`${head(C.msg||say)}${dots}<div class="cafe-card"><div class="cafe-lab">${lab}</div>${qh}</div>`;}
@@ -3059,7 +3112,7 @@ SCREENS.library=()=>{const p=P();const back=`<div class="zhead"><button class="b
  const wrap=b=>{app.innerHTML=topbar()+`<div class="room lib-room"><div class="page lib">${back}${b}</div></div>`;};
  const cols=['#e03131','#1c7ed6','#2f9e44','#f08c00','#7048e8','#0c8599','#c2255c','#5c940d','#e8590c','#364fc7'];
  if(!LIB){const {band,next,L,lv,readOther}=libShelf(p);
-  const book=(s,i)=>{const d=L.done[s.id];const isNext=next.includes(s);return `<button class="lbook ${d?'read':''} ${isNext?'next':''}" style="--bc:${cols[i%cols.length]}" ${isNext||d?`onclick="libOpen('${s.id}',${isNext?1:0})"`:''}><span class="be">${s.e}</span><span class="bt">${esc(s.t)}</span><span class="bs">${isNext?'✨ NEW':d?libStars(d.best,s.q.length):'🔒'}</span><span class="blv">Lv ${s.lv}</span></button>`;};
+  const book=(s,i)=>{const d=L.done[s.id];const isNext=next.includes(s);return `<button class="lbook ${d?'read':''} ${isNext?'next':''}" style="--bc:${cols[i%cols.length]}" ${isNext||d?`onclick="libOpen('${s.id}',${isNext?1:0})"`:`onclick="toast('🔒 Read the ✨ NEW books first! Professor Hoot opens more every day.')"`}><span class="be">${s.e}</span><span class="bt">${esc(s.t)}</span><span class="bs">${isNext?'✨ NEW':d?libStars(d.best,s.q.length):'🔒'}</span><span class="blv">Lv ${s.lv}</span></button>`;};
   const say=next.length?`Hoo-hoo! Welcome, ${esc(p.name)}! Pick a <b>✨ NEW</b> story. Read it carefully, then answer the questions. You can read <b>${libPerDay(p)} new stories</b> each day, and as you get better, the stories get longer and harder!`:`Wonderful reading today, ${esc(p.name)}! New stories arrive <b>tomorrow</b>. You can re-read any story with a ⭐ for practice.`;
   wrap(`${libHead(say)}${libMeter(p)}<div class="shelf"><div class="shelf-row">${band.map(book).join('')}</div>${readOther.length?`<div class="shelf-lab">📗 Books you've read</div><div class="shelf-row">${readOther.map((s,i)=>book(s,i+3)).join('')}</div>`:''}</div>`);return;}
  const S=LIB.s,C=LIB,NQ=C.qs.length;
@@ -3083,7 +3136,7 @@ function libPick(k){const C=LIB,qq=C.qs[C.i];if(C.nextBtn)return;C.picked=k;cons
  if(k===qq.a){SFX.correct();if(C.tries===0)C.stars++;C.msg=pick(['Hoo-hoo! Correct!','Wise answer!','Yes! You found it!','Excellent reading!']);C.why='✅ '+esc(qq.why);C.nextBtn=true;save();}
  else{SFX.wrong();C.tries++;save();if(C.tries>=2){C.reveal=true;C.msg='Let\'s look at the right answer together.';C.why='💡 '+esc(qq.why);C.nextBtn=true;}else{C.msg='Hmm, not quite. Tap <b>📖 Look back at the story</b> and try again!';}}
  go('library');}
-function libAdjust(L,sc){const before=Math.floor(L.rl);const d=sc>=.99?.25:sc>=.74?.1:sc>=.5?-.34:-.75;L.rl=Math.max(LIB_LEVELS[0],Math.min(LIB_MAX+.99,L.rl+d));L.hist=(L.hist||[]).concat([Math.round(sc*100)]).slice(-10);return Math.floor(L.rl)-before;}
+function libAdjust(L,sc){const before=Math.floor(L.rl);const d=sc>=.99?.25:sc>=.74?.1:sc>=.66?0:sc>=.5?-.34:-.75;L.rl=Math.max(LIB_LEVELS[0],Math.min(LIB_MAX+.99,L.rl+d));L.hist=(L.hist||[]).concat([Math.round(sc*100)]).slice(-10);return Math.floor(L.rl)-before;}
 function libNext(){const C=LIB;C.i++;C.tries=0;C.picked=null;C.reveal=false;C.why='';C.msg='';C.nextBtn=false;C.look=false;
  if(C.i<C.qs.length){go('library');return;}
  const p=P();C.stage='done';const NQ=C.qs.length,sc=C.stars/NQ;
@@ -3121,14 +3174,14 @@ function wNpc(id){const p=P();
  modal(`<div class="mcard"><div class="big-emoji">🧙</div><h2>Elder Wiz says…</h2>${ek>=0?`<p>${qState(p).active[ek].done?'Well done, young wizard! You finished my quest.':'Here is your quest from me. I believe in you!'}</p>${npcQuestCard(p,ek,'')}`:`<p>I have no quest for you right now. Finish one of your other quests and I may have a new one! 📜</p>`}<p class="muted" style="font-size:16px">💡 "${esc(pick(ELDER_TIPS))}"</p>${questBar(p).replace('questbar','questbar dark')}<button class="btn ghost dark" onclick="closeModal()">Thanks!</button></div>`);}
 function wChestOpen(k){const p=P();return !!(p.chests&&p.chests.d===dayKey()&&p.chests.open.includes(k));}
 function wChest(k){const p=P();if(wChestOpen(k)){toast('📦 Empty! A new treasure appears tomorrow.');return;}
- const z=ZONES.find(zz=>zz.id===BIOMES[k].zone);const op=z.op==='mix'?pickOp(p,'mix'):z.op;const q=genQ(op,lvl(p,op));W.chestQ={q,k};
+ const z=ZONES.find(zz=>zz.id===BIOMES[k].zone);const op=(z.op==='mix'||zoneLocked(z,p))?pickOpFair(p):z.op;const q=genQ(op,lvl(p,op));W.chestQ={q,k};
  const view=q.tpl?`<div class="xq fbx">${q.vis?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}','<b>?</b>')}</div></div></div>`:`<div class="fb-ans">${q.text} = ?</div>`;
  modal(`<div class="mcard"><div class="big-emoji">🎁</div><h2>A treasure! It has a math lock.</h2>${view}
- <input id="chestIn" class="inp" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="${q.kind==='clock'?'Type 3:45 as 345':'Answer'}" style="max-width:220px;text-align:center;font-size:24px" onkeydown="if(event.key==='Enter')wChestTry()">
+ <div class="chestrow">${q.neg?`<button class="btn small chestneg" onclick="const i=$('#chestIn');i.value=i.value.startsWith('-')?i.value.slice(1):'-'+i.value;i.focus()">±</button>`:''}<input id="chestIn" class="inp" inputmode="${q.neg?'text':'numeric'}" ${q.neg?'':'pattern="[0-9]*"'} autocomplete="off" placeholder="${q.kind==='clock'?'Type 3:45 as 345':'Answer'}" style="max-width:220px;text-align:center;font-size:24px" onkeydown="if(event.key==='Enter')wChestTry()"></div>
  <div class="row"><button class="btn ghost dark" onclick="closeModal()">Later</button><button class="btn gold" onclick="wChestTry()">Unlock!</button></div></div>`);
  setTimeout(()=>{const i=$('#chestIn');if(i)i.focus();},200);}
-function wChestTry(){const p=P();const {q,k}=W.chestQ||{};if(!q)return;const v=parseInt(($('#chestIn').value||'').replace(/\D/g,''),10);
- if(!(v===q.answer||(q.alt&&q.alt.includes(v)))){SFX.wrong();const i=$('#chestIn');i.value='';i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');toast(`Not quite! It was ${q.tpl?xAnsStr(q):q.answer}. The lock changed — try this one!`);setTimeout(()=>wChest(k),900);return;}
+function wChestTry(){const p=P();const {q,k}=W.chestQ||{};if(!q)return;const raw=($('#chestIn').value||'').replace(/[−–]/g,'-');const v=parseInt(raw.replace(/[^\d-]/g,'').replace(/(?!^)-/g,''),10);
+ if(!(v===q.answer||(q.alt&&q.alt.includes(v)))){SFX.wrong();const i=$('#chestIn');i.value='';i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');toast(`Not quite! It was ${q.tpl?xAnsStr(q,true):(q.answer<0?'−'+(-q.answer):q.answer)}. The lock changed — try this one!`);setTimeout(()=>wChest(k),900);return;}
  if(!p.chests||p.chests.d!==dayKey())p.chests={d:dayKey(),open:[]};p.chests.open.push(k);p.treasures=(p.treasures||0)+1;wkBump(p,'chest');
  const r=Math.random();let prize;
  if(r<.1){p.eggs++;prize='🥚 A mystery egg!';}else if(r<.35){const f=pick(PET_FOODS);p.pantry[f.id]=(p.pantry[f.id]||0)+2;prize=`${f.e}${f.e} Two ${f.name}s for your pet!`;}else{const c=rnd(20,45);p.coins+=c;prize=`🪙 ${c} coins!`;}
@@ -3139,11 +3192,11 @@ function wildWin(){
  const p=P();questEvent(p,'wild',1);SFX.win();const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const bonus=10+rnd(0,10);p.coins+=bonus;B.coins+=bonus;B.xp+=15;const egg=Math.random()<(petPerk(p)==='lucky'?.08:.04);if(egg){p.eggs++;if(petPerk(p)==='lucky')petCredit(p,'egg',1);}
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
- let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
+ let questDone=false,questEgg=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length){p.eggs++;questEgg=true;}else{p.coins+=150;B.coins+=150;}}
  p.wild=(p.wild||0)+1;p.battles++;const rock=!!(window.Quartz&&Quartz.drop('wild'));const up=endBattleBook();save();
  setTimeout(()=>{modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>You beat the wild ${esc(B.name)}!</h2>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}${rock?Quartz.DROP_HTML:''}</div>
-  ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! +1 mystery egg 🥚</div>`:''}${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${downsNote()}
+  ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${questEgg?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${downsNote()}
   <div class="row"><button class="btn green big" onclick="closeModal();go('world')">Keep exploring 🧭</button></div></div>`);},800);
 }
 
@@ -3279,8 +3332,9 @@ SCREENS.leaders=(tab)=>{
 
 /* ================= gifts between family players ================= */
 const GIFTS_PER_DAY=2,GIFT_COINS=[10,25,50];
+function niceDate(d){try{const x=new Date(d+'T12:00:00');if(isNaN(x))return d;return x.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}catch(e){return d;}}
 function giftsLeft(p){return p.giftsSent&&p.giftsSent.d===dayKey()?Math.max(0,GIFTS_PER_DAY-p.giftsSent.n):GIFTS_PER_DAY;}
-function giftLabel(g){if(g.kind==='coins')return `🪙 ${g.qty} coins`;if(g.kind==='egg')return '🥚 a mystery egg';if(g.kind==='food'){const f=PET_FOODS.find(x=>x.id===g.item);return f?`${f.e} a ${f.name}`:'a snack';}return '❤️';}
+function giftLabel(g){if(g.kind==='coins')return `🪙 ${g.qty} coins`;if(g.kind==='egg')return '🥚 a mystery egg';if(g.kind==='food'){const f=PET_FOODS.find(x=>x.id===g.item);return f?`${f.e} ${/^[aeiou]/i.test(f.name)?'an':'a'} ${f.name}`:'a snack';}return '❤️';}
 function pendingGifts(p){return Object.values(state.gifts||{}).filter(g=>g.to===p.id&&!g.claimed).sort((a,b)=>a.t-b.t);}
 function giftFriends(p){return state.players.filter(x=>x.setup&&x.id!==p.id);}
 function openGift(){
@@ -3418,11 +3472,11 @@ function spellRound(){return B&&B.mode==='spell'?(B.round||1):0;}
 
 /* ================= parent corner ================= */
 function parentGate(){
- if(!state.pin){modal(`<div class="mcard"><h2>👪 Set a Parent PIN</h2><p>Grown-ups: pick a 4-digit PIN. You'll need it to open the Parent Corner.</p><input id="pin1" class="inp" inputmode="numeric" maxlength="4" placeholder="New PIN" style="max-width:200px;text-align:center"><br><input id="pin2" class="inp" inputmode="numeric" maxlength="4" placeholder="Type it again" style="max-width:200px;text-align:center;margin-top:8px"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="setPin()">Save PIN</button></div></div>`);return;}
+ if(!state.pin||PIN_CHANGE){const chg=!!(PIN_CHANGE&&state.pin);PIN_CHANGE=false;modal(`<div class="mcard"><h2>👪 ${chg?'Change the':'Set a'} Parent PIN</h2><p>${chg?'Type the new 4-digit PIN twice. (Cancel keeps the old one.)':'Grown-ups: pick a 4-digit PIN.'} You'll need it to open the Parent Corner.</p><input id="pin1" class="inp" type="password" inputmode="numeric" maxlength="4" placeholder="New PIN" style="max-width:200px;text-align:center"><br><input id="pin2" class="inp" type="password" inputmode="numeric" maxlength="4" placeholder="Type it again" style="max-width:200px;text-align:center;margin-top:8px"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="setPin()">Save PIN</button></div></div>`);return;}
  modal(`<div class="mcard"><h2>👪 Parent Corner</h2><p>Enter the Parent PIN.</p><input id="pinIn" class="inp" type="password" inputmode="numeric" maxlength="4" style="max-width:200px;text-align:center" onkeydown="if(event.key==='Enter')checkPin()"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="checkPin()">Open</button></div></div>`);
  setTimeout(()=>{const i=$('#pinIn');if(i)i.focus();},50);
 }
-const PIN_KEY='mathquest.pin';
+const PIN_KEY='mathquest.pin';let PIN_CHANGE=false;
 function keepPin(){if(state.pin){try{localStorage.setItem(PIN_KEY,state.pin);}catch(e){}try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').put(state.pin,'pin');}catch(e){}}}
 async function recallPin(){if(state.pin)return;let p=null;try{p=localStorage.getItem(PIN_KEY);}catch(e){}if(!p&&IDB.db){p=await new Promise(res=>{try{const t=IDB.db.transaction('kv').objectStore('kv').get('pin');t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);}catch(e){res(null);}});}if(p&&/^\d{4}$/.test(p))state.pin=p;}
 function setPin(){const a=$('#pin1').value.trim(),b=$('#pin2').value.trim();if(!/^\d{4}$/.test(a)){toast('The PIN needs 4 digits.');return;}if(a!==b){toast("Those don't match. Try again.");return;}state.pin=a;state.pinUpd=Date.now();save();keepPin();closeModal();go('parent');}
@@ -3466,7 +3520,7 @@ function parentCard(p){
 }
 SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go(P()&&P().setup?'map':'profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
- <p class="note">Every child starts every skill at the easiest level (single digits) and moves up from there. Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level (6 in a row for grades 1-3). <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
+ <p class="note">A new player takes a quick skill check so each skill starts near the right level (a kid who skips it starts a little below their grade). Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level (6 in a row for grades 1-3). <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${cloudSection()}
  ${state.players.map(parentCard).join('')}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.readLog||[]).slice(-6).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · "${esc(v.t)}"${v.lv?` (Level ${v.lv})`:''} · ${'⭐'.repeat(v.s)}${'☆'.repeat((v.n||3)-v.s)} (${v.s}/${v.n||3} right on the first try)</li>`)));return rows.length?`<div class="pp"><h3>📚 Library reading</h3><p class="note">Professor Hoot gives 2 new stories a day. There are 10 reading levels (about 1st grade to 12th grade). Higher levels have longer stories and 4-5 questions (main idea, details, inference, vocabulary, author's purpose). The level moves up after strong scores and down after weak ones, aiming for about 75-85% right on the first try.${state.players.filter(x=>x.lib&&x.lib.rl).map(x=>` <b>${esc(x.name)}</b>: Level ${Math.floor(x.lib.rl)}.`).join('')}</p><ul>${rows.join('')}</ul></div>`:'';})()}
@@ -3476,7 +3530,7 @@ SCREENS.parent=()=>{
  <p><b>On an iPad or iPhone:</b> tap Share, then <b>Add to Home Screen</b>, and always open the game from that icon. The Home Screen icon keeps its own saved games and PIN, separate from Safari, so playing in Safari and from the icon won't share progress.</p><p><b>Before deleting the Home Screen icon</b>, download a backup: removing the icon also erases what it saved. Restore the backup in the new icon's Parent Corner.</p>
  <div class="row" style="justify-content:flex-start"><button class="btn green small" onclick="downloadBackup()">⬇️ Download a backup</button><button class="btn small ghost dark" onclick="changePin()">Change Parent PIN</button><label class="btn small">⬆️ Restore a backup<input type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)"></label></div></div></div>`;
 };
-function changePin(){state.pin=null;try{localStorage.removeItem(PIN_KEY);}catch(e){}try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').delete('pin');}catch(e){}save();parentGate();}
+function changePin(){PIN_CHANGE=true;parentGate();} // the old PIN stays until a new one is confirmed (Cancel keeps it)
 function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save();refreshParent(`pp-${id}`,true);}
 function downloadBackup(){const b=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='math-quest-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();toast('Backup downloaded.');}
 function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;const keep=state.pin;state=s;if(!state.pin)state.pin=keep;state.family=cloud.code;state.players.forEach(p=>p.upd=Date.now());migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
@@ -3550,9 +3604,9 @@ function questClaim(k){const p=P();const Q=qState(p);const a=Q.active[k];if(!a||
  Q.idx[a.c]=(Q.idx[a.c]||0)+1;Q.done=(Q.done||0)+1;Q.active.splice(k,1);qState(p);save();SFX.win();
  const N=QNPC[a.c];modal(`<div class="mcard"><div class="big-emoji">${N.e}</div><h2>${esc(d.t)}: done!</h2><p>${N.n} is proud of you, ${esc(p.name)}!</p><div class="rewards">${got.map(g=>`<div>${g}</div>`).join('')}</div>
  <p class="muted">A new quest is waiting. You've finished ${Q.done} quest${Q.done===1?'':'s'}!</p><button class="btn green big" onclick="closeModal();go(curScreen,curArg)">Great! ➜</button></div>`);}
-function nextSteps(p){const out=[];const L=p.lib&&p.lib.day===dayKey()?p.lib.n:0;if(L<libPerDay(p))out.push(`<button class="nstep" onclick="LIB=null;go('library')">📚 ${libPerDay(p)-L} new ${libPerDay(p)-L>1?'stories':'story'} in the Library</button>`);const cheap=Math.min(...VIL.filter(b=>vLv(p,b.id)<VIL_MAX).map(b=>b.cost[vLv(p,b.id)]));if(p.coins>=cheap)out.push(`<button class="nstep" onclick="go('village')">🏗️ Upgrade your village</button>`);
+function nextSteps(p){const out=[];if(!p.skillChecked&&(p.battles||0)<40)out.push(`<button class="nstep" onclick="SKC=null;go('skillcheck')">🎯 Take the skill check</button>`);const L=p.lib&&p.lib.day===dayKey()?p.lib.n:0;if(L<libPerDay(p))out.push(`<button class="nstep" onclick="LIB=null;go('library')">📚 ${libPerDay(p)-L} new ${libPerDay(p)-L>1?'stories':'story'} in the Library</button>`);const cheap=Math.min(...VIL.filter(b=>vLv(p,b.id)<VIL_MAX).map(b=>b.cost[vLv(p,b.id)]));if(p.coins>=cheap)out.push(`<button class="nstep" onclick="go('village')">🏗️ Upgrade your village</button>`);
  if(!(p.cafe&&p.cafe.d===dayKey()&&p.cafe.done))out.push(`<button class="nstep" onclick="CAFE=null;go('cafe')">🍱 Today's lunch order</button>`);
- if(p.spinDay!==dayKey())out.push(`<button class="nstep" onclick="go('world')">🎡 Daily spin is ready</button>`);
+ if(p.spinDay!==dayKey())out.push(`<button class="nstep" onclick="go('world');setTimeout(()=>{if(curScreen==='world'&&!document.querySelector('#modal.show'))openSpin();},350)">🎡 Daily spin is ready</button>`);
  const z=ZONES.filter(z=>!zoneLocked(z,p)&&medal(p,z.id)<5).sort((a,b)=>medal(p,a.id)-medal(p,b.id))[0];
  if(z){const r=Math.min(5,medal(p,z.id)+1);out.push(`<button class="nstep" onclick="go('zone','${z.id}')">${ROUNDS[r].m} ${ROUNDS[r].n} medal in ${z.name}</button>`);}
  return out.slice(0,4).join('');}
@@ -3580,7 +3634,7 @@ function refreshParent(anchorId,flash){
 }
 function adjLevel(id,op,d){const p=state.players.find(x=>x.id===id);const L=lvl(p,op),to=clamp(L+d,1,maxLv(op));if(to===L)return;applyLevel(p,op,to);p.recent[op]=[];save();refreshParent(`lv-${id}-${op}`,true);}
 function tbSet(id,k,v){const p=state.players.find(x=>x.id===id);const T=tbState(p);tbTick(p,false);
- if(k==='on')p.tbOn=!!v;else if(k==='min'){p.tbMin=+v;T.bank=Math.min(T.bank,+v);}else if(k==='add'){T.bank=Math.max(0,T.bank)+(+v);T.locked=false;}else if(k==='full'){T.bank=tbCap(p);T.locked=false;}
+ if(k==='on')p.tbOn=!!v;else if(k==='min'){p.tbMin=+v;T.bank=Math.min(T.bank,+v);}else if(k==='add'){T.bank=Math.max(0,T.bank)+(+v);T.bonus=Math.max(0,T.bank-tbCap(p));T.locked=false;}else if(k==='full'){T.bank=tbCap(p);T.locked=false;}
  save();refreshParent(`pp-${id}`,true);toast(k==='add'?`Added 15 minutes for ${p.name}.`:'Saved.');}
 function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;if(p.spellSig!==undefined)p.spellSig=spellSchool(p).map(x=>x.w).join('|');save();refreshParent(`pp-${id}`,true);toast(`Grade set to ${g}.`);}
 function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}const np=newPlayer(n,+$('#npGrade').value);state.players.push(np);save();refreshParent(null);const c=document.getElementById('pp-'+np.id);if(c){c.scrollIntoView({block:'center',behavior:'smooth'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),900);}}
@@ -3594,7 +3648,7 @@ const CONTENT=window.MQ_CONTENT||{kids:{},byGrade:{},quizzes:{}};
 const SPELL_ZONE={id:'spell',name:'Spelling Grove',op:'spell',sym:'Aa',cls:'z-spell',art:'📜',decor:['📜','✏️','🔤','📖','🍃'],
  mons:[['Letter Bug','🐞'],['Typo Toad','🐸'],['Scrambler','🦝'],['Vowel Vole','🐭'],['Quill Parrot','🦜'],['Grand Owl of Words','🦉']]};
 const findZone=id=>id==='spell'?SPELL_ZONE:ZONES.find(x=>x.id===id);
-function kidData(p){const k=(p.name||'').toLowerCase().trim();const byG=CONTENT.byGrade||{};return (CONTENT.kids||{})[k]||byG[p.grade<=3?'3':'5']||byG['3']||{};}
+function kidData(p){let k=(p.name||'').toLowerCase().trim();const K=CONTENT.kids||{};if(p.ckey&&K[p.ckey])k=p.ckey;else if(K[k])p.ckey=k;const byG=CONTENT.byGrade||{};return K[k]||byG[p.grade<=3?'3':'5']||byG['3']||{};}
 function spellSchool(p){if(p.customWords&&p.customWords.length)return p.customWords;const s=kidData(p).spelling;return (s&&s.words)||[];}
 const BANK_PACK=20,BANK_UNLOCK=15;
 function bankPacks(p){const bank=((CONTENT.wordBank||{})[(p.grade||3)<=3?'3':'5'])||[];const have=new Set(spellSchool(p).map(x=>x.w.toLowerCase()));const list=bank.filter(x=>!have.has(x.w.toLowerCase()));const out=[];for(let i=0;i<list.length;i+=BANK_PACK)out.push(list.slice(i,i+BANK_PACK));return out;}

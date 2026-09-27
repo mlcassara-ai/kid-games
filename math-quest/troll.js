@@ -33,7 +33,7 @@ window.trollCheck=function(tile){
  start();return true;};
 /* ?trolldemo in the URL: the next unmarked step drops you in, and afterwards everything is put back exactly as it was (for parents to preview) */
 let DEMO=null,ARM=null;
-const snap=p=>JSON.stringify({troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily});
+const snap=p=>JSON.stringify({troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily,feathers:p.feathers||0,wkHist:p.wkHist||null});
 const DEMO_AGAIN=/trolldemo=again/.test(location.search);
 if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&typeof curScreen!=='undefined'&&curScreen==='world'){clearInterval(iv);ARM='troll';if(typeof toast==='function')toast('🧌 Troll preview'+(DEMO_AGAIN?' (return visit)':'')+': walk onto an empty square outside the village…');}}catch(e){}},500);}
 
@@ -42,8 +42,8 @@ function takeable(p){const out=[];
  if((p.coins||0)>=5)out.push({k:'coins',v:Math.min(p.coins,Math.max(5,Math.min(400,Math.round(p.coins*.2))))});
  (p.pets||[]).filter(id=>id!==p.pet).forEach(id=>out.push({k:'pet',id}));
  const ow=p.owned||{};
- (ow.hats||[]).filter(id=>id!==(p.look&&p.look.hat)&&(HATS.find(h=>h.id===id)||{}).price>0).forEach(id=>out.push({k:'hat',id}));
- (ow.robes||[]).filter(id=>id!==(p.look&&p.look.robe)&&(ROBES.find(h=>h.id===id)||{}).price>0).forEach(id=>out.push({k:'robe',id}));
+ (ow.hats||[]).filter(id=>id!==(p.look&&p.look.hat)&&(HATS.find(h=>h.id===id)||{}).price>0&&!(HATS.find(h=>h.id===id)||{}).event).forEach(id=>out.push({k:'hat',id}));
+ (ow.robes||[]).filter(id=>id!==(p.look&&p.look.robe)&&(ROBES.find(h=>h.id===id)||{}).price>0&&!(ROBES.find(h=>h.id===id)||{}).event).forEach(id=>out.push({k:'robe',id}));
  (ow.spells||[]).filter(id=>id!==p.spell&&(SPELLS.find(h=>h.id===id)||{}).price>0).forEach(id=>out.push({k:'spell',id}));
  (p.toys||[]).forEach(id=>out.push({k:'toy',id}));
  return out;}
@@ -69,7 +69,7 @@ function reclaimed(p,holder){const h=holder.hoard||[];const got=h.filter(it=>own
 function giveBack(p,holder){const t=holder||T(p);reclaimed(p,t);const it=t.hoard.pop();if(!it)return null;
  if(it.k==='coins')p.coins=(p.coins||0)+it.v;
  else if(it.k==='pet'){if(!p.pets.includes(it.id))p.pets.push(it.id);}
- else if(it.k==='toy')p.toys.push(it.id);
+ else if(it.k==='toy'){p.toys=p.toys||[];if(!p.toys.includes(it.id))p.toys.push(it.id);}
  else{const key=it.k+'s';p.owned[key]=p.owned[key]||[];if(!p.owned[key].includes(it.id))p.owned[key].push(it.id);}
  return it;}
 window.trollHoardHTML=function(p){const t=p.troll;if(t&&t.hoard)reclaimed(p,t);if(!t||!t.hoard||!t.hoard.length)return '';
@@ -332,14 +332,14 @@ async function start(){
  const wh=el('<div class="tr-big tr-whee">WHEEEEE!</div>');stage.appendChild(wh);[400,550,700,900,1100].forEach((f,k)=>snd(f,.25,'triangle',.08,k*.12));
  await sleep(600);bub.style.display='';bub.innerHTML=`<b class="tr-name">🧌 ${TNAME}</b>Bye bye, little friend! 👋 Watch your step!`;tbox.style.transform=`translateX(-${dx}px)`;
  await sleep(1700);fade.classList.add('on');await sleep(700);
- root.remove();root=null;busy=false;window.trollBusy=false;skip=false;
- if(DEMO){const s=JSON.parse(DEMO);DEMO=null;Object.assign(p,{coins:s.coins,pets:s.pets,owned:s.owned,toys:s.toys,daily:s.daily});if(s.troll)p.troll=s.troll;else delete p.troll;save();try{toast('🧌 That was a preview — nothing was changed.');go('world');}catch(e){}return;}
+ root.remove();root=null;busy=false;window.trollBusy=false;window.visitorQuiet=Date.now()+120e3;skip=false;
+ if(DEMO){const s=JSON.parse(DEMO);DEMO=null;Object.assign(p,{coins:s.coins,pets:s.pets,owned:s.owned,toys:s.toys,daily:s.daily,feathers:s.feathers});if(s.wkHist)p.wkHist=s.wkHist;if(s.troll)p.troll=s.troll;else delete p.troll;save();try{toast('🧌 That was a preview — nothing was changed.');go('world');}catch(e){}return;}
  const summary=[took.length?`🧌 The troll kept: ${took.map(label).join(', ')}`:'',gave.length?`↩ You won back: ${gave.map(label).join(', ')}`:''].filter(Boolean).join(' · ');
  try{if(typeof toast==='function')toast(`🧌 You escaped ${TNAME}'s cave! ${right}/3 right.${summary?' '+summary:''}`);}catch(e){}
  try{if(typeof go==='function'&&curScreen==='world')go('world');}catch(e){}
 }
 /* troll questions are HARD: one level above the kid's current level (two above for the last question) */
-function makeQ(p,i,up){let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+(up!=null?up:(i===2?2:1))));q=genQ(op,L);if(q){q.trollL=L;break;}}return q;}
+function makeQ(p,i,up){let q=null;for(let k=0;k<12;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+(up!=null?up:(i===2?2:1))));q=genQ(op,L);if(q){q.trollL=L;break;}}return q;}
 function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  await say(bub,(o.intro||['Question ONE!','Question TWO!','Last question… THREE!'])[i],200,true,o.who);const p=P();
  let inp='';const box=el(`<div class="tr-q">${o.story?'<div class="tr-story"></div>':''}<div class="tr-dots">${[0,1,2].map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-timer"><i></i><b></b></div><div class="tr-qt"></div>
@@ -354,10 +354,11 @@ function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  const tick=()=>{if(done)return;const left=Math.max(0,LIMIT-(Date.now()-t0)),sec=Math.ceil(left/1000);tbar.style.width=(left/LIMIT*100)+'%';tlab.textContent=`⏰ ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
   tbox.classList.toggle('warn',sec<=20);tbox.classList.toggle('hurry',sec<=10);if(sec<=10&&sec!==lastS&&sec>0){try{snd(sec<=3?1000:760,.06,'square',.04);}catch(e){}}lastS=sec;
   if(left<=0){timedOut=true;finish();}};
- const tiv=setInterval(tick,250);window.__surpriseClock=l=>{t0=Date.now()-LIMIT+(l||0);};
+ let hidAt=0;const vis=()=>{if(document.hidden)hidAt=Date.now();else if(hidAt){t0+=Date.now()-hidAt;hidAt=0;}};document.addEventListener('visibilitychange',vis);
+ const tiv=setInterval(()=>{if(!document.hidden)tick();},250);window.__surpriseClock=l=>{t0=Date.now()-LIMIT+(l||0);};
  window.addEventListener('keydown',key);featherBtn();tick();
  box.querySelectorAll('.tr-pad button').forEach(b=>b.onclick=()=>{try{SFX.tap();}catch(e){}press(b.dataset.k);});
- const finish=()=>{if(done)return;done=true;clearInterval(tiv);window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=!timedOut&&(v===q.answer||!!(q.alt&&q.alt.includes(v)));box.remove();resolve({ok,q,timeout:timedOut});};
+ const finish=()=>{if(done)return;done=true;clearInterval(tiv);document.removeEventListener('visibilitychange',vis);window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=!timedOut&&(v===q.answer||!!(q.alt&&q.alt.includes(v)));box.remove();resolve({ok,q,timeout:timedOut});};
 });}
 window.Troll={start,arm:k=>{ARM=k;},_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
 window.Surprise={reclaimed,say,tapWait,ask,label,take,giveBack,el,sleep,snd,makeQ,EAGLE_BIOMES,heroHTML,isDemo:()=>!!DEMO};
