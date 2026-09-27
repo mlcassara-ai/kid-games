@@ -149,6 +149,11 @@ const CSS=`
 @keyframes egfeather{0%{transform:translate(-50%,-50%) scale(.2) rotate(-40deg);opacity:0}30%{transform:translate(-50%,-50%) scale(1.3) rotate(10deg);opacity:1}100%{transform:translate(-50%,120%) scale(.5) rotate(0);opacity:0}}
 .eg-screech{position:absolute;left:0;right:0;top:8%;text-align:center;font-weight:700;font-size:clamp(34px,8vw,70px);color:#fff;text-shadow:0 4px 0 #000;animation:trwob .25s infinite alternate;z-index:8}
 .eg-stolen{position:absolute;left:18%;bottom:34%;z-index:13;font-size:clamp(18px,3vw,26px);font-weight:700;background:#ff5a5f;border-radius:14px;padding:6px 12px;animation:trsteal 1.6s ease-in forwards}
+.eg-flyover{position:fixed;inset:0;z-index:5000;pointer-events:none;overflow:hidden;font-family:'Fredoka',system-ui,sans-serif}
+.eg-shadow.eg-pass{opacity:.38;animation-duration:2.2s;animation-timing-function:linear}
+.eg-shadow.eg-ltr{left:-140%;animation-name:egshadowR}.eg-shadow.eg-ltr svg{transform:scaleX(-1)}@keyframes egshadowR{to{left:110%;top:4%}}
+.eg-what{position:absolute;left:50%;top:16%;transform:translateX(-50%);background:#fffbe9;color:#3b2a14;border:3px solid #5b4326;border-radius:16px;padding:8px 16px;font-weight:700;font-size:clamp(16px,3.4vw,22px);white-space:nowrap;box-shadow:0 6px 16px rgba(0,0,0,.3);animation:egwhat 3s ease forwards}
+@keyframes egwhat{0%{opacity:0;transform:translate(-50%,10px) scale(.8)}12%{opacity:1;transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0}}
 @media(max-width:600px){.eg-mama{height:62%;width:62%;right:-8%;bottom:14%}.eg-nest{width:86%;height:18%;bottom:14%}.eg-bubble{width:70%;right:3%}}
 `;
 
@@ -249,6 +254,33 @@ async function start(){
  try{toast(`🦅 ${ENAME} flew you home! ${right}/3 right.${summary?' '+summary:''}`);}catch(x){}
  try{if(curScreen==='world')go('world');}catch(x){}
 }
+
+/* ---------- "what was that?!" — a shadow flies over, but no eagle (twice as often as the real thing) ---------- */
+const FLY_CHANCE=.4; // per slot; 2 slots per play-hour vs. the trap's 1 slot at 40%
+const WHAT0=['What was that?!','Whoa… did you see that shadow?!','Something BIG just flew over…','Huh?! What was THAT?','Eek! Something up in the sky…'];
+const WHAT1=['Was that Skyla?!','Skyla…? Is that you up there?','Uh oh… is Skyla doing homework again?','That shadow looked like Skyla!','Hi Skyla…? …She kept flying.'];
+function flyRoll(p){const t=window.Troll&&Troll._T(p);if(!t)return null;const e=E(p);const w=Math.floor(t.play/3600);
+ if(e.fw!==w){e.fw=w;e.fly=[0,1].filter(()=>Math.random()<FLY_CHANCE).map(()=>w*3600+Math.random()*3600).sort((a,b)=>a-b);}
+ return t;}
+let flying=false;
+function flyover(p){if(flying)return;flying=true;const S=SH();
+ if(!document.getElementById('egCSS')){const s=document.createElement('style');s.id='egCSS';s.textContent=CSS;document.head.appendChild(s);}
+ const rtl=Math.random()<.5,top=5+Math.random()*40;
+ const box=S.el(`<div class="eg-flyover"><div class="eg-shadow eg-pass${rtl?'':' eg-ltr'}" style="top:${top}%">${FLY(false)}</div></div>`);
+ document.body.appendChild(box);
+ [900,800,700].forEach((f,k)=>S.snd(f,.3,'sawtooth',.018,.5+k*.1));
+ const list=(p.eagle&&p.eagle.visits)?WHAT1:WHAT0;
+ setTimeout(()=>{box.appendChild(S.el(`<div class="eg-what">😮 ${list[Math.floor(Math.random()*list.length)]}</div>`));},1100);
+ setTimeout(()=>{box.remove();flying=false;},4200);}
+setInterval(()=>{try{const p=P();if(!p||!p.setup||document.hidden||busy||flying||window.trollBusy)return;
+ if(typeof curScreen!=='undefined'&&curScreen!=='world')return;if(document.querySelector('#modal.show'))return;
+ const t=flyRoll(p);if(!t)return;const e=p.eagle;
+ if(FLYDEMO){FLYDEMO=false;flyover(p);return;}
+ if(!e.fly||!e.fly.length||t.play<e.fly[0])return;
+ const tile=W.T[W.hy]&&W.T[W.hy][W.hx];if(!tile||!SH().EAGLE_BIOMES.includes(tile.b))return; // only over eagle country; waits until you're there
+ e.fly.shift();save();flyover(p);}catch(x){}},2000);
+let FLYDEMO=/shadowdemo/.test(location.search);
+window.eagleFlyover=()=>{try{flyover(P());}catch(x){}};
 /* ?eagledemo — parents can preview; everything is put back afterwards */
 if(/eagledemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&window.Troll){clearInterval(iv);DEMO=JSON.stringify({eagle:p.eagle||null,troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily,feathers:p.feathers||0});const t=Troll._T(p);t.force=1;t.forceEagle=1;toast('🦅 Eagle preview: take a step on an empty square…');}}catch(x){}},500);}
 window.Eagle={start,_E:E,_q:storyQ};
