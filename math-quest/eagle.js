@@ -42,6 +42,22 @@ const FLY=(talons)=>`<svg viewBox="0 0 640 380" class="eg-flysvg"><defs>${EYE}<l
 <ellipse cx="302" cy="106" rx="8" ry="7" fill="url(#egEye)"/><ellipse cx="338" cy="106" rx="8" ry="7" fill="url(#egEye)"/><circle cx="303" cy="107" r="3" fill="#1a1a1a"/><circle cx="337" cy="107" r="3" fill="#1a1a1a"/>
 <path d="M290 96 L314 102 M350 96 L326 102" stroke="#6b5a45" stroke-width="5" stroke-linecap="round"/></g>
 <g stroke="#e8b400" stroke-width="9" stroke-linecap="round" fill="none">${talons?'<path d="M296 262 Q280 300 292 318 M344 262 Q360 300 348 318"/><path d="M286 312 l-8 10 M292 318 l0 12 M298 312 l8 10 M354 312 l8 10 M348 318 l0 12 M342 312 l-8 10" stroke="#3a2a10" stroke-width="5"/>':'<path d="M300 262 L300 290 M340 262 L340 290"/>'}</g></svg>`;
+// side view for the ride home: far wing + body behind the rider, back feathers + near wing in front
+const RIDE_BACK=`<svg viewBox="0 0 640 360" class="eg-rsvg"><defs>${EYE}<linearGradient id="egRB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4a22"/><stop offset="1" stop-color="#3b220f"/></linearGradient><linearGradient id="egRW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5e3818"/><stop offset="1" stop-color="#8a5a2c"/></linearGradient></defs>
+<g class="eg-farwing"><path d="M330 178 Q300 90 170 12 Q176 34 150 36 Q170 52 128 58 Q160 74 122 86 Q170 96 140 112 Q196 118 172 138 Q232 140 222 160 Q270 166 262 186Z" fill="url(#egRW)" stroke="#3b220f" stroke-width="3" stroke-linejoin="round"/><path d="M290 150 Q240 110 186 80 M270 170 Q220 140 170 118" stroke="#3b220f" stroke-width="3" fill="none" opacity=".5"/></g>
+<path d="M175 196 L58 168 L70 196 L46 214 L72 226 L58 256 L178 228Z" fill="#f4f1ea" stroke="#d9d2c2" stroke-width="3"/>
+<ellipse cx="320" cy="208" rx="168" ry="60" fill="url(#egRB)"/>
+<path d="M430 170 Q470 150 500 150 L520 250 Q470 262 440 246Z" fill="#f7f4ee"/>
+<ellipse cx="502" cy="170" rx="56" ry="50" fill="#f7f4ee"/>
+<path d="M548 150 Q602 150 606 186 Q600 204 588 206 Q590 188 572 186 L548 190Z" fill="#f2b705" stroke="#8a5b00" stroke-width="3"/>
+<ellipse cx="526" cy="158" rx="9" ry="8" fill="url(#egEye)"/><circle cx="529" cy="158" r="3.5" fill="#1a1a1a"/>
+<path d="M510 140 Q528 138 542 146" stroke="#6b5a45" stroke-width="5" stroke-linecap="round" fill="none"/>
+<path d="M538 184 Q548 194 562 190" stroke="#8a5b00" stroke-width="3" fill="none"/>
+<path d="M300 262 L286 296 M340 262 L332 298" stroke="#e8b400" stroke-width="9" stroke-linecap="round"/></svg>`;
+const RIDE_FRONT=`<svg viewBox="0 0 640 360" class="eg-rsvg"><defs><linearGradient id="egRN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d4420"/><stop offset="1" stop-color="#3b220f"/></linearGradient></defs>
+<path d="M262 196 Q300 170 350 178 Q392 186 404 204 Q370 224 320 222 Q280 220 262 196Z" fill="#6d4420"/>
+<path d="M276 196 q14 -8 24 2 M310 188 q14 -8 24 2 M344 190 q14 -8 22 4" stroke="#4a2e16" stroke-width="4" fill="none" stroke-linecap="round"/>
+<g class="eg-nearwing"><path d="M400 206 Q330 250 170 318 Q205 318 214 330 Q250 318 262 334 Q292 316 306 330 Q330 304 346 312 Q372 272 420 228Z" fill="url(#egRN)"/><path d="M214 330 L200 350 M262 334 L254 354 M306 330 L304 350" stroke="#2a170a" stroke-width="8" stroke-linecap="round"/></g></svg>`;
 const PERCH=`<svg viewBox="0 0 360 520" class="eg-perch" preserveAspectRatio="xMidYMax meet"><defs>${EYE}<linearGradient id="egBody" x1="0" x2="1"><stop offset="0" stop-color="#6d4420"/><stop offset="1" stop-color="#3a220e"/></linearGradient></defs>
 <path d="M200 380 L300 500 L250 500 L180 420Z" fill="#f4f1ea"/>
 <path d="M120 190 Q90 300 150 420 Q210 460 260 400 Q300 300 250 190Z" fill="url(#egBody)"/>
@@ -107,6 +123,11 @@ const CSS=`
 .eg-stand{position:absolute;z-index:3}.eg-stand svg,.eg-held svg{width:100%;height:100%}
 .eg-grp{position:absolute;z-index:5;transition:transform 1.1s cubic-bezier(.5,0,.9,.6)}.eg-grp .eg-flysvg{position:relative;z-index:2}
 .eg-held{position:absolute;left:50%;display:none;z-index:1;transform:rotate(6deg)}.eg-held.on{display:block}
+.eg-rideside{aspect-ratio:640/360}.eg-rideside .eg-rsvg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+.eg-rider2{position:absolute;left:41%;top:16%;width:17%;z-index:2;transform:rotate(-4deg)}.eg-rider2 svg{width:100%;height:auto}
+.eg-rfront{position:absolute;inset:0;z-index:3}
+.eg-farwing{transform-origin:290px 170px;animation:egfar .7s ease-in-out infinite alternate}@keyframes egfar{to{transform:rotate(14deg)}}
+.eg-nearwing{transform-origin:400px 210px;animation:egnear .7s ease-in-out infinite alternate}@keyframes egnear{to{transform:rotate(-16deg)}}
 .eg-flier{position:absolute}.eg-onback{position:absolute;left:50%;top:-14%;width:17%;transform:translateX(-50%);z-index:2}.eg-onback svg{width:100%;height:auto}
 .eg-bob{animation:egbob .5s ease-in-out infinite alternate}@keyframes egbob{to{margin-top:-10px}}
 .eg-scene{position:absolute;inset:0}
@@ -217,7 +238,7 @@ async function start(){
  // 6. ride home on her back — friends now
  stage.classList.add('eg-kind');await say('Hop on my back — I\'ll fly you home, friend!');
  dark.classList.add('on');await sleep(700);stage.remove();
- const ride=S.el(`<div class="eg-sky eg-down">${snap?`<div class="eg-ground small" style="background-image:url(${snap})"></div>`:'<div class="eg-ground small" style="background:linear-gradient(#9ccf66,#5fae4b)"></div>'}<div class="eg-flier eg-bob">${FLY(false)}<div class="eg-onback">${S.heroHTML(p)}</div></div><div class="eg-screech" style="color:#ffe066;top:auto;bottom:12%">WOO-HOO!</div></div>`);
+ const ride=S.el(`<div class="eg-sky eg-down">${snap?`<div class="eg-ground small" style="background-image:url(${snap})"></div>`:'<div class="eg-ground small" style="background:linear-gradient(#9ccf66,#5fae4b)"></div>'}<div class="eg-flier eg-rideside eg-bob">${RIDE_BACK}<div class="eg-rider2">${S.heroHTML(p)}</div><div class="eg-rfront">${RIDE_FRONT}</div></div><div class="eg-screech" style="color:#ffe066;top:auto;bottom:12%">WOO-HOO!</div></div>`);
  for(let i=0;i<4;i++)ride.appendChild(S.el(`<i class="eg-cloud" style="left:${8+i*22}%;animation-delay:${i*.35}s"></i>`));
  root.insertBefore(ride,dark);dark.classList.remove('on');[600,800,1000,1200,1000,800].forEach((f,k)=>tone(f,.3,'triangle',.05,k*.18));
  await sleep(600);ride.querySelector('.eg-ground').classList.remove('small');
