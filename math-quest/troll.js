@@ -24,14 +24,18 @@ window.trollCheck=function(tile){
  if(document.querySelector('#modal.show'))return false;
  if(!unmarked(tile))return false;
  const t=T(p);roll(t);
- if(!t.force&&(t.at==null||t.play<t.at))return false;
- t.at=null;const fe=t.forceEagle;t.force=0;t.forceEagle=0;save();
- if(window.Eagle&&(fe||(!DEMO&&EAGLE_BIOMES.includes(tile.b)))){Eagle.start();return true;}
+ const armed=ARM; // a parent preview (?trolldemo / ?eagledemo) — kept in memory, not in saved data, so profile switches and cloud syncs can't lose it
+ if(!armed&&!t.force&&(t.at==null||t.play<t.at))return false;
+ const fe=t.forceEagle;ARM=null;t.force=0;t.forceEagle=0;
+ if(armed){if(armed==='eagle'&&window.Eagle){Eagle.start(true);return true;}DEMO=snap(p);start();return true;}
+ t.at=null;save();
+ if(window.Eagle&&(fe||EAGLE_BIOMES.includes(tile.b))){Eagle.start();return true;}
  start();return true;};
 /* ?trolldemo in the URL: the next unmarked step drops you in, and afterwards everything is put back exactly as it was (for parents to preview) */
-let DEMO=null;
+let DEMO=null,ARM=null;
+const snap=p=>JSON.stringify({troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily});
 const DEMO_AGAIN=/trolldemo=again/.test(location.search);
-if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup){clearInterval(iv);DEMO=JSON.stringify({troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily});T(p).force=1;if(typeof toast==='function')toast('🧌 Troll preview: take a step on an empty square…');}}catch(e){}},500);}
+if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&typeof curScreen!=='undefined'&&curScreen==='world'){clearInterval(iv);ARM='troll';if(typeof toast==='function')toast('🧌 Troll preview'+(DEMO_AGAIN?' (return visit)':'')+': walk onto an empty square outside the village…');}}catch(e){}},500);}
 
 /* ---------- things the troll can take / give back ---------- */
 function takeable(p){const out=[];
@@ -351,6 +355,6 @@ function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  box.querySelectorAll('.tr-pad button').forEach(b=>b.onclick=()=>{try{SFX.tap();}catch(e){}press(b.dataset.k);});
  const finish=()=>{if(done)return;done=true;clearInterval(tiv);window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=!timedOut&&(v===q.answer||!!(q.alt&&q.alt.includes(v)));box.remove();resolve({ok,q,timeout:timedOut});};
 });}
-window.Troll={start,_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
+window.Troll={start,arm:k=>{ARM=k;},_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
 window.Surprise={say,tapWait,ask,label,take,giveBack,el,sleep,snd,makeQ,EAGLE_BIOMES,heroHTML,isDemo:()=>!!DEMO};
 })();

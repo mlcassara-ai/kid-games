@@ -158,8 +158,8 @@ const CSS=`
 `;
 
 /* ---------- main sequence ---------- */
-async function start(){
- const p=P();const e=E(p);busy=true;window.trollBusy=true;const S=SH();
+async function start(demo){
+ const p=P();if(demo)DEMO=JSON.stringify({eagle:p.eagle||null,troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily,feathers:p.feathers||0});const e=E(p);busy=true;window.trollBusy=true;const S=SH();
  if(!document.getElementById('egCSS')){const s=document.createElement('style');s.id='egCSS';s.textContent=CSS;document.head.appendChild(s);}
  const first=!e.visits||!!DEMO;
  // snapshot the map WITHOUT the hero (the eagle is carrying you, so you shouldn't also be standing down there)
@@ -283,6 +283,6 @@ setInterval(()=>{try{const p=P();if(!p||!p.setup||document.hidden||busy||flying|
 let FLYDEMO=/shadowdemo/.test(location.search);
 window.eagleFlyover=()=>{try{flyover(P());}catch(x){}};
 /* ?eagledemo — parents can preview; everything is put back afterwards */
-if(/eagledemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&window.Troll){clearInterval(iv);DEMO=JSON.stringify({eagle:p.eagle||null,troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily,feathers:p.feathers||0});const t=Troll._T(p);t.force=1;t.forceEagle=1;toast('🦅 Eagle preview: take a step on an empty square…');}}catch(x){}},500);}
+if(/eagledemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&window.Troll&&Troll.arm&&typeof curScreen!=='undefined'&&curScreen==='world'){clearInterval(iv);Troll.arm('eagle');toast('🦅 Eagle preview: walk onto an empty square outside the village…');}}catch(x){}},500);}
 window.Eagle={start,_E:E,_q:storyQ};
 })();
