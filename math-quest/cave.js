@@ -25,18 +25,32 @@ const txt=o=>{const t=TIER();return (t>0&&o.o?o.o:o.y)+(t>1&&o.hs?`<div class="c
 
 /* ---------------- state ---------------- */
 function initState(){
- S.v=1;S.gear=Object.assign({drill:0,suit:0,bat:0,pack:0,lamp:0,uv:0},S.gear||{});
+ S.v=1;S.gear=Object.assign({drill:0,suit:0,bat:0,pack:0,lamp:0,uv:0,chg:0},S.gear||{});
  ['gates','found','idd','fos','ex','crit','geo','seen','stats'].forEach(k=>S[k]=S[k]||{});
  S.pack=S.pack||[];S.rp=S.rp||0;S.maxRow=S.maxRow||0;S.probe=S.probe||{rank:0,best:0,wins:0,day:'',runs:0};
- S.stats.dug=S.stats.dug||0;
+ S.stats.dug=S.stats.dug||0;S.dive=S.dive||{c:0,f:0,cr:0,d:0,ch:0};
  const d=today();
  if(S.day!==d){const first=!S.day;S.day=d;S.dug='';S.obs=[];S.x=4;S.y=0;S.bat=batMax();S.caveIn=!first;S.probe.runs=0;}
  if(S.bat==null)S.bat=batMax();
+ charge(true); // the helmet battery charges while you are away
 }
+/* battery charges over time — only at camp (or while the game is closed). Math power-ups charge it instantly. */
+const CHG=[{v:10,c:0,e:'🔌',n:'Basic Charger'},{v:15,c:250,r:10,e:'🔌',n:'Fast Charger'},{v:22,c:700,r:25,e:'⚡',n:'Turbo Charger'},{v:32,c:1600,r:50,e:'⚡',n:'Mega Charger'}];
+function now(){try{return H&&H.now?H.now():Date.now();}catch(e){return Date.now();}}
+const chgRate=()=>CHG[S.gear.chg||0].v;
+function charge(away){const t=now();const last=S.batT||t;S.batT=t;const dt=Math.max(0,(t-last)/60000);if((S.y===0||away)&&S.bat<batMax())S.bat=Math.min(batMax(),S.bat+dt*chgRate());}
+function fullIn(){const m=(batMax()-S.bat)/chgRate();if(m<=0)return '';const s=Math.ceil(m*60);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
 const batMax=()=>CD.BATT[S.gear.bat].v, packMax=()=>CD.PACK[S.gear.pack].v, lampR=()=>CD.LAMP[S.gear.lamp].v;
 const drill=()=>CD.DRILLS[S.gear.drill], suit=()=>CD.SUITS[S.gear.suit];
 function save(force){const n=Date.now();if(force||n-lastSave>1500){lastSave=n;S.dug=encDug();try{H.save();}catch(e){}}}
 function addCoins(n,why){if(n>0){H.addCoins(n,why||'cave');}}
+/* coins dug up in the cave get the player's Math Quest coin bonuses (pet perk, ascension…) via host.coinMult() */
+/* mineral mastery: ★ at 5, ★★ at 15, ★★★ at 40 of the same mineral */
+const STAR_AT=[5,15,40];const starsOf=id=>STAR_AT.filter(n=>(S.found[id]||0)>=n).length;
+function foundOne(id){const b=starsOf(id);S.found[id]=(S.found[id]||0)+1;const a=starsOf(id);if(a>b){S.rp+=3;return a;}return 0;}
+function coinMult(){try{return H.coinMult?Math.max(1,+H.coinMult()||1):1;}catch(e){return 1;}}
+function addDugCoins(n){const v=Math.max(1,Math.round(n*coinMult()));H.addCoins(v,'cave-dig');return v;}
+const COINV=[5,8,12,16,22,30,40,55],CHESTV=[40,60,90,120,160,220,300,400];
 function ev(t,d){try{H.event&&H.event(t,d);}catch(e){}}
 
 /* ---------------- world ---------------- */
@@ -91,6 +105,10 @@ function genWorld(){
   const n=Math.round((L.r1-L.r0+1)*(COLS-1)*0.055);
   for(let k=0,tries=0;k<n&&tries<500;tries++){const x=1+Math.floor(R()*(COLS-1)),y=L.r0+Math.floor(R()*(L.r1-L.r0+1)),i=idx(x,y);
    if(!isRock(i)||items.has(i)||landing(x,y))continue;items.set(i,{t:'m',id:pick(R,pool)});k++;}
+  // buried coins + one treasure chest per layer per day
+  const li=CD.LAYERS.indexOf(L);const nc=Math.round((L.r1-L.r0+1)*(COLS-1)*0.022);
+  for(let k=0,tries=0;k<=nc&&tries<600;tries++){const x=1+Math.floor(R()*(COLS-1)),y=L.r0+Math.floor(R()*(L.r1-L.r0+1)),i=idx(x,y);
+   if(!isRock(i)||items.has(i)||landing(x,y))continue;const ch=k===nc;items.set(i,{t:'$',ch,v:ch?CHESTV[li]:Math.round(COINV[li]*(.7+R()*.6))});k++;}
   // fossils: missing pieces, up to 2 per fossil per day
   CD.FOSSILS.filter(f=>f.L===L.id).forEach(f=>{const got=S.fos[f.id]||[];const miss=f.parts.map((_,i)=>i).filter(i=>!got[i]);
    const half=f.top===undefined?[L.r0,L.r1]:f.top?[L.r0,Math.floor((L.r0+L.r1)/2)]:[Math.ceil((L.r0+L.r1)/2),L.r1];
@@ -204,39 +222,47 @@ function step(dx,dy){
  const rk=rockOf(t);if(!rk)return;
  if(rk.h>drill().h){say(`⛏️ Too hard! ${rk.n} is about ${rk.h} on the hardness scale. Your ${drill().e} ${drill().n} digs up to ${drill().h}. Upgrade in the 🛒 Gear shop.`);return;}
  const cost=rk.h>drill().h-1.5?2:1;
- if(S.bat<cost){beamHome('battery');return;}
+ if(S.bat<cost){if(S.y===0){say(`🔋 Battery too low to dig! It's charging — full in ${fullIn()}. Tap ⚡ Power Up to charge it faster with math!`,4500);}else beamHome('battery');return;}
  S.bat-=cost;const i=idx(nx,ny);W.g[i]=T_AIR;setDug(i);S.stats.dug++;burst(nx,ny,rk.col);
  S.x=nx;S.y=ny;after();
  if(S.bat<=0)setTimeout(()=>beamHome('battery'),400);
 }
 function after(){
  const i=idx(S.x,S.y);const it=W.items.get(i);
- if(it&&it.t!=='c'){if(S.pack.length>=packMax()){say(`🎒 Backpack full (${packMax()})! Tap 🏠 to beam to camp and study your finds.`);}
+ if(it&&it.t==='$'){W.items.delete(i);setDug(i);const v=addDugCoins(it.v);S.dive.c+=v;if(it.ch)S.dive.ch++;floats.push({x:(S.x+.5)*TS,y:S.y*TS,t:`+${v} 🪙`,l:1,big:it.ch});if(it.ch)say(`🧰 A buried treasure chest! +${v} coins!`,2500);}
+ else if(it&&it.t!=='c'){if(S.pack.length>=packMax()){say(`🎒 Backpack full (${packMax()})! Tap 🏠 to beam to camp and study your finds.`);}
   else{W.items.delete(i);setDug(i);
-   if(it.t==='m'){S.pack.push({t:'m',id:it.id,k:Date.now().toString(36)+Math.random().toString(36).slice(2,5),tests:{}});say(`${CD.MIN[it.id].sh==='nugget'?'✨':'💎'} You found a mystery mineral! Study it in the 🔬 Lab.`);}
-   else if(it.t==='f'){S.pack.push({t:'f',id:it.id,i:it.i});const f=CD.FOSSILS.find(x=>x.id===it.id);say(`🦴 A fossil piece! Looks like part of a ${f.n} (${f.parts[it.i]}).`);}
-   else if(it.t==='g'){S.pack.push({t:'g',id:it.id});say('🔮 You found today\'s SECRET POCKET — a geode! Crack it open in the 🔬 Lab.');}
+   if(it.t==='m'){S.dive.f++;S.pack.push({t:'m',id:it.id,k:Date.now().toString(36)+Math.random().toString(36).slice(2,5),tests:{}});say(S.idd[it.id]?`💎 ${CD.MIN[it.id].n}! You already know this one — you'll sell it at camp.`:`💎 A mystery mineral! Study it in the 🔬 Lab.`);}
+   else if(it.t==='f'){S.dive.f++;S.pack.push({t:'f',id:it.id,i:it.i});const f=CD.FOSSILS.find(x=>x.id===it.id);say(`🦴 A fossil piece! Looks like part of a ${f.n} (${f.parts[it.i]}).`);}
+   else if(it.t==='g'){S.dive.f++;S.pack.push({t:'g',id:it.id});say('🔮 You found today\'s SECRET POCKET — a geode! Crack it open in the 🔬 Lab.');}
   }}
  // critter next to you? observe automatically when you bump into it
  [[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{const j=idx(S.x+a,S.y+b);const c=W.items.get(j);if(c&&c.t==='c'&&!S.crit[c.id]&&S.x+a>0)observe(j,c);});
+ if(S.y>S.dive.d)S.dive.d=S.y;
  if(S.y>S.maxRow){S.maxRow=S.y;ev('depth',{row:S.y,km:rowKm(S.y)});}
  const L=layerOf(S.y);if(L&&!S.seen[L.id]){S.seen[L.id]=1;save(true);layerCard(L);}
  hud();save();
 }
 function beamHome(why){
- S.x=4;S.y=0;S.bat=batMax();uvOn=false;snapCam();
- const fos=S.pack.filter(p=>p.t==='f');let msg=why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp. Battery recharged!':'🏠 Back at camp. Battery recharged!';
+ const dv=S.dive;S.dive={c:0,f:0,cr:0,d:0,ch:0};
+ S.x=4;S.y=0;charge();uvOn=false;snapCam();
+ const fos=S.pack.filter(p=>p.t==='f');let msg=why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp. It\'s charging now 🔌':'🏠 Back at camp. Your battery is charging 🔌';
+ const known=S.pack.filter(p=>p.t==='m'&&S.idd[p.id]);const starMsgs=[];let sold=0;if(known.length){known.forEach(p=>{const st=foundOne(p.id);if(st)starMsgs.push(`⭐ ${CD.MIN[p.id].n} reached ${'★'.repeat(st)}! +3 🔬`);sold+=CD.RAR[CD.MIN[p.id].r].sell;});S.pack=S.pack.filter(p=>!known.includes(p));sold=addDugCoins(sold);}
  if(fos.length){fos.forEach(p=>{S.fos[p.id]=S.fos[p.id]||[];S.fos[p.id][p.i]=1;});S.pack=S.pack.filter(p=>p.t!=='f');msg+=` 🦴 ${fos.length} fossil piece${fos.length>1?'s':''} sent to the 🏛️ Museum.`;}
  say(msg);hud();save(true);
+ if(dv&&(dv.c||dv.f||dv.cr||known.length||why==='battery')){const spec=S.pack.filter(p=>p.t!=='f').length;
+  card(`<div class="cv-card"><div class="cv-big">🎒</div><h2>Dive haul!</h2><div class="cv-haul">${dv.c?`<div><b>+${fmt(dv.c)}</b><span>🪙 coins dug up${dv.ch?` (${dv.ch} chest${dv.ch>1?'s':''}!)`:''}</span></div>`:''}${dv.f?`<div><b>${dv.f}</b><span>💎 finds</span></div>`:''}${known.length?`<div><b>+${fmt(sold)}</b><span>🪙 sold ${known.length} mineral${known.length>1?'s':''} you already know</span></div>`:''}${dv.cr?`<div><b>${dv.cr}</b><span>🐾 new critters</span></div>`:''}<div><b>${depthStr(Math.max(1,dv.d))}</b><span>📏 deepest this dive</span></div></div>${starMsgs.length?`<div class="cv-rew">${starMsgs.join('<br>')}</div>`:''}${spec?`<p class="cv-sub">${spec} specimen${spec>1?'s':''} waiting in the Lab — identify them for more coins and 🔬!</p>`:''}${why==='battery'?'<p class="cv-sub">🔋 Your battery ran out, so the rescue rope pulled you up.</p>':''}<div class="cv-row">${spec?'<button class="cv-btn" id="cvToLab">🔬 Go to the Lab</button>':''}<button class="cv-btn ${spec?'ghost':''}" data-close>OK</button></div></div>`);
+  setTimeout(()=>{const tl=root&&root.querySelector('#cvToLab');if(tl)tl.onclick=()=>{closeModal();openLab();};},0);}
 }
+let floats=[];
 function burst(x,y,col){for(let k=0;k<10;k++)parts.push({x:(x+.5)*TS,y:(y+.5)*TS,vx:(Math.random()-.5)*5,vy:(Math.random()-.8)*4,l:1,col});}
 function say(m,ms){const el=root&&root.querySelector('#cvMsg');if(!el)return;el.innerHTML=m;el.classList.add('show');clearTimeout(msgT);msgT=setTimeout(()=>el.classList.remove('show'),ms||3800);}
 function observe(i,c){const cr=CD.CRITTERS.find(x=>x.id===c.id);W.items.delete(i);S.obs=S.obs||[];S.obs.push(i);
  const first=!S.crit[cr.id];S.crit[cr.id]=(S.crit[cr.id]||0)+1;let rew='';
- if(first){addCoins(20,'critter');S.rp+=4;rew='<div class="cv-rew">+20 🪙 · +4 🔬 New critter in your Journal!</div>';ev('critter',{id:cr.id});}
- modal(`<div class="cv-card"><div class="cv-big ${cr.glow?'cv-glowe':''}">${cr.e}</div><h2>${first?'New critter!':'Hello again!'}<br>${esc(cr.n)}</h2>${cr.tiny?'<div class="cv-tag">🔬 Seen through your microscope</div>':''}<p>${txt(cr)}</p>${rew}<button class="cv-btn" data-close>Cool!</button></div>`);save(true);hud();}
+ if(first){S.dive.cr++;addCoins(20,'critter');S.rp+=4;rew='<div class="cv-rew">+20 🪙 · +4 🔬 New critter in your Journal!</div>';ev('critter',{id:cr.id});}
+ card(`<div class="cv-card"><div class="cv-big ${cr.glow?'cv-glowe':''}">${cr.e}</div><h2>${first?'New critter!':'Hello again!'}<br>${esc(cr.n)}</h2>${cr.tiny?'<div class="cv-tag">🔬 Seen through your microscope</div>':''}<p>${txt(cr)}</p>${rew}<button class="cv-btn" data-close>Cool!</button></div>`);save(true);hud();}
 function layerCard(L){const t=TIER();
- modal(`<div class="cv-card cv-layer" style="--lc:${L.col}"><div class="cv-big">${L.e}</div><h2>${esc(L.n)}</h2><div class="cv-stats"><span>📏 ${L.r0<=1?'0':depthStr(L.r0)} – ${depthStr(L.r1)} deep</span><span>🌡️ ${L.t0===L.t1?fmt(L.t0):fmt(L.t0)+' – '+fmt(L.t1)} °C</span>${t?`<span>⏲️ ${fmt(rowAtm(L.r0))} atm</span>`:''}</div><p>${txt(L)}</p><button class="cv-btn" data-close>Let's explore!</button></div>`);}
+ card(`<div class="cv-card cv-layer" style="--lc:${L.col}"><div class="cv-big">${L.e}</div><h2>${esc(L.n)}</h2><div class="cv-stats"><span>📏 ${L.r0<=1?'0':depthStr(L.r0)} – ${depthStr(L.r1)} deep</span><span>🌡️ ${L.t0===L.t1?fmt(L.t0):fmt(L.t0)+' – '+fmt(L.t1)} °C</span>${t?`<span>⏲️ ${fmt(rowAtm(L.r0))} atm</span>`:''}</div><p>${txt(L)}</p><button class="cv-btn" data-close>Let's explore!</button></div>`);}
 
 /* ---------------- render ---------------- */
 function snapCam(){const w=root.clientWidth,h=root.clientHeight;camX=tcx(w);camY=tcy(h);}
@@ -244,6 +270,7 @@ function tcx(w){const ww=COLS*TS;return ww<=w?(ww-w)/2:Math.max(0,Math.min(ww-w,
 function tcy(h){return Math.max(-TS*3,Math.min(ROWS*TS-h+TS*2,(S.y+.5)*TS-h*.45));}
 function frame(){
  raf=requestAnimationFrame(frame);if(!root||!W)return;tick++;
+ if(tick%30===0){const was=S.bat<batMax()-.5;charge();hudBat();if(was!==(S.bat<batMax()-.5))hud();}
  const w=root.clientWidth,h=root.clientHeight;camX+=(tcx(w)-camX)*.2;camY+=(tcy(h)-camY)*.2;
  const c=ctx;c.clearRect(0,0,w,h);
  // sky
@@ -275,6 +302,7 @@ function frame(){
   if(it.t==='m'){const m=CD.MIN[it.id];const hideNoUV=layerOf(y)&&layerOf(y).id==='crystal'&&m.u;
    if(uvOn&&m.u&&dist<=lr*1.4){drawGem(ctx,px,py,T*.55,m.col,m.sh,m.u);return;}
    if(hideNoUV||dist>lr+.5)return;drawGem(ctx,px,py,inAir?T*.6:T*.46,m.col,m.sh);sparkle(px,py,i);}
+  else if(it.t==='$'){if(dist>lr+.5)return;drawCoins(c,px,py,T*(it.ch?.62:.4),it.ch);if(!inAir)sparkle(px,py,i);}
   else if(it.t==='f'){if(dist>lr+.5)return;drawBone(c,px,py,T*(inAir?.6:.45));}
   else if(it.t==='g'){if(dist>lr*2.2)return;c.save();c.shadowColor='#e0b0ff';c.shadowBlur=14;c.font=`${T*.55}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('🔮',px,py+Math.sin(tick*.08)*2);c.restore();}
   else if(it.t==='c'){const cr=CD.CRITTERS.find(z=>z.id===it.id);if(dist>lr+.5&&!(cr.glow&&dist<lr*2.5))return;c.save();if(cr.glow){c.shadowColor='#8fffe0';c.shadowBlur=18;}c.font=`${T*(cr.tiny?.45:.62)}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(cr.e,px+Math.sin(tick*.05+i)*T*.12,py+Math.cos(tick*.07+i)*T*.06);c.restore();
@@ -286,6 +314,8 @@ function frame(){
  const ppx=(S.x+.5)*T-camX,ppy=(S.y+.5)*T-camY;
  c.font=`${T*.72}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(H.player.emoji||'🧑‍🚀',ppx,ppy+2);
  c.font=`${T*.34}px serif`;c.fillText('⛑️',ppx,ppy-T*.33);
+ // floating +coins
+ floats=floats.filter(f=>f.l>0);floats.forEach(f=>{f.y-=1.1;f.l-=.018;c.globalAlpha=Math.max(0,Math.min(1,f.l*1.6));c.font=`700 ${f.big?TS*.5:TS*.36}px Fredoka,sans-serif`;c.textAlign='center';c.lineWidth=4;c.strokeStyle='#3a2a00';c.strokeText(f.t,f.x-camX,f.y-camY);c.fillStyle='#ffd43b';c.fillText(f.t,f.x-camX,f.y-camY);});c.globalAlpha=1;
  // particles
  parts=parts.filter(p=>p.l>0);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.3;p.l-=.04;c.globalAlpha=Math.max(0,p.l);c.fillStyle=p.col;c.fillRect(p.x-camX-3,p.y-camY-3,6,6);});c.globalAlpha=1;
  // darkness
@@ -294,10 +324,17 @@ function frame(){
   f.fillStyle=uvOn?`rgba(25,0,45,${depth})`:`rgba(5,3,8,${depth})`;f.fillRect(0,top,w,h-top);
   f.globalCompositeOperation='destination-out';const rad=(uvOn?lr*.8:lr)*T;const gr=f.createRadialGradient(ppx,ppy,rad*.35,ppx,ppy,rad);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');f.fillStyle=gr;f.beginPath();f.arc(ppx,ppy,rad,0,Math.PI*2);f.fill();
   c.drawImage(fog,0,0,w,h);
+  // things that glow through the dark: lava, open gates
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const t=W.g[idx(x,y)];if(t===T_LAVA){const f=.5+.5*Math.sin(tick*.08+x);c.globalAlpha=.75;c.fillStyle=`rgb(${230+25*f|0},${80+60*f|0},20)`;c.fillRect(x*T-camX,y*T-camY,T+1,T+1);c.globalAlpha=1;}}
+  // deep heat haze
+  const PL=layerOf(Math.max(1,S.y));if(S.y>0&&PL&&(PL.id==='magma'||PL.id==='mantle')){c.fillStyle=PL.id==='mantle'?'rgba(255,60,20,.10)':'rgba(255,110,30,.08)';c.fillRect(0,top,w,h-top);}
   if(uvOn){W.items.forEach((it,i)=>{if(it.t!=='m')return;const m=CD.MIN[it.id];if(!m.u)return;const x=i%COLS,y=(i/COLS)|0;if(Math.hypot(x-S.x,y-S.y)>lr*1.4)return;drawGem(c,x*T-camX+T/2,y*T-camY+T/2,T*.5,m.col,m.sh,m.u);});
    const gy=Object.keys(GATES).find(r=>GATES[r].id==='glow');const gx=W.gateX[gy];if(W.g[idx(gx,+gy)]===T_GATE&&Math.hypot(gx-S.x,gy-S.y)<lr*3)drawIcon(c,'✨',gx*T-camX,gy*T-camY,T,'#39ff6a');}
  }
 }
+function drawCoins(c,x,y,s,chest){c.save();if(chest){c.fillStyle='#8a5a2b';c.strokeStyle='#4a2e12';c.lineWidth=2;c.fillRect(x-s*.5,y-s*.2,s,s*.6);c.strokeRect(x-s*.5,y-s*.2,s,s*.6);c.fillStyle='#a8703a';c.beginPath();c.moveTo(x-s*.5,y-s*.2);c.quadraticCurveTo(x,y-s*.7,x+s*.5,y-s*.2);c.fill();c.stroke();c.fillStyle='#ffd43b';c.fillRect(x-s*.08,y-s*.28,s*.16,s*.22);c.shadowColor='#ffd43b';c.shadowBlur=12;c.fillRect(x-s*.4,y-s*.3,s*.8,s*.06);}
+ else{[[-.18,.12],[.16,.08],[0,-.12]].forEach(([a,b])=>{c.fillStyle='#ffc83d';c.strokeStyle='#b8860b';c.lineWidth=1.5;c.beginPath();c.ellipse(x+a*s,y+b*s,s*.3,s*.26,0,0,Math.PI*2);c.fill();c.stroke();c.fillStyle='#fff3b0';c.beginPath();c.arc(x+a*s-s*.08,y+b*s-s*.07,s*.06,0,Math.PI*2);c.fill();});}
+ c.restore();}
 function drawBone(c,x,y,s){c.save();c.translate(x,y);c.rotate(-.5);c.fillStyle='#f3ead2';c.strokeStyle='rgba(0,0,0,.4)';c.lineWidth=1.5;c.beginPath();c.rect(-s*.35,-s*.09,s*.7,s*.18);[[-.38,-.12],[-.38,.12],[.38,-.12],[.38,.12]].forEach(([a,b])=>{c.moveTo(s*a+s*.13,s*b);c.arc(s*a,s*b,s*.13,0,Math.PI*2);});c.fill();c.stroke();c.restore();}
 function sparkle(px,py,i){if((tick+i*7)%60<8){ctx.fillStyle='rgba(255,255,255,.9)';ctx.fillRect(px+TS*.18,py-TS*.22,3,3);}}
 function drawIcon(c,e,px,py,T,glow){c.save();c.shadowColor=glow;c.shadowBlur=12+6*Math.sin(tick*.1);c.font=`${T*.6}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(e,px+T/2,py+T/2);c.restore();}
@@ -315,16 +352,18 @@ function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(
  q('#cvCoins').textContent='🪙 '+fmt(H.coins());q('#cvRP').textContent='🔬 '+fmt(S.rp);q('#cvPack').textContent=`🎒 ${S.pack.length}/${packMax()}`;
  const t=rowTemp(S.y),hotw=S.y>0&&t>suit().t*.85;
  q('#cvG').innerHTML=`<span>📏 ${S.y===0?'Surface':depthStr(S.y)}</span><span class="${hotw?'warn':''}">🌡️ ${fmt(t)} °C</span>${TIER()?`<span>⏲️ ${fmt(rowAtm(S.y))} atm</span>`:''}`;
- const bm=batMax();q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';q('#cvBatT').textContent=`🔋 ${S.bat}/${bm}`;
+ hudBat();
  // depth bar
  let db='';CD.LAYERS.forEach(L=>{db+=`<i style="flex:${L.r1-L.r0+1};background:${L.col}" title="${esc(L.n)}"></i>`;});
  const pct=r=>(r/ROWS*100).toFixed(2)+'%';
  db+=`<b class="me" style="top:${pct(S.y)}"></b><b class="max" style="top:${pct(S.maxRow)}"></b>`;
  if(W.pocket&&W.items.has(idx(W.pocket.x,W.pocket.y)))db+=`<b class="pk" style="top:${pct(W.pocket.y)}">✨</b>`;
+ const fl={};W.items.forEach((it,i)=>{if(it.t!=='f')return;const L=layerOf((i/COLS)|0);if(L&&S.seen[L.id]&&!fl[L.id])fl[L.id]=(L.r0+L.r1)/2;});Object.values(fl).forEach(r=>db+=`<b class="pk fo" style="top:${pct(r)}" title="Fossil pieces hidden in this layer today">🦴</b>`);
  q('#cvDepth').innerHTML=db;
  // action buttons
  let a='';
  if(S.y===0){const unk=S.pack.filter(p=>p.t!=='f').length;
+  if(S.bat<batMax()-.5)a+=`<button class="cv-act pw" data-a="power">⚡<span>Power Up</span></button>`;
   a+=`<button class="cv-act" data-a="lab">🔬<span>Lab</span>${unk?`<em>${unk}</em>`:''}</button><button class="cv-act" data-a="gear">🛒<span>Gear</span></button><button class="cv-act" data-a="museum">🏛️<span>Museum</span>${museumReady()?'<em>!</em>':''}</button>`;
   if(S.seen.cave)a+=`<button class="cv-act" data-a="garden">🌱<span>Garden</span>${S.garden&&S.garden.last!==S.day?'<em>💧</em>':''}</button>`;
   a+=`<button class="cv-act" data-a="journal">📓<span>Journal</span></button><button class="cv-act" data-a="elev">🛗<span>Elevator</span></button>`;
@@ -332,89 +371,79 @@ function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(
  }else{a+=`<button class="cv-act" data-a="home">🏠<span>Camp</span></button>`;if(S.gear.uv)a+=`<button class="cv-act ${uvOn?'on':''}" data-a="uv">🔦<span>UV ${uvOn?'on':'off'}</span></button>`;}
  const acts=q('#cvActs');if(acts.dataset.h!==a){acts.innerHTML=a;acts.dataset.h=a;acts.querySelectorAll('button').forEach(b=>b.onclick=()=>act(b.dataset.a));}
 }
-function act(a){({lab:openLab,gear:openGear,museum:openMuseum,garden:openGarden,journal:openJournal,elev:openElevator,probe:openProbe,home:()=>beamHome(),uv:()=>{uvOn=!uvOn;hud();say(uvOn?'🔦 UV lamp ON — fluorescent minerals glow! (Your normal light is dimmer.)':'🔦 UV lamp off.',2200);}})[a]();}
+function hudBat(){if(!root)return;const q=s=>root.querySelector(s);const bm=batMax();q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';const f=S.y===0&&S.bat<bm?fullIn():'';q('#cvBatT').textContent=`${f?'🔌':'🔋'} ${Math.floor(S.bat)}/${bm}${f?' · '+f:''}`;q('#cvBatT').parentNode.title=f?'Charging — full in '+f:'Battery';}
+function act(a){({power:openPower,lab:openLab,gear:openGear,museum:openMuseum,garden:openGarden,journal:openJournal,elev:openElevator,probe:openProbe,home:()=>beamHome(),uv:()=>{uvOn=!uvOn;hud();say(uvOn?'🔦 UV lamp ON — fluorescent minerals glow! (Your normal light is dimmer.)':'🔦 UV lamp off.',2200);}})[a]();}
 
 /* ---------------- modal ---------------- */
 function modalOpen(){return root&&root.querySelector('#cvMod').classList.contains('show');}
 function modal(html,opts){const m=root.querySelector('#cvMod');m.innerHTML=`<div class="cv-sheet ${opts&&opts.wide?'wide':''}">${opts&&opts.noX?'':'<button class="cv-mx" data-close aria-label="Close">✕</button>'}${html}</div>`;m.classList.add('show');
  m.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal());m.scrollTop=0;return m.querySelector('.cv-sheet');}
-function closeModal(){const m=root.querySelector('#cvMod');m.classList.remove('show');m.innerHTML='';if(onClose){const f=onClose;onClose=null;f();}hud();}
-let onClose=null;
+function closeModal(){const m=root.querySelector('#cvMod');m.classList.remove('show');m.innerHTML='';if(onClose){const f=onClose;onClose=null;f();}if(!modalOpen()&&cardQ.length)modal(cardQ.shift());hud();}
+let onClose=null,cardQ=[];
+/* info cards wait their turn instead of replacing whatever is on screen */
+function card(html){if(modalOpen())cardQ.push(html);else modal(html);}
 
 /* ---------------- Field Lab ---------------- */
 const STREAK_NAMES={'#ffffff':'white','#2f3a2a':'greenish-black','#8fe3a9':'light green','#8ec5ff':'light blue','#1b1b1b':'black','#8b2a1e':'red-brown','#e8b923':'golden yellow','#5a5f66':'lead grey','#fff59a':'pale yellow'};
 const UV_NAMES={'#ff5a3d':'orange-red','#5cc8ff':'bright blue','#39ff6a':'neon green','#ff2a2a':'red','#7fb6ff':'pale blue'};
+const LTESTS=[{id:'hard',e:'💅',n:'Scratch test',q:'How hard is it?'},{id:'streak',e:'⬜',n:'Streak test',q:'What color is its powder?'},{id:'acid',e:'🧪',n:'Acid drop',q:'Does it fizz?'},{id:'magnet',e:'🧲',n:'Magnet',q:'Does it stick?'},{id:'water',e:'💧',n:'Water drop',q:'Does it dissolve?'},{id:'uv',e:'🔦',n:'UV lamp',q:'Does it glow?',uv:1},{id:'look',e:'🔍',n:'Look closely',q:'What shape? How shiny?'}];
+const hardBand=h=>{const i=CD.TOOLS.findIndex(t=>h<=t.h);return i<0?4:i;};
+const HB_WORD=['very soft','soft','medium','hard','super hard'],HB_NUM=['2.5 or less','2.5 – 3.5','3.5 – 5.5','5.5 – 7','more than 7'];
+function tval(m,t){return t==='hard'?hardBand(m.h):t==='streak'?(m.s||'none'):t==='acid'?!!m.f:t==='magnet'?!!m.m:t==='water'?!!m.w:t==='uv'?(m.u||''):m.look;}
+function shortV(m,t){const n=TIER();
+ if(t==='hard')return HB_WORD[hardBand(m.h)]+(n?` (${m.h})`:'');
+ if(t==='streak')return m.s?`${sw(m.s)} ${STREAK_NAMES[m.s]}`:'no streak';
+ if(t==='acid')return m.f?'🫧 fizzes':'no fizz';if(t==='magnet')return m.m?'🧲 sticks':'no pull';if(t==='water')return m.w?'💧 dissolves':'no';
+ if(t==='uv')return m.u?`${sw(m.u)} glows ${UV_NAMES[m.u]}`:'no glow';return esc(m.look);}
+function resText(m,t){const n=TIER();
+ if(t==='hard'){const b=hardBand(m.h);const tl=CD.TOOLS;const msg=b===0?`Your ${tl[0].e} fingernail scratches it!`:b===4?'Nothing scratches it — not even the 🔺 quartz point!':`The ${tl[b].e} ${tl[b].n.toLowerCase()} scratches it, but the ${tl[b-1].e} ${tl[b-1].n.toLowerCase()} doesn't.`;return `${msg} <b>It's ${HB_WORD[b]}${n?` (hardness ${HB_NUM[b]})`:''}.</b>`;}
+ if(t==='streak')return m.s?`Rubbed on the white tile it leaves a ${sw(m.s)} <b>${STREAK_NAMES[m.s]}</b> streak.`:`<b>No streak</b> — it's so hard it scratched the tile instead!`;
+ if(t==='acid')return m.f?`<b>Fizz!</b> 🫧 Bubbles of carbon dioxide gas.`:'A drop of acid… <b>nothing happens.</b>';
+ if(t==='magnet')return m.m?'<b>SNAP!</b> 🧲 It sticks to the magnet.':'The magnet <b>doesn\'t pull</b> on it at all.';
+ if(t==='water')return m.w?'<b>It dissolved!</b> 💧 It disappeared into the water.':'In water it <b>stays the same.</b>';
+ if(t==='uv')return m.u?`Under UV light it <b>glows</b> ${sw(m.u)} ${UV_NAMES[m.u]}!`:'Under UV light: <b>no glow.</b>';
+ return `Up close it looks: <b>${esc(m.look)}</b>.`;}
 const sw=c=>`<i class="cv-sw" style="background:${c}"></i>`;
-function hardWord(h){const t=TIER();if(t)return String(h);return h<=2.5?'soft':h<=3.5?'medium':h<=5.5?'hard':h<=7?'very hard':'super hard';}
-function testText(m,id){const t=TIER();
- if(id==='look')return `Color & look: <b>${esc(m.look)}</b>`;
- if(id.startsWith('scratch:')){const tl=CD.TOOLS.find(x=>x.id===id.slice(8));const s=m.h<=tl.h;
-  return `${tl.e} ${tl.n}${t?` (${tl.h})`:''}: `+(s?`<b>scratched it!</b> ${t?`→ hardness ≤ ${tl.h}`:`It is softer than a ${tl.n.toLowerCase()}.`}`:`<b>no scratch.</b> ${t?`→ hardness > ${tl.h}`:`It is harder than a ${tl.n.toLowerCase()}.`}`);}
- if(id==='streak')return m.s?`Streak: ${sw(m.s)} <b>${STREAK_NAMES[m.s]}</b>`:`Streak: <b>none</b> — it scratched the plate instead!${t?' (harder than 6.5)':''}`;
- if(id==='acid')return m.f?`🧪 <b>Fizz!</b> Bubbles of carbon dioxide gas.${t>1?' (a carbonate)':''}`:'🧪 Nothing happens.';
- if(id==='magnet')return m.m?'🧲 <b>SNAP!</b> It sticks to the magnet.':'🧲 No pull at all.';
- if(id==='water')return m.w?'💧 <b>It dissolved!</b>':'💧 Nothing — it does not dissolve.';
- if(id==='uv')return m.u?`🔦 <b>It glows</b> ${sw(m.u)} ${UV_NAMES[m.u]}!`:'🔦 No glow.';
- return '';}
+function testsOf(p){const o={};Object.keys(p.tests||{}).forEach(k=>{if(k.startsWith('scratch:'))o.hard=1;else if(LTESTS.some(t=>t.id===k))o[k]=1;});return Object.keys(o);}
 function openLab(){
  const list=S.pack.filter(p=>p.t!=='f');
  const cards=list.map(p=>p.t==='g'?`<button class="cv-spec" data-k="g:${S.pack.indexOf(p)}"><span class="cv-big2">🔮</span><b>Geode</b><small>Crack it open!</small></button>`
-  :`<button class="cv-spec" data-k="${p.k}">${gemSVG(CD.MIN[p.id],54)}<b>Mystery #${S.pack.indexOf(p)+1}</b><small>${Object.keys(p.tests).length} test${Object.keys(p.tests).length===1?'':'s'} done</small></button>`).join('');
- modal(`<h2>🔬 Field Lab</h2><p class="cv-sub">Real geologists identify minerals with simple tests. Pick a specimen to study.</p>${list.length?`<div class="cv-specs">${cards}</div>`:'<div class="cv-empty">Your backpack has no specimens. Dig for sparkles 💎 underground!</div>'}`,{wide:1});
+  :`<button class="cv-spec" data-k="${p.k}">${gemSVG(CD.MIN[p.id],54)}<b>Mystery #${S.pack.indexOf(p)+1}</b><small>${testsOf(p).length?testsOf(p).length+' test'+(testsOf(p).length>1?'s':'')+' done':'Not tested yet'}</small></button>`).join('');
+ modal(`<h2>🔬 Field Lab</h2><p class="cv-sub">Be a mineral detective! Pick a mystery specimen, run tests, and figure out which mineral it is.</p>${list.length?`<div class="cv-specs">${cards}</div>`:'<div class="cv-empty">No specimens to study. Dig for sparkles 💎 underground!</div>'}`,{wide:1});
  root.querySelectorAll('.cv-spec').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k.startsWith('g:'))crackGeode(+k.slice(2));else bench(k);});
 }
+
 function crackGeode(i){const p=S.pack[i];const g=CD.GEODES.find(x=>x.id===p.id);S.pack.splice(i,1);const first=!S.geo[g.id];S.geo[g.id]=(S.geo[g.id]||0)+1;addCoins(g.c,'geode');S.rp+=first?8:2;save(true);
  modal(`<div class="cv-card"><div class="cv-geode" style="--gc:${g.col}"><i></i></div><h2>🔨 Crack! ${esc(g.n)}</h2><p>${esc(g.y)}</p><p class="cv-sub">A geode starts as a hollow bubble in rock. Mineral-rich water seeps in and, over thousands of years, crystals grow inward from the walls.</p><div class="cv-rew">+${g.c} 🪙 · +${first?8:2} 🔬</div><button class="cv-btn" data-close>Beautiful!</button></div>`);onClose=openLab;ev('geode',{id:g.id});}
-function bench(k,note){
- const p=S.pack.find(x=>x.k===k);if(!p)return openLab();const m=CD.MIN[p.id];
- const need=S.idd[p.id]?1:2,done=Object.keys(p.tests).length;
- const tbtn=CD.TESTS.map(t=>{const dis=t.uv&&!S.gear.uv;const did=t.id==='scratch'?Object.keys(p.tests).some(x=>x.startsWith('scratch:')):p.tests[t.id];
-  return `<button class="cv-test ${did?'did':''}" data-t="${t.id}" ${dis?'disabled':''}>${t.e}<span>${t.n}</span>${dis?'<small>needs UV lamp</small>':''}</button>`;}).join('');
- const res=Object.keys(p.tests).map(id=>`<li>${testText(m,id)}</li>`).join('');
- modal(`<button class="cv-back" data-back>‹ Lab</button><h2>🔬 Mystery #${S.pack.indexOf(p)+1}</h2>
-  <div class="cv-bench"><div class="cv-specimen">${gemSVG(m,110)}</div><div class="cv-tests">${tbtn}</div></div>
-  <div id="cvTool"></div>
-  <div class="cv-log"><h4>📋 Your clues</h4>${res?`<ul>${res}</ul>`:'<p class="cv-sub">Run a test to get clues!</p>'}</div>
-  ${note||''}
-  <div class="cv-row"><button class="cv-btn ${done>=need?'':'dis'}" id="cvIdBtn">🔎 Identify it!</button>${done<need?`<span class="cv-sub">Run ${need-done} more test${need-done>1?'s':''} first.</span>`:''}</div>`,{wide:1});
- root.querySelector('[data-back]').onclick=openLab;
- root.querySelectorAll('.cv-test').forEach(b=>b.onclick=()=>{const t=b.dataset.t;
-  if(t==='scratch'){root.querySelector('#cvTool').innerHTML=`<div class="cv-tools"><b>Scratch it with…</b>${CD.TOOLS.map(tl=>`<button data-tool="${tl.id}">${tl.e} ${tl.n}${TIER()?` <small>(${tl.h})</small>`:''}</button>`).join('')}</div>`;
-   root.querySelectorAll('[data-tool]').forEach(x=>x.onclick=()=>{p.tests['scratch:'+x.dataset.tool]=1;save();bench(k,anim('scratch'));});return;}
-  p.tests[t]=1;save();bench(k,anim(t,m));});
- root.querySelector('#cvIdBtn').onclick=()=>{if(done>=need)identify(k);};
-}
-function anim(t,m){const a={streak:'⬜➡️',acid:m&&m.f?'🫧🫧🫧':'💧',magnet:m&&m.m?'🧲💥':'🧲',water:m&&m.w?'💧➡️✨':'💧',uv:m&&m.u?'🌈':'🔦',look:'🔍',scratch:'〰️'}[t]||'';return `<div class="cv-anim">${a}</div>`;}
-function candidates(p){const seen=CD.LAYERS.filter(L=>S.seen[L.id]).map(L=>L.id);const n=[3,4,6][TIER()];
+function candidates(p){if(p.cands&&p.cands.includes(p.id))return p.cands;const seen=CD.LAYERS.filter(L=>S.seen[L.id]).map(L=>L.id);const n=[3,4,6][TIER()];
  const R=rng(hash(p.k));let pool=Object.keys(CD.MIN).filter(id=>id!==p.id&&CD.MIN[id].L.some(l=>seen.includes(l)));
  if(pool.length<n-1)pool=Object.keys(CD.MIN).filter(id=>id!==p.id);
- return shuffle(R,[p.id,...shuffle(R,pool).slice(0,n-1)]);}
-function identify(k,wrong){const p=S.pack.find(x=>x.k===k);const cs=candidates(p);const t=TIER();wrong=wrong||p.wrong||[];
- const row=id=>{const m=CD.MIN[id];const off=wrong.includes(id);
-  return `<button class="cv-cand ${off?'off':''}" data-id="${id}" ${off?'disabled':''}><b>${esc(m.n)}</b><span>${hardWord(m.h)}</span><span>${m.s?sw(m.s):'—'}</span><span>${m.f?'🫧':'—'}</span><span>${m.m?'🧲':'—'}</span><span>${m.w?'💧':'—'}</span><span>${m.u?sw(m.u):'—'}</span></button>`;};
- modal(`<button class="cv-back" data-back>‹ Back to tests</button><h2>📖 Field Guide</h2><p class="cv-sub">Match your clues to one of these minerals.</p>
-  <div class="cv-log small"><ul>${Object.keys(p.tests).map(id=>`<li>${testText(CD.MIN[p.id],id)}</li>`).join('')}</ul></div>
-  <div class="cv-guide"><div class="cv-gh"><b>Mineral</b><span>💅 Hard</span><span>⬜ Streak</span><span>🧪 Fizz</span><span>🧲</span><span>💧</span><span>🔦 UV</span></div>${cs.map(row).join('')}</div>`,{wide:1});
- root.querySelector('[data-back]').onclick=()=>bench(k);
- root.querySelectorAll('.cv-cand').forEach(b=>b.onclick=()=>guess(k,b.dataset.id));
+ p.cands=shuffle(R,[p.id,...shuffle(R,pool).slice(0,n-1)]);return p.cands;}
+function alive(p){const m=CD.MIN[p.id],done=testsOf(p);return candidates(p).filter(c=>!(p.wrong||[]).includes(c)&&done.every(t=>tval(CD.MIN[c],t)===tval(m,t)));}
+function bench(k,last){
+ const p=S.pack.find(x=>x.k===k);if(!p)return openLab();const m=CD.MIN[p.id];const done=testsOf(p);const al=alive(p);const cs=candidates(p);
+ const tut=!S.labTut?`<div class="cv-tut"><b>🕵️ How to be a mineral detective</b><ol><li>Tap a <b>test</b> below.</li><li>Suspects that don't match the result get <b>crossed out ❌</b>.</li><li>When you know which one it is, <b>tap that suspect!</b></li></ol><button class="cv-btn sm" id="cvTutOk">Got it!</button></div>`:'';
+ const card=c=>{const cm=CD.MIN[c];const out=!al.includes(c);const wrongG=(p.wrong||[]).includes(c);
+  const rows=done.map(t=>{const okk=tval(cm,t)===tval(m,t);return `<li class="${okk?'y':'n'}">${okk?'✓':'✗'} ${shortV(cm,t)}</li>`;}).join('');
+  return `<button class="cv-sus ${out?'out':''}" data-id="${c}" ${out?'disabled':''}><b>${esc(cm.n)}</b>${rows?`<ul>${rows}</ul>`:''}${out?'':'<small>tap if you think it\'s this one</small>'}${out?`<em>${wrongG?'Not it!':'❌ Ruled out'}</em>`:''}</button>`;};
+ const tb=LTESTS.map(t=>{const did=done.includes(t.id);const dis=t.uv&&!S.gear.uv;
+  return `<button class="cv-t2 ${did?'did':''}" data-t="${t.id}" ${dis||did?'disabled':''}><span class="cv-te">${t.e}</span><b>${t.n}</b><small>${dis?'Needs the UV lamp (Gear shop)':did?'✓ '+shortV(m,t.id):t.q}</small></button>`;}).join('');
+ const banner=al.length===1?`<div class="cv-banner">🎯 Only one suspect left — tap it to make your call!</div>`:done.length?`<div class="cv-sub2">${al.length} suspects left. Pick another test to narrow it down — or tap a suspect to guess.</div>`:`<div class="cv-sub2">Which of these is it? Pick a test to start.</div>`;
+ modal(`<button class="cv-back" data-back>‹ Lab</button><h2>🕵️ Mystery #${S.pack.indexOf(p)+1}</h2>${tut}
+  <div class="cv-lab2"><div class="cv-specimen">${gemSVG(m,86)}</div><div class="cv-result">${last?`<div class="cv-anim">${last.a}</div><div>${last.t}</div>`:'<div class="cv-sub">Results show up here.</div>'}</div></div>
+  <h4 class="cv-h4">🧑‍⚖️ Suspects</h4>${banner}<div class="cv-suss">${cs.map(card).join('')}</div>
+  <h4 class="cv-h4">🧪 Tests</h4><div class="cv-t2s">${tb}</div>`,{wide:1});
+ root.querySelector('[data-back]').onclick=openLab;
+ const to=root.querySelector('#cvTutOk');if(to)to.onclick=()=>{S.labTut=1;save();bench(k,last);};
+ root.querySelectorAll('.cv-t2').forEach(b=>b.onclick=()=>{const t=b.dataset.t;p.tests[t]=1;save();bench(k,{a:{hard:'💅➡️',streak:'⬜〰️',acid:m.f?'🫧🫧🫧':'💧',magnet:m.m?'🧲💥':'🧲',water:m.w?'💧✨':'💧',uv:m.u?'🌈':'🔦',look:'🔍'}[t],t:resText(m,t)});});
+ root.querySelectorAll('.cv-sus:not(.out)').forEach(b=>b.onclick=()=>guess(k,b.dataset.id));
 }
-function mismatch(p,id){const m=CD.MIN[p.id],c=CD.MIN[id];
- for(const t of Object.keys(p.tests)){
-  if(t.startsWith('scratch:')){const tl=CD.TOOLS.find(x=>x.id===t.slice(8));if((m.h<=tl.h)!==(c.h<=tl.h))return `${c.n} ${c.h<=tl.h?'<b>would</b> be scratched':'would <b>not</b> be scratched'} by the ${tl.n.toLowerCase()} — but yours ${m.h<=tl.h?'was':'was not'}.`;}
-  else if(t==='streak'&&m.s!==c.s)return `${c.n} leaves ${c.s?`a ${STREAK_NAMES[c.s]} streak`:'no streak'}, but yours left ${m.s?`a ${STREAK_NAMES[m.s]} streak`:'no streak'}.`;
-  else if(t==='acid'&&!!m.f!==!!c.f)return `${c.n} ${c.f?'fizzes':'does not fizz'} in acid — yours ${m.f?'did':'did not'}.`;
-  else if(t==='magnet'&&!!m.m!==!!c.m)return `${c.n} ${c.m?'sticks to':'does not stick to'} a magnet — yours ${m.m?'did':'did not'}.`;
-  else if(t==='water'&&!!m.w!==!!c.w)return `${c.n} ${c.w?'dissolves':'does not dissolve'} in water — yours ${m.w?'did':'did not'}.`;
-  else if(t==='uv'&&m.u!==c.u)return `${c.n} ${c.u?'glows '+UV_NAMES[c.u]:'does not glow'} under UV — yours ${m.u?'glowed '+UV_NAMES[m.u]:'did not glow'}.`;
-  else if(t==='look'&&m.col!==c.col&&m.look!==c.look)return `${c.n} looks ${esc(c.look)} — does yours?`;}
- return null;}
-function guess(k,id){const p=S.pack.find(x=>x.k===k);const m=CD.MIN[p.id];
- if(id!==p.id){const why=mismatch(p,id);p.wrong=(p.wrong||[]).concat(id);save();
-  if(why){identify(k);say(`❌ Not ${CD.MIN[id].n}. ${why}`,5000);}
-  else{bench(k,`<div class="cv-hint">🤔 Your clues can't tell <b>${esc(CD.MIN[id].n)}</b> apart from your mineral yet. Try another test!</div>`);}return;}
- S.pack.splice(S.pack.indexOf(p),1);const first=!S.idd[p.id];S.idd[p.id]=1;S.found[p.id]=(S.found[p.id]||0)+1;const r=CD.RAR[m.r];S.stats.ids=(S.stats.ids||0)+1;
- const coins=first?r.c:r.sell,rp=first?r.rp:1;addCoins(coins,'mineral');S.rp+=rp;save(true);ev('identify',{id:p.id,first});
- modal(`<div class="cv-card">${gemSVG(m,120,null)}<h2>${first?'🎉 New discovery!':'✅ Correct!'}<br>${esc(m.n)}</h2><div class="cv-tag r${m.r}">${r.n}${m.notMin?' · not a true mineral!':''}</div><p>${txt(m)}</p>
+function identify(k){bench(k);}
+function guess(k,id){const p=S.pack.find(x=>x.k===k);if(!p)return;const m=CD.MIN[p.id];
+ if(id!==p.id){p.wrong=(p.wrong||[]).concat(id);save();bench(k,{a:'🤔',t:`It's <b>not ${esc(CD.MIN[id].n)}</b>! Run another test to tell the last suspects apart.`});return;}
+ const nt=testsOf(p).length;S.pack.splice(S.pack.indexOf(p),1);const first=!S.idd[p.id];S.idd[p.id]=1;foundOne(p.id);const r=CD.RAR[m.r];S.stats.ids=(S.stats.ids||0)+1;
+ const sharp=!(p.wrong||[]).length&&nt<=2;const coins=first?r.c:r.sell,rp=(first?r.rp:1)+(sharp?2:0);addCoins(coins,'mineral');S.rp+=rp;save(true);ev('identify',{id:p.id,first});
+ modal(`<div class="cv-card">${gemSVG(m,120,null)}<h2>${first?'🎉 New discovery!':'✅ You got it!'}<br>${esc(m.n)}</h2><div class="cv-tag r${m.r}">${r.n}${m.notMin?' · not a true mineral!':''}</div>${sharp?'<div class="cv-tag">🕵️ Sharp detective — solved in '+nt+' test'+(nt===1?'':'s')+'!</div>':''}<p>${txt(m)}</p>
   <div class="cv-facts"><span>Hardness ${m.h}</span><span>Streak ${m.s?STREAK_NAMES[m.s]:'none'}</span>${m.u?`<span>UV ${UV_NAMES[m.u]}</span>`:''}</div><div class="cv-rew">+${coins} 🪙 · +${rp} 🔬</div><button class="cv-btn" data-close>${S.pack.some(x=>x.t!=='f')?'Next specimen':'Done'}</button></div>`);
  onClose=()=>{if(S.pack.some(x=>x.t!=='f'))openLab();};}
 
@@ -429,16 +458,41 @@ function openGear(){const t=TIER();
   ${rowH('bat',CD.BATT.map((b,i)=>({...b,e:'🔋',n:['Battery','Big Battery','Mega Battery','Super Battery','Ultra Battery'][i]})),{},b=>`${b.v} energy per dive`)}
   ${rowH('pack',CD.PACK.map((b,i)=>({...b,e:'🎒',n:['Backpack','Big Backpack','Explorer Pack','Expedition Pack','Mega Pack'][i]})),{},b=>`holds ${b.v} finds`)}
   ${rowH('lamp',CD.LAMP.map((b,i)=>({...b,e:'🔦',n:['Head Lamp','Bright Lamp','Super Lamp','Mega Lamp'][i]})),{},b=>`lights ${b.v} tiles around you`)}
+  ${rowH('chg',CHG,{},c=>`charges ${c.v} energy per minute at camp`)}
   ${rowH('uv',[{e:'🔦',n:'No UV lamp',c:0},{e:'🟣',n:'UV Lamp',c:CD.UV.c,r:CD.UV.r,why:'Ultraviolet light is invisible to us, but it makes some minerals glow (fluorescence).'}],{},u=>u.c?'shows glowing minerals + UV lab test':'—')}`,{wide:1});
  root.querySelectorAll('.cv-buy').forEach(b=>b.onclick=()=>buy(b.dataset.k));}
-function gearArr(k){return {drill:CD.DRILLS,suit:CD.SUITS,bat:CD.BATT,pack:CD.PACK,lamp:CD.LAMP,uv:[{},{c:CD.UV.c,r:CD.UV.r}]}[k];}
+function gearArr(k){return {chg:CHG,drill:CD.DRILLS,suit:CD.SUITS,bat:CD.BATT,pack:CD.PACK,lamp:CD.LAMP,uv:[{},{c:CD.UV.c,r:CD.UV.r}]}[k];}
 function canBuy(nx){return H.coins()>=nx.c&&S.rp>=(nx.r||0)&&(!nx.need||S.idd[nx.need]);}
 function buy(k){const arr=gearArr(k),nx=arr[S.gear[k]+1];if(!nx||!canBuy(nx))return;if(!H.spend(nx.c))return;S.rp-=nx.r||0;S.gear[k]++;if(k==='bat')S.bat=batMax();save(true);ev('gear',{k,lv:S.gear[k]});openGear();say('✅ Upgraded!',1500);}
+
+/* ---------------- ⚡ Power Up with math ---------------- */
+function mathQ(g){const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),p=Math.random();
+ if(g<=1){const a=r(1,10),b=r(1,10);return p<.5?{q:`${a} + ${b}`,a:a+b}:{q:`${a+b} − ${a}`,a:b};}
+ if(g<=2){const a=r(5,60),b=r(2,30);return p<.5?{q:`${a} + ${b}`,a:a+b}:{q:`${a+b} − ${b}`,a:a};}
+ if(g<=4){const a=r(2,10),b=r(2,10);return p<.6?{q:`${a} × ${b}`,a:a*b}:{q:`${a*b} ÷ ${a}`,a:b};}
+ if(g<=6){const a=r(12,60),b=r(3,9);return p<.4?{q:`${a} × ${b}`,a:a*b}:p<.7?{q:`${a*b} ÷ ${b}`,a:a}:{q:`${a*10} + ${b*25}`,a:a*10+b*25};}
+ if(g<=8){const a=r(-12,12),b=r(-12,12);return p<.5?{q:`${a} + (${b})`,a:a+b}:{q:`${a} × (${b})`,a:a*b};}
+ const x=r(-9,12),m=r(2,9),c=r(-20,20);return {q:`${m}x ${c<0?'−':'+'} ${Math.abs(c)} = ${m*x+c}`,a:x,x:1};}
+function openPower(){charge();let Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3),inp='',streak=0,note='';
+ const gain=()=>Math.max(4,Math.round(batMax()*.06));
+ const draw=()=>{const bm=batMax();const sh=modal(`<h2>⚡ Power Up!</h2><p class="cv-sub">Every right answer adds <b>+${gain()} 🔋</b>. ${S.bat>=bm?'':'Or just wait — it charges by itself at camp (full in '+fullIn()+').'}</p>
+  <div class="cv-meter ok"><i style="width:${S.bat/bm*100}%"></i></div><p class="cv-sub" style="text-align:center">🔋 ${Math.floor(S.bat)} / ${bm}${streak>1?` · 🔥 ${streak} in a row`:''}</p>
+  ${S.bat>=bm-.5?`<div class="cv-card"><div class="cv-big">🔋</div><h2>Fully charged!</h2><button class="cv-btn" data-close>Go dig!</button></div>`:`
+  <div class="cv-mq">${esc(Q.q)}${Q.x?'<small>x = ?</small>':' = ?'}</div><div class="cv-inp">${esc(inp)||'&nbsp;'}</div>${note}
+  <div class="cv-pad2">${[1,2,3,4,5,6,7,8,9,'±',0,'⌫'].map(k=>`<button data-k="${k}">${k}</button>`).join('')}</div>
+  <div class="cv-row"><button class="cv-btn" id="cvChk">✓ Check</button></div>`}`,{wide:0});
+  sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==='⌫')inp=inp.slice(0,-1);else if(k==='±')inp=inp.startsWith('-')?inp.slice(1):'-'+inp;else if(inp.replace('-','').length<5)inp+=k;note='';draw();});
+  const c=sh.querySelector('#cvChk');if(c)c.onclick=check;};
+ const check=()=>{if(inp===''||inp==='-')return;if(+inp===Q.a){streak++;S.bat=Math.min(batMax(),S.bat+gain());S.stats.power=(S.stats.power||0)+1;note=`<div class="cv-ok2">✅ Yes! +${gain()} 🔋</div>`;ev('power',{ok:1});}
+  else{streak=0;note=`<div class="cv-hint">Not quite — ${esc(Q.q)} ${Q.x?'→ x':''} = <b>${Q.a}</b>. Try the next one!</div>`;ev('power',{ok:0});}
+  inp='';Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3);save();hud();draw();};
+ const key=e=>{if(!modalOpen()||!root.querySelector('.cv-pad2')){window.removeEventListener('keydown',key);return;}if(/^[0-9]$/.test(e.key)){inp+=e.key;note='';draw();}else if(e.key==='-'){inp=inp.startsWith('-')?inp.slice(1):'-'+inp;draw();}else if(e.key==='Backspace'){inp=inp.slice(0,-1);draw();}else if(e.key==='Enter')check();};
+ window.addEventListener('keydown',key);draw();}
 
 /* ---------------- Journal ---------------- */
 function openJournal(tab){tab=tab||'min';const tabs=[['min','💎 Minerals'],['fos','🦴 Fossils'],['cri','🐾 Critters'],['geo','🔮 Geodes'],['rec','🏆 Records']];
  let body='';
- if(tab==='min')body=`<div class="cv-grid">${Object.keys(CD.MIN).map(id=>{const m=CD.MIN[id];return S.idd[id]?`<button class="cv-jc" data-min="${id}">${gemSVG(m,44)}<b>${esc(m.n)}</b><small>×${S.found[id]||1}</small></button>`:`<div class="cv-jc un"><span>❔</span><b>???</b><small>${CD.RAR[m.r].n}</small></div>`;}).join('')}</div><p class="cv-sub">${Object.keys(S.idd).length} of ${Object.keys(CD.MIN).length} minerals identified</p>`;
+ if(tab==='min')body=`<div class="cv-grid">${Object.keys(CD.MIN).map(id=>{const m=CD.MIN[id];return S.idd[id]?`<button class="cv-jc" data-min="${id}">${gemSVG(m,44)}<b>${esc(m.n)}</b><small>${'★'.repeat(starsOf(id))||''}${'☆'.repeat(3-starsOf(id))} ×${S.found[id]||1}</small></button>`:`<div class="cv-jc un"><span>❔</span><b>???</b><small>${CD.RAR[m.r].n}</small></div>`;}).join('')}</div><p class="cv-sub">${Object.keys(S.idd).length} of ${Object.keys(CD.MIN).length} minerals identified · Collect more of each for stars: ★ at 5, ★★ at 15, ★★★ at 40</p>`;
  if(tab==='fos')body=`<div class="cv-grid">${CD.FOSSILS.map(f=>{const n=(S.fos[f.id]||[]).filter(Boolean).length;return `<div class="cv-jc ${n?'':'un'}"><span class="cv-e">${n?femo(f):'❔'}</span><b>${n?esc(f.n):'???'}</b><small>${n}/${f.parts.length} pieces${S.ex[f.id]?' · 🏛️':''}</small></div>`;}).join('')}</div>`;
  if(tab==='cri')body=`<div class="cv-grid">${CD.CRITTERS.map(c=>S.crit[c.id]?`<button class="cv-jc" data-cri="${c.id}"><span class="cv-e">${c.e}</span><b>${esc(c.n)}</b><small>${esc(CD.LAYERS.find(L=>L.id===c.L).n)}</small></button>`:`<div class="cv-jc un"><span>❔</span><b>???</b><small>${S.seen[c.L]?esc(CD.LAYERS.find(L=>L.id===c.L).n):'deeper…'}</small></div>`).join('')}</div>`;
  if(tab==='geo')body=`<div class="cv-grid">${CD.GEODES.map(g=>S.geo[g.id]?`<div class="cv-jc"><div class="cv-geode sm" style="--gc:${g.col}"><i></i></div><b>${esc(g.n)}</b><small>×${S.geo[g.id]}</small></div>`:`<div class="cv-jc un"><span>🔮</span><b>???</b><small>Find the daily ✨ secret pocket</small></div>`).join('')}</div>`;
@@ -458,7 +512,8 @@ function openMuseum(){
   return `<div class="cv-ex ${done?'done':''}"><div class="cv-exe">${n||done?femo(f):'❔'}</div><div><b>${n||done?esc(f.n):'Unknown fossil'}</b><small>${done?esc(f.age):`${n}/${f.parts.length} pieces${n?'':' · dig in the '+esc(CD.LAYERS.find(L=>L.id===f.L).n)}`}</small></div>${ready?`<button class="cv-btn sm" data-as="${f.id}">🧩 Assemble!</button>`:done?'<span class="cv-ok">🏛️ On display</span>':''}</div>`;}).join('');
  const shown=CD.FOSSILS.filter(f=>S.ex[f.id]).sort((a,b)=>a.ageY-b.ageY);
  const tl=shown.length?`<div class="cv-tl"><h4>🕰️ Time Wall — deeper rock is older rock</h4>${shown.map(f=>`<div class="cv-tli"><span>${femo(f)}</span><b>${esc(f.n)}</b><small>${esc(f.age)} · found in ${esc(CD.LAYERS.find(L=>L.id===f.L).n)}</small></div>`).join('<div class="cv-tla">⬇️ older</div>')}</div>`:'';
- modal(`<h2>🏛️ Museum</h2><p class="cv-sub">Find all the pieces of a fossil, then put the skeleton together!</p>${ex}${tl}`,{wide:1});
+ const today=[...new Set([...W.items.values()].filter(it=>it.t==='f').map(it=>CD.FOSSILS.find(f=>f.id===it.id).L))].filter(l=>S.seen[l]).map(l=>CD.LAYERS.find(L=>L.id===l).n);
+ modal(`<h2>🏛️ Museum</h2><p class="cv-sub">Find all the pieces of a fossil, then put the skeleton together!</p>${today.length?`<div class="cv-hint">🦴 Today, fossil pieces are hidden in: <b>${today.map(esc).join(', ')}</b>. Look for the 🦴 on the depth bar!</div>`:''}${ex}${tl}`,{wide:1});
  root.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>assemble(b.dataset.as));}
 function assemble(id){const f=CD.FOSSILS.find(x=>x.id===id);const pos=FPOS[id];const placed=[];let sel=null;
  const R=rng(hash(id+S.day));const order=shuffle(R,f.parts.map((_,i)=>i));
@@ -648,18 +703,18 @@ function probeRun(){
  const sh=modal(`<div class="cv-probe"><canvas id="cvPC"></canvas><div class="cv-phud" id="cvPH"></div><div class="cv-pctl"><button id="cvPL">◀</button><button id="cvPR">▶</button></div></div>`,{wide:1,noX:1});
  sh.classList.add('probe');const pc=sh.querySelector('#cvPC'),g=pc.getContext('2d');
  const dpr=Math.min(2,devicePixelRatio||1);let Wd=0,Hd=0;const rs=()=>{Wd=pc.clientWidth;Hd=pc.clientHeight;pc.width=Wd*dpr;pc.height=Hd*dpr;g.setTransform(dpr,0,0,dpr,0,0);};rs();
- const st={x:.5,shield:3,orbs:0,ph:0,t:0,obs:[],paused:false,over:false,inv:0,dir:0,qs:shuffle(Math.random,CD.Q[t])};
+ const st={x:.5,shield:3,orbs:0,ph:0,t:0,obs:[],paused:false,over:false,inv:0,dir:0,qs:shuffle(Math.random,CD.Q[t])};window.__cvProbe=st;
  let last=performance.now(),id=0;
  const keys=e=>{if(e.key==='ArrowLeft')st.dir=e.type==='keydown'?-1:0;if(e.key==='ArrowRight')st.dir=e.type==='keydown'?1:0;};
  window.addEventListener('keydown',keys);window.addEventListener('keyup',keys);
  const hold=(b,d)=>{b.onpointerdown=()=>st.dir=d;b.onpointerup=b.onpointerleave=()=>st.dir=0;};hold(sh.querySelector('#cvPL'),-1);hold(sh.querySelector('#cvPR'),1);
  pc.onpointermove=e=>{if(e.buttons||e.pointerType==='touch'){const r=pc.getBoundingClientRect();st.x=Math.max(.05,Math.min(.95,(e.clientX-r.left)/r.width));}};
  const cleanup=()=>{cancelAnimationFrame(id);window.removeEventListener('keydown',keys);window.removeEventListener('keyup',keys);};
- const spawn=()=>{const P=PHASES[st.ph];if(Math.random()<.035*spd*(1+st.ph*.25))st.obs.push({k:P.ob,x:Math.random(),y:Hd+30,r:14+Math.random()*16,ph:Math.random()*6});if(Math.random()<.02)st.obs.push({k:'orb',x:.1+Math.random()*.8,y:Hd+20,r:12});};
+ const spawn=dt=>{const P=PHASES[st.ph];if(Math.random()<dt*(.85+.3*st.ph)*spd)st.obs.push({k:P.ob,x:Math.random(),y:Hd+30,r:14+Math.random()*14,ph:Math.random()*6});if(Math.random()<dt*.9)st.obs.push({k:'orb',x:.1+Math.random()*.8,y:Hd+20,r:12});};
  const loop=now=>{id=requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;if(st.paused||st.over)return;
-  st.t+=dt;st.x=Math.max(.05,Math.min(.95,st.x+st.dir*dt*.9));spawn();const P=PHASES[st.ph];const px=st.x*Wd,py=Hd*.28;
+  st.t+=dt;st.x=Math.max(.05,Math.min(.95,st.x+st.dir*dt*.9));spawn(dt);const P=PHASES[st.ph];const px=st.x*Wd,py=Hd*.28;
   st.obs.forEach(o=>{o.y-=dt*150*spd;if(o.k==='swirl')o.x+=Math.sin(st.t*2+o.ph)*dt*.25;});
-  st.obs=st.obs.filter(o=>{if(o.y<-40)return false;const dx=o.x*Wd-px,dy=o.y-py;if(Math.hypot(dx,dy)<o.r+14){if(o.k==='orb'){st.orbs++;return false;}if(st.inv<=0&&!window.__cvGod){st.shield--;st.inv=1.2;if(st.shield<=0){end(false);}}return false;}return true;});
+  st.obs=st.obs.filter(o=>{if(o.y<-40)return false;const dx=o.x*Wd-px,dy=o.y-py;if(Math.hypot(dx,dy)<(o.k==='orb'?o.r+16:o.r*.7+12)){if(o.k==='orb'){st.orbs++;return false;}if(st.inv<=0&&!window.__cvGod){st.shield--;st.inv=1.2;if(st.shield<=0){end(false);}}return false;}return true;});
   st.inv-=dt;
   // draw
   const frac=Math.min(1,st.t/dur);const km=P.km[0]+(P.km[1]-P.km[0])*frac,tc=P.tC[0]+(P.tC[1]-P.tC[0])*frac;
@@ -691,17 +746,17 @@ const CSS=`
 .cv canvas#cvC{position:absolute;inset:0;display:block}
 .cv button{font-family:inherit;cursor:pointer;border:none;color:inherit;touch-action:manipulation}
 .cv-top{position:absolute;left:0;right:0;top:0;padding:calc(6px + env(safe-area-inset-top)) 10px 0;display:flex;flex-direction:column;gap:5px;pointer-events:none}
-.cv-row1,.cv-row2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cv-row1,.cv-row2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.cv-row1{flex-wrap:nowrap;padding-right:48px}
 .cv-chip,.cv-res span,.cv-g span{background:rgba(20,12,30,.78);color:#fff;border-radius:12px;padding:5px 10px;font-weight:600;font-size:14px;white-space:nowrap}
-.cv-res{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.cv-res{display:flex;gap:6px;margin-left:auto;flex-wrap:nowrap;justify-content:flex-end;min-width:0}
 .cv-g{display:flex;gap:5px;flex-wrap:wrap}.cv-g span{font-size:13px;font-weight:500}.cv-g .warn{background:#c92a2a}
-.cv-x{pointer-events:auto;background:rgba(255,255,255,.9)!important;width:36px;height:36px;border-radius:50%;font-size:18px;font-weight:700}
+.cv-x{position:absolute;right:10px;top:calc(6px + env(safe-area-inset-top));pointer-events:auto;background:rgba(255,255,255,.9)!important;width:36px;height:36px;border-radius:50%;font-size:18px;font-weight:700}
 .cv-bat{position:relative;width:130px;height:24px;background:rgba(20,12,30,.78);border-radius:12px;overflow:hidden;margin-left:auto}
 .cv-bat i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#2ecc71,#8ce99a);transition:width .2s}.cv-bat i.low{background:linear-gradient(90deg,#ff5a5f,#ffa94d)}
 .cv-bat span{position:relative;color:#fff;font-size:13px;font-weight:600;line-height:24px;padding-left:8px}
 .cv-depth{position:absolute;right:6px;top:92px;bottom:150px;width:14px;border-radius:8px;overflow:visible;display:flex;flex-direction:column;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
 .cv-depth i{display:block;width:100%}.cv-depth i:first-child{border-radius:8px 8px 0 0}.cv-depth i:last-child{border-radius:0 0 8px 8px}
-.cv-depth b{position:absolute;left:-6px;right:-6px;height:3px;background:#fff}.cv-depth b.me{height:10px;margin-top:-5px;border-radius:5px;background:#ffd43b;box-shadow:0 0 6px #ffd43b}.cv-depth b.max{background:#ff5a5f}.cv-depth b.pk{background:none;height:auto;left:-24px;font-size:14px;margin-top:-9px}
+.cv-depth b{position:absolute;left:-6px;right:-6px;height:3px;background:#fff}.cv-depth b.me{height:10px;margin-top:-5px;border-radius:5px;background:#ffd43b;box-shadow:0 0 6px #ffd43b}.cv-depth b.max{background:#ff5a5f}.cv-depth b.pk.fo{left:auto;right:-26px}.cv-depth b.pk{background:none;height:auto;left:-24px;font-size:14px;margin-top:-9px}
 .cv-msg{position:absolute;left:50%;top:96px;transform:translate(-50%,-10px);max-width:min(560px,86vw);background:rgba(255,255,255,.95);border-radius:14px;padding:10px 14px;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:.25s;text-align:center}
 .cv-msg.show{opacity:1;transform:translate(-50%,0)}
 .cv-pad{position:absolute;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));width:156px;height:156px}
@@ -762,6 +817,18 @@ const CSS=`
 .cv-bones{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.cv-bone{background:#f4ede0;border-radius:12px;padding:8px 12px;font-weight:600}.cv-bone.sel{background:#ffd43b}
 .cv-drip{width:100%;max-width:360px;display:block;margin:6px auto}
 .cv-meter{height:14px;background:#eee9ff;border-radius:8px;overflow:hidden;margin:8px 0}.cv-meter i{display:block;height:100%;background:linear-gradient(90deg,#74c0fc,#7c5cff);transition:width .3s}.cv-meter.ok i{background:linear-gradient(90deg,#69db7c,#2ecc71)}
+.cv-haul{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:10px 0}.cv-haul div{background:#fff4cc;border-radius:14px;padding:10px}.cv-haul b{display:block;font-size:24px;color:#8a5a00}.cv-haul span{font-size:12px;color:#6d6490}
+.cv-act.pw{background:#ffd43b;box-shadow:0 4px 0 #c98f00;animation:cvpulse 1.6s infinite}@keyframes cvpulse{50%{transform:scale(1.06)}}
+.cv-mq{font-size:38px;font-weight:700;text-align:center;margin:8px 0}.cv-mq small{display:block;font-size:16px;color:#6d6490}.cv-inp{font-size:34px;font-weight:700;text-align:center;background:#f3f0ff;border-radius:14px;padding:6px;min-height:52px}
+.cv-pad2{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.cv-pad2 button{background:#eee9ff;border-radius:12px;font-size:24px;font-weight:700;padding:10px}.cv-ok2{text-align:center;color:#2b8a3e;font-weight:700;margin-top:6px}
+.cv-tut{background:#e7f5ff;border-radius:14px;padding:10px 12px;margin:6px 0}.cv-tut ol{margin:6px 0 6px 18px;padding:0}.cv-tut li{margin:3px 0}
+.cv-lab2{display:flex;gap:10px;align-items:center}.cv-result{flex:1;background:#fff9db;border-radius:14px;padding:10px;min-height:80px;display:flex;flex-direction:column;justify-content:center;font-size:15px}.cv-result .cv-anim{font-size:26px;text-align:left}
+.cv-h4{margin:12px 0 4px}.cv-banner{background:#d3f9d8;color:#2b8a3e;border-radius:12px;padding:8px 10px;font-weight:700;margin-bottom:6px;animation:cvpulse 1.6s infinite}.cv-sub2{color:#6d6490;font-size:13px;margin-bottom:6px}
+.cv-suss{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.cv-sus{background:#fff;border:3px solid #b197fc!important;border-radius:14px;padding:8px;text-align:left;position:relative;box-shadow:0 3px 0 #d0bfff}.cv-sus b{font-size:16px}.cv-sus ul{list-style:none;margin:4px 0 0;padding:0;font-size:12px}.cv-sus li.y{color:#2b8a3e}.cv-sus li.n{color:#c92a2a}.cv-sus small{color:#aaa}
+.cv-sus.out{opacity:.45;border-color:#ddd!important;box-shadow:none;background:#f8f8f8}.cv-sus em{display:block;font-style:normal;font-size:11px;font-weight:700;color:#c92a2a;margin-top:2px}.cv-sus small{display:block;font-size:11px}
+.cv-t2s{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.cv-t2{background:#f3f0ff;border-radius:12px;padding:8px;text-align:left;display:grid;grid-template-columns:32px 1fr;column-gap:6px;align-items:center}.cv-te{font-size:24px;grid-row:span 2}.cv-t2 b{font-size:14px}.cv-t2 small{font-size:11px;color:#6d6490}.cv-t2.did{background:#e6fcf5}.cv-t2:disabled{cursor:default}.cv-t2:not(.did):disabled{opacity:.5}
+@media(max-width:560px){.cv-suss{grid-template-columns:1fr 1fr}.cv-t2s{grid-template-columns:1fr 1fr}.cv-specimen svg{width:64px;height:64px}}
 .cv-stops{display:grid;gap:8px}.cv-stop{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:8px;background:#f6f3ff;border-left:10px solid var(--lc);border-radius:12px;padding:10px;text-align:left}.cv-stop span{font-size:26px}.cv-stop small{color:#6d6490}
 .cv-pz{width:100%;max-width:520px;display:block;margin:6px auto;border-radius:12px}.cv-pz.sq{max-width:400px}.cv-mirror{cursor:pointer}
 .cv-range{width:100%;accent-color:#ffd43b;height:30px}
@@ -781,7 +848,7 @@ const CSS=`
 .cv-phud{position:absolute;left:8px;right:8px;top:8px;display:flex;gap:6px;flex-wrap:wrap}.cv-phud>*{background:rgba(0,0,0,.55);color:#fff;border-radius:10px;padding:4px 8px;font-size:13px}
 .cv-pctl{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:space-between;padding:0 14px}.cv-pctl button{width:70px;height:60px;border-radius:16px;background:rgba(255,255,255,.3);color:#fff;font-size:26px}
 .cv-pq{position:absolute;left:12px;right:12px;top:18%;background:#fff;border-radius:18px;padding:14px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.5)}.cv-pq h3{margin:4px 0}.cv-pq p{font-size:14px}
-@media(max-width:560px){.cv-chip,.cv-res span{font-size:12px;padding:4px 7px}.cv-g span{font-size:11px;padding:4px 7px}.cv-bat{width:100px}.cv-pad{width:138px;height:138px}.cv-pad button{width:46px;height:46px}.cv-pad .u,.cv-pad .d{left:46px}.cv-pad .l,.cv-pad .r{top:46px}.cv-act{min-width:52px;font-size:20px;padding:5px 7px}.cv-acts{max-width:calc(100vw - 170px)}.cv-tests{grid-template-columns:repeat(4,1fr);min-width:0}.cv-gh,.cv-cand{grid-template-columns:1.3fr repeat(6,1fr);font-size:11px}.cv-gh{font-size:10px}.cv-bench{flex-direction:column}.cv-tests{width:100%}.cv-specimen svg{width:80px;height:80px}}
+@media(max-width:560px){.cv-chip,.cv-res span{font-size:12px;padding:4px 6px}.cv-chip{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.cv-res{gap:4px}.cv-x{width:32px!important;height:32px!important;font-size:15px!important}.cv-g span{font-size:11px;padding:4px 7px}.cv-bat{width:100px}.cv-pad{width:138px;height:138px}.cv-pad button{width:46px;height:46px}.cv-pad .u,.cv-pad .d{left:46px}.cv-pad .l,.cv-pad .r{top:46px}.cv-act{min-width:52px;font-size:20px;padding:5px 7px}.cv-acts{max-width:calc(100vw - 170px)}.cv-tests{grid-template-columns:repeat(4,1fr);min-width:0}.cv-gh,.cv-cand{grid-template-columns:1.3fr repeat(6,1fr);font-size:11px}.cv-gh{font-size:10px}.cv-bench{flex-direction:column}.cv-tests{width:100%}.cv-specimen svg{width:80px;height:80px}}
 `;
 
 /* ---------------- public API ---------------- */
@@ -793,9 +860,9 @@ function open(host){
  else if(!S.stats.dug)modal(`<div class="cv-card"><div class="cv-big">⛏️</div><h2>Deep Down: The Science Cave</h2><p>Dig down through the real layers of the Earth! Find mystery minerals 💎, fossils 🦴 and cave critters 🦇. Study your finds in the 🔬 Lab to earn coins and research points, then upgrade your gear to dig deeper and deeper.</p><p class="cv-sub">Use the arrow buttons (or swipe) to dig. Tap 🏠 to beam back to camp any time.</p><button class="cv-btn" data-close>Start digging!</button></div>`);
  save(true);
 }
-function leave(){save(true);cancelAnimationFrame(raf);window.removeEventListener('keydown',onKey);window.removeEventListener('resize',resize);if(root)root.remove();root=null;const h=H;H=null;W=null;if(h&&h.exit)h.exit();}
+function leave(){save(true);cardQ.length=0;cancelAnimationFrame(raf);window.removeEventListener('keydown',onKey);window.removeEventListener('resize',resize);if(root)root.remove();root=null;const h=H;H=null;W=null;if(h&&h.exit)h.exit();}
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={open,leave,summary,_dbg:()=>({S,W,H,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen})};
+window.Cave={mathQ,open,leave,summary,_dbg:()=>({S,W,H,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen})};
 })();

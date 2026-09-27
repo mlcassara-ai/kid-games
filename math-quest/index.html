@@ -652,7 +652,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -2189,7 +2189,7 @@ SCREENS.backpack=()=>{
  app.innerHTML=topbar()+`<div class="page"><h2 class="title">🎒 Backpack &amp; Shop</h2><div class="bp">
  <div class="bp-hero"><div class="hv">${heroSVG(p.look,{spell:p.spell})}${pet?`<div class="bp-pet">${pet.e}</div>`:''}</div>
   <div class="bp-stats"><b style="font-size:20px">${esc(p.name)}</b><br>Level ${p.level} · ❤️ ${heroMax(p)} HP<br>Spell: ${sp.e} ${sp.name}<br>${pet?`Pet: ${pet.e} ${pet.name}<br><small>${PERKS[pet.perk]}</small>`:'No pet yet'}</div>
-  <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>
+  <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}
  <div>
   ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
   ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
@@ -2208,7 +2208,7 @@ SCREENS.backpack=()=>{
  </div></div></div>`;
 };
 function shopClick(kind,id){
- const p=P();
+ const p=P();if(p.troll&&(p.troll.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🧌 Grumbleroot the Troll is holding that one! Win it back by answering his questions.');return;}
  if(kind==='pet'){p.pet=id;save();SFX.tap();go('backpack');return;}
  const list=kind==='hat'?HATS:kind==='robe'?ROBES:SPELLS;const it=list.find(x=>x.id===id);
  const ownedList=p.owned[kind==='hat'?'hats':kind==='robe'?'robes':'spells'];
@@ -2472,7 +2472,7 @@ window.addEventListener('resize',()=>{if(curScreen==='world'&&W)wResize();});
 function wCam(){const ts=W.ts;let cx=W.drawX*ts+ts/2-W.vw/2,cy=W.drawY*ts+ts/2-W.vh/2;cx=clamp(cx,0,Math.max(0,WCOLS*ts-W.vw));cy=clamp(cy,0,Math.max(0,WROWS*ts-W.vh));return [cx,cy];}
 function wTap(e){const cv=$('#wcv');const r=cv.getBoundingClientRect();const [cx,cy]=wCam();const x=Math.floor((e.clientX-r.left+cx)/W.ts),y=Math.floor((e.clientY-r.top+cy)/W.ts);
  if(x<0||y<0||x>=WCOLS||y>=WROWS)return;W.path=wPathTo(x,y);if(!W.path.length){const t=W.T[y][x];if(Math.abs(x-W.hx)+Math.abs(y-W.hy)===1)wStep(x-W.hx,y-W.hy);else if(t.block)toast('You can\'t walk there!');}
- else wMark(x,y);}
+ else{wMark(x,y);if(!W.moving){const [nx,ny]=W.path.shift();wStep(nx-W.hx,ny-W.hy);}}}
 function wMark(x,y){W.mark={x,y,t:performance.now()};}
 function wPathTo(tx,ty){
  const goal=W.T[ty][tx];const special=goal.block&&(goal.npc||goal.gate||goal.chest);
@@ -2484,7 +2484,7 @@ function wPathTo(tx,ty){
  if(!(key(tx,ty) in prev))return [];
  const path=[];let c=[tx,ty];while(c&&!(c[0]===W.hx&&c[1]===W.hy)){path.unshift(c);c=prev[key(c[0],c[1])];}return path;}
 function wStep(dx,dy){
- if(!W||W.moving||curScreen!=='world'||$('#modal.show'))return;
+ if(!W||W.moving||curScreen!=='world'||$('#modal.show')||window.trollBusy)return;
  const nx=W.hx+dx,ny=W.hy+dy;const t=W.T[ny]&&W.T[ny][nx];if(!t)return;
  if(dx)W.dir=dx;
  const mob=W.mobs.find(m=>m.x===nx&&m.y===ny);if(mob){wFight(mob);return;}
@@ -2495,6 +2495,7 @@ function wStep(dx,dy){
  W.px=W.hx;W.py=W.hy;W.hx=nx;W.hy=ny;W.moving=true;W.mt=performance.now();W.fx=W.px;W.fy=W.py;
  const p=P();p.wpos={x:nx,y:ny};
  setTimeout(()=>{W.moving=false;const m=W.mobs.find(m=>m.x===W.hx&&m.y===W.hy);if(m){wFight(m);return;}
+  if(window.trollCheck&&trollCheck(W.T[W.hy][W.hx])){W.path=[];return;}
   if(W.path.length){const [x,y]=W.path.shift();wStep(x-W.hx,y-W.hy);}},140);
 }
 function wFrame(now){

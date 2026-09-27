@@ -51,14 +51,14 @@ CD.DRILLS=[
  {n:'Hand Shovel',e:'🪏',h:2.5,c:0,r:0},
  {n:'Steel Pick',e:'⛏️',h:4.5,c:150,r:5,why:'Steel (hardness about 5.5) can break rocks softer than itself.'},
  {n:'Hardened Drill',e:'🔩',h:6.5,c:600,r:20,why:'Heat-treated steel bits are harder, so they can grind granite and basalt (hardness 6).'},
- {n:'Carbide Drill',e:'⚙️',h:8.5,c:1500,r:50,why:'Tungsten carbide (hardness about 9) is one of the hardest things people make.'},
- {n:'Diamond Drill',e:'💎',h:10,c:3000,r:100,need:'diamond',why:'Only diamond (hardness 10) can scratch everything — so real deep drills have diamond tips!'}];
+ {n:'Carbide Drill',e:'⚙️',h:8.5,c:2500,r:80,why:'Tungsten carbide (hardness about 9) is one of the hardest things people make.'},
+ {n:'Diamond Drill',e:'💎',h:10,c:5000,r:150,need:'diamond',why:'Only diamond (hardness 10) can scratch everything — so real deep drills have diamond tips!'}];
 CD.SUITS=[
  {n:'Explorer Suit',e:'🧥',t:40,c:0,r:0},
  {n:'Cooling Vest',e:'🦺',t:80,c:200,r:8},
- {n:'Heat Suit',e:'🥼',t:200,c:700,r:25},
- {n:'Thermal Armor',e:'🛡️',t:700,c:1800,r:60},
- {n:'Magma Armor',e:'🔥',t:1400,c:3500,r:120}];
+ {n:'Heat Suit',e:'🥼',t:200,c:900,r:30},
+ {n:'Thermal Armor',e:'🛡️',t:700,c:2500,r:90},
+ {n:'Magma Armor',e:'🔥',t:1400,c:5000,r:160}];
 CD.BATT=[{v:60,c:0},{v:100,c:150},{v:160,c:400},{v:250,c:900},{v:400,c:2000}];
 CD.PACK=[{v:8,c:0},{v:12,c:100},{v:18,c:350},{v:25,c:800},{v:35,c:1600}];
 CD.LAMP=[{v:3,c:0},{v:4,c:120},{v:5,c:400},{v:6,c:900}];
