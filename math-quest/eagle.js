@@ -54,6 +54,28 @@ const PERCH=`<svg viewBox="0 0 360 520" class="eg-perch" preserveAspectRatio="xM
 <ellipse cx="140" cy="106" rx="13" ry="11" fill="url(#egEye)"/><circle cx="136" cy="107" r="5" fill="#111"/>
 <path class="eg-brow" d="M118 88 L162 98" stroke="#6b5a45" stroke-width="7" stroke-linecap="round"/><path class="eg-browk" d="M120 92 Q140 80 162 90" stroke="#6b5a45" stroke-width="6" fill="none" stroke-linecap="round"/></g></svg>`;
 const CHICK=`<svg viewBox="0 0 80 80"><ellipse cx="40" cy="48" rx="30" ry="28" fill="#c9c4bd"/><g fill="#dcd7d0"><circle cx="18" cy="30" r="10"/><circle cx="30" cy="22" r="10"/><circle cx="46" cy="21" r="10"/><circle cx="60" cy="30" r="10"/></g><circle cx="30" cy="42" r="6" fill="#fff"/><circle cx="50" cy="42" r="6" fill="#fff"/><circle cx="31" cy="43" r="3.4" fill="#222"/><circle cx="49" cy="43" r="3.4" fill="#222"/><path d="M34 52 L46 52 L40 62Z" fill="#f2b705"/></svg>`;
+// ---- a real stick nest: back rim (behind you + chicks) and front rim (in front) ----
+const NEST=(()=>{let sd=7;const R=()=>(sd=(sd*9301+49297)%233280)/233280;
+ const C=['#6b4423','#7d5230','#8f6338','#5a391c','#a0703f','#4a2e16','#94683b'];
+ const stick=(x,y,len,ang,w,col)=>{const a=ang*Math.PI/180,dx=Math.cos(a)*len/2,dy=Math.sin(a)*len/2,bx=(R()-.5)*len*.12,by=(R()-.5)*len*.12;
+  const tw=R()<.4?`<path d="M${(x+dx*.4).toFixed(1)},${(y+dy*.4).toFixed(1)} l${(Math.cos(a+.7)*len*.18).toFixed(1)},${(Math.sin(a+.7)*len*.18).toFixed(1)}" stroke="${col}" stroke-width="${(w*.6).toFixed(1)}" stroke-linecap="round" fill="none"/>`:'';
+  return `<path d="M${(x-dx).toFixed(1)},${(y-dy).toFixed(1)} Q${(x+bx).toFixed(1)},${(y+by).toFixed(1)} ${(x+dx).toFixed(1)},${(y+dy).toFixed(1)}" stroke="${col}" stroke-width="${w.toFixed(1)}" stroke-linecap="round" fill="none"/>`+tw;};
+ const col=()=>C[Math.floor(R()*C.length)];
+ // back: rim sticks along the top arc + dark hollow + downy lining
+ let back=`<ellipse cx="300" cy="66" rx="262" ry="44" fill="#2e1c0d"/>`;
+ for(let i=0;i<46;i++){const t=Math.PI+R()*Math.PI,x=300+Math.cos(t)*(250+R()*40),y=64+Math.sin(t)*(40+R()*16);back+=stick(x,y,60+R()*90,(R()-.5)*50,4+R()*5,col());}
+ back+=`<ellipse cx="300" cy="72" rx="228" ry="30" fill="#3d2712"/>`;
+ for(let i=0;i<22;i++){const x=110+R()*380,y=64+R()*18;back+=`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(7+R()*9).toFixed(0)}" fill="${R()<.5?'#efe8dc':'#d9cfbf'}" opacity=".85"/>`;}
+ // front: bowl body woven from crisscrossing sticks, some poking out
+ let front=`<defs><clipPath id="egBowl"><path d="M28,70 Q300,128 572,70 Q560,196 300,198 Q40,196 28,70Z"/></clipPath><radialGradient id="egBowlG" cx=".5" cy=".2" r=".9"><stop offset="0" stop-color="#8a5c33"/><stop offset="1" stop-color="#3f2711"/></radialGradient></defs>
+ <path d="M28,70 Q300,128 572,70 Q560,196 300,198 Q40,196 28,70Z" fill="url(#egBowlG)"/><g clip-path="url(#egBowl)">`;
+ for(let i=0;i<150;i++){const x=20+R()*560,y=78+R()*118;front+=stick(x,y,50+R()*110,(R()<.5?1:-1)*(8+R()*28),3+R()*5,col());}
+ front+=`<path d="M28,70 Q300,128 572,70 Q560,196 300,198 Q40,196 28,70Z" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="8"/></g>`;
+ for(let i=0;i<34;i++){const t=R()*Math.PI,x=300+Math.cos(t)*(262+R()*20),y=86+Math.sin(t)*(34+R()*70)-(R()*10);front+=stick(x,y,60+R()*80,(x<300?1:-1)*(R()*40)+(R()<.25?(R()-.5)*120:0),3.5+R()*4.5,col());}
+ for(let i=0;i<30;i++){const x=40+R()*520,y=86+Math.abs(x-300)*-.05+R()*16;front+=stick(x,y,40+R()*70,(R()-.5)*40,4+R()*4,col());}
+ front+=`<g fill="#f3ede2" opacity=".9"><circle cx="150" cy="104" r="5"/><circle cx="420" cy="112" r="4"/><path d="M470,96 q10,-12 20,-4 q-8,2 -20,4z"/></g>`;
+ const sv=(c,b)=>`<svg class="${c}" viewBox="0 0 600 200" preserveAspectRatio="none">${b}</svg>`;
+ return {back:sv('eg-nback',back),front:sv('eg-nfront',front)};})();
 const PEAK=`<svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" class="eg-peak"><defs><linearGradient id="egSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f86c6"/><stop offset=".7" stop-color="#a9d3f5"/><stop offset="1" stop-color="#e8f4ff"/></linearGradient></defs>
 <rect width="800" height="500" fill="url(#egSky)"/><g fill="#fff" opacity=".85"><ellipse cx="120" cy="90" rx="70" ry="18"/><ellipse cx="170" cy="80" rx="45" ry="20"/><ellipse cx="460" cy="60" rx="80" ry="18"/><ellipse cx="410" cy="52" rx="40" ry="14"/></g>
 <path d="M0 500 L0 330 L120 260 L200 300 L330 180 L420 250 L520 150 L640 260 L800 220 L800 500Z" fill="#8a9bb3"/><path d="M330 180 L300 215 L345 205 L360 225 L375 200Z M520 150 L495 185 L530 175 L545 195 L560 170Z" fill="#fff"/>
@@ -62,7 +84,7 @@ const PEAK=`<svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" clas
 /* ---------- styles ---------- */
 const CSS=`
 .eg-root{position:fixed;inset:0;z-index:6000;overflow:hidden;font-family:'Fredoka',system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none}
-.eg-shadow{position:absolute;top:18%;left:110%;width:130vw;max-width:1400px;opacity:.45;filter:brightness(0) blur(3px);animation:egshadow 1.6s ease-in forwards;pointer-events:none}
+.eg-shadow{position:absolute;z-index:5;top:18%;left:110%;width:130vw;max-width:1400px;opacity:.45;filter:brightness(0) blur(3px);animation:egshadow 1.6s ease-in forwards;pointer-events:none}
 @keyframes egshadow{to{left:-140%;top:8%}}
 .eg-dark{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .7s}.eg-dark.on{opacity:1}
 .eg-sky{position:absolute;inset:0;background:linear-gradient(#27456e,#6fa8dc 60%,#bfe0ff);overflow:hidden}
@@ -91,8 +113,9 @@ const CSS=`
 .eg-peak{position:absolute;inset:0;width:100%;height:100%}
 .eg-nest{position:absolute;left:2%;bottom:3%;width:min(62%,560px);height:22%;z-index:6}
 .eg-nest .twigs{position:absolute;left:0;right:0;bottom:0;height:62%;border-radius:50% 50% 40% 40%/60% 60% 40% 40%;background:repeating-linear-gradient(20deg,#7a5230 0 6px,#5d3c1f 6px 12px,#8f6338 12px 16px);box-shadow:inset 0 10px 20px rgba(0,0,0,.4)}
-.eg-hero{position:absolute;left:8%;bottom:34%;height:110%;aspect-ratio:.8;z-index:2}.eg-hero svg{width:100%;height:100%}
-.eg-chicks{position:absolute;left:44%;bottom:44%;display:flex;gap:2%;width:52%;z-index:2}.eg-chicks i{display:block;width:32%;aspect-ratio:1}.eg-chicks i svg{width:100%;height:100%}
+.eg-nback,.eg-nfront{position:absolute;left:-5%;width:110%;bottom:-10%;height:80%;overflow:visible;pointer-events:none}.eg-nback{z-index:0}.eg-nfront{z-index:3;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
+.eg-hero{position:absolute;left:8%;bottom:22%;height:110%;aspect-ratio:.8;z-index:2}.eg-hero svg{width:100%;height:100%}
+.eg-chicks{position:absolute;left:44%;bottom:30%;display:flex;gap:2%;width:52%;z-index:2}.eg-chicks i{display:block;width:32%;aspect-ratio:1}.eg-chicks i svg{width:100%;height:100%}
 .eg-cheer .eg-chicks i{animation:eghop .35s ease-out 3 alternate}.eg-cheer .eg-chicks i:nth-child(2){animation-delay:.1s}.eg-cheer .eg-chicks i:nth-child(3){animation-delay:.2s}
 @keyframes eghop{to{transform:translateY(-30%)}}
 .eg-sad .eg-chicks i{transform:rotate(-14deg)}
@@ -134,7 +157,7 @@ async function start(){
   <div class="eg-stand" style="left:${hp.x-hw/2}px;top:${hp.feet-hp.h}px;width:${hw}px;height:${hp.h}px">${HERO}</div>
   <div class="eg-grp" style="left:${gx}px;top:${gy}px;width:${Wf}px;transform:translateY(${-(gy+Hf+80)}px)">${FLY(true)}<div class="eg-held" style="top:${Hf*.78}px;width:${hw}px;height:${hp.h}px;margin-left:${-hw/2}px">${HERO}</div></div>
   <div class="eg-screech">SKREEEEE!</div></div>`);
- root.insertBefore(sky,dark);await sleep(1300);
+ root.insertBefore(sky,root.firstChild);await sleep(1650);
  root.querySelectorAll('.eg-shadow').forEach(x=>x.remove());
  const grp=sky.querySelector('.eg-grp');tone(1400,.5,'sawtooth',.06);tone(1000,.5,'sawtooth',.05,.2);
  await sleep(30);grp.style.transform='translateY(0)';await sleep(1150);
@@ -153,7 +176,7 @@ async function start(){
  dark.classList.add('on');await sleep(700);sky.remove();
  // 4. the nest on the mountain peak
  const stage=S.el(`<div class="eg-scene tr-stage">${PEAK}<div class="eg-mama">${PERCH}</div>
-  <div class="eg-nest"><div class="eg-hero">${S.heroHTML(p)}</div><div class="eg-chicks"><i>${CHICK}</i><i>${CHICK}</i><i>${CHICK}</i></div><div class="twigs"></div></div>
+  <div class="eg-nest">${NEST.back}<div class="eg-hero">${S.heroHTML(p)}</div><div class="eg-chicks"><i>${CHICK}</i><i>${CHICK}</i><i>${CHICK}</i></div>${NEST.front}</div>
   <div class="tr-bubble eg-bubble" style="display:none"></div></div>`);
  root.insertBefore(stage,dark);dark.classList.remove('on');
  const bub=stage.querySelector('.tr-bubble');const say=(t,nn)=>S.say(bub,t,nn?300:0,!!nn,WHO);
