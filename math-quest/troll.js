@@ -24,6 +24,9 @@ window.trollCheck=function(tile){
  const t=T(p);roll(t);
  if(!t.force&&(t.at==null||t.play<t.at))return false;
  t.at=null;t.force=0;save();start();return true;};
+/* ?trolldemo in the URL: the next unmarked step drops you in, and afterwards everything is put back exactly as it was (for parents to preview) */
+let DEMO=null;
+if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup){clearInterval(iv);DEMO=JSON.stringify({troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily});T(p).force=1;if(typeof toast==='function')toast('🧌 Troll preview: take a step on an empty square…');}}catch(e){}},500);}
 
 /* ---------- things the troll can take / give back ---------- */
 function takeable(p){const out=[];
@@ -201,7 +204,7 @@ async function start(){
  const p=P();const t=T(p);busy=true;window.trollBusy=true;skip=false;
  if(!document.getElementById('trCSS')){const s=document.createElement('style');s.id='trCSS';s.textContent=CSS;document.head.appendChild(s);}
  root=el('<div class="tr-root"><div class="tr-fade on"></div></div>');document.body.appendChild(root);
- const first=!t.visits;
+ const first=!t.visits||!!DEMO;
  if(!first){const sk=el('<button class="tr-skip">Skip ▸▸</button>');sk.onclick=()=>{skip=true;sk.remove();};root.appendChild(sk);}
  const fade=root.querySelector('.tr-fade');
  // 1. trap door + fall
@@ -250,16 +253,16 @@ async function start(){
   const ok=await ask(stage,bub,q,i,res);res.push(ok);
   const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
   if(ok){snd(660,.12,'triangle',.12);snd(990,.2,'triangle',.12,.08);
-   let g=null;if(t.visits>0)g=giveBack(p);if(g){gave.push(g);stage.appendChild(el(`<div class="tr-given">${esc(label(g))} ↩</div>`));}
+   let g=null;if(!first)g=giveBack(p);if(g){gave.push(g);stage.appendChild(el(`<div class="tr-given">${esc(label(g))} ↩</div>`));}
    await say(bub,g?`Hmph! Correct. Fine… here's ${label(g)} back.`:['Grrr… that is… CORRECT!','Right again?! Hmph.','Correct! How are you so SMART?'][i],900);}
   else{snd(240,.18,'sine',.1);snd(190,.25,'sine',.1,.12);
-   let tk=null;if(t.visits>0)tk=take(p);if(tk){took.push(tk);stage.appendChild(el(`<div class="tr-stolen">${esc(label(tk))} ➜ 🧌</div>`));}
+   let tk=null;if(!first)tk=take(p);if(tk){took.push(tk);stage.appendChild(el(`<div class="tr-stolen">${esc(label(tk))} ➜ 🧌</div>`));}
    await say(bub,`WRONG! It was ${q.answer}. ${tk?`I'll keep ${label(tk)}! HAR HAR!`:'…but I\'ll give you credit for trying.'}`,1100);}
   save();
  }
  // 8. release
  const right=res.filter(Boolean).length;
- if(t.visits===0){
+ if(first){
   await say(bub,right===3?'ALL THREE?! Nobody has ever done that! You are a very clever visitor.':right===0?'Hmm… none right. But you tried your best!':`${right} out of 3. You tried hard!`,700);
   stage.classList.add('tr-kind');
   await say(bub,'Oh, all right… I was only pretending to be scary. The truth is, nobody ever visits me down here. I was just glad to have a friend visit! 🥹',900);
@@ -275,6 +278,7 @@ async function start(){
  hbox.classList.add('tr-lift');snd(400,.5,'triangle',.08);snd(600,.5,'triangle',.08,.2);snd(800,.5,'triangle',.08,.4);
  await sleep(skip?0:1300);fade.classList.add('on');await sleep(skip?0:700);
  root.remove();root=null;busy=false;window.trollBusy=false;
+ if(DEMO){const s=JSON.parse(DEMO);DEMO=null;Object.assign(p,{coins:s.coins,pets:s.pets,owned:s.owned,toys:s.toys,daily:s.daily});if(s.troll)p.troll=s.troll;else delete p.troll;save();try{toast('🧌 That was a preview — nothing was changed.');go('world');}catch(e){}return;}
  const summary=[took.length?`🧌 The troll kept: ${took.map(label).join(', ')}`:'',gave.length?`↩ You won back: ${gave.map(label).join(', ')}`:''].filter(Boolean).join(' · ');
  try{if(typeof toast==='function')toast(`🧌 You escaped ${TNAME}'s cave! ${right}/3 right.${summary?' '+summary:''}`);}catch(e){}
  try{if(typeof go==='function'&&curScreen==='world')go('world');}catch(e){}
