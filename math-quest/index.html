@@ -2895,23 +2895,25 @@ SCREENS.cafe=()=>{const p=P();const today=dayKey();
  if(C.sayNow){const t=C.sayNow;C.sayNow=null;setTimeout(()=>say(t.replace(/<[^>]+>/g,''),.95),200);}
 };
 function cafeAdd(i){const C=CAFE;const f=C.foods[i];SFX.tap();
- if(f[2]==='treat'){C.msg='🍪 A '+f[1].toLowerCase()+' is a fine treat once in a while! Let\'s fill the plate with food from each part first. 😊';go('cafe');return;}
- const arr=C.plate[f[2]];if(arr.includes(f[0])){C.plate[f[2]]=arr.filter(x=>x!==f[0]);C.msg='';go('cafe');return;}if(arr.length>=3){C.msg=`That part of the plate is full!`;go('cafe');return;}
- arr.push(f[0]);C.msg='';tone(700+Math.random()*300,.08,'sine',.05);go('cafe');}
-function cafeDrink(i){const d=CAFE_DRINKS[i];SFX.tap();if(!d[2]){CAFE.msg='🥤 Soda is a sometimes drink. For lunch, try milk or water to stay strong and cool!';CAFE.drink=null;}else{CAFE.drink=d;CAFE.msg='';}go('cafe');}
+ if(f[2]==='treat'){C.msg='🍪 A '+f[1].toLowerCase()+' is a fine treat once in a while! Let\'s fill the plate with food from each part first. 😊';cafeStay();return;}
+ const arr=C.plate[f[2]];if(arr.includes(f[0])){C.plate[f[2]]=arr.filter(x=>x!==f[0]);C.msg='';cafeStay();return;}if(arr.length>=3){C.msg=`That part of the plate is full!`;cafeStay();return;}
+ arr.push(f[0]);C.msg='';tone(700+Math.random()*300,.08,'sine',.05);cafeStay();}
+function cafeDrink(i){const d=CAFE_DRINKS[i];SFX.tap();if(!d[2]){CAFE.msg='🥤 Soda is a sometimes drink. For lunch, try milk or water to stay strong and cool!';CAFE.drink=null;}else{CAFE.drink=d;CAFE.msg='';}cafeStay();}
 function cafeServe(){const C=CAFE;const d=cafeDone();if(!(d.fv===2&&d.pr&&d.gr&&d.dr))return;SFX.win();C.step=1;C.tries=0;C.input='';C.picked=null;C.msg='';const p=P();p.cafePlates=(p.cafePlates||0)+1;save();go('cafe');}
-function cafeKey(k){const C=CAFE;if(k==='del')C.input=C.input.slice(0,-1);else if(C.input.length<7&&!(k==='.'&&C.input.includes('.')))C.input+=k;SFX.tap();go('cafe');}
+function cafeKey(k){const C=CAFE;if(k==='del')C.input=C.input.slice(0,-1);else if(C.input.length<7&&!(k==='.'&&C.input.includes('.')))C.input+=k;SFX.tap();
+ const b=document.querySelector('.cafe-ans .ansbox');if(b)b.textContent=C.input||'?';else cafeStay();} // update just the answer box — no redraw, so the screen doesn't jump
+function cafeStay(){const y=window.scrollY;go('cafe');window.scrollTo(0,y);} // redraw the cafeteria but keep your place on the page
 function cafeRight(){const C=CAFE,p=P();if(C.tries===0)C.stars++;const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk].r++;if(typeof wkAnswer==='function')wkAnswer(p,8);save();}
 function cafeWrong(){const p=P();const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk].w++;save();}
 function cafeCheck(){const C=CAFE,q=C.qs[C.step-1];if(!C.input)return;const v=parseFloat(C.input);
  if(Math.abs(v-q.a)<0.001){SFX.correct();cafeRight();C.msg=pick(['Yummy! That\'s right! 🎉','Perfect! You\'re a lunchroom math star! ⭐','Correct! Ms. Rosa is impressed! 👏']);C.sayNow=C.msg;cafeNext();return;}
  SFX.wrong();cafeWrong();C.tries++;
  if(C.tries>=2){C.msg=`The answer was <b>${q.money?'$'+cents2(q.a):q.a}</b>. ${esc(q.hint)} Let's keep going!`;C.sayNow=`The answer was ${q.money?'$'+cents2(q.a):q.a}.`;cafeNext();return;}
- C.msg=`Not quite! Hint: ${esc(q.hint)}`;C.sayNow='Not quite! Here is a hint.';C.input='';go('cafe');}
+ C.msg=`Not quite! Hint: ${esc(q.hint)}`;C.sayNow='Not quite! Here is a hint.';C.input='';cafeStay();}
 function cafePick(i){const C=CAFE,q=C.qs[C.step-1];if(C.picked===q.a)return;C.picked=i;
  if(i===q.a){SFX.correct();cafeRight();C.msg=`Yes! ${esc(q.why)}`;C.sayNow=`Yes! ${q.why}`;go('cafe');setTimeout(()=>{if(CAFE===C)cafeNext();},1600);return;}
  SFX.wrong();cafeWrong();C.tries++;if(C.tries>=2){C.picked=q.a;C.msg=`The answer is <b>${esc(q.c[q.a])}</b>. ${esc(q.why)}`;go('cafe');setTimeout(()=>{if(CAFE===C)cafeNext();},2600);return;}
- C.msg='Hmm, try again! 🤔';go('cafe');}
+ C.msg='Hmm, try again! 🤔';cafeStay();}
 function cafeNext(){const C=CAFE;C.step++;C.tries=0;C.input='';C.picked=null;
  if(C.step>4){const p=P();C.step=5;C.coins=15+5*C.stars;p.coins+=C.coins;p.lunchTray=true;const f=pick(PET_FOODS);p.pantry[f.id]=(p.pantry[f.id]||0)+1;C.treat=`${f.e} ${f.name}`;p.cafe={d:dayKey(),done:true,stars:C.stars};questEvent(p,'lunch',1);questEvent(p,'lstars',C.stars);save();SFX.win();C.msg='';setTimeout(()=>{if(CAFE===C)go('cafe');},500);return;}
  go('cafe');}
