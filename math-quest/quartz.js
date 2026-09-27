@@ -1,0 +1,139 @@
+/* Dr. Quartz, the science teacher — takes you to the Science Cave.
+   There is no door: he comes and finds you on the map.
+   • First time: he shows up with a strange rock and asks for your help.
+   • After that: bring him a 🪨 MYSTERY ROCK (from treasure chests, wild monsters and bosses) — when you have one, he comes to get you.
+   • Deeper cave gates need 🏅 BOSS MEDALS (every boss round you beat in Math Quest = 1 medal).
+   Uses Math Quest globals: P(), save(), toast(), go(), curScreen, W, wWalk, dayKey, heroSVG, genQ, pickOp, lvl, ZONES, rpeek, SFX, esc, modal, closeModal. */
+(function(){
+'use strict';
+const NAME='Dr. Quartz',ROCK_MAX=3;
+/* how many Boss Medals each cave gate needs */
+const GATE_NEED={lever:1,mirror:3,sonar:6,glow:10,pulley:15,seismo:21,core:28};
+/* mystery rock drop chances — tuned with a 50-kid, 3-hour simulation: ≈1.2 cave trips per hour of play, ≈25% of play time in the cave, first visit ≈20 min in */
+const DROP={chest:.15,wild:.05,win:.01,boss:.30};
+const PITY=40; // a rock is guaranteed after 40 battles without one (so nobody gets unlucky for too long)
+const FIRST_AFTER=8; // battles before Dr. Quartz first shows up
+const SNOOZE_MS=8*60e3;
+let DEMO=null,busy=false,mobT=0;
+
+/* ---------- art ---------- */
+const SVG=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120">
+<ellipse cx="50" cy="116" rx="26" ry="4" fill="rgba(0,0,0,.2)"/>
+<path d="M36 84 L34 114 L46 114 L48 84Z M64 84 L66 114 L54 114 L52 84Z" fill="#3b3f5c"/><rect x="31" y="110" width="16" height="6" rx="3" fill="#2b2b2b"/><rect x="53" y="110" width="16" height="6" rx="3" fill="#2b2b2b"/>
+<path d="M28 56 Q30 46 50 46 Q70 46 72 56 L76 94 Q50 100 24 94Z" fill="#fff" stroke="#c9d1db" stroke-width="2"/>
+<path d="M44 48 L50 70 L56 48Z" fill="#4c9be8"/><path d="M45 50 L50 54 L55 50 L50 57Z" fill="#e8590c"/>
+<rect x="60" y="62" width="9" height="11" rx="2" fill="#dbe4ee"/><path d="M62 60 v6 M65 60 v6" stroke="#e03131" stroke-width="2"/>
+<path d="M28 58 Q18 72 22 84" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="22" cy="86" r="5" fill="#f1c8a0"/>
+<path d="M72 58 Q84 66 82 78" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="82" cy="80" r="5" fill="#f1c8a0"/>
+<g transform="translate(86 70)"><circle r="8" fill="#e7f5ff" stroke="#495057" stroke-width="3"/><path d="M5 6 L11 14" stroke="#495057" stroke-width="4" stroke-linecap="round"/></g>
+<circle cx="50" cy="32" r="16" fill="#f5d0a9"/>
+<path d="M32 30 Q28 14 40 14 Q42 6 52 10 Q62 4 66 14 Q76 16 68 30 Q66 20 58 20 Q50 14 42 20 Q34 20 32 30Z" fill="#f1f3f5" stroke="#ced4da" stroke-width="1.5"/>
+<circle cx="43" cy="32" r="6" fill="#e7f5ff" stroke="#343a40" stroke-width="2.2"/><circle cx="57" cy="32" r="6" fill="#e7f5ff" stroke="#343a40" stroke-width="2.2"/><path d="M49 32 h2" stroke="#343a40" stroke-width="2.2"/>
+<circle cx="43" cy="33" r="2" fill="#343a40"/><circle cx="57" cy="33" r="2" fill="#343a40"/>
+<path d="M44 42 Q50 46 56 42" stroke="#a0522d" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M42 39 Q50 37 58 39" stroke="#dee2e6" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>`;
+let IMG=null;const img=()=>{if(!IMG){IMG=new Image();IMG.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(SVG);}return IMG;};
+window.QUARTZ_SVG=SVG;
+
+/* ---------- state ---------- */
+function Q(p){p.sci=p.sci||{};const s=p.sci;s.rocks=s.rocks||0;s.trips=s.trips||0;return s;}
+function medals(p){let n=0;(typeof ZONES!=='undefined'?ZONES:[]).forEach(z=>{for(let r=1;r<=5;r++){if((rpeek(p,z.id,r)[5]||0)>0)n++;else break;}});return n;}
+function dueFirst(p){const s=Q(p);return !s.met&&(p.battles||0)>=FIRST_AFTER;}
+function wants(p){const s=Q(p);if(!p||!p.setup)return false;if(DEMO)return true;if(dueFirst(p))return true;return s.met&&s.rocks>0&&Date.now()>(s.snooze||0);}
+
+/* ---------- mystery rock drops (called from chests, wild wins, battle wins) ---------- */
+function drop(kind){try{const p=P();if(!p)return false;const s=Q(p);if(!s.met)return false;if(s.rocks>=ROCK_MAX)return false;
+ if(kind!=='chest')s.dry=(s.dry||0)+1;
+ if(Math.random()<(DROP[kind]||0)||(kind!=='chest'&&s.dry>=PITY)){s.dry=0;s.rocks++;s.got=(s.got||0)+1;save();return true;}}catch(e){}return false;}
+const DROP_HTML='<div>🪨 +1 Mystery Rock!</div>';
+
+/* ---------- Dr. Quartz walks over to you ---------- */
+function spawn(){if(typeof W==='undefined'||!W||!W.T)return;if(W.mobs.some(m=>m.quartz))return;const p=P();
+ for(let tries=0;tries<200;tries++){const a=Math.random()*Math.PI*2,d=6+Math.random()*3;const x=Math.round(W.hx+Math.cos(a)*d),y=Math.round(W.hy+Math.sin(a)*d);
+  const t=W.T[y]&&W.T[y][x];if(!t||t.block||t.water||t.npc||t.gate||t.chest)continue;if(W.mobs.some(m=>m.x===x&&m.y===y))continue;
+  W.mobs.push({id:'quartz',quartz:true,x,y,fx:x,fy:y,e:'👨‍🔬',n:NAME,b:t.b});
+  try{SFX.level();}catch(e){}toast(Q(p).met?'🔬 Dr. Quartz is coming to find you — you have a mystery rock!':'🔬 Someone is hurrying over to you… it\'s the science teacher!');return;}}
+function pathTo(sx,sy,tx,ty){const key=(x,y)=>x+','+y;const prev={};prev[key(sx,sy)]=null;const q=[[sx,sy]];
+ while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty)break;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=key(nx,ny);if(k in prev)continue;
+  const t=W.T[ny]&&W.T[ny][nx];if(!(nx===tx&&ny===ty)&&(!t||t.block||t.water||t.npc||t.gate||t.chest))continue;prev[k]=[x,y];q.push([nx,ny]);}if(q.length>3000)break;}
+ if(!(key(tx,ty) in prev))return null;const out=[];let c=[tx,ty];while(c&&!(c[0]===sx&&c[1]===sy)){out.unshift(c);c=prev[key(c[0],c[1])];}return out;}
+function walk(now){const m=W.mobs.find(o=>o.quartz);if(!m)return;
+ if(Math.abs(m.x-W.hx)+Math.abs(m.y-W.hy)<=1){if(!W.moving&&!document.querySelector('#modal.show'))meet();return;}
+ const path=pathTo(m.x,m.y,W.hx,W.hy);if(!path||!path.length){W.mobs=W.mobs.filter(o=>o!==m);return;}
+ const [nx,ny]=path[0];if(nx===W.hx&&ny===W.hy)return;if(W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;}
+function draw(ctx,sx,sy,ts,now){const im=img();ctx.fillStyle='rgba(116,192,252,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.9,ts*.5,ts*.16,0,0,7);ctx.fill();
+ const hh=ts*1.4,ww=hh*100/120;if(im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*.97-hh+Math.abs(Math.sin(now/120))*2,ww,hh);
+ try{wLabel(ctx,'🔬 '+NAME,sx+ts/2,sy-ts*.5,'#fff','rgba(25,113,194,.92)');}catch(e){}}
+
+/* ---------- meeting ---------- */
+function meet(){if(busy)return;const p=P();if(!p)return;const s=Q(p);busy=true;W.path=[];W.mobs=W.mobs.filter(m=>!m.quartz);
+ const first=!s.met;
+ const lines=first?[`Oh, hello there! I'm <b>${NAME}</b>, the town's science teacher. 🔬`,
+   'I just found this <b>strange rock</b> 🪨 and I can\'t figure out what it is! A clever math hero like you could help me.',
+   'My dig site is down in the <b>Science Cave</b> — it goes deep into the real layers of the Earth! Will you come with me?']
+  :[DEMO?'This is a preview trip — nothing will be changed.':'',`${esc(p.name)}! You found a <b>mystery rock</b> 🪨${s.rocks>1?` — actually ${s.rocks} of them`:''}! Let's take it to my lab and find out what it is.`].filter(Boolean);
+ let i=0;
+ const show=()=>{const last=i>=lines.length-1;
+  modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${lines[i]}</div></div></div>
+   <div class="row">${last?`<button class="btn ghost dark" id="qzNo">${first?'Maybe later':'Not now'}</button><button class="btn green big" id="qzGo">⛏️ Let's go!</button>`:`<button class="btn green big" id="qzNext">Next ➜</button>`}</div></div>`);
+  const nx=document.getElementById('qzNext');if(nx)nx.onclick=()=>{i++;show();};
+  const go1=document.getElementById('qzGo');if(go1)go1.onclick=()=>{closeModal();busy=false;startTrip(first);};
+  const no=document.getElementById('qzNo');if(no)no.onclick=()=>{closeModal();busy=false;s.snooze=Date.now()+SNOOZE_MS;if(first)s.firstNo=(s.firstNo||0)+1;save();toast(first?'🔬 Dr. Quartz: "No problem! I\'ll come find you again a little later."':'🔬 Dr. Quartz: "Okay! I\'ll come back for you in a bit."');};};
+ try{SFX.level();}catch(e){}show();}
+
+/* which mineral is the rock? something from a layer the kid can reach */
+function rockMineral(p){const CD=window.CAVE_DATA;if(!CD)return 'quartz';const m=medals(p);
+ const open=['soil'];if(m>=1)open.push('sed');if(m>=3)open.push('cave');if(m>=6)open.push('river');if(m>=10)open.push('crystal');if(m>=15)open.push('granite');if(m>=21)open.push('magma');if(m>=28)open.push('mantle');
+ const pool=[];Object.keys(CD.MIN).forEach(k=>{const x=CD.MIN[k];if(!x.L.some(l=>open.includes(l)))return;const w=(CD.RAR[x.r]||{w:1}).w;for(let j=0;j<w;j++)pool.push(k);});
+ const s=Q(p);const known=(p.cave&&p.cave.idd)||{};const fresh=pool.filter(k=>!known[k]);
+ const src=fresh.length&&Math.random()<.7?fresh:pool;return src[Math.floor(Math.random()*src.length)]||'quartz';}
+
+/* ---------- the trip ---------- */
+let HOST=null;
+function startTrip(first){const p=P();const s=Q(p);
+ if(DEMO===true)DEMO=JSON.stringify({sci:p.sci||null,cave:p.cave||null,coins:p.coins,daily:p.daily});
+ if(!first&&s.rocks<=0&&!DEMO){toast('🪨 You need a mystery rock first!');return;}
+ if(!first&&!DEMO)s.rocks--;s.met=true;s.trips++;s.last=dayKey();p.wpos={x:W.hx,y:W.hy};p.cave=p.cave||{};save();
+ HOST={first,rock:rockMineral(p)};go('cave');}
+function host(p){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{spell:p.spell}));
+ const tk=dayKey()+'#t'+(Q(p).trips||0); // every trip = a freshly shifted cave (new minerals, coins & fossils)
+ return {player:{id:p.id,name:p.name,grade:p.grade||3,emoji:'🧑‍🚀',img:hi},state:p.cave,today:()=>tk,
+  coins:()=>p.coins,addCoins:(n)=>{p.coins+=n;save();},spend:(n)=>{if(p.coins<n)return false;p.coins-=n;save();return true;},
+  save:()=>save(),trip:true,noRecharge:true,tripRock:HOST&&HOST.rock,medals:()=>medals(p),gateNeed:id=>GATE_NEED[id]||0,
+  guideSVG:SVG,guideImg:img(),
+  mathQ:()=>{let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');q=genQ(op,lvl(p,op));if(!q.tpl&&typeof q.answer==='number')break;}return {q:q.text,a:q.answer};},
+  event:(t,d)=>{if(t==='power'){const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][d&&d.ok?'r':'w']++;if(d&&d.ok&&typeof wkAnswer==='function')wkAnswer(p,5);}},
+  exit:()=>tripOver(p)};}
+function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;HOST=null;
+ if(DEMO&&DEMO!==true){const d=JSON.parse(DEMO);DEMO=null;p.sci=d.sci||undefined;if(!d.sci)delete p.sci;p.cave=d.cave||undefined;if(!d.cave)delete p.cave;p.coins=d.coins;p.daily=d.daily;save();go('world');toast('🔬 That was a preview — nothing was changed.');return;}
+ save();go('world');
+ if(first||s.trips===1)setTimeout(()=>{if(curScreen!=='world')return;
+  modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>Thank you for helping, ${esc(p.name)}! Want to do more science? <b>Bring me a 🪨 mystery rock!</b> You can find them in 🎁 treasure chests, from wild monsters and from bosses. When you have one, I'll come and find you.<br><br>And every <b>🏅 Boss Medal</b> you win powers up my drill so we can open the deeper gates!</div></div></div>
+   <div class="row"><button class="btn green big" onclick="closeModal()">Deal! 🤝</button></div></div>`);},700);
+ else toast(`🔬 Dr. Quartz: "Great work today!" ${s.rocks?`You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:'Bring me another 🪨 mystery rock to come back!'}`);}
+
+/* ---------- backpack panel ---------- */
+function bagHTML(p){const s=Q(p);if(!s.met)return '';const c=p.cave||{};const nid=Object.keys(c.idd||{}).length;const tot=window.CAVE_DATA?Object.keys(CAVE_DATA.MIN).length:21;
+ const sm=window.Cave?Cave.summary(c):{layer:'Surface'};const m=medals(p);const nxt=Object.entries(GATE_NEED).map(([k,v])=>v).find(v=>v>m);
+ return `<div class="tr-hoardbox" style="background:#1864ab"><b>🔬 Science Cave</b> · 🪨 Mystery rocks: <b>${s.rocks}</b>/${ROCK_MAX} · 🏅 Boss Medals: <b>${m}</b>${nxt?` (next gate at ${nxt})`:''} · 💎 Minerals: <b>${nid}</b>/${tot} · 📏 Deepest: <b>${esc(sm.layer)}</b><br><small>Find mystery rocks in treasure chests and from monsters. Dr. Quartz comes to get you when you have one!</small></div>`;}
+
+/* ---------- loops ---------- */
+setInterval(()=>{try{
+ // time's up while in the cave (play-time bank) → close the cave cleanly
+ if(document.getElementById('cvRoot')&&typeof curScreen!=='undefined'&&curScreen!=='cave'&&window.Cave){Cave.leave();}
+ if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
+ if(!wants(p)){if(W.mobs.some(m=>m.quartz)&&!(Q(p).rocks>0||dueFirst(p)||DEMO))W.mobs=W.mobs.filter(m=>!m.quartz);return;}
+ if(!W.mobs.some(m=>m.quartz))spawn();else walk(performance.now());}catch(e){}},450);
+
+if(/quartzdemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&curScreen==='world'){clearInterval(iv);DEMO=true;toast('🔬 Dr. Quartz preview: he\'s on his way…');}}catch(e){}},500);}
+
+/* ---------- the cave screen ---------- */
+function openCave(p){Cave.open(host(p));}
+
+/* ---------- styles ---------- */
+const st=document.createElement('style');st.textContent=`.qz-row{display:flex;gap:12px;align-items:flex-start;text-align:left}.qz-av{flex:0 0 96px}.qz-av svg{width:96px;height:116px}
+.qz-bub{flex:1;background:#e7f5ff;border:3px solid #74c0fc;border-radius:18px;padding:10px 14px;font-size:18px;line-height:1.45;color:#1f2340}.qz-bub>b{display:block;color:#1971c2;font-size:14px;margin-bottom:2px}
+@media(max-width:560px){.qz-av{flex-basis:70px}.qz-av svg{width:70px;height:85px}.qz-bub{font-size:16px}}`;document.head.appendChild(st);
+
+window.Quartz={openCave,meet,drop,DROP_HTML,draw,bagHTML,medals,rockMineral,GATE_NEED,DROP,_Q:Q,_spawn:spawn,_demo:()=>{DEMO=true;},startTrip};
+})();

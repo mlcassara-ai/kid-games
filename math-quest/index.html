@@ -652,7 +652,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -2142,12 +2142,12 @@ function winBattle(){
  const gangN=(B.foes||[]).length;if(gangN>1)bonus+=25*(gangN-1);
  p.coins+=bonus;B.coins+=bonus;B.xp+=(B.isBoss?60:20)+(gangN>1?15*(gangN-1):0);questEvent(p,'win',1);if(B.isBoss)questEvent(p,'boss',1);if(B.isBoss&&first&&!B.asc)questEvent(p,'medal',R);
  const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1)*(p.pets.length>=20?.5:1);const egg=Math.random()<chance;if(egg){p.eggs++;if(petPerk(p)==='lucky'&&!(B.isBoss&&first))petCredit(p,'egg',1);}
- p.battles++;const up=endBattleBook();save();
+ p.battles++;B.rock=!!(window.Quartz&&Quartz.drop(B.isBoss&&first?'boss':'win'));const up=endBattleBook();save();
  const z=B.z.id,i=B.i;
  setTimeout(()=>{
   B.endModal=()=>`<div class="mcard"><div class="big-emoji">🏆</div><h2>Victory!</h2><p>You beat ${(B.foes||[]).length>1?`<b>the whole gang</b> ${B.foes.map(f=>f.e).join('')}`:`<b>${esc(B.name)}</b>`}!${B.best>=3?` Best streak: 🔥${B.best}`:''}</p>
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
-  <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>${bestLine}
+  <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}${B.rock?Quartz.DROP_HTML:''}</div>${bestLine}
   ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${regHave(p)<REG_PETS.length||p.eggs?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
   ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${petMilestones(p).length?`<button class="btn gold" style="margin-top:10px" onclick="offerPet()">🎁 Choose your new pet buddy!</button>`:''}${downsNote()}
   ${B.isBoss&&first&&R===1?`<p><b>👑 You freed ${B.z.name}!</b>${B.z.id!=='tower'&&bossesBeaten(p)===2?' The Chaos Tower is now open!':''}</p>`:''}
@@ -2190,7 +2190,7 @@ SCREENS.backpack=()=>{
  app.innerHTML=topbar()+`<div class="page"><h2 class="title">🎒 Backpack &amp; Shop</h2><div class="bp">
  <div class="bp-hero"><div class="hv">${heroSVG(p.look,{spell:p.spell})}${pet?`<div class="bp-pet">${pet.e}</div>`:''}</div>
   <div class="bp-stats"><b style="font-size:20px">${esc(p.name)}</b><br>Level ${p.level} · ❤️ ${heroMax(p)} HP<br>Spell: ${sp.e} ${sp.name}<br>${pet?`Pet: ${pet.e} ${pet.name}<br><small>${PERKS[pet.perk]}</small>`:'No pet yet'}</div>
-  <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}${typeof eagleHoardHTML==='function'?eagleHoardHTML(p):''}
+  <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}${typeof eagleHoardHTML==='function'?eagleHoardHTML(p):''}${window.Quartz?Quartz.bagHTML(p):''}
  <div>
   ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
   ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
@@ -2507,7 +2507,7 @@ function wFrame(now){
  // tween hero
  if(W.moving){const k=Math.min(1,(now-W.mt)/140);W.drawX=W.fx+(W.hx-W.fx)*k;W.drawY=W.fy+(W.hy-W.fy)*k;}else{W.drawX=W.hx;W.drawY=W.hy;}
  // mobs wander
- if(now-W.mobT>900){W.mobT=now;principalCheckLeave();W.mobs.forEach(m=>{if(Math.random()<(m.principal?.65:.5))return;const [dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]);const nx=m.x+dx,ny=m.y+dy;const t=W.T[ny]&&W.T[ny][nx];
+ if(now-W.mobT>900){W.mobT=now;principalCheckLeave();W.mobs.forEach(m=>{if(m.quartz)return;if(Math.random()<(m.principal?.65:.5))return;const [dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]);const nx=m.x+dx,ny=m.y+dy;const t=W.T[ny]&&W.T[ny][nx];
   if(!t||t.block||t.water||(!m.principal&&(t.plaza||t.b!==m.b))||W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;
   if(m.x===W.hx&&m.y===W.hy&&!$('#modal.show'))setTimeout(()=>wFight(m),50);});}
  const [cx,cy]=wCam();
@@ -2528,7 +2528,7 @@ function wFrame(now){
   if(t.chest){const done=wChestOpen(t.chest);items.push({y,draw:()=>{ctx.globalAlpha=done?.45:1;const bob=done?0:Math.sin(now/300)*2;ctx.drawImage(wSprite(done?'📦':'🎁',Math.round(ts*.75)),sx+ts*.1,sy+ts*.05+bob,ts*.8,ts*.8);ctx.globalAlpha=1;
    if(!done&&(Math.floor(now/400)%2)){ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.6,sy-ts*.1,ts*.4,ts*.4);}}});}}
  W.mobs.forEach(m=>{if(m.x<x0-1||m.x>x1+1||m.y<y0-1||m.y>y1+1)return;let mx=m.x,my=m.y;if(m.mt&&now-m.mt<300){const k=(now-m.mt)/300;mx=m.fx+(m.x-m.fx)*k;my=m.fy+(m.y-m.fy)*k;}
-  const sx=mx*ts-cx,sy=my*ts-cy;if(m.principal){items.push({y:my+.01,draw:()=>{ctx.fillStyle='rgba(255,215,0,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.88,ts*.5,ts*.16,0,0,7);ctx.fill();const im=prImg();const hh=ts*1.45,ww=hh*100/150;if(im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*.95-hh+Math.sin(now/300)*1.5,ww,hh);else{const s=ts*1.15;ctx.drawImage(wSprite('👨‍💼',Math.round(ts*1.1)),sx+ts/2-s/2,sy+ts*.95-s,s,s);}if(Math.floor(now/450)%2)ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.75,sy-ts*.3,ts*.4,ts*.4);wLabel(ctx,'🎓 Principal Wise',sx+ts/2,sy-ts*.42,'#fff','rgba(31,45,92,.92)');}});return;}items.push({y:my+.01,draw:()=>{ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.88,ts*.32,ts*.1,0,0,7);ctx.fill();ctx.drawImage(wSprite(m.e,Math.round(ts*.85)),sx+ts*.06,sy+ts*.02+Math.sin(now/250+m.x)*2,ts*.88,ts*.88);}});});
+  const sx=mx*ts-cx,sy=my*ts-cy;if(m.quartz&&window.Quartz){items.push({y:my+.01,draw:()=>Quartz.draw(ctx,sx,sy,ts,now)});return;}if(m.principal){items.push({y:my+.01,draw:()=>{ctx.fillStyle='rgba(255,215,0,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.88,ts*.5,ts*.16,0,0,7);ctx.fill();const im=prImg();const hh=ts*1.45,ww=hh*100/150;if(im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*.95-hh+Math.sin(now/300)*1.5,ww,hh);else{const s=ts*1.15;ctx.drawImage(wSprite('👨‍💼',Math.round(ts*1.1)),sx+ts/2-s/2,sy+ts*.95-s,s,s);}if(Math.floor(now/450)%2)ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.75,sy-ts*.3,ts*.4,ts*.4);wLabel(ctx,'🎓 Principal Wise',sx+ts/2,sy-ts*.42,'#fff','rgba(31,45,92,.92)');}});return;}items.push({y:my+.01,draw:()=>{ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.88,ts*.32,ts*.1,0,0,7);ctx.fill();ctx.drawImage(wSprite(m.e,Math.round(ts*.85)),sx+ts*.06,sy+ts*.02+Math.sin(now/250+m.x)*2,ts*.88,ts*.88);}});});
  // pet + hero
  const p=P();const pet=petOf(p);
  if(pet){W.petX=W.petX===undefined?W.drawX:W.petX+(W.px+(W.drawX-W.px)*0-W.petX)*.12;W.petY=W.petY===undefined?W.drawY:W.petY+(W.py-W.petY)*.12;
@@ -2643,6 +2643,7 @@ let PR_STATE=null;
 function principalMeet(){
  const p=P();p.prSpawnAt=null;if(!W)return;W.path=[];W.mobs=W.mobs.filter(m=>!m.principal);p.wpos={x:W.hx,y:W.hy};
  PR_STATE={lines:principalLines(p),i:0};SFX.level();go('office');}
+SCREENS.cave=()=>{const p=P();app.innerHTML='<div style="position:fixed;inset:0;background:#120b16"></div>';if(!window.Cave||!window.Quartz){go('world');return;}Quartz.openCave(p);};
 SCREENS.office=()=>{
  const p=P();if(!PR_STATE)PR_STATE={lines:principalLines(p),i:0};
  app.innerHTML=`<div class="office"><div class="office-scene">${officeSVG(p)}</div>
@@ -3089,7 +3090,7 @@ function libNext(){const C=LIB;C.i++;C.tries=0;C.picked=null;C.reveal=false;C.wh
   const moved=libAdjust(L,sc);questEvent(p,'story',1);questEvent(p,'rstars',C.stars);if(moved>0)questEvent(p,'readlv',1);C.lvMsg=moved>0?`📈 Reading Level up! You're now at <b>Level ${libLevel(p)}</b>. Longer stories ahead!`:moved<0?`🦉 Professor Hoot picked some slightly shorter stories for a little while.`:'';
   const w=wkOf(p);w.readPts=(w.readPts||0)+C.pts;w.stories=(w.stories||0)+1;p.readLog=p.readLog||[];p.readLog.push({d:dayKey(),t:C.s.t,s:C.stars,n:NQ,lv:C.s.lv});if(p.readLog.length>40)p.readLog.shift();}
  save();SFX.win();go('library');}
-function wFight(m){if(m&&m.principal){principalMeet();return;}if(!W||curScreen!=='world'||$('#modal.show'))return;W.path=[];W.mobs=W.mobs.filter(o=>o!==m);const b=m.b;setTimeout(()=>{if(W)wSpawn(b);},20000);
+function wFight(m){if(m&&m.principal){principalMeet();return;}if(m&&m.quartz){if(window.Quartz)Quartz.meet();return;}if(!W||curScreen!=='world'||$('#modal.show'))return;W.path=[];W.mobs=W.mobs.filter(o=>o!==m);const b=m.b;setTimeout(()=>{if(W)wSpawn(b);},20000);
  SFX.tap();startBattle(m.zid,0,null,{wild:true,n:m.n,e:m.e});}
 function wGate(zid){const z=ZONES.find(x=>x.id===zid);const p=P();if(zoneLocked(z,p)){toast('🔒 '+z.lockMsg);return;}p.wpos={x:W.hx,y:W.hy};save();SFX.tap();go('zone',zid);}
 const ELDER_TIPS=['Get 3 right in a row to charge up a 🔥 Fireball!','A happy, well-fed pet hits harder in battle!','Wild monsters roam every land. Bump into one for a quick battle!','Every land hides a 🎁 treasure. Answer the lock to open it, once a day!','Beat a boss and monsters start showing up in gangs. Be ready!','Legendary pets are super rare. Keep hatching eggs!','Check the 📜 Leaderboard to see how your family is doing!'];
@@ -3129,6 +3130,7 @@ function wChestTry(){const p=P();const {q,k}=W.chestQ||{};if(!q)return;const v=p
  if(!p.chests||p.chests.d!==dayKey())p.chests={d:dayKey(),open:[]};p.chests.open.push(k);p.treasures=(p.treasures||0)+1;wkBump(p,'chest');
  const r=Math.random();let prize;
  if(r<.1){p.eggs++;prize='🥚 A mystery egg!';}else if(r<.35){const f=pick(PET_FOODS);p.pantry[f.id]=(p.pantry[f.id]||0)+2;prize=`${f.e}${f.e} Two ${f.name}s for your pet!`;}else{const c=rnd(20,45);p.coins+=c;prize=`🪙 ${c} coins!`;}
+ if(window.Quartz&&Quartz.drop('chest'))prize+='<br>🪨 …and a Mystery Rock! Dr. Quartz will want to see this.';
  save();SFX.win();modal(`<div class="mcard"><div class="big-emoji">🎉</div><h2>Unlocked!</h2><p style="font-size:20px"><b>${prize}</b></p><p class="muted">Treasures found: ${p.treasures}</p><button class="btn green big" onclick="closeModal();go('world')">Yay!</button></div>`);}
 /* wild battles (from exploring) */
 function wildWin(){
@@ -3136,9 +3138,9 @@ function wildWin(){
  const bonus=10+rnd(0,10);p.coins+=bonus;B.coins+=bonus;B.xp+=15;const egg=Math.random()<(petPerk(p)==='lucky'?.08:.04);if(egg){p.eggs++;if(petPerk(p)==='lucky')petCredit(p,'egg',1);}
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
  let questDone=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length)p.eggs++;else{p.coins+=150;B.coins+=150;}}
- p.wild=(p.wild||0)+1;p.battles++;const up=endBattleBook();save();
+ p.wild=(p.wild||0)+1;p.battles++;const rock=!!(window.Quartz&&Quartz.drop('wild'));const up=endBattleBook();save();
  setTimeout(()=>{modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>You beat the wild ${esc(B.name)}!</h2>
-  <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}</div>
+  <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}${rock?Quartz.DROP_HTML:''}</div>
   ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! +1 mystery egg 🥚</div>`:''}${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${downsNote()}
   <div class="row"><button class="btn green big" onclick="closeModal();go('world')">Keep exploring 🧭</button></div></div>`);},800);
 }
