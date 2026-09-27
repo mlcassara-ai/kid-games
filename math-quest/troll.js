@@ -30,7 +30,7 @@ if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();
 
 /* ---------- things the troll can take / give back ---------- */
 function takeable(p){const out=[];
- if((p.coins||0)>=30)out.push({k:'coins',v:Math.max(20,Math.min(400,Math.round(p.coins*.2)))});
+ if((p.coins||0)>=5)out.push({k:'coins',v:Math.min(p.coins,Math.max(5,Math.min(400,Math.round(p.coins*.2))))});
  (p.pets||[]).filter(id=>id!==p.pet).forEach(id=>out.push({k:'pet',id}));
  const ow=p.owned||{};
  (ow.hats||[]).filter(id=>id!==(p.look&&p.look.hat)&&(HATS.find(h=>h.id===id)||{}).price>0).forEach(id=>out.push({k:'hat',id}));
