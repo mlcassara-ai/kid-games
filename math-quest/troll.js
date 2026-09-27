@@ -177,7 +177,7 @@ const CSS=`
 .tr-bubble::after{content:'';position:absolute;right:30%;bottom:-18px;border:12px solid transparent;border-top:14px solid #fffaf0}
 .tr-bubble b.tr-name{display:block;color:#6b4a2b;font-size:.8em;margin-bottom:2px}
 .tr-q{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));width:min(430px,94vw);background:rgba(20,12,30,.94);border:3px solid #6b5a8a;border-radius:18px;padding:10px;z-index:20;text-align:center}
-.tr-qt{font-size:clamp(24px,5vw,36px);font-weight:700;margin:4px 0 8px}.tr-qt .ansbox{display:inline-block;min-width:70px;border-bottom:3px solid #ffd43b;color:#ffd43b}
+.tr-qt{font-size:clamp(24px,5vw,36px);font-weight:700;margin:4px 0 8px}.tr-qt .xq{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}.tr-qt .xprompt{font-size:.55em;color:#e8e0ff;font-weight:500}.tr-qt .xline{font-size:.9em}.tr-qt svg{max-height:120px;background:#fff;border-radius:10px}.tr-qt sup{font-size:.6em;vertical-align:super;line-height:0}.tr-qt .ansbox{display:inline-block;min-width:70px;border-bottom:3px solid #ffd43b;color:#ffd43b}
 .tr-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.tr-pad button.go{grid-column:span 3}.tr-pad button{background:#3a2d55;color:#fff;border:none;border-radius:12px;font:700 22px Fredoka,sans-serif;padding:9px 0}
 .tr-pad button.go{background:#2ecc71}.tr-pad button.neg{visibility:hidden}.tr-pad.negon button.neg{visibility:visible}
 .tr-dots{display:flex;gap:6px;justify-content:center;margin-bottom:4px}.tr-dots i{width:14px;height:14px;border-radius:50%;background:#555}.tr-dots i.ok{background:#2ecc71}.tr-dots i.no{background:#ff5a5f}.tr-dots i.cur{background:#ffd43b}
@@ -261,7 +261,7 @@ async function start(){
  // 7. three questions
  const res=[];const took=[],gave=[];
  for(let i=0;i<3;i++){
-  const q=makeQ(p);
+  const q=makeQ(p,i);
   const ok=await ask(stage,bub,q,i,res);res.push(ok);
   const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
   if(ok){snd(660,.12,'triangle',.12);snd(990,.2,'triangle',.12,.08);
@@ -269,7 +269,7 @@ async function start(){
    await say(bub,g?`Hmph! Correct. Fine… here's ${label(g)} back.`:['Grrr… that is… CORRECT!','Right again?! Hmph.','Correct! How are you so SMART?'][i],900);}
   else{snd(240,.18,'sine',.1);snd(190,.25,'sine',.1,.12);
    let tk=null;if(!first)tk=take(p);if(tk){took.push(tk);stage.appendChild(el(`<div class="tr-stolen">${esc(label(tk))} ➜ 🧌</div>`));}
-   await say(bub,`WRONG! It was ${q.answer}. ${tk?`I'll keep ${label(tk)}! HAR HAR!`:'…but I\'ll give you credit for trying.'}`,1100);}
+   await say(bub,`WRONG! It was ${q.tpl&&typeof xAnsStr==='function'?xAnsStr(q):q.answer}. ${tk?`I'll keep ${label(tk)}! HAR HAR!`:'…but I\'ll give you credit for trying.'}`,1100);}
   save();
  }
  // 8. release
@@ -305,17 +305,18 @@ async function start(){
  try{if(typeof toast==='function')toast(`🧌 You escaped ${TNAME}'s cave! ${right}/3 right.${summary?' '+summary:''}`);}catch(e){}
  try{if(typeof go==='function'&&curScreen==='world')go('world');}catch(e){}
 }
-function makeQ(p){let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');q=genQ(op,lvl(p,op));if(q&&!q.tpl)break;}return q;}
+/* troll questions are HARD: one level above the kid's current level (two above for the last question) */
+function makeQ(p,i){let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');const L=Math.min(maxLv(op),lvl(p,op)+(i===2?2:1));q=genQ(op,L);if(q){q.trollL=L;break;}}return q;}
 function ask(stage,bub,q,i,res){return new Promise(async resolve=>{
  await say(bub,['Question ONE!','Question TWO!','Last question… THREE!'][i],200,true);
  let inp='';const box=el(`<div class="tr-q"><div class="tr-dots">${[0,1,2].map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-qt"></div>
   <div class="tr-pad ${q.neg?'negon':''}">${['7','8','9','4','5','6','1','2','3','neg','0','del','go'].map(k=>`<button data-k="${k}" class="${k==='go'?'go':k==='neg'?'neg':''}">${k==='del'?'⌫':k==='go'?'✓ Answer':k==='neg'?'±':k}</button>`).join('')}</div></div>`);
- stage.appendChild(box);const qt=box.querySelector('.tr-qt');const show=()=>{qt.innerHTML=`${q.text} = <span class="ansbox">${inp||'?'}</span>`;};show();
+ stage.appendChild(box);const qt=box.querySelector('.tr-qt');const show=()=>{if(q.tpl){const box=`<span class="ansbox">${typeof xInpFmt==='function'?xInpFmt(q,inp):(inp||'?')}</span>`;qt.innerHTML=`<div class="xq">${q.vis&&typeof visHTML==='function'?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div></div></div>`;}else qt.innerHTML=`${q.text} = <span class="ansbox">${inp||'?'}</span>`;};show();
  const press=k=>{if(k==='del')inp=inp.slice(0,-1);else if(k==='neg')inp=inp.startsWith('-')?inp.slice(1):'-'+inp;else if(k==='go'){if(!inp||inp==='-')return;finish();return;}else if(inp.length<7)inp=inp==='0'?k:inp+k;show();};
  const key=e=>{if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('del');else if(e.key==='-')press('neg');else if(e.key==='Enter')press('go');};
  window.addEventListener('keydown',key);
  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{try{SFX.tap();}catch(e){}press(b.dataset.k);});
  const finish=()=>{window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));box.remove();resolve(ok);};
 });}
-window.Troll={start,_T:T,_take:take,_give:giveBack,unmarked};
+window.Troll={start,_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
 })();
