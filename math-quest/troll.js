@@ -12,7 +12,9 @@ window.trollBusy=false;
 function T(p){p.troll=p.troll||{};const t=p.troll;t.visits=t.visits||0;t.hoard=t.hoard||[];t.play=t.play||0;return t;}
 /* about a 1-in-3 chance per hour of play: each hour of play time gets one roll; if it hits, the trap waits at a random moment in that hour
    and springs on the next unmarked square you step on after that moment */
-const HOUR=3600,CHANCE=1/3;
+const HOUR=3600,CHANCE=.4;
+/* open sky biomes belong to the Giant Eagle; everywhere else (outside the village) is troll country */
+const EAGLE_BIOMES=['farm','market','temple','mesa','summit','reef'];
 function roll(t){const w=Math.floor(t.play/HOUR);if(t.win!==w){t.win=w;t.at=Math.random()<CHANCE?w*HOUR+Math.random()*HOUR:null;}}
 setInterval(()=>{try{const p=P();if(!p||document.hidden||!p.setup)return;const idle=typeof tbLastInput!=='undefined'?Date.now()-tbLastInput:0;if(idle>90000)return;const t=T(p);t.play+=10;roll(t);}catch(e){}},10000);
 /* unmarked squares: plain ground or path in the wild — no decorations, buildings, gates, chests, water, village */
@@ -23,7 +25,9 @@ window.trollCheck=function(tile){
  if(!unmarked(tile))return false;
  const t=T(p);roll(t);
  if(!t.force&&(t.at==null||t.play<t.at))return false;
- t.at=null;t.force=0;save();start();return true;};
+ t.at=null;const fe=t.forceEagle;t.force=0;t.forceEagle=0;save();
+ if(window.Eagle&&(fe||(!DEMO&&EAGLE_BIOMES.includes(tile.b)))){Eagle.start();return true;}
+ start();return true;};
 /* ?trolldemo in the URL: the next unmarked step drops you in, and afterwards everything is put back exactly as it was (for parents to preview) */
 let DEMO=null;
 if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup){clearInterval(iv);DEMO=JSON.stringify({troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily});T(p).force=1;if(typeof toast==='function')toast('🧌 Troll preview: take a step on an empty square…');}}catch(e){}},500);}
@@ -46,15 +50,15 @@ function label(it){
  if(it.k==='spell'){const x=SPELLS.find(q=>q.id===it.id)||{e:'✨',name:'spell'};return `${x.e} your ${x.name} spell`;}
  if(it.k==='toy'){const x=(typeof PET_TOYS!=='undefined'&&PET_TOYS.find(q=>q.id===it.id))||{e:'🧸',name:'toy'};return `${x.e} your ${x.name}`;}
  return 'something';}
-function take(p){const opts=takeable(p);if(!opts.length)return null;
+function take(p,holder,kinds){holder=holder||T(p);const opts=takeable(p).filter(o=>!kinds||kinds.includes(o.k));if(!opts.length)return null;
  // favour coins & toys a bit; pets are rarer so it doesn't sting too much
  const w=opts.map(o=>o.k==='coins'?4:o.k==='pet'?1:2);let r=Math.random()*w.reduce((a,b)=>a+b,0);let it=opts[0];for(let i=0;i<opts.length;i++){r-=w[i];if(r<=0){it=opts[i];break;}}
  if(it.k==='coins')p.coins-=it.v;
  else if(it.k==='pet')p.pets=p.pets.filter(x=>x!==it.id);
  else if(it.k==='toy')p.toys.splice(p.toys.indexOf(it.id),1);
  else{const key=it.k+'s';p.owned[key]=p.owned[key].filter(x=>x!==it.id);}
- T(p).hoard.push(it);return it;}
-function giveBack(p){const t=T(p);const it=t.hoard.pop();if(!it)return null;
+ holder.hoard.push(it);return it;}
+function giveBack(p,holder){const t=holder||T(p);const it=t.hoard.pop();if(!it)return null;
  if(it.k==='coins')p.coins=(p.coins||0)+it.v;
  else if(it.k==='pet'){if(!p.pets.includes(it.id))p.pets.push(it.id);}
  else if(it.k==='toy')p.toys.push(it.id);
@@ -186,6 +190,8 @@ const CSS=`
 .tr-grab{top:34%;left:0;right:auto;width:50%;z-index:14;font-size:clamp(34px,8vw,60px);color:#ffd43b;animation:trpop .4s ease-out}
 .tr-whee{top:12%;left:0;right:auto;width:55%;z-index:14;font-size:clamp(34px,8vw,64px);color:#8fd3ff;animation:trwob .3s infinite alternate}
 .tr-next{display:block;margin:8px 0 0 auto;background:#6b4a2b;color:#fff;border:none;border-radius:12px;padding:7px 16px;font:700 16px Fredoka,sans-serif;cursor:pointer;animation:trnext 1.2s infinite}@keyframes trnext{50%{transform:translateX(4px)}}
+.tr-story{font-size:clamp(16px,2.8vw,20px);line-height:1.35;margin:2px 4px 6px;color:#fff}.tr-ansl{font-size:.6em;color:#cbbfe6}
+.tr-feather{display:block;width:100%;margin-top:6px;background:linear-gradient(90deg,#ffd43b,#ffec99);color:#5a3b00;border:none;border-radius:12px;padding:8px;font:700 14px Fredoka,sans-serif;cursor:pointer}
 .tr-hoardbox{background:#2b2140;color:#fff;border-radius:14px;padding:10px 12px;margin:10px 0;font-size:14px}.tr-hoardbox small{color:#cbbfe6}
 .tr-stolen{position:absolute;left:18%;bottom:30%;z-index:13;font-size:clamp(18px,3vw,26px);font-weight:700;background:#ff5a5f;border-radius:14px;padding:6px 12px;animation:trsteal 1.6s ease-in forwards}
 @keyframes trsteal{60%{transform:translate(0,-40px)}100%{transform:translate(55vw,-10vh) scale(.4);opacity:0}}
@@ -194,14 +200,15 @@ const CSS=`
 @media(max-width:600px){.tr-trollbox{width:86%;height:74%;bottom:18%;right:-30%}.tr-trollbox.tr-behind{left:-26%;right:auto}.tr-bubble{width:62%;right:3%;top:4%}.tr-herobox{height:13%;left:6%;bottom:18%}.tr-cage{left:2%;bottom:16.5%;height:20%}}
 `;
 
+(function(){const s=document.createElement('style');s.id='trCSS';s.textContent=CSS;document.head.appendChild(s);})();
 /* ---------- helpers ---------- */
 function el(html){const d=document.createElement('div');d.innerHTML=html;return d.firstElementChild;}
 function snd(f,d,t,v,w){try{tone(f,d,t||'sine',v||.12,w||0);}catch(e){}}
-function tapWait(btnText,box,cls){return new Promise(res=>{const t=el(`<div class="tr-text">${box}${btnText?`<div><button class="tr-btn ${cls||''}">${btnText}</button></div>`:''}</div>`);root.appendChild(t);
+function tapWait(btnText,box,cls,host){return new Promise(res=>{const t=el(`<div class="tr-text">${box}${btnText?`<div><button class="tr-btn ${cls||''}">${btnText}</button></div>`:''}</div>`);(host||root).appendChild(t);
  const b=t.querySelector('button');const done=()=>{t.remove();res();};if(b)b.onclick=done;else{t.onclick=done;}
  if(skip)done();});}
 /* the troll talks: text types out (tap to finish it), then a Next button waits for the kid — nothing rushes by */
-async function say(bub,text,ms,noNext){bub.style.display='';bub.innerHTML=`<b class="tr-name">🧌 ${TNAME}</b>`;const span=document.createElement('span');bub.appendChild(span);const st=root.querySelector('.tr-stage');st.classList.add('tr-talk');
+async function say(bub,text,ms,noNext,who){bub.style.display='';bub.innerHTML=`<b class="tr-name">${who||'🧌 '+TNAME}</b>`;const span=document.createElement('span');bub.appendChild(span);const st=bub.closest('.tr-stage')||bub.parentNode;st.classList.add('tr-talk');
  let fast=false;bub.onclick=()=>{fast=true;};
  for(let i=0;i<text.length&&!fast;i+=2){span.textContent=text.slice(0,i+2);await sleep(30);}span.textContent=text;st.classList.remove('tr-talk');bub.onclick=null;
  if(noNext){if(ms)await sleep(ms);return;}
@@ -213,7 +220,6 @@ function growl(){snd(90,.5,'sawtooth',.09);snd(70,.6,'sawtooth',.08,.15);}
 /* ---------- the sequence ---------- */
 async function start(){
  const p=P();const t=T(p);busy=true;window.trollBusy=true;skip=false;
- if(!document.getElementById('trCSS')){const s=document.createElement('style');s.id='trCSS';s.textContent=CSS;document.head.appendChild(s);}
  root=el('<div class="tr-root"><div class="tr-fade on"></div></div>');document.body.appendChild(root);
  const first=!t.visits||!!DEMO;
  if(!first){const sk=el('<button class="tr-skip">Skip ▸▸</button>');sk.onclick=()=>{skip=true;sk.remove();};root.appendChild(sk);}
@@ -261,8 +267,8 @@ async function start(){
  // 7. three questions
  const res=[];const took=[],gave=[];
  for(let i=0;i<3;i++){
-  const q=makeQ(p,i);
-  const ok=await ask(stage,bub,q,i,res);res.push(ok);
+  let q=makeQ(p,i);
+  const ans=await ask(stage,bub,q,i,res,{easier:()=>makeQ(p,i,0)});const ok=ans.ok;q=ans.q;res.push(ok);
   const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
   if(ok){snd(660,.12,'triangle',.12);snd(990,.2,'triangle',.12,.08);
    let g=null;if(!first)g=giveBack(p);if(g){gave.push(g);stage.appendChild(el(`<div class="tr-given">${esc(label(g))} ↩</div>`));}
@@ -299,24 +305,27 @@ async function start(){
  const wh=el('<div class="tr-big tr-whee">WHEEEEE!</div>');stage.appendChild(wh);[400,550,700,900,1100].forEach((f,k)=>snd(f,.25,'triangle',.08,k*.12));
  await sleep(600);bub.style.display='';bub.innerHTML=`<b class="tr-name">🧌 ${TNAME}</b>Bye bye, little friend! 👋 Watch your step!`;tbox.style.transform=`translateX(-${dx}px)`;
  await sleep(1700);fade.classList.add('on');await sleep(700);
- root.remove();root=null;busy=false;window.trollBusy=false;
+ root.remove();root=null;busy=false;window.trollBusy=false;skip=false;
  if(DEMO){const s=JSON.parse(DEMO);DEMO=null;Object.assign(p,{coins:s.coins,pets:s.pets,owned:s.owned,toys:s.toys,daily:s.daily});if(s.troll)p.troll=s.troll;else delete p.troll;save();try{toast('🧌 That was a preview — nothing was changed.');go('world');}catch(e){}return;}
  const summary=[took.length?`🧌 The troll kept: ${took.map(label).join(', ')}`:'',gave.length?`↩ You won back: ${gave.map(label).join(', ')}`:''].filter(Boolean).join(' · ');
  try{if(typeof toast==='function')toast(`🧌 You escaped ${TNAME}'s cave! ${right}/3 right.${summary?' '+summary:''}`);}catch(e){}
  try{if(typeof go==='function'&&curScreen==='world')go('world');}catch(e){}
 }
 /* troll questions are HARD: one level above the kid's current level (two above for the last question) */
-function makeQ(p,i){let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');const L=Math.min(maxLv(op),lvl(p,op)+(i===2?2:1));q=genQ(op,L);if(q){q.trollL=L;break;}}return q;}
-function ask(stage,bub,q,i,res){return new Promise(async resolve=>{
- await say(bub,['Question ONE!','Question TWO!','Last question… THREE!'][i],200,true);
- let inp='';const box=el(`<div class="tr-q"><div class="tr-dots">${[0,1,2].map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-qt"></div>
+function makeQ(p,i,up){let q=null;for(let k=0;k<12;k++){const op=pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+(up!=null?up:(i===2?2:1))));q=genQ(op,L);if(q){q.trollL=L;break;}}return q;}
+function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
+ await say(bub,(o.intro||['Question ONE!','Question TWO!','Last question… THREE!'])[i],200,true,o.who);const p=P();
+ let inp='';const box=el(`<div class="tr-q">${o.story?'<div class="tr-story"></div>':''}<div class="tr-dots">${[0,1,2].map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-qt"></div>
   <div class="tr-pad ${q.neg?'negon':''}">${['7','8','9','4','5','6','1','2','3','neg','0','del','go'].map(k=>`<button data-k="${k}" class="${k==='go'?'go':k==='neg'?'neg':''}">${k==='del'?'⌫':k==='go'?'✓ Answer':k==='neg'?'±':k}</button>`).join('')}</div></div>`);
- stage.appendChild(box);const qt=box.querySelector('.tr-qt');const show=()=>{if(q.tpl){const box=`<span class="ansbox">${typeof xInpFmt==='function'?xInpFmt(q,inp):(inp||'?')}</span>`;qt.innerHTML=`<div class="xq">${q.vis&&typeof visHTML==='function'?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div></div></div>`;}else qt.innerHTML=`${q.text} = <span class="ansbox">${inp||'?'}</span>`;};show();
+ stage.appendChild(box);const qt=box.querySelector('.tr-qt');const st=box.querySelector('.tr-story');
+ const featherBtn=()=>{const f=box.querySelector('.tr-feather');if(f)f.remove();if((p.feathers||0)>0&&o.easier&&!q.feathered){const b=el(`<button class="tr-feather">🪶 Use a Golden Feather — make this one easier (${p.feathers} left)</button>`);b.onclick=()=>{p.feathers--;q=o.easier();q.feathered=true;inp='';save();try{snd(1200,.3,'triangle',.08);}catch(e){}featherBtn();show();box.querySelector('.tr-pad').classList.toggle('negon',!!q.neg);};box.appendChild(b);}};
+ const show=()=>{window.__surpriseQ=q;if(st)st.innerHTML=q.story||'';if(q.story){qt.innerHTML=`<span class="tr-ansl">Answer:</span> <span class="ansbox">${inp||'?'}</span>`;return;}if(q.tpl){const box=`<span class="ansbox">${typeof xInpFmt==='function'?xInpFmt(q,inp):(inp||'?')}</span>`;qt.innerHTML=`<div class="xq">${q.vis&&typeof visHTML==='function'?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div></div></div>`;}else qt.innerHTML=`${q.text} = <span class="ansbox">${inp||'?'}</span>`;};show();
  const press=k=>{if(k==='del')inp=inp.slice(0,-1);else if(k==='neg')inp=inp.startsWith('-')?inp.slice(1):'-'+inp;else if(k==='go'){if(!inp||inp==='-')return;finish();return;}else if(inp.length<7)inp=inp==='0'?k:inp+k;show();};
  const key=e=>{if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('del');else if(e.key==='-')press('neg');else if(e.key==='Enter')press('go');};
- window.addEventListener('keydown',key);
- box.querySelectorAll('button').forEach(b=>b.onclick=()=>{try{SFX.tap();}catch(e){}press(b.dataset.k);});
- const finish=()=>{window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));box.remove();resolve(ok);};
+ window.addEventListener('keydown',key);featherBtn();
+ box.querySelectorAll('.tr-pad button').forEach(b=>b.onclick=()=>{try{SFX.tap();}catch(e){}press(b.dataset.k);});
+ const finish=()=>{window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));box.remove();resolve({ok,q});};
 });}
 window.Troll={start,_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
+window.Surprise={say,tapWait,ask,label,take,giveBack,el,sleep,snd,makeQ,EAGLE_BIOMES,heroHTML,isDemo:()=>!!DEMO};
 })();

@@ -652,7 +652,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -2189,7 +2189,7 @@ SCREENS.backpack=()=>{
  app.innerHTML=topbar()+`<div class="page"><h2 class="title">🎒 Backpack &amp; Shop</h2><div class="bp">
  <div class="bp-hero"><div class="hv">${heroSVG(p.look,{spell:p.spell})}${pet?`<div class="bp-pet">${pet.e}</div>`:''}</div>
   <div class="bp-stats"><b style="font-size:20px">${esc(p.name)}</b><br>Level ${p.level} · ❤️ ${heroMax(p)} HP<br>Spell: ${sp.e} ${sp.name}<br>${pet?`Pet: ${pet.e} ${pet.name}<br><small>${PERKS[pet.perk]}</small>`:'No pet yet'}</div>
-  <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}
+  <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}${typeof eagleHoardHTML==='function'?eagleHoardHTML(p):''}
  <div>
   ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
   ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
