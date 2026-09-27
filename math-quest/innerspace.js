@@ -1,0 +1,365 @@
+/* INNER SPACE — the shrinking ride.
+   • Dr. Quartz hands you a 🎟️ SHRINK TICKET at the end of every Science Cave trip.
+   • A few battles later, Ride Operator OZZY drives the Atom-Mobile onto the map and comes to pick you up (no door — like Dr. Quartz).
+   • The ride: shrink → inside the substance → one molecule → inside an atom → build it → the giant eye → quiz.
+   • Quiz points become coins; each ride fills a card in your 📖 Molecule Album (saved with your hero). All 8 cards = the 🥼 Lab Coat robe.
+   Text is written for 3 grade bands (K–4, 5–8, 9–12).
+   Uses Math Quest globals: P(), save(), toast(), go(), curScreen, W, heroSVG, dayKey, esc, modal, closeModal, tone, SFX, wLabel. */
+(function(){
+'use strict';
+const D=window.IS_DATA;if(!D)return;const EL=D.EL;
+const TIX_MAX=3;           // tickets you can hold
+const WAIT_BATTLES=3;      // Ozzy waits until you've done a few more battles after the cave (math stays the main game)
+const SNOOZE_MS=8*60e3;    // "Not now" → he comes back later
+const FIRST_BONUS=25;      // coins for a brand-new album card
+const PRIZE_COINS=300;     // album complete bonus (plus the Lab Coat robe)
+const MINERAL_RIDE={halite:'salt',gold:'gold',diamond:'diamond'}; // cave minerals that have their own ride
+const ORDER=['water','salt','o2','co2','ch4','diamond','gold','glucose'];
+const NAME='Ozzy';
+let DEMO=null,busy=false,root=null,PL=null,R=null,HERO=null;
+const sub=id=>D.SUB.find(s=>s.id===id)||D.SUB[0];
+
+/* ---------- state (lives in the hero's save: p.inner) ---------- */
+function S(p){p.inner=p.inner||{};const s=p.inner;s.tix=s.tix||[];s.album=s.album||{};s.rides=s.rides||0;return s;}
+function pickRide(p,rock){const s=S(p);const held=s.tix.map(t=>t.id);const free=id=>s.album[id]==null&&!held.includes(id);
+ const r=MINERAL_RIDE[rock];if(r&&free(r))return {id:r,rock};
+ const nx=ORDER.find(free);if(nx)return {id:nx};
+ if(r&&!held.includes(r))return {id:r,rock};
+ const low=ORDER.filter(id=>!held.includes(id)).sort((a,b)=>(s.album[a]||0)-(s.album[b]||0))[0];return {id:low||ORDER[0]};}
+/* called by Dr. Quartz at the end of a cave trip → returns the ticket (or null if your pocket is full) */
+function award(p,o){const s=S(p);if(s.tix.length>=TIX_MAX)return null;const t=pickRide(p,o&&o.rock);s.tix.push(t);s.after=(p.battles||0)+WAIT_BATTLES;s.got=(s.got||0)+1;save();return Object.assign({s:sub(t.id)},t);}
+function ticketLine(p,t,first){const sb=t.s,rk=t.rock&&window.CAVE_DATA&&CAVE_DATA.MIN[t.rock];
+ return first?`And here's something special: a <b>🎟️ Shrink Ticket</b>! My friend <b>${NAME}</b> runs the <b>INNER SPACE</b> ride. It shrinks you down until you're as small as an ATOM! After a few more battles he'll drive over and pick you up. Your ride: <b>${sb.e} ${esc(sb.n)}</b>${rk?` — just like your ${esc(rk.n.toLowerCase())}!`:'.'}`
+  :`Here's your <b>🎟️ Shrink Ticket</b>! ${NAME} will pick you up after a few battles for the <b>${sb.e} ${esc(sb.n)}</b> ride${rk?` — that's what your ${esc(rk.n.toLowerCase())} is made of`:''}.`;}
+function wants(p){if(!p||!p.setup)return false;if(DEMO)return true;const s=S(p);return s.tix.length>0&&(p.battles||0)>=(s.after||0)&&Date.now()>(s.snooze||0);}
+
+/* ---------- sound (uses the game's sound switch) ---------- */
+function snd(f,d,type,v,delay){try{tone(f,d,type,(v||.05)*1.6,delay);}catch(e){}}
+const whoosh=()=>{for(let i=0;i<10;i++)snd(900-i*70,.18,'triangle',.03,i*.08);};
+
+/* ---------- art ---------- */
+const OZ_BODY=`<path d="M-24 -18 Q-24 -32 0 -32 Q24 -32 24 -18Z" fill="#fcc419"/><path d="M-6 -30 L0 -22 L6 -30Z" fill="#e8590c"/>
+<circle cx="0" cy="-46" r="15" fill="#f1c8a0"/><circle cx="-5" cy="-46" r="2.2" fill="#2b2140"/><circle cx="5" cy="-46" r="2.2" fill="#2b2140"/><path d="M-6 -40 Q0 -35 6 -40" stroke="#a0522d" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M-16 -50 Q-16 -66 0 -66 Q16 -66 16 -50Z" fill="#ae3ec9"/><path d="M12 -52 L28 -50 L14 -47Z" fill="#862e9c"/><circle cx="-6" cy="-58" r="4.5" fill="#99e9f2" stroke="#495057" stroke-width="2"/><circle cx="6" cy="-58" r="4.5" fill="#99e9f2" stroke="#495057" stroke-width="2"/>`;
+const CAR_SHAPE=`<ellipse cx="0" cy="38" rx="64" ry="7" fill="rgba(0,0,0,.22)"/>
+<path d="M0 -74 V-86" stroke="#b197fc" stroke-width="3"/><g transform="translate(0 -90)"><circle r="3.5" fill="#ffd43b"/><ellipse rx="10" ry="4" fill="none" stroke="#ffd43b" stroke-width="1.6"/><ellipse rx="10" ry="4" fill="none" stroke="#ffd43b" stroke-width="1.6" transform="rotate(60)"/><ellipse rx="10" ry="4" fill="none" stroke="#ffd43b" stroke-width="1.6" transform="rotate(-60)"/></g>`;
+const CAR_FRONT=`<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-36 -40 Q-30 -62 -8 -66" stroke="#fff" stroke-width="4" fill="none" opacity=".7" stroke-linecap="round"/>
+<path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/>
+<circle cx="-44" cy="8" r="7" fill="#ffd43b"/><circle cx="44" cy="8" r="7" fill="#ffd43b"/><text x="0" y="17" font-size="13" font-weight="700" fill="#fff" text-anchor="middle" font-family="Fredoka,sans-serif">ATOM-MOBILE</text>`;
+const OZZY_CAR=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-72 -100 144 146">${CAR_SHAPE}<g transform="translate(0 4)">${OZ_BODY}</g>${CAR_FRONT}</svg>`;
+const OZZY_HEAD=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -70 60 60">${OZ_BODY}</svg>`;
+let OIMG=null;const oimg=()=>{if(!OIMG){OIMG=new Image();OIMG.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(OZZY_CAR);}return OIMG;};
+window.OZZY_SVG=OZZY_CAR;
+
+/* ---------- Ozzy drives over to you on the map ---------- */
+const MOD={draw:drawMob,meet};
+function spawn(){if(typeof W==='undefined'||!W||!W.T)return;if(W.mobs.some(m=>m.ozzy||m.quartz))return;const p=P();
+ for(let tries=0;tries<200;tries++){const a=Math.random()*Math.PI*2,d=7+Math.random()*3;const x=Math.round(W.hx+Math.cos(a)*d),y=Math.round(W.hy+Math.sin(a)*d);
+  const t=W.T[y]&&W.T[y][x];if(!t||t.block||t.water||t.npc||t.gate||t.chest)continue;if(W.mobs.some(m=>m.x===x&&m.y===y))continue;
+  W.mobs.push({id:'ozzy',ozzy:true,mod:MOD,x,y,fx:x,fy:y,e:'🚗',n:NAME,b:t.b});
+  snd(660,.12,'square',.04);snd(660,.12,'square',.04,.2);
+  toast(S(p).met?`🎢 Beep beep! ${NAME} is driving over — you have a Shrink Ticket!`:'🎢 Beep beep! A funny little car is driving toward you…');return;}}
+function pathTo(sx,sy,tx,ty){const key=(x,y)=>x+','+y;const prev={};prev[key(sx,sy)]=null;const q=[[sx,sy]];
+ while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty)break;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=key(nx,ny);if(k in prev)continue;
+  const t=W.T[ny]&&W.T[ny][nx];if(!(nx===tx&&ny===ty)&&(!t||t.block||t.water||t.npc||t.gate||t.chest))continue;prev[k]=[x,y];q.push([nx,ny]);}if(q.length>3000)break;}
+ if(!(key(tx,ty) in prev))return null;const out=[];let c=[tx,ty];while(c&&!(c[0]===sx&&c[1]===sy)){out.unshift(c);c=prev[key(c[0],c[1])];}return out;}
+function walk(now){const m=W.mobs.find(o=>o.ozzy);if(!m)return;
+ if(Math.abs(m.x-W.hx)+Math.abs(m.y-W.hy)<=1){if(!W.moving&&!document.querySelector('#modal.show'))meet();return;}
+ const path=pathTo(m.x,m.y,W.hx,W.hy);if(!path||!path.length){W.mobs=W.mobs.filter(o=>o!==m);return;}
+ const [nx,ny]=path[0];if(nx===W.hx&&ny===W.hy)return;if(W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;}
+function drawMob(ctx,sx,sy,ts,now){const im=oimg();ctx.fillStyle='rgba(177,151,252,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.92,ts*.62,ts*.16,0,0,7);ctx.fill();
+ const ww=ts*1.5,hh=ww*146/144;if(im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*1.02-hh+Math.abs(Math.sin(now/90))*1.5,ww,hh);
+ try{wLabel(ctx,'🎢 '+NAME,sx+ts/2,sy-ts*.55,'#fff','rgba(112,72,232,.92)');}catch(e){}}
+
+/* ---------- meeting Ozzy ---------- */
+function meet(){if(busy)return;const p=P();if(!p)return;const s=S(p);busy=true;W.path=[];W.mobs=W.mobs.filter(m=>!m.ozzy);
+ const first=!s.met;let t=s.tix[0];
+ if(DEMO){const want=(location.search.match(/innerdemo=(\w+)/)||[])[1];t={id:D.SUB.some(x=>x.id===want)?want:(ORDER.find(id=>s.album[id]==null)||'water'),demo:true};}
+ if(!t){busy=false;return;}const sb=sub(t.id);
+ const lines=(first?[`Beep beep! 🚗 Hi, I'm <b>${NAME}</b>! I drive the <b>Atom-Mobile</b> on the <b>INNER SPACE</b> ride.`,
+   `Dr. Quartz told me you earned a <b>🎟️ Shrink Ticket</b>! My ride shrinks you smaller than an ant… smaller than a germ… all the way down to the size of an <b>ATOM</b>! ⚛️`,
+   `Today we're riding into <b>${sb.e} ${esc(sb.n)}</b>. Hop in, ${esc(p.name)}!`]
+  :[`${['Ticket, please!','Beep beep!','Back for more, '+esc(p.name)+'?'][s.rides%3]} 🎟️ Today we're shrinking into <b>${sb.e} ${esc(sb.n)}</b>!${s.tix.length>1?` (You have ${s.tix.length} tickets.)`:''} Hop in!`]);
+ if(DEMO)lines.unshift('This is a preview ride — nothing will be changed.');
+ let i=0;
+ const show=()=>{const last=i>=lines.length-1;
+  modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av oz-av">${OZZY_CAR}</div><div class="qz-bub oz-bub"><b>🎢 ${NAME} · Ride Operator</b><div>${lines[i]}</div></div></div>
+   <div class="row">${last?`<button class="btn ghost dark" id="ozNo">Not now</button><button class="btn green big" id="ozGo">🎢 Hop in!</button>`:`<button class="btn green big" id="ozNext">Next ➜</button>`}</div></div>`);
+  const nx=document.getElementById('ozNext');if(nx)nx.onclick=()=>{i++;show();};
+  const go1=document.getElementById('ozGo');if(go1)go1.onclick=()=>{closeModal();busy=false;startRide(t);};
+  const no=document.getElementById('ozNo');if(no)no.onclick=()=>{closeModal();busy=false;if(DEMO===true)DEMO=null;else{s.snooze=Date.now()+SNOOZE_MS;save();}toast(`🎢 ${NAME}: "No problem! I'll come back for you a little later."`);};};
+ try{SFX.level();}catch(e){}show();}
+function startRide(t){const p=P();const s=S(p);
+ if(DEMO===true)DEMO=JSON.stringify({inner:p.inner||null,coins:p.coins,robes:(p.owned.robes||[]).slice()});
+ if(!DEMO){s.met=true;}p.wpos={x:W.hx,y:W.hy};save();
+ R={t,s:sub(t.id)};go('inner');}
+
+/* ---------- the ride screen ---------- */
+function open(p){PL=p;if(!R){const s=S(p);if(!s.tix.length&&!DEMO){go('world');return;}R={t:s.tix[0]||{id:'water'},s:sub((s.tix[0]||{id:'water'}).id)};}
+ HERO=new Image();HERO.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{head:true}));
+ if(root)root.remove();root=document.createElement('div');root.id='isRoot';document.body.appendChild(root);
+ R.i=0;R.pts=0;scene();}
+function close(){stopAnim();if(root)root.remove();root=null;}
+function exit(){close();const p=PL||P();R=null;PL=null;
+ if(DEMO&&DEMO!==true){const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();go('world');toast('🎢 That was a preview — nothing was changed.');return;}
+ save();go('world');}
+const tier=()=>{const g=(PL&&PL.grade)||3;return g<=4?0:g<=8?1:2;};
+const NM=()=>esc((PL&&PL.name)||'Explorer');
+
+/* ---------- drawing helpers ---------- */
+let raf=0,anim=null;function stopAnim(){cancelAnimationFrame(raf);anim=null;}
+function loop(fn){stopAnim();anim=fn;const t0=performance.now();const step=now=>{if(anim!==fn)return;try{fn(Math.max(0,(now-t0)/1000));}catch(e){console.warn(e);}raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);}
+function canvas(){const cv=document.createElement('canvas');cv.className='is-cv';const fit=()=>{if(!cv.isConnected){window.removeEventListener('resize',fit);return;}const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=cv.clientWidth*dpr;cv.height=cv.clientHeight*dpr;cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);};setTimeout(fit,0);window.addEventListener('resize',fit);return cv;}
+function ball(c,el,x,y,r){const E=EL[el];const g=c.createRadialGradient(x-r*.35,y-r*.35,r*.1,x,y,r);g.addColorStop(0,'#fff');g.addColorStop(.25,E.col);g.addColorStop(1,shade(E.col,-.35));c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();}
+function shade(hex,a){let n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;const f=a<0?0:255,p=Math.abs(a);return `rgb(${Math.round((f-r)*p+r)},${Math.round((f-g)*p+g)},${Math.round((f-b)*p+b)})`;}
+function drawMol(c,lay,cx,cy,s,rot,labels){const L=D.L[lay];const cs=Math.cos(rot||0),sn=Math.sin(rot||0);const P2=L.a.map(([e,x,y])=>[e,cx+(x*cs-y*sn)*s,cy+(x*sn+y*cs)*s]);
+ L.b.forEach(([i,j,o])=>{const [,x1,y1]=P2[i],[,x2,y2]=P2[j];c.strokeStyle='#ced4da';c.lineWidth=Math.max(2,s*.12);if(o===0){c.setLineDash([s*.12,s*.12]);c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();c.setLineDash([]);return;}
+  if(o===1){c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();}else{const dx=y2-y1,dy=x1-x2,l=Math.hypot(dx,dy)||1,k=s*.1;[-1,1].forEach(q=>{c.beginPath();c.moveTo(x1+dx/l*k*q,y1+dy/l*k*q);c.lineTo(x2+dx/l*k*q,y2+dy/l*k*q);c.stroke();});}});
+ P2.forEach(([e,x,y])=>{const r=EL[e].r*s*.42;ball(c,e,x,y,r);if(labels){c.fillStyle=EL[e].txt;c.font=`800 ${Math.max(10,r*.9)}px Fredoka,sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(e,x,y+1);}});}
+/* draw a whole molecule so it fits a w×h box (album card) */
+function fitMol(c,lay,w,h){const L=D.L[lay];let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;L.a.forEach(([e,x,y])=>{const r=EL[e].r*.42;x0=Math.min(x0,x-r);x1=Math.max(x1,x+r);y0=Math.min(y0,y-r);y1=Math.max(y1,y+r);});
+ const sc=Math.min((w-16)/(x1-x0),(h-12)/(y1-y0),70);drawMol(c,lay,w/2-(x0+x1)/2*sc,h/2-(y0+y1)/2*sc,sc,0,true);}
+/* the Atom-Mobile with YOUR hero inside */
+function car(c,x,y,sz){c.save();c.translate(x,y);c.scale(sz/140,sz/140);c.fillStyle='#7048e8';c.strokeStyle='#3b1f9e';c.lineWidth=4;
+ if(HERO&&HERO.complete&&HERO.naturalWidth)c.drawImage(HERO,-24,-76,48,56);else{c.font='40px serif';c.textAlign='center';c.textBaseline='middle';c.fillText('🧒',0,-40);}
+ c.fillStyle='rgba(180,230,255,.38)';c.strokeStyle='#9fd8ff';c.lineWidth=3;c.beginPath();c.moveTo(-50,-24);c.quadraticCurveTo(-44,-70,0,-74);c.quadraticCurveTo(44,-70,50,-24);c.fill();c.stroke();
+ c.fillStyle='#7048e8';c.strokeStyle='#3b1f9e';c.lineWidth=4;c.beginPath();c.moveTo(-66,10);c.quadraticCurveTo(-70,-20,-40,-26);c.lineTo(40,-26);c.quadraticCurveTo(70,-20,66,10);c.quadraticCurveTo(60,34,0,34);c.quadraticCurveTo(-60,34,-66,10);c.fill();c.stroke();
+ c.fillStyle='#ffd43b';[-44,44].forEach(q=>{c.beginPath();c.arc(q,8,7,0,7);c.fill();});c.restore();}
+function heroTag(x,y,w){return HERO?`<image href="${HERO.src}" x="${x}" y="${y}" width="${w}" height="${w*66/56}"/>`:`<text x="${x+w/2}" y="${y+w*.8}" font-size="${w*.8}" text-anchor="middle">🧒</text>`;}
+function nar(html,btn,opts){opts=opts||{};return `<div class="is-nar"><div class="who">${opts.who||OZZY_HEAD}</div><div class="txt"><small>${opts.name||'Ride Operator '+NAME}</small>${html}</div>${btn?`<button class="is-btn ${opts.cls||''}" id="isNext" ${opts.dis?'disabled':''}>${btn}</button>`:''}</div>`;}
+
+/* ---------- ride flow ---------- */
+const SCENES=['board','shrink','inside','mol','atom','build','eye','quiz'];
+function frame(inner){if(!root)return;const done=R.i;root.innerHTML=`<div class="is-stage">${inner}<div class="is-top"><span class="is-chip">${R.s.e} ${esc(R.s.n)}</span><div class="is-dots">${SCENES.map((_,k)=>`<i class="${k<done?'done':k===done?'on':''}"></i>`).join('')}</div><button class="is-x" id="isX" aria-label="Leave the ride">✕</button></div></div>`;
+ root.querySelector('#isX').onclick=R.finished?exit:askLeave;}
+function askLeave(){if(!root||root.querySelector('.is-leave'))return;const d=document.createElement('div');d.className='is-leave';
+ d.innerHTML=`<div class="is-lbox">${OZZY_HEAD}<div><b>Leave the ride?</b><br>You keep your 🎟️ ticket — ${NAME} will come back for you later.</div><div class="is-lrow"><button class="is-btn green" id="isStay">🎢 Keep riding</button><button class="is-btn" id="isLeave">Leave</button></div></div>`;
+ root.appendChild(d);d.querySelector('#isStay').onclick=()=>d.remove();d.querySelector('#isLeave').onclick=()=>{if(!DEMO&&PL){S(PL).snooze=Date.now()+SNOOZE_MS;}exit();};}
+function next(){R.i++;scene();}
+function onNext(fn){const b=root&&root.querySelector('#isNext');if(b)b.onclick=fn||next;}
+function scene(){stopAnim();if(!root)return;({board,shrink,inside,mol,atom,build,eye,quiz})[SCENES[R.i]]();}
+const stage=()=>root.querySelector('.is-stage');
+
+/* 1. boarding */
+const OBJ={glass:'🥛',salt:'🧂',air:'🌬️',soda:'🥤',stove:'🔥',candy:'🍬',ring:'💍'};
+function board(){const s=R.s,t=tier();const rk=R.t.rock&&window.CAVE_DATA&&CAVE_DATA.MIN[R.t.rock];
+ const tall=window.innerWidth<window.innerHeight*.9; // phone held upright → show the whole scene instead of cropping it
+ frame(`<svg class="is-svg${tall?' is-tall':''}" viewBox="${tall?'110 40 740 480':'0 0 960 600'}" preserveAspectRatio="${tall?'xMidYMid meet':'xMidYMid slice'}"><rect x="-600" y="-900" width="2160" height="2400" fill="#2b1d5c"/>
+ ${Array.from({length:40},(_,i)=>`<circle cx="${(i*97)%960}" cy="${(i*53)%300}" r="${1+i%3*.6}" fill="#fff" opacity=".6"/>`).join('')}
+ <rect y="430" width="960" height="470" fill="#3d2b7a"/><path d="M0 470 H960" stroke="#ffd43b" stroke-width="6" stroke-dasharray="30 20"/>
+ <text x="480" y="90" font-size="50" font-weight="700" fill="#ffd43b" text-anchor="middle" stroke="#7048e8" stroke-width="2">✨ INNER SPACE ✨</text>
+ <g transform="translate(250 270)"><rect x="-120" y="-80" width="240" height="200" rx="24" fill="#5f3dc4" stroke="#b197fc" stroke-width="5"/><circle cx="0" cy="20" r="64" fill="#1a0f3d" stroke="#ffd43b" stroke-width="6"/>${[0,1,2].map(i=>`<circle cx="0" cy="20" r="${20+i*14}" fill="none" stroke="#b197fc" stroke-width="3"><animate attributeName="r" values="${10+i*14};${30+i*14};${10+i*14}" dur="2s" repeatCount="indefinite"/></circle>`).join('')}<text x="0" y="-50" font-size="18" font-weight="700" fill="#ffd43b" text-anchor="middle">SHRINK-O-MATIC</text></g>
+ <g class="is-float">${s.scene==='glass'?'<g transform="translate(710 250)"><path d="M-75 -70 L-62 110 L62 110 L75 -70Z" fill="rgba(220,240,255,.35)" stroke="#d0ebff" stroke-width="6"/><path d="M-70 -10 L-60 106 L60 106 L70 -10Z" fill="#4dabf7"/><path d="M-70 -10 Q-35 -22 0 -10 Q35 2 70 -10" fill="#74c0fc"/><circle cx="-25" cy="40" r="5" fill="#fff" opacity=".7"/><circle cx="20" cy="70" r="4" fill="#fff" opacity=".7"/></g>':`<text x="710" y="360" font-size="170" text-anchor="middle">${OBJ[s.scene]||s.e}</text>`}</g><text x="710" y="170" font-size="24" font-weight="700" fill="#fff" text-anchor="middle">Today: ${esc(s.n)}</text>
+ <g transform="translate(470 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-44" cy="8" r="7" fill="#ffd43b"/><circle cx="44" cy="8" r="7" fill="#ffd43b"/><text x="0" y="16" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">ATOM-MOBILE</text></g>
+ <g transform="translate(600 452) scale(.9)">${OZ_BODY}<path d="M-24 -18 L-22 30 L22 30 L24 -18Z" fill="#ae3ec9"/><path d="M-10 30 V52 M10 30 V52" stroke="#343a40" stroke-width="8" stroke-linecap="round"/><path d="M22 -12 Q40 -30 46 -46" stroke="#ae3ec9" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="46" cy="-48" r="6" fill="#f1c8a0"/></g></svg>
+ ${nar(`Welcome aboard, <b>${NM()}</b>! Keep your hands inside the Atom-Mobile. ${rk?`Dr. Quartz says your mystery rock was <b>${esc(rk.n.toLowerCase())}</b> — let's see what it's made of! `:''}${esc(s.intro[t])}`,'🎢 Start the ride!',{cls:'gold'})}`);
+ onNext(()=>{whoosh();next();});}
+
+/* 2. shrinking */
+function shrink(){const t=tier();const SZ=[['🧒 You','1.5 m'],['🐜 An ant','3 mm'],['🔬 A cell','0.02 mm'],['🦠 A virus','0.0001 mm'],['💧 A molecule','0.000 000 3 mm'],['⚛️ An atom','0.000 000 1 mm']];
+ frame(`<div class="is-meter" id="isMeter"><b style="color:#ffd43b;font-size:14px;letter-spacing:1px">YOUR SIZE</b>${SZ.map(z=>`<div><span>${z[0]}</span><span>${z[1]}</span></div>`).join('')}</div>
+ ${nar(['You\'re shrinking! Smaller than an ant… smaller than a cell… smaller than a germ!','You\'re shrinking past things you need a microscope to see — cells, germs, viruses…','Shrinking by a factor of about ten billion: from meters, through micrometers (cells), to nanometers (molecules).'][t],'Keep shrinking… ⏳',{dis:1})}`);
+ const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');const rows=[...root.querySelectorAll('#isMeter div')];let lastK=-1;
+ loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle='#12082e';c.fillRect(0,0,w,h);
+  for(let i=0;i<14;i++){const ph=((sec*.6+i/14)%1);const r=ph*Math.max(w,h)*.8;c.strokeStyle=['#7048e8','#b197fc','#4dabf7','#ffd43b'][i%4];c.globalAlpha=1-ph;c.lineWidth=2+ph*8;c.beginPath();c.ellipse(w/2,h/2,r,r*.66,0,0,7);c.stroke();}c.globalAlpha=1;
+  const sc=Math.max(.12,1-sec*.17);car(c,w/2,h/2,160*sc);
+  const k=Math.min(SZ.length-1,Math.floor(sec/.9));if(k!==lastK){lastK=k;rows.forEach((r,j)=>r.className=j===k?'on':j<k?'past':'');snd(700-k*80,.12,'triangle',.04);}
+  if(sec>SZ.length*.9+.3){const b=root.querySelector('#isNext');if(b&&b.disabled){b.disabled=false;b.textContent='We\'re tiny! Next ➜';onNext();}}});}
+
+/* 3. inside the substance */
+function inside(){const s=R.s,t=tier();frame(nar(esc(s.inside[t]).replace(/molecules/,'<b>molecules</b>'),'Look closer ➜'));
+ const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');onNext();
+ const bg={liquid:'#0b3d6b',gas:'#9ecbff',solid:'#1b1036'}[s.state];let P2=null;
+ loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle=bg;c.fillRect(0,0,w,h);
+  if(s.state!=='solid'){const N=s.state==='gas'?14:44,sp=s.state==='gas'?160:28;const unit=Math.min(w,h)/(s.state==='gas'?22:18)*(s.lay==='glucose'?.6:1);
+   if(!P2)P2=Array.from({length:N},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*sp,vy:(Math.random()-.5)*sp,r:Math.random()*6,vr:(Math.random()-.5)*(s.state==='gas'?3:1.2)}));
+   const dt=1/60;P2.forEach(m=>{m.x+=m.vx*dt;m.y+=m.vy*dt;m.r+=m.vr*dt;if(s.state==='gas'){if(m.x<0||m.x>w)m.vx*=-1;if(m.y<0||m.y>h)m.vy*=-1;}else{m.vx+=(Math.random()-.5)*6;m.vy+=(Math.random()-.5)*6;m.vx*=.99;m.vy*=.99;m.x=(m.x+w)%w;m.y=(m.y+h)%h;}drawMol(c,s.lay,m.x,m.y,unit,m.r,false);});
+   if(s.state==='gas'){c.fillStyle='rgba(20,10,46,.85)';c.font='700 15px Fredoka,sans-serif';c.textAlign='left';c.textBaseline='alphabetic';c.fillText('lots of empty space between molecules!',14,h-150);}}
+  else{const u=Math.min(w,h)/10;const cols=Math.ceil(w/u)+1,rows=Math.ceil(h/u)+1;
+   if(s.metal){for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const px=x*u+(y%2?u/2:0),py=y*u*.87;const j=Math.sin(sec*9+x*1.3+y*2.1)*u*.04;ball(c,'Au',px+j,py-j,u*.46);}
+    c.fillStyle='#74c0fc';for(let k=0;k<60;k++){const ex=((k*97+sec*80*(k%3+1))%w),ey=((k*53+Math.sin(sec+k)*40)%h+h)%h;c.beginPath();c.arc(ex,ey,3,0,7);c.fill();}
+    c.fillStyle='rgba(20,10,46,.8)';c.beginPath();c.roundRect?c.roundRect(10,52,330,34,12):c.rect(10,52,330,34);c.fill();c.fillStyle='#fff';c.font='700 17px Fredoka,sans-serif';c.textAlign='left';c.textBaseline='middle';c.fillText('🔵 = free-floating electrons ("electron sea")',20,69);}
+   else if(s.lay==='glucose'){const u2=u*2.4;for(let y=0;y<h/u2+1;y++)for(let x=0;x<w/u2+1;x++){const j=Math.sin(sec*6+x+y*2)*3;drawMol(c,'glucose',x*u2+u2/2+j,y*u2+u2/2-j,u2*.15,0,false);}}
+   else{const els=s.lattice;for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const j=Math.sin(sec*9+x*1.7+y*1.1)*u*.05;const px=x*u+j,py=y*u-j;
+     if(s.id==='diamond'){c.strokeStyle='#adb5bd';c.lineWidth=4;c.beginPath();c.moveTo(px,py);c.lineTo(px+u,py);c.moveTo(px,py);c.lineTo(px,py+u);c.stroke();}
+     const el=els[(x+y)%els.length];ball(c,el,px,py,u*(s.id==='diamond'?.26:EL[el].r*.32));
+     if(s.id==='salt'&&x<3&&y<3&&t>0){c.fillStyle='#fff';c.font=`800 ${u*.2}px Fredoka,sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(el==='Na'?'+':'−',px,py);}}}}
+  car(c,w*.5+Math.sin(sec)*20,h*.42+Math.cos(sec*1.3)*10,Math.min(w,h)*.13);});}
+
+/* 4. one molecule */
+function mol(){const s=R.s,t=tier();const L=D.L[s.lay];
+ frame(`<div class="is-panel" style="right:14px;top:60px"><h3>${s.elem?'Building block':'One molecule'} · <span style="font-size:24px">${s.f}</span></h3>${Object.entries(s.elem?{[Object.keys(s.atoms)[0]]:1}:s.atoms).map(([e,n])=>`<div class="is-cnt"><span class="is-ball" style="background:${EL[e].col};color:${EL[e].txt}">${e}</span>${s.elem?'':n+' × '}${EL[e].n}</div>`).join('')}
+ ${!s.elem&&s.id!=='salt'?`<div style="margin-top:6px;color:#495057">= ${L.a.length} atoms in all</div>`:''}</div>
+ ${nar(esc(s.mol[t]),'Go inside an atom ➜')}`);onNext();
+ const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');
+ loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle='#0b3d6b';c.fillRect(0,0,w,h);const span=Math.max(...L.a.map(a=>Math.hypot(a[1],a[2])))+1;
+  const sc=Math.max(4,Math.min(w*.8,(h-190)*.9)/(span*2));drawMol(c,s.lay,w*.42,(h-120)*.55,sc,Math.sin(sec*.6)*.25,true);
+  if(s.id==='salt'&&t>0){c.fillStyle='#ffd43b';c.font=`800 ${Math.max(18,sc*.35)}px Fredoka,sans-serif`;c.textAlign='center';c.textBaseline='alphabetic';const r2=Math.sin(sec*.6)*.25;c.fillText('Na⁺',w*.42-Math.cos(r2)*.75*sc,(h-120)*.55-Math.sin(r2)*.75*sc+sc*.85);c.fillText('Cl⁻',w*.42+Math.cos(r2)*.75*sc,(h-120)*.55+Math.sin(r2)*.75*sc+sc*.85);}});}
+
+/* 5. inside the atom */
+function atom(){const s=R.s,t=tier();const e=s.star,E=EL[e];const an=/^[AEIOU]/.test(E.n)?'an':'a';
+ frame(`<div class="is-panel" style="left:14px;top:60px"><h3>Inside ${an} ${E.n.toLowerCase()} atom (${e})</h3>
+ <div class="is-cnt"><span class="is-ball" style="background:#e03131;color:#fff">+</span>${E.p} proton${E.p>1?'s':''}</div>
+ <div class="is-cnt"><span class="is-ball" style="background:#1c7ed6;color:#fff">n</span>${E.nu} neutron${E.nu===1?'':'s'}</div>
+ <div class="is-cnt"><span class="is-ball" style="background:#ffe066">−</span>${E.p} electron${E.p>1?'s':''}</div>
+ ${t>0?`<div style="margin-top:6px;color:#495057">Atomic number: <b>${E.p}</b>${t>1?` · shells ${E.sh.join(', ')}`:''}</div>`:''}</div>
+ ${nar(`${[`We're INSIDE ${an} ${E.n.toLowerCase()} atom! The middle is packed with <b>protons</b> and <b>neutrons</b>. Tiny <b>electrons</b> zoom around the outside.`,`The center is the <b>nucleus</b>: protons (+) and neutrons. Electrons (−) whizz around in shells. The number of protons decides what element it is — ${E.p} means ${E.n.toLowerCase()}!`,`Nucleus: ${E.p} p⁺ and ${E.nu} n⁰. Electron shells: ${E.sh.join(', ')}. The atom is ~100,000× wider than its nucleus — it's mostly empty space.`][t]} ${esc(E.fact[t])}`,'Build it! 🔧')}`);onNext();
+ const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');const nucl=[];const big=E.p+E.nu>40;
+ if(!big){const N=E.p+E.nu;for(let i=0;i<N;i++){const a=i*2.4,r=Math.sqrt(i)*1;nucl.push([Math.cos(a)*r,Math.sin(a)*r,i<E.p]);}}
+ loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle='#140a2e';c.fillRect(0,0,w,h);const cx=w*.58,cy=(h-110)*.55;const R0=Math.max(40,Math.min(w*.4,(h-140)*.48));const n=E.sh.length;
+  E.sh.forEach((k,si)=>{const r=R0*(si+1)/n;c.strokeStyle='rgba(255,224,102,.35)';c.setLineDash([4,8]);c.lineWidth=2;c.beginPath();c.arc(cx,cy,r,0,7);c.stroke();c.setLineDash([]);
+   for(let q=0;q<k;q++){const a=sec*(1.6-si*.2)+q*Math.PI*2/k+si;c.fillStyle='#ffe066';c.shadowColor='#ffe066';c.shadowBlur=10;c.beginPath();c.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,Math.max(3,7-n*.6),0,7);c.fill();c.shadowBlur=0;}});
+  const nr=big?Math.max(38,R0/n*.6):R0/n*.45;if(big){const g=c.createRadialGradient(cx-nr*.3,cy-nr*.3,2,cx,cy,nr);g.addColorStop(0,'#ffc9c9');g.addColorStop(1,'#c92a2a');c.fillStyle=g;c.beginPath();c.arc(cx,cy,nr,0,7);c.fill();c.fillStyle='#fff';c.font=`800 ${nr*.42}px Fredoka,sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(`${E.p} p⁺`,cx,cy-nr*.2);c.fillText(`${E.nu} n`,cx,cy+nr*.25);}
+  else{const u=nr/(Math.sqrt(nucl.length)+1)*1.1;nucl.forEach(([x,y,pr])=>{const g=c.createRadialGradient(cx+x*u-u*.3,cy+y*u-u*.3,1,cx+x*u,cy+y*u,u*.9);g.addColorStop(0,'#fff');g.addColorStop(.3,pr?'#ff6b6b':'#4dabf7');g.addColorStop(1,pr?'#c92a2a':'#1864ab');c.fillStyle=g;c.beginPath();c.arc(cx+x*u+Math.sin(sec*20+x)*.8,cy+y*u,u*.9,0,7);c.fill();});}});}
+
+/* 6. build it */
+function build(){const s=R.s,t=tier();const need=Object.assign({},s.atoms);const have={};const DECOYS=['H','C','N','O','Na','Cl','Au'].filter(e=>!need[e]);
+ const tray=[...Object.keys(need),...DECOYS.slice(0,Math.max(1,4-Object.keys(need).length))].sort();
+ let placed=[],done=false;R.buzz=0;
+ const draw=(msg,ok)=>{const L=D.L[s.lay];const total=Object.values(need).reduce((a,b)=>a+b,0);let x0=-1.4,x1=1.4,y0=-1.25,y1=1.25;L.a.forEach(([e,x,y])=>{const r=EL[e].r*.45;x0=Math.min(x0,x-r);x1=Math.max(x1,x+r);y0=Math.min(y0,y-r);y1=Math.max(y1,y+r);});const pw=(x1-x0)*.08+.2;const vb=`${x0-pw} ${y0-pw} ${x1-x0+pw*2} ${y1-y0+pw*2}`; // fit the finished molecule
+  frame(`<div class="is-build"><h2>🔧 ${esc(s.build[t])}</h2>
+   <div class="is-brow"><div class="is-tray"><h4>ATOM TRAY</h4><div class="atoms">${tray.map(e=>`<button class="is-atom" data-e="${e}" style="background:${EL[e].col};color:${EL[e].txt}" ${done?'disabled':''}>${e}<small>${EL[e].n}</small></button>`).join('')}</div></div>
+   <div class="is-area ${done?'done':''}" id="isArea"><svg viewBox="${vb}" width="100%" height="100%" id="isSvg"></svg></div>
+   <div class="is-recipe"><h4>RECIPE</h4><div class="f">${s.f}</div><ul>${Object.entries(need).map(([e,n])=>`<li>${(have[e]||0)>=n?'✅':'◻️'} ${n} ${EL[e].n.toLowerCase()} <b>(${have[e]||0}/${n})</b></li>`).join('')}</ul></div></div>
+   <div class="is-buzz" style="color:${ok?'#2b8a3e':'#c92a2a'}">${msg||'&nbsp;'}</div></div>
+   ${nar(done?(s.id==='salt'&&t>0?'Watch the electron jump from sodium to chlorine! Now they have opposite charges, so they stick together.':s.metal?'Clink! The gold atoms packed together, sharing a sea of free electrons (the blue dots). That\'s a metal!':s.id==='diamond'?'SNAP! One carbon holding on to four others — repeat that forever and you get a diamond!':'SNAP! The atoms bonded together. You built it!'):`Tap atoms in the tray to add them. ${total>6?`You need ${total} atoms — keep going!`:''}`,done?'Grow back to normal size ➜':null,{cls:'green'})}`);
+  const svg=root.querySelector('#isSvg');
+  if(done){const lay=L;let h='';lay.b.forEach(([i,j,o])=>{const a=lay.a[i],b=lay.a[j];h+=`<line x1="${a[1]}" y1="${a[2]}" x2="${b[1]}" y2="${b[2]}" stroke="#adb5bd" stroke-width="${o===2?.16:.1}" ${o===0?'stroke-dasharray=".12 .12"':''}><animate attributeName="stroke-opacity" from="0" to="1" dur=".8s"/></line>`;});
+   const sc=1;lay.a.forEach(([e,x,y],k)=>{const r=EL[e].r*.42*sc;h+=`<g><circle cx="${x}" cy="${y}" r="${r}" fill="${EL[e].col}" stroke="rgba(0,0,0,.25)" stroke-width=".04"><animate attributeName="r" values="0;${r*1.25};${r}" dur=".5s" begin="${k*.03}s" fill="freeze"/></circle><text x="${x}" y="${y+r*.35}" font-size="${r*.95}" text-anchor="middle" font-weight="800" fill="${EL[e].txt}">${e}</text></g>`;});
+   if(s.id==='salt'&&t>0)h+=`<circle r=".13" fill="#ffe066" stroke="#e67700" stroke-width=".03"><animate attributeName="cx" values="-1.1;1.1" dur="1.4s" fill="freeze"/><animate attributeName="cy" values="-.9;-1.4;-.9" dur="1.4s" fill="freeze"/></circle><text x="-.75" y="1.25" font-size=".42" text-anchor="middle" font-weight="800" fill="#7048e8">Na⁺</text><text x=".75" y="1.25" font-size=".42" text-anchor="middle" font-weight="800" fill="#2b8a3e">Cl⁻</text>`;
+   if(s.metal)h+=Array.from({length:6},(_,k)=>`<circle cx="${-1.3+k*.5}" cy="${1.4-(k%2)*.2}" r=".08" fill="#74c0fc"><animate attributeName="cx" values="${-1.3+k*.5};${-1.3+k*.5+.5};${-1.3+k*.5}" dur="${1.5+k*.2}s" repeatCount="indefinite"/></circle>`).join('');
+   svg.innerHTML=h;}
+  else{svg.innerHTML=placed.map((e,k)=>{const n=placed.length;const a=k/n*Math.PI*2,rr=n>1?(n>8?2:1.2):0;const x=Math.cos(a)*rr,y=Math.sin(a)*rr*.8;const r=EL[e].r*.42*(n>8?.6:1);return `<g class="is-float" style="animation-delay:${k*.1}s"><circle cx="${x}" cy="${y}" r="${r}" fill="${EL[e].col}" stroke="rgba(0,0,0,.25)" stroke-width=".04"/><text x="${x}" y="${y+r*.35}" font-size="${r*.95}" text-anchor="middle" font-weight="800" fill="${EL[e].txt}">${e}</text></g>`;}).join('');}
+  root.querySelectorAll('.is-atom').forEach(b=>b.onclick=()=>add(b.dataset.e));onNext();};
+ const add=e=>{if(done)return;if(!need[e]){R.buzz++;snd(150,.3,'sawtooth',.05);draw(`Bzzzt! ${EL[e].n} isn't in ${esc(s.n.toLowerCase())}! Check the recipe.`);return;}
+  if((have[e]||0)>=need[e]){R.buzz++;snd(180,.25,'sawtooth',.05);draw(`That's enough ${EL[e].n.toLowerCase()} — the recipe only needs ${need[e]}.`);return;}
+  have[e]=(have[e]||0)+1;placed.push(e);snd(500+placed.length*40,.1,'triangle',.05);
+  if(Object.entries(need).every(([k,n])=>(have[k]||0)>=n)){done=true;R.built=true;snd(880,.25,'triangle',.08,.1);snd(1320,.3,'triangle',.08,.25);draw('🎉 Perfect! That\'s '+s.f+'!',true);}else draw('');};
+ draw('');}
+
+/* 7. the giant eye */
+function eye(){const t=tier();
+ frame(`<div class="is-eyewrap" id="isEye"><svg class="is-svg" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid slice"><rect width="960" height="600" fill="#0c0c14"/>
+ <circle cx="480" cy="280" r="290" fill="#1e1e2e"/><circle cx="480" cy="280" r="270" fill="none" stroke="#343a40" stroke-width="24"/>
+ <ellipse cx="480" cy="270" rx="240" ry="130" fill="#f8f9fa"/><g class="is-pupil"><circle cx="480" cy="270" r="100" fill="#1971c2"/>${Array.from({length:24},(_,i)=>`<line x1="${480+Math.cos(i*.26)*45}" y1="${270+Math.sin(i*.26)*45}" x2="${480+Math.cos(i*.26)*92}" y2="${270+Math.sin(i*.26)*92}" stroke="#4dabf7" stroke-width="3" opacity=".6"/>`).join('')}<circle cx="480" cy="270" r="44" fill="#050505"/><circle cx="455" cy="245" r="16" fill="#fff" opacity=".9"/></g>
+ <g class="is-lid"><path d="M230 270 Q480 20 730 270 Q480 150 230 270Z" fill="#e8b98f"/><path d="M230 270 Q480 150 730 270 Q480 400 230 270Z" fill="#e8b98f"/></g>
+ <path d="M240 270 Q480 40 720 270" fill="none" stroke="#343a40" stroke-width="4"/>${Array.from({length:14},(_,i)=>`<path d="M${480+(i-6.5)*30} ${140+Math.abs(i-6.5)*8} q${(i-6.5)*2} -30 ${(i-6.5)*4} -44" stroke="#343a40" stroke-width="5" fill="none" stroke-linecap="round"/>`).join('')}
+ <rect x="330" y="505" width="300" height="24" rx="4" fill="rgba(200,235,255,.5)" stroke="#d0ebff" stroke-width="2"/><g transform="translate(480 492) scale(.16)"><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8"/><path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.7)"/></g></svg></div>
+ ${nar(['You\'re so tiny you landed on a <b>microscope slide</b>… and a GIANT EYE is looking at you! <b>*blink*</b> "Oh! Hello down there, little scientist!"','You\'re sitting on a <b>microscope slide</b> — and a scientist\'s GIANT eye is peering down at you! <b>*blink*</b> "Well, well… a visitor from the atomic world!"','Landed on a <b>microscope slide</b>. Fun fact: even the best light microscope can\'t see a single atom — they\'re smaller than a wavelength of light. But this eye is about to see YOU. <b>*blink*</b>'][t],'👋 Wave and grow back!',{cls:'gold'})}`);
+ snd(200,.4,'sine',.06,.6);onNext(()=>{root.querySelector('#isEye').classList.add('grow');[300,400,500,650,800].forEach((f,k)=>snd(f,.2,'triangle',.05,k*.15));const b=root.querySelector('#isNext');b.disabled=true;setTimeout(()=>{if(root)next();},1500);});}
+
+/* 8. quiz → coins + album card */
+function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];let qi=0,score=0,tries=0,answered=false;R.firstTry=0;
+ const draw=(why,okIdx,bad)=>{const q=Q[qi];
+  frame(`<div class="is-quiz"><div class="is-q"><div class="h">🧪 RIDE QUIZ · Question ${qi+1} of ${Q.length} · ⭐ ${score} points</div><div class="qq">${esc(q[0])}</div>
+   ${q[1].map((o,k)=>`<button class="is-opt ${okIdx===k?'ok':(bad||[]).includes(k)?'no':''}" data-k="${k}" ${answered||(bad||[]).includes(k)?'disabled':''}>${esc(o)}${okIdx===k?' ✅':''}</button>`).join('')}
+   ${why?`<div class="is-why">${why}</div><div style="text-align:right;margin-top:10px"><button class="is-btn" id="isQN">${qi<Q.length-1?'Next question ➜':'See my card ➜'}</button></div>`:''}</div></div>`);
+  root.querySelectorAll('.is-opt:not([disabled])').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;
+   if(k===q[2]){answered=true;const got=tries===0?10*(qi+1):5*(qi+1);if(tries===0)R.firstTry++;score+=got;snd(880,.15,'triangle',.08);snd(1320,.2,'triangle',.08,.1);draw(`<b>+${got} points!</b> ${esc(q[3])}`,k,bad);}
+   else{tries++;snd(200,.3,'sine',.07);if(tries>=2){answered=true;draw(`The answer is <b>${esc(q[1][q[2]])}</b>. ${esc(q[3])}`,q[2],(bad||[]).concat(k));}else draw(null,null,(bad||[]).concat(k));}});
+  const n=root.querySelector('#isQN');if(n)n.onclick=()=>{if(qi<Q.length-1){qi++;tries=0;answered=false;draw();}else card(score);};};
+ draw();}
+function card(score){const s=R.s,p=PL;const st=S(p);const first=st.album[s.id]==null;const best=Math.max(st.album[s.id]||0,score);st.album[s.id]=best;
+ const coins=score+(first?FIRST_BONUS:0);p.coins=(p.coins||0)+coins;
+ if(!R.t.demo){const k=st.tix.findIndex(x=>x.id===s.id);if(k>=0)st.tix.splice(k,1);else st.tix.shift();}
+ st.rides++;st.last=typeof dayKey==='function'?dayKey():'';st.pts=(st.pts||0)+score;
+ const n=Object.keys(st.album).length,all=n>=D.SUB.length;let prize=false;
+ if(all&&!st.prize){st.prize=1;prize=true;p.owned.robes=p.owned.robes||[];if(!p.owned.robes.includes('labcoat'))p.owned.robes.push('labcoat');p.coins+=PRIZE_COINS;}
+ R.finished=true;R.i=SCENES.length;save();
+ frame(`<div class="is-quiz"><div class="is-card"><div style="font-weight:700;color:#e67700">📖 ${first?'NEW MOLECULE ALBUM CARD!':'ALBUM CARD'}</div><canvas id="isCard" width="300" height="170" style="width:100%;max-width:300px"></canvas><div class="n">${esc(s.n)} · ${s.f}</div>
+  <ul><li>⚛️ ${Object.entries(s.atoms).map(([e,k])=>`${s.elem?'':k+' '}${EL[e].n.toLowerCase()}`).join(' + ')}</li>${s.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
+  <div style="font-weight:700">⭐ ${score} / 60 points${score<best?` · your best: ${best}`:''}</div>
+  <div class="is-coins">🪙 +${coins} coins${first?` <small>(includes +${FIRST_BONUS} new-card bonus)</small>`:''}</div>
+  <div style="color:#e67700;font-weight:700;margin-top:4px">📖 Album: ${n} / ${D.SUB.length}${all?' — COMPLETE! 🎉':''}</div></div>
+  <div class="is-endcol">${prize?`<div class="is-prize">🥼 <b>ALBUM COMPLETE!</b><br>You earned the <b>Lab Coat</b> robe and 🪙 ${PRIZE_COINS} bonus coins! Put it on in your backpack.</div>`:''}
+  ${st.tix.length&&!R.t.demo?`<div class="is-more">🎟️ You still have ${st.tix.length} ticket${st.tix.length>1?'s':''}. ${NAME} will come back for you after a few battles!</div>`:''}
+  <button class="is-btn gold" id="isHome">🗺️ Back to the adventure</button><button class="is-btn" id="isAlb">📖 My album</button></div></div>`);
+ fitMol(root.querySelector('#isCard').getContext('2d'),s.lay,300,170);
+ root.querySelector('#isHome').onclick=exit;root.querySelector('#isAlb').onclick=albumScreen;
+ if(!R.t.demo)st.after=(p.battles||0)+WAIT_BATTLES;
+ try{SFX.coin();}catch(e){}snd(660,.2,'triangle',.06);snd(990,.3,'triangle',.06,.15);if(prize)try{SFX.level();}catch(e){}}
+
+/* ---------- the Molecule Album ---------- */
+function albumHTML(p){const st=S(p);const n=Object.keys(st.album).length;
+ return `<div class="is-album"><div class="is-ahead">📖 Molecule Album · <b>${n} / ${D.SUB.length}</b>${st.prize?' · 🥼 Lab Coat earned!':` · fill all ${D.SUB.length} to win the 🥼 Lab Coat robe`}</div>
+ <div class="is-agrid">${D.SUB.map(s=>st.album[s.id]!=null?`<div class="is-acard done"><span class="e">${s.e}</span><b>${esc(s.n)}</b><small>${s.f}</small><em>⭐ ${st.album[s.id]}</em></div>`:`<div class="is-acard"><span class="e" style="filter:grayscale(1) brightness(.4);opacity:.45">${s.e}</span><b>???</b><small>Ride to unlock</small></div>`).join('')}</div></div>`;}
+function albumScreen(){frame(`<div class="is-quiz">${albumHTML(PL)}<div class="is-endcol"><button class="is-btn gold" id="isHome">🗺️ Back to the adventure</button></div></div>`);root.querySelector('#isHome').onclick=exit;}
+function albumModal(){const p=P();modal(`<div class="mcard" style="max-width:560px">${albumHTML(p)}<div class="row"><button class="btn green" onclick="closeModal()">Close</button></div></div>`);}
+function bagHTML(p){const st=S(p);if(!st.met&&!st.tix.length&&!Object.keys(st.album).length)return '';const n=Object.keys(st.album).length;
+ return `<div class="tr-hoardbox" style="background:#5f3dc4"><b>🎢 Inner Space</b> · 🎟️ Shrink Tickets: <b>${st.tix.length}</b>/${TIX_MAX} · 📖 Molecule Album: <b>${n}</b>/${D.SUB.length} <span style="font-size:20px">${D.SUB.filter(s=>st.album[s.id]!=null).map(s=>s.e).join('')}</span>
+ <button class="btn small" style="margin-left:6px" onclick="Inner.album()">📖 Open album</button><br><small>Dr. Quartz gives you a Shrink Ticket after each cave trip. ${NAME} picks you up for the ride!${st.prize?'':' Fill the album to win the 🥼 Lab Coat robe.'}</small></div>`;}
+
+/* ---------- loops ---------- */
+setInterval(()=>{try{
+ if(root&&typeof curScreen!=='undefined'&&curScreen!=='inner'){ // time's up (play-time bank) or the screen changed → close the ride; the ticket is kept
+  close();R=null;if(DEMO&&DEMO!==true){const p=PL||P();const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();}PL=null;}
+ if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
+ if(!wants(p)){if(W.mobs.some(m=>m.ozzy))W.mobs=W.mobs.filter(m=>!m.ozzy);return;}
+ if(W.mobs.some(m=>m.quartz))return; // Dr. Quartz goes first
+ if(!W.mobs.some(m=>m.ozzy))spawn();else walk(performance.now());}catch(e){}},330);
+if(/innerdemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&curScreen==='world'){clearInterval(iv);DEMO=true;toast(`🎢 Inner Space preview: ${NAME} is on his way…`);}}catch(e){}},500);}
+
+/* ---------- styles (all scoped to the ride) ---------- */
+const st=document.createElement('style');st.textContent=`
+#isRoot{position:fixed;inset:0;z-index:5000;background:#140a2e;font-family:'Fredoka',system-ui,sans-serif;color:#1f2340;overflow:hidden;-webkit-user-select:none;user-select:none}
+#isRoot button{font-family:inherit;cursor:pointer}
+#isRoot .is-stage{position:absolute;inset:0;display:flex;flex-direction:column}
+#isRoot .is-top{position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:7;pointer-events:none}
+#isRoot .is-top>*{pointer-events:auto}#isRoot .is-chip{background:rgba(0,0,0,.55);color:#fff;border-radius:14px;padding:5px 12px;font-weight:700;font-size:15px}
+#isRoot .is-dots{display:flex;gap:6px}#isRoot .is-dots i{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.3)}#isRoot .is-dots i.on{background:#ffd43b}#isRoot .is-dots i.done{background:#8ce99a}
+#isRoot .is-x{border:none;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:38px;height:38px;font-size:18px}
+#isRoot canvas.is-cv{position:absolute;inset:0;width:100%;height:100%}
+#isRoot .is-svg{position:absolute;inset:0;width:100%;height:100%}#isRoot .is-svg.is-tall{overflow:visible;top:56px;height:calc(100% - 290px)}#isRoot .is-stage:has(.is-tall){background:#2b1d5c}
+#isRoot .is-nar{position:absolute;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:6;background:rgba(255,255,255,.96);border:4px solid #7048e8;border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 0 rgba(0,0,0,.25);max-width:880px;margin:0 auto}
+#isRoot .is-nar .who{flex:0 0 auto;width:54px;height:54px}#isRoot .is-nar .who svg{width:54px;height:54px}#isRoot .is-nar .txt{flex:1;font-size:clamp(16px,2.6vw,20px);line-height:1.4}#isRoot .is-nar .txt b{color:#7048e8}
+#isRoot .is-nar .txt small{display:block;color:#7048e8;font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase}
+#isRoot .is-btn{border:none;background:#7048e8;color:#fff;font-size:19px;font-weight:700;border-radius:16px;padding:12px 18px;box-shadow:0 4px 0 #3b1f9e;white-space:nowrap}
+#isRoot .is-btn:disabled{opacity:.45}#isRoot .is-btn.gold{background:#fcc419;color:#5c3d00;box-shadow:0 4px 0 #b08900}#isRoot .is-btn.green{background:#2ecc71;box-shadow:0 4px 0 #1e9e55}
+#isRoot .is-panel{position:absolute;z-index:4;background:rgba(255,255,255,.96);border-radius:18px;padding:12px 14px;font-size:17px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+#isRoot .is-panel h3{margin:0 0 6px;font-size:18px;color:#5f3dc4}
+#isRoot .is-cnt{display:flex;align-items:center;gap:8px;margin:4px 0;font-weight:700}#isRoot .is-ball{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;box-shadow:inset -3px -3px 0 rgba(0,0,0,.2)}
+#isRoot .is-meter{position:absolute;left:14px;top:60px;z-index:4;background:rgba(20,10,46,.75);border:2px solid #b197fc;border-radius:16px;padding:10px 14px;color:#fff;min-width:230px}
+#isRoot .is-meter div{display:flex;justify-content:space-between;gap:16px;font-size:17px;opacity:.35;transition:all .3s}#isRoot .is-meter div.on{opacity:1;color:#ffd43b;font-weight:700;transform:scale(1.06)}#isRoot .is-meter div.past{opacity:.7}
+#isRoot .is-build{position:absolute;inset:0;background:#f3f0ff;overflow:auto;padding:60px 14px 150px;display:flex;flex-direction:column;align-items:center;gap:12px}
+#isRoot .is-build h2{margin:0;color:#5f3dc4;font-size:clamp(22px,4vw,30px);text-align:center}
+#isRoot .is-brow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:flex-start;width:100%;max-width:900px}
+#isRoot .is-tray,#isRoot .is-recipe{background:#fff;border-radius:20px;padding:12px;border:3px solid #dee2e6;min-width:170px}
+#isRoot .is-tray h4,#isRoot .is-recipe h4{margin:0 0 8px;text-align:center;color:#495057;letter-spacing:1px}
+#isRoot .is-tray .atoms{display:grid;grid-template-columns:repeat(2,64px);gap:10px;justify-content:center}
+#isRoot .is-atom{width:64px;height:64px;border-radius:50%;border:none;font-size:22px;font-weight:800;box-shadow:inset -5px -6px 0 rgba(0,0,0,.18),0 4px 0 rgba(0,0,0,.15);padding:0}
+#isRoot .is-atom small{display:block;font-size:10px;font-weight:600}
+#isRoot .is-area{width:min(420px,92vw);aspect-ratio:1.15;background:#fff;border:4px dashed #b197fc;border-radius:26px;position:relative;overflow:hidden}
+#isRoot .is-area.done{border-style:solid;border-color:#51cf66}
+#isRoot .is-recipe .f{font-size:36px;font-weight:800;text-align:center;color:#1f2340}#isRoot .is-recipe li{list-style:none;font-size:17px;margin:4px 0}#isRoot .is-recipe ul{padding:0;margin:6px 0}
+#isRoot .is-buzz{min-height:28px;font-size:18px;font-weight:700;color:#c92a2a;text-align:center}
+#isRoot .is-quiz{position:absolute;inset:0;background:linear-gradient(#2b1d5c,#5f3dc4);overflow:auto;padding:60px 14px 30px;display:flex;flex-wrap:wrap;gap:16px;justify-content:center;align-items:flex-start}
+#isRoot .is-q{background:#fff;border-radius:22px;padding:16px 18px;width:min(560px,94vw)}
+#isRoot .is-q .h{font-size:15px;font-weight:700;color:#7048e8}#isRoot .is-q .qq{font-size:clamp(20px,3.4vw,24px);font-weight:700;margin:8px 0 12px}
+#isRoot .is-opt{display:block;width:100%;text-align:left;margin:8px 0;padding:12px 16px;border-radius:14px;font-size:19px;font-weight:700;border:3px solid #d0bfff;background:#f8f5ff;color:#1f2340}
+#isRoot .is-opt.ok{border-color:#2ecc71;background:#ebfbee}#isRoot .is-opt.no{border-color:#fa5252;background:#fff5f5;opacity:.6;text-decoration:line-through}
+#isRoot .is-why{background:#fff9db;border-radius:12px;padding:10px 12px;font-size:17px;margin-top:6px}
+#isRoot .is-card{background:#fff9db;border:5px solid #fcc419;border-radius:22px;padding:14px;width:min(340px,94vw);text-align:center}
+#isRoot .is-card .n{font-size:28px;font-weight:700}#isRoot .is-card ul{text-align:left;padding-left:18px;font-size:16px;margin:8px 0}
+#isRoot .is-coins{margin-top:6px;font-size:20px;font-weight:700;color:#2b8a3e}#isRoot .is-coins small{font-size:13px;color:#495057}
+#isRoot .is-endcol{display:flex;flex-direction:column;gap:12px;align-self:center;max-width:340px;width:min(340px,94vw)}
+#isRoot .is-prize{background:#fff;border:4px solid #74c0fc;border-radius:18px;padding:12px;font-size:17px;text-align:center}
+#isRoot .is-more{background:rgba(255,255,255,.14);color:#fff;border-radius:14px;padding:10px 12px;font-size:16px}
+#isRoot .is-eyewrap{position:absolute;inset:0;background:#0c0c14;transition:transform 1.6s ease-in,opacity 1.6s}
+#isRoot .is-eyewrap.grow{transform:scale(.05);opacity:0}
+#isRoot .is-lid{transform-origin:480px 150px;animation:isblink 3.2s infinite}@keyframes isblink{0%,86%,100%{transform:scaleY(0)}91%{transform:scaleY(1)}}
+#isRoot .is-pupil{animation:islook 4s ease-in-out infinite}@keyframes islook{0%,100%{transform:translate(0,0)}40%{transform:translate(-18px,6px)}70%{transform:translate(14px,-4px)}}
+#isRoot .is-float{animation:isfloat 2s ease-in-out infinite alternate}@keyframes isfloat{to{transform:translateY(-10px)}}
+#isRoot .is-leave{position:absolute;inset:0;z-index:20;background:rgba(10,5,30,.6);display:grid;place-items:center;padding:16px}
+#isRoot .is-lbox{background:#fff;border-radius:22px;padding:16px;max-width:420px;display:grid;grid-template-columns:60px 1fr;gap:12px;align-items:center;font-size:18px;border:4px solid #7048e8}
+#isRoot .is-lbox svg{width:60px;height:60px}#isRoot .is-lrow{grid-column:1/3;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.is-album{color:#1f2340;width:100%;max-width:760px}.is-ahead{background:#fff;border-radius:16px;padding:10px 14px;font-size:17px;margin-bottom:10px;text-align:center}
+.is-agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.is-acard{background:#f1f3f5;border-radius:16px;padding:10px 8px;text-align:center;position:relative;border:3px solid #dee2e6}.is-acard.done{background:#fff9db;border-color:#fcc419}
+.is-acard .e{font-size:38px;display:block}.is-acard b{display:block;font-size:17px}.is-acard small{color:#7048e8;font-weight:700}.is-acard em{display:block;font-style:normal;font-size:14px;color:#e67700;font-weight:700}
+.oz-av{flex-basis:110px!important}.oz-av svg{width:110px;height:112px}.oz-bub{background:#f3f0ff!important;border-color:#b197fc!important}.oz-bub>b{color:#7048e8!important}
+@media(max-width:560px){.oz-av{flex-basis:78px!important}.oz-av svg{width:78px;height:80px}}
+@media(max-width:600px){#isRoot .is-brow{display:grid;grid-template-columns:1fr 1fr;gap:8px}#isRoot .is-brow .is-tray,#isRoot .is-brow .is-recipe{min-width:0;padding:8px}#isRoot .is-brow .is-area{grid-column:1/3;order:3;justify-self:center}#isRoot .is-recipe .f{font-size:26px}#isRoot .is-recipe li{font-size:14px}#isRoot .is-tray .atoms{grid-template-columns:repeat(2,54px);gap:6px}#isRoot .is-atom{width:54px;height:54px;font-size:19px}#isRoot .is-nar{flex-wrap:wrap}#isRoot .is-nar .who,#isRoot .is-nar .who svg{width:40px;height:40px}#isRoot .is-nar .is-btn{width:100%}#isRoot .is-meter{min-width:0;font-size:14px;top:56px}#isRoot .is-meter div{font-size:14px}.is-agrid{grid-template-columns:1fr 1fr}}`;
+document.head.appendChild(st);
+
+window.Inner={open,award,ticketLine,bagHTML,album:albumModal,meet,draw:drawMob,S,pickRide,ORDER,TIX_MAX,WAIT_BATTLES,_demo:()=>{DEMO=true;},_state:()=>({R,DEMO,busy,root:!!root}),_next:next,_spawn:spawn,_fit:fitMol};
+})();

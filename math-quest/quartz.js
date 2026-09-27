@@ -104,12 +104,18 @@ function host(p){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'
   mathQ:()=>{let q=null,best=null;for(let k=0;k<30;k++){const op=pickOp(p,'mix');if(!['add','sub','mul','div'].includes(op))continue;q=genQ(op,Math.max(1,lvl(p,op)-1));if(q.tpl||typeof q.answer!=='number')continue;if(!best||String(q.text).length<String(best.text).length)best=q;if(String(q.text).length<=9)break;}q=best||genQ('add',1);return {q:q.text,a:q.answer};}, // quick-fire facts a little below the kid's level — Power Ups should feel snappy
   event:(t,d)=>{if(t==='power'){const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][d&&d.ok?'r':'w']++;if(d&&d.ok&&typeof wkAnswer==='function')wkAnswer(p,5);}},
   exit:()=>tripOver(p)};}
-function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;HOST=null;
+function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&HOST.rock;HOST=null;
  if(DEMO&&DEMO!==true){const d=JSON.parse(DEMO);DEMO=null;p.sci=d.sci||undefined;if(!d.sci)delete p.sci;p.cave=d.cave||undefined;if(!d.cave)delete p.cave;p.coins=d.coins;p.daily=d.daily;save();go('world');toast('🔬 That was a preview — nothing was changed.');return;}
+ /* every trip ends with a 🎟️ Shrink Ticket for the Inner Space ride (Ozzy picks you up a few battles later) */
+ let tix=null;try{if(window.Inner)tix=Inner.award(p,{rock});}catch(e){}
+ const inMet=!!(p.inner&&p.inner.met);
  save();go('world');
+ const card=(html,btn)=>modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${html}</div></div></div>
+   <div class="row"><button class="btn green big" onclick="closeModal()">${btn}</button></div></div>`);
  if(first||s.trips===1)setTimeout(()=>{if(curScreen!=='world')return;
-  modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>Thank you for helping, ${esc(p.name)}! Want to do more science? <b>Bring me a 🪨 mystery rock!</b> You can find them in 🎁 treasure chests, from wild monsters and from bosses. When you have one, I'll come and find you.<br><br>And every <b>🏅 Boss Medal</b> you win powers up my drill so we can open the deeper gates!</div></div></div>
-   <div class="row"><button class="btn green big" onclick="closeModal()">Deal! 🤝</button></div></div>`);},700);
+  card(`Thank you for helping, ${esc(p.name)}! Want to do more science? <b>Bring me a 🪨 mystery rock!</b> You can find them in 🎁 treasure chests, from wild monsters and from bosses. When you have one, I'll come and find you.<br><br>And every <b>🏅 Boss Medal</b> you win powers up my drill so we can open the deeper gates!${tix?'<br><br>'+Inner.ticketLine(p,tix,!inMet):''}`,'Deal! 🤝');},700);
+ else if(tix)setTimeout(()=>{if(curScreen!=='world')return;
+  card(`Great work today, ${esc(p.name)}! ${Inner.ticketLine(p,tix,!inMet)}${s.rocks?`<br><br>You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:''}`,'Thanks! 🎟️');},700);
  else toast(`🔬 Dr. Quartz: "Great work today!" ${s.rocks?`You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:'Bring me another 🪨 mystery rock to come back!'}`);}
 
 /* ---------- backpack panel ---------- */
@@ -123,7 +129,7 @@ setInterval(()=>{try{
  if(document.getElementById('cvRoot')&&typeof curScreen!=='undefined'&&curScreen!=='cave'&&window.Cave){Cave.leave();}
  if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
  if(!wants(p)){if(W.mobs.some(m=>m.quartz)&&!(Q(p).rocks>0||dueFirst(p)||DEMO))W.mobs=W.mobs.filter(m=>!m.quartz);return;}
- if(!W.mobs.some(m=>m.quartz))spawn();else walk(performance.now());}catch(e){}},450);
+ if(!W.mobs.some(m=>m.quartz)){if(W.mobs.some(m=>m.ozzy))return;spawn();}else walk(performance.now());}catch(e){}},450);
 
 if(/quartzdemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&curScreen==='world'){clearInterval(iv);DEMO=true;toast('🔬 Dr. Quartz preview: he\'s on his way…');}}catch(e){}},500);}
 

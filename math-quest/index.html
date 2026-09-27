@@ -652,7 +652,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1007,7 +1007,8 @@ const ROBES=[
  {id:'galaxy',name:'Galaxy',grad:['#1b1446','#7c5cff','#ff5fa2'],price:300},
  {id:'rainbow',name:'Rainbow',grad:['#ff5a5f','#ffc83d','#2ecc71','#2f8cff','#7c5cff'],price:500},
  {id:'ocean',name:'Ocean',grad:['#023e8a','#00b4d8','#90e0ef'],price:700},{id:'lava',name:'Lava',grad:['#6a040f','#e85d04','#ffba08'],price:800},
- {id:'aurora',name:'Aurora',grad:['#00f5a0','#00d9f5','#7c5cff','#ff5fa2'],price:1200}];
+ {id:'aurora',name:'Aurora',grad:['#00f5a0','#00d9f5','#7c5cff','#ff5fa2'],price:1200},
+ {id:'labcoat',name:'Lab Coat',grad:['#ffffff','#f1f3f5','#d0ebff'],price:1,event:true}]; /* labcoat: prize for completing the Inner Space Molecule Album (not sold) */
 const SPELLS=[
  {id:'spark',name:'Sparkle Bolt',e:'✨',mult:1,price:0,color:'#ffe066'},
  {id:'fire',name:'Fireball',e:'🔥',mult:1.1,price:150,color:'#ff7a1a'},
@@ -2190,8 +2191,8 @@ SCREENS.backpack=()=>{
  app.innerHTML=topbar()+`<div class="page"><h2 class="title">🎒 Backpack &amp; Shop</h2><div class="bp">
  <div class="bp-hero"><div class="hv">${heroSVG(p.look,{spell:p.spell})}${pet?`<div class="bp-pet">${pet.e}</div>`:''}</div>
   <div class="bp-stats"><b style="font-size:20px">${esc(p.name)}</b><br>Level ${p.level} · ❤️ ${heroMax(p)} HP<br>Spell: ${sp.e} ${sp.name}<br>${pet?`Pet: ${pet.e} ${pet.name}<br><small>${PERKS[pet.perk]}</small>`:'No pet yet'}</div>
-  <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}${typeof eagleHoardHTML==='function'?eagleHoardHTML(p):''}${window.Quartz?Quartz.bagHTML(p):''}
- <div>
+  <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>
+ <div>${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}${typeof eagleHoardHTML==='function'?eagleHoardHTML(p):''}${window.Quartz?Quartz.bagHTML(p):''}${window.Inner?Inner.bagHTML(p):''}
   ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
   ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
   ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards</h3><div class="awards">${p.awards.slice().reverse().map(a=>`<div class="award"><b>🏅 ${esc(a.t)}</b><small>${esc(a.d)}</small></div>`).join('')}</div></div>`:''}
@@ -2205,7 +2206,7 @@ SCREENS.backpack=()=>{
    ${EVENT_PETS.some(x=>p.pets.includes(x.id))||eventOpen()||eventSoon()?`<h4 class="tierh" style="color:#fd7e14">🎃 Halloween <span class="muted">${EVENT_PETS.filter(x=>p.pets.includes(x.id)).length} / ${EVENT_PETS.length}</span></h4><div class="items">${EVENT_PETS.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}`):`<div class="item mystery"><div class="ie" style="filter:brightness(0);opacity:.3">${x.e}</div><div>???</div><small>Beat the Haunted Hollow boss (Oct 18 to Nov 1).</small></div>`).join('')}</div>`:''}</div>
   <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
   <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.filter(h=>!h.event||p.owned.hats.includes(h.id)).map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
-  <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
+  <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.filter(r=>!r.event||p.owned.robes.includes(r.id)).map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
  </div></div></div>`;
 };
 function shopClick(kind,id){
@@ -2507,7 +2508,7 @@ function wFrame(now){
  // tween hero
  if(W.moving){const k=Math.min(1,(now-W.mt)/140);W.drawX=W.fx+(W.hx-W.fx)*k;W.drawY=W.fy+(W.hy-W.fy)*k;}else{W.drawX=W.hx;W.drawY=W.hy;}
  // mobs wander
- if(now-W.mobT>900){W.mobT=now;principalCheckLeave();W.mobs.forEach(m=>{if(m.quartz)return;if(Math.random()<(m.principal?.65:.5))return;const [dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]);const nx=m.x+dx,ny=m.y+dy;const t=W.T[ny]&&W.T[ny][nx];
+ if(now-W.mobT>900){W.mobT=now;principalCheckLeave();W.mobs.forEach(m=>{if(m.quartz||m.mod)return;if(Math.random()<(m.principal?.65:.5))return;const [dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]);const nx=m.x+dx,ny=m.y+dy;const t=W.T[ny]&&W.T[ny][nx];
   if(!t||t.block||t.water||(!m.principal&&(t.plaza||t.b!==m.b))||W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;
   if(m.x===W.hx&&m.y===W.hy&&!$('#modal.show'))setTimeout(()=>wFight(m),50);});}
  const [cx,cy]=wCam();
@@ -2528,7 +2529,7 @@ function wFrame(now){
   if(t.chest){const done=wChestOpen(t.chest);items.push({y,draw:()=>{ctx.globalAlpha=done?.45:1;const bob=done?0:Math.sin(now/300)*2;ctx.drawImage(wSprite(done?'📦':'🎁',Math.round(ts*.75)),sx+ts*.1,sy+ts*.05+bob,ts*.8,ts*.8);ctx.globalAlpha=1;
    if(!done&&(Math.floor(now/400)%2)){ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.6,sy-ts*.1,ts*.4,ts*.4);}}});}}
  W.mobs.forEach(m=>{if(m.x<x0-1||m.x>x1+1||m.y<y0-1||m.y>y1+1)return;let mx=m.x,my=m.y;if(m.mt&&now-m.mt<300){const k=(now-m.mt)/300;mx=m.fx+(m.x-m.fx)*k;my=m.fy+(m.y-m.fy)*k;}
-  const sx=mx*ts-cx,sy=my*ts-cy;if(m.quartz&&window.Quartz){items.push({y:my+.01,draw:()=>Quartz.draw(ctx,sx,sy,ts,now)});return;}if(m.principal){items.push({y:my+.01,draw:()=>{ctx.fillStyle='rgba(255,215,0,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.88,ts*.5,ts*.16,0,0,7);ctx.fill();const im=prImg();const hh=ts*1.45,ww=hh*100/150;if(im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*.95-hh+Math.sin(now/300)*1.5,ww,hh);else{const s=ts*1.15;ctx.drawImage(wSprite('👨‍💼',Math.round(ts*1.1)),sx+ts/2-s/2,sy+ts*.95-s,s,s);}if(Math.floor(now/450)%2)ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.75,sy-ts*.3,ts*.4,ts*.4);wLabel(ctx,'🎓 Principal Wise',sx+ts/2,sy-ts*.42,'#fff','rgba(31,45,92,.92)');}});return;}items.push({y:my+.01,draw:()=>{ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.88,ts*.32,ts*.1,0,0,7);ctx.fill();ctx.drawImage(wSprite(m.e,Math.round(ts*.85)),sx+ts*.06,sy+ts*.02+Math.sin(now/250+m.x)*2,ts*.88,ts*.88);}});});
+  const sx=mx*ts-cx,sy=my*ts-cy;if(m.quartz&&window.Quartz){items.push({y:my+.01,draw:()=>Quartz.draw(ctx,sx,sy,ts,now)});return;}if(m.mod){items.push({y:my+.01,draw:()=>m.mod.draw(ctx,sx,sy,ts,now)});return;}if(m.principal){items.push({y:my+.01,draw:()=>{ctx.fillStyle='rgba(255,215,0,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.88,ts*.5,ts*.16,0,0,7);ctx.fill();const im=prImg();const hh=ts*1.45,ww=hh*100/150;if(im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*.95-hh+Math.sin(now/300)*1.5,ww,hh);else{const s=ts*1.15;ctx.drawImage(wSprite('👨‍💼',Math.round(ts*1.1)),sx+ts/2-s/2,sy+ts*.95-s,s,s);}if(Math.floor(now/450)%2)ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.75,sy-ts*.3,ts*.4,ts*.4);wLabel(ctx,'🎓 Principal Wise',sx+ts/2,sy-ts*.42,'#fff','rgba(31,45,92,.92)');}});return;}items.push({y:my+.01,draw:()=>{ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.88,ts*.32,ts*.1,0,0,7);ctx.fill();ctx.drawImage(wSprite(m.e,Math.round(ts*.85)),sx+ts*.06,sy+ts*.02+Math.sin(now/250+m.x)*2,ts*.88,ts*.88);}});});
  // pet + hero
  const p=P();const pet=petOf(p);
  if(pet){W.petX=W.petX===undefined?W.drawX:W.petX+(W.px+(W.drawX-W.px)*0-W.petX)*.12;W.petY=W.petY===undefined?W.drawY:W.petY+(W.py-W.petY)*.12;
@@ -2643,6 +2644,7 @@ let PR_STATE=null;
 function principalMeet(){
  const p=P();p.prSpawnAt=null;if(!W)return;W.path=[];W.mobs=W.mobs.filter(m=>!m.principal);p.wpos={x:W.hx,y:W.hy};
  PR_STATE={lines:principalLines(p),i:0};SFX.level();go('office');}
+SCREENS.inner=()=>{const p=P();app.innerHTML='<div style="position:fixed;inset:0;background:#140a2e"></div>';if(!window.Inner){go('world');return;}Inner.open(p);};
 SCREENS.cave=()=>{const p=P();app.innerHTML='<div style="position:fixed;inset:0;background:#120b16"></div>';if(!window.Cave||!window.Quartz){go('world');return;}Quartz.openCave(p);};
 SCREENS.office=()=>{
  const p=P();if(!PR_STATE)PR_STATE={lines:principalLines(p),i:0};
@@ -3090,7 +3092,7 @@ function libNext(){const C=LIB;C.i++;C.tries=0;C.picked=null;C.reveal=false;C.wh
   const moved=libAdjust(L,sc);questEvent(p,'story',1);questEvent(p,'rstars',C.stars);if(moved>0)questEvent(p,'readlv',1);C.lvMsg=moved>0?`📈 Reading Level up! You're now at <b>Level ${libLevel(p)}</b>. Longer stories ahead!`:moved<0?`🦉 Professor Hoot picked some slightly shorter stories for a little while.`:'';
   const w=wkOf(p);w.readPts=(w.readPts||0)+C.pts;w.stories=(w.stories||0)+1;p.readLog=p.readLog||[];p.readLog.push({d:dayKey(),t:C.s.t,s:C.stars,n:NQ,lv:C.s.lv});if(p.readLog.length>40)p.readLog.shift();}
  save();SFX.win();go('library');}
-function wFight(m){if(m&&m.principal){principalMeet();return;}if(m&&m.quartz){if(window.Quartz)Quartz.meet();return;}if(!W||curScreen!=='world'||$('#modal.show'))return;W.path=[];W.mobs=W.mobs.filter(o=>o!==m);const b=m.b;setTimeout(()=>{if(W)wSpawn(b);},20000);
+function wFight(m){if(m&&m.principal){principalMeet();return;}if(m&&m.quartz){if(window.Quartz)Quartz.meet();return;}if(m&&m.mod){m.mod.meet();return;}if(!W||curScreen!=='world'||$('#modal.show'))return;W.path=[];W.mobs=W.mobs.filter(o=>o!==m);const b=m.b;setTimeout(()=>{if(W)wSpawn(b);},20000);
  SFX.tap();startBattle(m.zid,0,null,{wild:true,n:m.n,e:m.e});}
 function wGate(zid){const z=ZONES.find(x=>x.id===zid);const p=P();if(zoneLocked(z,p)){toast('🔒 '+z.lockMsg);return;}p.wpos={x:W.hx,y:W.hy};save();SFX.tap();go('zone',zid);}
 const ELDER_TIPS=['Get 3 right in a row to charge up a 🔥 Fireball!','A happy, well-fed pet hits harder in battle!','Wild monsters roam every land. Bump into one for a quick battle!','Every land hides a 🎁 treasure. Answer the lock to open it, once a day!','Beat a boss and monsters start showing up in gangs. Be ready!','Legendary pets are super rare. Keep hatching eggs!','Check the 📜 Leaderboard to see how your family is doing!'];
@@ -3403,7 +3405,7 @@ function eventPrize(p,r){const out=[];
 function roundPrize(p,r,z,B){
  const coin=n=>{p.coins+=n;if(B)B.coins+=n;};let lines=[];
  if(r===2){if(p.pets.length+p.eggs<20){p.eggs++;coin(150);lines=['🥚 A mystery egg','🪙 150 coins'];}else{const a=pick(PET_FOODS),b=pick(PET_FOODS);p.pantry[a.id]=(p.pantry[a.id]||0)+1;p.pantry[b.id]=(p.pantry[b.id]||0)+1;coin(250);lines=[`${a.e}${b.e} Pet treats`,'🪙 250 coins'];}}
- else if(r===3){coin(200);const pool=[...HATS.filter(h=>h.price&&!h.event&&!p.owned.hats.includes(h.id)).map(h=>['hat',h]),...ROBES.filter(x=>x.price&&!p.owned.robes.includes(x.id)).map(x=>['robe',x])];
+ else if(r===3){coin(200);const pool=[...HATS.filter(h=>h.price&&!h.event&&!p.owned.hats.includes(h.id)).map(h=>['hat',h]),...ROBES.filter(x=>x.price&&!x.event&&!p.owned.robes.includes(x.id)).map(x=>['robe',x])];
   if(pool.length){const [k,it]=pick(pool);p.owned[k==='hat'?'hats':'robes'].push(it.id);lines=[`🎁 A free ${k==='hat'?'hat':'robe'}: <b>${it.name}</b>`,'🪙 200 coins'];}else{coin(200);lines=['🪙 400 coins'];}}
  else if(r===4){const two=p.pets.length+p.eggs<30;p.eggs+=two?2:1;coin(300);lines=[two?'🥚🥚 Two mystery eggs':'🥚 A mystery egg','🪙 300 coins'];}
  else if(r===5){p.legendEggs=(p.legendEggs||0)+1;coin(500);lines=['🌟 A LEGEND EGG (Epic or Legendary pet inside!)','🪙 500 coins'];}
