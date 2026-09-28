@@ -129,26 +129,25 @@ function heroTag(x,y,w){return HERO?`<image href="${HERO.src}" x="${x}" y="${y}"
 function nar(html,btn,opts){opts=opts||{};return `<div class="is-nar"><div class="who">${opts.who||OZZY_HEAD}</div><div class="txt"><small>${opts.name||'Ride Operator '+NAME}</small>${html}</div>${btn?`<button class="is-btn ${opts.cls||''}" id="isNext" ${opts.dis?'disabled':''}>${btn}</button>`:''}</div>`;}
 
 /* ---------- ride flow ---------- */
-const SCENES=['board','shrink','inside','mol','atom','build','eye','quiz'];
-function frame(inner){if(!root)return;const done=R.i;root.innerHTML=`<div class="is-stage">${inner}<div class="is-top"><span class="is-chip">${R.s.e}<span class="cn"> ${esc(R.s.n)}</span></span>${sizeBar()}<button class="is-x" id="isX" aria-label="Leave the ride">✕</button></div></div>`;
+const SCENES=['board','shrink','inside','mol','atom','alarm','atoms','build','eye','quiz'];
+function frame(inner){if(!root)return;const done=R.i;const fade=R.fresh;R.fresh=false;root.innerHTML=`<div class="is-stage${fade?' is-fadein':''}">${inner}<div class="is-top"><span class="is-chip">${R.s.e}<span class="cn"> ${esc(R.s.n)}</span></span>${sizeBar()}<button class="is-x" id="isX" aria-label="Leave the ride">✕</button></div></div>`;
  root.querySelector('#isX').onclick=R.finished?exit:askLeave;}
 function askLeave(){if(!root||root.querySelector('.is-leave'))return;const d=document.createElement('div');d.className='is-leave';
  d.innerHTML=`<div class="is-lbox">${OZZY_HEAD}<div><b>Leave the ride?</b><br>You keep your 🎟️ ticket — ${NAME} will come back for you later.</div><div class="is-lrow"><button class="is-btn green" id="isStay">🎢 Keep riding</button><button class="is-btn" id="isLeave">Leave</button></div></div>`;
  root.appendChild(d);d.querySelector('#isStay').onclick=()=>d.remove();d.querySelector('#isLeave').onclick=()=>{if(!DEMO&&PL){S(PL).snooze=Date.now()+SNOOZE_MS;}exit();};}
 function next(){R.i++;scene();}
 function onNext(fn){const b=root&&root.querySelector('#isNext');if(b)b.onclick=fn||next;}
-function scene(){stopAnim();if(!root)return;R.sz={board:0,shrink:0,inside:6,mol:7,atom:9,build:8,eye:8,quiz:0}[SCENES[R.i]];({board,shrink,inside,mol,atom,build,eye,quiz})[SCENES[R.i]]();}
+function scene(){stopAnim();if(!root)return;R.sz={board:0,shrink:0,inside:6,mol:7,atom:9,alarm:9,atoms:9,build:8,eye:8,quiz:8}[SCENES[R.i]];R.fresh=true;({board,shrink,inside,mol,atom,alarm,atoms,build,eye,quiz})[SCENES[R.i]]();}
 const stage=()=>root.querySelector('.is-stage');
 
 /* 1. boarding */
 const OBJ={glass:'🥛',salt:'🧂',air:'🌬️',soda:'🥤',stove:'🔥',candy:'🍬',ring:'💍'};
 function board(){const s=R.s,t=tier();const rk=R.t.rock&&window.CAVE_DATA&&CAVE_DATA.MIN[R.t.rock];
  const tall=window.innerWidth<window.innerHeight*.9; // phone held upright → show the whole scene instead of cropping it
- frame(`<svg class="is-svg${tall?' is-tall':''}" viewBox="${tall?'40 60 924 470':'0 0 960 600'}" preserveAspectRatio="${tall?'xMidYMid meet':'xMidYMid slice'}"><rect x="-600" y="-900" width="2160" height="2400" fill="#2b1d5c"/>
+ frame(`<svg class="is-svg${tall?' is-tall':''}" viewBox="${tall?'40 60 924 470':'0 0 960 600'}" preserveAspectRatio="xMidYMid meet"><rect x="-600" y="-900" width="2160" height="2400" fill="#2b1d5c"/>
  ${Array.from({length:40},(_,i)=>`<circle cx="${(i*97)%960}" cy="${(i*53)%300}" r="${1+i%3*.6}" fill="#fff" opacity=".6"/>`).join('')}
- <rect y="430" width="960" height="470" fill="#3d2b7a"/><path d="M0 470 H960" stroke="#ffd43b" stroke-width="6" stroke-dasharray="30 20"/>
+ <rect x="-600" y="430" width="2160" height="470" fill="#3d2b7a"/><path d="M-600 470 H1560" stroke="#ffd43b" stroke-width="6" stroke-dasharray="30 20"/>
  <text x="480" y="90" font-size="50" font-weight="700" fill="#ffd43b" text-anchor="middle" stroke="#7048e8" stroke-width="2">✨ INNER SPACE ✨</text>
- <g transform="translate(200 255) scale(.72)"><rect x="-120" y="-80" width="240" height="200" rx="24" fill="#5f3dc4" stroke="#b197fc" stroke-width="5"/><circle cx="0" cy="20" r="64" fill="#1a0f3d" stroke="#ffd43b" stroke-width="6"/>${[0,1,2].map(i=>`<circle cx="0" cy="20" r="${20+i*14}" fill="none" stroke="#b197fc" stroke-width="3" opacity=".7"><animate attributeName="r" values="${14+i*14};${24+i*14};${14+i*14}" dur="5s" repeatCount="indefinite"/></circle>`).join('')}<text x="0" y="-50" font-size="18" font-weight="700" fill="#ffd43b" text-anchor="middle">SHRINK-O-MATIC</text></g>
  <defs><radialGradient id="isCaveG" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#b197fc"/><stop offset=".45" stop-color="#5f3dc4"/><stop offset="1" stop-color="#140a2e"/></radialGradient></defs>
  <path d="M592 474 Q606 306 690 258 Q752 224 816 250 Q892 292 902 474Z" fill="#5c4a3d" stroke="#3b2f25" stroke-width="5"/>
  <path d="M626 474 Q636 356 700 306" stroke="#6f5b4b" stroke-width="10" fill="none" stroke-linecap="round" opacity=".7"/><path d="M870 474 Q878 366 830 296" stroke="#4a3b30" stroke-width="10" fill="none" stroke-linecap="round" opacity=".6"/>
@@ -157,21 +156,24 @@ function board(){const s=R.s,t=tier();const rk=R.t.rock&&window.CAVE_DATA&&CAVE_
  <g transform="translate(746 190)"><rect x="-6" y="30" width="12" height="46" fill="#8d5a2b"/><rect x="-128" y="-42" width="256" height="80" rx="14" fill="#fff4e6" stroke="#8d5a2b" stroke-width="6"/><text x="0" y="-14" font-size="17" font-weight="800" fill="#8d5a2b" text-anchor="middle" letter-spacing="2">THIS ADVENTURE</text><text x="0" y="22" font-size="28" font-weight="800" fill="#5f3dc4" text-anchor="middle">${s.e} ${esc(s.n)}</text></g>
  ${[0,1,2].map(i=>`<path d="M${572+i*26} 458 l14 12 l-14 12" stroke="#ffd43b" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".85"><animate attributeName="opacity" values=".3;1;.3" dur="3s" begin="${i*.5}s" repeatCount="indefinite"/></path>`).join('')}
  <g transform="translate(330 452) scale(.9)">${OZ_BODY}<path d="M-24 -18 L-22 30 L22 30 L24 -18Z" fill="#ae3ec9"/><path d="M-10 30 V52 M10 30 V52" stroke="#343a40" stroke-width="8" stroke-linecap="round"/><path d="M22 -12 Q40 -30 46 -46" stroke="#ae3ec9" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="46" cy="-48" r="6" fill="#f1c8a0"/></g>
- <g transform="translate(470 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/><path d="M-78 -2 h-28 M-80 12 h-40 M-76 26 h-24" stroke="#b197fc" stroke-width="4" stroke-linecap="round" opacity=".6"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-44" cy="8" r="7" fill="#ffd43b"/><circle cx="44" cy="8" r="7" fill="#ffd43b"/><text x="0" y="16" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">ATOM-MOBILE</text></g></svg>
+ <g id="isCarGo" class="is-cargo"><g transform="translate(470 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/><path d="M-78 -2 h-28 M-80 12 h-40 M-76 26 h-24" stroke="#b197fc" stroke-width="4" stroke-linecap="round" opacity=".6"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-57" cy="0" r="6" fill="#ffd43b"/><circle cx="57" cy="0" r="6" fill="#ffd43b"/><text x="0" y="20" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">ATOM-MOBILE</text></g></g></svg><div class="is-black" id="isBlack"></div>
  ${nar(`Welcome aboard, <b>${NM()}</b>! Keep your hands inside the Atom-Mobile. ${rk?`Dr. Quartz says your mystery rock was <b>${esc(rk.n.toLowerCase())}</b> — let's see what it's made of! `:''}${esc(s.intro[t])}`,'🎢 Start the ride!',{cls:'gold'})}`);
- onNext(()=>{whoosh();next();});}
+ onNext(()=>{const b=root.querySelector('#isNext');if(b){b.disabled=true;b.textContent='Here we go… 🎢';}whoosh();
+  const car=root.querySelector('#isCarGo');if(car)car.classList.add('go');
+  setTimeout(()=>{const k=root&&root.querySelector('#isBlack');if(k)k.classList.add('on');},2300);setTimeout(()=>{if(root)next();},3300);});}
 
 /* 2. shrinking: a slow ride past real-world size markers, with a stop (and a chat) at each one */
-const SIZES=[{e:'🧒',n:'Your normal size',sz:'about 1.5 m'},{e:'🐜',n:'As small as an ant',sz:'3 mm'},{e:'〰️',n:'Smaller than a hair is wide',sz:'0.08 mm'},{e:'🔬',n:'As small as one cell',sz:'0.01 mm'},{e:'🦠',n:'As small as a germ',sz:'0.002 mm'},{e:'🧬',n:'As small as a virus',sz:'0.0001 mm'},
+const SIZES=[{e:'🧒',n:'Your normal size',sz:'about 1.5 m'},{e:'🐜',n:'As small as an ant',sz:'3 mm'},{e:'〰️',n:'Smaller than a hair is wide',sz:'0.08 mm'},{e:'🔬',n:'As small as one cell',sz:'0.01 mm'},{e:'🦠',n:'As small as a germ',sz:'0.002 mm'},{e:'VIRUS',n:'As small as a virus',sz:'0.0001 mm'},
  {e:'🫧',n:'Among the molecules',sz:'0.000 01 mm'},{e:'💧',n:'As small as one molecule',sz:'0.000 000 3 mm'},{e:'⚛️',n:'As small as one atom',sz:'0.000 000 1 mm'},{e:'✨',n:'Inside an atom!',sz:'0.000 000 000 001 mm'}];
 const STOPS=[null,
- ['We\'re as small as an <b>ANT</b>! 🐜 Hi there, ant! To us it looks as big as a dog now.','Ant-sized: about <b>3 millimeters</b>. A single grain of sand would look like a boulder!','About <b>3 mm</b>: we\'ve shrunk roughly 500 times. Sand grains are boulders now.'],
+ ['We\'re as small as an <b>ANT</b>! 🐜 Hi there, ant! To us it looks as big as a <b>house</b> now!','Ant-sized: about <b>3 millimeters</b>. A single grain of sand would look like a boulder!','About <b>3 mm</b>: we\'ve shrunk roughly 500 times. Sand grains are boulders now.'],
  ['Whoa! That brown log is ONE <b>HAIR</b>! From down here it looks as thick as a tree trunk. 🌳','A human hair is only about <b>0.08 mm</b> wide. We\'re smaller than that now, so it looks like a giant log!','A hair is about <b>80 micrometers</b> wide. See the overlapping scales on it? They\'re called the cuticle.'],
  ['Now we\'re as small as one <b>CELL</b>! Your whole body is built from tiny cells like this one.','One cell is about <b>0.01 mm</b>. You are made of about <b>30 trillion</b> of them!','A typical cell is about <b>10 micrometers</b>. The dark blob in the middle is the <b>nucleus</b>, the cell\'s control center.'],
  ['Wiggly <b>GERMS</b>! These are bacteria. 🦠 Most are harmless, and some even help your tummy digest food.','Bacteria are about <b>0.002 mm</b> long, about 5 times smaller than a cell. See their little tails? They swim with them!','Bacteria are about <b>2 micrometers</b> long. Those whip-like tails are called <b>flagella</b>.'],
  ['Even smaller: a <b>VIRUS</b>! It\'s so tiny that a normal microscope can\'t even see it.','Viruses are about <b>0.0001 mm</b> across. Scientists need an <b>electron microscope</b> to see one!','About <b>100 nanometers</b>: too small for light microscopes. Light waves are bigger than the virus!']];
+const VIRUS_ICO=`<svg viewBox="-12 -12 24 24" class="is-vico">${Array.from({length:10},(_,i)=>{const a=i/10*Math.PI*2;return `<line x1="${(Math.cos(a)*6).toFixed(1)}" y1="${(Math.sin(a)*6).toFixed(1)}" x2="${(Math.cos(a)*10).toFixed(1)}" y2="${(Math.sin(a)*10).toFixed(1)}" stroke="#9c36b5" stroke-width="1.6"/><circle cx="${(Math.cos(a)*10.5).toFixed(1)}" cy="${(Math.sin(a)*10.5).toFixed(1)}" r="1.6" fill="#e599f7"/>`;}).join('')}<circle r="6.5" fill="#cc5de8"/></svg>`;
 function sizeBar(){const k=R.sz||0,n=SIZES.length,z=SIZES[k];
- return `<div class="is-size" id="isSize"><div class="trk"><i style="width:${k/(n-1)*100}%"></i>${SIZES.map((q,j)=>`<span class="${j<k?'past':''}${j===k?' on':''}" style="left:${j/(n-1)*100}%">${q.e}</span>`).join('')}</div><div class="lab">📏 <b>${z.sz}</b> · ${z.n}</div></div>`;}
+ return `<div class="is-size" id="isSize"><div class="trk"><i style="width:${k/(n-1)*100}%"></i>${SIZES.map((q,j)=>`<span class="${j<k?'past':''}${j===k?' on':''}" style="left:${j/(n-1)*100}%">${q.e==='VIRUS'?VIRUS_ICO:q.e}</span>`).join('')}</div><div class="lab">📏 <b>${z.sz}</b> · ${z.n}</div></div>`;}
 function setSize(k){R.sz=k;const el=root&&root.querySelector('#isSize');if(el)el.outerHTML=sizeBar();}
 function drawStop(c,k,x,y,S,sec,a){if(k<1||a<=0.01)return;c.save();c.globalAlpha=Math.min(1,a);
  if(k===1){c.font=`${S}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('🐜',x,y);}
@@ -185,21 +187,22 @@ function drawStop(c,k,x,y,S,sec,a){if(k<1||a<=0.01)return;c.save();c.globalAlpha
  else if(k===5){const r=S*.3;c.strokeStyle='#9c36b5';c.lineWidth=Math.max(2,S*.02);for(let i=0;i<16;i++){const q=i/16*Math.PI*2+sec*.1;c.beginPath();c.moveTo(x+Math.cos(q)*r,y+Math.sin(q)*r);c.lineTo(x+Math.cos(q)*r*1.35,y+Math.sin(q)*r*1.35);c.stroke();c.fillStyle='#e599f7';c.beginPath();c.arc(x+Math.cos(q)*r*1.38,y+Math.sin(q)*r*1.38,S*.035,0,7);c.fill();}
   const g=c.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r);g.addColorStop(0,'#f3d9fa');g.addColorStop(1,'#9c36b5');c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();}
  c.restore();}
-function shrink(){const t=tier();R.sz=0;let k=0,go=0;const TRAVEL=3.4;
+function shrink(){const t=tier();R.sz=0;let k=0,go=performance.now()+600;const TRAVEL=4.6;
  const say=()=>k===0?['Hold on tight! I\'m switching on the <b>shrink ray</b>. Watch the size meter at the top to see how small we get!','Buckle up! Watch the <b>size meter</b> at the top: we\'ll pass real things on the way down, and I\'ll stop at each one.','Buckle up! The <b>size meter</b> tracks our size. Each stop is about 10 times smaller than the last one.'][t]:STOPS[k][t];
- const btnTxt=()=>k===0?'Start shrinking ➜':k<5?'Keep shrinking ➜':'Dive into the molecules ➜';
- frame(nar(say(),btnTxt()));
+ const btnTxt=()=>k<5?'Let\'s keep going ➜':'Dive into the molecules ➜';
+ frame(nar(say(),'Shrinking… ⏳',{dis:1}));
  const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');
  const hook=()=>onNext(()=>{if(go)return;if(k>=5){next();return;}go=performance.now();const b=root.querySelector('#isNext');if(b){b.disabled=true;b.textContent='Shrinking… ⏳';}snd(520-k*40,.5,'sine',.04);});
  hook();
  loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;
-  const depth=(k+(go?Math.min(1,(performance.now()-go)/1000/TRAVEL):0))/5;
+  const gp=go?Math.max(0,Math.min(1,(performance.now()-go)/1000/TRAVEL)):0;const depth=(k+gp)/5;
   const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,`hsl(255,45%,${22-depth*12}%)`);g.addColorStop(1,`hsl(250,50%,${14-depth*8}%)`);c.fillStyle=g;c.fillRect(0,0,w,h);
   const S=Math.min(w,h)*.55,cx=w/2,cy=(h-120)*.5+40;
   // calm, slow rings while traveling (gentle: slow, see-through, no flashing)
-  if(go){const f=(performance.now()-go)/1000;for(let i=0;i<5;i++){const ph=((f/6+i/5)%1);c.strokeStyle='#b197fc';c.globalAlpha=.16*(1-ph);c.lineWidth=2+ph*2;c.beginPath();c.ellipse(cx,cy,ph*Math.max(w,h)*.7,ph*Math.max(w,h)*.46,0,0,7);c.stroke();}c.globalAlpha=1;}
-  if(go){const p=Math.min(1,(performance.now()-go)/1000/TRAVEL),e=p*p*(3-2*p);
-   drawStop(c,k,cx,cy,S*(1+e*5),sec,1-e);drawStop(c,k+1,cx,cy,S*(.04+e*.96),sec,e);
+  if(go){const f=Math.max(0,(performance.now()-go)/1000);for(let i=0;i<5;i++){const ph=((f/6+i/5)%1);c.strokeStyle='#b197fc';c.globalAlpha=.16*(1-ph);c.lineWidth=2+ph*2;c.beginPath();c.ellipse(cx,cy,ph*Math.max(w,h)*.7,ph*Math.max(w,h)*.46,0,0,7);c.stroke();}c.globalAlpha=1;}
+  if(go){const p=gp,sm=x=>x*x*(3-2*x),a=sm(Math.min(1,p/.42)),b=sm(Math.max(0,(p-.55)/.45));
+   // first the thing we're passing grows past us and fades away… then (after a moment of just rings) the next one appears as a dot
+   if(p<.42)drawStop(c,k,cx,cy,S*(1+a*6),sec,1-a);if(p>.55)drawStop(c,k+1,cx,cy,S*(.02+b*.98),sec,Math.min(1,b*1.6));
    if(p>=1){go=0;k++;setSize(k);snd(660+k*60,.18,'triangle',.05);const n=root.querySelector('.is-nar .txt');if(n)n.innerHTML=`<small>Ride Operator ${NAME}</small>${say()}`;const b=root.querySelector('#isNext');if(b){b.disabled=false;b.textContent=btnTxt();}}}
   else drawStop(c,k,cx,cy,S,sec,1);
   car(c,cx+Math.sin(sec*.7)*8,cy+S*.32+Math.cos(sec*.9)*5,Math.min(w,h)*.16);});}
@@ -209,11 +212,11 @@ function inside(){const s=R.s,t=tier();frame(nar(esc(s.inside[t]).replace(/molec
  const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');onNext();
  const bg={liquid:'#0b3d6b',gas:'#9ecbff',solid:'#1b1036'}[s.state];let P2=null;
  loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle=bg;c.fillRect(0,0,w,h);
-  if(s.state!=='solid'){const N=s.state==='gas'?14:44,sp=s.state==='gas'?160:28;const unit=Math.min(w,h)/(s.state==='gas'?22:18)*(s.lay==='glucose'?.6:1);
+  if(s.state!=='solid'){const N=s.state==='gas'?14:44,sp=s.state==='gas'?160:28;const zz=Math.min(1,sec/3.5),zm=.25+.75*zz*zz*(3-2*zz);const unit=Math.min(w,h)/(s.state==='gas'?22:18)*(s.lay==='glucose'?.6:1)*zm;
    if(!P2)P2=Array.from({length:N},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*sp,vy:(Math.random()-.5)*sp,r:Math.random()*6,vr:(Math.random()-.5)*(s.state==='gas'?3:1.2)}));
    const dt=1/60;P2.forEach(m=>{m.x+=m.vx*dt;m.y+=m.vy*dt;m.r+=m.vr*dt;if(s.state==='gas'){if(m.x<0||m.x>w)m.vx*=-1;if(m.y<0||m.y>h)m.vy*=-1;}else{m.vx+=(Math.random()-.5)*6;m.vy+=(Math.random()-.5)*6;m.vx*=.99;m.vy*=.99;m.x=(m.x+w)%w;m.y=(m.y+h)%h;}drawMol(c,s.lay,m.x,m.y,unit,m.r,false);});
    if(s.state==='gas'){c.fillStyle='rgba(20,10,46,.85)';c.font='700 15px Fredoka,sans-serif';c.textAlign='left';c.textBaseline='alphabetic';c.fillText('lots of empty space between molecules!',14,h-150);}}
-  else{const u=Math.min(w,h)/10;const cols=Math.ceil(w/u)+1,rows=Math.ceil(h/u)+1;
+  else{const zz=Math.min(1,sec/3.5),u=Math.min(w,h)/10*(.3+.7*zz*zz*(3-2*zz));const cols=Math.ceil(w/u)+1,rows=Math.ceil(h/u)+1;
    if(s.metal){for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const px=x*u+(y%2?u/2:0),py=y*u*.87;const j=Math.sin(sec*9+x*1.3+y*2.1)*u*.04;ball(c,'Au',px+j,py-j,u*.46);}
     c.fillStyle='#74c0fc';for(let k=0;k<60;k++){const ex=((k*97+sec*80*(k%3+1))%w),ey=((k*53+Math.sin(sec+k)*40)%h+h)%h;c.beginPath();c.arc(ex,ey,3,0,7);c.fill();}
     c.fillStyle='rgba(20,10,46,.8)';c.beginPath();c.roundRect?c.roundRect(10,52,330,34,12):c.rect(10,52,330,34);c.fill();c.fillStyle='#fff';c.font='700 17px Fredoka,sans-serif';c.textAlign='left';c.textBaseline='middle';c.fillText('🔵 = free-floating electrons ("electron sea")',20,69);}
@@ -231,7 +234,7 @@ function mol(){const s=R.s,t=tier();const L=D.L[s.lay];
  ${nar(esc(s.mol[t]),'Go inside an atom ➜')}`);onNext();
  const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');
  loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle='#0b3d6b';c.fillRect(0,0,w,h);const span=Math.max(...L.a.map(a=>Math.hypot(a[1],a[2])))+1;
-  const sc=Math.max(4,Math.min(w*.8,(h-190)*.9)/(span*2));drawMol(c,s.lay,w*.42,(h-120)*.55,sc,Math.sin(sec*.6)*.25,true);
+  const zq=Math.min(1,sec/2.2),sc=Math.max(4,Math.min(w*.8,(h-190)*.9)/(span*2))*(.3+.7*zq*zq*(3-2*zq));drawMol(c,s.lay,w*.42,(h-120)*.55,sc,Math.sin(sec*.6)*.25,true);
   if(s.id==='salt'&&t>0){c.fillStyle='#ffd43b';c.font=`800 ${Math.max(18,sc*.35)}px Fredoka,sans-serif`;c.textAlign='center';c.textBaseline='alphabetic';const r2=Math.sin(sec*.6)*.25;c.fillText('Na⁺',w*.42-Math.cos(r2)*.75*sc,(h-120)*.55-Math.sin(r2)*.75*sc+sc*.85);c.fillText('Cl⁻',w*.42+Math.cos(r2)*.75*sc,(h-120)*.55+Math.sin(r2)*.75*sc+sc*.85);}});}
 
 /* 5. inside the atom */
@@ -241,10 +244,10 @@ function atom(){const s=R.s,t=tier();const e=s.star,E=EL[e];const an=/^[AEIOU]/.
  <div class="is-cnt"><span class="is-ball" style="background:#1c7ed6;color:#fff">n</span>${E.nu} neutron${E.nu===1?'':'s'}</div>
  <div class="is-cnt"><span class="is-ball" style="background:#ffe066">−</span>${E.p} electron${E.p>1?'s':''}</div>
  ${t>0?`<div style="margin-top:6px;color:#495057">Atomic number: <b>${E.p}</b>${t>1?` · shells ${E.sh.join(', ')}`:''}</div>`:''}</div>
- ${nar(`${[`We're INSIDE ${an} ${E.n.toLowerCase()} atom! The middle is packed with <b>protons</b> and <b>neutrons</b>. Tiny <b>electrons</b> zoom around the outside.`,`The center is the <b>nucleus</b>: protons (+) and neutrons. Electrons (−) whizz around in shells. The number of protons decides what element it is — ${E.p} means ${E.n.toLowerCase()}!`,`Nucleus: ${E.p} p⁺ and ${E.nu} n⁰. Electron shells: ${E.sh.join(', ')}. The atom is ~100,000× wider than its nucleus — it's mostly empty space.`][t]} ${esc(E.fact[t])}`,'Build it! 🔧')}`);onNext();
+ ${nar(`${[`We're INSIDE ${an} ${E.n.toLowerCase()} atom! The middle is packed with <b>protons</b> and <b>neutrons</b>. Tiny <b>electrons</b> zoom around the outside.`,`The center is the <b>nucleus</b>: protons (+) and neutrons. Electrons (−) whizz around in shells. The number of protons decides what element it is — ${E.p} means ${E.n.toLowerCase()}!`,`Nucleus: ${E.p} p⁺ and ${E.nu} n⁰. Electron shells: ${E.sh.join(', ')}. The atom is ~100,000× wider than its nucleus — it's mostly empty space.`][t]} ${esc(E.fact[t])}`,'Continue ➜')}`);onNext();
  const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');const nucl=[];const big=E.p+E.nu>40;
  if(!big){const N=E.p+E.nu;for(let i=0;i<N;i++){const a=i*2.4,r=Math.sqrt(i)*1;nucl.push([Math.cos(a)*r,Math.sin(a)*r,i<E.p]);}}
- loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle='#140a2e';c.fillRect(0,0,w,h);const cx=w*.58,cy=(h-110)*.55;const R0=Math.max(40,Math.min(w*.4,(h-140)*.48));const n=E.sh.length;
+ loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle='#140a2e';c.fillRect(0,0,w,h);const top=110,bot=h-(w<600?230:170),cx=w*(w<600?.5:.58),cy=(top+bot)/2;const R0=Math.max(40,Math.min(w*.38,(bot-top)/2-14));const n=E.sh.length;
   E.sh.forEach((k,si)=>{const r=R0*(si+1)/n;c.strokeStyle='rgba(255,224,102,.35)';c.setLineDash([4,8]);c.lineWidth=2;c.beginPath();c.arc(cx,cy,r,0,7);c.stroke();c.setLineDash([]);
    for(let q=0;q<k;q++){const a=sec*(1.6-si*.2)+q*Math.PI*2/k+si;c.fillStyle='#ffe066';c.shadowColor='#ffe066';c.shadowBlur=10;c.beginPath();c.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,Math.max(3,7-n*.6),0,7);c.fill();c.shadowBlur=0;}});
   const nr=big?Math.max(38,R0/n*.6):R0/n*.45;if(big){const g=c.createRadialGradient(cx-nr*.3,cy-nr*.3,2,cx,cy,nr);g.addColorStop(0,'#ffc9c9');g.addColorStop(1,'#c92a2a');c.fillStyle=g;c.beginPath();c.arc(cx,cy,nr,0,7);c.fill();c.fillStyle='#fff';c.font=`800 ${nr*.42}px Fredoka,sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(`${E.p} p⁺`,cx,cy-nr*.2);c.fillText(`${E.nu} n`,cx,cy+nr*.25);}
@@ -252,15 +255,15 @@ function atom(){const s=R.s,t=tier();const e=s.star,E=EL[e];const an=/^[AEIOU]/.
 
 /* 6. build it */
 function build(){const s=R.s,t=tier();const need=Object.assign({},s.atoms);const have={};const DECOYS=['H','C','N','O','Na','Cl','Au'].filter(e=>!need[e]);
- const tray=[...Object.keys(need),...DECOYS.slice(0,Math.max(1,4-Object.keys(need).length))].sort();
+ const tray=Object.keys(need).sort();
  let placed=[],done=false;R.buzz=0;
  const draw=(msg,ok)=>{const L=D.L[s.lay];const total=Object.values(need).reduce((a,b)=>a+b,0);let x0=-1.4,x1=1.4,y0=-1.25,y1=1.25;L.a.forEach(([e,x,y])=>{const r=EL[e].r*.45;x0=Math.min(x0,x-r);x1=Math.max(x1,x+r);y0=Math.min(y0,y-r);y1=Math.max(y1,y+r);});const pw=(x1-x0)*.08+.2;const vb=`${x0-pw} ${y0-pw} ${x1-x0+pw*2} ${y1-y0+pw*2}`; // fit the finished molecule
-  frame(`<div class="is-build"><h2>🔧 ${esc(s.build[t])}</h2>
-   <div class="is-brow"><div class="is-tray"><h4>ATOM TRAY</h4><div class="atoms">${tray.map(e=>`<button class="is-atom" data-e="${e}" style="background:${EL[e].col};color:${EL[e].txt}" ${done?'disabled':''}>${e}<small>${EL[e].n}</small></button>`).join('')}</div></div>
+  frame(`<div class="is-build is-dark2"><h2>🔧 ${esc(s.build[t])}</h2>
+   <div class="is-brow"><div class="is-tray"><h4>YOUR ATOMS</h4><div class="atoms">${tray.map(e=>`<button class="is-atom" data-e="${e}" style="background:${EL[e].col};color:${EL[e].txt}" ${done?'disabled':''}>${e}<small>${EL[e].n}</small></button>`).join('')}</div></div>
    <div class="is-area ${done?'done':''}" id="isArea"><svg viewBox="${vb}" width="100%" height="100%" id="isSvg"></svg></div>
    <div class="is-recipe"><h4>RECIPE</h4><div class="f">${s.f}</div><ul>${Object.entries(need).map(([e,n])=>`<li>${(have[e]||0)>=n?'✅':'◻️'} ${n} ${EL[e].n.toLowerCase()} <b>(${have[e]||0}/${n})</b></li>`).join('')}</ul></div></div>
    <div class="is-buzz" style="color:${ok?'#2b8a3e':'#c92a2a'}">${msg||'&nbsp;'}</div></div>
-   ${nar(done?(s.id==='salt'&&t>0?'Watch the electron jump from sodium to chlorine! Now they have opposite charges, so they stick together.':s.metal?'Clink! The gold atoms packed together, sharing a sea of free electrons (the blue dots). That\'s a metal!':s.id==='diamond'?'SNAP! One carbon holding on to four others — repeat that forever and you get a diamond!':'SNAP! The atoms bonded together. You built it!'):`Tap atoms in the tray to add them. ${total>6?`You need ${total} atoms — keep going!`:''}`,done?'Next ➜':null,{cls:'green'})}`);
+   ${nar(done?(s.id==='salt'&&t>0?'Watch the electron jump from sodium to chlorine! Now they have opposite charges, so they stick together.':s.metal?'Clink! The gold atoms packed together, sharing a sea of free electrons (the blue dots). That\'s a metal!':s.id==='diamond'?'SNAP! One carbon holding on to four others — repeat that forever and you get a diamond!':'SNAP! The atoms bonded together. You built it!'):`Tap atoms in the tray to add them. ${total>6?`You need ${total} atoms — keep going!`:''}`,done?'🔁 Replicate!':null,{cls:done?'gold':'green'})}`);
   const svg=root.querySelector('#isSvg');
   if(done){const lay=L;let h='';lay.b.forEach(([i,j,o])=>{const a=lay.a[i],b=lay.a[j];h+=`<line x1="${a[1]}" y1="${a[2]}" x2="${b[1]}" y2="${b[2]}" stroke="#adb5bd" stroke-width="${o===2?.16:.1}" ${o===0?'stroke-dasharray=".12 .12"':''}><animate attributeName="stroke-opacity" from="0" to="1" dur=".8s"/></line>`;});
    const sc=1;lay.a.forEach(([e,x,y],k)=>{const r=EL[e].r*.42*sc;h+=`<g><circle cx="${x}" cy="${y}" r="${r}" fill="${EL[e].col}" stroke="rgba(0,0,0,.25)" stroke-width=".04"><animate attributeName="r" values="0;${r*1.25};${r}" dur=".5s" begin="${k*.03}s" fill="freeze"/></circle><text x="${x}" y="${y+r*.35}" font-size="${r*.95}" text-anchor="middle" font-weight="800" fill="${EL[e].txt}">${e}</text></g>`;});
@@ -268,12 +271,66 @@ function build(){const s=R.s,t=tier();const need=Object.assign({},s.atoms);const
    if(s.metal)h+=Array.from({length:6},(_,k)=>`<circle cx="${-1.3+k*.5}" cy="${1.4-(k%2)*.2}" r=".08" fill="#74c0fc"><animate attributeName="cx" values="${-1.3+k*.5};${-1.3+k*.5+.5};${-1.3+k*.5}" dur="${1.5+k*.2}s" repeatCount="indefinite"/></circle>`).join('');
    svg.innerHTML=h;}
   else{svg.innerHTML=placed.map((e,k)=>{const n=placed.length;const a=k/n*Math.PI*2,rr=n>1?(n>8?2:1.2):0;const x=Math.cos(a)*rr,y=Math.sin(a)*rr*.8;const r=EL[e].r*.42*(n>8?.6:1);return `<g class="is-float" style="animation-delay:${k*.1}s"><circle cx="${x}" cy="${y}" r="${r}" fill="${EL[e].col}" stroke="rgba(0,0,0,.25)" stroke-width=".04"/><text x="${x}" y="${y+r*.35}" font-size="${r*.95}" text-anchor="middle" font-weight="800" fill="${EL[e].txt}">${e}</text></g>`;}).join('');}
-  root.querySelectorAll('.is-atom').forEach(b=>b.onclick=()=>add(b.dataset.e));onNext();};
+  root.querySelectorAll('.is-atom').forEach(b=>b.onclick=()=>add(b.dataset.e));onNext(done?replicate:null);};
  const add=e=>{if(done)return;if(!need[e]){R.buzz++;snd(150,.3,'sawtooth',.05);draw(`Bzzzt! ${EL[e].n} isn't in ${esc(s.n.toLowerCase())}! Check the recipe.`);return;}
   if((have[e]||0)>=need[e]){R.buzz++;snd(180,.25,'sawtooth',.05);draw(`That's enough ${EL[e].n.toLowerCase()} — the recipe only needs ${need[e]}.`);return;}
   have[e]=(have[e]||0)+1;placed.push(e);snd(500+placed.length*40,.1,'triangle',.05);
   if(Object.entries(need).every(([k,n])=>(have[k]||0)>=n)){done=true;R.built=true;snd(880,.25,'triangle',.08,.1);snd(1320,.3,'triangle',.08,.25);draw('🎉 Perfect! That\'s '+s.f+'!',true);}else draw('');};
  draw('');}
+
+/* 6a. uh-oh: the shrink ray is stuck and the replicator is broken */
+function alarm(){const s=R.s,t=tier();
+ const L=[`Uh-oh… 😬 Do you feel that? We're <b>STILL shrinking</b>! The shrink ray is stuck ON!`,
+  `If we don't stop it, we'll keep shrinking forever and disappear into <b>INNER SPACE</b>! 😱 To reverse the shrink ray, the Atom-Mobile needs <b>${esc(s.n.toLowerCase())}</b> (${s.f}). Its <b>Replicator</b> usually makes it for us…`,
+  `…but look at the dashboard: <b>COMPUTER ERROR!</b> The replicator switch is broken! We'll have to build it by hand: first the <b>atoms</b>, then the <b>molecule</b>. Then the replicator can copy it. I'll help you!`];
+ let i=0;const show=()=>{const last=i>=L.length-1;
+  frame(`<div class="is-dash"><svg viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet" class="is-svg"><rect x="-600" y="-600" width="2160" height="1800" fill="#0b0716"/>
+   <path d="M60 600 L140 250 Q480 170 820 250 L900 600Z" fill="#1c1535" stroke="#3b2d6b" stroke-width="6"/>
+   <rect x="300" y="210" width="360" height="170" rx="14" fill="#0a1f14" stroke="#495057" stroke-width="8"/>
+   <text x="480" y="262" font-size="30" font-weight="800" fill="#ff6b6b" text-anchor="middle" font-family="monospace" class="is-blinkslow">⚠ COMPUTER ERROR</text>
+   <text x="480" y="300" font-size="17" fill="#69db7c" text-anchor="middle" font-family="monospace">REPLICATOR: OFFLINE</text><text x="480" y="326" font-size="17" fill="#69db7c" text-anchor="middle" font-family="monospace">SHRINK RAY: STUCK ON</text><text x="480" y="356" font-size="17" fill="#ffd43b" text-anchor="middle" font-family="monospace">&gt; MANUAL BUILD REQUIRED_</text>
+   ${[[200,420,'#ff6b6b'],[760,420,'#ffd43b']].map(([x,y,c])=>`<circle cx="${x}" cy="${y}" r="40" fill="#15102b" stroke="#495057" stroke-width="6"/><path d="M${x} ${y} L${x+26} ${y-22}" stroke="${c}" stroke-width="5" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="-30 ${x} ${y};40 ${x} ${y};-30 ${x} ${y}" dur="4s" repeatCount="indefinite"/></path>`).join('')}
+   <g transform="translate(480 470)"><rect x="-70" y="-38" width="140" height="76" rx="12" fill="#343a40" stroke="#868e96" stroke-width="4"/><text x="0" y="-48" font-size="15" font-weight="800" fill="#ced4da" text-anchor="middle">REPLICATOR</text>
+    <path d="M-10 18 L-2 -30" stroke="#adb5bd" stroke-width="10" stroke-linecap="round"/><path d="M4 -8 L26 -40" stroke="#adb5bd" stroke-width="10" stroke-linecap="round" transform="rotate(25 4 -8)"/>
+    <g class="is-spark"><path d="M0 -14 l10 -8 l-4 10 l12 -2 l-12 8" stroke="#ffe066" stroke-width="3" fill="none"/></g></g>
+   <circle cx="130" cy="300" r="14" fill="#fa5252" class="is-blinkslow"/><circle cx="830" cy="300" r="14" fill="#fa5252" class="is-blinkslow"/></svg></div>
+   ${nar(L[i],last?'🔧 Let\'s build the atoms!':'Next ➜',{cls:last?'gold':''})}`);
+  onNext(()=>{if(last){next();return;}i++;snd(160,.5,'sawtooth',.03);show();});};
+ snd(220,.4,'square',.04);snd(180,.5,'square',.04,.45);show();}
+
+/* 6b. build the atoms: protons (older kids also electrons, then neutrons too) */
+function atomSVG(p,n,el){const N=p+n;const u=Math.max(3.2,11-Math.sqrt(N)*.9);let h='';const order=[];for(let i=0;i<N;i++)order.push(i<p?1:0);
+ for(let i=order.length-1;i>0;i--){const j=(i*7+3)%(i+1);[order[i],order[j]]=[order[j],order[i]];}
+ order.forEach((pr,i)=>{const a=i*2.4,r=Math.sqrt(i)*u*.95;h+=`<circle cx="${(Math.cos(a)*r).toFixed(1)}" cy="${(Math.sin(a)*r).toFixed(1)}" r="${u}" fill="${pr?'#fa5252':'#339af0'}" stroke="rgba(0,0,0,.3)" stroke-width="1"/>`;});
+ const sh=[];let left=el;for(const cap of [2,8,18,32,32,18,8]){if(left<=0)break;sh.push(Math.min(cap,left));left-=cap;}
+ const R0=Math.max(46,Math.sqrt(N)*u*1.1+18);sh.forEach((k,si)=>{const r=R0+si*18;h+=`<circle r="${r}" fill="none" stroke="rgba(255,224,102,.45)" stroke-dasharray="3 6"/>`;const shw=Math.min(k,24);for(let q=0;q<shw;q++){const a=q/shw*Math.PI*2;h+=`<circle cx="${(Math.cos(a)*r).toFixed(1)}" cy="${(Math.sin(a)*r).toFixed(1)}" r="4" fill="#ffe066"/>`;}});
+ const V=Math.max(80,R0+sh.length*18+10);return `<svg viewBox="${-V} ${-V} ${V*2} ${V*2}" class="is-asvg">${h}</svg>`;}
+function atoms(){const s=R.s,t=tier();const els=Object.keys(s.atoms).sort((a,b)=>EL[b].p-EL[a].p);R.made=R.made||{};
+ const cur=els.find(e=>!R.made[e]);if(!cur){next();return;}const E=EL[cur];if(!R.cnt||R.cnt.e!==cur)R.cnt={e:cur,p:0,n:t>=2?0:E.nu,el:t>=1?0:E.p};const c=R.cnt;
+ const need={p:E.p,n:E.nu,el:E.p},ok=c.p===need.p&&c.n===need.n&&c.el===need.el;const an=/^[AEIOU]/.test(E.n)?'an':'a';
+ const row=(k,lab,ico,col,lock)=>`<div class="is-crow ${lock?'lock':''}"><span class="is-cball" style="background:${col}">${ico}</span><b>${lab}</b><span class="is-cnum ${c[k]===need[k]?'good':c[k]>need[k]?'over':''}">${c[k]} / ${need[k]}</span>${lock?'<small>Ozzy did these ✓</small>':`<span class="is-cbs"><button class="is-cb" data-k="${k}" data-d="-1" aria-label="remove one">−</button><button class="is-cb" data-k="${k}" data-d="1" aria-label="add one">+</button>${need[k]>=10?`<button class="is-cb wide" data-k="${k}" data-d="10">+10</button>`:''}</span>`}</div>`;
+ const tips=[`${an[0].toUpperCase()+an.slice(1)} <b>${E.n.toLowerCase()}</b> atom has exactly <b>${E.p} proton${E.p>1?'s':''}</b>. The number of protons is what makes it ${E.n.toLowerCase()}! Tap <b>+</b> to add them.`,
+  `Build ${an} <b>${E.n.toLowerCase()}</b> atom: <b>${E.p} proton${E.p>1?'s':''}</b> in the middle and the same number of <b>electrons</b> zooming around the outside. I added the neutrons for you.`,
+  `Build ${an} <b>${E.n.toLowerCase()}</b> atom: ${E.p} protons, ${E.nu} neutrons and ${E.p} electrons. Protons (+) and electrons (−) balance, so the whole atom has no charge.`][t];
+ const over=c.p>need.p||c.n>need.n||c.el>need.el;
+ frame(`<div class="is-build is-dark2"><h2>⚛️ Build ${an} ${E.n} atom (${cur})</h2>
+  <div class="is-steps">${els.map(e=>`<span class="${R.made[e]?'done':e===cur?'on':''}">${R.made[e]?'✅':'⚛️'} ${EL[e].n}</span>`).join('<i>➜</i>')}<i>➜</i><span>🧪 ${esc(s.n)}</span></div>
+  <div class="is-brow is-arow"><div class="is-abox">${atomSVG(c.p,c.n,c.el)}</div><div class="is-cbox">${row('p','Protons','+','#fa5252',false)}${row('n','Neutrons','n','#339af0',t<2)}${row('el','Electrons','−','#fcc419',t<1)}
+   ${ok?`<div class="is-okmsg">✅ That's ${an} ${E.n.toLowerCase()} atom!</div>`:over?`<div class="is-okmsg bad">Too many! Tap − to take some away.</div>`:''}</div></div></div>
+  ${nar(ok?`Perfect! ${E.fact?E.fact[t]:''}`:tips,ok?(els.some(e=>!R.made[e]&&e!==cur)?'Next atom ➜':'Now build the molecule ➜'):null,{cls:ok?'green':''})}`);
+ root.querySelectorAll('.is-cb').forEach(b=>b.onclick=()=>{const k=b.dataset.k,d=+b.dataset.d;c[k]=Math.max(0,Math.min(need[k]+10,c[k]+d));snd(d>0?Math.min(1200,480+c[k]*8):300,.08,'triangle',.05);atoms();});
+ if(ok){snd(880,.2,'triangle',.07);onNext(()=>{R.made[cur]=true;R.cnt=null;atoms();});}}
+
+/* 6c. after the molecule is built: the replicator copies it billions of times and the shrinking stops */
+function replicate(){const s=R.s;const box=root.querySelector('.is-build');if(!box)return;R.replDone=false;
+ const ov=document.createElement('div');ov.className='is-repl';ov.innerHTML=`<canvas></canvas><div class="is-rtxt"><div>🔁 REPLICATING…</div><b id="isRN">1</b><small>${esc(s.n.toLowerCase())} molecules</small></div>`;box.appendChild(ov);
+ const cv=ov.querySelector('canvas'),c=cv.getContext('2d');const nb=root.querySelector('#isNext');if(nb){nb.disabled=true;nb.textContent='Replicating… ⏳';}
+ const N=[1,2,4,16,100,1000,1000000,1000000000];const t0=performance.now();snd(300,1.5,'sine',.05);
+ loop(()=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}const f=Math.min(1,(performance.now()-t0)/5200);c.clearRect(0,0,w,h);
+  const cnt=Math.floor(1+f*f*220);const R0=Math.min(w,h)/(6+f*26);for(let i=0;i<cnt;i++){const a=i*2.39996,r=Math.sqrt(i)*R0*1.25;const x=w/2+Math.cos(a)*r,y=h/2+Math.sin(a)*r*.8;if(x<-R0||x>w+R0||y<-R0||y>h+R0)continue;drawMol(c,s.lay,x,y,R0*.55,i*.7,false);}
+  const n=root.querySelector('#isRN');if(n){const k=Math.min(N.length-1,Math.floor(f*N.length));n.textContent=N[k].toLocaleString();}
+  if(f>=1&&!R.replDone){R.replDone=true;snd(660,.3,'triangle',.07);snd(990,.4,'triangle',.07,.2);const nb2=root.querySelector('#isNext');const tx=root.querySelector('.is-nar .txt');
+   if(tx)tx.innerHTML=`<small>Ride Operator ${NAME}</small>BILLIONS of molecules! The shrink ray has <b>STOPPED</b>! 🎉 Phew… wait. Why did everything just go quiet…?`;if(nb2){nb2.disabled=false;nb2.textContent='Next ➜';onNext();}}});}
 
 /* 7. the giant eye */
 function eye(){const s=R.s,t=tier();const EYE_SVG=`<div class="is-eyewrap" id="isEye"><svg class="is-svg" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid slice"><rect width="960" height="600" fill="#0c0c14"/>
@@ -299,21 +356,34 @@ function eye(){const s=R.s,t=tier();const EYE_SVG=`<div class="is-eyewrap" id="i
   lit=true;const d=root.querySelector('#isDark'),e=root.querySelector('#isEye');if(e){e.style.transition='opacity 2.5s ease';e.style.opacity='1';}if(d){d.style.transition='opacity 2.5s ease';d.style.opacity='0';}
   snd(200,.5,'sine',.06,.8);timer=setTimeout(()=>{if(!root||R!==tok)return;litStep(0);},2600);};
  const litStep=k=>{const last=k>=LIT.length-1;say(LIT[k],last?'🌱 Grow back to normal size!':'Next ➜',{who:QZ,name:'Dr. Quartz',cls:last?'gold':''});
-  onNext(()=>{if(!last){litStep(k+1);return;}root.querySelector('#isEye').classList.add('grow');[300,400,500,650,800].forEach((f,q)=>snd(f,.2,'triangle',.05,q*.25));const b=root.querySelector('#isNext');if(b)b.disabled=true;setTimeout(()=>{if(root)next();},2200);});};
+  onNext(()=>{if(!last){litStep(k+1);return;}const dk=root.querySelector('#isDark');if(dk){dk.style.transition='opacity 1.8s ease';dk.style.opacity='1';}[300,400,500,650,800].forEach((f,q)=>snd(f,.25,'triangle',.05,q*.3));const b=root.querySelector('#isNext');if(b)b.disabled=true;setTimeout(()=>{if(root)next();},2000);});};
  timer=setTimeout(darkNext,DARK[0][1]);
  R.eyeTimer=timer;}
 
 /* 8. quiz → coins + album card */
-function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];let qi=0,score=0,tries=0,answered=false;R.firstTry=0;
- const draw=(why,okIdx,bad)=>{const q=Q[qi];
-  frame(`<div class="is-quiz"><div class="is-q"><div class="h">🧪 RIDE QUIZ · Question ${qi+1} of ${Q.length} · ⭐ ${score} points</div><div class="qq">${esc(q[0])}</div>
+function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];let qi=0,score=0,tries=0,answered=false;R.firstTry=0;R.qT0=performance.now();
+ const draw=(why,okIdx,bad)=>{const q=Q[qi];R.sz=Math.max(0,Math.round(8*(1-(qi+(answered?1:0))/Q.length)));
+  const el=(performance.now()-R.qT0)/1000;const rings=Array.from({length:6},(_,i)=>`<i class="is-rring" style="animation-delay:-${((el+i)%6).toFixed(2)}s"></i>`).join('');
+  frame(`<div class="is-quiz is-rise">${rings}<div class="is-risetxt">⬆️ Growing back to normal size…</div><div class="is-q"><div class="h">🧪 RIDE QUIZ · Question ${qi+1} of ${Q.length} · ⭐ ${score} points</div><div class="qq">${esc(q[0])}</div>
    ${q[1].map((o,k)=>`<button class="is-opt ${okIdx===k?'ok':(bad||[]).includes(k)?'no':''}" data-k="${k}" ${answered||(bad||[]).includes(k)?'disabled':''}>${esc(o)}${okIdx===k?' ✅':''}</button>`).join('')}
-   ${why?`<div class="is-why">${why}</div><div style="text-align:right;margin-top:10px"><button class="is-btn" id="isQN">${qi<Q.length-1?'Next question ➜':'See my card ➜'}</button></div>`:''}</div></div>`);
+   ${why?`<div class="is-why">${why}</div><div style="text-align:right;margin-top:10px"><button class="is-btn" id="isQN">${qi<Q.length-1?'Next question ➜':'Finish growing ➜'}</button></div>`:''}</div></div>`);
   root.querySelectorAll('.is-opt:not([disabled])').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;
    if(k===q[2]){answered=true;const got=tries===0?10*(qi+1):5*(qi+1);if(tries===0)R.firstTry++;score+=got;snd(880,.15,'triangle',.08);snd(1320,.2,'triangle',.08,.1);draw(`<b>+${got} points!</b> ${esc(q[3])}`,k,bad);}
    else{tries++;snd(200,.3,'sine',.07);if(tries>=2){answered=true;draw(`The answer is <b>${esc(q[1][q[2]])}</b>. ${esc(q[3])}`,q[2],(bad||[]).concat(k));}else draw(null,null,(bad||[]).concat(k));}});
-  const n=root.querySelector('#isQN');if(n)n.onclick=()=>{if(qi<Q.length-1){qi++;tries=0;answered=false;draw();}else card(score);};};
+  const n=root.querySelector('#isQN');if(n)n.onclick=()=>{if(qi<Q.length-1){qi++;tries=0;answered=false;draw();}else home(score);};};
  draw();}
+
+/* back at the start line, normal size again */
+function home(score){const k=document.createElement('div');k.className='is-black on';k.style.transition='opacity 1.2s';k.style.opacity='0';root.appendChild(k);requestAnimationFrame(()=>{k.style.opacity='1';});snd(440,.3,'triangle',.05);snd(660,.4,'triangle',.05,.3);
+ setTimeout(()=>{if(!root)return;R.sz=0;R.fresh=true;
+  frame(`<svg class="is-svg" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet"><rect x="-600" y="-900" width="2160" height="2400" fill="#2b1d5c"/>${Array.from({length:40},(_,i)=>`<circle cx="${(i*97)%960}" cy="${(i*53)%300}" r="${1+i%3*.6}" fill="#fff" opacity=".6"/>`).join('')}
+   <rect x="-600" y="430" width="2160" height="470" fill="#3d2b7a"/><path d="M-600 470 H1560" stroke="#ffd43b" stroke-width="6" stroke-dasharray="30 20"/>
+   <path d="M592 474 Q606 306 690 258 Q752 224 816 250 Q892 292 902 474Z" fill="#5c4a3d" stroke="#3b2f25" stroke-width="5"/><path d="M672 474 Q672 350 746 342 Q820 350 820 474Z" fill="#140a2e" stroke="#2b1d5c" stroke-width="6"/>
+   <g transform="translate(480 150)"><rect x="-190" y="-44" width="380" height="84" rx="16" fill="#fff4e6" stroke="#8d5a2b" stroke-width="6"/><text x="0" y="12" font-size="40" font-weight="800" fill="#5f3dc4" text-anchor="middle">🎉 WELCOME BACK!</text></g>
+   <g transform="translate(330 452) scale(.9)">${OZ_BODY}<path d="M-24 -18 L-22 30 L22 30 L24 -18Z" fill="#ae3ec9"/><path d="M-10 30 V52 M10 30 V52" stroke="#343a40" stroke-width="8" stroke-linecap="round"/><path d="M22 -12 Q40 -30 46 -46" stroke="#ae3ec9" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="46" cy="-48" r="6" fill="#f1c8a0"/></g>
+   <g transform="translate(520 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-57" cy="0" r="6" fill="#ffd43b"/><circle cx="57" cy="0" r="6" fill="#ffd43b"/><text x="0" y="20" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">ATOM-MOBILE</text></g></svg>
+   ${nar(`We made it! You're back to <b>normal size</b>, ${NM()}! You fixed the replicator, stopped the shrink ray, and aced the quiz. What a scientist! 🎉`,'🃏 See my card ➜',{cls:'gold'})}`);
+  onNext(()=>card(score));},1300);}
 function card(score){const s=R.s,p=PL;const st=S(p);const first=st.album[s.id]==null;const best=Math.max(st.album[s.id]||0,score);st.album[s.id]=best;
  const coins=score+(first?FIRST_BONUS:0);p.coins=(p.coins||0)+coins;
  if(!R.t.demo){const k=st.tix.findIndex(x=>x.id===s.id);if(k>=0)st.tix.splice(k,1);else st.tix.shift();}
@@ -436,6 +506,29 @@ const st=document.createElement('style');st.textContent=`
 #isRoot .is-size .lab{text-align:center;color:#fff;font-size:14px;background:rgba(20,10,46,.7);border-radius:10px;padding:2px 10px;margin:6px auto 0;width:max-content;max-width:100%}#isRoot .is-size .lab b{color:#ffd43b}
 #isRoot .is-panel{top:96px!important}#isRoot .is-meter{display:none}
 @media(max-width:600px){#isRoot .is-chip .cn{display:none}#isRoot .is-size{margin:0 6px}#isRoot .is-size .trk{margin:10px 8px 2px}#isRoot .is-size .trk span{font-size:11px}#isRoot .is-size .trk span.on{font-size:20px}#isRoot .is-size .lab{font-size:12px}}
+#isRoot .is-fadein{animation:isfadein 1.1s ease}@keyframes isfadein{from{opacity:0}}
+#isRoot .is-black{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity 1s ease;z-index:8}#isRoot .is-black.on{opacity:1}
+#isRoot .is-cargo{transition:transform 2.4s ease-in;transform-box:fill-box;transform-origin:50% 60%}#isRoot .is-cargo.go{transform:translate(270px,-4px) scale(.02)}
+#isRoot .is-vico{width:1.1em;height:1.1em;vertical-align:middle}
+#isRoot .is-dash{position:absolute;inset:0;background:#0b0716}#isRoot .is-blinkslow{animation:isblinks 2.4s ease-in-out infinite}@keyframes isblinks{50%{opacity:.35}}
+#isRoot .is-spark{animation:isspark 1.8s ease-in-out infinite}@keyframes isspark{0%,60%,100%{opacity:0}70%,80%{opacity:1}}
+#isRoot .is-build.is-dark2{background:radial-gradient(ellipse at 50% 30%,#2b1d5c,#0f0a24)}#isRoot .is-dark2 h2{color:#ffd43b}#isRoot .is-dark2 .is-buzz{text-shadow:0 1px 2px #000}#isRoot .is-dark2 .is-area{background:#150e30;border-color:#7048e8}#isRoot .is-dark2 .is-area.done{border-color:#51cf66}
+#isRoot .is-steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;color:#d0bfff;font-weight:700}#isRoot .is-steps span{background:rgba(255,255,255,.1);border-radius:999px;padding:4px 12px;font-size:15px}#isRoot .is-steps span.on{background:#ffd43b;color:#3d2a00}#isRoot .is-steps span.done{background:#2b8a3e;color:#fff}#isRoot .is-steps i{font-style:normal;opacity:.6}
+#isRoot .is-brow.is-arow{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center}@media(max-width:600px){#isRoot .is-brow.is-arow{flex-direction:column;gap:10px}#isRoot .is-arow .is-abox{width:min(190px,52vw)}#isRoot .is-arow .is-cbox{min-width:0;width:100%;max-width:340px;box-sizing:border-box}#isRoot .is-arow .is-cb{width:42px;height:42px}}
+#isRoot .is-abox{width:min(300px,80vw);aspect-ratio:1;background:#150e30;border:3px solid #7048e8;border-radius:24px;display:flex;align-items:center;justify-content:center}#isRoot .is-asvg{width:92%;height:92%}
+#isRoot .is-cbox{background:#fff;border-radius:20px;padding:12px 14px;min-width:260px;display:flex;flex-direction:column;gap:10px}
+#isRoot .is-crow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}#isRoot .is-crow b{min-width:84px;font-size:17px}#isRoot .is-crow small{color:#2b8a3e;font-weight:700}#isRoot .is-crow.lock{opacity:.75}
+#isRoot .is-cball{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+#isRoot .is-cnum{font-weight:800;font-size:19px;min-width:62px;text-align:center;color:#495057}#isRoot .is-cnum.good{color:#2b8a3e}#isRoot .is-cnum.over{color:#c92a2a}
+#isRoot .is-cbs{display:inline-flex;gap:6px}#isRoot .is-cb{width:46px;height:46px;border-radius:14px;border:0;background:#7048e8;color:#fff;font-size:24px;font-weight:800;box-shadow:0 3px 0 #3b1f9e}#isRoot .is-cb.wide{width:58px;font-size:17px}
+#isRoot .is-okmsg{font-weight:800;color:#2b8a3e;font-size:18px;text-align:center}#isRoot .is-okmsg.bad{color:#c92a2a}
+#isRoot .is-repl{position:absolute;inset:0;background:rgba(10,6,24,.93);z-index:4}#isRoot .is-repl canvas{position:absolute;inset:0;width:100%;height:100%}
+#isRoot .is-rtxt{position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);text-align:center;color:#fff;background:rgba(20,10,46,.8);border:3px solid #ffd43b;border-radius:18px;padding:10px 22px;font-weight:800}#isRoot .is-rtxt b{display:block;font-size:40px;color:#ffd43b;font-variant-numeric:tabular-nums}#isRoot .is-rtxt small{color:#d0bfff}
+#isRoot .is-quiz.is-rise{background:radial-gradient(ellipse at center,#2b1d5c,#0f0a24);overflow:auto;padding-top:130px}#isRoot .is-rise .is-q,#isRoot .is-rise>div:not(.is-risetxt){position:relative;z-index:2}
+#isRoot .is-rring{position:absolute;left:50%;top:50%;width:150vmax;height:100vmax;margin:-50vmax 0 0 -75vmax;border-radius:50%;border:3px solid #b197fc;opacity:0;animation:isrise 6s linear infinite;pointer-events:none;z-index:1}
+@keyframes isrise{0%{transform:scale(1);opacity:0}20%{opacity:.2}100%{transform:scale(.02);opacity:0}}
+#isRoot .is-risetxt{position:absolute;top:96px;left:0;right:0;text-align:center;color:#d0bfff;font-weight:700;z-index:2}
+@media (prefers-reduced-motion:reduce){#isRoot .is-rring{animation-duration:14s}#isRoot .is-cargo{transition-duration:.6s}}
 #isRoot .is-float{animation:isfloat 2s ease-in-out infinite alternate}@keyframes isfloat{to{transform:translateY(-.06px)}}
 #isRoot .is-leave{position:absolute;inset:0;z-index:20;background:rgba(10,5,30,.6);display:grid;place-items:center;padding:16px}
 #isRoot .is-lbox{background:#fff;border-radius:22px;padding:16px;max-width:420px;display:grid;grid-template-columns:60px 1fr;gap:12px;align-items:center;font-size:18px;border:4px solid #7048e8}

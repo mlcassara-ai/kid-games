@@ -11,8 +11,9 @@ const TRACKS={
  /* Science Cave: mysterious (never scary) — slow glassy notes, a deep hum, water drips; changes as you go deeper */
  cave:{name:'🪨 Deep Cave',bpm:48,root:50,scale:[0,3,5,7,10],prog:[[0,7,12],[-4,3,8],[-2,5,10],[0,7,15]],tone:'glass',rest:.55,padVol:.09,octave:12,padCut:520,drips:.35},
  crystal:{name:'💎 Crystal Caverns',bpm:52,root:55,scale:[0,2,3,7,9],prog:[[0,7,14],[5,12,17],[3,10,15],[-2,7,14]],tone:'glass',rest:.48,padVol:.07,octave:12,padCut:800,drips:.2,shimmer:.3},
- /* Inner Space ride: spacey and a little mysterious — a pulsing synth arpeggio, deep bass pulse, dark pad, glassy sparkles */
- inner:{name:'🚀 Inner Space',bpm:84,root:50,scale:[0,2,3,7,8],prog:[[0,3,7],[-4,3,8],[-2,5,10],[-5,2,7]],tone:'glass',rest:.7,padVol:.085,octave:12,padCut:650,arp:[0,7,12,15,12,7,3,7],shimmer:.22,pulse:1},
+ /* Inner Space ride: 'danger spooky' like an old sci-fi movie score — a slow, circling low ostinato, swelling brass-like chords,
+    distant booms, an uneasy high shimmer and a dissonant (half-step) harmony. Never Halloween-y, just 'uh-oh, we're very far away'. */
+ inner:{name:'🚀 Inner Space',bpm:72,root:45,dark:1,prog:[[0,3,7],[1,4,8],[-2,3,7],[0,3,6]],ost:[0,3,7,12,7,3,1,3],gain:1.9},
  magma:{name:'🌋 Magma Deep',bpm:44,root:45,scale:[0,1,5,7,8],prog:[[0,7,12],[1,8,13],[-4,3,8],[0,7,12]],tone:'glass',rest:.6,padVol:.1,octave:12,padCut:380,rumble:.3}};
 const LEVEL=.34; // softer than sound effects
 const DAY_FROM=6,DUSK_FROM=17; // 6am–5pm = Morning Meadow, 5pm–6am = Quiet Dusk
@@ -34,9 +35,22 @@ function pad(ms,t,dur,vol,cut){ms.forEach(m=>{const o=AC.createOscillator(),o2=A
 function arpNote(m,t,vel){const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';o.frequency.value=hz(m);f.type='lowpass';f.Q.value=6;f.frequency.setValueAtTime(2400,t);f.frequency.exponentialRampToValueAtTime(380,t+.22);
  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vel,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.34);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+.4);}
 function pulse(m,t,dur){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=hz(m);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.14,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.05);}
+function swell(ms,t,dur,vol){ms.forEach((m,k)=>{const o=AC.createOscillator(),o2=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';o2.type='sawtooth';o.frequency.value=hz(m);o2.frequency.value=hz(m)*1.006;f.type='lowpass';f.Q.value=2;
+ f.frequency.setValueAtTime(260,t);f.frequency.linearRampToValueAtTime(1500,t+dur*.55);f.frequency.linearRampToValueAtTime(300,t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+dur*.5);g.gain.linearRampToValueAtTime(0,t+dur);
+ o.connect(f);o2.connect(f);f.connect(g);g.connect(master);o.start(t);o2.start(t);o.stop(t+dur+.1);o2.stop(t+dur+.1);});}
+function bowed(m,t,dur,vol){const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';o.frequency.value=hz(m);f.type='lowpass';f.frequency.value=700;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.08);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.05);}
+function boom(t){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(32,t+1.6);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.32,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+2.4);o.connect(g);g.connect(master);o.start(t);o.stop(t+2.5);}
+function trem(m,t,dur,vol){const o=AC.createOscillator(),g=AC.createGain(),l=AC.createOscillator(),lg=AC.createGain();o.type='sine';o.frequency.value=hz(m);l.frequency.value=6.5;lg.gain.value=vol*.5;l.connect(lg);lg.connect(g.gain);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+dur*.4);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(g);g.connect(master);o.start(t);l.start(t);o.stop(t+dur+.05);l.stop(t+dur+.05);}
 function drip(t){const o=AC.createOscillator(),g=AC.createGain();const f=1400+R()*1400;o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.45,t+.09);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.connect(g);g.connect(master);o.start(t);o.stop(t+.3);}
 function rumble(t){const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=120;o.type='sawtooth';o.frequency.value=38+R()*8;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+1.2);g.gain.linearRampToValueAtTime(0,t+3.5);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+3.6);}
-function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;
+function schedDark(T,beat){while(nextT<AC.currentTime+1.2){const t=nextT,chord=T.prog[bar%T.prog.length],inBar=step%8;
+  bowed(T.root+chord[0]+T.ost[inBar],t,beat*1.8,.07);                              // the circling low ostinato
+  if(inBar===0){swell(chord.map(c=>T.root+12+c),t,beat*8,.035);pad([T.root-12+chord[0]],t,beat*8,.09,220);}   // brass-like swell + deep drone
+  if(inBar===0&&bar%2===0)boom(t);                                                   // distant boom
+  if(inBar===4&&R()<.55)trem(T.root+36+chord[1+Math.floor(R()*2)],t,beat*4,.02);     // uneasy high shimmer
+  if(inBar===6&&R()<.35)trem(T.root+37+chord[0],t,beat*2,.014);                       // a half-step 'rub' for tension
+  step++;if(step%8===0)bar++;nextT+=beat;}}
+function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.dark){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedDark(T,beat);return;}
  if(nextT<AC.currentTime)nextT=AC.currentTime+.05; // after the app was in the background
  while(nextT<AC.currentTime+1.2){const t=nextT,chord=T.prog[bar%T.prog.length],inBar=step%8,quiet=(Math.floor(bar/4)%3===2);
   if(T.drips&&R()<T.drips*.5)drip(t+R()*beat);if(T.shimmer&&R()<T.shimmer*.4)note(T.root+36+T.scale[Math.floor(R()*T.scale.length)],t+R()*beat,beat,.03,'bell');if(T.rumble&&inBar===4&&R()<T.rumble)rumble(t);
@@ -50,7 +64,7 @@ function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;
 function choice(p){return (p&&p.music)||'auto';}
 function trackFor(p){const c=choice(p);if(c==='off')return null;if(c==='stars')return 'stars';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'meadow':'dusk';}
 function mVol(){try{return state.musicVol==null?30:state.musicVol;}catch(e){return 30;}}
-function lvl(){const g=window.volGain?volGain(mVol()):mVol()/70;return LEVEL*g;}
+function lvl(){const g=window.volGain?volGain(mVol()):mVol()/70;return LEVEL*g*((cur&&cur.gain)||1);}
 function fadeTo(v,s){if(!AC)return;const now=AC.currentTime;master.gain.cancelScheduledValues(now);master.gain.setValueAtTime(master.gain.value,now);master.gain.linearRampToValueAtTime(v,now+s);}
 function start(id){if(!init())return;if(AC.state==='suspended')AC.resume();
  if(cur&&cur===TRACKS[id]&&playing)return;

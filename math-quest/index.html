@@ -3570,7 +3570,7 @@ function parentCard(p){
  ${p.lock?`<span>🔒 Secret pictures on</span><button class="btn small ghost dark" onclick="clearLock('${p.id}')">Turn off lock</button>`:''}<button class="btn small danger" onclick="confirmReset('${p.id}')">Reset progress</button><button class="btn small danger" onclick="confirmDelete('${p.id}')">Delete player</button></div></div>`;
 }
 SCREENS.parent=()=>{
- app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go(P()&&P().setup?'map':'profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
+ app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
  <p class="note">A new player takes a quick skill check so each skill starts near the right level (a kid who skips it starts a little below their grade). Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level (6 in a row for grades 1-3). <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${cloudSection()}
  ${window.Groups?Groups.section():''}
@@ -4014,7 +4014,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28k';
+const APP_VER='2026.09.28l';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
