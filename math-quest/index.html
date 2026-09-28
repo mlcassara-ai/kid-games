@@ -3119,7 +3119,7 @@ function vilUp(id){const p=P();const b=VIL.find(v=>v.id===id);const l=vLv(p,id);
  modal(`<div class="mcard"><div class="big-emoji">${b.e}</div><h2>${b.n} upgraded!</h2><p>${vStars(l+1)}</p><p><b>${b.perk(l+1)}</b></p><button class="btn green big" onclick="closeModal();go('village')">Awesome!</button></div>`);}
 SCREENS.village=()=>{const p=P();const tot=VIL.reduce((a,b)=>a+vLv(p,b.id),0);
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏗️ Build Your Village</h2></div>
- <div class="cafe-card center" style="margin-bottom:12px">🧱 Builder Bo: "Your coins can make this village amazing! Every upgrade helps you on your quest." <div class="muted">Village stars: <b>${tot} / ${VIL.length*VIL_MAX}</b> · You have 🪙 ${p.coins}</div></div>
+ <div class="cafe-card center" style="margin-bottom:12px">🧱 Bo the Builder: "Your coins can make this village amazing! Every upgrade helps you on your quest." <div class="muted">Village stars: <b>${tot} / ${VIL.length*VIL_MAX}</b> · You have 🪙 ${p.coins}</div></div>
  <div class="vgrid">${VIL.map(b=>{const l=vLv(p,b.id),c=b.cost[l];return `<div class="vcard"><div class="ve">${b.e}</div><b>${b.n}</b><div class="vstars">${vStars(l)}</div><div class="vperk">${b.perk(l)}</div>${l<VIL_MAX?`<div class="vnext">Next: ${b.perk(l+1)}</div><button class="btn ${p.coins>=c?'gold':'ghost dark'} small" onclick="vilUp('${b.id}')">Upgrade · 🪙 ${c}</button>`:'<div class="vnext">⭐ Fully upgraded!</div>'}</div>`;}).join('')}</div></div>`;};
 const LIB_PER_DAY=2;let LIB=null;
 STORIES.forEach(s=>{if(s.lv==='A')s.lv=2;else if(s.lv==='B')s.lv=3;});
@@ -3613,7 +3613,7 @@ const QCHAINS={
   {t:'Show Up',type:'days',n:2,d:'Play on 2 different days.',r:{coins:150}},
   {t:'Grow Your Brain',type:'skillup',n:1,d:'Move up a level in any math skill.',r:{coins:150}},
   {t:'Kind Heart',type:'gift',n:1,d:'Send a gift to someone in your family.',r:{coins:100}},
-  {t:'Build It Up',type:'build',n:1,d:'Upgrade a building with Builder Bo in the village.',r:{coins:150}},
+  {t:'Build It Up',type:'build',n:1,d:'Upgrade a building with Bo the Builder in the village.',r:{coins:150}},
   {t:'Face Your Challenge',type:'weak',n:25,d:'Get 25 right in your trickiest skill: {OP}.',r:{coins:200,eggs:1}},
   {t:'Steady Hero',type:'days',n:4,d:'Play on 4 different days.',r:{coins:250}}]};
 // after a chain's list ends, it keeps going with growing versions of its repeatable quests
@@ -4001,7 +4001,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28b';
+const APP_VER='2026.09.28c';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
