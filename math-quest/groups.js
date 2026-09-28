@@ -162,4 +162,39 @@ const css=document.createElement('style');css.textContent=`.grprow{border:2px so
 .grpmembers{max-height:50vh;overflow:auto;text-align:left}.grpm{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee}.grpm b{flex:1}.grpm .lbface{width:34px;height:34px}`;
 document.head.appendChild(css);
 window.Groups={section,fillSection,createUI,create,joinUI,lookup,addUI,join,leave,leaveNow,forget,manageUI,renameUI,rename,remove,close,tabs,board,publish,publishAll,_cache:cache,_gNorm:gNorm};
+
+/* ---------------- Suggestion Box (story ideas) ----------------
+   Kids type an idea ("a book about rockets"). It's checked for unkind words, saved on the hero (so parents see it in Parent Corner)
+   and added to one shared list for the game's builders to review. Only the idea, first name and grade are sent. */
+const SUG_ID='s_mathquestsuggestionbox';
+const sUrl=()=>`https://firestore.googleapis.com/v1/projects/${FB.project}/databases/(default)/documents/families/${SUG_ID}`;
+async function sugPush(item){for(let i=0;i<5;i++){const t=await fbToken();const r=await fetch(sUrl(),{headers:{Authorization:'Bearer '+t},cache:'no-store'});
+  let d={v:1,type:'sugg',list:[]},pre='currentDocument.exists=false';
+  if(r.ok){const j=await r.json();try{d=JSON.parse(j.fields.data.stringValue);}catch(e){}if(!Array.isArray(d.list))d.list=[];pre='currentDocument.updateTime='+encodeURIComponent(j.updateTime);}else if(r.status!==404)throw new Error('get '+r.status);
+  d.list.push(item);if(d.list.length>400)d.list=d.list.slice(-400);
+  const body={fields:{data:{stringValue:JSON.stringify(d)},updated:{integerValue:String(Date.now())},v:{integerValue:'1'}}};
+  const w=await fetch(sUrl()+'?'+pre,{method:'PATCH',headers:{Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(w.ok)return true;if(w.status!==400&&w.status!==409)throw new Error('put '+w.status);await new Promise(z=>setTimeout(z,300+Math.random()*500));}
+ throw new Error('busy');}
+const SUG_IDEAS=['🚀 rockets','🦖 dinosaurs','⛸️ ice skating','⚽ soccer','🐶 puppies','🌊 the ocean','🏰 castles','🤖 robots','🌋 volcanoes','🐉 dragons'];
+function sugUI(){const p=P();const today=(p.sugg||[]).filter(x=>x.d===dayKey()).length;
+ if(today>=3){modal(`<div class="mcard"><div class="big-emoji">💡</div><h2>Thanks for all your ideas!</h2><p>You've shared 3 ideas today. Come back tomorrow with more!</p><div class="row"><button class="btn green" onclick="closeModal()">OK</button></div></div>`);return;}
+ modal(`<div class="mcard sug"><div class="big-emoji">💡</div><h2>Suggestion Box</h2><p>What would you like a story about? Professor Hoot will pass your idea to the story builders!</p>
+ <input id="sugIn" class="inp" maxlength="80" placeholder="I want a story about…"><div class="sugchips">${SUG_IDEAS.map(x=>`<button class="chip" onclick="$('#sugIn').value='A story about '+this.dataset.t" data-t="${esc(x.replace(/^\S+\s/,''))}">${x}</button>`).join('')}</div>
+ <div id="sugErr" class="gerr"></div><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="Groups.sugSend()">📮 Send my idea</button></div></div>`);setTimeout(()=>{const i=$('#sugIn');i&&i.focus();},60);}
+async function sugSend(){const p=P();const t=($('#sugIn').value||'').trim().replace(/\s+/g,' ');const err=$('#sugErr');
+ if(t.length<4){err.textContent='Tell Professor Hoot a little more about your idea!';return;}
+ if(unkind(t)){err.textContent="Let's keep ideas kind. Try another one!";return;}
+ if(/https?:|www\.|@|\d{4,}/i.test(t)){err.textContent='Just the idea, please (no links, emails or phone numbers).';return;}
+ const item={t,n:String(p.name||'').split(' ')[0].slice(0,14),g:p.adult?'Adult':'Grade '+(p.grade||'?'),d:dayKey(),at:Date.now()};
+ p.sugg=(p.sugg||[]).concat([{t,d:item.d,sent:false}]).slice(-30);save();const mine=p.sugg[p.sugg.length-1];
+ err.textContent='Sending…';
+ try{await sugPush(item);mine.sent=true;save();}catch(e){}
+ modal(`<div class="mcard"><div class="big-emoji">📮</div><h2>Idea sent!</h2><p>"${esc(t)}"</p><p>Thank you, ${esc(p.name)}! Professor Hoot loves new ideas. Keep an eye on the shelf. Your story might show up one day!</p><div class="row"><button class="btn green" onclick="closeModal()">Yay!</button></div></div>`);}
+async function sugRetry(){for(const p of state.players||[])for(const x of p.sugg||[])if(!x.sent){try{await sugPush({t:x.t,n:String(p.name||'').split(' ')[0].slice(0,14),g:p.adult?'Adult':'Grade '+(p.grade||'?'),d:x.d,at:Date.now()});x.sent=true;save();}catch(e){return;}}}
+setTimeout(()=>{try{sugRetry();}catch(e){}},30000);
+function sugSection(){const rows=[];(state.players||[]).forEach(p=>(p.sugg||[]).slice(-8).reverse().forEach(x=>rows.push(`<li><b>${esc(p.name)}</b> · ${esc(x.d)} · "${esc(x.t)}"</li>`)));
+ return rows.length?`<div class="pp"><h3>💡 Story ideas from the Suggestion Box</h3><p class="note">Ideas your kids sent from the Library. They're collected for the story builders to review.</p><ul>${rows.join('')}</ul></div>`:'';}
+window.Groups.sugUI=sugUI;window.Groups.sugSend=sugSend;window.Groups.sugSection=sugSection;
+const css2=document.createElement('style');css2.textContent='.sugchips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}.sugchips .chip{font-size:14px;padding:6px 10px}';document.head.appendChild(css2);
 })();

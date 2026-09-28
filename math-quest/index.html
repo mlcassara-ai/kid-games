@@ -3140,7 +3140,7 @@ function libShelf(p){const L=libState(p);const lv=libLevel(p);const at=l=>STORIE
  const order=[lv,lv-1,lv+1,lv-2,lv+2].filter(l=>LIB_LEVELS.includes(l));let fresh=[];for(const l of order){fresh=at(l).filter(s=>!L.done[s.id]);if(fresh.length)break;}
  const pool=fresh.length?fresh:at(lv).slice().sort((a,b)=>(L.done[a.id].d||'').localeCompare(L.done[b.id].d||''));
  const next=pool.slice(0,Math.max(0,libPerDay(p)-L.n));
- const band=[...new Set(at(lv).concat(next))];const readOther=STORIES.filter(s=>L.done[s.id]&&!band.includes(s)).slice(-12);
+ const band=[...new Set(next.concat(at(lv).filter(s=>!L.done[s.id])))];const readOther=STORIES.filter(s=>L.done[s.id]&&!next.includes(s)).sort((a,b)=>(L.done[b.id].d||'').localeCompare(L.done[a.id].d||'')||b.lv-a.lv);
  return {band,next,L,lv,readOther};}
 function hootSVG(){return `<svg class="hoot-svg" viewBox="0 0 200 220" aria-label="Professor Hoot the librarian owl">
 <ellipse cx="100" cy="150" rx="66" ry="64" fill="#8d5a2b"/><ellipse cx="100" cy="162" rx="44" ry="46" fill="#f3d9b1"/>${[0,1,2].map(r=>[0,1,2].map(c=>`<path d="M${80+c*20} ${140+r*18} q10 8 20 0" stroke="#d9b98a" stroke-width="3" fill="none"/>`).join('')).join('')}
@@ -3161,9 +3161,10 @@ SCREENS.library=()=>{const p=P();const back=`<div class="zhead"><button class="b
  const wrap=b=>{app.innerHTML=topbar()+`<div class="room lib-room"><div class="page lib">${back}${b}</div></div>`;};
  const cols=['#e03131','#1c7ed6','#2f9e44','#f08c00','#7048e8','#0c8599','#c2255c','#5c940d','#e8590c','#364fc7'];
  if(!LIB){const {band,next,L,lv,readOther}=libShelf(p);
-  const book=(s,i)=>{const d=L.done[s.id];const isNext=next.includes(s);return `<button class="lbook ${d?'read':''} ${isNext?'next':''}" style="--bc:${cols[i%cols.length]}" ${isNext||d?`onclick="libOpen('${s.id}',${isNext?1:0})"`:`onclick="toast('🔒 Read the ✨ NEW books first! Professor Hoot opens more every day.')"`}><span class="be">${s.e}</span><span class="bt">${esc(s.t)}</span><span class="bs">${isNext?'✨ NEW':d?libStars(d.best,s.q.length):'🔒'}</span><span class="blv">Lv ${s.lv}</span></button>`;};
+  const book=(s,i)=>{const d=L.done[s.id];const isNext=next.includes(s);return `<button class="lbook ${d?'read':''} ${isNext?'next':''}" style="--bc:${cols[i%cols.length]}" ${isNext||d?`onclick="libOpen('${s.id}',${isNext?1:0})"`:`onclick="toast('🔒 Read the ✨ NEW books first! Professor Hoot opens more every day.')"`}><span class="be">${s.e}</span><span class="bt">${esc(s.t)}</span><span class="bs">${isNext?(d?'🔁 READ AGAIN':'✨ NEW'):d?libStars(d.best,s.q.length):'🔒'}</span><span class="blv">Lv ${s.lv}</span></button>`;};
   const say=next.length?`Hoo-hoo! Welcome, ${esc(p.name)}! Pick a <b>✨ NEW</b> story. Read it carefully, then answer the questions. You can read <b>${libPerDay(p)} new stories</b> each day, and as you get better, the stories get longer and harder!`:`Wonderful reading today, ${esc(p.name)}! New stories arrive <b>tomorrow</b>. You can re-read any story with a ⭐ for practice.`;
-  wrap(`${libHead(say)}${libMeter(p)}<div class="shelf"><div class="shelf-row">${band.map(book).join('')}</div>${readOther.length?`<div class="shelf-lab">📗 Books you've read</div><div class="shelf-row">${readOther.map((s,i)=>book(s,i+3)).join('')}</div>`:''}</div>`);return;}
+  wrap(`${libHead(say)}${libMeter(p)}<div class="shelf">${band.length?`<div class="shelf-lab">📕 Stories waiting for you</div><div class="shelf-row">${band.map(book).join('')}</div>`:''}${readOther.length?`<div class="shelf-lab">📗 Books you've read (${readOther.length})</div><div class="shelf-row">${readOther.map((s,i)=>book(s,i+3)).join('')}</div>`:''}</div>
+  ${window.Groups&&Groups.sugUI?`<div class="row"><button class="btn gold" onclick="Groups.sugUI()">💡 Suggestion Box: ask for a story idea</button></div>`:''}`);return;}
  const S=LIB.s,C=LIB,NQ=C.qs.length;
  if(C.stage==='read'){wrap(`${libHead(C.practice?'Practice reading! Take your time.':`Read carefully. This is a <b>Level ${S.lv}</b> story with <b>${NQ} questions</b>. Then tap <b>I'm ready for the questions!</b>`)}
   <div class="story"><div class="story-top"><span class="story-e">${S.e}</span><h2>${esc(S.t)}</h2><button class="btn small" onclick="libRead()">🔊 Read it to me</button></div>${S.p.map(x=>`<p>${esc(x)}</p>`).join('')}
@@ -3573,6 +3574,7 @@ SCREENS.parent=()=>{
  <p class="note">A new player takes a quick skill check so each skill starts near the right level (a kid who skips it starts a little below their grade). Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level (6 in a row for grades 1-3). <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${cloudSection()}
  ${window.Groups?Groups.section():''}
+ ${window.Groups&&Groups.sugSection?Groups.sugSection():''}
  ${state.players.map(parentCard).join('')}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.readLog||[]).slice(-6).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · "${esc(v.t)}"${v.lv?` (Level ${v.lv})`:''} · ${'⭐'.repeat(v.s)}${'☆'.repeat((v.n||3)-v.s)} (${v.s}/${v.n||3} right on the first try)</li>`)));return rows.length?`<div class="pp"><h3>📚 Library reading</h3><p class="note">Professor Hoot gives 2 new stories a day. There are 10 reading levels (about 1st grade to 12th grade). Higher levels have longer stories and 4-5 questions (main idea, details, inference, vocabulary, author's purpose). The level moves up after strong scores and down after weak ones, aiming for about 75-85% right on the first try.${state.players.filter(x=>x.lib&&x.lib.rl).map(x=>` <b>${esc(x.name)}</b>: Level ${Math.floor(x.lib.rl)}.`).join('')}</p><ul>${rows.join('')}</ul></div>`:'';})()}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.kindVisits||[]).slice(-8).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · ${v.kind==='spell'?`spelling "${esc(v.what)}"`:v.kind==='math'?`math: ${esc(v.what)}`:`blessing vs ${esc(v.what)} (was losing)`}</li>`)));state.players.forEach(pl=>(pl.principalVisits||[]).slice(-4).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · 🎓 Principal Wise visit: ${esc(v.t)}</li>`)));return rows.length?`<div class="pp"><h3>✨ Kind Teacher &amp; 🎓 Principal visits</h3><p class="note">She appears at most once a day per child, only when they are truly stuck. These show where each child needed help.</p><ul>${rows.join('')}</ul></div>`:'';})()}
@@ -4012,7 +4014,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28g';
+const APP_VER='2026.09.28h';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
