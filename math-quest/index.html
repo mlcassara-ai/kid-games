@@ -678,7 +678,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1379,6 +1379,7 @@ function saveHero(mode){
  if(draft.look.kind!=='boy'&&draft.look.kind!=='girl'){toast('Pick a boy or girl wizard first!');return false;}
  if(draft.lock&&draft.lock.length===1){toast('Pick one more secret picture (or tap Clear).');return false;}
  if(!name){const i=$('#nm');i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');i.focus();toast('Give your hero a name!');return false;}
+ {const cur=draft.id?state.players.find(x=>x.id===draft.id):null;if(window.nameProblem&&(!cur||!cur.setup||!nameSame(cur.name,name))){const pr=nameProblem(name,state.players.filter(x=>x.id!==draft.id).map(x=>x.name));if(pr){const i=$('#nm');i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');i.focus();toast(pr);return false;}}}
  let p=draft.id?state.players.find(x=>x.id===draft.id):null;
  if(!p){p=newPlayer(name,draft.grade);p.welcomed=false;state.players.push(p);}else if(draft.pickGrade&&!p.setup)p.grade=draft.grade;
  p.name=name;p.look=JSON.parse(JSON.stringify(draft.look));p.lock=draft.lock&&draft.lock.length?[...draft.lock]:null;p.setup=true;state.cur=p.id;save();
@@ -3331,9 +3332,11 @@ SCREENS.leaders=(tab)=>{
  const ps=state.players.filter(p=>p.setup);const me=P();
  tab=tab||(ceremonyDue(me)?'ceremony':'week');
  const face=p=>`<span class="lbface">${heroSVG(p.look,{head:true})}</span>`;
- const tabs=`<div class="lbtabs">${[['ceremony','🌟 Star Ceremony'],['week','🏆 This Week'],['trophy','🏅 Trophy Case']].map(([k,n])=>`<button class="${tab===k?'on':''}" onclick="go('leaders','${k}')">${n}</button>`).join('')}</div>`;
+ const tabs=`<div class="lbtabs">${[['ceremony','🌟 Star Ceremony'],['week','🏆 This Week'],['trophy','🏅 Trophy Case']].concat(window.Groups?Groups.tabs(me):[]).map(([k,n])=>`<button class="${tab===k?'on':''}" onclick="go('leaders','${k}')">${n}</button>`).join('')}</div>`;
  let body='';
- if(tab==='ceremony'){
+const board=(e,n,how,rows,fmt,note)=>{let rank=0,last=null,shown=0;return `<div class="panel lbcard"><h3>${e} ${n}</h3><div class="lbhow">${how}</div>${rows.map((r,i)=>{if(r.v!==last){rank=shown;last=r.v;}shown++;const m=r.v>0&&rank<3?['🥇','🥈','🥉'][rank]:'';return `<div class="lbrow ${r.p.id===me.id?'me':''}"><span class="lbm">${m}</span>${face(r.p)}<span class="lbn">${esc(r.p.name)}${r.tag?` <span class="lbtag">${r.tag}</span>`:''}</span><b>${fmt(r)}</b></div>`;}).join('')}${note?`<div class="lbnote">${note}</div>`:''}</div>`;};
+ if(tab.startsWith('grp:')&&window.Groups){body=Groups.board(tab,me,face,board);}
+ else if(tab==='ceremony'){
   const wk=prevWeekKey();const c=ceremony(wk);const days=weekDays(wk);const fmt=k=>new Date(k+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
   if(!c)body=`<div class="cer"><h2>🌟 Sunday Star Ceremony 🌟</h2><p class="cerwhen">Every Sunday, everyone who played last week gets at least one star!</p><div class="cerempty">The first ceremony is this Sunday. Play this week to earn your stars! ⭐</div></div>`;
   else{let delay=.4;body=`<div class="cer"><h2>🌟 Sunday Star Ceremony 🌟</h2><p class="cerwhen">Week of ${fmt(days[0])} – ${fmt(days[6])} · everyone who played gets a star!</p><div class="cerkids">${c.rows.map(r=>`<div class="cerkid ${r.p.id===me.id?'me':''}">${face(r.p)}<b>${esc(r.p.name)}</b><div class="cerstars">${r.stars.map(()=>'⭐').join('')}</div>${r.stars.map(s=>{const cat=catOf(s.c);delay+=.55;return `<div class="ceraward" style="animation-delay:${delay.toFixed(2)}s"><span>${cat.e}</span><div><b>${cat.n}</b><small>${esc(s.d)}</small></div></div>`;}).join('')}</div>`).join('')}</div><p class="cernote">Stars go out one at a time. Everyone gets one before anyone gets a second!</p></div>`;
@@ -3348,7 +3351,6 @@ SCREENS.leaders=(tab)=>{
    <div class="flegend">${g.parts.map((x,k)=>`<span style="--c:${cols[k%cols.length]}">${esc(x.p.name)} ${x.r}</span>`).join('')||'<span style="--c:#fff">Nobody yet this week. Be the first!</span>'}</div>
    <div class="fnote">Points: ✅ 1 per right answer (up to ${FAM_CAP} a day) · 📚 ${FAM_STORY} per Library story · 📜 ${FAM_WORD} per new spelling word. Goal is set for ${g.n} players and stays the same all week.</div></div>`;
   const st=ps.map(p=>({p,s:wkStats(p,wk),l:wkStats(p,pw)}));const nd=new Date().getDay()+1;const soFar=(p)=>{let r=0;weekDays(pw).slice(0,nd).forEach(k=>{const d=p.daily&&p.daily[k];if(d)r+=d.r||0;});return r;};
-  const board=(e,n,how,rows,fmt,note)=>{let rank=0,last=null,shown=0;return `<div class="panel lbcard"><h3>${e} ${n}</h3><div class="lbhow">${how}</div>${rows.map((r,i)=>{if(r.v!==last){rank=shown;last=r.v;}shown++;const m=r.v>0&&rank<3?['🥇','🥈','🥉'][rank]:'';return `<div class="lbrow ${r.p.id===me.id?'me':''}"><span class="lbm">${m}</span>${face(r.p)}<span class="lbn">${esc(r.p.name)}${r.tag?` <span class="lbtag">${r.tag}</span>`:''}</span><b>${fmt(r)}</b></div>`;}).join('')}${note?`<div class="lbnote">${note}</div>`:''}</div>`;};
   const champ=st.map(x=>{const best=Math.max(0,...Object.entries(x.p.wkHist||{}).filter(([k])=>k<wk).map(([,w])=>w.pts||0));return {p:x.p,v:x.s.pts,d:x.s.pts-(x.l.pts||0),tag:x.s.pts>0&&x.s.pts>best&&best>0?'new best!':''};}).sort((a,b)=>b.v-a.v);
   const bb=st.map(x=>{const lr=soFar(x.p);return {p:x.p,v:lr>0?Math.round((x.s.r-lr)/lr*100):(x.s.r>0?100:0),first:!lr&&x.s.r>0};}).sort((a,b)=>b.v-a.v);
   const pdays=st.map(x=>({p:x.p,v:x.s.days})).sort((a,b)=>b.v-a.v);
@@ -3563,6 +3565,7 @@ SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go(P()&&P().setup?'map':'profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
  <p class="note">A new player takes a quick skill check so each skill starts near the right level (a kid who skips it starts a little below their grade). Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level (6 in a row for grades 1-3). <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
  ${cloudSection()}
+ ${window.Groups?Groups.section():''}
  ${state.players.map(parentCard).join('')}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.readLog||[]).slice(-6).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · "${esc(v.t)}"${v.lv?` (Level ${v.lv})`:''} · ${'⭐'.repeat(v.s)}${'☆'.repeat((v.n||3)-v.s)} (${v.s}/${v.n||3} right on the first try)</li>`)));return rows.length?`<div class="pp"><h3>📚 Library reading</h3><p class="note">Professor Hoot gives 2 new stories a day. There are 10 reading levels (about 1st grade to 12th grade). Higher levels have longer stories and 4-5 questions (main idea, details, inference, vocabulary, author's purpose). The level moves up after strong scores and down after weak ones, aiming for about 75-85% right on the first try.${state.players.filter(x=>x.lib&&x.lib.rl).map(x=>` <b>${esc(x.name)}</b>: Level ${Math.floor(x.lib.rl)}.`).join('')}</p><ul>${rows.join('')}</ul></div>`:'';})()}
  ${(()=>{const rows=[];state.players.forEach(pl=>(pl.kindVisits||[]).slice(-8).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · ${v.kind==='spell'?`spelling "${esc(v.what)}"`:v.kind==='math'?`math: ${esc(v.what)}`:`blessing vs ${esc(v.what)} (was losing)`}</li>`)));state.players.forEach(pl=>(pl.principalVisits||[]).slice(-4).reverse().forEach(v=>rows.push(`<li><b>${esc(pl.name)}</b> · ${esc(v.d)} · 🎓 Principal Wise visit: ${esc(v.t)}</li>`)));return rows.length?`<div class="pp"><h3>✨ Kind Teacher &amp; 🎓 Principal visits</h3><p class="note">She appears at most once a day per child, only when they are truly stuck. These show where each child needed help.</p><ul>${rows.join('')}</ul></div>`:'';})()}
@@ -3571,6 +3574,7 @@ SCREENS.parent=()=>{
  <p><b>On an iPad or iPhone:</b> tap Share, then <b>Add to Home Screen</b>, and always open the game from that icon. The Home Screen icon keeps its own saved games and PIN, separate from Safari, so playing in Safari and from the icon won't share progress.</p><p><b>Before deleting the Home Screen icon</b>, download a backup: removing the icon also erases what it saved. Restore the backup in the new icon's Parent Corner.</p>
  <div class="row" style="justify-content:flex-start"><button class="btn green small" onclick="downloadBackup()">⬇️ Download a backup</button><button class="btn small ghost dark" onclick="changePin()">Change Parent PIN</button><label class="btn small">⬆️ Restore a backup<input type="file" accept=".json,application/json" style="display:none" onchange="restoreBackup(this)"></label></div>
  <p class="note" style="margin-top:10px">Game version: <b>${APP_VER}</b> <button class="btn small ghost dark" onclick="Upd.checkNow(true)">🔄 Check for update</button></p></div></div>`;
+ setTimeout(()=>{try{window.Groups&&Groups.fillSection();}catch(e){}},0);
 };
 function changePin(){PIN_CHANGE=true;parentGate();} // the old PIN stays until a new one is confirmed (Cancel keeps it)
 function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save();refreshParent(`pp-${id}`,true);}
@@ -3679,7 +3683,7 @@ function tbSet(id,k,v){const p=state.players.find(x=>x.id===id);const T=tbState(
  if(k==='on'){p.tbOn=!!v;if(!v){T.locked=false;T.bank=tbCap(p);}}else if(k==='min'){p.tbMin=+v;T.bank=Math.min(T.bank,+v);}else if(k==='add'){T.bank=Math.max(0,T.bank)+(+v);T.bonus=Math.max(0,T.bank-tbCap(p));T.locked=false;}else if(k==='full'){T.bank=tbCap(p);T.locked=false;}
  save();refreshParent(`pp-${id}`,true);toast(k==='add'?`Added 15 minutes for ${p.name}.`:'Saved.');}
 function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;if(p.spellSig!==undefined)p.spellSig=spellSchool(p).map(x=>x.w).join('|');save();refreshParent(`pp-${id}`,true);toast(`Grade set to ${g}.`);}
-function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}const np=newPlayer(n,+$('#npGrade').value);state.players.push(np);save();refreshParent(null);const c=document.getElementById('pp-'+np.id);if(c){c.scrollIntoView({block:'center',behavior:'smooth'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),900);}}
+function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}if(window.nameProblem){const pr=nameProblem(n,state.players.map(x=>x.name));if(pr){toast(pr);return;}}const np=newPlayer(n,+$('#npGrade').value);state.players.push(np);save();refreshParent(null);const c=document.getElementById('pp-'+np.id);if(c){c.scrollIntoView({block:'center',behavior:'smooth'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),900);}}
 function confirmReset(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Reset ${esc(p.name)}?</h2><p>This clears coins, pets, items, map progress and stats. It can't be undone.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doReset('${id}')">Reset</button></div></div>`);}
 function doReset(id){const i=state.players.findIndex(x=>x.id===id);const o=state.players[i];const n=newPlayer(o.name,o.grade);n.id=o.id;state.players[i]=n;save();closeModal();refreshParent(`pp-${id}`,true);}
 function confirmDelete(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Delete ${esc(p.name)}?</h2><p>This removes the player and all their progress.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doDelete('${id}')">Delete</button></div></div>`);}
@@ -4001,7 +4005,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28d';
+const APP_VER='2026.09.28e';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
@@ -4077,7 +4081,7 @@ async function cloudPut(code,obj){
  const r=await fetch(famUrl(code),{method:'PATCH',headers:{Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify(body)});
  if(!r.ok)throw new Error('put '+r.status);
 }
-const cloudPayload=()=>({v:1,gifts:state.gifts||{},players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},upd:Date.now()});
+const cloudPayload=()=>({v:1,gifts:state.gifts||{},ownGroups:state.ownGroups||{},players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},upd:Date.now()});
 
 /* each player remembers when it last changed, so the newest copy of each kid wins */
 const HASH=new Map();
@@ -4093,7 +4097,7 @@ function mergeStates(remote,joining,keepId){
  if(joining){const score=p=>(p.setup?1e9:0)+(p.level||1)*1e5+(p.battles||0)*10+((p.upd||0)/1e13);const best={};
   list.forEach(p=>{const k=(p.name||'').trim().toLowerCase();if(!best[k]||score(p)>score(best[k]))best[k]=p;});list=list.filter(p=>best[(p.name||'').trim().toLowerCase()]===p);}
  const before=JSON.stringify(state.players)+JSON.stringify(state.gifts||{});
- state.players=list;state.deleted=del;mergeGifts(remote);
+ state.players=list;state.deleted=del;mergeGifts(remote);if(remote.ownGroups)state.ownGroups=Object.assign({},remote.ownGroups,state.ownGroups||{});
  if(remote.pin&&(!state.pin||(remote.pinUpd||0)>(state.pinUpd||0))){state.pin=remote.pin;state.pinUpd=remote.pinUpd||0;}
  if(state.cur&&!state.players.find(p=>p.id===state.cur))state.cur=null;
  migrate();stampChanges(true);saveLocal();keepPin();
