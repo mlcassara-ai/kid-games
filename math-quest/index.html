@@ -674,7 +674,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1289,7 +1289,7 @@ function topbar(){
  <button class="iconbtn tbi" title="Explore the world" aria-label="Explore the world" onclick="go('world')">${TB_ICONS.map}</button>
  <button class="iconbtn tbi" title="Backpack &amp; shop" aria-label="Backpack and shop" onclick="go('backpack')">${TB_ICONS.bag}${p.eggs?'<b class="dot"></b>':''}</button>
  <button class="iconbtn tbi" title="Pet home" aria-label="Pet home" onclick="go('pethome')">${TB_ICONS.pet}${spinReady(p)?'<b class="dot"></b>':''}</button>
- <button class="iconbtn tbi" title="Sound" aria-label="Sound on or off" onclick="toggleSound()">${state.sound?TB_ICONS.sound:TB_ICONS.mute}</button>
+ <button class="iconbtn tbi" title="Sound &amp; music" aria-label="Sound on or off" onclick="window.Music?Music.menu():toggleSound()">${state.sound||(p.music||'auto')!=='off'?TB_ICONS.sound:TB_ICONS.mute}</button>
  <button class="iconbtn tbi" title="Switch player" aria-label="Switch player" onclick="go('profiles')">${TB_ICONS.players}</button></div>`;
 }
 
@@ -1300,7 +1300,7 @@ SCREENS.profiles=()=>{
  <h2 class="title">Who's playing?</h2>
  <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?(tbOn(p)&&tbState(p).locked?'😴 On a break':(petOf(p)?petOf(p).e+' ':'')+'Tap to play'+(p.lock?' 🔒':'')):'New hero!'}</div></button>`).join('')}
  <button class="pcard add" onclick="go('create')"><div class="plus">＋</div><div class="pname">New Hero</div><div class="plv">Add a player</div></button></div>
- <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button> <button class="btn ghost small" onclick="toggleSound()">${state.sound?'🔊 Sound on':'🔇 Sound off'}</button><div class="note" id="cloudBadge" style="margin-top:8px">${cloudBadgeText()}</div></div></div>`;
+ <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button> <button class="btn ghost small" onclick="window.Music?Music.menu():toggleSound()">${state.sound?'🔊 Sound':'🔇 Sound off'}</button><div class="note" id="cloudBadge" style="margin-top:8px">${cloudBadgeText()}</div></div></div>`;
 };
 const PICS=['🐶','🐱','🦊','🐸','🦄','🐙','🚀','🍕','⚽'];
 function choose(id){
