@@ -177,7 +177,17 @@ const VIRUS_ICO=`<svg viewBox="-12 -12 24 24" class="is-vico">${Array.from({leng
 function sizeBar(){const k=R.sz||0,n=SIZES.length,z=SIZES[k];
  return `<div class="is-size" id="isSize"><div class="trk"><i style="width:${k/(n-1)*100}%"></i>${SIZES.map((q,j)=>`<span class="${j<k?'past':''}${j===k?' on':''}" style="left:${j/(n-1)*100}%">${q.e==='VIRUS'?VIRUS_ICO:q.e==='CELL'?CELL_ICO:q.e==='MOL'?MOL_ICO:q.e}</span>`).join('')}</div><div class="lab">📏 <b>${z.sz}</b> · ${z.n}</div></div>`;}
 function setSize(k){R.sz=k;const el=root&&root.querySelector('#isSize');if(el)el.outerHTML=sizeBar();}
-function drawStop(c,k,x,y,S,sec,a){if(k<1||a<=0.01)return;c.save();c.globalAlpha=Math.min(1,a);
+/* Speed: the ant, hair, cell and virus are drawn ONCE into a picture (sprite) and then just stretched each frame.
+   Redrawing a giant emoji or a screen-wide gradient stroke every frame was what made the shrink stutter. */
+const SPR={},SPR_BOX={1:[.62,.62],2:[2.3,.62],3:[.52,.44],5:[.5,.5]};let STOP_BASE=400;
+function stopSprite(k){const B=Math.max(120,Math.min(900,Math.round(STOP_BASE))),key=k+':'+B;if(SPR[key])return SPR[key];
+ const [bx,by]=SPR_BOX[k],cv=document.createElement('canvas');cv.width=Math.ceil(bx*2*B);cv.height=Math.ceil(by*2*B);
+ drawStopLive(cv.getContext('2d'),k,cv.width/2,cv.height/2,B,0,1);return SPR[key]={cv,B};}
+function drawStop(c,k,x,y,S,sec,a){if(k<1||a<=0.02)return;
+ if(SPR_BOX[k]){const sp=stopSprite(k),sc=S/sp.B,w=sp.cv.width*sc,h=sp.cv.height*sc;c.save();c.globalAlpha=Math.min(1,a);
+  if(k===5){c.translate(x,y);c.rotate(sec*.1);c.drawImage(sp.cv,-w/2,-h/2,w,h);}else c.drawImage(sp.cv,x-w/2,y-h/2,w,h);c.restore();return;}
+ drawStopLive(c,k,x,y,S,sec,a);}
+function drawStopLive(c,k,x,y,S,sec,a){if(k<1||a<=0.01)return;c.save();c.globalAlpha=Math.min(1,a);
  if(k===1){c.font=`${S}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('🐜',x,y);}
  else if(k===2){c.lineCap='round';const g=c.createLinearGradient(x,y-S*.3,x,y+S*.3);g.addColorStop(0,'#8d5a2b');g.addColorStop(.5,'#c08552');g.addColorStop(1,'#6f4520');c.strokeStyle=g;c.lineWidth=S*.42;c.beginPath();c.moveTo(x-S*2,y+S*.25);c.quadraticCurveTo(x,y-S*.35,x+S*2,y+S*.15);c.stroke();
   c.strokeStyle='rgba(60,30,10,.35)';c.lineWidth=Math.max(1,S*.02);for(let i=-9;i<=9;i++){const px=x+i*S*.2;c.beginPath();c.moveTo(px,y-S*.12);c.quadraticCurveTo(px+S*.06,y,px,y+S*.14);c.stroke();}}
@@ -199,12 +209,12 @@ function shrink(){const t=tier();R.sz=0;let k=0,go=performance.now()+600;const T
  loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;
   const gp=go?Math.max(0,Math.min(1,(performance.now()-go)/1000/TRAVEL)):0;const depth=(k+gp)/5;
   const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,`hsl(255,45%,${22-depth*12}%)`);g.addColorStop(1,`hsl(250,50%,${14-depth*8}%)`);c.fillStyle=g;c.fillRect(0,0,w,h);
-  const S=Math.min(w,h)*.55,cx=w/2,cy=(h-120)*.5+40;
+  const S=Math.min(w,h)*.55,cx=w/2,cy=(h-120)*.5+40;STOP_BASE=S*Math.min(2,window.devicePixelRatio||1);if(!R.sprWarm){R.sprWarm=1;[1,2,3,5].forEach(stopSprite);}
   // calm, slow rings while traveling (gentle: slow, see-through, no flashing)
   if(go){const f=Math.max(0,(performance.now()-go)/1000);for(let i=0;i<5;i++){const ph=((f/6+i/5)%1);c.strokeStyle='#b197fc';c.globalAlpha=.16*(1-ph);c.lineWidth=2+ph*2;c.beginPath();c.ellipse(cx,cy,ph*Math.max(w,h)*.7,ph*Math.max(w,h)*.46,0,0,7);c.stroke();}c.globalAlpha=1;}
   if(go){const p=gp,sm=x=>x*x*(3-2*x),a=sm(Math.min(1,p/.42)),b=sm(Math.max(0,(p-.55)/.45));
    // first the thing we're passing grows past us and fades away… then (after a moment of just rings) the next one appears as a dot
-   if(p<.42)drawStop(c,k,cx,cy,S*(1+a*6),sec,1-a);if(p>.55)drawStop(c,k+1,cx,cy,S*(.02+b*.98),sec,Math.min(1,b*1.6));
+   if(p<.42)drawStop(c,k,cx,cy,S*(1+a*2),sec,1-a);if(p>.55)drawStop(c,k+1,cx,cy,S*(.02+b*.98),sec,Math.min(1,b*1.6));
    if(p>=1){go=0;k++;setSize(k);snd(660+k*60,.18,'triangle',.05);const n=root.querySelector('.is-nar .txt');if(n)n.innerHTML=`<small>Ride Operator ${NAME}</small>${say()}`;const nb=root.querySelector('.is-nar');if(nb)nb.style.opacity='1';const b=root.querySelector('#isNext');if(b){b.disabled=false;b.textContent=btnTxt();}}}
   else drawStop(c,k,cx,cy,S,sec,1);
   car(c,cx+Math.sin(sec*.7)*8,cy+S*.32+Math.cos(sec*.9)*5,Math.min(w,h)*.16);});}
