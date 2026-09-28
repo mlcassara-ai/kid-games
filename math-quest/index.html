@@ -4014,7 +4014,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28h';
+const APP_VER='2026.09.28i';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
@@ -4105,12 +4105,12 @@ function mergeStates(remote,joining,keepId){
  let list=order.map(id=>map.get(id)).filter(p=>!(del[p.id]&&del[p.id]>=(p.upd||0)));
  if(joining){const score=p=>(p.setup?1e9:0)+(p.level||1)*1e5+(p.battles||0)*10+((p.upd||0)/1e13);const best={};
   list.forEach(p=>{const k=(p.name||'').trim().toLowerCase();if(!best[k]||score(p)>score(best[k]))best[k]=p;});list=list.filter(p=>best[(p.name||'').trim().toLowerCase()]===p);}
- const before=JSON.stringify(state.players)+JSON.stringify(state.gifts||{});
+ const sig_=()=>JSON.stringify(state.players,(k,v)=>k==='tb'||k==='upd'?undefined:v)+JSON.stringify(state.gifts||{});const before=sig_();
  state.players=list;state.deleted=del;mergeGifts(remote);if(remote.ownGroups)state.ownGroups=Object.assign({},remote.ownGroups,state.ownGroups||{});
  if(remote.pin&&(!state.pin||(remote.pinUpd||0)>(state.pinUpd||0))){state.pin=remote.pin;state.pinUpd=remote.pinUpd||0;}
  if(state.cur&&!state.players.find(p=>p.id===state.cur))state.cur=null;
  migrate();stampChanges(true);saveLocal();keepPin();
- return before!==JSON.stringify(state.players)+JSON.stringify(state.gifts||{});
+ return before!==sig_();
 }
 function scheduleSync(){if(!cloud.code)return;clearTimeout(cloud.timer);cloud.timer=setTimeout(syncNow,3000);}
 async function syncNow(){
@@ -4121,7 +4121,7 @@ async function syncNow(){
   await cloudPut(cloud.code,cloudPayload());cloud.status='ok';cloud.last=Date.now();}
  catch(e){cloud.status='offline';}
  cloud.busy=false;updateCloudBadge();
- if(changed&&['profiles','map','parent','backpack','quests','zone'].includes(curScreen)&&!$('#modal.show'))go(curScreen,curArg);
+ if(changed&&['profiles','map','parent','backpack','quests','zone'].includes(curScreen)&&!$('#modal.show')&&!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))){const y=window.scrollY;go(curScreen,curArg);window.scrollTo(0,y);}
  if(changed&&state.cur&&['world','map','backpack','pethome'].includes(curScreen))setTimeout(showGift,400);
  if(cloud.again){cloud.again=false;scheduleSync();}
 }

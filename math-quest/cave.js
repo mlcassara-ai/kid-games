@@ -500,9 +500,9 @@ let onClose=null,cardQ=[];
 function card(html){if(modalOpen())cardQ.push(html);else modal(html);}
 
 /* ---------------- Field Lab ---------------- */
-const STREAK_NAMES={'#ffffff':'white','#2f3a2a':'greenish-black','#8fe3a9':'light green','#8ec5ff':'light blue','#1b1b1b':'black','#8b2a1e':'red-brown','#e8b923':'golden yellow','#5a5f66':'lead grey','#fff59a':'pale yellow'};
+const STREAK_NAMES={'#ffffff':'white','#2f4f2a':'greenish-black','#8fe3a9':'light green','#8ec5ff':'light blue','#1b1b1b':'black','#8b2a1e':'red-brown','#e8b923':'golden yellow','#7d848c':'lead grey','#fff59a':'pale yellow'};
 const UV_NAMES={'#ff5a3d':'orange-red','#5cc8ff':'bright blue','#39ff6a':'neon green','#ff2a2a':'red','#7fb6ff':'pale blue'};
-const LTESTS=[{id:'hard',e:'💅',n:'Scratch test',q:'How hard is it?'},{id:'streak',e:'⬜',n:'Streak test',q:'What color is its powder?'},{id:'acid',e:'🧪',n:'Acid drop',q:'Does it fizz?'},{id:'magnet',e:'🧲',n:'Magnet',q:'Does it stick?'},{id:'water',e:'💧',n:'Water drop',q:'Does it dissolve?'},{id:'uv',e:'🔦',n:'UV lamp',q:'Does it glow?',uv:1},{id:'look',e:'🔍',n:'Look closely',q:'What shape? How shiny?'}];
+const LTESTS=[{id:'hard',e:'💅',n:'Scratch test',q:'How hard is it?'},{id:'streak',e:'⬜',n:'Streak test',q:'What color is its powder?'},{id:'acid',e:'🧪',n:'Vinegar drop',q:'Does it fizz?'},{id:'magnet',e:'🧲',n:'Magnet',q:'Does it stick?'},{id:'water',e:'💧',n:'Water drop',q:'Does it dissolve?'},{id:'uv',e:'🔦',n:'UV lamp',q:'Does it glow?',uv:1},{id:'look',e:'🔍',n:'Look closely',q:'What shape? How shiny?'}];
 const hardBand=h=>{const i=CD.TOOLS.findIndex(t=>h<=t.h);return i<0?4:i;};
 const HB_WORD=['very soft','soft','medium','hard','super hard'],HB_NUM=['2.5 or less','2.5 – 3.5','3.5 – 5.5','5.5 – 7','more than 7'];
 function tval(m,t){return t==='hard'?hardBand(m.h):t==='streak'?(m.s||'none'):t==='acid'?!!m.f:t==='magnet'?!!m.m:t==='water'?!!m.w:t==='uv'?(m.u||''):m.look;}
@@ -514,7 +514,7 @@ function shortV(m,t){const n=TIER();
 function resText(m,t){const n=TIER();
  if(t==='hard'){const b=hardBand(m.h);const tl=CD.TOOLS;const msg=b===0?`Your ${tl[0].e} fingernail scratches it!`:b===4?'Nothing scratches it — not even the 🔺 quartz point!':`The ${tl[b].e} ${tl[b].n.toLowerCase()} scratches it, but the ${tl[b-1].e} ${tl[b-1].n.toLowerCase()} doesn't.`;return `${msg} <b>It's ${HB_WORD[b]}${n?` (hardness ${HB_NUM[b]})`:''}.</b>`;}
  if(t==='streak')return m.s?`Rubbed on the white tile it leaves a ${sw(m.s)} <b>${STREAK_NAMES[m.s]}</b> streak.`:`<b>No streak</b> — it's so hard it scratched the tile instead!`;
- if(t==='acid')return m.f?`<b>Fizz!</b> 🫧 Bubbles of carbon dioxide gas.`:'A drop of acid… <b>nothing happens.</b>';
+ if(t==='acid')return m.f?`<b>Fizz!</b> 🫧 Bubbles of carbon dioxide gas.`:'A drop of vinegar… <b>nothing happens.</b>';
  if(t==='magnet')return m.m?'<b>SNAP!</b> 🧲 It sticks to the magnet.':'The magnet <b>doesn\'t pull</b> on it at all.';
  if(t==='water')return m.w?'<b>It dissolved!</b> 💧 It disappeared into the water.':'In water it <b>stays the same.</b>';
  if(t==='uv')return m.u?`Under UV light it <b>glows</b> ${sw(m.u)} ${UV_NAMES[m.u]}!`:'Under UV light: <b>no glow.</b>';
@@ -538,7 +538,7 @@ function alive(p){const m=CD.MIN[p.id],done=testsOf(p);return candidates(p).filt
 const KQ={magnet:'🧲 Does it stick to a magnet?',acid:'🧪 Does it fizz when a drop of vinegar (acid) touches it?',water:'💧 Does it dissolve in water?',
  streak:'⬜ What color is its powder on the streak tile?',hard:'💅 How hard is it? Which tools scratch it?',uv:'🔦 Does it glow under UV light?',look:'🔍 What does it look like up close?'};
 const KHINT={magnet:'Minerals with lots of <b>iron</b> in them are pulled by a magnet. Let\'s hold one close!',
- acid:'Minerals made with <b>carbonate</b> (like the stuff in seashells) fizz in acid — the bubbles are carbon dioxide gas.',
+ acid:'Vinegar is a weak <b>acid</b>. Minerals made with <b>carbonate</b> (like the stuff in seashells) fizz when it touches them. The bubbles are carbon dioxide gas!',
  water:'A few minerals are made of salt and <b>dissolve</b> in water. Let\'s drop it in a glass!',
  streak:'The color of a mineral can fool you, but its <b>powder</b> never lies. Rub it on the white tile!',
  hard:'Scratch it with different tools. The <b>softest tool that leaves a scratch</b> tells us how hard it is.',
@@ -557,7 +557,7 @@ function kLabel(t,v){
  if(t==='acid')return v?'Yes — it fizzes!':'No fizz';
  if(t==='water')return v?'Yes — it dissolves!':'No — it stays the same';
  if(t==='streak')return v==='none'?'No powder (it scratched the tile!)':`${sw(v)} ${STREAK_NAMES[v]}`;
- if(t==='hard')return `${HB_WORD[v]} <small>${['fingernail scratches it','copper coin scratches it','steel nail scratches it','only the quartz point scratches it','nothing scratches it'][v]}</small>`;
+ if(t==='hard')return `${HB_OPT[v]} <small>${HB_WORD[v]}</small>`;
  if(t==='uv')return v?`${sw(v)} glows ${UV_NAMES[v]}`:'No glow';
  return esc(v);}
 /* the best next question: splits the suspects most evenly (yes/no questions win ties — easier for young detectives) */
@@ -566,57 +566,86 @@ function kNext(p,C){const used=(p.path||[]).map(s=>s.t);let best=null;
   const sc=Math.max(...Object.values(g))*10-(BIN.includes(t)?1:0)+(t==='uv'?2:0);if(!best||sc<best.sc)best={t,sc};});
  return best?best.t:(used.includes('look')?null:'look');}
 function kAlive(p){const cs=candidates(p);return cs.filter(c=>(p.path||[]).every(st=>JSON.stringify(tval(CD.MIN[c],st.t))===JSON.stringify(st.v)));}
-/* pictures of each test */
-function kPic(m,t){const G=gemSVG(m,64);const W2=250,H2=150;
+/* a plain grey "mystery rock" so the picture never gives the answer away (the real mineral is shown once it's identified) */
+function rockSVG(k,size,tint){size=size||64;const R=rng(hash('rock|'+k));const n=9,pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=14+R()*6;pts.push([22+Math.cos(a)*r,23+Math.sin(a)*r*.82]);}
+ const d='M'+pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')+'Z';const f=tint||'#8a8f98';
+ return `<svg width="${size}" height="${size}" viewBox="0 0 44 44"><path d="${d}" fill="${f}" stroke="#495057" stroke-width="1.6" stroke-linejoin="round"/>${[0,1,2,3].map(()=>`<circle cx="${(12+R()*20).toFixed(1)}" cy="${(14+R()*16).toFixed(1)}" r="${(1+R()*1.4).toFixed(1)}" fill="#fff" opacity=".35"/>`).join('')}<path d="M14 16 q4 -4 10 -3" stroke="#fff" stroke-width="2" opacity=".45" fill="none" stroke-linecap="round"/>${tint?'':'<text x="22" y="28" font-size="13" font-weight="800" text-anchor="middle" fill="#fff" opacity=".85">?</text>'}</svg>`;}
+/* pictures of each test: they show what happens (with motion) and never print the answer */
+function kPic(m,t,p){const G=rockSVG(p.k,64);const W2=250,H2=150;
  if(t==='magnet'){const st=!!m.m;return `<svg viewBox="0 0 ${W2} ${H2}" class="cv-kp"><rect x="0" y="120" width="250" height="30" fill="#c7a178"/>
-  <g transform="translate(125 ${st?4:-24})"><path d="M-34 0 L-34 40 A34 34 0 0 0 34 40 L34 0 L18 0 L18 40 A18 18 0 0 1 -18 40 L-18 0Z" fill="#e03131"/><rect x="-34" y="0" width="16" height="12" fill="#dee2e6"/><rect x="18" y="0" width="16" height="12" fill="#dee2e6"/></g>
-  <g transform="translate(93 ${st?64:56})">${G}</g>
-  ${st?'<text x="178" y="60" font-size="20" font-weight="800" fill="#e03131">SNAP!</text>':'<text x="170" y="70" font-size="15" fill="#555">…nothing</text>'}</svg>`;}
- if(t==='acid'){const f=!!m.f;let b='';if(f)for(let i=0;i<9;i++)b+=`<circle cx="${95+((i*23)%60)}" cy="${80-(i%3)*18}" r="${4+i%3*2}" fill="none" stroke="#74c0fc" stroke-width="2.5" class="cv-bub" style="animation-delay:${i*.15}s"/>`;
+  <g class="cv-mag"><g transform="translate(125 0)"><path d="M-34 0 L-34 40 A34 34 0 0 0 34 40 L34 0 L18 0 L18 40 A18 18 0 0 1 -18 40 L-18 0Z" fill="#e03131"/><rect x="-34" y="0" width="16" height="12" fill="#dee2e6"/><rect x="18" y="0" width="16" height="12" fill="#dee2e6"/></g></g>
+  <g class="${st?'cv-jump':'cv-sit'}"><g transform="translate(93 58)">${G}</g></g></svg>`;}
+ if(t==='acid'){const f=!!m.f;let b='';if(f)for(let i=0;i<12;i++)b+=`<circle cx="${92+((i*23)%66)}" cy="${86-(i%4)*14}" r="${3+i%3*2}" fill="none" stroke="#74c0fc" stroke-width="2.5" class="cv-bub" style="animation-delay:${(i*.13).toFixed(2)}s"/>`;
   return `<svg viewBox="0 0 ${W2} ${H2}" class="cv-kp"><rect x="0" y="120" width="250" height="30" fill="#c7a178"/><g transform="translate(93 60)">${G}</g>
-  <g transform="translate(125 4)"><rect x="-6" y="0" width="12" height="30" rx="3" fill="#ced4da"/><path d="M-10 -6 h20 v8 h-20z" fill="#495057"/><path d="M-3 30 L3 30 L0 42Z" fill="#adb5bd"/><circle cx="0" cy="50" r="4" fill="#a5d8ff"/></g>${b}
-  ${f?'<text x="170" y="40" font-size="20" font-weight="800" fill="#1971c2">FIZZ!</text>':'<text x="158" y="55" font-size="13" fill="#555">…no bubbles</text>'}</svg>`;}
+  <g transform="translate(125 4)"><rect x="-6" y="0" width="12" height="30" rx="3" fill="#ced4da"/><path d="M-10 -6 h20 v8 h-20z" fill="#495057"/><path d="M-3 30 L3 30 L0 42Z" fill="#adb5bd"/><circle class="cv-drop" cx="0" cy="50" r="4" fill="#a5d8ff"/></g>${b}</svg>`;}
  if(t==='water'){const w=!!m.w;return `<svg viewBox="0 0 ${W2} ${H2}" class="cv-kp"><path d="M70 20 L80 140 L170 140 L180 20Z" fill="#e7f5ff" stroke="#74c0fc" stroke-width="4"/><rect x="74" y="55" width="102" height="83" fill="#a5d8ff" opacity=".7"/>
-  <g transform="translate(${w?108:93} ${w?96:72}) scale(${w?.45:1})" opacity="${w?.45:1}">${G}</g>${w?'<text x="184" y="80" font-size="13" font-weight="700" fill="#1971c2">shrinking…<tspan x="184" dy="17">gone!</tspan></text>':'<text x="184" y="85" font-size="13" fill="#555">still there</text>'}</svg>`;}
+  <g transform="translate(93 72)"><g class="${w?'cv-melt':''}">${G}</g></g></svg>`;}
  if(t==='streak'){const c=m.s;return `<svg viewBox="0 0 ${W2} ${H2}" class="cv-kp"><rect x="30" y="30" width="190" height="95" rx="6" fill="#fdfdfd" stroke="#ced4da" stroke-width="4"/>
-  ${c?`<path d="M55 90 Q100 55 150 80 Q180 92 200 70" stroke="${c}" stroke-width="16" stroke-linecap="round" fill="none" ${c==='#ffffff'?'filter="drop-shadow(0 0 1.5px #555)"':''}/>`:'<path d="M60 60 L200 95 M70 90 L190 55" stroke="#adb5bd" stroke-width="2"/>'}
+  ${c?`<path d="M55 90 Q100 55 150 80 Q180 92 200 70" stroke="${c==='#ffffff'?'#b8bec6':c}" stroke-width="19" stroke-linecap="round" fill="none"/>${c==='#ffffff'?'<path d="M55 90 Q100 55 150 80 Q180 92 200 70" stroke="#ffffff" stroke-width="15" stroke-linecap="round" fill="none"/>':''}`:'<path d="M60 60 L200 95 M70 90 L190 55" stroke="#adb5bd" stroke-width="2"/>'}
   <text x="125" y="20" font-size="14" text-anchor="middle" fill="#555">white streak tile</text></svg>`;}
- if(t==='hard'){const b=hardBand(m.h);return `<div class="cv-kh">${CD.TOOLS.map((tl,i)=>`<div class="${i>=b?'y':'n'}"><span>${tl.e}</span><b>${tl.n}</b><em>${i>=b?'✓ scratch!':'✗ no mark'}</em></div>`).join('')}</div>`;}
- if(t==='uv'){return `<svg viewBox="0 0 ${W2} ${H2}" class="cv-kp"><rect width="250" height="150" rx="10" fill="#1a1033"/><g transform="translate(93 50)" style="${m.u?`filter:drop-shadow(0 0 14px ${m.u}) drop-shadow(0 0 6px ${m.u})`:'filter:brightness(.4)'}">${gemSVG(m.u?{...m,col:m.u}:m,64)}</g><text x="125" y="30" font-size="14" text-anchor="middle" fill="#b197fc">🔦 UV light on</text></svg>`;}
+ if(t==='uv'){return `<svg viewBox="0 0 ${W2} ${H2}" class="cv-kp"><rect width="250" height="150" rx="10" fill="#1a1033"/><g transform="translate(93 50)" style="${m.u?`filter:drop-shadow(0 0 14px ${m.u}) drop-shadow(0 0 6px ${m.u})`:'filter:brightness(.35)'}">${m.u?rockSVG(p.k,64,m.u):G}</g><text x="125" y="30" font-size="14" text-anchor="middle" fill="#b197fc">🔦 UV light on</text></svg>`;}
  return `<div class="cv-klook">${gemSVG(m,90)}<div>${esc(m.look)}</div></div>`;}
+/* scratch test: the kid tries the tools one at a time (softest first is the smart way) */
+function scratchTray(p,m){const b=hardBand(m.h),sc=p.scr||{};
+ return `<div class="cv-kh">${CD.TOOLS.map((tl,i)=>{const r=sc[i];return `<button class="cv-tool ${r==null?'':r?'y':'n'}" data-tool="${i}" ${r!=null?'disabled':''}><span>${tl.e}</span><b>${tl.n}</b><em>${r==null?'tap to try':r?'✓ scratch!':'✗ no mark'}</em></button>`;}).join('')}</div>`;}
+function scratchKnown(p){const sc=p.scr||{};for(let i=0;i<4;i++){if(sc[i]===true&&(i===0||sc[i-1]===false))return true;}return sc[3]===false;}
+/* the answers are "the FIRST tool that scratches it", so only one answer is ever true */
+const HB_OPT=['Your fingernail scratches it','Fingernail can\'t, but the copper coin can','Coin can\'t, but the steel nail can','Only the quartz point scratches it','Nothing scratches it'];
+function speak(t){try{if(!window.speechSynthesis||!sndOK())return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/<[^>]+>/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]/gu,'').replace(/—/g,','));u.lang='en-US';u.rate=.9;try{u.volume=Math.min(1,Math.max(.25,window.fxLevel?fxLevel():1));}catch(e){}speechSynthesis.speak(u);}catch(e){}}
+function splits(t,C){return new Set(C.map(c=>JSON.stringify(tval(CD.MIN[c],t)))).size>1;}
+const TNAME={magnet:'🧲 Magnet',acid:'🧪 Vinegar drop',water:'💧 Water',streak:'⬜ Streak tile',hard:'💅 Scratch tools',uv:'🔦 UV lamp'};
 function openLab(){
  const list=S.pack.filter(p=>p.t!=='f');
  const cards=list.map(p=>p.t==='g'?`<button class="cv-spec" data-k="g:${S.pack.indexOf(p)}"><span class="cv-big2">🔮</span><b>Geode</b><small>Crack it open!</small></button>`
-  :`<button class="cv-spec" data-k="${p.k}">${gemSVG(CD.MIN[p.id],54)}<b>${p.map?'🪨 Your mystery rock':'Mystery #'+(S.pack.indexOf(p)+1)}</b><small>${(p.path||[]).length?(p.path.length+' step'+(p.path.length>1?'s':'')+' done'):'Not tested yet'}</small></button>`).join('');
+  :`<button class="cv-spec" data-k="${p.k}">${rockSVG(p.k,54)}<b>${p.map?'🪨 Your mystery rock':'Mystery #'+(S.pack.indexOf(p)+1)}</b><small>${(p.path||[]).length?(p.path.length+' step'+(p.path.length>1?'s':'')+' done'):'Not tested yet'}</small></button>`).join('');
  modal(`<h2>🔬 Field Lab</h2>${guide(list.length?'Pick a specimen and we\'ll figure out what it is together — one test at a time!':'No specimens to study right now. Dig down and look for sparkly 💎 minerals!')}${list.length?`<div class="cv-specs">${cards}</div>`:''}`,{wide:1});
  root.querySelectorAll('.cv-spec').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k.startsWith('g:'))crackGeode(+k.slice(2));else bench(k);});
 }
 function bench(k,st){
- const p=S.pack.find(x=>x.k===k);if(!p)return openLab();const m=CD.MIN[p.id];p.path=p.path||[];p.miss=p.miss||0;st=st||{};
- const C=kAlive(p);const t=C.length>1?kNext(p,C):null;
- if(!t||C.length<=1){return kReveal(p);}
+ const p=S.pack.find(x=>x.k===k);if(!p)return openLab();const m=CD.MIN[p.id];p.path=p.path||[];p.miss=p.miss||0;p.scr=p.scr||{};st=st||{};
+ const C=kAlive(p);if(C.length<=1)return kReveal(p);
+ const young=TIER()===0,used=p.path.map(s=>s.t);
+ // young detectives get the next test chosen for them; older ones pick the tool themselves
+ let t=st.t||p.cur||(young?kNext(p,C):null);if(t==='look'&&!young)t='look';
+ if(!t&&!keyTests().some(x=>!used.includes(x)&&splits(x,C)))t='look';
  const trail=p.path.map((s,i)=>`<div class="cv-kstep done"><span class="cv-kn">${i+1}</span><div><div class="cv-kq">${KQ[s.t]}</div><div class="cv-ka">✓ ${kLabel(s.t,s.v)}</div></div></div>`).join('');
- const opts=kOpts(t,C);const tested=!!st.tested;
- const say=st.say||(tested?'What do you see? Pick the answer that matches the picture.':KHINT[t]);
+ const tested=t&&(t==='hard'?scratchKnown(p):!!st.tested);
+ const opts=t?kOpts(t,C):[];
+ let body,say;
+ if(!t){const tools=keyTests().filter(x=>!used.includes(x));
+  body=`<div class="cv-kq">🧰 Which test should we try?</div><div class="cv-tray">${tools.map(x=>`<button class="cv-trayb ${(st.nohelp||[]).includes(x)?'bad':''}" data-pick="${x}" ${(st.nohelp||[]).includes(x)?'disabled':''}>${TNAME[x]}</button>`).join('')}</div>`;
+  say=st.say||'Pick a test that will tell our suspects apart. Think: would they all give the same result?';}
+ else if(t==='hard'){body=`<div class="cv-kq">${KQ.hard} <button class="cv-say" aria-label="Read it to me">🔊</button></div><div class="cv-kres">${scratchTray(p,m)}</div>${tested?`<div class="cv-kopts">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel('hard',v)}</button>`).join('')}</div>`:''}`;
+  say=st.say||(tested?'Now we know! Which tool was the FIRST one to make a scratch?':Object.keys(p.scr).length?'Keep going! Try the next tool.':'Let\'s scratch it! Smart scientists start with the softest tool: your fingernail.');}
+ else{body=`<div class="cv-kq">${KQ[t]} <button class="cv-say" aria-label="Read it to me">🔊</button></div>${tested?`<div class="cv-kres">${kPic(m,t,p)}</div>${['magnet','acid','water'].includes(t)?'<div style="text-align:center"><button class="cv-say cv-replay">↻ Watch again</button></div>':''}<div class="cv-kopts">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel(t,v)}</button>`).join('')}</div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN[t]}</button>`}`;
+  say=st.say||(tested?'Watch closely! What happened? Pick the answer that matches.':KHINT[t]);}
  modal(`<button class="cv-back" data-back>‹ Lab</button><h2>🗝️ ${p.map?'Your Mystery Rock':'Mystery #'+(S.pack.indexOf(p)+1)}</h2>
-  <div class="cv-key"><div class="cv-kleft"><div class="cv-specimen">${gemSVG(m,96)}</div><div class="cv-sus2"><b>Could still be:</b>${C.map(c=>`<span>${gemSVG(CD.MIN[c],22)} ${esc(CD.MIN[c].n)}</span>`).join('')}</div></div>
-  <div class="cv-kright">${trail}<div class="cv-kstep now"><span class="cv-kn">${p.path.length+1}</span><div style="flex:1"><div class="cv-kq">${KQ[t]}</div>
-   ${tested?`<div class="cv-kres">${kPic(m,t)}</div><div class="cv-kopts">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel(t,v)}</button>`).join('')}</div>`
-   :`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN[t]}</button>`}</div></div>
+  <div class="cv-key"><div class="cv-kleft"><div class="cv-specimen">${rockSVG(p.k,96)}</div><div class="cv-sus2"><b>Could still be:</b>${C.map(c=>`<span>${gemSVG(CD.MIN[c],22)} ${esc(CD.MIN[c].n)}</span>`).join('')}</div></div>
+  <div class="cv-kright">${trail}<div class="cv-kstep now"><span class="cv-kn">${p.path.length+1}</span><div style="flex:1">${body}</div></div>
    <div class="cv-kstep todo"><span class="cv-kn">?</span><div class="cv-kq">🎉 The answer!</div></div></div></div>
   ${guide(say,st.mood)}`,{wide:1});
+ const qText=t?(t==='hard'?'How hard is it? Try the scratch tools, softest first.':KQ[t]):'Which test should we try?';
+ if(young&&!st.quiet)speak(qText+' '+say);
+ root.querySelectorAll('.cv-say').forEach(b=>b.onclick=()=>speak(qText+' '+say));
  root.querySelector('[data-back]').onclick=openLab;
- const tb=root.querySelector('#cvKTest');if(tb)tb.onclick=()=>{sfx(t);p.tests[t]=1;save();bench(k,{tested:1});};
+ root.querySelectorAll('.cv-replay').forEach(b=>b.onclick=()=>{sfx(t);bench(k,Object.assign({},st,{t,tested:1,quiet:1}));});
+ root.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const x=b.dataset.pick;sfx('tap');
+  if(!splits(x,C)){bench(k,{nohelp:(st.nohelp||[]).concat(x),mood:'think',say:`Hmm, all of our suspects would give the <b>same result</b> for that test, so it can't tell them apart. Try a different one!`});return;}
+  p.cur=x;save();bench(k,{t:x});});
+ const tb=root.querySelector('#cvKTest');if(tb)tb.onclick=()=>{sfx(t);p.tests[t]=1;save();bench(k,{t,tested:1,quiet:1});};
+ root.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{const i=+b.dataset.tool;const yes=i>=hardBand(m.h);p.scr[i]=yes;p.tests['scratch:'+i]=1;sfx(yes?'hard':'bonk');save();
+  const skipped=[...Array(i).keys()].some(j=>p.scr[j]==null);
+  bench(k,{t:'hard',quiet:1,mood:yes?'happy':'think',say:yes?(i===0?'Your fingernail left a scratch! It\'s very soft.':skipped?`A scratch! But did a <b>softer</b> tool scratch it too? Try one to find out.`:`A scratch! The ${CD.TOOLS[i].n.toLowerCase()} is the first tool that scratches it.`):(i===3?'Not even the quartz point scratches it! Wow!':`No mark. It's harder than the ${CD.TOOLS[i].n.toLowerCase()}. Try a harder tool!`)});});
  root.querySelectorAll('.cv-kopt:not([disabled])').forEach(b=>b.onclick=()=>{const v=opts[+b.dataset.i];const real=tval(m,t);
-  if(JSON.stringify(v)===JSON.stringify(real)){sfx('right');p.path.push({t,v:real});save();ev('keystep',{t,ok:1});
+  if(JSON.stringify(v)===JSON.stringify(real)){sfx('right');p.path.push({t,v:real});p.cur=null;save();ev('keystep',{t,ok:1});
    const left=kAlive(p);bench(k,{say:left.length>1?pick(Math.random,['Great observing! That rules out some suspects.','Exactly right! Let\'s ask the next question.','Yes! A real scientist reads results just like that.']):'Excellent! I think we\'ve cracked it…',mood:'happy'});}
-  else{sfx('wrong');p.miss++;save();ev('keystep',{t,ok:0});bench(k,{tested:1,bad:(st.bad||[]).concat(+b.dataset.i),mood:'think',say:`Hmm, look at the picture again! ${kWhy(m,t)}`});}});
+  else{sfx('wrong');p.miss++;save();ev('keystep',{t,ok:0});bench(k,{t,tested:1,quiet:1,bad:(st.bad||[]).concat(+b.dataset.i),mood:'think',say:`Hmm, look again! ${kWhy(m,t)}`});}});
 }
-function kWhy(m,t){if(t==='magnet')return m.m?'The rock jumped up and stuck to the magnet — SNAP!':'The magnet is close but the rock just sits there. It doesn\'t stick.';
+function kWhy(m,t){if(t==='magnet')return m.m?'Watch the rock: it jumps up and sticks to the magnet!':'Watch the rock: the magnet is close, but the rock just sits there.';
  if(t==='acid')return m.f?'See all those bubbles? That\'s fizzing!':'No bubbles at all — so it doesn\'t fizz.';
  if(t==='water')return m.w?'It got smaller and smaller until it was gone — it dissolved!':'It\'s still sitting in the water — it didn\'t dissolve.';
  if(t==='streak')return m.s?`Look at the color of the line on the tile.`:'There\'s no colored line — just scratches. It\'s harder than the tile!';
- if(t==='hard')return 'Find the first tool with a ✓ — the softest tool that makes a scratch.';
+ if(t==='hard')return 'Look at the tools you tried. Which was the <b>first</b> one (the softest) that made a scratch?';
  if(t==='uv')return m.u?'It\'s glowing brightly in the dark!':'It stays dark — no glow.';return 'Read the description under the picture.';}
 function kReveal(p){const m=CD.MIN[p.id];
  modal(`<div class="cv-card"><div class="cv-kpath">${(p.path||[]).map(s=>`<span>${KQ[s.t].split(' ')[0]} ${kLabel(s.t,s.v)}</span>`).join('<i>➜</i>')}</div>${gemSVG(m,110)}<h2>The path leads to… <br>${esc(m.n)}!</h2>
@@ -1035,6 +1064,16 @@ const CSS=`
 .cv-kopts{display:flex;flex-wrap:wrap;gap:8px}.cv-kopt{flex:1 1 140px;font-family:inherit;font-size:16px;font-weight:700;padding:12px 10px;border-radius:14px;border:3px solid #4c6ef5;background:#edf2ff;color:#1f2340;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;flex-direction:column}
 .cv-kopt small{font-weight:500;font-size:12px;color:#5c677d}.cv-kopt.bad{opacity:.4;border-color:#fa5252;background:#fff5f5;text-decoration:line-through}
 .cv-kh{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%}.cv-kh div{background:#fff9f0;border-radius:12px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;gap:2px;border:3px solid #ffe8cc}
+.cv-mag{animation:cvMag 1s ease-out forwards}@keyframes cvMag{from{transform:translateY(-44px)}to{transform:translateY(-10px)}}
+.cv-jump{animation:cvJump .3s .95s ease-in forwards}@keyframes cvJump{to{transform:translateY(-16px)}}
+.cv-sit{animation:cvSit .5s 1s ease-in-out 2}@keyframes cvSit{50%{transform:translateX(1px)}}
+.cv-melt{transform-box:fill-box;transform-origin:50% 90%;animation:cvMelt 3s .5s ease-in forwards}@keyframes cvMelt{60%{opacity:.6}to{transform:scale(0);opacity:0}}
+.cv-drop{animation:cvDrop .9s ease-in infinite}@keyframes cvDrop{to{transform:translateY(10px);opacity:.2}}
+.cv-tray{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.cv-trayb{flex:1 1 130px;font-family:inherit;font-size:16px;font-weight:700;padding:12px 10px;border-radius:14px;border:3px solid #fab005;background:#fff9db;color:#1f2340;cursor:pointer}.cv-trayb.bad{opacity:.45;border-color:#fa5252;background:#fff5f5;text-decoration:line-through}
+button.cv-tool{font-family:inherit;background:#fff9f0;border-radius:12px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;gap:2px;border:3px solid #ffe8cc;cursor:pointer;color:#1f2340}button.cv-tool:not([disabled]){border-color:#fab005;box-shadow:0 3px 0 #f59f00}button.cv-tool[disabled]{cursor:default}
+.cv-kh button.cv-tool.y{border-color:#8ce99a}.cv-kh button.cv-tool.y em{color:#2b8a3e}.cv-kh button.cv-tool.n em{color:#c92a2a}.cv-kh button.cv-tool em{color:#e67700}
+.cv-say{background:#edf2ff;border:0;border-radius:10px;padding:2px 8px;font-size:16px;cursor:pointer;vertical-align:middle}
+@media (prefers-reduced-motion:reduce){.cv-mag,.cv-jump,.cv-melt{animation-duration:.01s;animation-delay:0s}}
 .cv-kh span{font-size:28px}.cv-kh b{font-size:12px}.cv-kh em{font-style:normal;font-weight:800;font-size:13px}.cv-kh .y{border-color:#8ce99a}.cv-kh .y em{color:#2b8a3e}.cv-kh .n em{color:#c92a2a}
 .cv-klook{display:flex;align-items:center;gap:10px;background:#fff9f0;border-radius:14px;padding:8px 12px;font-weight:600}
 .cv-kpath{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;font-size:13px;margin-bottom:6px}.cv-kpath span{background:#ebfbee;border-radius:10px;padding:3px 8px;display:flex;align-items:center;gap:3px}.cv-kpath i{color:#51cf66;font-style:normal;font-weight:800}
