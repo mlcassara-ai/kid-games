@@ -364,10 +364,11 @@ function eye(){const s=R.s,t=tier();const EYE_SVG=`<div class="is-eyewrap" id="i
  R.eyeTimer=timer;}
 
 /* 8. quiz → coins + album card */
+const riseShip=()=>`<div class="is-riseship"><svg viewBox="-80 -84 160 132"><path d="M-58 40 l-10 18 M0 40 v22 M58 40 l10 18" stroke="#ffd43b" stroke-width="5" stroke-linecap="round" opacity=".5"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-48" cy="2" r="7" fill="#ffd43b"/><circle cx="48" cy="2" r="7" fill="#ffd43b"/></svg></div>`;
 function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];let qi=0,score=0,tries=0,answered=false;R.firstTry=0;R.qT0=performance.now();
  const draw=(why,okIdx,bad)=>{const q=Q[qi];R.sz=Math.max(0,Math.round(8*(1-(qi+(answered?1:0))/Q.length)));
   const el=(performance.now()-R.qT0)/1000;const rings=Array.from({length:6},(_,i)=>`<i class="is-rring" style="animation-delay:-${((el+i)%6).toFixed(2)}s"></i>`).join('');
-  frame(`<div class="is-quiz is-rise">${rings}<div class="is-risetxt">⬆️ Growing back to normal size…</div><div class="is-q"><div class="h">🧪 RIDE QUIZ · Question ${qi+1} of ${Q.length} · ⭐ ${score} points</div><div class="qq">${esc(q[0])}</div>
+  frame(`<div class="is-quiz is-rise">${rings}${riseShip()}<div class="is-risetxt">⬆️ Growing back to normal size…</div><div class="is-q"><div class="h">🧪 RIDE QUIZ · Question ${qi+1} of ${Q.length} · ⭐ ${score} points</div><div class="qq">${esc(q[0])}</div>
    ${q[1].map((o,k)=>`<button class="is-opt ${okIdx===k?'ok':(bad||[]).includes(k)?'no':''}" data-k="${k}" ${answered||(bad||[]).includes(k)?'disabled':''}>${esc(o)}${okIdx===k?' ✅':''}</button>`).join('')}
    ${why?`<div class="is-why">${why}</div><div style="text-align:right;margin-top:10px"><button class="is-btn" id="isQN">${qi<Q.length-1?'Next question ➜':'Finish growing ➜'}</button></div>`:''}</div></div>`);
   root.querySelectorAll('.is-opt:not([disabled])').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;
@@ -375,7 +376,7 @@ function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];let qi=0,score=0,tries=0,
    else{tries++;snd(200,.3,'sine',.07);if(tries>=2){answered=true;draw(`The answer is <b>${esc(q[1][q[2]])}</b>. ${esc(q[3])}`,q[2],(bad||[]).concat(k));}else draw(null,null,(bad||[]).concat(k));}});
   const n=root.querySelector('#isQN');if(n)n.onclick=()=>{if(qi<Q.length-1){qi++;tries=0;answered=false;draw();}else home(score);};};
  const rings=Array.from({length:6},(_,i)=>`<i class="is-rring" style="animation-delay:-${i}s"></i>`).join('');
- frame(`<div class="is-quiz is-rise">${rings}<div class="is-risetxt">⬆️ Growing back to normal size…</div></div>${nar(`Here we go, ${NM()}, we're <b>growing back</b>! 🚀 It's a long way up to normal size, so now is the perfect time to <b>test your knowledge</b>. Ready for the ride quiz?`,'🧪 Start the quiz ➜')}`);
+ frame(`<div class="is-quiz is-rise">${rings}${riseShip()}<div class="is-risetxt">⬆️ Growing back to normal size…</div></div>${nar(`Here we go, ${NM()}, we're <b>growing back</b>! 🚀 It's a long way up to normal size, so now is the perfect time to <b>test your knowledge</b>. Ready for the ride quiz?`,'🧪 Start the quiz ➜')}`);
  onNext(()=>draw());}
 
 /* back at the start line, normal size again */
@@ -529,7 +530,7 @@ const st=document.createElement('style');st.textContent=`
 #isRoot .is-okmsg{font-weight:800;color:#2b8a3e;font-size:18px;text-align:center}#isRoot .is-okmsg.bad{color:#c92a2a}
 #isRoot .is-repl{position:absolute;inset:0;background:rgba(10,6,24,.93);z-index:4}#isRoot .is-repl canvas{position:absolute;inset:0;width:100%;height:100%}
 #isRoot .is-rtxt{position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);text-align:center;color:#fff;background:rgba(20,10,46,.8);border:3px solid #ffd43b;border-radius:18px;padding:10px 22px;font-weight:800}#isRoot .is-rtxt b{display:block;font-size:40px;color:#ffd43b;font-variant-numeric:tabular-nums}#isRoot .is-rtxt small{color:#d0bfff}
-#isRoot .is-quiz.is-rise{background:radial-gradient(ellipse at center,#2b1d5c,#0f0a24);overflow:auto;padding-top:130px}#isRoot .is-rise .is-q,#isRoot .is-rise>div:not(.is-risetxt){position:relative;z-index:2}
+#isRoot .is-quiz.is-rise{background:radial-gradient(ellipse at center,#2b1d5c,#0f0a24);overflow:auto;padding-top:130px;align-content:center;align-items:center;padding-bottom:9vh}#isRoot .is-riseship{position:absolute;left:50%;top:45%;width:min(300px,46vw);transform:translate(-50%,-50%);z-index:1;pointer-events:none;animation:isbob 3.2s ease-in-out infinite}#isRoot .is-riseship svg{width:100%;height:auto;display:block;filter:drop-shadow(0 0 22px rgba(177,151,252,.45))}@keyframes isbob{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 10px))}}#isRoot .is-rise .is-q,#isRoot .is-rise>div:not(.is-risetxt):not(.is-riseship){position:relative;z-index:2}
 #isRoot .is-rring{position:absolute;left:50%;top:50%;width:150vmax;height:100vmax;margin:-50vmax 0 0 -75vmax;border-radius:50%;border:3px solid #b197fc;opacity:0;animation:isrise 6s linear infinite;pointer-events:none;z-index:1}
 @keyframes isrise{0%{transform:scale(1);opacity:0}20%{opacity:.2}100%{transform:scale(.02);opacity:0}}
 #isRoot .is-risetxt{position:absolute;top:96px;left:0;right:0;text-align:center;color:#d0bfff;font-weight:700;z-index:2}
