@@ -43,10 +43,12 @@ function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;
   step++;if(step%8===0)bar++;nextT+=beat;}}
 function choice(p){return (p&&p.music)||'auto';}
 function trackFor(p){const c=choice(p);if(c==='off')return null;if(c==='stars')return 'stars';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'meadow':'dusk';}
+function mVol(){try{return state.musicVol==null?70:state.musicVol;}catch(e){return 70;}}
+function lvl(){const g=window.volGain?volGain(mVol()):mVol()/70;return LEVEL*g;}
 function fadeTo(v,s){if(!AC)return;const now=AC.currentTime;master.gain.cancelScheduledValues(now);master.gain.setValueAtTime(master.gain.value,now);master.gain.linearRampToValueAtTime(v,now+s);}
 function start(id){if(!init())return;if(AC.state==='suspended')AC.resume();
  if(cur&&cur===TRACKS[id]&&playing)return;
- const go=()=>{cur=TRACKS[id];step=0;bar=0;mi=2;nextT=AC.currentTime+.1;clearInterval(timer);timer=setInterval(schedule,250);schedule();fadeTo(LEVEL,2.5);playing=true;};
+ const go=()=>{cur=TRACKS[id];step=0;bar=0;mi=2;nextT=AC.currentTime+.1;clearInterval(timer);timer=setInterval(schedule,250);schedule();fadeTo(lvl(),2.5);playing=true;};
  if(playing&&cur){fadeTo(0,2);playing=false;setTimeout(go,2100);}else go();}
 function stop(){if(!AC||!playing)return;playing=false;fadeTo(0,1.2);setTimeout(()=>{if(!playing){clearInterval(timer);cur=null;}},1300);}
 let want=null;
@@ -55,6 +57,7 @@ function update(){try{const p=typeof P==='function'&&state&&state.cur?P():null;
  const inCave=typeof curScreen!=='undefined'&&curScreen==='cave'&&!document.hidden&&!!document.getElementById('cvRoot')&&window.Cave&&Cave._dbg;
  let id=onMap&&p?trackFor(p):null;
  if(inCave&&p&&p.caveMusic!==false){try{const d=Cave._dbg();const y=d.S.y;if(y===0)id=trackFor({music:'auto'});else{const L=d.layerOf(y);const lid=L&&L.id;id=['magma','mantle'].includes(lid)?'magma':['crystal','granite'].includes(lid)?'crystal':'cave';}}catch(e){id='cave';}}
+ if(mVol()<=0)id=null;
  want=id;
  if(!id){stop();return;}
  if(!AC||AC.state!=='running'){if(AC)AC.resume();if(!AC||AC.state!=='running')return;} // waits for the first tap (iPad rule)
@@ -65,11 +68,19 @@ setInterval(update,1000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(AC&&playing){playing=false;master.gain.value=0;clearInterval(timer);cur=null;}}else update();});
 
 /* ---------- the Sound menu (from the 🔊 button) ---------- */
+function slider(k,title,sub,v){return `<div class="snd-sl"><div class="snd-slh"><b>${title}</b><span id="sv_${k}">${v===0?'Off':v+'%'}</span></div><small>${sub}</small><div class="snd-slr"><span aria-hidden="true">${v===0?'🔇':'🔈'}</span><input type="range" id="sl_${k}" min="0" max="100" step="5" value="${v}" aria-label="${title} volume" oninput="Music.vol('${k}',this.value,false)" onchange="Music.vol('${k}',this.value,true)"><span aria-hidden="true">🔊</span></div></div>`;}
+let lastPing=0;
+function vol(k,v,done){v=Math.round(+v/5)*5;const lab=document.getElementById('sv_'+k);if(lab)lab.textContent=v===0?'Off':v+'%';
+ if(k==='fx'){const was=state.sound!==false;state.fxVol=v;state.sound=v>0;  if(v>0&&Date.now()-lastPing>180){lastPing=Date.now();try{SFX.tap();}catch(e){}}
+  if(done&&was!==state.sound&&typeof curScreen!=='undefined'&&curScreen!=='world'&&curScreen!=='battle'){const y=window.scrollY;go(curScreen,curArg);window.scrollTo(0,y);}}
+ else{state.musicVol=v;if(AC&&playing){const now=AC.currentTime;master.gain.cancelScheduledValues(now);master.gain.setTargetAtTime(lvl(),now,.15);}if(done)update();}
+ if(done)save();}
 function menu(){const p=typeof P==='function'&&state&&state.cur?P():null;const c=choice(p);
  const opt=(v,title,sub)=>`<button class="snd-opt ${c===v?'on':''}" onclick="Music.set('${v}')"><b>${title}</b><small>${sub}</small></button>`;
  const h=new Date().getHours(),day=h>=DAY_FROM&&h<DUSK_FROM;
  modal(`<div class="mcard snd-card"><h2>🎵 Sound</h2>
-  <div class="snd-row"><span>Sound effects</span><button class="btn small ${state.sound?'green':'ghost dark'}" onclick="Music.fx(true)">🔊 On</button><button class="btn small ${state.sound?'ghost dark':'green'}" onclick="Music.fx(false)">🔇 Off</button></div>
+  ${slider('fx','🔊 Sound effects','Footsteps, taps, cheers',window.fxLevel&&state.sound!==false?(state.fxVol==null?70:state.fxVol):0)}
+  ${slider('mu','🎵 Music','Map and cave music',mVol())}
   ${p?`<div class="snd-lab">Music on the map${p.name?` for ${esc(p.name)}`:''}</div>
   ${opt('auto','🌿🌙 Morning &amp; Dusk',`Changes with the time of day · now: ${day?'🌿 Morning Meadow':'🌙 Quiet Dusk'}`)}
   ${opt('stars','✨ Music-Box Stars','Twinkly and magical, all the time')}
@@ -82,7 +93,9 @@ function set(v){const p=P();if(!p)return;p.music=v;save();menu();update();}
 function fx(on){state.sound=!!on;save();menu();try{if(on)SFX.tap();}catch(e){}if(typeof curScreen!=='undefined'&&curScreen!=='world'&&curScreen!=='battle'){const y=window.scrollY;go(curScreen,curArg);window.scrollTo(0,y);}}
 const st=document.createElement('style');st.textContent=`.snd-card{max-width:440px}.snd-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:6px 0 14px;font-weight:700}
 .snd-lab{font-weight:700;margin:4px 0 8px;text-align:left}.snd-opt{display:block;width:100%;text-align:left;border:3px solid #d0bfff;background:#f8f5ff;border-radius:16px;padding:10px 14px;margin:0 0 8px;font:inherit;cursor:pointer;color:#241a3d}
-.snd-opt b{display:block;font-size:18px}.snd-opt small{color:#6b5fa0;font-size:14px}.snd-opt.on{border-color:#2ecc71;background:#ebfbee}.snd-opt.on b::after{content:' ✓';color:#2ecc71}`;
+.snd-opt b{display:block;font-size:18px}.snd-opt small{color:#6b5fa0;font-size:14px}.snd-opt.on{border-color:#2ecc71;background:#ebfbee}.snd-opt.on b::after{content:' ✓';color:#2ecc71}
+.snd-sl{text-align:left;background:#f8f5ff;border-radius:16px;padding:10px 14px;margin:0 0 10px}.snd-slh{display:flex;justify-content:space-between;font-size:18px}.snd-slh span{font-weight:800;color:#7048e8;font-variant-numeric:tabular-nums}.snd-sl small{color:#6b5fa0;font-size:14px}
+.snd-slr{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:20px}.snd-slr input{flex:1;height:36px;accent-color:#7048e8}`;
 document.head.appendChild(st);
-window.Music={menu,set,fx,update,caveToggle,caveOn,trackFor,_state:()=>({playing,cur:cur&&cur.name,want,ac:AC&&AC.state})};
+window.Music={menu,set,fx,vol,update,caveToggle,caveOn,trackFor,_state:()=>({playing,cur:cur&&cur.name,want,ac:AC&&AC.state})};
 })();
