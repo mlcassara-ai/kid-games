@@ -145,5 +145,5 @@ const st=document.createElement('style');st.textContent=`.qz-row{display:flex;ga
 .qz-bub{flex:1;background:#e7f5ff;border:3px solid #74c0fc;border-radius:18px;padding:10px 14px;font-size:18px;line-height:1.45;color:#1f2340}.qz-bub>b{display:block;color:#1971c2;font-size:14px;margin-bottom:2px}
 @media(max-width:560px){.qz-av{flex-basis:70px}.qz-av svg{width:70px;height:85px}.qz-bub{font-size:16px}}`;document.head.appendChild(st);
 
-window.Quartz={openCave,meet,drop,DROP_HTML,draw,bagHTML,medals,rockMineral,GATE_NEED,DROP,_Q:Q,_spawn:spawn,_demo:()=>{DEMO=true;},startTrip};
+window.Quartz={SVG,openCave,meet,drop,DROP_HTML,draw,bagHTML,medals,rockMineral,GATE_NEED,DROP,_Q:Q,_spawn:spawn,_demo:()=>{DEMO=true;},startTrip};
 })();

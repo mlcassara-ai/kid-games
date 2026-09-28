@@ -11,6 +11,8 @@ const TRACKS={
  /* Science Cave: mysterious (never scary) — slow glassy notes, a deep hum, water drips; changes as you go deeper */
  cave:{name:'🪨 Deep Cave',bpm:48,root:50,scale:[0,3,5,7,10],prog:[[0,7,12],[-4,3,8],[-2,5,10],[0,7,15]],tone:'glass',rest:.55,padVol:.09,octave:12,padCut:520,drips:.35},
  crystal:{name:'💎 Crystal Caverns',bpm:52,root:55,scale:[0,2,3,7,9],prog:[[0,7,14],[5,12,17],[3,10,15],[-2,7,14]],tone:'glass',rest:.48,padVol:.07,octave:12,padCut:800,drips:.2,shimmer:.3},
+ /* Inner Space ride: spacey and a little mysterious — a pulsing synth arpeggio, deep bass pulse, dark pad, glassy sparkles */
+ inner:{name:'🚀 Inner Space',bpm:84,root:50,scale:[0,2,3,7,8],prog:[[0,3,7],[-4,3,8],[-2,5,10],[-5,2,7]],tone:'glass',rest:.7,padVol:.085,octave:12,padCut:650,arp:[0,7,12,15,12,7,3,7],shimmer:.22,pulse:1},
  magma:{name:'🌋 Magma Deep',bpm:44,root:45,scale:[0,1,5,7,8],prog:[[0,7,12],[1,8,13],[-4,3,8],[0,7,12]],tone:'glass',rest:.6,padVol:.1,octave:12,padCut:380,rumble:.3}};
 const LEVEL=.34; // softer than sound effects
 const DAY_FROM=6,DUSK_FROM=17; // 6am–5pm = Morning Meadow, 5pm–6am = Quiet Dusk
@@ -29,12 +31,16 @@ function note(m,t,dur,vel,tone){const out=AC.createGain();out.connect(master);co
 function pad(ms,t,dur,vol,cut){ms.forEach(m=>{const o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=cut||900;
  o.type='triangle';o2.type='sine';o.frequency.value=hz(m-12);o2.frequency.value=hz(m-12)*1.003;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+dur*.4);g.gain.linearRampToValueAtTime(0,t+dur);
  o.connect(f);o2.connect(f);f.connect(g);g.connect(master);o.start(t);o2.start(t);o.stop(t+dur+.1);o2.stop(t+dur+.1);});}
+function arpNote(m,t,vel){const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';o.frequency.value=hz(m);f.type='lowpass';f.Q.value=6;f.frequency.setValueAtTime(2400,t);f.frequency.exponentialRampToValueAtTime(380,t+.22);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vel,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.34);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+.4);}
+function pulse(m,t,dur){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=hz(m);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.14,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.05);}
 function drip(t){const o=AC.createOscillator(),g=AC.createGain();const f=1400+R()*1400;o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.45,t+.09);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.connect(g);g.connect(master);o.start(t);o.stop(t+.3);}
 function rumble(t){const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=120;o.type='sawtooth';o.frequency.value=38+R()*8;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+1.2);g.gain.linearRampToValueAtTime(0,t+3.5);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+3.6);}
 function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;
  if(nextT<AC.currentTime)nextT=AC.currentTime+.05; // after the app was in the background
  while(nextT<AC.currentTime+1.2){const t=nextT,chord=T.prog[bar%T.prog.length],inBar=step%8,quiet=(Math.floor(bar/4)%3===2);
   if(T.drips&&R()<T.drips*.5)drip(t+R()*beat);if(T.shimmer&&R()<T.shimmer*.4)note(T.root+36+T.scale[Math.floor(R()*T.scale.length)],t+R()*beat,beat,.03,'bell');if(T.rumble&&inBar===4&&R()<T.rumble)rumble(t);
+  if(T.arp){[0,.5].forEach((h,k)=>{const d=T.arp[(inBar*2+k)%T.arp.length];arpNote(T.root+12+chord[0]+d,t+h*beat,quiet?.018:.03);});if(T.pulse&&(inBar===0||inBar===4))pulse(T.root-24+chord[0],t,beat*1.6);if(T.pulse&&(inBar===2||inBar===6))pulse(T.root-12+chord[0],t,beat*.5);}
   if(inBar===0){pad(chord.map(c=>T.root+c),t,beat*8,T.padVol*(quiet?.6:1),T.padCut);if(!quiet)note(T.root-12+chord[0],t,beat*6,.16,T.tone==='bell'?'felt':T.tone);}
   if(!quiet){if(inBar===2||inBar===5)note(T.root+chord[inBar===2?1:2],t,beat*3,.09,T.tone==='bell'?'felt':T.tone);
    if(R()>T.rest&&(inBar%2===0||R()<.3)){mi=Math.max(0,Math.min(T.scale.length*2-1,mi+[-2,-1,-1,1,1,2,0][Math.floor(R()*7)]));
@@ -57,6 +63,7 @@ function update(){try{const p=typeof P==='function'&&state&&state.cur?P():null;
  const inCave=typeof curScreen!=='undefined'&&curScreen==='cave'&&!document.hidden&&!!document.getElementById('cvRoot')&&window.Cave&&Cave._dbg;
  let id=onMap&&p?trackFor(p):null;
  if(inCave&&p&&p.caveMusic!==false){try{const d=Cave._dbg();const y=d.S.y;if(y===0)id=trackFor({music:'auto'});else{const L=d.layerOf(y);const lid=L&&L.id;id=['magma','mantle'].includes(lid)?'magma':['crystal','granite'].includes(lid)?'crystal':'cave';}}catch(e){id='cave';}}
+ const inRide=typeof curScreen!=='undefined'&&curScreen==='inner'&&!document.hidden&&!!document.getElementById('isRoot');if(inRide&&p&&choice(p)!=='off')id='inner';
  if(mVol()<=0)id=null;
  want=id;
  if(!id){stop();return;}

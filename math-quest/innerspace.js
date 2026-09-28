@@ -100,7 +100,7 @@ function open(p){PL=p;if(!R){const s=S(p);if(!s.tix.length&&!DEMO){go('world');r
  if(root)root.remove();root=document.createElement('div');root.id='isRoot';document.body.appendChild(root);
  R.i=0;R.pts=0;scene();}
 function close(){stopAnim();if(root)root.remove();root=null;}
-function exit(){close();const p=PL||P();R=null;PL=null;
+function exit(){const fin=!!(R&&R.finished);close();const p=PL||P();R=null;PL=null;if(fin)setTimeout(()=>farewell(p),700);
  if(DEMO&&DEMO!==true){const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();go('world');toast('🎢 That was a preview — nothing was changed.');return;}
  save();go('world');}
 const tier=()=>{const g=(PL&&PL.grade)||3;return g<=4?0:g<=8?1:2;};
@@ -130,41 +130,79 @@ function nar(html,btn,opts){opts=opts||{};return `<div class="is-nar"><div class
 
 /* ---------- ride flow ---------- */
 const SCENES=['board','shrink','inside','mol','atom','build','eye','quiz'];
-function frame(inner){if(!root)return;const done=R.i;root.innerHTML=`<div class="is-stage">${inner}<div class="is-top"><span class="is-chip">${R.s.e} ${esc(R.s.n)}</span><div class="is-dots">${SCENES.map((_,k)=>`<i class="${k<done?'done':k===done?'on':''}"></i>`).join('')}</div><button class="is-x" id="isX" aria-label="Leave the ride">✕</button></div></div>`;
+function frame(inner){if(!root)return;const done=R.i;root.innerHTML=`<div class="is-stage">${inner}<div class="is-top"><span class="is-chip">${R.s.e}<span class="cn"> ${esc(R.s.n)}</span></span>${sizeBar()}<button class="is-x" id="isX" aria-label="Leave the ride">✕</button></div></div>`;
  root.querySelector('#isX').onclick=R.finished?exit:askLeave;}
 function askLeave(){if(!root||root.querySelector('.is-leave'))return;const d=document.createElement('div');d.className='is-leave';
  d.innerHTML=`<div class="is-lbox">${OZZY_HEAD}<div><b>Leave the ride?</b><br>You keep your 🎟️ ticket — ${NAME} will come back for you later.</div><div class="is-lrow"><button class="is-btn green" id="isStay">🎢 Keep riding</button><button class="is-btn" id="isLeave">Leave</button></div></div>`;
  root.appendChild(d);d.querySelector('#isStay').onclick=()=>d.remove();d.querySelector('#isLeave').onclick=()=>{if(!DEMO&&PL){S(PL).snooze=Date.now()+SNOOZE_MS;}exit();};}
 function next(){R.i++;scene();}
 function onNext(fn){const b=root&&root.querySelector('#isNext');if(b)b.onclick=fn||next;}
-function scene(){stopAnim();if(!root)return;({board,shrink,inside,mol,atom,build,eye,quiz})[SCENES[R.i]]();}
+function scene(){stopAnim();if(!root)return;R.sz={board:0,shrink:0,inside:6,mol:7,atom:9,build:8,eye:8,quiz:0}[SCENES[R.i]];({board,shrink,inside,mol,atom,build,eye,quiz})[SCENES[R.i]]();}
 const stage=()=>root.querySelector('.is-stage');
 
 /* 1. boarding */
 const OBJ={glass:'🥛',salt:'🧂',air:'🌬️',soda:'🥤',stove:'🔥',candy:'🍬',ring:'💍'};
 function board(){const s=R.s,t=tier();const rk=R.t.rock&&window.CAVE_DATA&&CAVE_DATA.MIN[R.t.rock];
  const tall=window.innerWidth<window.innerHeight*.9; // phone held upright → show the whole scene instead of cropping it
- frame(`<svg class="is-svg${tall?' is-tall':''}" viewBox="${tall?'110 40 740 480':'0 0 960 600'}" preserveAspectRatio="${tall?'xMidYMid meet':'xMidYMid slice'}"><rect x="-600" y="-900" width="2160" height="2400" fill="#2b1d5c"/>
+ frame(`<svg class="is-svg${tall?' is-tall':''}" viewBox="${tall?'40 60 924 470':'0 0 960 600'}" preserveAspectRatio="${tall?'xMidYMid meet':'xMidYMid slice'}"><rect x="-600" y="-900" width="2160" height="2400" fill="#2b1d5c"/>
  ${Array.from({length:40},(_,i)=>`<circle cx="${(i*97)%960}" cy="${(i*53)%300}" r="${1+i%3*.6}" fill="#fff" opacity=".6"/>`).join('')}
  <rect y="430" width="960" height="470" fill="#3d2b7a"/><path d="M0 470 H960" stroke="#ffd43b" stroke-width="6" stroke-dasharray="30 20"/>
  <text x="480" y="90" font-size="50" font-weight="700" fill="#ffd43b" text-anchor="middle" stroke="#7048e8" stroke-width="2">✨ INNER SPACE ✨</text>
- <g transform="translate(250 270)"><rect x="-120" y="-80" width="240" height="200" rx="24" fill="#5f3dc4" stroke="#b197fc" stroke-width="5"/><circle cx="0" cy="20" r="64" fill="#1a0f3d" stroke="#ffd43b" stroke-width="6"/>${[0,1,2].map(i=>`<circle cx="0" cy="20" r="${20+i*14}" fill="none" stroke="#b197fc" stroke-width="3"><animate attributeName="r" values="${10+i*14};${30+i*14};${10+i*14}" dur="2s" repeatCount="indefinite"/></circle>`).join('')}<text x="0" y="-50" font-size="18" font-weight="700" fill="#ffd43b" text-anchor="middle">SHRINK-O-MATIC</text></g>
- <g class="is-float">${s.scene==='glass'?'<g transform="translate(710 250)"><path d="M-75 -70 L-62 110 L62 110 L75 -70Z" fill="rgba(220,240,255,.35)" stroke="#d0ebff" stroke-width="6"/><path d="M-70 -10 L-60 106 L60 106 L70 -10Z" fill="#4dabf7"/><path d="M-70 -10 Q-35 -22 0 -10 Q35 2 70 -10" fill="#74c0fc"/><circle cx="-25" cy="40" r="5" fill="#fff" opacity=".7"/><circle cx="20" cy="70" r="4" fill="#fff" opacity=".7"/></g>':`<text x="710" y="360" font-size="170" text-anchor="middle">${OBJ[s.scene]||s.e}</text>`}</g><text x="710" y="170" font-size="24" font-weight="700" fill="#fff" text-anchor="middle">Today: ${esc(s.n)}</text>
- <g transform="translate(470 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-44" cy="8" r="7" fill="#ffd43b"/><circle cx="44" cy="8" r="7" fill="#ffd43b"/><text x="0" y="16" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">ATOM-MOBILE</text></g>
- <g transform="translate(600 452) scale(.9)">${OZ_BODY}<path d="M-24 -18 L-22 30 L22 30 L24 -18Z" fill="#ae3ec9"/><path d="M-10 30 V52 M10 30 V52" stroke="#343a40" stroke-width="8" stroke-linecap="round"/><path d="M22 -12 Q40 -30 46 -46" stroke="#ae3ec9" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="46" cy="-48" r="6" fill="#f1c8a0"/></g></svg>
+ <g transform="translate(200 255) scale(.72)"><rect x="-120" y="-80" width="240" height="200" rx="24" fill="#5f3dc4" stroke="#b197fc" stroke-width="5"/><circle cx="0" cy="20" r="64" fill="#1a0f3d" stroke="#ffd43b" stroke-width="6"/>${[0,1,2].map(i=>`<circle cx="0" cy="20" r="${20+i*14}" fill="none" stroke="#b197fc" stroke-width="3" opacity=".7"><animate attributeName="r" values="${14+i*14};${24+i*14};${14+i*14}" dur="5s" repeatCount="indefinite"/></circle>`).join('')}<text x="0" y="-50" font-size="18" font-weight="700" fill="#ffd43b" text-anchor="middle">SHRINK-O-MATIC</text></g>
+ <defs><radialGradient id="isCaveG" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#b197fc"/><stop offset=".45" stop-color="#5f3dc4"/><stop offset="1" stop-color="#140a2e"/></radialGradient></defs>
+ <path d="M592 474 Q606 306 690 258 Q752 224 816 250 Q892 292 902 474Z" fill="#5c4a3d" stroke="#3b2f25" stroke-width="5"/>
+ <path d="M626 474 Q636 356 700 306" stroke="#6f5b4b" stroke-width="10" fill="none" stroke-linecap="round" opacity=".7"/><path d="M870 474 Q878 366 830 296" stroke="#4a3b30" stroke-width="10" fill="none" stroke-linecap="round" opacity=".6"/>
+ <path d="M672 474 Q672 350 746 342 Q820 350 820 474Z" fill="url(#isCaveG)" stroke="#2b1d5c" stroke-width="6"/>
+ ${[0,1,2].map(i=>`<ellipse cx="746" cy="440" rx="${22+i*18}" ry="${14+i*12}" fill="none" stroke="#d0bfff" stroke-width="2" opacity=".5"><animate attributeName="opacity" values=".15;.5;.15" dur="6s" begin="${i*2}s" repeatCount="indefinite"/></ellipse>`).join('')}
+ <g transform="translate(746 190)"><rect x="-6" y="30" width="12" height="46" fill="#8d5a2b"/><rect x="-128" y="-42" width="256" height="80" rx="14" fill="#fff4e6" stroke="#8d5a2b" stroke-width="6"/><text x="0" y="-14" font-size="17" font-weight="800" fill="#8d5a2b" text-anchor="middle" letter-spacing="2">THIS ADVENTURE</text><text x="0" y="22" font-size="28" font-weight="800" fill="#5f3dc4" text-anchor="middle">${s.e} ${esc(s.n)}</text></g>
+ ${[0,1,2].map(i=>`<path d="M${572+i*26} 458 l14 12 l-14 12" stroke="#ffd43b" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".85"><animate attributeName="opacity" values=".3;1;.3" dur="3s" begin="${i*.5}s" repeatCount="indefinite"/></path>`).join('')}
+ <g transform="translate(330 452) scale(.9)">${OZ_BODY}<path d="M-24 -18 L-22 30 L22 30 L24 -18Z" fill="#ae3ec9"/><path d="M-10 30 V52 M10 30 V52" stroke="#343a40" stroke-width="8" stroke-linecap="round"/><path d="M22 -12 Q40 -30 46 -46" stroke="#ae3ec9" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="46" cy="-48" r="6" fill="#f1c8a0"/></g>
+ <g transform="translate(470 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/><path d="M-78 -2 h-28 M-80 12 h-40 M-76 26 h-24" stroke="#b197fc" stroke-width="4" stroke-linecap="round" opacity=".6"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-44" cy="8" r="7" fill="#ffd43b"/><circle cx="44" cy="8" r="7" fill="#ffd43b"/><text x="0" y="16" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">ATOM-MOBILE</text></g></svg>
  ${nar(`Welcome aboard, <b>${NM()}</b>! Keep your hands inside the Atom-Mobile. ${rk?`Dr. Quartz says your mystery rock was <b>${esc(rk.n.toLowerCase())}</b> — let's see what it's made of! `:''}${esc(s.intro[t])}`,'🎢 Start the ride!',{cls:'gold'})}`);
  onNext(()=>{whoosh();next();});}
 
-/* 2. shrinking */
-function shrink(){const t=tier();const SZ=[['🧒 You','1.5 m'],['🐜 An ant','3 mm'],['🔬 A cell','0.02 mm'],['🦠 A virus','0.0001 mm'],['💧 A molecule','0.000 000 3 mm'],['⚛️ An atom','0.000 000 1 mm']];
- frame(`<div class="is-meter" id="isMeter"><b style="color:#ffd43b;font-size:14px;letter-spacing:1px">YOUR SIZE</b>${SZ.map(z=>`<div><span>${z[0]}</span><span>${z[1]}</span></div>`).join('')}</div>
- ${nar(['You\'re shrinking! Smaller than an ant… smaller than a cell… smaller than a germ!','You\'re shrinking past things you need a microscope to see — cells, germs, viruses…','Shrinking by a factor of about ten billion: from meters, through micrometers (cells), to nanometers (molecules).'][t],'Keep shrinking… ⏳',{dis:1})}`);
- const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');const rows=[...root.querySelectorAll('#isMeter div')];let lastK=-1;
- loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle='#12082e';c.fillRect(0,0,w,h);
-  for(let i=0;i<14;i++){const ph=((sec*.6+i/14)%1);const r=ph*Math.max(w,h)*.8;c.strokeStyle=['#7048e8','#b197fc','#4dabf7','#ffd43b'][i%4];c.globalAlpha=1-ph;c.lineWidth=2+ph*8;c.beginPath();c.ellipse(w/2,h/2,r,r*.66,0,0,7);c.stroke();}c.globalAlpha=1;
-  const sc=Math.max(.12,1-sec*.17);car(c,w/2,h/2,160*sc);
-  const k=Math.min(SZ.length-1,Math.floor(sec/.9));if(k!==lastK){lastK=k;rows.forEach((r,j)=>r.className=j===k?'on':j<k?'past':'');snd(700-k*80,.12,'triangle',.04);}
-  if(sec>SZ.length*.9+.3){const b=root.querySelector('#isNext');if(b&&b.disabled){b.disabled=false;b.textContent='We\'re tiny! Next ➜';onNext();}}});}
+/* 2. shrinking: a slow ride past real-world size markers, with a stop (and a chat) at each one */
+const SIZES=[{e:'🧒',n:'Your normal size',sz:'about 1.5 m'},{e:'🐜',n:'As small as an ant',sz:'3 mm'},{e:'〰️',n:'Smaller than a hair is wide',sz:'0.08 mm'},{e:'🔬',n:'As small as one cell',sz:'0.01 mm'},{e:'🦠',n:'As small as a germ',sz:'0.002 mm'},{e:'🧬',n:'As small as a virus',sz:'0.0001 mm'},
+ {e:'🫧',n:'Among the molecules',sz:'0.000 01 mm'},{e:'💧',n:'As small as one molecule',sz:'0.000 000 3 mm'},{e:'⚛️',n:'As small as one atom',sz:'0.000 000 1 mm'},{e:'✨',n:'Inside an atom!',sz:'0.000 000 000 001 mm'}];
+const STOPS=[null,
+ ['We\'re as small as an <b>ANT</b>! 🐜 Hi there, ant! To us it looks as big as a dog now.','Ant-sized: about <b>3 millimeters</b>. A single grain of sand would look like a boulder!','About <b>3 mm</b>: we\'ve shrunk roughly 500 times. Sand grains are boulders now.'],
+ ['Whoa! That brown log is ONE <b>HAIR</b>! From down here it looks as thick as a tree trunk. 🌳','A human hair is only about <b>0.08 mm</b> wide. We\'re smaller than that now, so it looks like a giant log!','A hair is about <b>80 micrometers</b> wide. See the overlapping scales on it? They\'re called the cuticle.'],
+ ['Now we\'re as small as one <b>CELL</b>! Your whole body is built from tiny cells like this one.','One cell is about <b>0.01 mm</b>. You are made of about <b>30 trillion</b> of them!','A typical cell is about <b>10 micrometers</b>. The dark blob in the middle is the <b>nucleus</b>, the cell\'s control center.'],
+ ['Wiggly <b>GERMS</b>! These are bacteria. 🦠 Most are harmless, and some even help your tummy digest food.','Bacteria are about <b>0.002 mm</b> long, about 5 times smaller than a cell. See their little tails? They swim with them!','Bacteria are about <b>2 micrometers</b> long. Those whip-like tails are called <b>flagella</b>.'],
+ ['Even smaller: a <b>VIRUS</b>! It\'s so tiny that a normal microscope can\'t even see it.','Viruses are about <b>0.0001 mm</b> across. Scientists need an <b>electron microscope</b> to see one!','About <b>100 nanometers</b>: too small for light microscopes. Light waves are bigger than the virus!']];
+function sizeBar(){const k=R.sz||0,n=SIZES.length,z=SIZES[k];
+ return `<div class="is-size" id="isSize"><div class="trk"><i style="width:${k/(n-1)*100}%"></i>${SIZES.map((q,j)=>`<span class="${j<k?'past':''}${j===k?' on':''}" style="left:${j/(n-1)*100}%">${q.e}</span>`).join('')}</div><div class="lab">📏 <b>${z.sz}</b> · ${z.n}</div></div>`;}
+function setSize(k){R.sz=k;const el=root&&root.querySelector('#isSize');if(el)el.outerHTML=sizeBar();}
+function drawStop(c,k,x,y,S,sec,a){if(k<1||a<=0.01)return;c.save();c.globalAlpha=Math.min(1,a);
+ if(k===1){c.font=`${S}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('🐜',x,y);}
+ else if(k===2){c.lineCap='round';const g=c.createLinearGradient(x,y-S*.3,x,y+S*.3);g.addColorStop(0,'#8d5a2b');g.addColorStop(.5,'#c08552');g.addColorStop(1,'#6f4520');c.strokeStyle=g;c.lineWidth=S*.42;c.beginPath();c.moveTo(x-S*2,y+S*.25);c.quadraticCurveTo(x,y-S*.35,x+S*2,y+S*.15);c.stroke();
+  c.strokeStyle='rgba(60,30,10,.35)';c.lineWidth=Math.max(1,S*.02);for(let i=-9;i<=9;i++){const px=x+i*S*.2;c.beginPath();c.moveTo(px,y-S*.12);c.quadraticCurveTo(px+S*.06,y,px,y+S*.14);c.stroke();}}
+ else if(k===3){const g=c.createRadialGradient(x-S*.12,y-S*.12,S*.05,x,y,S*.48);g.addColorStop(0,'rgba(255,214,231,.95)');g.addColorStop(1,'rgba(230,119,160,.75)');c.fillStyle=g;c.beginPath();c.ellipse(x,y,S*.48,S*.4,0,0,7);c.fill();c.strokeStyle='#c2255c';c.lineWidth=Math.max(2,S*.02);c.stroke();
+  c.fillStyle='#862e9c';c.beginPath();c.arc(x+S*.06,y-S*.02,S*.13,0,7);c.fill();c.fillStyle='rgba(134,46,156,.5)';for(let i=0;i<9;i++){c.beginPath();c.arc(x+Math.cos(i*2.1)*S*.3,y+Math.sin(i*2.1)*S*.24,S*.025,0,7);c.fill();}}
+ else if(k===4){for(let b=0;b<3;b++){const bx=x+(b-1)*S*.42,by=y+(b===1?-S*.18:S*.12),ang=-.3+b*.35+Math.sin(sec*.8+b)*.08;c.save();c.translate(bx,by);c.rotate(ang);
+   c.strokeStyle='#2b8a3e';c.lineWidth=Math.max(1.5,S*.015);c.beginPath();c.moveTo(-S*.16,0);for(let q=0;q<=20;q++)c.lineTo(-S*.16-q*S*.012,Math.sin(q*.8+sec*3)*S*.03);c.stroke();
+   c.fillStyle='#69db7c';c.strokeStyle='#2b8a3e';c.lineWidth=Math.max(2,S*.02);c.beginPath();if(c.roundRect)c.roundRect(-S*.16,-S*.06,S*.32,S*.12,S*.06);else c.rect(-S*.16,-S*.06,S*.32,S*.12);c.fill();c.stroke();c.restore();}}
+ else if(k===5){const r=S*.3;c.strokeStyle='#9c36b5';c.lineWidth=Math.max(2,S*.02);for(let i=0;i<16;i++){const q=i/16*Math.PI*2+sec*.1;c.beginPath();c.moveTo(x+Math.cos(q)*r,y+Math.sin(q)*r);c.lineTo(x+Math.cos(q)*r*1.35,y+Math.sin(q)*r*1.35);c.stroke();c.fillStyle='#e599f7';c.beginPath();c.arc(x+Math.cos(q)*r*1.38,y+Math.sin(q)*r*1.38,S*.035,0,7);c.fill();}
+  const g=c.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r);g.addColorStop(0,'#f3d9fa');g.addColorStop(1,'#9c36b5');c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();}
+ c.restore();}
+function shrink(){const t=tier();R.sz=0;let k=0,go=0;const TRAVEL=3.4;
+ const say=()=>k===0?['Hold on tight! I\'m switching on the <b>shrink ray</b>. Watch the size meter at the top to see how small we get!','Buckle up! Watch the <b>size meter</b> at the top: we\'ll pass real things on the way down, and I\'ll stop at each one.','Buckle up! The <b>size meter</b> tracks our size. Each stop is about 10 times smaller than the last one.'][t]:STOPS[k][t];
+ const btnTxt=()=>k===0?'Start shrinking ➜':k<5?'Keep shrinking ➜':'Dive into the molecules ➜';
+ frame(nar(say(),btnTxt()));
+ const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');
+ const hook=()=>onNext(()=>{if(go)return;if(k>=5){next();return;}go=performance.now();const b=root.querySelector('#isNext');if(b){b.disabled=true;b.textContent='Shrinking… ⏳';}snd(520-k*40,.5,'sine',.04);});
+ hook();
+ loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;
+  const depth=(k+(go?Math.min(1,(performance.now()-go)/1000/TRAVEL):0))/5;
+  const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,`hsl(255,45%,${22-depth*12}%)`);g.addColorStop(1,`hsl(250,50%,${14-depth*8}%)`);c.fillStyle=g;c.fillRect(0,0,w,h);
+  const S=Math.min(w,h)*.55,cx=w/2,cy=(h-120)*.5+40;
+  // calm, slow rings while traveling (gentle: slow, see-through, no flashing)
+  if(go){const f=(performance.now()-go)/1000;for(let i=0;i<5;i++){const ph=((f/6+i/5)%1);c.strokeStyle='#b197fc';c.globalAlpha=.16*(1-ph);c.lineWidth=2+ph*2;c.beginPath();c.ellipse(cx,cy,ph*Math.max(w,h)*.7,ph*Math.max(w,h)*.46,0,0,7);c.stroke();}c.globalAlpha=1;}
+  if(go){const p=Math.min(1,(performance.now()-go)/1000/TRAVEL),e=p*p*(3-2*p);
+   drawStop(c,k,cx,cy,S*(1+e*5),sec,1-e);drawStop(c,k+1,cx,cy,S*(.04+e*.96),sec,e);
+   if(p>=1){go=0;k++;setSize(k);snd(660+k*60,.18,'triangle',.05);const n=root.querySelector('.is-nar .txt');if(n)n.innerHTML=`<small>Ride Operator ${NAME}</small>${say()}`;const b=root.querySelector('#isNext');if(b){b.disabled=false;b.textContent=btnTxt();}}}
+  else drawStop(c,k,cx,cy,S,sec,1);
+  car(c,cx+Math.sin(sec*.7)*8,cy+S*.32+Math.cos(sec*.9)*5,Math.min(w,h)*.16);});}
 
 /* 3. inside the substance */
 function inside(){const s=R.s,t=tier();frame(nar(esc(s.inside[t]).replace(/molecules/,'<b>molecules</b>'),'Look closer ➜'));
@@ -222,7 +260,7 @@ function build(){const s=R.s,t=tier();const need=Object.assign({},s.atoms);const
    <div class="is-area ${done?'done':''}" id="isArea"><svg viewBox="${vb}" width="100%" height="100%" id="isSvg"></svg></div>
    <div class="is-recipe"><h4>RECIPE</h4><div class="f">${s.f}</div><ul>${Object.entries(need).map(([e,n])=>`<li>${(have[e]||0)>=n?'✅':'◻️'} ${n} ${EL[e].n.toLowerCase()} <b>(${have[e]||0}/${n})</b></li>`).join('')}</ul></div></div>
    <div class="is-buzz" style="color:${ok?'#2b8a3e':'#c92a2a'}">${msg||'&nbsp;'}</div></div>
-   ${nar(done?(s.id==='salt'&&t>0?'Watch the electron jump from sodium to chlorine! Now they have opposite charges, so they stick together.':s.metal?'Clink! The gold atoms packed together, sharing a sea of free electrons (the blue dots). That\'s a metal!':s.id==='diamond'?'SNAP! One carbon holding on to four others — repeat that forever and you get a diamond!':'SNAP! The atoms bonded together. You built it!'):`Tap atoms in the tray to add them. ${total>6?`You need ${total} atoms — keep going!`:''}`,done?'Grow back to normal size ➜':null,{cls:'green'})}`);
+   ${nar(done?(s.id==='salt'&&t>0?'Watch the electron jump from sodium to chlorine! Now they have opposite charges, so they stick together.':s.metal?'Clink! The gold atoms packed together, sharing a sea of free electrons (the blue dots). That\'s a metal!':s.id==='diamond'?'SNAP! One carbon holding on to four others — repeat that forever and you get a diamond!':'SNAP! The atoms bonded together. You built it!'):`Tap atoms in the tray to add them. ${total>6?`You need ${total} atoms — keep going!`:''}`,done?'Next ➜':null,{cls:'green'})}`);
   const svg=root.querySelector('#isSvg');
   if(done){const lay=L;let h='';lay.b.forEach(([i,j,o])=>{const a=lay.a[i],b=lay.a[j];h+=`<line x1="${a[1]}" y1="${a[2]}" x2="${b[1]}" y2="${b[2]}" stroke="#adb5bd" stroke-width="${o===2?.16:.1}" ${o===0?'stroke-dasharray=".12 .12"':''}><animate attributeName="stroke-opacity" from="0" to="1" dur=".8s"/></line>`;});
    const sc=1;lay.a.forEach(([e,x,y],k)=>{const r=EL[e].r*.42*sc;h+=`<g><circle cx="${x}" cy="${y}" r="${r}" fill="${EL[e].col}" stroke="rgba(0,0,0,.25)" stroke-width=".04"><animate attributeName="r" values="0;${r*1.25};${r}" dur=".5s" begin="${k*.03}s" fill="freeze"/></circle><text x="${x}" y="${y+r*.35}" font-size="${r*.95}" text-anchor="middle" font-weight="800" fill="${EL[e].txt}">${e}</text></g>`;});
@@ -238,15 +276,32 @@ function build(){const s=R.s,t=tier();const need=Object.assign({},s.atoms);const
  draw('');}
 
 /* 7. the giant eye */
-function eye(){const t=tier();
- frame(`<div class="is-eyewrap" id="isEye"><svg class="is-svg" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid slice"><rect width="960" height="600" fill="#0c0c14"/>
+function eye(){const s=R.s,t=tier();const EYE_SVG=`<div class="is-eyewrap" id="isEye"><svg class="is-svg" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid slice"><rect width="960" height="600" fill="#0c0c14"/>
  <circle cx="480" cy="280" r="290" fill="#1e1e2e"/><circle cx="480" cy="280" r="270" fill="none" stroke="#343a40" stroke-width="24"/>
  <ellipse cx="480" cy="270" rx="240" ry="130" fill="#f8f9fa"/><g class="is-pupil"><circle cx="480" cy="270" r="100" fill="#1971c2"/>${Array.from({length:24},(_,i)=>`<line x1="${480+Math.cos(i*.26)*45}" y1="${270+Math.sin(i*.26)*45}" x2="${480+Math.cos(i*.26)*92}" y2="${270+Math.sin(i*.26)*92}" stroke="#4dabf7" stroke-width="3" opacity=".6"/>`).join('')}<circle cx="480" cy="270" r="44" fill="#050505"/><circle cx="455" cy="245" r="16" fill="#fff" opacity=".9"/></g>
  <g class="is-lid"><path d="M230 270 Q480 20 730 270 Q480 150 230 270Z" fill="#e8b98f"/><path d="M230 270 Q480 150 730 270 Q480 400 230 270Z" fill="#e8b98f"/></g>
- <path d="M240 270 Q480 40 720 270" fill="none" stroke="#343a40" stroke-width="4"/>${Array.from({length:14},(_,i)=>`<path d="M${480+(i-6.5)*30} ${140+Math.abs(i-6.5)*8} q${(i-6.5)*2} -30 ${(i-6.5)*4} -44" stroke="#343a40" stroke-width="5" fill="none" stroke-linecap="round"/>`).join('')}
- <rect x="330" y="505" width="300" height="24" rx="4" fill="rgba(200,235,255,.5)" stroke="#d0ebff" stroke-width="2"/><g transform="translate(480 492) scale(.16)"><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8"/><path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.7)"/></g></svg></div>
- ${nar(['You\'re so tiny you landed on a <b>microscope slide</b>… and a GIANT EYE is looking at you! <b>*blink*</b> "Oh! Hello down there, little scientist!"','You\'re sitting on a <b>microscope slide</b> — and a scientist\'s GIANT eye is peering down at you! <b>*blink*</b> "Well, well… a visitor from the atomic world!"','Landed on a <b>microscope slide</b>. Fun fact: even the best light microscope can\'t see a single atom — they\'re smaller than a wavelength of light. But this eye is about to see YOU. <b>*blink*</b>'][t],'👋 Wave and grow back!',{cls:'gold'})}`);
- snd(200,.4,'sine',.06,.6);onNext(()=>{root.querySelector('#isEye').classList.add('grow');[300,400,500,650,800].forEach((f,k)=>snd(f,.2,'triangle',.05,k*.15));const b=root.querySelector('#isNext');b.disabled=true;setTimeout(()=>{if(root)next();},1500);});}
+ <path d="M240 270 Q480 40 720 270" fill="none" stroke="#343a40" stroke-width="4"/><path d="M200 120 Q480 -30 760 120" stroke="#f1f3f5" stroke-width="46" fill="none" stroke-linecap="round"/><path d="M220 112 Q480 -18 740 112" stroke="#dee2e6" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="6 16"/>${Array.from({length:14},(_,i)=>`<path d="M${480+(i-6.5)*30} ${140+Math.abs(i-6.5)*8} q${(i-6.5)*2} -30 ${(i-6.5)*4} -44" stroke="#343a40" stroke-width="5" fill="none" stroke-linecap="round"/>`).join('')}
+ <rect x="330" y="505" width="300" height="24" rx="4" fill="rgba(200,235,255,.5)" stroke="#d0ebff" stroke-width="2"/><g transform="translate(480 492) scale(.16)"><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8"/><path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.7)"/></g></svg></div>`;const QZ=window.Quartz&&Quartz.SVG?`<div style="width:54px;height:54px">${Quartz.SVG}</div>`:'🧑‍🔬';
+ // 1) lights out: a little spooky, told by Ozzy in the dark
+ const DARK=[['Huh? The lights just went OUT. 😨 Stay in your seat…',2600],['Did you feel that? <b>*rumble*</b> I think we\'re… moving!',2800],['Something just picked us up… and set us down on something flat and glassy. 😬',3000],['Wait… is this a <b>MICROSCOPE SLIDE</b>?! What in the world is happening?!',3000]];
+ const LIT=[`Ha ha! Don't be scared, ${NM()}! It's ME, <b>Dr. Quartz</b>! 👋 I'm looking at you through my microscope. You look SO tiny!`,
+  `I watched the whole thing. You built <b>${esc(s.n.toLowerCase())}</b> (${s.f}) all by yourself, one atom at a time. ${['Very well done, little scientist!','Outstanding work! That is real chemistry!','Excellent. Real chemists would be proud of that!'][t]} 🎉`,
+  `Your mission is complete! Now it's time to return to your normal size. Hold on tight… here we GROW!`];
+ let step=0,lit=false,timer=null;const tok=R;
+ frame(`${EYE_SVG.replace('id="isEye"','id="isEye" style="opacity:0"')}<div class="is-dark" id="isDark"></div>
+  <div id="isNarBox">${nar(DARK[0][0],'…',{dis:1})}</div>`);
+ const box=()=>root&&root.querySelector('#isNarBox');
+ const say=(html,btn,opts)=>{const b=box();if(b)b.innerHTML=nar(html,btn,opts);};
+ snd(90,1.2,'sine',.06);
+ const darkNext=()=>{if(!root||R!==tok)return;step++;
+  if(step<DARK.length){say(DARK[step][0],'…',{dis:1});snd(step===1?70:110,step===1?1.4:.6,'sine',.07);timer=setTimeout(darkNext,DARK[step][1]);return;}
+  // 2) the lights come on slowly (no flash) and there's a giant eye
+  lit=true;const d=root.querySelector('#isDark'),e=root.querySelector('#isEye');if(e){e.style.transition='opacity 2.5s ease';e.style.opacity='1';}if(d){d.style.transition='opacity 2.5s ease';d.style.opacity='0';}
+  snd(200,.5,'sine',.06,.8);timer=setTimeout(()=>{if(!root||R!==tok)return;litStep(0);},2600);};
+ const litStep=k=>{const last=k>=LIT.length-1;say(LIT[k],last?'🌱 Grow back to normal size!':'Next ➜',{who:QZ,name:'Dr. Quartz',cls:last?'gold':''});
+  onNext(()=>{if(!last){litStep(k+1);return;}root.querySelector('#isEye').classList.add('grow');[300,400,500,650,800].forEach((f,q)=>snd(f,.2,'triangle',.05,q*.25));const b=root.querySelector('#isNext');if(b)b.disabled=true;setTimeout(()=>{if(root)next();},2200);});};
+ timer=setTimeout(darkNext,DARK[0][1]);
+ R.eyeTimer=timer;}
 
 /* 8. quiz → coins + album card */
 function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];let qi=0,score=0,tries=0,answered=false;R.firstTry=0;
@@ -289,11 +344,37 @@ function bagHTML(p){const st=S(p);if(!st.met&&!st.tix.length&&!Object.keys(st.al
  return `<div class="tr-hoardbox" style="background:#5f3dc4"><b>🎢 Inner Space</b> · 🎟️ Shrink Tickets: <b>${st.tix.length}</b>/${TIX_MAX} · 📖 Molecule Album: <b>${n}</b>/${D.SUB.length} <span style="font-size:20px">${D.SUB.filter(s=>st.album[s.id]!=null).map(s=>s.e).join('')}</span>
  <button class="btn small" style="margin-left:6px" onclick="Inner.album()">📖 Open album</button><br><small>Dr. Quartz gives you a Shrink Ticket after each cave trip. ${NAME} picks you up for the ride!${st.prize?'':' Fill the album to win the 🥼 Lab Coat robe.'}</small></div>`;}
 
+
+/* ---------- after the ride: Ozzy pulls up next to you, explains how to ride again, and drives off ---------- */
+const MOD_BYE={draw:drawMob,meet(){}};
+function farewell(p){try{if(typeof curScreen==='undefined'||curScreen!=='world'||!W||!W.T||!p)return;
+ let spot=null;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){const x=W.hx+dx,y=W.hy+dy,t=W.T[y]&&W.T[y][x];if(t&&!t.block&&!t.water&&!t.npc&&!t.gate&&!t.chest&&!W.mobs.some(m=>m.x===x&&m.y===y)){spot=[x,y,t];break;}}
+ if(!spot)return;const m={id:'ozzyBye',byeOzzy:true,mod:MOD_BYE,x:spot[0],y:spot[1],fx:spot[0],fy:spot[1],e:'🚗',n:NAME,b:spot[2].b};m.st='talk';W.mobs=W.mobs.filter(o=>!o.byeOzzy);W.mobs.push(m);window.visitorQuiet=Math.max(window.visitorQuiet||0,Date.now()+60e3);
+ snd(660,.12,'square',.04);snd(660,.12,'square',.04,.2);
+ const st=S(p),n=Object.keys(st.album).length,tot=ORDER.length;
+ const lines=[`What a ride, ${esc(p.name)}! 🎢 You shrank all the way down <b>inside an atom</b> and made it back in one piece!`,
+  st.tix.length?`You still have <b>${st.tix.length} 🎟️ Shrink Ticket${st.tix.length>1?'s':''}</b>! Win a few more battles and I'll come back to pick you up.`
+  :`Want to ride again? Here's how: go on a <b>Science Cave</b> trip with <b>🔬 Dr. Quartz</b>. After a trip he hands out <b>🎟️ Shrink Tickets</b>. When you have one, win a few battles and I'll drive over to pick you up!`,
+  n<tot?`You have <b>${n} of ${tot}</b> Inner Space cards. Collect them all for a special prize! 🥼 See you next time!`:`You collected ALL ${tot} Inner Space cards. You're a true atom explorer! 🥼 See you next time!`];
+ let i=0;const show=()=>{const last=i>=lines.length-1;
+  modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av oz-av">${OZZY_CAR}</div><div class="qz-bub oz-bub"><b>🎢 ${NAME} · Ride Operator</b><div>${lines[i]}</div></div></div>
+   <div class="row"><button class="btn green big" id="ozBye">${last?'Bye, '+NAME+'! 👋':'Next ➜'}</button></div></div>`);
+  document.getElementById('ozBye').onclick=()=>{if(!last){i++;show();return;}closeModal();driveOff(m);};};
+ show();}catch(e){}}
+function driveOff(m){if(m.st==='drive')return;m.st='drive';snd(520,.1,'square',.04);snd(700,.1,'square',.04,.15);
+ // head for a spot far away, one tile at a time, then vanish
+ let target=null;for(let tries=0;tries<200&&!target;tries++){const a=Math.random()*Math.PI*2,d=11+Math.random()*4;const x=Math.round(m.x+Math.cos(a)*d),y=Math.round(m.y+Math.sin(a)*d);const t=W.T[y]&&W.T[y][x];if(t&&!t.block&&!t.water&&!t.npc&&!t.gate&&!t.chest)target=[x,y];}
+ const path=target?pathTo(m.x,m.y,target[0],target[1]):null;let k=0,n=0;
+ const iv=setInterval(()=>{n++;const gone=()=>{clearInterval(iv);if(W)W.mobs=W.mobs.filter(o=>o!==m);};
+  if(typeof curScreen==='undefined'||curScreen!=='world'||!W||!path||k>=path.length||n>60){gone();return;}
+  const [x,y]=path[k];if(x===W.hx&&y===W.hy){return;}m.fx=m.x;m.fy=m.y;m.x=x;m.y=y;m.mt=performance.now();k++;if(k>=8&&k%2===0){}},230);}
+
 /* ---------- loops ---------- */
 setInterval(()=>{try{
  if(root&&typeof curScreen!=='undefined'&&curScreen!=='inner'){ // time's up (play-time bank) or the screen changed → close the ride; the ticket is kept
   close();R=null;if(DEMO&&DEMO!==true){const p=PL||P();const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();}PL=null;}
  if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
+ {const bye=W.mobs.find(m=>m.byeOzzy);if(bye){if(bye.st==='talk'&&!document.querySelector('#modal.show'))driveOff(bye);return;}}
  if(!wants(p)){if(W.mobs.some(m=>m.ozzy))W.mobs=W.mobs.filter(m=>!m.ozzy);return;}
  if(W.mobs.some(m=>m.quartz))return; // Dr. Quartz goes first
  if(!W.mobs.some(m=>m.ozzy))spawn();else walk(performance.now());}catch(e){}},330);
@@ -345,10 +426,17 @@ const st=document.createElement('style');st.textContent=`
 #isRoot .is-prize{background:#fff;border:4px solid #74c0fc;border-radius:18px;padding:12px;font-size:17px;text-align:center}
 #isRoot .is-more{background:rgba(255,255,255,.14);color:#fff;border-radius:14px;padding:10px 12px;font-size:16px}
 #isRoot .is-eyewrap{position:absolute;inset:0;background:#0c0c14;transition:transform 1.6s ease-in,opacity 1.6s}
-#isRoot .is-eyewrap.grow{transform:scale(.05);opacity:0}
+#isRoot .is-eyewrap.grow{transform:scale(.05);opacity:0!important;transition:transform 2.2s ease-in,opacity 2.2s}
+#isRoot .is-dark{position:absolute;inset:0;background:#000;z-index:3;pointer-events:none}
 #isRoot .is-lid{transform-origin:480px 150px;animation:isblink 3.2s infinite}@keyframes isblink{0%,86%,100%{transform:scaleY(0)}91%{transform:scaleY(1)}}
 #isRoot .is-pupil{animation:islook 4s ease-in-out infinite}@keyframes islook{0%,100%{transform:translate(0,0)}40%{transform:translate(-18px,6px)}70%{transform:translate(14px,-4px)}}
-#isRoot .is-float{animation:isfloat 2s ease-in-out infinite alternate}@keyframes isfloat{to{transform:translateY(-10px)}}
+#isRoot .is-size{flex:1;max-width:560px;margin:0 12px;pointer-events:none}#isRoot .is-size .trk{position:relative;height:10px;border-radius:6px;background:rgba(255,255,255,.22);margin:12px 14px 4px}
+#isRoot .is-size .trk i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:linear-gradient(90deg,#8ce99a,#ffd43b);transition:width 1s}
+#isRoot .is-size .trk span{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:15px;filter:grayscale(1) opacity(.55);transition:all .5s}#isRoot .is-size .trk span.past{filter:none;opacity:.85}#isRoot .is-size .trk span.on{filter:none;font-size:26px;text-shadow:0 0 10px #ffd43b}
+#isRoot .is-size .lab{text-align:center;color:#fff;font-size:14px;background:rgba(20,10,46,.7);border-radius:10px;padding:2px 10px;margin:6px auto 0;width:max-content;max-width:100%}#isRoot .is-size .lab b{color:#ffd43b}
+#isRoot .is-panel{top:96px!important}#isRoot .is-meter{display:none}
+@media(max-width:600px){#isRoot .is-chip .cn{display:none}#isRoot .is-size{margin:0 6px}#isRoot .is-size .trk{margin:10px 8px 2px}#isRoot .is-size .trk span{font-size:11px}#isRoot .is-size .trk span.on{font-size:20px}#isRoot .is-size .lab{font-size:12px}}
+#isRoot .is-float{animation:isfloat 2s ease-in-out infinite alternate}@keyframes isfloat{to{transform:translateY(-.06px)}}
 #isRoot .is-leave{position:absolute;inset:0;z-index:20;background:rgba(10,5,30,.6);display:grid;place-items:center;padding:16px}
 #isRoot .is-lbox{background:#fff;border-radius:22px;padding:16px;max-width:420px;display:grid;grid-template-columns:60px 1fr;gap:12px;align-items:center;font-size:18px;border:4px solid #7048e8}
 #isRoot .is-lbox svg{width:60px;height:60px}#isRoot .is-lrow{grid-column:1/3;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
