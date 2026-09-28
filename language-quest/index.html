@@ -49,8 +49,7 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 <body>
 <canvas id="game" aria-label="Language Quest world map. Tap to walk."></canvas>
 <div class="hud"><div class="pill">Language Quest</div><div class="pill">🪙 0</div>
-  <button class="pill" id="soundBtn" aria-label="Sound on or off">🔊</button>
-  <select class="pill" id="voiceSel" aria-label="Voice"></select></div>
+  <button class="pill" id="soundBtn" aria-label="Sound on or off">🔊</button></div>
 <div id="start"><div class="box"><div style="font-size:3rem">🗺️</div><h2>Language Quest</h2><p>Tap things to hear their names in Arabic.</p>
   <button class="btn go" id="startBtn">▶ Tap to start</button></div></div>
 <canvas id="mini" aria-label="Mini map"></canvas>
@@ -192,23 +191,21 @@ addEventListener("resize",resize); resize();
 cam.x=player.x-VW/2/ZOOM; cam.y=player.y-VH/2/ZOOM;
 
 /* ============ voice ============ */
-let voice=null, voices=[], soundOn=true;
-function rankVoice(v){ const l=v.lang.toLowerCase().replace("_","-"); let s=0;
-  if(l==="ar-001") s+=40; else if(l==="ar-sa") s+=30; else if(l.startsWith("ar")) s+=10;   // standard Arabic first
-  if(/premium/i.test(v.name)) s+=8; else if(/enhanced/i.test(v.name)) s+=6;
-  if(/majed|maged|tarik|laila|hamed|zariyah/i.test(v.name)) s+=3; return s; }
-function pickVoice(){ if(!("speechSynthesis" in window))return;
-  voices=speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.toLowerCase().startsWith("ar")).sort((a,b)=>rankVoice(b)-rankVoice(a));
-  const sel=document.getElementById("voiceSel"); const keep=voice&&voice.name;
-  sel.innerHTML=voices.length?voices.map((v,i)=>`<option value="${i}">${v.name}</option>`).join(""):"<option>No Arabic voice</option>";
-  const k=voices.findIndex(v=>v.name===keep); voice=voices[k>=0?k:0]||null; if(voice) sel.value=voices.indexOf(voice); }
-if("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; setTimeout(pickVoice,800); }
-/* speak immediately (no delay) so iPad Safari treats it as part of the tap */
-function say(t){ if(!soundOn||!("speechSynthesis" in window))return;
-  if(speechSynthesis.speaking||speechSynthesis.pending) speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(t); u.lang=voice?voice.lang:"ar-SA"; if(voice)u.voice=voice; u.rate=0.75; u.pitch=1;
-  speechSynthesis.speak(u); }
-
+let soundOn=true;
+/* Generated Google voice (Chirp3-HD Achernar), served from Cloud Storage.
+   Each phrase's file is named by an FNV-1a hash of its UTF-8 text. */
+const AUDIO_BASE="https://storage.googleapis.com/kid-games-dc068-voices/lq/ar-XA-Chirp3-HD-Achernar/";
+function audioKey(t){ let h=0x811c9dc5; for(const b of new TextEncoder().encode(t)){ h^=b; h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,"0"); }
+const player_audio=new Audio(); player_audio.preload="auto";
+let speakId=0;
+function deviceSay(t){ if(!("speechSynthesis" in window))return; speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t); u.lang="ar-SA"; u.rate=0.75;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith("ar")); if(v)u.voice=v; speechSynthesis.speak(u); }
+function say(t){ if(!soundOn) return; const id=++speakId;
+  player_audio.pause(); player_audio.src=AUDIO_BASE+audioKey(t)+".mp3"; player_audio.currentTime=0;
+  player_audio.onerror=()=>{ if(id===speakId) deviceSay(t); };   // fallback if a file is missing or offline
+  const p=player_audio.play(); if(p&&p.catch) p.catch(()=>{ if(id===speakId) deviceSay(t); }); }
+function pickVoice(){}
 /* ============ input ============ */
 function toWorld(sx,sy){ return [cam.x+sx/ZOOM, cam.y+sy/ZOOM]; }
 function walkable(x,y){ return x>20&&y>40&&x<W-20&&y<H-20 && biomeAt(x,y)!=="sea"; }
@@ -384,8 +381,8 @@ document.getElementById("startBtn").onclick=()=>{
   document.getElementById("start").remove();
   setTimeout(()=>showZone(biomeAt(player.x,player.y)),1400);
 };
-document.getElementById("soundBtn").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn) speechSynthesis.cancel(); };
-document.getElementById("voiceSel").onchange=e=>{ voice=voices[e.target.value]; say("مَرْحَبًا"); };
+document.getElementById("soundBtn").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ player_audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
+
 </script>
 </body>
 </html>
