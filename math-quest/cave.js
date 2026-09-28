@@ -12,6 +12,46 @@ const WATER_ROWS=[54,55,56];
 const CORE_ROW=136;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt=n=>Math.round(n).toLocaleString('en-US');
+/* ---------------- sound effects (follow the game's "Sound effects" switch) ---------------- */
+let SAC=null,NB=null;
+function sndOK(){try{return !(typeof state!=='undefined'&&state&&state.sound===false);}catch(e){return true;}}
+function sac(){try{SAC=SAC||new (window.AudioContext||window.webkitAudioContext)();if(SAC.state!=='running')SAC.resume();return SAC;}catch(e){return null;}}
+function tn(f,d,type,v,dl,f2){const a=sac();if(!a)return;const t=a.currentTime+(dl||0),o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v||.08,t+.008);g.gain.exponentialRampToValueAtTime(.0005,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05);}
+function nzs(d,fq,q,v,dl){const a=sac();if(!a)return;if(!NB){NB=a.createBuffer(1,a.sampleRate,a.sampleRate);const x=NB.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=Math.random()*2-1;}
+ const t=a.currentTime+(dl||0),s=a.createBufferSource();s.buffer=NB;const fl=a.createBiquadFilter();fl.type='bandpass';fl.frequency.value=fq;fl.Q.value=q||1;const g=a.createGain();
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v||.1,t+.005);g.gain.exponentialRampToValueAtTime(.0005,t+d);s.connect(fl);fl.connect(g);g.connect(a.destination);s.start(t,Math.random()*.5);s.stop(t+d+.05);}
+let stepN=0;
+function sfx(k,x){if(!sndOK())return;try{switch(k){
+ case 'step':{const s=(stepN++%2)?1:.85;nzs(.06,(x?1700:1250)*s,1.2,.06);if(x)tn(230*s,.05,'sine',.03);break;}
+ case 'dig':{const h=Math.min(10,x||2);nzs(.18,260+h*110,.8,.18);nzs(.1,1600+h*260,1.6,.08,.03);tn(95+h*9,.13,'triangle',.09);break;}
+ case 'coin':tn(1320,.08,'square',.035);tn(1760,.14,'square',.035,.07);break;
+ case 'chest':[523,659,784,1047].forEach((f,i)=>tn(f,.25,'triangle',.08,i*.09));break;
+ case 'find':tn(988,.18,'sine',.08);tn(1480,.25,'sine',.06,.08);tn(1976,.3,'sine',.04,.16);break;
+ case 'fossil':tn(330,.2,'triangle',.08);tn(494,.25,'triangle',.07,.1);nzs(.12,900,1,.05);break;
+ case 'critter':tn(1200,.08,'sine',.06,0,1700);tn(1500,.09,'sine',.05,.11,2100);break;
+ case 'bonk':tn(170,.2,'sine',.11,0,115);break;
+ case 'hot':nzs(.45,700,.4,.08);tn(210,.3,'sine',.05,0,150);break;
+ case 'layer':[392,523,659,784].forEach((f,i)=>tn(f,.3,'triangle',.07,i*.1));break;
+ case 'beam':tn(260,.7,'sine',.07,0,1500);nzs(.55,2600,.7,.04);break;
+ case 'low':tn(880,.08,'square',.04);tn(660,.12,'square',.04,.13);break;
+ case 'tap':tn(640,.05,'triangle',.045);break;
+ case 'right':tn(660,.12,'triangle',.1);tn(990,.2,'triangle',.1,.08);break;
+ case 'wrong':tn(240,.18,'sine',.09);tn(190,.25,'sine',.09,.12);break;
+ case 'win':[523,659,784,1047,1319].forEach((f,i)=>tn(f,.3,'triangle',.09,i*.1));break;
+ case 'buy':tn(1320,.08,'square',.04);tn(1760,.14,'square',.04,.07);tn(2093,.2,'triangle',.05,.16);break;
+ case 'elev':tn(110,1.1,'sawtooth',.025,0,230);nzs(1,500,.5,.04);tn(1320,.25,'sine',.07,1.05);break;
+ case 'magnet':tn(1500,.05,'square',.05);nzs(.05,4200,2,.07);break;
+ case 'acid':for(let i=0;i<9;i++)tn(650+Math.random()*1000,.06,'sine',.035,i*.055);nzs(.55,5200,.6,.03);break;
+ case 'water':tn(480,.12,'sine',.07,0,950);tn(700,.1,'sine',.05,.13,1250);break;
+ case 'streak':nzs(.35,2300,.8,.09);break;
+ case 'hard':nzs(.25,3600,1.6,.08);tn(2500,.07,'square',.02);break;
+ case 'uv':tn(120,.6,'sawtooth',.02);tn(1760,.45,'sine',.035,.1);break;
+ case 'look':tn(880,.1,'sine',.05);tn(1320,.12,'sine',.04,.08);break;
+ case 'geode':nzs(.22,1200,1,.15);[1047,1319,1568,2093].forEach((f,i)=>tn(f,.3,'sine',.05,.18+i*.08));break;
+ case 'gate':tn(80,.8,'sawtooth',.05,0,50);nzs(.8,320,.5,.1);[523,784,1047].forEach((f,i)=>tn(f,.3,'triangle',.07,.5+i*.1));break;
+ case 'uvon':tn(1200,.15,'sine',.05,0,1800);break;
+}}catch(e){}}
 function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const pick=(R,a)=>a[Math.floor(R()*a.length)];
@@ -176,6 +216,7 @@ function build(){
  <div class="cv-acts" id="cvActs"></div>
  <div class="cv-mod" id="cvMod"></div>`;
  document.body.appendChild(root);
+ root.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&!b.closest('#cvPad'))sfx('tap');},true); // every button clicks softly
  cv=root.querySelector('#cvC');ctx=cv.getContext('2d');fog=document.createElement('canvas');fctx=fog.getContext('2d');
  root.querySelector('#cvExit').onclick=()=>leave();
  // d-pad with hold-to-repeat
@@ -189,6 +230,7 @@ function build(){
  cv.addEventListener('pointerup',e=>{const dx=e.clientX-sx,dy=e.clientY-sy;
   if(Math.hypot(dx,dy)>30){Math.abs(dx)>Math.abs(dy)?step(Math.sign(dx),0):step(0,Math.sign(dy));return;}
   const r=cv.getBoundingClientRect();const wx=(e.clientX-r.left+camX)/TS,wy=(e.clientY-r.top+camY)/TS;
+  if(camY<TS*1.5&&campTap(wx,wy))return;
   const tx=Math.floor(wx),ty=Math.floor(wy);
   const it=W.items.get(idx(tx,ty));
   if(it&&it.t==='c'&&Math.abs(tx-S.x)+Math.abs(ty-S.y)<=lampR()+1&&tile(tx,ty)===T_AIR){observe(idx(tx,ty),it);return;}
@@ -209,38 +251,38 @@ function step(dx,dy){
  if(busy||modalOpen())return;FACE=[dx,dy];const now=Date.now();if(now-lastStep<STEP_MS)return;lastStep=now;
  const nx=S.x+dx,ny=S.y+dy;
  if(nx<1||nx>=COLS||ny<0||ny>=ROWS)return;
- if(ny===0&&S.y===0){S.x=nx;after();return;}
+ if(ny===0&&S.y===0){S.x=nx;sfx('step',0);after();return;}
  const t=tile(nx,ny);
- if(ny>0&&t!==T_BAR&&t!==T_GATE&&t!==T_DOOR){const tp=rowTemp(ny);if(tp>suit().t){say(`🥵 Too hot! It's ${fmt(tp)} °C down there. Your ${suit().n} is safe to ${fmt(suit().t)} °C. Upgrade your suit at the 🛒 Gear shop.`);return;}}
- if(t===T_AIR){S.x=nx;S.y=ny;after();return;}
+ if(ny>0&&t!==T_BAR&&t!==T_GATE&&t!==T_DOOR){const tp=rowTemp(ny);if(tp>suit().t){sfx('hot');say(`🥵 Too hot! It's ${fmt(tp)} °C down there. Your ${suit().n} is safe to ${fmt(suit().t)} °C. Upgrade your suit at the 🛒 Gear shop.`);return;}}
+ if(t===T_AIR){S.x=nx;S.y=ny;sfx('step',ny>0);after();return;}
  if(t===T_SHAFT)return;
  if(t===T_WATER){if(S.gates.raft){S.x=nx;S.y=ny;after();}else openPuzzle('raft');return;}
  if(t===T_LAVA){if(suit().t>=1200){S.x=nx;S.y=ny;after();say('🔥 Walking over lava in Magma Armor! Lava is about 1,100 °C.');}else say('🌋 Lava! It\'s about 1,100 °C — hot enough to melt rock. Go around it.');return;}
- if(t===T_BAR){const g=GATES[ny];
+ if(t===T_BAR){const g=GATES[ny];sfx('bonk');
   if(ny===CORE_ROW)say('🧱 Super-dense mantle rock. Look for the 💠 Core Door in this band.');
   else if(g&&g.id==='glow'&&!S.gear.uv)say('✨ Something on this wall glows very faintly… A 🔦 UV lamp would show it. (Gear shop)');
   else if(g&&g.id==='glow'&&!uvOn)say('✨ Turn on your 🔦 UV lamp to find the glowing door.');
   else say(`🧱 This rock band is too tough to dig. Look along it for the ${g?g.e+' '+g.n:'gate'}${g&&gateNeed(g.id)>medals()?` (it shows a 🔒 until you have ${gateNeed(g.id)} 🏅 Boss Medals)`:''}.`);return;}
- if(t===T_GATE){const g=GATES[ny];if(gateNeed(g.id)>medals()){lockCard(g);return;}if(g.id==='glow'&&!uvOn){say(S.gear.uv?'✨ Turn on your 🔦 UV lamp — this door only shows up in UV light.':'✨ Something glows faintly here… You need a 🔦 UV lamp.');return;}openPuzzle(g.id);return;}
+ if(t===T_GATE){const g=GATES[ny];if(gateNeed(g.id)>medals()){sfx('bonk');lockCard(g);return;}if(g.id==='glow'&&!uvOn){say(S.gear.uv?'✨ Turn on your 🔦 UV lamp — this door only shows up in UV light.':'✨ Something glows faintly here… You need a 🔦 UV lamp.');return;}openPuzzle(g.id);return;}
  if(t===T_DOOR){if(gateNeed('core')>medals()){lockCard({id:'core',n:'Core Door',e:'💠'});return;}if(S.gear.drill<4){say('💠 The Core Door! It is harder than anything but diamond. You need the 💎 Diamond Drill.');return;}
   if(suit().t<1300){say('💠 It is about 1,300 °C here. You need 🔥 Magma Armor to open the Core Door.');return;}
   S.gates.core=1;W.g[idx(nx,ny)]=T_AIR;setDug(idx(nx,ny));save(true);openProbe();return;}
  const rk=rockOf(t);if(!rk)return;
- if(rk.h>drill().h){say(`⛏️ Too hard! ${rk.n} is about ${rk.h} on the hardness scale. Your ${drill().e} ${drill().n} digs up to ${drill().h}. Upgrade in the 🛒 Gear shop.`);return;}
+ if(rk.h>drill().h){sfx('bonk');say(`⛏️ Too hard! ${rk.n} is about ${rk.h} on the hardness scale. Your ${drill().e} ${drill().n} digs up to ${drill().h}. Upgrade in the 🛒 Gear shop.`);return;}
  const cost=rk.h>drill().h-1.5?2:1;
  if(S.bat<cost){if(S.y===0){say(MQ()?(powerLeft()>0?'🔋 Battery empty! Tap ⚡ Power Up — every right answer adds charge.':'🔋 The battery is worn out for this trip. Bring Dr. Quartz another 🪨 mystery rock to come back!'):`🔋 Battery too low to dig! It's charging — full in ${fullIn()}. Tap ⚡ Power Up to charge it faster with math!`,4500);}else beamHome('battery');return;}
- S.bat-=cost;const i=idx(nx,ny);W.g[i]=T_AIR;setDug(i);S.stats.dug++;burst(nx,ny,rk.col);
+ const bm0=S.bat/batMax();S.bat-=cost;const i=idx(nx,ny);W.g[i]=T_AIR;setDug(i);S.stats.dug++;burst(nx,ny,rk.col);sfx('dig',rk.h);if(bm0>=.25&&S.bat/batMax()<.25)setTimeout(()=>sfx('low'),200);
  S.x=nx;S.y=ny;after();
  if(S.bat<=0)setTimeout(()=>beamHome('battery'),400);
 }
 function after(){
  const i=idx(S.x,S.y);const it=W.items.get(i);
- if(it&&it.t==='$'){W.items.delete(i);setDug(i);const v=addDugCoins(it.v);S.dive.c+=v;if(it.ch)S.dive.ch++;floats.push({x:(S.x+.5)*TS,y:S.y*TS,t:`+${v} 🪙`,l:1,big:it.ch});if(it.ch)say(`🧰 A buried treasure chest! +${v} coins!`,2500);}
- else if(it&&it.t!=='c'){if(S.pack.length>=packMax()){say(`🎒 Backpack full (${packMax()})! Tap 🏠 to beam to camp and study your finds.`);}
+ if(it&&it.t==='$'){W.items.delete(i);setDug(i);const v=addDugCoins(it.v);S.dive.c+=v;if(it.ch)S.dive.ch++;sfx(it.ch?'chest':'coin');floats.push({x:(S.x+.5)*TS,y:S.y*TS,t:`+${v} 🪙`,l:1,big:it.ch});if(it.ch)say(`🧰 A buried treasure chest! +${v} coins!`,2500);}
+ else if(it&&it.t!=='c'){if(S.pack.length>=packMax()){sfx('bonk');say(`🎒 Backpack full (${packMax()})! Tap 🏠 to beam to camp and study your finds.`);}
   else{W.items.delete(i);setDug(i);
-   if(it.t==='m'){S.dive.f++;S.pack.push({t:'m',id:it.id,k:Date.now().toString(36)+Math.random().toString(36).slice(2,5),tests:{}});say(S.idd[it.id]?`💎 ${CD.MIN[it.id].n}! You already know this one — you'll sell it at camp.`:`💎 A mystery mineral! Study it in the 🔬 Lab.`);}
-   else if(it.t==='f'){S.dive.f++;S.pack.push({t:'f',id:it.id,i:it.i});const f=CD.FOSSILS.find(x=>x.id===it.id);say(`🦴 A fossil piece! Looks like part of a ${f.n} (${f.parts[it.i]}).`);}
-   else if(it.t==='g'){S.dive.f++;S.pack.push({t:'g',id:it.id});say('🔮 You found today\'s SECRET POCKET — a geode! Crack it open in the 🔬 Lab.');}
+   if(it.t==='m'){sfx('find');S.dive.f++;S.pack.push({t:'m',id:it.id,k:Date.now().toString(36)+Math.random().toString(36).slice(2,5),tests:{}});say(S.idd[it.id]?`💎 ${CD.MIN[it.id].n}! You already know this one — you'll sell it at camp.`:`💎 A mystery mineral! Study it in the 🔬 Lab.`);}
+   else if(it.t==='f'){sfx('fossil');S.dive.f++;S.pack.push({t:'f',id:it.id,i:it.i});const f=CD.FOSSILS.find(x=>x.id===it.id);say(`🦴 A fossil piece! Looks like part of a ${f.n} (${f.parts[it.i]}).`);}
+   else if(it.t==='g'){sfx('find');S.dive.f++;S.pack.push({t:'g',id:it.id});say('🔮 You found today\'s SECRET POCKET — a geode! Crack it open in the 🔬 Lab.');}
   }}
  // critter next to you? observe automatically when you bump into it
  [[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{const j=idx(S.x+a,S.y+b);const c=W.items.get(j);if(c&&c.t==='c'&&!S.crit[c.id]&&S.x+a>0)observe(j,c);});
@@ -249,7 +291,7 @@ function after(){
  const L=layerOf(S.y);if(L&&!S.seen[L.id]){S.seen[L.id]=1;save(true);layerCard(L);}
  hud();save();
 }
-function beamHome(why){
+function beamHome(why){sfx('beam');
  const dv=S.dive;S.dive={c:0,f:0,cr:0,d:0,ch:0};
  S.x=4;S.y=0;charge();uvOn=false;snapCam();
  const fos=S.pack.filter(p=>p.t==='f');let msg=MQ()?(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp.':'🏠 Back at camp.'):(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp. It\'s charging now 🔌':'🏠 Back at camp. Your battery is charging 🔌');
@@ -263,11 +305,11 @@ function beamHome(why){
 let floats=[];
 function burst(x,y,col){for(let k=0;k<10;k++)parts.push({x:(x+.5)*TS,y:(y+.5)*TS,vx:(Math.random()-.5)*5,vy:(Math.random()-.8)*4,l:1,col});}
 function say(m,ms){const el=root&&root.querySelector('#cvMsg');if(!el)return;el.innerHTML=m;el.classList.add('show');clearTimeout(msgT);msgT=setTimeout(()=>el.classList.remove('show'),ms||3800);}
-function observe(i,c){const cr=CD.CRITTERS.find(x=>x.id===c.id);W.items.delete(i);S.obs=S.obs||[];S.obs.push(i);
+function observe(i,c){const cr=CD.CRITTERS.find(x=>x.id===c.id);sfx('critter');W.items.delete(i);S.obs=S.obs||[];S.obs.push(i);
  const first=!S.crit[cr.id];S.crit[cr.id]=(S.crit[cr.id]||0)+1;let rew='';
  if(first){S.dive.cr++;addCoins(20,'critter');S.rp+=4;rew='<div class="cv-rew">+20 🪙 · +4 🔬 New critter in your Journal!</div>';ev('critter',{id:cr.id});}
  card(`<div class="cv-card"><div class="cv-big ${cr.glow?'cv-glowe':''}">${cr.e}</div><h2>${first?'New critter!':'Hello again!'}<br>${esc(cr.n)}</h2>${cr.tiny?'<div class="cv-tag">🔬 Seen through your microscope</div>':''}<p>${txt(cr)}</p>${rew}<button class="cv-btn" data-close>Cool!</button></div>`);save(true);hud();}
-function layerCard(L){const t=TIER();
+function layerCard(L){const t=TIER();setTimeout(()=>sfx('layer'),150);
  card(`<div class="cv-card cv-layer" style="--lc:${L.col}"><div class="cv-big">${L.e}</div><h2>${esc(L.n)}</h2><div class="cv-stats"><span>📏 ${L.r0<=1?'0':depthStr(L.r0)} – ${depthStr(L.r1)} deep</span><span>🌡️ ${L.t0===L.t1?fmt(L.t0):fmt(L.t0)+' – '+fmt(L.t1)} °C</span>${t?`<span>⏲️ ${fmt(rowAtm(L.r0))} atm</span>`:''}</div><p>${txt(L)}</p><button class="cv-btn" data-close>Let's explore!</button></div>`);}
 
 /* ---------------- render ---------------- */
@@ -371,11 +413,23 @@ function sparkle(px,py,i){if((tick+i*7)%60<8){ctx.fillStyle='rgba(255,255,255,.9
 function drawIcon(c,e,px,py,T,glow){c.save();c.shadowColor=glow;c.shadowBlur=12+6*Math.sin(tick*.1);c.font=`${T*.6}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(e,px+T/2,py+T/2);c.restore();}
 function drawShaft(c,px,py,T,top){c.fillStyle='#3a3340';c.fillRect(px,py,T+1,T+1);c.fillStyle='#8a8494';c.fillRect(px+T*.18,py,T*.08,T+1);c.fillRect(px+T*.74,py,T*.08,T+1);
  if(top){c.fillStyle='#ffd43b';c.fillRect(px+T*.25,py+T*.15,T*.5,T*.7);c.font=`${T*.4}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('🛗',px+T/2,py+T/2);}}
-const CAMP=[{x:3,e:'🏕️',n:'Camp'},{x:6,e:'🔬',n:'Lab'},{x:9,e:'🛒',n:'Gear'},{x:12,e:'🏛️',n:'Museum'},{x:15,e:'🌱',n:'Garden'},{x:18,e:'📓',n:'Journal'}];
+/* camp buildings — tap one to go in (they are the camp's only menu) */
+const CAMP=[{x:2,e:'🔋',n:'Power Up',a:'power'},{x:8,e:'🔬',n:'Lab',a:'lab'},{x:10,e:'🛒',n:'Gear',a:'gear'},{x:12,e:'🏛️',n:'Museum',a:'museum'},{x:14,e:'🌱',n:'Garden',a:'garden',show:()=>S.seen.cave},{x:16,e:'📓',n:'Journal',a:'journal'},{x:18,e:'🚀',n:'Core Probe',a:'probe',show:()=>S.gates.core}];
+const QZX=6.3; // where Dr. Quartz stands
+const campB=()=>CAMP.filter(b=>!b.show||b.show());
+function campBadge(b){if(b.a==='lab'){const u=S.pack.filter(p=>p.t!=='f').length;return u?String(u):'';}if(b.a==='museum')return museumReady()?'!':'';if(b.a==='garden')return S.garden&&S.garden.last!==S.day?'💧':'';if(b.a==='power')return S.bat<batMax()*.25?'!':'';return '';}
+function campTap(wx,wy){if(wy<-.55||wy>1.05)return false;
+ if(Math.abs(wx-.5)<.6){sfx('tap');act('elev');return true;}
+ if(Math.abs(wx-QZX)<.55){sfx('tap');act('tip');return true;}
+ const b=campB().find(b=>Math.abs(wx-(b.x+.5))<.75);if(!b)return false;sfx('tap');
+ if(b.a==='power'&&S.bat>=batMax()-.5){say('🔋 Your battery is full — go dig!',1800);return true;}
+ act(b.a);return true;}
 function drawCamp(c,T){const gy=T-camY;c.fillStyle='#4caf50';c.fillRect(-camX,gy-5,COLS*T,9);
- const gi=H.guideImg;if(gi&&gi.complete&&gi.naturalWidth){const gx=(7.6)*T-camX,hh=T*1.15;c.drawImage(gi,gx-hh*.33,gy-hh-2+Math.sin(tick*.05)*1.5,hh*.66,hh);}
- CAMP.forEach(b=>{const px=(b.x+.5)*T-camX;c.font=`${T*.8}px serif`;c.textAlign='center';c.textBaseline='bottom';c.fillText(b.e,px,gy-2);
-  c.font=`600 ${Math.max(10,T*.26)}px Fredoka,sans-serif`;c.fillStyle='#1d3a5a';c.textBaseline='top';c.fillText(b.n,px,gy-T*1.15);});}
+ const gi=H.guideImg;if(gi&&gi.complete&&gi.naturalWidth){const gx=QZX*T-camX,hh=T*1.15;c.drawImage(gi,gx-hh*.33,gy-hh-2+Math.sin(tick*.05)*1.5,hh*.66,hh);}
+ const lab=(txt,px,col)=>{c.font=`700 ${Math.max(11,T*.26)}px Fredoka,sans-serif`;c.textAlign='center';c.textBaseline='top';const w=c.measureText(txt).width+12,h=Math.max(15,T*.34),y=gy-T*1.2;px=Math.max(px,w/2+3);c.fillStyle='rgba(255,255,255,.85)';c.beginPath();if(c.roundRect)c.roundRect(px-w/2,y-2,w,h,h/2);else c.rect(px-w/2,y-2,w,h);c.fill();c.fillStyle=col||'#1d3a5a';c.fillText(txt,px,y);};
+ lab('Elevator',.5*T-camX);lab('Dr. Quartz',QZX*T-camX,'#1971c2');
+ campB().forEach(b=>{const px=(b.x+.5)*T-camX;const bob=b.a==='power'&&S.bat<batMax()*.25?Math.abs(Math.sin(tick*.12))*4:0;c.font=`${T*.8}px serif`;c.textAlign='center';c.textBaseline='bottom';c.fillText(b.e,px,gy-2-bob);
+  lab(b.n,px);const bd=campBadge(b);if(bd){const r=Math.max(8,T*.17),bx=px+T*.32,by=gy-T*.82;c.fillStyle='#fa5252';c.beginPath();c.arc(bx,by,r,0,7);c.fill();c.fillStyle='#fff';c.font=`800 ${r*1.3}px Fredoka,sans-serif`;c.textBaseline='middle';c.fillText(bd,bx,by+1);}});}
 function shade(hex,amt){let n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;const f=amt<0?0:255,p=Math.abs(amt);r=Math.round((f-r)*p+r);g=Math.round((f-g)*p+g);b=Math.round((f-b)*p+b);return`rgb(${r},${g},${b})`;}
 
 /* ---------------- HUD ---------------- */
@@ -385,6 +439,7 @@ function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(
  const t=rowTemp(S.y),hotw=S.y>0&&t>suit().t*.85;
  q('#cvG').innerHTML=`<span>📏 ${S.y===0?'Surface':depthStr(S.y)}</span><span class="${hotw?'warn':''}">🌡️ ${fmt(t)} °C</span>${TIER()?`<span>⏲️ ${fmt(rowAtm(S.y))} atm</span>`:''}`;
  hudBat();
+ if(S.y===0&&!S.tapHint&&!hintShown&&!modalOpen()){hintShown=1;setTimeout(()=>{if(S.y===0&&!modalOpen())say('👆 Tap a building — like the 🔬 Lab — to go inside!',5500);},600);}
  // depth bar
  let db='';CD.LAYERS.forEach(L=>{db+=`<i style="flex:${L.r1-L.r0+1};background:${L.col}" title="${esc(L.n)}"></i>`;});
  const pct=r=>(r/ROWS*100).toFixed(2)+'%';
@@ -394,17 +449,17 @@ function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(
  q('#cvDepth').innerHTML=db;
  // action buttons
  let a='';
- if(S.y===0){const unk=S.pack.filter(p=>p.t!=='f').length;
+ if(S.y===0&&false){const unk=S.pack.filter(p=>p.t!=='f').length;
   if(S.bat<batMax()-.5)a+=`<button class="cv-act pw" data-a="power">⚡<span>Power Up</span></button>`;
   a+=`<button class="cv-act qz" data-a="tip">💡<span>Dr. Quartz</span></button><button class="cv-act" data-a="lab">🔬<span>Lab</span>${unk?`<em>${unk}</em>`:''}</button><button class="cv-act" data-a="gear">🛒<span>Gear</span></button><button class="cv-act" data-a="museum">🏛️<span>Museum</span>${museumReady()?'<em>!</em>':''}</button>`;
   if(S.seen.cave)a+=`<button class="cv-act" data-a="garden">🌱<span>Garden</span>${S.garden&&S.garden.last!==S.day?'<em>💧</em>':''}</button>`;
   a+=`<button class="cv-act" data-a="journal">📓<span>Journal</span></button><button class="cv-act" data-a="elev">🛗<span>Elevator</span></button>`;
   if(S.gates.core)a+=`<button class="cv-act" data-a="probe">🚀<span>Core Probe</span></button>`;
- }else{a+=`<button class="cv-act" data-a="home">🏠<span>Camp</span></button>`;if(S.gear.uv)a+=`<button class="cv-act ${uvOn?'on':''}" data-a="uv">🔦<span>UV ${uvOn?'on':'off'}</span></button>`;}
+ }else if(S.y>0){a+=`<button class="cv-act" data-a="home">🏠<span>Camp</span></button>`;if(S.gear.uv)a+=`<button class="cv-act ${uvOn?'on':''}" data-a="uv">🔦<span>UV ${uvOn?'on':'off'}</span></button>`;}
  const acts=q('#cvActs');if(acts.dataset.h!==a){acts.innerHTML=a;acts.dataset.h=a;acts.querySelectorAll('button').forEach(b=>b.onclick=()=>act(b.dataset.a));}
 }
 function hudBat(){if(!root)return;const q=s=>root.querySelector(s);const bm=batMax();q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';const f=S.y===0&&S.bat<bm?fullIn():'';q('#cvBatT').textContent=`${f?'🔌':'🔋'} ${Math.floor(S.bat)}/${bm}${f?' · '+f:''}`;q('#cvBatT').parentNode.title=f?'Charging — full in '+f:'Battery';}
-function act(a){({tip:()=>tipCard(),power:openPower,lab:openLab,gear:openGear,museum:openMuseum,garden:openGarden,journal:openJournal,elev:openElevator,probe:openProbe,home:()=>beamHome(),uv:()=>{uvOn=!uvOn;hud();say(uvOn?'🔦 UV lamp ON — fluorescent minerals glow! (Your normal light is dimmer.)':'🔦 UV lamp off.',2200);}})[a]();}
+function act(a){if(S.y===0&&!S.tapHint){S.tapHint=1;save();}({tip:()=>tipCard(),power:openPower,lab:openLab,gear:openGear,museum:openMuseum,garden:openGarden,journal:openJournal,elev:openElevator,probe:openProbe,home:()=>beamHome(),uv:()=>{uvOn=!uvOn;sfx('uvon');hud();say(uvOn?'🔦 UV lamp ON — fluorescent minerals glow! (Your normal light is dimmer.)':'🔦 UV lamp off.',2200);}})[a]();}
 
 /* gates deeper down stay sealed until you have enough Boss Medals from Math Quest */
 function lockCard(g){const n=gateNeed(g.id),m=medals();
@@ -427,6 +482,7 @@ function tipText(){const unk=S.pack.filter(p=>p.t==='m'||p.t==='g');
 function tipCard(){const t=tipText();modal(`<div class="cv-card">${guide(t.t)}<div class="cv-row">${t.a?`<button class="cv-btn" id="cvTipGo">${({lab:'🔬 Go to the Lab',museum:'🏛️ Museum',gear:'🛒 Gear shop',power:'⚡ Power Up'})[t.a]}</button>`:''}<button class="cv-btn ghost" data-close>Thanks!</button></div></div>`);
  const b=root.querySelector('#cvTipGo');if(b)b.onclick=()=>{closeModal();act(t.a);};}
 /* ---------------- modal ---------------- */
+let hintShown=0;
 function modalOpen(){return root&&root.querySelector('#cvMod').classList.contains('show');}
 function modal(html,opts){const m=root.querySelector('#cvMod');m.innerHTML=`<div class="cv-sheet ${opts&&opts.wide?'wide':''}">${opts&&opts.noX?'':'<button class="cv-mx" data-close aria-label="Close">✕</button>'}${html}</div>`;m.classList.add('show');
  m.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal());m.scrollTop=0;return m.querySelector('.cv-sheet');}
@@ -457,7 +513,7 @@ function resText(m,t){const n=TIER();
  return `Up close it looks: <b>${esc(m.look)}</b>.`;}
 const sw=c=>`<i class="cv-sw" style="background:${c}"></i>`;
 function testsOf(p){const o={};Object.keys(p.tests||{}).forEach(k=>{if(k.startsWith('scratch:'))o.hard=1;else if(LTESTS.some(t=>t.id===k))o[k]=1;});return Object.keys(o);}
-function crackGeode(i){const p=S.pack[i];const g=CD.GEODES.find(x=>x.id===p.id);S.pack.splice(i,1);const first=!S.geo[g.id];S.geo[g.id]=(S.geo[g.id]||0)+1;addCoins(g.c,'geode');S.rp+=first?8:2;save(true);
+function crackGeode(i){const p=S.pack[i];const g=CD.GEODES.find(x=>x.id===p.id);S.pack.splice(i,1);sfx('geode');const first=!S.geo[g.id];S.geo[g.id]=(S.geo[g.id]||0)+1;addCoins(g.c,'geode');S.rp+=first?8:2;save(true);
  modal(`<div class="cv-card"><div class="cv-geode" style="--gc:${g.col}"><i></i></div><h2>🔨 Crack! ${esc(g.n)}</h2><p>${esc(g.y)}</p><p class="cv-sub">A geode starts as a hollow bubble in rock. Mineral-rich water seeps in and, over thousands of years, crystals grow inward from the walls.</p><div class="cv-rew">+${g.c} 🪙 · +${first?8:2} 🔬</div><button class="cv-btn" data-close>Beautiful!</button></div>`);onClose=openLab;ev('geode',{id:g.id});}
 /* suspects are chosen so a real test can always tell them apart (no "what does it look like?" guessing) */
 const sig=id=>['magnet','acid','water','streak','hard'].concat(S.gear.uv?['uv']:[]).map(t=>JSON.stringify(tval(CD.MIN[id],t))).join('|');
@@ -542,11 +598,11 @@ function bench(k,st){
    <div class="cv-kstep todo"><span class="cv-kn">?</span><div class="cv-kq">🎉 The answer!</div></div></div></div>
   ${guide(say,st.mood)}`,{wide:1});
  root.querySelector('[data-back]').onclick=openLab;
- const tb=root.querySelector('#cvKTest');if(tb)tb.onclick=()=>{p.tests[t]=1;save();bench(k,{tested:1});};
+ const tb=root.querySelector('#cvKTest');if(tb)tb.onclick=()=>{sfx(t);p.tests[t]=1;save();bench(k,{tested:1});};
  root.querySelectorAll('.cv-kopt:not([disabled])').forEach(b=>b.onclick=()=>{const v=opts[+b.dataset.i];const real=tval(m,t);
-  if(JSON.stringify(v)===JSON.stringify(real)){p.path.push({t,v:real});save();ev('keystep',{t,ok:1});
+  if(JSON.stringify(v)===JSON.stringify(real)){sfx('right');p.path.push({t,v:real});save();ev('keystep',{t,ok:1});
    const left=kAlive(p);bench(k,{say:left.length>1?pick(Math.random,['Great observing! That rules out some suspects.','Exactly right! Let\'s ask the next question.','Yes! A real scientist reads results just like that.']):'Excellent! I think we\'ve cracked it…',mood:'happy'});}
-  else{p.miss++;save();ev('keystep',{t,ok:0});bench(k,{tested:1,bad:(st.bad||[]).concat(+b.dataset.i),mood:'think',say:`Hmm, look at the picture again! ${kWhy(m,t)}`});}});
+  else{sfx('wrong');p.miss++;save();ev('keystep',{t,ok:0});bench(k,{tested:1,bad:(st.bad||[]).concat(+b.dataset.i),mood:'think',say:`Hmm, look at the picture again! ${kWhy(m,t)}`});}});
 }
 function kWhy(m,t){if(t==='magnet')return m.m?'The rock jumped up and stuck to the magnet — SNAP!':'The magnet is close but the rock just sits there. It doesn\'t stick.';
  if(t==='acid')return m.f?'See all those bubbles? That\'s fizzing!':'No bubbles at all — so it doesn\'t fizz.';
@@ -561,9 +617,9 @@ function kReveal(p){const m=CD.MIN[p.id];
 function identify(k){bench(k);}
 
 function guess(k,id){const p=S.pack.find(x=>x.k===k);if(!p)return;const m=CD.MIN[p.id];
- if(id!==p.id){p.wrong=(p.wrong||[]).concat(id);save();bench(k,{a:'🤔',t:`It's <b>not ${esc(CD.MIN[id].n)}</b>! Run another test to tell the last suspects apart.`});return;}
+ if(id!==p.id){sfx('wrong');p.wrong=(p.wrong||[]).concat(id);save();bench(k,{a:'🤔',t:`It's <b>not ${esc(CD.MIN[id].n)}</b>! Run another test to tell the last suspects apart.`});return;}
  const nt=testsOf(p).length;S.pack.splice(S.pack.indexOf(p),1);const first=!S.idd[p.id];S.idd[p.id]=1;foundOne(p.id);const r=CD.RAR[m.r];S.stats.ids=(S.stats.ids||0)+1;
- const sharp=!p.miss;const coins=first?r.c:r.sell,rp=(first?r.rp:1)+(sharp?2:0);addCoins(coins,'mineral');S.rp+=rp;save(true);ev('identify',{id:p.id,first});
+ sfx('win');const sharp=!p.miss;const coins=first?r.c:r.sell,rp=(first?r.rp:1)+(sharp?2:0);addCoins(coins,'mineral');S.rp+=rp;save(true);ev('identify',{id:p.id,first});
  modal(`<div class="cv-card">${gemSVG(m,120,null)}<h2>${first?'🎉 New discovery!':'✅ You got it!'}<br>${esc(m.n)}</h2><div class="cv-tag r${m.r}">${r.n}${m.notMin?' · not a true mineral!':''}</div>${sharp?'<div class="cv-tag">🕵️ Sharp detective — no mistakes!</div>':''}<p>${txt(m)}</p>
   <div class="cv-facts"><span>Hardness ${m.h}</span><span>Streak ${m.s?STREAK_NAMES[m.s]:'none'}</span>${m.u?`<span>UV ${UV_NAMES[m.u]}</span>`:''}</div><div class="cv-rew">+${coins} 🪙 · +${rp} 🔬</div><button class="cv-btn" data-close>${S.pack.some(x=>x.t!=='f')?'Next specimen':'Done'}</button></div>`);
  onClose=()=>{if(S.pack.some(x=>x.t!=='f'))openLab();};}
@@ -584,7 +640,7 @@ function openGear(){const t=TIER();
  root.querySelectorAll('.cv-buy').forEach(b=>b.onclick=()=>buy(b.dataset.k));}
 function gearArr(k){return {chg:CHG,drill:CD.DRILLS,suit:CD.SUITS,bat:CD.BATT,pack:CD.PACK,lamp:CD.LAMP,uv:[{},{c:CD.UV.c,r:CD.UV.r}]}[k];}
 function canBuy(nx){return H.coins()>=nx.c&&S.rp>=(nx.r||0)&&(!nx.need||S.idd[nx.need]);}
-function buy(k){const arr=gearArr(k),nx=arr[S.gear[k]+1];if(!nx||!canBuy(nx))return;if(!H.spend(nx.c))return;S.rp-=nx.r||0;S.gear[k]++;if(k==='bat')S.bat=batMax();save(true);ev('gear',{k,lv:S.gear[k]});openGear();say('✅ Upgraded!',1500);}
+function buy(k){const arr=gearArr(k),nx=arr[S.gear[k]+1];if(!nx||!canBuy(nx))return;if(!H.spend(nx.c))return;sfx('buy');S.rp-=nx.r||0;S.gear[k]++;if(k==='bat')S.bat=batMax();save(true);ev('gear',{k,lv:S.gear[k]});openGear();say('✅ Upgraded!',1500);}
 
 /* ---------------- ⚡ Power Up with math ---------------- */
 function mathQ(g){const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),p=Math.random();
@@ -605,8 +661,8 @@ function openPower(){charge();let Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3),
   <div class="cv-row"><button class="cv-btn" id="cvChk">✓ Check</button></div>`}`,{wide:0});
   sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==='⌫')inp=inp.slice(0,-1);else if(k==='±')inp=inp.startsWith('-')?inp.slice(1):'-'+inp;else if(inp.replace('-','').length<5)inp+=k;note='';draw();});
   const c=sh.querySelector('#cvChk');if(c)c.onclick=check;};
- const check=()=>{if(inp===''||inp==='-')return;if(+inp===Q.a){streak++;const gg=gain();S.bat=Math.min(batMax(),S.bat+gg);if(MQ())S.tripPow=(S.tripPow||0)+gg;S.stats.power=(S.stats.power||0)+1;note=`<div class="cv-ok2">✅ Yes! +${gain()} 🔋</div>`;ev('power',{ok:1});}
-  else{streak=0;note=`<div class="cv-hint">Not quite — ${esc(Q.q)} ${Q.x?'→ x':''} = <b>${Q.a}</b>. Try the next one!</div>`;ev('power',{ok:0});}
+ const check=()=>{if(inp===''||inp==='-')return;if(+inp===Q.a){sfx('right');streak++;const gg=gain();S.bat=Math.min(batMax(),S.bat+gg);if(MQ())S.tripPow=(S.tripPow||0)+gg;S.stats.power=(S.stats.power||0)+1;note=`<div class="cv-ok2">✅ Yes! +${gain()} 🔋</div>`;ev('power',{ok:1});}
+  else{sfx('wrong');streak=0;note=`<div class="cv-hint">Not quite — ${esc(Q.q)} ${Q.x?'→ x':''} = <b>${Q.a}</b>. Try the next one!</div>`;ev('power',{ok:0});}
   inp='';Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3);save();hud();draw();};
  const key=e=>{if(!modalOpen()||!root.querySelector('.cv-pad2')){window.removeEventListener('keydown',key);return;}if(/^[0-9]$/.test(e.key)){inp+=e.key;note='';draw();}else if(e.key==='-'){inp=inp.startsWith('-')?inp.slice(1):'-'+inp;draw();}else if(e.key==='Backspace'){inp=inp.slice(0,-1);draw();}else if(e.key==='Enter')check();};
  window.addEventListener('keydown',key);draw();}
@@ -665,7 +721,7 @@ function openGarden(){S.garden=S.garden||{stage:0,last:'',cols:0};const G=S.gard
 /* ---------------- Elevator ---------------- */
 function openElevator(){const stops=CD.LAYERS.filter(L=>S.maxRow>=L.r0);
  modal(`<h2>🛗 Elevator</h2><p class="cv-sub">Ride down to the top of any layer you have reached.</p><div class="cv-stops">${stops.map(L=>`<button class="cv-stop" data-r="${L.r0}" style="--lc:${L.col}"><span>${L.e}</span><b>${esc(L.n)}</b><small>${depthStr(L.r0)} · ${fmt(L.t0)} °C</small></button>`).join('')||'<div class="cv-empty">Dig down to reach your first layer!</div>'}</div>`,{wide:1});
- root.querySelectorAll('.cv-stop').forEach(b=>b.onclick=()=>{const r=+b.dataset.r;if(rowTemp(r)>suit().t){say(`🥵 It's ${fmt(rowTemp(r))} °C there — your suit is only safe to ${fmt(suit().t)} °C.`);return;}closeModal();S.x=2;S.y=r;snapCam();after();say(`🛗 Ding! ${esc(layerOf(r).n)}.`,1800);});}
+ root.querySelectorAll('.cv-stop').forEach(b=>b.onclick=()=>{const r=+b.dataset.r;if(rowTemp(r)>suit().t){say(`🥵 It's ${fmt(rowTemp(r))} °C there — your suit is only safe to ${fmt(suit().t)} °C.`);return;}closeModal();sfx('elev');S.x=2;S.y=r;snapCam();after();say(`🛗 Ding! ${esc(layerOf(r).n)}.`,1800);});}
 
 /* ---------------- gate puzzles ---------------- */
 const PZ_WHY={
@@ -678,7 +734,7 @@ const PZ_WHY={
  seismo:{y:'Earthquake waves are like messages from deep inside the Earth. P-waves are fastest and arrive first!',o:'P-waves (primary, push-pull) travel faster than S-waves (secondary, side-to-side). The gap between them tells you how far away the quake was. At the Moho — the bottom of the crust — seismic waves suddenly speed up, which is how it was discovered in 1909.'}};
 function openPuzzle(id){({lever:pzLever,mirror:pzMirror,sonar:pzSonar,raft:pzRaft,glow:pzGlow,pulley:pzPulley,seismo:pzSeismo})[id]();}
 function solved(id,title){
- S.gates[id]=1;const r=Object.keys(GATES).find(k=>GATES[k].id===id);if(r){const i=idx(W.gateX[r],+r);W.g[i]=T_AIR;setDug(i);}
+ sfx('gate');S.gates[id]=1;const r=Object.keys(GATES).find(k=>GATES[k].id===id);if(r){const i=idx(W.gateX[r],+r);W.g[i]=T_AIR;setDug(i);}
  addCoins(60,'puzzle');S.rp+=10;save(true);ev('puzzle',{id});
  modal(`<div class="cv-card"><div class="cv-big">🎉</div><h2>${esc(title)}</h2><p>${txt(PZ_WHY[id])}</p><div class="cv-rew">+60 🪙 · +10 🔬 · The way is open!</div><button class="cv-btn" data-close>Keep digging!</button></div>`);}
 const pzR=id=>rng(hash(id+'|'+H.player.id+'|'+(S.pzTry=(S.pzTry||0)+1)));
@@ -1021,5 +1077,5 @@ function leave(){save(true);cardQ.length=0;cancelAnimationFrame(raf);window.remo
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={mathQ,open,leave,summary,_dbg:()=>({S,W,H,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen})};
+window.Cave={mathQ,open,leave,summary,_dbg:()=>({S,W,H,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
 })();
