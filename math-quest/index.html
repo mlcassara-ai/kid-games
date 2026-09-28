@@ -2535,6 +2535,19 @@ function wPathTo(tx,ty){
   if(q.length>4000)break;}
  if(!(key(tx,ty) in prev))return [];
  const path=[];let c=[tx,ty];while(c&&!(c[0]===W.hx&&c[1]===W.hy)){path.unshift(c);c=prev[key(c[0],c[1])];}return path;}
+/* footsteps on the map: a soft sound that matches the ground (grass, stone, sand, snow) */
+const FOOT_GROUND={village:'grass',forest:'grass',farm:'grass',garden:'grass',haunt:'leaf',caves:'stone',castle:'stone',tower:'stone',vault:'stone',mesa:'stone',volcano:'stone',market:'wood',temple:'sand',reef:'sand',summit:'snow'};
+let footN=0,footBuf=null;
+function footstep(t){if(!state.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')return;
+ if(!footBuf){footBuf=AC.createBuffer(1,AC.sampleRate*.25,AC.sampleRate);const d=footBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
+ const g=t.path?'path':(FOOT_GROUND[t.b]||'grass');const S={grass:[1400,.9,.07,.06],leaf:[2200,.7,.08,.06],path:[900,1.4,.05,.07],stone:[1800,2.5,.04,.07],wood:[600,3,.06,.08],sand:[3200,.6,.09,.05],snow:[2600,.8,.11,.07]}[g];
+ const side=(footN++%2)?1:.86,now=AC.currentTime;
+ const src=AC.createBufferSource();src.buffer=footBuf;src.playbackRate.value=side*(0.9+Math.random()*.2);
+ const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=S[0]*side;bp.Q.value=S[1];
+ const gn=AC.createGain();gn.gain.setValueAtTime(0,now);gn.gain.linearRampToValueAtTime(S[3],now+.006);gn.gain.exponentialRampToValueAtTime(.0005,now+S[2]);
+ src.connect(bp);bp.connect(gn);gn.connect(AC.destination);src.start(now,Math.random()*.1);src.stop(now+S[2]+.02);
+ if(g==='stone'||g==='wood'||g==='path'){const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.value=(g==='wood'?180:g==='path'?140:260)*side;og.gain.setValueAtTime(.05,now);og.gain.exponentialRampToValueAtTime(.0005,now+.05);o.connect(og);og.connect(AC.destination);o.start(now);o.stop(now+.06);}
+}catch(e){}}
 function wStep(dx,dy){
  if(!W||W.moving||curScreen!=='world'||$('#modal.show')||window.trollBusy)return;
  const nx=W.hx+dx,ny=W.hy+dy;const t=W.T[ny]&&W.T[ny][nx];if(!t)return;
@@ -2545,7 +2558,7 @@ function wStep(dx,dy){
  if(t.chest){W.path=[];wChest(t.chest);return;}
  if(t.block){W.path=[];return;}
  W.px=W.hx;W.py=W.hy;W.hx=nx;W.hy=ny;W.moving=true;W.mt=performance.now();W.fx=W.px;W.fy=W.py;
- const p=P();p.wpos={x:nx,y:ny};
+ const p=P();p.wpos={x:nx,y:ny};footstep(t);
  setTimeout(()=>{W.moving=false;const m=W.mobs.find(m=>m.x===W.hx&&m.y===W.hy);if(m){wFight(m);return;}
   if(window.trollCheck&&trollCheck(W.T[W.hy][W.hx])){W.path=[];return;}
   if(W.path.length){const [x,y]=W.path.shift();wStep(x-W.hx,y-W.hy);}},140);
