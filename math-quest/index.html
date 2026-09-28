@@ -671,6 +671,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .upd-dots{margin-top:14px}.upd-dots span{display:inline-block;width:12px;height:12px;margin:0 5px;border-radius:50%;background:#ffd43b;animation:updb 1s infinite}.upd-dots span:nth-child(2){animation-delay:.15s}.upd-dots span:nth-child(3){animation-delay:.3s}
 @keyframes updb{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-8px);opacity:1}}
 #updBar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9000;border:0;border-radius:999px;padding:12px 20px;font:inherit;font-weight:800;font-size:17px;background:#ffd43b;color:#3d2a00;box-shadow:0 5px 0 #b08900,0 8px 20px rgba(0,0,0,.3);cursor:pointer;max-width:calc(100% - 24px)}
+.joinbox{max-width:520px;margin:18px auto 6px;background:rgba(255,255,255,.95);color:var(--ink);border-radius:20px;padding:14px 18px;box-shadow:0 4px 0 rgba(0,0,0,.2);text-align:center}.joinbox .jb-h{font-size:21px;font-weight:700}.joinbox p{margin:6px 0;font-size:16px}.joinbox .row{justify-content:center;flex-wrap:wrap;gap:8px}.joinbox .inp{max-width:300px;text-transform:uppercase;text-align:center}.joinbox .muted{opacity:.7;font-size:14px}
 </style>
 </head>
 <body>
@@ -1315,6 +1316,7 @@ SCREENS.profiles=()=>{
  <h2 class="title">Who's playing?</h2>
  <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?(tbOn(p)&&tbState(p).locked?'😴 On a break':(petOf(p)?petOf(p).e+' ':'')+'Tap to play'+(p.lock?' 🔒':'')):'New hero!'}</div></button>`).join('')}
  <button class="pcard add" onclick="go('create')"><div class="plus">＋</div><div class="pname">New Hero</div><div class="plv">Add a player</div></button></div>
+ ${!state.players.length&&!cloud.code?`<div class="joinbox"><div class="jb-h">☁️ Already play on another device?</div><p>Type your family code to bring your heroes here. (It's in the Parent Corner on your other device, under Online save.)</p><div class="row"><input id="joinCode0" class="inp" placeholder="TIGER-PLUM-ROCKET-KITE-42" autocapitalize="characters" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')joinFamily(this.value,true)"><button class="btn green" onclick="joinFamily($('#joinCode0').value,true)">Join</button></div><p class="muted">New here? Just tap <b>New Hero</b> above.</p></div>`:''}
  <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button> <button class="btn ghost small" onclick="window.Music?Music.menu():toggleSound()">${state.sound?'🔊 Sound':'🔇 Sound off'}</button><div class="note" id="cloudBadge" style="margin-top:8px">${cloudBadgeText()}</div></div></div>`;
 };
 const PICS=['🐶','🐱','🦊','🐸','🦄','🐙','🚀','🍕','⚽'];
@@ -4014,7 +4016,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28l';
+const APP_VER='2026.09.28m';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
