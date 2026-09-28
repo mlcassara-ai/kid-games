@@ -2237,7 +2237,7 @@ SCREENS.backpack=()=>{
   ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards</h3><div class="awards">${p.awards.slice().reverse().map(a=>`<div class="award"><b>🏅 ${esc(a.t)}</b><small>${esc(niceDate(a.d))}</small></div>`).join('')}</div></div>`:''}
   <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(poss(pet.name))} home (feed, play &amp; pet shop)</button>`:''}
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
-   ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs})</button>`:''}
+   ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs}) · Epic or Legendary pet!</button>`:''}
    ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="muted" style="margin-bottom:6px">Pets found: <b>${regHave(p)} / ${REG_PETS.length}</b></div>
    ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}
@@ -2352,7 +2352,7 @@ SCREENS.pethome=()=>{
    <div class="muted" style="margin-top:4px">Tap ${esc(pet.name)} to give a pat!</div>
    <div class="phstats">
     <div><b>${st.n}</b> ${esc(pet.name)} · ${PERKS[pet.perk]}</div>
-    <div class="pxp"><i style="width:${nx?pct:(()=>{const li=petLvInfo(pd);return Math.round(li.into/li.need*100);})()}%"></i></div><div class="muted">${nx?`${Math.floor(pd.xp)} / ${nx.xp} pet XP to become <b>${nx.n}</b>`:(()=>{const li=petLvInfo(pd);return `🌟 <b>Legendary Lv ${li.lv}</b> · ${Math.floor(li.into)} / ${li.need} XP to Lv ${li.lv+1}. Every level makes pet moves stronger!`;})()}</div>
+    <div class="pxp"><i style="width:${nx?pct:(()=>{const li=petLvInfo(pd);return Math.round(li.into/li.need*100);})()}%"></i></div><div class="muted">${nx?`${Math.floor(pd.xp)} / ${nx.xp} pet XP to become <b>${nx.n}</b>`:(()=>{const li=petLvInfo(pd);return `🌟 <b>Mighty Lv ${li.lv}</b> · ${Math.floor(li.into)} / ${li.need} XP to Lv ${li.lv+1}. Every level makes pet moves stronger!`;})()}</div>
     <div class="mood"><span>Tummy</span><span>${pips(pd.food,'🍗')}</span></div>
     <div class="mood"><span>Happy</span><span>${pips(pd.joy,'💖')}</span></div>
     <div class="muted">${petMovesMax(pd)?`🐾 Battle move: <b>${PET_MOVES[pet.id]||'Pet Attack'}</b> (${petMovesMax(pd)}× per battle)${petHappy(pd)?' · 😊 Happy bonus: extra strong!':''}`:`🐾 When ${esc(pet.name)} becomes <b>Big</b>, it learns a battle move!`}</div>
@@ -2861,7 +2861,23 @@ const CAFE_READ=[
  {t:'Picnic lunch! A peanut butter sandwich, a bunch of purple grapes, cucumber slices, and a carton of milk.',q:'What color are the grapes?',c:['green','red','purple','blue'],a:2,why:'The story says "purple grapes". Good reading!'},
  {t:'Fish sticks are on the menu today, with brown rice, steamed broccoli, and apple slices.',q:'Which word tells how the broccoli was cooked?',c:['steamed','brown','apple','sticks'],a:0,why:'"Steamed" tells how the broccoli was cooked.'},
  {t:'For the class party, Ms. Rosa made a fruit salad with melon, blueberries, and kiwi. Everyone also got one small cupcake.',q:'How many cupcakes did each student get?',c:['none','one','two','a dozen'],a:1,why:'"Everyone also got one small cupcake."'}];
+/* older kids (grade 6+): inference, vocabulary and reading nutrition labels */
+const CAFE_READ_UP=[
+ {t:'Ms. Rosa noticed that most students skipped the steamed spinach, so she started mixing it into the pasta sauce instead. By Friday, the pasta trays came back empty.',q:'What can you infer from the passage?',c:['Students ate the spinach when it was mixed into the sauce','Students stopped eating pasta','Spinach was taken off the menu','The pasta was served cold'],a:0,why:'The trays came back empty after she mixed the spinach into the sauce, so students ate it that way.'},
+ {t:'The school garden produced a surplus of zucchini this fall — far more than the cafeteria could cook — so the extra was donated to a local food bank.',q:'In this passage, "surplus" means…',c:['an amount that is more than needed','a kind of vegetable','a shortage','a garden tool'],a:0,why:'The clue is "far more than the cafeteria could cook." A surplus is extra.'},
+ {t:'Some students claim chocolate milk is just as healthy as plain milk. Both have calcium and protein, but a cup of chocolate milk usually has about 10 more grams of added sugar.',q:'Which statement is best supported by the text?',c:['Plain milk has less added sugar than chocolate milk','Chocolate milk has no calcium','Plain milk has no protein','Both milks have the same amount of sugar'],a:0,why:'The passage says chocolate milk has about 10 more grams of added sugar.'},
+ {t:'Before the new salad bar opened, only 1 in 5 students chose a vegetable at lunch. A month later, 2 in 5 students did.',q:'What happened to the share of students choosing a vegetable?',c:['It doubled','It was cut in half','It stayed the same','It tripled'],a:0,why:'1 in 5 became 2 in 5 — twice as many.'},
+ {t:'The menu calls the soup "hearty," "savory," and "loaded with garden vegetables."',q:'Why does the menu use words like "hearty" and "savory"?',c:['To persuade people to order the soup','To give the price','To explain how to cook it','To warn about allergies'],a:0,why:'Positive, descriptive words are used to persuade.'},
+ {t:'Whole grains keep the bran and germ of the seed. Refined grains have those parts removed, which also removes much of the fiber.',q:'According to the passage, why do whole grains have more fiber?',c:['They keep the bran and germ','They are cooked longer','They have added sugar','They are grown in gardens'],a:0,why:'Much of the fiber is in the bran and germ, and whole grains keep them.'},
+ {t:'Ms. Rosa compared two recipes. Recipe A feeds 8 people with 2 pounds of rice. Recipe B feeds 12 people with 3 pounds of rice.',q:'What is true about the two recipes?',c:['They use the same amount of rice per person','Recipe A uses more rice per person','Recipe B uses more rice per person','You cannot compare them'],a:0,why:'Both work out to 1/4 pound of rice per person.'},
+ {t:'"Eat the rainbow" is a saying that encourages people to eat fruits and vegetables of many colors, because different colors often come from different vitamins and plant nutrients.',q:'What is the main idea?',c:['Eating many colors of produce gives you a variety of nutrients','Rainbows appear after rain','Only red foods are healthy','Vitamins are a kind of color'],a:0,why:'The saying is about variety: different colors, different nutrients.'}];
 const CAFE_FUEL=[
+ {q:'A nutrition label says 1 serving = 1 cup, and the bag holds 3 cups. How many servings are in the bag?',c:['3','1','6'],a:0,why:'3 cups ÷ 1 cup per serving = 3 servings.',g:6},
+ {q:'On a nutrition label, a nutrient with 5% Daily Value or less is considered…',c:['Low','High'],a:0,why:'5% DV or less is low; 20% DV or more is high.',g:6},
+ {q:'Which nutrient is the body\'s main source of quick energy?',c:['Carbohydrates','Calcium','Vitamin C'],a:0,why:'Carbohydrates break down into glucose, the body\'s main fuel.',g:6},
+ {q:'Why is fiber good for you?',c:['It helps digestion and keeps you full longer','It makes food taste sweet','It gives you instant energy'],a:0,why:'Fiber isn\'t fully digested, which helps your gut and keeps you full.',g:6},
+ {q:'Eating too much sodium (salt) over time can raise your…',c:['Blood pressure','Height','Eyesight'],a:0,why:'Diets high in sodium are linked to higher blood pressure.',g:6},
+ {q:'Which food is a complete protein (has all the essential amino acids)?',c:['Eggs','Apple','Plain white rice'],a:0,why:'Eggs contain all the essential amino acids your body needs.',g:6},
  {q:'Which snack gives you longer-lasting energy before a big boss battle?',c:['🍎 Apple + peanut butter','🍬 Candy'],a:0,why:'Fruit plus protein keeps your energy up longer. Candy is fine as a treat once in a while!'},
  {q:'After running around at recess, what\'s the best drink?',c:['💧 Water','🥤 Soda'],a:0,why:'Water is the best way to cool down and feel great.'},
  {q:'Which breakfast will keep you full until lunch?',c:['🥣 Oatmeal with fruit','🍩 A donut'],a:0,why:'Oatmeal and fruit give you slow, steady energy all morning.'},
@@ -2898,9 +2914,10 @@ function cafeMoneyQ(p){const g=p.grade||3;
  const a=items[0],b=items[2],c=items[3];const tot=a.pr+b.pr+c.pr;return {kind:'num',money:true,menu:items,q:`You buy the ${a.n.toLowerCase()}, the ${b.n.toLowerCase()} and the ${c.n.toLowerCase()} for you AND your friend (2 of each). What is the total?`,pre:'$ ',post:'',a:tot*2/100,hint:`One of each: $${cents2(tot/100)}. Then × 2.`};}
 function cafeStart(){const p=P();const pk=(arr,n)=>[...arr].sort(()=>Math.random()-.5).slice(0,n);
  const foods=[...pk(CAFE_FOODS.veg,3).map(f=>[...f,'veg']),...pk(CAFE_FOODS.fruit,3).map(f=>[...f,'fruit']),...pk(CAFE_FOODS.grain,2).map(f=>[...f,'grain']),...pk(CAFE_FOODS.prot,2).map(f=>[...f,'prot']),...pk(CAFE_FOODS.treat,1).map(f=>[...f,'treat'])].sort(()=>Math.random()-.5);
- const g=p.grade||3;const rd=pick(CAFE_READ);const fuel=pick(CAFE_FUEL.filter(x=>!x.g||g>=x.g));
+ const g=p.grade||3;const rd=pick(g>=6?CAFE_READ_UP:CAFE_READ);const fuel=pick(g>=6?CAFE_FUEL.filter(x=>x.g>=6):CAFE_FUEL.filter(x=>!x.g||g>=x.g));
  CAFE={step:0,foods,plate:{veg:[],fruit:[],grain:[],prot:[]},drink:null,stars:0,tries:0,input:'',msg:'',
-  qs:[cafeMathQ(p),cafeMoneyQ(p),{kind:'mc',read:rd.t,q:rd.q,c:rd.c,a:rd.a,why:rd.why},{kind:'mc',q:fuel.q,c:fuel.c,a:fuel.a,why:fuel.why}]};}
+  qs:[cafeMathQ(p),cafeMoneyQ(p),Object.assign({kind:'mc',read:rd.t,q:rd.q,why:rd.why},cafeMix(rd.c,rd.a)),Object.assign({kind:'mc',q:fuel.q,why:fuel.why},/^Fact or opinion/.test(fuel.q)?{c:fuel.c,a:fuel.a}:cafeMix(fuel.c,fuel.a))]};}
+function cafeMix(c,a){const o=c.map((x,i)=>[x,i]).sort(()=>Math.random()-.5);return {c:o.map(x=>x[0]),a:o.findIndex(x=>x[1]===a)};} // shuffle the choices so the right answer moves around
 function rosaSVG(){return `<svg class="rosa-svg" viewBox="0 0 200 210" aria-label="Ms. Rosa the lunch lady">
 <path d="M40 210 Q38 150 70 136 L130 136 Q162 150 160 210Z" fill="#4dabf7"/><path d="M70 150 L130 150 L136 210 L64 210Z" fill="#fff"/><path d="M70 150 Q100 162 130 150" stroke="#e9ecef" stroke-width="3" fill="none"/>
 <circle cx="100" cy="182" r="12" fill="#ff6b6b"/><path d="M100 170 q4 -8 10 -8" stroke="#2f9e44" stroke-width="3" fill="none"/>
@@ -3562,7 +3579,7 @@ const QCHAINS={
   {t:'Helpful Pet',type:'petpts',n:30,d:'Your pets earn 30 Pet Champion points.',r:{coins:120}},
   {t:'Pet Pampering',type:'petcare',n:5,d:'Feed or play with your pet 5 times.',r:{coins:120,food:'cake'}},
   {t:'Battle Buddies',type:'petmove',n:10,d:'Use pet moves 10 times.',r:{coins:200}},
-  {t:'Legendary Bond',type:'petlv',n:1,max:true,d:'Grow any pet to Legendary Lv 1.',r:{coins:300,eggs:1}}],
+  {t:'Mighty Bond',type:'petlv',n:1,max:true,d:'Grow any pet all the way to Mighty (Lv 1).',r:{coins:300,eggs:1}}],
  rosa:[{t:'Lunch Time',type:'lunch',n:1,d:'Finish a lunch order in the Cafeteria.',r:{coins:80}},
   {t:'Balanced Plate',type:'lstars',n:3,d:'Earn 3 lunch stars.',r:{coins:100}},
   {t:'Money Smart',type:'rightop',op:'money',n:20,d:'Get 20 Money problems right.',r:{coins:150}},
@@ -3648,10 +3665,10 @@ const CONTENT=window.MQ_CONTENT||{kids:{},byGrade:{},quizzes:{}};
 const SPELL_ZONE={id:'spell',name:'Spelling Grove',op:'spell',sym:'Aa',cls:'z-spell',art:'📜',decor:['📜','✏️','🔤','📖','🍃'],
  mons:[['Letter Bug','🐞'],['Typo Toad','🐸'],['Scrambler','🦝'],['Vowel Vole','🐭'],['Quill Parrot','🦜'],['Grand Owl of Words','🦉']]};
 const findZone=id=>id==='spell'?SPELL_ZONE:ZONES.find(x=>x.id===id);
-function kidData(p){let k=(p.name||'').toLowerCase().trim();const K=CONTENT.kids||{};if(p.ckey&&K[p.ckey])k=p.ckey;else if(K[k])p.ckey=k;const byG=CONTENT.byGrade||{};return K[k]||byG[p.grade<=3?'3':'5']||byG['3']||{};}
+function kidData(p){let k=(p.name||'').toLowerCase().trim();const K=CONTENT.kids||{};if(p.ckey&&K[p.ckey])k=p.ckey;else if(K[k])p.ckey=k;const byG=CONTENT.byGrade||{};const g=p.grade||3,band=g<=1?'1':g===2?'2':g===3?'3':g<=6?'5':g<=8?'7':'10';return K[k]||byG[band]||byG[g<=3?'3':'5']||byG['3']||{};}
 function spellSchool(p){if(p.customWords&&p.customWords.length)return p.customWords;const s=kidData(p).spelling;return (s&&s.words)||[];}
 const BANK_PACK=20,BANK_UNLOCK=15;
-function bankPacks(p){const bank=((CONTENT.wordBank||{})[(p.grade||3)<=3?'3':'5'])||[];const have=new Set(spellSchool(p).map(x=>x.w.toLowerCase()));const list=bank.filter(x=>!have.has(x.w.toLowerCase()));const out=[];for(let i=0;i<list.length;i+=BANK_PACK)out.push(list.slice(i,i+BANK_PACK));return out;}
+function bankPacks(p){const WB=CONTENT.wordBank||{},g=p.grade||3;const bank=(g<=3?WB['3']:g>=7?(WB['7']||WB['5']):WB['5'])||[];const have=new Set(spellSchool(p).map(x=>x.w.toLowerCase()));const list=bank.filter(x=>!have.has(x.w.toLowerCase()));const out=[];for(let i=0;i<list.length;i+=BANK_PACK)out.push(list.slice(i,i+BANK_PACK));return out;}
 function packsOpen(p){const pk=bankPacks(p);let n=pk.length?1:0;while(n<pk.length&&pk[n-1].filter(x=>learned(p,x.w)).length>=Math.min(BANK_UNLOCK,pk[n-1].length))n++;return n;}
 function spellBank(p){return bankPacks(p).slice(0,packsOpen(p)).flat();}
 function spellList(p){return spellSchool(p).concat(spellBank(p));}
@@ -3850,15 +3867,15 @@ function clearWords(id){const p=state.players.find(x=>x.id===id);p.customWords=n
 /* ================= pet buddies: earned at levels, limited hints ================= */
 const PET_LEVELS=[2,4,6,8,10];
 const HINT_CHARGE=8;                       // right answers to earn back one hint
-const PET_STAGES=[{n:'Baby',xp:0,max:1},{n:'Big',xp:15,max:2},{n:'Grown-up',xp:45,max:3},{n:'Legendary',xp:120,max:3}];
+const PET_STAGES=[{n:'Baby',xp:0,max:1},{n:'Big',xp:15,max:2},{n:'Grown-up',xp:45,max:3},{n:'Mighty',xp:120,max:3}]; /* last growth stage was called 'Legendary' — renamed so it isn't confused with the Legendary pet tier */
 const PET_PTS={c:1,hp:1,xp:1,dmg:.5,egg:25,hint:5};
 function petCredit(p,k,n){const pet=petOf(p);if(!pet||!n)return;questEvent(p,'petpts',n*PET_PTS[k]);const pd=petData(p,pet.id);pd.st=pd.st||{};pd.st[k]=(pd.st[k]||0)+n;pd.wk=pd.wk||{};const wk=weekKey();pd.wk[wk]=Math.round(((pd.wk[wk]||0)+n*PET_PTS[k])*10)/10;const ks=Object.keys(pd.wk).sort();if(ks.length>8)delete pd.wk[ks[0]];}
 function petPower(pd){const s=(pd&&pd.st)||{};return Math.round(Object.keys(PET_PTS).reduce((a,k)=>a+(s[k]||0)*PET_PTS[k],0));}
 function petData(p,id){p.petData=p.petData||{};if(!p.petData[id])p.petData[id]={xp:0,hints:1,charge:0};return p.petData[id];}
-/* endless pet levels after Legendary: each level needs a little more XP */
+/* endless pet levels after Mighty: each level needs a little more XP */
 function petLvInfo(pd){const top=PET_STAGES[PET_STAGES.length-1].xp;if(!pd||pd.xp<top)return {lv:0,into:0,need:50};let x=pd.xp-top,l=1,need=50;while(x>=need){x-=need;l++;need+=10;}return {lv:l,into:x,need};}
 const petLv=pd=>petLvInfo(pd).lv;
-function petLvCheck(p,pet,before){const pd=petData(p,pet.id);const now=petLv(pd);if(now>0)questEvent(p,'petlv',now);if(now>before){setTimeout(()=>{if(curScreen==='battle'&&B&&!B.over)banner(`${pet.e} ${pet.name} is now Lv ${now}!`);toast(`🌟 ${pet.e} ${pet.name} reached Legendary Lv ${now}! Pet moves hit a little harder.`);SFX.level();},900);}}
+function petLvCheck(p,pet,before){const pd=petData(p,pet.id);const now=petLv(pd);if(now>0)questEvent(p,'petlv',now);if(now>before){setTimeout(()=>{if(curScreen==='battle'&&B&&!B.over)banner(`${pet.e} ${pet.name} is now Lv ${now}!`);toast(`🌟 ${pet.e} ${pet.name} reached Mighty Lv ${now}! Pet moves hit a little harder.`);SFX.level();},900);}}
 function petStage(pd){let s=PET_STAGES[0];PET_STAGES.forEach(x=>{if(pd.xp>=x.xp)s=x;});return s;}
 function petMeter(pd){const st=petStage(pd);let m='';for(let i=0;i<st.max;i++)m+=i<pd.hints?'💡':'<span class="dimbulb">💡</span>';return m;}
 function petMilestones(p){p.petMs=p.petMs||[];const due=PET_LEVELS.filter(l=>p.level>=l&&!p.petMs.includes(l));p.pendingPets=due.length;return due;}

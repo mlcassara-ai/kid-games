@@ -175,7 +175,7 @@ const CSS=`
 .tr-body{animation:trbreathe 3.2s ease-in-out infinite;transform-origin:210px 520px}@keyframes trbreathe{50%{transform:scaleY(1.025)}}
 .tr-head{animation:trhead 4s ease-in-out infinite;transform-origin:210px 220px}@keyframes trhead{50%{transform:rotate(-2deg)}}
 .tr-eyes{animation:trteyes 5s infinite;transform-origin:210px 118px}@keyframes trteyes{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
-.tr-brow-kind{display:none}.tr-kind .tr-brow-kind{display:inline}.tr-kind .tr-brow-angry{display:none}
+.tr-brow-kind{display:none}.tr-kind .tr-brow-kind,.tr-soft .tr-brow-kind{display:inline}.tr-soft .tr-brow-angry{display:none}.tr-kind .tr-brow-angry{display:none}
 .tr-drool{animation:trdrool 2.6s ease-in infinite;transform-origin:262px 204px}@keyframes trdrool{0%,40%{transform:scaleY(.2);opacity:0}70%{transform:scaleY(1.3);opacity:.9}100%{transform:translateY(40px) scaleY(.5);opacity:0}}
 .tr-eyesdark{position:absolute;left:12%;top:14%;width:130px;display:flex;justify-content:space-between;z-index:3;animation:trteyes 4s infinite}.tr-eyesdark i{width:34px;height:22px;border-radius:50%;background:radial-gradient(#fff7a0,#ffb000 55%,#ff5a00);box-shadow:0 0 22px 6px rgba(255,160,0,.6)}
 .tr-mopen{display:none}.tr-talk .tr-mopen{display:inline;animation:trjaw .22s infinite alternate}.tr-talk .tr-mclosed{display:none}
@@ -232,22 +232,41 @@ async function start(){
  root=el('<div class="tr-root"><div class="tr-fade on"></div></div>');document.body.appendChild(root);
  if(DEMO&&DEMO_AGAIN&&!t.visits)t.visits=1;
  const first=!t.visits||(!!DEMO&&!DEMO_AGAIN);
+ const young=first&&(p.grade||3)<=2; // grades 1–2 get a gentler, sillier first meeting (no scary roar, no fainting)
  if(!first){const sk=el('<button class="tr-skip">Skip ▸▸</button>');sk.onclick=()=>{skip=true;sk.remove();};root.appendChild(sk);}
  const fade=root.querySelector('.tr-fade');
  // 1. trap door + fall
  snd(300,.15,'square',.06);await sleep(skip?0:500);
- const fall=el(`<div class="tr-scene"><div class="tr-shaft"></div>${Array.from({length:7},(_,i)=>`<i class="tr-rock" style="left:${20+i*9}%;animation-delay:${i*.13}s;animation-duration:${.6+i%3*.2}s"></i>`).join('')}<div class="tr-faller">${heroHTML(p)}</div><div class="tr-big tr-aah">${first?'AAAAAAHHH!':'NOT AGAIN!'}</div></div>`);
+ const fall=el(`<div class="tr-scene"><div class="tr-shaft"></div>${Array.from({length:7},(_,i)=>`<i class="tr-rock" style="left:${20+i*9}%;animation-delay:${i*.13}s;animation-duration:${.6+i%3*.2}s"></i>`).join('')}<div class="tr-faller">${heroHTML(p)}</div><div class="tr-big tr-aah">${young?'WHEEEE!':first?'AAAAAAHHH!':'NOT AGAIN!'}</div></div>`);
  root.appendChild(fall);fade.classList.remove('on');
  for(let i=0;i<8&&!skip;i++){snd(700-i*70,.25,'triangle',.05);await sleep(330);}
  fade.classList.add('on');await sleep(skip?0:500);fall.remove();
  // 2. THUMP
  snd(60,.5,'square',.2);snd(45,.6,'sine',.25,.05);
- const th=el('<div class="tr-scene"><div class="tr-big tr-thump">THUMP!</div></div>');root.appendChild(th);root.classList.add('tr-shake');fade.classList.remove('on');
+ const th=el(`<div class="tr-scene"><div class="tr-big tr-thump">${young?'BOING! 🍄':'THUMP!'}</div></div>`);root.appendChild(th);if(!young)root.classList.add('tr-shake');fade.classList.remove('on');
  await sleep(skip?0:1300);root.classList.remove('tr-shake');fade.classList.add('on');await sleep(skip?0:600);th.remove();
  // build the cave stage (dark)
  const stage=el(`<div class="tr-stage">${CAVE}<div class="tr-trollbox hidden">${TROLL}</div><div class="tr-herobox">${heroHTML(p)}</div><div class="tr-cage"></div><div class="tr-dark"></div><div class="tr-flash"></div><div class="tr-bubble" style="display:none"></div></div>`);
  const bub=stage.querySelector('.tr-bubble'),dark=stage.querySelector('.tr-dark'),tbox=stage.querySelector('.tr-trollbox'),hbox=stage.querySelector('.tr-herobox'),cage=stage.querySelector('.tr-cage');
- if(first){
+ if(young){
+  // gentle version for the youngest heroes: a soft landing, a sleepy troll, a silly play-cage
+  const bl=el('<div class="tr-scene"><div class="tr-blink"><i></i><i></i></div></div>');root.appendChild(bl);fade.classList.remove('on');
+  await tapWait('…','<p>You landed on a big, soft pile of <b>mushrooms</b>! 🍄</p><p>It\'s dark in here. You blink and blink…</p>');
+  bl.appendChild(el('<div class="tr-eyesdark"><i></i><i></i></div>'));
+  await tapWait('🤔','<p>You hear a funny sound… <b>*snore*… *snore*…</b></p><p>Two sleepy eyes blink open in the dark.</p>');
+  await tapWait('🪄 Cast the light spell!','<p>You know a magic spell that makes <b>LIGHT!</b> Let\'s see who is there!</p>','gold');
+  bl.remove();
+  stage.classList.add('tr-soft');tbox.classList.add('tr-behind');stage.classList.add('tr-bleft');root.appendChild(stage);const fl=stage.querySelector('.tr-flash');snd(880,.4,'triangle',.1);snd(1320,.5,'triangle',.08,.1);fl.classList.add('on');await sleep(700);dark.classList.add('lit');tbox.classList.remove('hidden');await sleep(500);fl.classList.remove('on');
+  await sleep(700);stage.classList.add('tr-talk');bub.style.display='';bub.innerHTML=`<b class="tr-name">🧌 ???</b><span style="font-size:1.2em">*YAAAAWN*… Oh! A visitor!</span>`;await sleep(1800);stage.classList.remove('tr-talk');
+  await tapWait('😮','<p>It\'s a big, grumbly <b>TROLL</b>… with a very silly nose!</p>');
+  bub.style.display='none';
+  tbox.style.transition='none';tbox.classList.remove('tr-behind');stage.classList.remove('tr-bleft');void tbox.offsetWidth;tbox.style.transition='';
+  cage.classList.add('on');snd(500,.15,'triangle',.06);
+  await tapWait('🙃','<p><b>Clink!</b> A little gate closes around you. It\'s the troll\'s play-cage!</p>');
+  bub.style.display='';
+  await say(bub,`HAR HAR! I am ${TNAME}, and this is MY cave! You can't go home yet…`,900);
+  await say(bub,'…not until you answer my THREE QUESTIONS! Just you — no help!',600);
+ }else if(first){
   // 3. dark & blinking
   const bl=el('<div class="tr-scene"><div class="tr-blink"><i></i><i></i></div></div>');root.appendChild(bl);fade.classList.remove('on');
   await tapWait('…','<p>Ow… 😵 Where am I?</p><p>It\'s so dark you can\'t see <b>anything</b>. You blink and blink…</p>');
