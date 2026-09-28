@@ -43,7 +43,7 @@ function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;
   step++;if(step%8===0)bar++;nextT+=beat;}}
 function choice(p){return (p&&p.music)||'auto';}
 function trackFor(p){const c=choice(p);if(c==='off')return null;if(c==='stars')return 'stars';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'meadow':'dusk';}
-function mVol(){try{return state.musicVol==null?70:state.musicVol;}catch(e){return 70;}}
+function mVol(){try{return state.musicVol==null?30:state.musicVol;}catch(e){return 30;}}
 function lvl(){const g=window.volGain?volGain(mVol()):mVol()/70;return LEVEL*g;}
 function fadeTo(v,s){if(!AC)return;const now=AC.currentTime;master.gain.cancelScheduledValues(now);master.gain.setValueAtTime(master.gain.value,now);master.gain.linearRampToValueAtTime(v,now+s);}
 function start(id){if(!init())return;if(AC.state==='suspended')AC.resume();
@@ -74,7 +74,7 @@ function vol(k,v,done){v=Math.round(+v/5)*5;const lab=document.getElementById('s
  if(k==='fx'){const was=state.sound!==false;state.fxVol=v;state.sound=v>0;  if(v>0&&Date.now()-lastPing>180){lastPing=Date.now();try{SFX.tap();}catch(e){}}
   if(done&&was!==state.sound&&typeof curScreen!=='undefined'&&!['world','battle','cave','inner'].includes(curScreen)){const y=window.scrollY;go(curScreen,curArg);window.scrollTo(0,y);}}
  else{state.musicVol=v;if(AC&&playing){const now=AC.currentTime;master.gain.cancelScheduledValues(now);master.gain.setTargetAtTime(lvl(),now,.15);}if(done)update();}
- if(done)save();}
+ if(done){try{window.rememberHeroSound&&rememberHeroSound();}catch(e){}save();}}
 function menu(){modal(`<div class="mcard snd-card">${panel('map')}<div class="row"><button class="btn green big" onclick="closeModal()">Done</button></div></div>`);}
 /* the Sound panel. where='map' (main game) or 'cave' (Dr. Quartz's cave): same sliders, but the music choices match the place you're in */
 function panel(where){const p=typeof P==='function'&&state&&state.cur?P():null;const c=choice(p);
