@@ -1229,7 +1229,8 @@ setInterval(()=>{try{const p=state&&state.cur&&P();if(!p||!p.setup)return;
  const before=tbState(p).bank;const T=tbTick(p,active);
  state.players.forEach(o=>{if(o!==p&&o.tb)tbTick(o,false);});
  if(active){if(before>10&&T.bank<=10)toast(`⏳ 10 minutes of play left, ${p.name}!`);else if(before>2&&T.bank<=2)toast('⏳ 2 minutes left! Finish up your battle.');}
- if(T.locked&&curScreen!=='battle'&&!TB_FREE.includes(curScreen)){closeModal();go('rest');}
+ if(!tbOn(p)&&T.locked){T.locked=false;T.bank=tbCap(p);} // play limit is off: clear any old break so it can't bounce the kid around
+ if(tbOn(p)&&T.locked&&curScreen!=='battle'&&!TB_FREE.includes(curScreen)){closeModal();go('rest');}
  const c=document.getElementById('tbChip');if(c)c.textContent=tbOn(p)?`⏳ ${tbLeft(p)}m`:'';
  if(active)p.upd=Date.now(); // this device is where this kid is playing right now
  tbSaves=(tbSaves+1)%4;if(!tbSaves||T.locked)save();}catch(e){}},15000);let tbSaves=0;
@@ -2508,7 +2509,7 @@ SCREENS.world=()=>{
  const cv=$('#wcv');wResize();
  cv.addEventListener('pointerdown',wTap);
  document.querySelectorAll('.dpad button').forEach(b=>{const [dx,dy]=b.dataset.d.split(',').map(Number);let iv=null;
-  const start=e=>{e.preventDefault();W.path=[];wStep(dx,dy);clearInterval(iv);iv=setInterval(()=>{if(curScreen!=='world'){clearInterval(iv);return;}if(!W.moving)wStep(dx,dy);},60);};
+  const start=e=>{e.preventDefault();W.path=[];W.viaPad=true;wStep(dx,dy);clearInterval(iv);iv=setInterval(()=>{if(curScreen!=='world'){clearInterval(iv);return;}if(!W.moving)wStep(dx,dy);},60);};
   const stop=()=>{clearInterval(iv);iv=null;};b.addEventListener('pointerdown',start);b.addEventListener('pointerup',stop);b.addEventListener('pointerleave',stop);b.addEventListener('pointercancel',stop);});
  setTimeout(()=>{const h=$('#whelp');if(h)h.classList.add('fade');},5000);
  cancelAnimationFrame(W.raf);W.raf=requestAnimationFrame(wFrame);
@@ -2522,7 +2523,7 @@ function wResize(){const cv=$('#wcv');if(!cv)return;const box=$('#world').getBou
 window.addEventListener('resize',()=>{if(curScreen==='world'&&W)wResize();});
 function wCam(){const ts=W.ts;let cx=W.drawX*ts+ts/2-W.vw/2,cy=W.drawY*ts+ts/2-W.vh/2;cx=clamp(cx,0,Math.max(0,WCOLS*ts-W.vw));cy=clamp(cy,0,Math.max(0,WROWS*ts-W.vh));return [cx,cy];}
 function wTap(e){const cv=$('#wcv');const r=cv.getBoundingClientRect();const [cx,cy]=wCam();const x=Math.floor((e.clientX-r.left+cx)/W.ts),y=Math.floor((e.clientY-r.top+cy)/W.ts);
- if(x<0||y<0||x>=WCOLS||y>=WROWS)return;W.path=wPathTo(x,y);if(!W.path.length){const t=W.T[y][x];if(Math.abs(x-W.hx)+Math.abs(y-W.hy)===1)wStep(x-W.hx,y-W.hy);else if(t.block)toast('You can\'t walk there!');}
+ if(x<0||y<0||x>=WCOLS||y>=WROWS)return;W.viaPad=false;W.path=wPathTo(x,y);if(!W.path.length){const t=W.T[y][x];if(Math.abs(x-W.hx)+Math.abs(y-W.hy)===1)wStep(x-W.hx,y-W.hy);else if(t.block)toast('You can\'t walk there!');}
  else{wMark(x,y);if(!W.moving){const [nx,ny]=W.path.shift();wStep(nx-W.hx,ny-W.hy);}}}
 function wMark(x,y){W.mark={x,y,t:performance.now()};}
 function wPathTo(tx,ty){
@@ -3177,7 +3178,7 @@ function npcQuestCard(p,k,cont){const a=qState(p).active[k],d=qDef(a.c,a.i),N=QN
 function npcQuestGate(npcId,cont){const p=P();const k=npcQuestIdx(p,npcId);if(k<0||!qState(p).active[k].done)return false;const a=qState(p).active[k],N=QNPC[a.c];
  modal(`<div class="mcard"><div class="big-emoji">${N.e}</div><h2>${N.n}: "You did it!"</h2><p>You finished my quest, ${esc(p.name)}. Here's your reward!</p>${npcQuestCard(p,k,cont)}</div>`);return true;}
 function wNpc(id){const p=P();
- if(id==='school'){go('map');return;}
+ if(id==='school'){if(W&&W.viaPad){W.path=[];modal(`<div class="mcard"><div class="big-emoji">🌀</div><h2>The Quest Portal</h2><p>Go to the Quest Realms?</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green big" onclick="closeModal();go('map')">🌀 Go!</button></div></div>`);return;}go('map');return;} // bumping it with the arrow pad asks first
  if(id==='shop'){go('backpack');return;}
  if(id==='pets'){if(npcQuestGate('pets',"go('pethome')"))return;go('pethome');return;}
  if(id==='spin'){openSpin();return;}
@@ -3651,7 +3652,7 @@ function refreshParent(anchorId,flash){
 }
 function adjLevel(id,op,d){const p=state.players.find(x=>x.id===id);const L=lvl(p,op),to=clamp(L+d,1,maxLv(op));if(to===L)return;applyLevel(p,op,to);p.recent[op]=[];save();refreshParent(`lv-${id}-${op}`,true);}
 function tbSet(id,k,v){const p=state.players.find(x=>x.id===id);const T=tbState(p);tbTick(p,false);
- if(k==='on')p.tbOn=!!v;else if(k==='min'){p.tbMin=+v;T.bank=Math.min(T.bank,+v);}else if(k==='add'){T.bank=Math.max(0,T.bank)+(+v);T.bonus=Math.max(0,T.bank-tbCap(p));T.locked=false;}else if(k==='full'){T.bank=tbCap(p);T.locked=false;}
+ if(k==='on'){p.tbOn=!!v;if(!v){T.locked=false;T.bank=tbCap(p);}}else if(k==='min'){p.tbMin=+v;T.bank=Math.min(T.bank,+v);}else if(k==='add'){T.bank=Math.max(0,T.bank)+(+v);T.bonus=Math.max(0,T.bank-tbCap(p));T.locked=false;}else if(k==='full'){T.bank=tbCap(p);T.locked=false;}
  save();refreshParent(`pp-${id}`,true);toast(k==='add'?`Added 15 minutes for ${p.name}.`:'Saved.');}
 function setGrade(id,g){const p=state.players.find(x=>x.id===id);g=+g;p.grade=g;if(p.spellSig!==undefined)p.spellSig=spellSchool(p).map(x=>x.w).join('|');save();refreshParent(`pp-${id}`,true);toast(`Grade set to ${g}.`);}
 function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}const np=newPlayer(n,+$('#npGrade').value);state.players.push(np);save();refreshParent(null);const c=document.getElementById('pp-'+np.id);if(c){c.scrollIntoView({block:'center',behavior:'smooth'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),900);}}
