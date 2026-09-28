@@ -164,17 +164,18 @@ function board(){const s=R.s,t=tier();const rk=R.t.rock&&window.CAVE_DATA&&CAVE_
 
 /* 2. shrinking: a slow ride past real-world size markers, with a stop (and a chat) at each one */
 const SIZES=[{e:'🧒',n:'Your normal size',sz:'about 1.5 m'},{e:'🐜',n:'As small as an ant',sz:'3 mm'},{e:'〰️',n:'Smaller than a hair is wide',sz:'0.08 mm'},{e:'CELL',n:'As small as one cell',sz:'0.01 mm'},{e:'🦠',n:'As small as a germ',sz:'0.002 mm'},{e:'VIRUS',n:'As small as a virus',sz:'0.0001 mm'},
- {e:'🫧',n:'Among the molecules',sz:'0.000 01 mm'},{e:'💧',n:'As small as one molecule',sz:'0.000 000 3 mm'},{e:'⚛️',n:'As small as one atom',sz:'0.000 000 1 mm'},{e:'✨',n:'Inside an atom!',sz:'0.000 000 000 001 mm'}];
+ {e:'🫧',n:'Among the molecules',sz:'0.000 01 mm'},{e:'MOL',n:'As small as one molecule',sz:'0.000 000 3 mm'},{e:'⚛️',n:'As small as one atom',sz:'0.000 000 1 mm'},{e:'✨',n:'Inside an atom!',sz:'0.000 000 000 001 mm'}];
 const STOPS=[null,
  ['We\'re as small as an <b>ANT</b>! 🐜 Hi there, ant! To us it looks as big as a <b>house</b> now!','Ant-sized: about <b>3 millimeters</b>. A single grain of sand would look like a boulder!','About <b>3 mm</b>: we\'ve shrunk roughly 500 times. Sand grains are boulders now.'],
  ['Whoa! That brown log is ONE <b>HAIR</b>! From down here it looks as thick as a tree trunk. 🌳','A human hair is only about <b>0.08 mm</b> wide. We\'re smaller than that now, so it looks like a giant log!','A hair is about <b>80 micrometers</b> wide. See the overlapping scales on it? They\'re called the cuticle.'],
  ['Now we\'re as small as one <b>CELL</b>! Your whole body is built from tiny cells like this one.','One cell is about <b>0.01 mm</b>. You are made of about <b>30 trillion</b> of them!','A typical cell is about <b>10 micrometers</b>. The dark blob in the middle is the <b>nucleus</b>, the cell\'s control center.'],
  ['Wiggly <b>GERMS</b>! These are bacteria. 🦠 Most are harmless, and some even help your tummy digest food.','Bacteria are about <b>0.002 mm</b> long, about 5 times smaller than a cell. See their little tails? They swim with them!','Bacteria are about <b>2 micrometers</b> long. Those whip-like tails are called <b>flagella</b>.'],
  ['Even smaller: a <b>VIRUS</b>! It\'s so tiny that a normal microscope can\'t even see it.','Viruses are about <b>0.0001 mm</b> across. Scientists need an <b>electron microscope</b> to see one!','About <b>100 nanometers</b>: too small for light microscopes. Light waves are bigger than the virus!']];
+const MOL_ICO=`<svg viewBox="-12 -12 24 24" class="is-vico"><path d="M0 -1 L-7 5 M0 -1 L7 5" stroke="#adb5bd" stroke-width="2"/><circle cx="0" cy="-2" r="6" fill="#fa5252" stroke="#c92a2a" stroke-width="1"/><circle cx="-7.5" cy="5.5" r="3.8" fill="#f1f3f5" stroke="#868e96" stroke-width="1"/><circle cx="7.5" cy="5.5" r="3.8" fill="#f1f3f5" stroke="#868e96" stroke-width="1"/></svg>`;
 const CELL_ICO=`<svg viewBox="-12 -12 24 24" class="is-vico"><ellipse rx="10.5" ry="9" fill="#f7a8c8" stroke="#c2255c" stroke-width="1.4"/><circle cx="1" cy="-.5" r="3.8" fill="#862e9c"/><circle cx="-5" cy="3" r="1.2" fill="#c2255c"/><circle cx="5.5" cy="4" r="1" fill="#c2255c"/></svg>`;
 const VIRUS_ICO=`<svg viewBox="-12 -12 24 24" class="is-vico">${Array.from({length:10},(_,i)=>{const a=i/10*Math.PI*2;return `<line x1="${(Math.cos(a)*6).toFixed(1)}" y1="${(Math.sin(a)*6).toFixed(1)}" x2="${(Math.cos(a)*10).toFixed(1)}" y2="${(Math.sin(a)*10).toFixed(1)}" stroke="#9c36b5" stroke-width="1.6"/><circle cx="${(Math.cos(a)*10.5).toFixed(1)}" cy="${(Math.sin(a)*10.5).toFixed(1)}" r="1.6" fill="#e599f7"/>`;}).join('')}<circle r="6.5" fill="#cc5de8"/></svg>`;
 function sizeBar(){const k=R.sz||0,n=SIZES.length,z=SIZES[k];
- return `<div class="is-size" id="isSize"><div class="trk"><i style="width:${k/(n-1)*100}%"></i>${SIZES.map((q,j)=>`<span class="${j<k?'past':''}${j===k?' on':''}" style="left:${j/(n-1)*100}%">${q.e==='VIRUS'?VIRUS_ICO:q.e==='CELL'?CELL_ICO:q.e}</span>`).join('')}</div><div class="lab">📏 <b>${z.sz}</b> · ${z.n}</div></div>`;}
+ return `<div class="is-size" id="isSize"><div class="trk"><i style="width:${k/(n-1)*100}%"></i>${SIZES.map((q,j)=>`<span class="${j<k?'past':''}${j===k?' on':''}" style="left:${j/(n-1)*100}%">${q.e==='VIRUS'?VIRUS_ICO:q.e==='CELL'?CELL_ICO:q.e==='MOL'?MOL_ICO:q.e}</span>`).join('')}</div><div class="lab">📏 <b>${z.sz}</b> · ${z.n}</div></div>`;}
 function setSize(k){R.sz=k;const el=root&&root.querySelector('#isSize');if(el)el.outerHTML=sizeBar();}
 function drawStop(c,k,x,y,S,sec,a){if(k<1||a<=0.01)return;c.save();c.globalAlpha=Math.min(1,a);
  if(k===1){c.font=`${S}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('🐜',x,y);}
@@ -347,18 +348,19 @@ function eye(){const s=R.s,t=tier();const EYE_SVG=`<div class="is-eyewrap" id="i
   `Your mission is complete! Now it's time to return to your normal size. Hold on tight… here we GROW!`];
  let step=0,lit=false,timer=null;const tok=R;
  frame(`${EYE_SVG.replace('id="isEye"','id="isEye" style="opacity:0"')}<div class="is-dark" id="isDark"></div>
-  <div id="isNarBox">${nar(DARK[0][0],'…',{dis:1})}</div>`);
+  <div id="isNarBox">${nar(DARK[0][0],'Next ➜')}</div>`);
  const box=()=>root&&root.querySelector('#isNarBox');
  const say=(html,btn,opts)=>{const b=box();if(b)b.innerHTML=nar(html,btn,opts);};
  snd(90,1.2,'sine',.06);
  const darkNext=()=>{if(!root||R!==tok)return;step++;
-  if(step<DARK.length){say(DARK[step][0],'…',{dis:1});snd(step===1?70:110,step===1?1.4:.6,'sine',.07);timer=setTimeout(darkNext,DARK[step][1]);return;}
+  if(step<DARK.length){say(DARK[step][0],'Next ➜');snd(step===1?70:110,step===1?1.4:.6,'sine',.07);onNext(darkNext);return;}
+  {const b=root.querySelector('#isNext');if(b){b.disabled=true;b.textContent='…';}}
   // 2) the lights come on slowly (no flash) and there's a giant eye
   lit=true;const d=root.querySelector('#isDark'),e=root.querySelector('#isEye');if(e){e.style.transition='opacity 2.5s ease';e.style.opacity='1';}if(d){d.style.transition='opacity 2.5s ease';d.style.opacity='0';}
   snd(200,.5,'sine',.06,.8);timer=setTimeout(()=>{if(!root||R!==tok)return;litStep(0);},2600);};
  const litStep=k=>{const last=k>=LIT.length-1;say(LIT[k],last?'🌱 Grow back to normal size!':'Next ➜',{who:QZ,name:'Dr. Quartz',cls:last?'gold':''});
   onNext(()=>{if(!last){litStep(k+1);return;}const dk=root.querySelector('#isDark');if(dk){dk.style.transition='opacity 1.8s ease';dk.style.opacity='1';}[300,400,500,650,800].forEach((f,q)=>snd(f,.25,'triangle',.05,q*.3));const b=root.querySelector('#isNext');if(b)b.disabled=true;setTimeout(()=>{if(root)next();},2000);});};
- timer=setTimeout(darkNext,DARK[0][1]);
+ onNext(darkNext);
  R.eyeTimer=timer;}
 
 /* 8. quiz → coins + album card */
