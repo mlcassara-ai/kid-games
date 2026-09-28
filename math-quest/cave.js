@@ -208,7 +208,7 @@ const femo=f=>f.e==='trilobite'?TRILO:f.e;
 function build(){
  root=document.createElement('div');root.className='cv';root.id='cvRoot';
  root.innerHTML=`<canvas id="cvC"></canvas>
- <div class="cv-top"><div class="cv-row1"><div class="cv-chip" id="cvLayer"></div><div class="cv-res"><span id="cvCoins"></span><span id="cvRP"></span><span id="cvPack"></span></div><button class="cv-x" id="cvExit" aria-label="Leave the cave">✕</button></div>
+ <div class="cv-top"><div class="cv-row1"><div class="cv-chip" id="cvLayer"></div><div class="cv-res"><span id="cvCoins"></span><span id="cvRP"></span><span id="cvPack"></span></div><button class="cv-x cv-snd" id="cvSnd" aria-label="Cave music on or off"></button><button class="cv-x" id="cvExit" aria-label="Leave the cave">✕</button></div>
   <div class="cv-row2"><div class="cv-g" id="cvG"></div><div class="cv-bat" title="Battery"><i id="cvBatI"></i><span id="cvBatT"></span></div></div></div>
  <div class="cv-depth" id="cvDepth"></div>
  <div class="cv-msg" id="cvMsg"></div>
@@ -219,6 +219,8 @@ function build(){
  root.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&!b.closest('#cvPad'))sfx('tap');},true); // every button clicks softly
  cv=root.querySelector('#cvC');ctx=cv.getContext('2d');fog=document.createElement('canvas');fctx=fog.getContext('2d');
  root.querySelector('#cvExit').onclick=()=>leave();
+ const sb=root.querySelector('#cvSnd');const sbSet=()=>{const on=!window.Music||Music.caveOn();sb.textContent=on?'🎵':'🔇';sb.title=on?'Cave music is on':'Cave music is off';};sbSet();
+ sb.onclick=()=>{if(!window.Music)return;const on=Music.caveToggle();sbSet();say(on?'🎵 Cave music on':'🔇 Cave music off (the map music is not changed)',1800);};
  // d-pad with hold-to-repeat
  root.querySelectorAll('#cvPad button').forEach(b=>{const [dx,dy]=b.dataset.d.split(',').map(Number);let t=null;
   const stop=()=>{clearInterval(t);t=null;};
@@ -1045,7 +1047,7 @@ const CSS=`
 .cv-mats{display:grid;gap:5px}.cv-mat{display:grid;grid-template-columns:30px 1fr auto auto auto;gap:6px;align-items:center;background:#f6f3ff;border-radius:10px;padding:5px 8px;font-size:14px}.cv-mat span{font-size:22px}.cv-mat small{color:#6d6490}.cv-mat button{background:#fff;border-radius:8px;padding:5px 8px;font-weight:600}.cv-mat button:disabled{opacity:.4}
 .cv-raftb{display:flex;gap:4px;align-items:center;justify-content:center;min-height:56px;background:linear-gradient(transparent 55%,#74c0fc 55%);border-radius:12px;margin-top:10px;padding:4px;transition:transform .8s}.cv-raftb.sink{transform:translateY(20px);opacity:.6}.cv-raftb button{font-size:28px;background:#b98a52;border-radius:6px;padding:2px 4px}.cv-me{font-size:30px}
 .cv-sockets,.cv-minsel{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0}
-.cv .cv-sock,.cv .cv-sock span,.cv .cv-sock small{color:#fff}.cv-sock{width:90px;height:100px;border-radius:16px;background:#1c1626;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 16px var(--g),inset 0 0 0 3px var(--g)}.cv-sock.sel{outline:4px solid #ffd43b}.cv-sock span{font-size:30px}
+.cv .cv-sock,.cv .cv-sock span,.cv .cv-sock small{color:#fff}.cv-top .cv-snd{right:54px!important}.cv-top .cv-row1{padding-right:98px!important}.cv-sock{width:90px;height:100px;border-radius:16px;background:#1c1626;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 16px var(--g),inset 0 0 0 3px var(--g)}.cv-sock.sel{outline:4px solid #ffd43b}.cv-sock span{font-size:30px}
 .cv-minsel button{background:#1c1626;color:#fff;border-radius:14px;padding:6px 10px;display:flex;flex-direction:column;align-items:center;font-size:12px}
 .cv-nsel{display:flex;gap:6px;justify-content:center}.cv-nsel button{width:44px;height:44px;border-radius:12px;background:#f3f0ff;font-weight:700;font-size:18px}.cv-nsel button.on{background:#7c5cff;color:#fff}
 .cv-choices{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
