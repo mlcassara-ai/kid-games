@@ -182,18 +182,21 @@ function sugUI(){const p=P();const today=(p.sugg||[]).filter(x=>x.d===dayKey()).
  modal(`<div class="mcard sug"><div class="big-emoji">💡</div><h2>Suggestion Box</h2><p>What would you like a story about? Professor Hoot will pass your idea to the story builders!</p>
  <input id="sugIn" class="inp" maxlength="80" placeholder="I want a story about…"><div class="sugchips">${SUG_IDEAS.map(x=>`<button class="chip" onclick="$('#sugIn').value='A story about '+this.dataset.t" data-t="${esc(x.replace(/^\S+\s/,''))}">${x}</button>`).join('')}</div>
  <div id="sugErr" class="gerr"></div><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="Groups.sugSend()">📮 Send my idea</button></div></div>`);setTimeout(()=>{const i=$('#sugIn');i&&i.focus();},60);}
-async function sugSend(){const p=P();const t=($('#sugIn').value||'').trim().replace(/\s+/g,' ');const err=$('#sugErr');
+let sugBusy=false;
+async function sugSend(){if(sugBusy)return;const p=P();const t=($('#sugIn').value||'').trim().replace(/\s+/g,' ');const err=$('#sugErr');
+ if((p.sugg||[]).some(x=>x.d===dayKey()&&x.t.toLowerCase()===t.toLowerCase())){modal(`<div class="mcard"><div class="big-emoji">📮</div><h2>Already sent!</h2><p>Professor Hoot already has your idea "${esc(t)}". Try a different one tomorrow!</p><div class="row"><button class="btn green" onclick="closeModal()">OK</button></div></div>`);return;}
+ if((p.sugg||[]).filter(x=>x.d===dayKey()).length>=3){closeModal();sugUI();return;}
  if(t.length<4){err.textContent='Tell Professor Hoot a little more about your idea!';return;}
  if(unkind(t)){err.textContent="Let's keep ideas kind. Try another one!";return;}
  if(/https?:|www\.|@|\d{4,}/i.test(t)){err.textContent='Just the idea, please (no links, emails or phone numbers).';return;}
  const item={t,n:String(p.name||'').split(' ')[0].slice(0,14),g:p.adult?'Adult':'Grade '+(p.grade||'?'),d:dayKey(),at:Date.now()};
  p.sugg=(p.sugg||[]).concat([{t,d:item.d,sent:false}]).slice(-30);save();const mine=p.sugg[p.sugg.length-1];
- err.textContent='Sending…';
- try{await sugPush(item);mine.sent=true;save();}catch(e){}
+ err.textContent='Sending…';sugBusy=true;document.querySelectorAll('#modal button').forEach(b=>b.disabled=true);
+ try{await sugPush(item);mine.sent=true;save();}catch(e){}finally{sugBusy=false;}
  modal(`<div class="mcard"><div class="big-emoji">📮</div><h2>Idea sent!</h2><p>"${esc(t)}"</p><p>Thank you, ${esc(p.name)}! Professor Hoot loves new ideas. Keep an eye on the shelf. Your story might show up one day!</p><div class="row"><button class="btn green" onclick="closeModal()">Yay!</button></div></div>`);}
 async function sugRetry(){for(const p of state.players||[])for(const x of p.sugg||[])if(!x.sent){try{await sugPush({t:x.t,n:String(p.name||'').split(' ')[0].slice(0,14),g:p.adult?'Adult':'Grade '+(p.grade||'?'),d:x.d,at:Date.now()});x.sent=true;save();}catch(e){return;}}}
 setTimeout(()=>{try{sugRetry();}catch(e){}},30000);
-function sugSection(){const rows=[];const done=(p,x)=>{try{return STORIES.find(s=>s.req&&String(s.req.n).toLowerCase()===String(p.name||'').toLowerCase()&&new RegExp(s.req.k,'i').test(x.t||''));}catch(e){return null;}};(state.players||[]).forEach(p=>(p.sugg||[]).slice(-8).reverse().forEach(x=>{const st=done(p,x);rows.push(`<li><b>${esc(p.name)}</b> · ${esc(x.d)} · "${esc(x.t)}"${st?` · ✅ <b>Story written:</b> ${st.e} ${esc(st.t)}`:''}</li>`);}));
+function sugSection(){const rows=[];const done=(p,x)=>{try{return STORIES.find(s=>s.req&&String(s.req.n).toLowerCase()===String(p.name||'').toLowerCase()&&new RegExp(s.req.k,'i').test(x.t||''));}catch(e){return null;}};(state.players||[]).forEach(p=>{const seen={};(p.sugg||[]).forEach(x=>{const k=x.d+'|'+String(x.t).toLowerCase();seen[k]=(seen[k]||0)+1;});const uniq=[];(p.sugg||[]).forEach(x=>{const k=x.d+'|'+String(x.t).toLowerCase();if(seen[k]>0&&!uniq.some(u=>u.k===k))uniq.push({x,k,n:seen[k]});});return uniq.slice(-8).reverse().forEach(({x,n:cnt})=>{const st=done(p,x);rows.push(`<li><b>${esc(p.name)}</b> · ${esc(x.d)} · "${esc(x.t)}"${cnt>1?` <span class="muted">(sent ${cnt}×)</span>`:''}${st?` · ✅ <b>Story written:</b> ${st.e} ${esc(st.t)}`:''}</li>`);});});
  return rows.length?`<div class="pp"><h3>💡 Story ideas from the Suggestion Box</h3><p class="note">Ideas your kids sent from the Library. They're collected for the story builders to review.</p><ul>${rows.join('')}</ul></div>`:'';}
 window.Groups.sugUI=sugUI;window.Groups.sugSend=sugSend;window.Groups.sugSection=sugSection;
 const css2=document.createElement('style');css2.textContent='.sugchips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}.sugchips .chip{font-size:14px;padding:6px 10px}';document.head.appendChild(css2);
