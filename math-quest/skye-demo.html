@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Skye's Weather Bunker (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b2430;--sky:#16222e;--coat:#fcc419;--coatD:#e67700;--bolt:#ffd43b;--good:#2b8a3e;--ok:#e67700;--bad:#c92a2a;--panel:#fffdf6}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--sky);color:var(--ink);font-family:"Fredoka","Trebuchet MS",system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+#top{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top,0px));background:#0e1822;color:#eaf2f7;font-size:14px;flex:none}
+#top b{color:var(--bolt);font-size:16px}
+#top .sp{flex:1}
+#top select,#top button{font:inherit;font-size:13px;background:#243447;color:#eaf2f7;border:1px solid #35506a;border-radius:8px;padding:5px 8px}
+#steps{display:flex;gap:4px}
+#steps i{width:10px;height:10px;border-radius:50%;background:#35506a;display:block}
+#steps i.on{background:var(--bolt)} #steps i.done{background:#8ce99a}
+#stage{position:relative;flex:1;min-height:0;overflow:hidden}
+#scene{position:absolute;inset:0}
+#scene>svg{width:100%;height:100%;display:block}
+#fx{position:absolute;inset:0;pointer-events:none}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
+#hud{position:absolute;inset:0;pointer-events:none}
+#hud>*{pointer-events:auto}
+#talk{position:absolute;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(900px,calc(100% - 24px));background:var(--panel);border:4px solid var(--coat);border-radius:20px;padding:12px 16px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 8px 0 rgba(0,0,0,.25);z-index:5}
+#talk .av{width:64px;flex:none}
+#talk .tx{flex:1;min-width:0}
+#talk .nm{font-weight:700;color:var(--coatD);font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+#talk .say{font-size:19px;line-height:1.35;margin-top:2px}
+#talk .say b{color:#1864ab}
+#talk .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{font:inherit;font-weight:600;font-size:17px;border:0;border-radius:14px;padding:10px 16px;cursor:pointer;background:#7048e8;color:#fff;box-shadow:0 4px 0 #3b1f9e}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #3b1f9e}
+.btn.gold{background:var(--coat);color:#3d2a00;box-shadow:0 4px 0 #b08900}
+.btn.choice{background:#fff;color:var(--ink);border:3px solid #d0bfff;box-shadow:0 3px 0 #b197fc;text-align:left}
+.btn.choice.best{border-color:var(--good);background:#ebfbee}
+.btn.choice.okay{border-color:var(--ok);background:#fff4e6}
+.btn.choice.no{border-color:var(--bad);background:#fff5f5;opacity:.75}
+.btn:disabled{opacity:.5;cursor:default}
+.fb{margin-top:8px;padding:8px 12px;border-radius:10px;font-size:17px}
+.fb.best{background:#ebfbee;color:#1b4d2a} .fb.okay{background:#fff4e6;color:#7a3d00} .fb.no{background:#fff5f5;color:#8a1c1c}
+.card{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:16px 18px;width:min(560px,calc(100% - 24px));box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:4}
+.card h3{margin:0 0 6px;color:var(--coatD);font-size:14px;letter-spacing:.05em;text-transform:uppercase}
+.card .q{font-size:21px;font-weight:600;margin-bottom:10px}
+.card .opts{display:grid;gap:8px}
+.big{position:absolute;font-weight:700;color:var(--bolt);text-shadow:0 3px 0 rgba(0,0,0,.4);pointer-events:none}
+.meter{position:absolute;right:18px;top:18px;background:rgba(14,24,34,.85);color:#fff;border-radius:14px;padding:10px 14px;font-size:15px;min-width:170px;z-index:3}
+.meter .v{font-size:34px;font-weight:700;color:var(--bolt);line-height:1}
+.tapzone{position:absolute;inset:0;z-index:2;cursor:pointer}
+.pill{display:inline-block;background:#e7f5ff;border-radius:999px;padding:2px 10px;margin:2px;font-size:15px}
+.pts{position:absolute;left:14px;top:12px;background:rgba(14,24,34,.8);color:var(--bolt);font-weight:700;border-radius:12px;padding:6px 12px;z-index:3;font-size:16px}
+@keyframes rise{from{transform:translate(-50%,-40%);opacity:0}to{transform:translate(-50%,-50%);opacity:1}}
+.card{animation:rise .35s ease-out}
+@keyframes swayT{50%{transform:skewX(-7deg)}}
+.sway{transform-box:fill-box;transform-origin:bottom;animation:swayT 2.4s ease-in-out infinite}
+@keyframes spinV{to{transform:rotate(360deg)}}
+.spin{transform-box:fill-box;transform-origin:center;animation:spinV 3s linear infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.bob{animation:bob 2.2s ease-in-out infinite}
+@media (max-width:640px){#top .sub,#steps{display:none}#top b{font-size:14px}#talk .av{width:44px}#talk .say{font-size:16px}.btn{font-size:15px;padding:9px 12px}.card .q{font-size:18px}#top{font-size:12px}.meter{min-width:130px;font-size:13px}.meter .v{font-size:26px}}
+@media (prefers-reduced-motion:reduce){.sway,.spin,.bob{animation:none}#flash{transition:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+ <symbol id="skye" viewBox="0 0 100 150">
+  <ellipse cx="50" cy="146" rx="28" ry="4" fill="rgba(0,0,0,.3)"/>
+  <path d="M38 108 L36 142 L47 142 L48 108Z M62 108 L64 142 L53 142 L52 108Z" fill="#1864ab"/>
+  <rect x="33" y="138" width="16" height="7" rx="3" fill="#e03131"/><rect x="51" y="138" width="16" height="7" rx="3" fill="#e03131"/>
+  <path d="M26 62 Q30 52 50 52 Q70 52 74 62 L80 114 Q50 122 20 114Z" fill="#fcc419" stroke="#e67700" stroke-width="2"/>
+  <path d="M50 56 V114" stroke="#e67700" stroke-width="2"/><circle cx="50" cy="72" r="2.2" fill="#e67700"/><circle cx="50" cy="86" r="2.2" fill="#e67700"/><circle cx="50" cy="100" r="2.2" fill="#e67700"/>
+  <path d="M26 64 Q14 80 20 94" stroke="#fcc419" stroke-width="10" fill="none" stroke-linecap="round"/><circle cx="20" cy="96" r="5" fill="#f1c8a0"/>
+  <path d="M74 64 Q88 62 92 46" stroke="#fcc419" stroke-width="10" fill="none" stroke-linecap="round"/><circle cx="92" cy="43" r="5" fill="#f1c8a0"/>
+  <path d="M92 40 V16" stroke="#495057" stroke-width="2.5"/>
+  <g transform="translate(92 14)"><path d="M0 0 L-12 -4 M0 0 L10 -7 M0 0 L3 11" stroke="#495057" stroke-width="2"/><circle cx="-12" cy="-4" r="4" fill="#e03131"/><circle cx="10" cy="-7" r="4" fill="#e03131"/><circle cx="3" cy="11" r="4" fill="#e03131"/></g>
+  <path d="M27 40 Q26 12 50 11 Q74 12 73 40 Q72 54 50 56 Q28 54 27 40Z" fill="#fcc419" stroke="#e67700" stroke-width="2"/>
+  <circle cx="50" cy="38" r="16" fill="#f5d0a9"/>
+  <path d="M35 32 Q38 22 50 22 Q62 22 65 32 Q58 27 50 29 Q42 27 35 32Z" fill="#6f4520"/>
+  <circle cx="44" cy="38" r="2.4" fill="#2b2250"/><circle cx="56" cy="38" r="2.4" fill="#2b2250"/>
+  <path d="M44 46 Q50 50 56 46" stroke="#a0522d" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <g fill="#d9480f" opacity=".55"><circle cx="40" cy="43" r="1"/><circle cx="42" cy="45" r="1"/><circle cx="60" cy="43" r="1"/><circle cx="58" cy="45" r="1"/></g>
+  <g><rect x="34" y="14" width="32" height="10" rx="5" fill="#343a40"/><circle cx="42" cy="19" r="5" fill="#74c0fc" stroke="#343a40" stroke-width="2"/><circle cx="58" cy="19" r="5" fill="#74c0fc" stroke="#343a40" stroke-width="2"/></g>
+ </symbol>
+ <symbol id="skyeHead" viewBox="20 8 60 52"><use href="#skye"/></symbol>
+ <symbol id="hero" viewBox="0 0 100 150">
+  <ellipse cx="50" cy="146" rx="26" ry="4" fill="rgba(0,0,0,.3)"/>
+  <path d="M30 70 Q50 60 70 70 L78 140 Q50 146 22 140Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="2"/>
+  <circle cx="50" cy="52" r="16" fill="#f5d0a9"/><circle cx="44" cy="52" r="2.3" fill="#2b2250"/><circle cx="56" cy="52" r="2.3" fill="#2b2250"/>
+  <path d="M44 60 Q50 64 56 60" stroke="#a0522d" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M30 42 Q50 48 70 42 L56 6 Q52 -1 47 8Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="2"/><ellipse cx="50" cy="42" rx="23" ry="5" fill="#7048e8" stroke="#3b1f9e" stroke-width="2"/>
+  <path d="M52 20 l2 4 4 1 -3 3 1 4 -4-2 -4 2 1-4 -3-3 4-1z" fill="#ffd43b"/>
+ </symbol>
+ <symbol id="cloud" viewBox="0 0 120 60"><path d="M20 55 Q0 55 4 38 Q8 24 24 28 Q28 6 52 10 Q66 -4 84 10 Q108 8 110 30 Q122 36 114 50 Q110 56 96 55Z"/></symbol>
+ <symbol id="drone" viewBox="0 0 120 60">
+  <path d="M20 22 H100" stroke="#495057" stroke-width="5"/><ellipse cx="20" cy="16" rx="18" ry="4" fill="#adb5bd" opacity=".8"/><ellipse cx="100" cy="16" rx="18" ry="4" fill="#adb5bd" opacity=".8"/>
+  <rect x="20" y="17" width="4" height="8" fill="#495057"/><rect x="96" y="17" width="4" height="8" fill="#495057"/>
+  <rect x="40" y="22" width="40" height="20" rx="8" fill="#fcc419" stroke="#e67700" stroke-width="3"/><circle cx="60" cy="46" r="7" fill="#343a40"/><circle cx="60" cy="46" r="3" fill="#74c0fc"/><circle cx="46" cy="30" r="2.5" fill="#e03131"/>
+ </symbol>
+ <linearGradient id="stormSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c3e50"/><stop offset="1" stop-color="#4b6477"/></linearGradient>
+ <linearGradient id="calmSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#74c0fc"/><stop offset="1" stop-color="#d0ebff"/></linearGradient>
+</defs></svg>
+
+<div id="app">
+ <div id="top"><b>⛈️ Skye's Weather Bunker</b><span class="sub">demo · thunderstorm</span><div id="steps"></div><span class="sp"></span>
+  <label>Grade <select id="grade"><option value="0">1–2</option><option value="1" selected>3–4</option><option value="2">5–8</option><option value="3">9+ / Adult</option></select></label>
+  <button id="snd">🔊</button><button id="restart">↺ Start over</button></div>
+ <div id="stage"><div id="scene"></div><canvas id="fx"></canvas><div id="flash"></div><div id="hud"></div></div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s);
+const scene=$('#scene'),hud=$('#hud'),fx=$('#fx'),flashEl=$('#flash');
+let G=+$('#grade').value; $('#grade').onchange=e=>{G=+e.target.value;};
+const NAME='Mika';
+let pts=0,sound=true,timers=[];
+const later=(f,ms)=>{const t=setTimeout(f,ms);timers.push(t);return t;};
+const clearT=()=>{timers.forEach(clearTimeout);timers=[];};
+const T=a=>Array.isArray(a)?a[Math.min(G,a.length-1)]:a;   // grade-tiered text
+
+/* ---------- sound (tiny, made live) ---------- */
+let AC=null;
+function ac(){if(!sound)return null;if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}if(AC.state==='suspended')AC.resume();return AC;}
+function noise(dur,vol,lp,delay){const a=ac();if(!a)return;const t=a.currentTime+(delay||0);const n=a.sampleRate*dur,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,1.4);
+ const s=a.createBufferSource();s.buffer=b;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;const g=a.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.08);g.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(f);f.connect(g);g.connect(a.destination);s.start(t);}
+function tone(fr,dur,vol,type,delay){const a=ac();if(!a)return;const t=a.currentTime+(delay||0);const o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=fr;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.05);}
+const SFX={thunder:(d)=>{noise(2.6,.55,180,d);noise(1.2,.25,700,(d||0)+.05);},clunk:()=>{noise(.35,.6,300);tone(70,.4,.3,'sine');},good:()=>{tone(660,.15,.12);tone(990,.25,.12,'triangle',.12);},okay:()=>{tone(520,.2,.1);},bad:()=>{tone(220,.3,.1,'sawtooth');},zap:()=>{noise(.18,.4,4000);},tap:()=>tone(880,.06,.06),siren:()=>{[0,.5,1].forEach(d=>{tone(520,.4,.08,'sine',d);tone(780,.4,.08,'sine',d+.25);});}};
+$('#snd').onclick=()=>{sound=!sound;$('#snd').textContent=sound?'🔊':'🔇';};
+
+/* ---------- rain/fx canvas ---------- */
+let rain=0,rainKind='drops',drops=[];
+function fitFx(){const r=fx.getBoundingClientRect();const d=Math.min(2,devicePixelRatio||1);fx.width=r.width*d;fx.height=r.height*d;fx.getContext('2d').setTransform(d,0,0,d,0,0);}
+addEventListener('resize',fitFx);
+function fxLoop(){const c=fx.getContext('2d'),w=fx.clientWidth,h=fx.clientHeight;c.clearRect(0,0,w,h);
+ if(rain>0){while(drops.length<rain*220)drops.push({x:Math.random()*w*1.2,y:Math.random()*h,v:9+Math.random()*6});
+  if(drops.length>rain*220)drops.length=Math.floor(rain*220);
+  c.strokeStyle='rgba(165,216,255,.6)';c.lineWidth=1.6;c.beginPath();drops.forEach(d=>{c.moveTo(d.x,d.y);c.lineTo(d.x-3,d.y+14);d.y+=d.v;d.x-=1.6;if(d.y>h){d.y=-20;d.x=Math.random()*w*1.2;}});c.stroke();}
+ requestAnimationFrame(fxLoop);}
+function flash(n){let k=0;const one=()=>{flashEl.style.opacity='.55';later(()=>{flashEl.style.opacity='0';},110);if(++k<(n||1))later(one,180);};one();}
+
+/* ---------- UI helpers ---------- */
+function setScene(svg){scene.innerHTML=`<svg viewBox="0 0 960 600" preserveAspectRatio="xMidYMid slice">${svg}</svg>`;}
+function talk(html,opts){opts=opts||{};hud.querySelector('#talk')?.remove();const d=document.createElement('div');d.id='talk';
+ d.innerHTML=`<svg class="av" viewBox="20 8 60 52"><use href="#skye"/></svg><div class="tx"><div class="nm">${opts.name||'Skye · Storm Chaser'}</div><div class="say">${html}</div><div class="row"></div></div>`;hud.appendChild(d);return d.querySelector('.row');}
+function btn(row,label,fn,cls){const b=document.createElement('button');b.className='btn '+(cls||'');b.innerHTML=label;b.onclick=()=>{if(b.dataset.once)return;if(cls==='gold')b.dataset.once=1;SFX.tap();fn(b);};row.appendChild(b);return b;}
+function next(label,fn,cls){const row=hud.querySelector('#talk .row')||talk('');btn(row,label||'Next ➜',fn,cls);}
+function points(){let p=hud.querySelector('.pts');if(!p){p=document.createElement('div');p.className='pts';hud.appendChild(p);}p.textContent='⭐ '+pts+' points';}
+/* A choice task. Each option: {t:label, k:'best'|'okay'|'no', say:feedback}. 'no' → try again; 'okay' → accepted with a better idea; 'best' → great. */
+function choose(row,opts,done,prompt){let tries=0;const box=row.parentNode;
+ const fb=document.createElement('div');fb.className='fb';fb.style.display='none';
+ const render=()=>{row.innerHTML='';opts.forEach(o=>{const b=btn(row,o.t,()=>pick(o,b),'choice');b.dataset.k=o.k;});box.appendChild(fb);};
+ const pick=(o,b)=>{tries++;fb.style.display='';fb.className='fb '+o.k;fb.innerHTML=o.say;b.classList.add(o.k==='best'?'best':o.k==='okay'?'okay':'no');
+  if(o.k==='no'){SFX.bad();b.disabled=true;return;}
+  const got=o.k==='best'?(tries===1?10:5):(tries===1?5:3);pts+=got;points();(o.k==='best'?SFX.good:SFX.okay)();
+  [...row.querySelectorAll('button')].forEach(x=>x.disabled=true);
+  const n=document.createElement('div');n.className='row';box.appendChild(n);btn(n,`Next ➜ <small style="opacity:.8">(+${got})</small>`,()=>done(o),'gold');};
+ render();}
+
+/* ---------- scenes ---------- */
+const MAP=(dark)=>`<rect width="960" height="600" fill="${dark?'url(#stormSky)':'url(#calmSky)'}"/>
+ <g fill="${dark?'#3c5163':'#fff'}" opacity="${dark?1:.9}"><use href="#cloud" x="20" y="20" width="300" height="140"/><use href="#cloud" x="320" y="0" width="360" height="160"/><use href="#cloud" x="660" y="30" width="300" height="140"/></g>
+ <rect y="400" width="960" height="200" fill="${dark?'#2f6b3a':'#51cf66'}"/><path d="M0 400 Q240 372 480 404 Q720 436 960 396 V420 H0Z" fill="${dark?'#3a8045':'#69db7c'}"/>
+ <path d="M300 600 Q420 500 480 420" stroke="#c9a87a" stroke-width="40" fill="none" opacity=".7"/>
+ <g class="sway"><rect x="120" y="280" width="18" height="124" fill="#6f4520"/><circle cx="129" cy="260" r="62" fill="#2b8a3e"/></g>
+ <g class="sway" style="animation-delay:-1s"><rect x="820" y="300" width="16" height="104" fill="#6f4520"/><circle cx="828" cy="284" r="52" fill="#2b8a3e"/></g>
+ <path d="M640 402 Q720 300 860 330 L900 402Z" fill="${dark?'#3a8045':'#69db7c'}"/><rect x="738" y="340" width="54" height="64" rx="10" fill="#868e96" stroke="#495057" stroke-width="4"/><circle cx="780" cy="374" r="4" fill="#495057"/>
+ <path d="M765 332 V290" stroke="#495057" stroke-width="4"/><path d="M765 290 l-22 6 l22 6z" fill="#e03131"/>`;
+const BUNKER=(win)=>`<rect width="960" height="600" fill="#3b4a5a"/><rect y="470" width="960" height="130" fill="#5c3b1e"/><rect y="462" width="960" height="12" fill="#8d5a2b"/>
+ <g stroke="#4a5a6a" stroke-width="3" opacity=".6">${Array.from({length:8},(_,i)=>`<path d="M0 ${60+i*52} H960"/>`).join('')}</g>
+ <rect x="40" y="60" width="300" height="210" rx="16" fill="#1c2833" stroke="#adb5bd" stroke-width="10"/><rect x="50" y="70" width="280" height="190" rx="8" fill="#2c3e50"/>
+ ${win||`<g fill="#4b6072"><use href="#cloud" x="60" y="70" width="200" height="90"/><use href="#cloud" x="180" y="90" width="150" height="70"/></g><rect x="50" y="232" width="280" height="28" fill="#2f6b3a"/>`}
+ <text x="190" y="298" font-size="18" fill="#dee2e6" text-anchor="middle">STORM WINDOW</text>
+ <rect x="380" y="40" width="380" height="250" rx="12" fill="#212529" stroke="#495057" stroke-width="10"/><rect x="392" y="52" width="356" height="226" fill="#10161d"/>
+ <text x="570" y="170" font-size="20" fill="#495057" text-anchor="middle">DRONE CAMERA · STANDBY</text>
+ <g transform="translate(850 120)"><circle r="52" fill="#f8f9fa" stroke="#868e96" stroke-width="8"/><path d="M-38 16 A40 40 0 0 1 38 16" fill="none" stroke="#dee2e6" stroke-width="8"/><text x="-34" y="36" font-size="13" fill="#1864ab" text-anchor="middle">RAIN</text><text x="34" y="36" font-size="13" fill="#e67700" text-anchor="middle">FAIR</text><line id="needle" x1="0" y1="0" x2="-32" y2="18" stroke="#e03131" stroke-width="6" stroke-linecap="round"/><circle r="7" fill="#343a40"/><text y="80" font-size="16" fill="#dee2e6" text-anchor="middle">BAROMETER</text></g>
+ <rect x="520" y="370" width="300" height="92" rx="12" fill="#495057"/><rect x="540" y="386" width="140" height="56" rx="6" fill="#212529"/><circle cx="730" cy="414" r="18" fill="#e03131"/><circle cx="782" cy="414" r="18" fill="#2b8a3e"/><text x="670" y="360" font-size="15" fill="#dee2e6" text-anchor="middle">DRONE CONTROLS</text>
+ <g transform="translate(70 420)"><rect width="240" height="44" rx="6" fill="#8d5a2b"/><rect x="20" y="-44" width="28" height="46" rx="5" fill="#d0ebff" stroke="#adb5bd" stroke-width="3"/><rect x="36" y="-18" width="10" height="18" fill="#339af0"/><rect x="80" y="-30" width="54" height="32" rx="5" fill="#ffd43b"/><ellipse cx="186" cy="-30" rx="24" ry="30" fill="#ff8787"/><path d="M186 0 v-2" stroke="#c92a2a"/></g>
+ <text x="190" y="500" font-size="15" fill="#f1e3cf" text-anchor="middle">LAB BENCH</text>`;
+
+let step=0;const STEPS=['map','run','door','bunker','window','drone','bench','quiz','clear','card'];
+function progress(){$('#steps').innerHTML=STEPS.map((s,i)=>`<i class="${i<step?'done':i===step?'on':''}"></i>`).join('');}
+function go(i){clearT();step=i;progress();hud.innerHTML='';points();rain=0;flashEl.style.opacity='0';S[STEPS[i]]();}
+
+const S={};
+/* 1. the storm arrives on the map */
+S.map=()=>{setScene(MAP(false)+`<svg x="420" y="300" width="80" height="120"><use href="#hero"/></svg>`);
+ const r=talk(`<i>You're exploring the map… it's a nice sunny day.</i>`,{name:'Math Quest'});
+ later(()=>{setScene(MAP(true)+`<svg x="420" y="300" width="80" height="120"><use href="#hero"/></svg>`);rain=.4;SFX.thunder(.2);},1400);
+ later(()=>{rain=.9;flash(1);SFX.thunder(.6);talk(`<i>Dark clouds roll in. The wind picks up, rain starts falling… and you hear a low <b>RUMBLE</b>.</i>`,{name:'Math Quest'});next('Next ➜',()=>go(1));},3000);};
+
+/* 2. Skye arrives: where do we go? (mistakes allowed) */
+S.run=()=>{setScene(MAP(true)+`<svg x="330" y="300" width="80" height="120"><use href="#hero"/></svg><svg x="440" y="270" width="104" height="156" class="bob"><use href="#skye"/></svg>`);rain=1;
+ later(()=>{flash(2);SFX.thunder(.4);},1500);
+ const r=talk(`Hi, I'm <b>Skye</b>, a storm chaser! Hear that thunder? We need to get somewhere safe, fast. Where should we go?`);
+ choose(r,[
+  {t:'🌳 Under the big tree',k:'no',say:'Oh no, not a tree! Lightning likes to hit the <b>tallest</b> thing around. Standing under a tree is one of the most dangerous places in a storm. Try again!'},
+  {t:'🏞️ Stay in the open field and watch',k:'no',say:'Out in the open, <b>you</b> might be the tallest thing! That\'s not safe. When thunder roars, go indoors!'},
+  {t:'🚪 My Weather Bunker over the hill',k:'best',say:'Yes! A sturdy building is the safest place. <b>When thunder roars, go indoors!</b> Follow me!'},
+  {t:'🚗 Hide in a car',k:'okay',say:'A hard-topped car is actually pretty safe, good thinking! But a sturdy building is even better, and my bunker is right here.'}],
+  ()=>go(2));};
+
+/* 3. door clunk */
+S.door=()=>{setScene(`<rect width="960" height="600" fill="url(#stormSky)"/><path d="M0 600 V380 Q280 150 600 180 Q840 210 960 330 V600Z" fill="#3a8045"/>
+ <g transform="translate(600 110)"><rect x="-5" y="0" width="10" height="80" fill="#495057"/><g class="spin"><path d="M0 -6 L-38 -24 M0 -6 L38 -24 M0 -6 L0 30" stroke="#343a40" stroke-width="5"/><circle cx="-38" cy="-24" r="9" fill="#e03131"/><circle cx="38" cy="-24" r="9" fill="#e03131"/><circle cx="0" cy="30" r="9" fill="#e03131"/></g></g>
+ <path d="M340 600 V400 Q480 300 620 400 V600Z" fill="#5c6b7a" stroke="#343a40" stroke-width="10"/>
+ <path id="dr" d="M372 600 V412 Q480 336 588 412 V600Z" fill="#868e96" style="transition:transform .6s ease-in;transform-origin:372px 600px;transform:scaleX(.08)"/>
+ <rect x="388" y="296" width="184" height="36" rx="8" fill="#ffd43b"/><text x="480" y="322" font-size="22" font-weight="700" fill="#343a40" text-anchor="middle">WEATHER BUNKER</text>
+ <text id="clk" x="200" y="330" font-size="56" font-weight="700" fill="#ffd43b" text-anchor="middle" opacity="0">CLUNK!</text>`);rain=1;
+ talk(`In we go!`);later(()=>{const d=document.getElementById('dr');if(d)d.style.transform='scaleX(1)';},600);
+ later(()=>{SFX.clunk();rain=0;const c=document.getElementById('clk');if(c)c.setAttribute('opacity','1');},1250);
+ later(()=>{talk(`Phew! Thick walls, a heavy door, and no big windows to break. <b>This</b> is the kind of place to be in a storm.`);next('Next ➜',()=>go(3));},2000);};
+
+/* 4. bunker overview: what first? */
+S.bunker=()=>{setScene(BUNKER()+`<svg x="826" y="296" width="110" height="165"><use href="#skye"/></svg><svg x="330" y="330" width="86" height="130"><use href="#hero"/></svg>`);
+ later(()=>{flash(1);SFX.thunder();},1200);
+ const r=talk(`Welcome to my <b>Weather Bunker</b>, co-scientist! Storm window, drone camera, barometer, lab bench. First job: what should we check first to learn about this storm?`);
+ choose(r,[
+  {t:'🪟 Open the door to feel the wind',k:'no',say:'Ha! Nice try, but we <b>never</b> open the door during a thunderstorm. We study it from in here.'},
+  {t:'🧭 Read the barometer',k:'best',say:'Perfect! The barometer measures <b>air pressure</b>. Look, the needle is pointing to RAIN. Falling pressure means stormy weather!'},
+  {t:'🍪 Check the snack drawer',k:'okay',say:'Ha, scientists do get hungry! We can grab a cookie later. The <b>barometer</b> is the best first check: it tells us the air pressure.'}],
+  ()=>go(4));};
+
+/* 5. storm window: flash-to-bang */
+S.window=()=>{let round=0;const secsList=[5,10,15],want=[1,2,3];
+ const win=`<g fill="#4b6072"><use href="#cloud" x="60" y="70" width="200" height="90"/><use href="#cloud" x="180" y="90" width="150" height="70"/></g><path id="bolt" d="M200 140 l-18 40 h16 l-18 44" stroke="#ffe066" stroke-width="7" fill="none" stroke-linecap="round" opacity="0"/><rect x="50" y="232" width="280" height="28" fill="#2f6b3a"/>`;
+ setScene(BUNKER(win)+`<svg x="826" y="296" width="110" height="165"><use href="#skye"/></svg><svg x="330" y="330" width="86" height="130"><use href="#hero"/></svg>`);
+ const r=talk(T([`Let's find out how far away the storm is! When you see a <b>flash</b>, tap. When you hear the <b>BOOM</b>, tap again. We'll count the seconds.`,`Time to measure the storm! Tap when you see the <b>flash</b>, then tap again at the <b>BOOM</b>. Light is fast, sound is slow, so the seconds in between tell us how far away it is.`,`Flash-to-bang time! Tap at the <b>flash</b> and again at the <b>thunder</b>. Sound travels about 1 mile every 5 seconds (1 km every 3 seconds).`,`Flash-to-bang: tap at the flash, tap at the thunder. Sound moves about 343 m/s, roughly 1 mile per 5 s. Light arrives almost instantly.`]));
+ next('I\'m ready ➜',()=>doRound());
+ function doRound(){const secs=secsList[round];let t0=0,state='wait';hud.querySelector('#talk')?.remove();
+  const m=document.createElement('div');m.className='meter';m.innerHTML=`<div>⏱️ seconds</div><div class="v" id="sv">–</div><div id="sh" style="font-size:13px;opacity:.85">Watch the window…</div>`;hud.appendChild(m);
+  const z=document.createElement('div');z.className='tapzone';hud.appendChild(z);
+  const tip=talk(`<b>Tap anywhere</b> when you see the flash… and again when you hear the boom! (Round ${round+1} of ${secsList.length})`);
+  let raf;const tick=()=>{if(state==='count'){document.getElementById('sv').textContent=((performance.now()-t0)/1000).toFixed(1);}raf=requestAnimationFrame(tick);};tick();
+  const flashAt=1200+Math.random()*1500;later(()=>{flash(1);const b=document.getElementById('bolt');if(b){b.setAttribute('opacity','1');later(()=>b.setAttribute('opacity','0'),350);}state=state==='wait'?'flashed':state;flashT=performance.now();},flashAt);
+  let flashT=0,boomT=0;later(()=>{SFX.thunder();boomT=performance.now();},flashAt+secs*1000);
+  z.onclick=()=>{SFX.tap();if(state==='wait'){document.getElementById('sh').textContent='Not yet! Wait for the flash ⚡';return;}
+   if(state==='flashed'){state='count';t0=flashT;document.getElementById('sh').textContent='Counting… tap at the BOOM!';return;}
+   if(state==='count'){if(!boomT){document.getElementById('sh').textContent='Keep waiting for the thunder…';return;}state='done';cancelAnimationFrame(raf);const measured=Math.round((performance.now()-t0)/1000);document.getElementById('sv').textContent=String(measured);z.remove();ask(measured);}};}
+ function ask(measured){const secs=secsList[round];const miles=secs/5;
+  const r=talk(`You counted about <b>${measured} seconds</b>${Math.abs(measured-secs)>1?` (the real gap was ${secs})`:''}. ${T(['How far away is the lightning? (Every 5 seconds = 1 mile)','How far away is the lightning? Remember: 5 seconds = 1 mile.','How many miles away is the lightning?','Distance to the strike, in miles?'])}`);
+  const opts=[1,2,3,5,10,15].filter(v=>v!==miles);const wrong=[opts.find(v=>v===secs)||opts[3],opts[0]===miles?opts[1]:opts[0]];
+  const list=[{t:`${miles} mile${miles>1?'s':''}`,k:'best',say:`Right! ${secs} ÷ 5 = <b>${miles}</b>. ${miles<=2?'That\'s close! Good thing we\'re in the bunker.':'It\'s moving away.'}`},
+   {t:`${wrong[0]} miles`,k:'no',say:wrong[0]===secs?'Careful: that\'s the number of <b>seconds</b>, not miles. Divide the seconds by 5!':'Not quite. Try dividing the seconds by 5.'},
+   {t:`${wrong[1]} mile${wrong[1]>1?'s':''}`,k:'no',say:'Close, but check your math: seconds ÷ 5 = miles.'}].sort(()=>Math.random()-.5);
+  choose(r,list,()=>{hud.querySelector('.meter')?.remove();round++;if(round<(G===0?2:3))doRound();else go(5);});}};
+
+/* 6. drone camera: Skye flies, kid gives the jobs */
+S.drone=()=>{let alt=0;
+ const cam=(y,extra)=>`<rect x="392" y="52" width="356" height="226" fill="#5d7185"/><g transform="translate(0 ${y})" fill="#8a9cad" opacity=".8"><use href="#cloud" x="380" y="40" width="220" height="110"/><use href="#cloud" x="560" y="110" width="200" height="100"/><use href="#cloud" x="400" y="190" width="260" height="110"/></g>${extra||''}
+  <text x="402" y="72" font-size="14" fill="#ff6b6b" font-family="monospace">● LIVE · DRONE CAM</text><text x="738" y="270" font-size="14" fill="#fff" font-family="monospace" text-anchor="end">ALT ${alt.toLocaleString()} ft</text>`;
+ const draw=(y,extra)=>setScene(BUNKER().replace(/<rect x="392" y="52"[^>]*\/>\s*<text x="570" y="170"[^>]*>DRONE CAMERA · STANDBY<\/text>/,cam(y,extra))+`<svg x="826" y="296" width="110" height="165"><use href="#skye"/></svg><svg x="330" y="330" width="86" height="130"><use href="#hero"/></svg>`);
+ draw(0);
+ const r=talk(`Time to send up my weather drone! I'll fly it, you pick the mission. Which cloud should we fly into to learn about the lightning?`);
+ choose(r,[
+  {t:'☁️ The tall, dark tower cloud',k:'best',say:'Exactly! That giant tower is a <b>cumulonimbus</b>, the thunderstorm cloud. That\'s where the lightning is made. Launching!'},
+  {t:'🌫️ The flat gray cloud',k:'okay',say:'We could, but that flat cloud is a <b>stratus</b> cloud. It just makes drizzle, no lightning. The tall tower cloud is where the action is. Let\'s go there!'},
+  {t:'⚡ Straight at a lightning bolt',k:'no',say:'Whoa, no! A lightning strike would fry my drone. We measure the storm from <b>inside the cloud</b>, not by chasing bolts.'}],
+  ()=>fly());
+ function fly(){hud.querySelector('#talk')?.remove();let y=0;const readings=[];
+  const stops=[{alt:2000,t:'⬆️ Updraft: <b>40 mph</b> of warm air rushing UP!',ex:''},{alt:15000,t:'🧊 It\'s below freezing up here: <b>ice and hail</b> are bumping into each other!',ex:'ice'},{alt:30000,t:'⚡ Electric charge detected! The <b>top</b> of the cloud is building up charge.',ex:'charge'}];
+  let si=0;
+  const iceSvg=`<g fill="#e7f5ff" stroke="#74c0fc" stroke-width="2">${[[450,120],[520,160],[600,110],[680,150],[560,210],[640,220]].map(([x,yy])=>`<circle cx="${x}" cy="${yy}" r="${6+((x+yy)%5)}"/>`).join('')}</g>`;
+  const chSvg=`<g font-size="30" font-weight="700"><text x="440" y="110" fill="#ff8787">+ + + +</text><text x="440" y="250" fill="#74c0fc">− − − −</text></g>`;
+  const climb=()=>{const target=stops[si];const start=alt,t0=performance.now();
+   const step=()=>{const k=Math.min(1,(performance.now()-t0)/1800);alt=Math.round(start+(target.alt-start)*k);y=(alt/40)%120;draw(y,`<svg x="530" y="130" width="90" height="45"><use href="#drone"/></svg>`+(si>=1?iceSvg:'')+(si>=2?chSvg:''));if(k<1)requestAnimationFrame(step);else arrived();};step();};
+  const arrived=()=>{const r=talk(`We're at <b>${alt.toLocaleString()} feet</b>. Press the button to take a reading!`);btn(r,'📡 Take a reading',(bb)=>{if(bb.dataset.used)return;bb.dataset.used=1;bb.disabled=true;SFX.good();readings.push(stops[si].t);pts+=3;points();
+    const r2=talk(stops[si].t+(si<2?' Let\'s climb higher!':''));si++;if(si<stops.length)btn(r2,'⬆️ Climb higher',climb,'gold');else btn(r2,'Next ➜',chargeQ,'gold');},'gold');};
+  climb();}
+ function chargeQ(){const r=talk(T([`All that bumping makes electricity! Where do the <b>plus (+)</b> charges gather: at the top or the bottom of the cloud?`,`Rising air and bumping ice build up electric charge. Where do the <b>+</b> charges collect?`,`Updrafts carry small, positively charged ice crystals upward, while heavier graupel falls. Where does the positive charge build up?`,`During charge separation, which region of the cumulonimbus ends up positively charged?`]));
+  choose(r,[{t:'⬆️ At the top',k:'best',say:'Yes! Plus charges at the top, minus charges at the bottom. When the difference gets too big… <b>ZAP</b>, lightning jumps to even it out!'},
+   {t:'⬇️ At the bottom',k:'no',say:'Look at the drone screen again: the <b>minus</b> charges are at the bottom. The pluses rise to the top!'},
+   {t:'🎲 All mixed together',k:'okay',say:'At first they are mixed! But the updraft <b>separates</b> them: pluses go up top, minuses sink to the bottom. That separation is what makes lightning.'}],()=>go(6));}};
+
+/* 7. lab bench: balloon spark */
+S.bench=()=>{let charge=0,lastX=null;
+ const draw=(spark)=>setScene(`<rect width="960" height="600" fill="#3b4a5a"/><rect y="380" width="960" height="220" fill="#8d5a2b"/><rect y="372" width="960" height="14" fill="#a0672f"/>
+  <g id="bal" transform="translate(300 250)"><ellipse rx="92" ry="112" fill="#ff8787" stroke="#c92a2a" stroke-width="5"/><path d="M0 112 l-10 16 h20z" fill="#c92a2a"/><path d="M0 128 q-20 40 8 80" stroke="#495057" stroke-width="3" fill="none"/>
+   <g font-size="30" font-weight="700" fill="#1864ab">${Array.from({length:Math.round(charge/10)},(_,i)=>`<text x="${-50+(i*37)%100}" y="${-50+(i*53)%110}">−</text>`).join('')}</g></g>
+  <g transform="translate(640 320)"><rect x="-60" y="0" width="120" height="60" rx="8" fill="#495057"/><circle cx="0" cy="-22" r="26" fill="#adb5bd" stroke="#868e96" stroke-width="4"/><text y="92" font-size="18" fill="#fff" text-anchor="middle">metal knob</text></g>
+  <g transform="translate(820 330)"><rect x="-50" y="-10" width="100" height="60" rx="6" fill="#c08552" stroke="#8d5a2b" stroke-width="4"/><text y="82" font-size="18" fill="#fff" text-anchor="middle">wood block</text></g>
+  ${spark?`<path d="M${spark} 270 l24 -14 l-8 24 l28 -10" stroke="#ffe066" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="${spark+40}" cy="262" r="30" fill="#fff9db" opacity=".6"/>`:''}
+  <g transform="translate(60 40)"><rect width="220" height="26" rx="13" fill="#212529"/><rect width="${2.2*charge}" height="26" rx="13" fill="#74c0fc"/><text x="110" y="19" font-size="15" fill="#fff" text-anchor="middle">charge ${charge}%</text></g>`);
+ draw();
+ const r=talk(`Let's make a <b>mini lightning bolt</b>! First, <b>rub the balloon</b>: swipe back and forth on it (or tap the rub button) to build up electric charge.`);
+ const rub=()=>{if(charge>=100)return;charge=Math.min(100,charge+6);draw();SFX.tap();if(charge>=30&&!hud.querySelector('#touchRow'))offer();};
+ btn(r,'🧽 Rub',rub);
+ scene.onpointermove=e=>{if(e.buttons===0&&e.pointerType==='mouse')return;if(lastX!==null&&Math.abs(e.clientX-lastX)>30){rub();lastX=e.clientX;}else if(lastX===null)lastX=e.clientX;};
+ scene.onpointerdown=e=>{lastX=e.clientX;};
+ function offer(){const row=hud.querySelector('#talk .row');const d=document.createElement('div');d.id='touchRow';d.className='row';row.parentNode.appendChild(d);
+  btn(d,'👉 Touch the metal knob',()=>touch('metal'),'gold');btn(d,'👉 Touch the wood block',()=>touch('wood'));}
+ let tries=0;
+ function touch(what){tries++;
+  if(what==='wood'){SFX.bad();const r=talk(`Nothing happened! <b>Wood</b> doesn't let electricity flow well. Electricity loves to jump to <b>metal</b>. Try the metal knob!`);btn(r,'🧽 Rub more',rub);offerAgain();return;}
+  if(charge<60){SFX.okay();draw(560);later(()=>draw(),200);const r=talk(`A teeny tiny snap! That worked, but we only built up <b>${charge}%</b> charge. Rub more for a bigger spark, just like a cloud needs LOTS of charge before lightning jumps.`);btn(r,'🧽 Rub more',rub);offerAgain();return;}
+  SFX.zap();flash(1);draw(560);pts+=tries===1?10:5;points();scene.onpointermove=null;
+  const r=talk(`⚡ <b>SNAP!</b> You made mini lightning! The extra charges on the balloon jumped to the metal to even things out. A thundercloud does the <b>exact same thing</b>, just a billion times bigger.`);btn(r,'Next ➜',()=>go(7),'gold');}
+ function offerAgain(){later(()=>{if(!hud.querySelector('#touchRow')&&charge>=30)offer();},50);}};
+
+/* 8. quiz on the big screen */
+S.quiz=()=>{const Q=[
+  [['What should you do when you hear thunder?',['Go indoors','Stand under a tree','Keep playing outside'],0,'When thunder roars, go indoors!'],
+   ['Which comes first?',['The flash of lightning','The boom of thunder'],0,'Light travels super fast, so we see the flash before we hear the boom.'],
+   ['Where is the safest place in a storm?',['Inside a sturdy building','Under a tall tree','In an open field'],0,'A sturdy building keeps you safe from lightning.']],
+  [['You count 10 seconds from flash to boom. How far away is the lightning?',['About 2 miles','About 10 miles','About 1 mile'],0,'10 ÷ 5 = 2 miles.'],
+   ['Which cloud makes thunderstorms?',['Tall cumulonimbus','Flat stratus','Thin wispy cirrus'],0,'The tall tower cloud, the cumulonimbus, is the thunderstorm cloud.'],
+   ['Why do we see lightning before we hear thunder?',['Light is faster than sound','Thunder happens later','Our ears are slow'],0,'Light is about a million times faster than sound.']],
+  [['Lightning heats the air super fast. What does the air do?',['Expands with a BOOM (thunder)','Freezes into hail','Turns into rain'],0,'Superheated air expands explosively: that\'s the thunder.'],
+   ['What separates the charges inside a storm cloud?',['Updrafts and colliding ice','Sunlight','Wind at the ground'],0,'Rising air and colliding ice particles separate the charges.'],
+   ['You count 15 seconds. About how far away is the strike?',['3 miles','15 miles','1 mile'],0,'15 ÷ 5 = 3 miles.']],
+  [['Lightning heats air to roughly…',['About 30,000 °C (5× the Sun\'s surface)','About 300 °C','About 3,000 °C'],0,'Around 30,000 K, several times hotter than the Sun\'s surface.'],
+   ['Which particles tend to carry positive charge to the cloud top?',['Small ice crystals','Large graupel','Raindrops at the base'],0,'Small ice crystals gain positive charge and are lifted by the updraft.'],
+   ['Sound travels ~343 m/s. A 6-second gap means about…',['2 km','6 km','343 m'],0,'343 × 6 ≈ 2,060 m, about 2 km.']]][G];
+ setScene(BUNKER()+`<svg x="826" y="296" width="110" height="165"><use href="#skye"/></svg>`);
+ let qi=0;const show=()=>{hud.querySelector('.card')?.remove();hud.querySelector('#talk')?.remove();const q=Q[qi];
+  const c=document.createElement('div');c.className='card';c.innerHTML=`<h3>⛈️ Storm Quiz · Question ${qi+1} of ${Q.length} · ⭐ ${pts}</h3><div class="q">${q[0]}</div><div class="opts"></div>`;hud.appendChild(c);
+  const order=q[1].map((t,i)=>i).sort(()=>Math.random()-.5);const box=c.querySelector('.opts');let tries=0;
+  order.forEach(i=>{const b=document.createElement('button');b.className='btn choice';b.textContent=q[1][i];box.appendChild(b);
+   b.onclick=()=>{tries++;if(i===q[2]){SFX.good();b.classList.add('best');[...box.children].forEach(x=>x.disabled=true);const got=tries===1?10:5;pts+=got;points();
+     const f=document.createElement('div');f.className='fb best';f.innerHTML=`✅ ${q[3]} <b>(+${got})</b>`;c.appendChild(f);const n=document.createElement('div');n.className='row';n.style.marginTop='10px';c.appendChild(n);
+     btn(n,qi<Q.length-1?'Next question ➜':'Finish ➜',()=>{qi++;if(qi<Q.length)show();else{c.remove();go(8);}},'gold');}
+    else{SFX.bad();b.classList.add('no');b.disabled=true;let f=c.querySelector('.fb');if(!f){f=document.createElement('div');c.appendChild(f);}f.className='fb no';f.innerHTML='Not that one. Think about what we learned and try again!';}};});};
+ show();later(()=>{SFX.thunder();},4000);};
+
+/* 9. all clear: when can we go out? */
+S.clear=()=>{setScene(BUNKER(`<rect x="50" y="70" width="280" height="190" fill="#74c0fc"/><g fill="#fff"><use href="#cloud" x="70" y="90" width="120" height="60"/></g><rect x="50" y="232" width="280" height="28" fill="#51cf66"/>`)+`<svg x="826" y="296" width="110" height="165"><use href="#skye"/></svg><svg x="330" y="330" width="86" height="130"><use href="#hero"/></svg>`);
+ const r=talk(`The rain stopped and the sky is getting brighter! When is it safe to go back outside?`);
+ choose(r,[{t:'🏃 Right now! The rain stopped!',k:'no',say:'Not yet! Lightning can still strike even after the rain stops. Storm chasers <b>wait 30 minutes</b> after the last thunder.'},
+  {t:'⏳ 30 minutes after the last thunder',k:'best',say:'Exactly right! <b>30 minutes after the last thunder.</b> Good thing it\'s been a while. Let\'s go!'},
+  {t:'🌈 As soon as I see a rainbow',k:'okay',say:'A rainbow means the sun is back, a good sign! But the real rule is <b>30 minutes after the last thunder</b>, just to be sure.'}],
+  ()=>{SFX.siren();setScene(MAP(false)+`<g fill="none" stroke-width="22" opacity=".85"><path d="M180 420 A300 300 0 0 1 780 420" stroke="#ff8787"/><path d="M202 420 A278 278 0 0 1 758 420" stroke="#ffd43b"/><path d="M224 420 A256 256 0 0 1 736 420" stroke="#8ce99a"/><path d="M246 420 A234 234 0 0 1 714 420" stroke="#74c0fc"/><path d="M268 420 A212 212 0 0 1 692 420" stroke="#b197fc"/></g>
+    <g fill="#74c0fc" opacity=".8"><ellipse cx="420" cy="480" rx="70" ry="12"/><ellipse cx="620" cy="520" rx="50" ry="10"/></g><svg x="400" y="300" width="80" height="120"><use href="#hero"/></svg><svg x="490" y="286" width="90" height="135"><use href="#skye"/></svg><svg x="560" y="170" width="110" height="55" class="bob"><use href="#drone"/></svg>
+    <text x="480" y="80" font-size="36" font-weight="700" fill="#1864ab" text-anchor="middle">🔔 ALL CLEAR!</text>`);
+   const r2=talk(`All clear! Look what the storm left behind: puddles, fresh air and a <b>rainbow</b>. You were an amazing co-scientist, ${NAME}!`);btn(r2,'🃏 See my card ➜',()=>go(9),'gold');});};
+
+/* 10. album card */
+S.card=()=>{setScene(`<rect width="960" height="600" fill="#1f2f3d"/>`);const max=140;const stars=pts>=max*.85?3:pts>=max*.55?2:1;
+ const c=document.createElement('div');c.className='card';c.style.textAlign='center';
+ c.innerHTML=`<h3>📖 New Weather Album card!</h3><div style="font-size:84px;line-height:1">⛈️</div><div class="q" style="margin:6px 0">Thunderstorm</div>
+  <div>${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)} · ${pts} points</div>
+  <div style="margin:10px 0"><span class="pill">When thunder roars, go indoors</span><span class="pill">5 seconds ≈ 1 mile</span><span class="pill">+ top, − bottom</span><span class="pill">Wait 30 min after thunder</span></div>
+  <div class="row" style="justify-content:center;display:flex;gap:8px"></div>`;hud.appendChild(c);
+ btn(c.querySelector('.row'),'↺ Play again',()=>{pts=0;go(0);},'gold');hud.querySelector('.pts')?.remove();};
+
+$('#restart').onclick=()=>{pts=0;go(0);};
+fitFx();fxLoop();go(0);
+})();
+</script>
+</body>
+</html>
