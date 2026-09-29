@@ -465,7 +465,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .scsteps{display:flex;gap:8px;justify-content:center;margin:0 0 12px}.scsteps span{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff}.scsteps span.on{background:#ffd43b;color:#5c3c00}.scsteps span.done{background:#8ce99a;color:#1b5e20}
 .scq{font-size:34px;font-weight:800;text-align:center;margin:14px 0}.scres{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0}.scres div{background:#f3f0ff;border-radius:12px;padding:8px;display:flex;flex-direction:column}.scres span{font-size:20px;font-weight:800;color:#5f3dc4}
 .ascb #monS,.ascb .bk{filter:hue-rotate(var(--asch)) saturate(1.4) drop-shadow(0 0 14px rgba(255,215,0,.8))}.ascmap .node{filter:hue-rotate(var(--asch)) saturate(1.3)}.ascmap{box-shadow:inset 0 0 0 4px #ffd43b,0 0 24px rgba(255,212,59,.5)}.asctab{background:linear-gradient(135deg,#7048e8,#f59f00)!important;color:#fff}
-.z-haunt{background:linear-gradient(160deg,#fd7e14,#5f3dc4 55%,#1a1033)}.battle.z-haunt{background:linear-gradient(180deg,#5f3dc4,#1a1033)}
+.z-station{background:linear-gradient(160deg,#ffe8a3,#e8590c 60%,#7a2e0c)}.z-fair{background:linear-gradient(160deg,#c3fae8,#20c997 55%,#0b7285)}@keyframes spin{to{transform:rotate(360deg)}}.z-haunt{background:linear-gradient(160deg,#fd7e14,#5f3dc4 55%,#1a1033)}.battle.z-haunt{background:linear-gradient(180deg,#5f3dc4,#1a1033)}
 .evbanner{display:block;width:100%;text-align:left;font:inherit;font-size:15px;border:0;border-radius:16px;padding:10px 14px;margin:10px 0;background:linear-gradient(90deg,#fd7e14,#7048e8);color:#fff;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25)}.evbanner.soon{cursor:default;opacity:.95}
 .tbchip{background:#2b2250;color:#ffe8a3}.tbchip.low{background:#e03131;color:#fff;animation:bob 1.2s ease-in-out infinite}.tbrow label{display:inline-flex;align-items:center;gap:4px}.restcard{max-width:520px;margin:40px auto}
 .pad .negk{display:none;grid-column:1/-1;font-size:18px!important;background:#fff4e6!important;color:#d9480f!important}.pad.negon .negk{display:block}
@@ -703,7 +703,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function dayKey(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 /* ================= new math worlds: fractions, money, time ================= */
-const XOPS=['frac','money','time','vol','meas','word','graph','grp'];
+const XOPS=['frac','money','time','vol','meas','word','graph','grp','est','avg'];
 const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
 const frA=b=>`<span class="fr"><span>{A}</span><span>${b}</span></span>`;
 const pad2=n=>String(n).padStart(2,'0');
@@ -722,6 +722,10 @@ function visHTML(v){
  if(v.t==='set'){return `<div class="vis vset">${Array.from({length:v.n},(_,i)=>`<span class="${v.k&&i<v.k?'hl':''}">${v.e}</span>`).join('')}</div>`;}
  if(v.t==='coins'){return `<div class="vis coins">${v.list.map(c=>c===100?`<span class="bill">$1</span>`:`<span class="coin c${c}" style="background:${COIN[c].c}">${COIN[c].l}</span>`).join('')}</div>`;}
  if(v.t==='iso')return isoBoxes(v.b,v.lb);
+ if(v.t==='rline')return roundLineSVG(v.lo,v.hi,v.v,v.step);
+ if(v.t==='jar')return jarSVG(v.n);
+ if(v.t==='towers')return towersHTML(v.list,v.lab);
+ if(v.t==='sbars')return scoreBarsHTML(v.vals,v.names);
  if(v.t==='pgraph')return pgraphHTML(v);
  if(v.t==='bgraph')return bgraphHTML(v);
  if(v.t==='nline')return nlineSVG(v.j,v.s);
@@ -739,6 +743,7 @@ function visHTML(v){
  return '';
 }
 function genX(op,L){
+ if(EAOPS.includes(op))return genEA(op,L);
  if(G5OPS.includes(op))return genG5(op,L);
  if(op==='graph'||op==='grp')return genG3(op,L);
  const q={op,L,fast:9};
@@ -810,6 +815,83 @@ function genX(op,L){
  return fin({prompt:`A movie starts at <b>${tfmt(h,m)}</b> and lasts <b>${dh} hour${dh>1?'s':''} ${dm} minutes</b>. When does it end?`,tpl:'{A}',kind:'clock',answer:H*100+M,alt:M===0?[H]:undefined,text:`${tfmt(h,m)} + ${dh}h ${dm}m`,
   explain:`<p>${tfmt(h,m)} + ${dh} hour${dh>1?'s':''} = ${tfmt(wrapH(h+dh),m)}</p><p>Then + ${dm} minutes = <b>${tfmt(H,M)}</b></p>`,nudge:`<p>Add the hours first, then the minutes. Type 3:45 as 3 4 5.</p>`});
 }
+/* ================= Estimation Station (rounding & estimating) and The Average Shoppe (averages) ================= */
+const EAOPS=['est','avg'];
+function roundLineSVG(lo,hi,v,step){const W=330,x=n=>18+(n-lo)/(hi-lo)*(W-36),mid=(lo+hi)/2;let g=`<line x1="10" y1="52" x2="${W-10}" y2="52" stroke="#2b2250" stroke-width="3"/>`;
+ for(let n=lo;n<=hi;n+=step){const big=n===lo||n===hi,m=n===mid;g+=`<line x1="${x(n).toFixed(1)}" y1="${big?38:m?42:46}" x2="${x(n).toFixed(1)}" y2="${big?66:m?62:58}" stroke="${m?'#e8590c':'#2b2250'}" stroke-width="${big?3:m?2.5:1.5}"/>`;
+  if(big||m)g+=`<text x="${x(n).toFixed(1)}" y="84" font-size="${big?16:13}" font-weight="700" text-anchor="middle" fill="${m?'#e8590c':'#2b2250'}">${fmtN(n)}</text>`;}
+ g+=`<g transform="translate(${x(v).toFixed(1)} 30)"><path d="M0 22 L-9 4 L9 4Z" fill="#7c5cff"/><rect x="-24" y="-18" width="48" height="24" rx="8" fill="#7c5cff"/><text y="0" font-size="15" font-weight="800" text-anchor="middle" fill="#fff">${fmtN(v)}</text></g>`;
+ return `<svg class="vis rline" viewBox="0 0 ${W} 92" style="width:min(330px,100%)">${g}</svg>`;}
+function jarSVG(n,seed){let s=seed||n*7919;const r=()=>{s=(s*1103515245+12345)%2147483648;return s/2147483648;};const cols=['#ff6b6b','#ffd43b','#51cf66','#4dabf7','#f783ac','#9775fa','#ff922b'];
+ const per=10,rows=Math.ceil(n/per);const H=Math.max(130,rows*13+40);let b='';
+ for(let i=0;i<n;i++){const row=Math.floor(i/per),col=i%per;const x=26+col*11.5+(row%2?5:0)+r()*3,y=H-18-row*12.5-r()*3;b+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="5.4" ry="4" transform="rotate(${Math.round(r()*80-40)} ${x.toFixed(1)} ${y.toFixed(1)})" fill="${cols[Math.floor(r()*cols.length)]}" stroke="#0003"/>`;}
+ return `<svg class="vis jar" viewBox="0 0 170 ${H+12}" style="width:${Math.min(200,150+rows*4)}px;max-width:44vw"><rect x="48" y="2" width="74" height="16" rx="5" fill="#c68b4e" stroke="#7a4b1f" stroke-width="2.5"/><path d="M40 20 Q16 26 16 50 L16 ${H} Q16 ${H+10} 30 ${H+10} L140 ${H+10} Q154 ${H+10} 154 ${H} L154 50 Q154 26 130 20Z" fill="#e7f5ffcc" stroke="#74c0fc" stroke-width="3"/>${b}<path d="M28 44 L28 ${H-6}" stroke="#fff" stroke-width="5" opacity=".6" stroke-linecap="round"/></svg>`;}
+function towersHTML(list,lab){const cols=['#ff922b','#4dabf7','#51cf66','#f783ac','#ffd43b','#9775fa'];const mx=Math.max(...list),bh=Math.min(16,Math.floor(110/mx));
+ return `<div class="vis towers">${list.map((h,i)=>`<div class="tw"><div class="tws" style="height:${mx*(bh+2)}px">${Array.from({length:h},()=>`<i style="background:${cols[i%cols.length]};height:${bh}px"></i>`).join('')}</div><b>${lab?lab[i]:h}</b></div>`).join('')}</div>`;}
+function scoreBarsHTML(vals,names){const mx=Math.max(...vals);return `<div class="vis sbars">${vals.map((v,i)=>`<div class="sb"><span class="v">${v}</span><i style="height:${Math.round(v/mx*96)}px"></i><small>${names[i]}</small></div>`).join('')}</div>`;}
+function genEA(op,L){const q={op,L,fast:14};const fin=o=>Object.assign(q,o);
+ if(op==='est'){
+  const roundQ=(v,to)=>{const lo=Math.floor(v/to)*to,hi=lo+to,ans=v-lo>=to/2?hi:lo;const word=to===10?'ten':to===100?'hundred':'thousand';
+   return fin({vis:{t:'rline',lo,hi,v,step:to/10},prompt:`Round <b>${fmtN(v)}</b> to the nearest <b>${word}</b>.`,tpl:'{A}',answer:ans,text:`Round ${v} to nearest ${to}`,
+    explain:`<p>${fmtN(v)} is between <b>${fmtN(lo)}</b> and <b>${fmtN(hi)}</b>. The halfway point is ${fmtN(lo+to/2)}.</p><p>${v-lo===to/2?`It's exactly halfway, and halfway rounds <b>up</b>`:v-lo>to/2?`It's past halfway, so it rounds <b>up</b>`:`It hasn't reached halfway, so it rounds <b>down</b>`} to <b>${fmtN(ans)}</b>.</p>`,
+    nudge:`<p>Which is it closer to: <b>${fmtN(lo)}</b> or <b>${fmtN(hi)}</b>? Look at the number line!</p><p class="tip">5 or more? Round up. 4 or less? Round down.</p>`});};
+  const notRound=(a,b,to)=>{let v;do{v=rnd(a,b);}while(v%to===0);return v;};
+  if(L===1)return roundQ(notRound(11,98,10),10);
+  if(L===2)return roundQ(notRound(101,989,10),10);
+  if(L===3)return roundQ(notRound(110,980,100),100);
+  if(L===4){const a=notRound(12,89,10),b=notRound(11,89-Math.round(a/10)*10+5,10),ra=Math.round(a/10)*10,rb=Math.round(b/10)*10;
+   return fin({prompt:'Round each number to the nearest <b>ten</b>, then add.',tpl:`${a} + ${b} ≈ {A}`,answer:ra+rb,text:`Estimate ${a} + ${b}`,
+    explain:`<p>${a} rounds to <b>${ra}</b>. ${b} rounds to <b>${rb}</b>.</p><p>${ra} + ${rb} = <b>${ra+rb}</b>. (The real answer is ${a+b}. Pretty close!)</p>`,nudge:`<p>${a} is about ${Math.floor(a/10)*10} or ${Math.floor(a/10)*10+10}? Round both first. Adding tens is easy!</p>`});}
+  if(L===5||L===10&&Math.random()<.5){const n=L===5?rnd(18,55):rnd(60,140);const tol=Math.max(4,Math.round(n*(L===5?.2:.15)));const alt=[];for(let k=n-tol;k<=n+tol;k++)if(k!==n)alt.push(k);
+   return fin({vis:{t:'jar',n},prompt:`🫘 <b>Guesstimate!</b> About how many jellybeans are in the jar?`,tpl:'{A} jellybeans',answer:n,alt,guess:tol,text:`Jellybean jar (${n})`,fast:20,
+    explain:`<p>There were exactly <b>${n}</b> jellybeans. Any guess from <b>${n-tol}</b> to <b>${n+tol}</b> wins!</p><p class="tip">Trick: each row holds about 10. Count the rows, then count by tens!</p>`,nudge:`<p>Don't count every bean! Each row has about <b>10</b>. How many rows are there?</p>`});}
+  if(L===6){const a=notRound(420,980,100),b=notRound(110,Math.round(a/100)*100-150,100),ra=Math.round(a/100)*100,rb=Math.round(b/100)*100;
+   return fin({prompt:'Round each number to the nearest <b>hundred</b>, then subtract.',tpl:`${a} − ${b} ≈ {A}`,answer:ra-rb,text:`Estimate ${a} − ${b}`,
+    explain:`<p>${a} rounds to <b>${ra}</b>. ${b} rounds to <b>${rb}</b>.</p><p>${ra} − ${rb} = <b>${ra-rb}</b>. (Exact: ${a-b}.)</p>`,nudge:`<p>Round both to hundreds first. Then it's like ${ra/100} − ${rb/100}, with two zeros on the end!</p>`});}
+  if(L===7)return roundQ(Math.random()<.6?notRound(1100,9899,1000):notRound(10100,98900,1000),1000);
+  if(L===8){const a=notRound(12,98,10),b=rnd(3,9),ra=Math.round(a/10)*10;
+   return fin({prompt:'Round the big number to the nearest <b>ten</b>, then multiply.',tpl:`${a} × ${b} ≈ {A}`,answer:ra*b,text:`Estimate ${a} × ${b}`,
+    explain:`<p>${a} rounds to <b>${ra}</b>.</p><p>${ra} × ${b} = <b>${ra*b}</b>. (Exact: ${a*b}.)</p>`,nudge:`<p>${ra} × ${b} is the same as ${ra/10} × ${b}, then add a zero!</p>`});}
+  if(L===9){const d=rnd(3,9),c=rnd(3,9)*10+(Math.random()<.4?0:0),comp=c*d,dv=comp+rnd(1,Math.min(d-1,4))*(Math.random()<.5?1:-1);
+   return fin({prompt:`Find a nearby number that divides easily by ${d}, then divide.`,tpl:`${dv} ÷ ${d} ≈ {A}`,answer:c,text:`Estimate ${dv} ÷ ${d}`,
+    explain:`<p>${dv} is close to <b>${comp}</b>, and ${comp} ÷ ${d} is easy: ${comp/10} ÷ ${d} = ${c/10}, so ${comp} ÷ ${d} = <b>${c}</b>.</p>`,nudge:`<p>Think of your ${d} times table: ${d} × ? = a number close to ${Math.round(dv/10)}. Then add a zero!</p>`});}
+  const places=[['🦁','the zoo','visitors'],['🎡','the fair','people'],['⚾','the ball game','fans'],['📚','the library','books borrowed']];const [e,pl,wd]=pick(places);const a=notRound(210,690,100);let b;do{b=notRound(210,690,100);}while(Math.abs(b-a)<40);const ra=Math.round(a/100)*100,rb=Math.round(b/100)*100;
+  return fin({prompt:`${e} ${pl.charAt(0).toUpperCase()+pl.slice(1)} had <b>${a}</b> ${wd} on Saturday and <b>${b}</b> on Sunday. <b>About</b> how many ${wd} in all? (Round to hundreds.)`,tpl:'About {A}',answer:ra+rb,text:`About ${a} + ${b}`,
+   explain:`<p>${a} ≈ ${ra}, ${b} ≈ ${rb}.</p><p>${ra} + ${rb} = <b>${ra+rb}</b></p>`,nudge:`<p>"About" means estimate! Round ${a} and ${b} to the nearest hundred, then add.</p>`});
+ }
+ // averages: "fair share" = make everything even (The Average Shoppe)
+ const names=['Mika','Jibreel','Ethan','Dyl','Amo','Mom'];
+ if(L<=2){const k=L===1?2:3,m=rnd(2,5);let list;do{list=Array.from({length:k},()=>rnd(1,m*2-1));const s=list.reduce((a,b)=>a+b,0);list[k-1]+=m*k-s;}while(list.some(v=>v<1||v>9)||list.every(v=>v===m));
+  return fin({vis:{t:'towers',list},prompt:`🥫 The shopkeeper wants every stack of cans the <b>same height</b>. Move cans around. How tall is each stack?`,tpl:'Each stack: {A} cans',answer:m,text:`Even out ${list.join(', ')}`,
+   explain:`<p>There are ${list.join(' + ')} = <b>${m*k}</b> cans in all.</p><p>Share them fairly across ${k} stacks: ${m*k} ÷ ${k} = <b>${m}</b>. That's the <b>average</b>!</p>`,nudge:`<p>Count ALL the cans. Then share them out equally between the ${k} stacks.</p>`});}
+ const meanList=(k,lo,hi)=>{let l,s;do{l=Array.from({length:k},()=>rnd(lo,hi));s=l.reduce((a,b)=>a+b,0);}while(s%k||new Set(l).size<2);return l;};
+ if(L===3||L===4){const k=L===3?3:pick([4,5]),l=meanList(k,L===3?2:5,L===3?15:30),s=l.reduce((a,b)=>a+b,0);
+  return fin({vis:L===3?{t:'towers',list:l.map(v=>Math.min(v,15)),lab:l}:undefined,prompt:`What is the <b>average</b> (mean)?`,tpl:`Average of ${l.join(', ')} = {A}`,answer:s/k,text:`Mean of ${l.join(', ')}`,
+   explain:`<p>Add them up: ${l.join(' + ')} = <b>${s}</b>.</p><p>There are ${k} numbers, so ${s} ÷ ${k} = <b>${s/k}</b>.</p>`,nudge:`<p>Average = <b>add them all</b>, then <b>divide</b> by how many numbers there are (${k}).</p>`});}
+ if(L===5||L===9){const even=L===9;let l;do{l=Array.from({length:even?6:5},()=>rnd(2,40));}while(new Set(l).size<l.length);const s=[...l].sort((a,b)=>a-b);
+  if(even&&(s[2]+s[3])%2)return genEA(op,L);const med=even?(s[2]+s[3])/2:s[2];
+  return fin({prompt:`What is the <b>median</b> (the middle number)?`,tpl:`${l.join(', ')} → median = {A}`,answer:med,text:`Median of ${l.join(', ')}`,
+   explain:`<p>Put them in order: ${s.map((v,i)=>(even?(i===2||i===3):i===2)?`<b>${v}</b>`:v).join(', ')}</p><p>${even?`Two numbers are in the middle, so take their average: (${s[2]} + ${s[3]}) ÷ 2 = <b>${med}</b>`:`The middle one is <b>${med}</b>`}.</p>`,nudge:`<p>First put the numbers <b>in order</b> from smallest to biggest. ${even?'With 6 numbers, the middle is between the 3rd and 4th.':'Then find the one in the middle.'}</p>`});}
+ if(L===6){if(Math.random()<.5){const m=rnd(3,20);let l=[m,m,m];while(l.length<7){const v=rnd(1,25);if(v!==m&&l.filter(x=>x===v).length<1)l.push(v);}l=l.sort(()=>Math.random()-.5);
+   return fin({prompt:`What is the <b>mode</b> (the number that shows up the most)?`,tpl:`${l.join(', ')} → mode = {A}`,answer:m,text:`Mode of ${l.join(', ')}`,explain:`<p><b>${m}</b> shows up 3 times. Every other number shows up once.</p>`,nudge:`<p>Look for the number you see <b>most often</b>.</p>`});}
+  const l=Array.from({length:6},()=>rnd(3,60)),mx=Math.max(...l),mn=Math.min(...l);
+  return fin({prompt:`What is the <b>range</b> (biggest minus smallest)?`,tpl:`${l.join(', ')} → range = {A}`,answer:mx-mn,text:`Range of ${l.join(', ')}`,explain:`<p>Biggest: <b>${mx}</b>. Smallest: <b>${mn}</b>.</p><p>${mx} − ${mn} = <b>${mx-mn}</b></p>`,nudge:`<p>Find the biggest and the smallest number. Take away!</p>`});}
+ if(L===7){const k=4,l=meanList(k,4,24),s=l.reduce((a,b)=>a+b,0),who=pick(names.slice(0,4));
+  return fin({vis:{t:'sbars',vals:l,names:['Mon','Tue','Wed','Thu']},prompt:`🍋 Lemonades ${who} sold at the Shoppe each day. What is the <b>average</b> per day?`,tpl:'Average: {A} a day',answer:s/k,text:`Mean of ${l.join(', ')}`,
+   explain:`<p>${l.join(' + ')} = <b>${s}</b> lemonades.</p><p>${s} ÷ ${k} days = <b>${s/k}</b> a day</p>`,nudge:`<p>Read each bar, add them up, then divide by the number of days (${k}).</p>`});}
+ if(L===8){const k=pick([3,4]),m=rnd(6,20),l=Array.from({length:k-1},()=>rnd(Math.max(1,m-6),m+6));const miss=m*k-l.reduce((a,b)=>a+b,0);if(miss<1)return genEA(op,L);
+  return fin({prompt:`The average of ${k} numbers is <b>${m}</b>. ${k===3?'Two':'Three'} of them are ${l.join(', ')}. What is the missing number?`,tpl:`${l.join(', ')}, {A} → average ${m}`,answer:miss,text:`Missing number, mean ${m}`,
+   explain:`<p>If the average of ${k} numbers is ${m}, they add up to ${m} × ${k} = <b>${m*k}</b>.</p><p>${m*k} − (${l.join(' + ')}) = <b>${miss}</b></p>`,nudge:`<p>Average × how many = the <b>total</b>. What's missing from the total?</p>`});}
+ const who=pick(names.slice(0,4));const k=4,l=meanList(k,6,20),s=l.reduce((a,b)=>a+b,0),target=s/k+rnd(1,3),need=target*(k+1)-s;
+ return Math.random()<.5?fin({prompt:`🏷️ At The Average Shoppe, ${who} bought ${k} toys that cost <b>$${l.join(', $')}</b>. What is the <b>average</b> price?`,tpl:'Average price: ${A}',answer:s/k,text:`Mean of ${l.join(', ')}`,explain:`<p>$${l.join(' + $')} = $${s}. $${s} ÷ ${k} = <b>$${s/k}</b></p>`,nudge:`<p>Add all the prices, then divide by ${k} toys.</p>`})
+  :fin({prompt:`🍪 ${who} sold <b>${l.join(', ')}</b> cookies on ${k} days at the Shoppe. How many must ${who} sell on day 5 to average <b>${target}</b> a day?`,tpl:'Day 5: {A} cookies',answer:need,text:`Need for mean ${target}`,explain:`<p>To average ${target} over 5 days, the total must be ${target} × 5 = <b>${target*5}</b>.</p><p>So far: ${s}. ${target*5} − ${s} = <b>${need}</b></p>`,nudge:`<p>Average × number of days = total needed. How far is ${who} from that total?</p>`});}
+const EADESC={est:['','Round to the nearest 10','Round big numbers to 10','Round to the nearest 100','Estimate sums','Jellybean guesstimate','Estimate differences','Round to the nearest 1,000','Estimate products','Estimate quotients','Estimation word problems'],
+ avg:['','Even out 2 towers','Even out 3 towers','Average of 3 numbers','Average of 4–5 numbers','The median','Mode & range','Average from a graph','The missing number','Median of an even list','Average word problems']};
+const EA_CSS=`.vis.rline{display:block;margin:0 auto}.vis.jar{display:block;margin:0 auto}
+.vis.towers{display:flex;gap:10px;align-items:flex-end;justify-content:center;padding:4px 6px}.vis.towers .tw{display:flex;flex-direction:column;align-items:center;gap:2px}.vis.towers .tws{display:flex;flex-direction:column-reverse;gap:2px;justify-content:flex-start}.vis.towers i{display:block;width:26px;height:16px;border-radius:4px;box-shadow:inset 0 -3px 0 #0002}.vis.towers b{font-size:15px}
+.vis.sbars{display:flex;gap:10px;align-items:flex-end;justify-content:center;height:140px;padding:0 6px}.vis.sbars .sb{display:flex;flex-direction:column;align-items:center;gap:2px}.vis.sbars i{display:block;width:34px;border-radius:6px 6px 0 0;background:linear-gradient(#b197fc,#7c5cff)}.vis.sbars .v{font-weight:800;font-size:15px}.vis.sbars small{font-size:11px;white-space:nowrap}`;
+document.head.insertAdjacentHTML('beforeend','<style>'+EA_CSS+'</style>');
+
 const XDESC={
  frac:['','Fraction pictures','Fractions up to eighths','Half & quarter of a group','Fraction of a group','Adding fractions','Taking away fractions','Matching fractions','Fraction of a number','Tenths & hundredths','Adding tenths + hundredths'],
  money:['','Pennies & nickels','Dimes, nickels & pennies','Counting quarters','Coins and dollars','Adding prices','Change from $1','Dollars to cents','Change from $5','Buying lots','Shopping trip'],
@@ -1019,8 +1101,8 @@ Object.assign(XDESC,{
 
 
 /* ================= game data ================= */
-const OPS=['add','sub','mul','div','frac','money','time','vol','meas','word','graph','grp'];const BASIC_OPS=['add','sub','mul','div'];
-const OPNAME={add:'Addition',sub:'Subtraction',mul:'Multiplication',div:'Division',frac:'Fractions',money:'Money',time:'Time',vol:'Volume',meas:'Measurement',word:'Word problems',graph:'Graphs',grp:'Groups & arrays',mix:'Mixed'};
+const OPS=['add','sub','mul','div','frac','money','time','vol','meas','word','graph','grp','est','avg'];const BASIC_OPS=['add','sub','mul','div'];
+const OPNAME={add:'Addition',sub:'Subtraction',mul:'Multiplication',div:'Division',frac:'Fractions',money:'Money',time:'Time',vol:'Volume',meas:'Measurement',word:'Word problems',graph:'Graphs',grp:'Groups & arrays',est:'Rounding & estimating',avg:'Averages',mix:'Mixed'};
 const LEVEL_DESC={
  add:['','Sums to 10','Sums to 20','2-digit + 1-digit','2-digit + 2-digit (no carrying)','2-digit + 2-digit (carrying)','3-digit + 2-digit','3-digit + 3-digit','4-digit + 3-digit','4-digit + 4-digit','Adding three numbers'],
  sub:['','Take away within 10','Take away within 20','2-digit − 1-digit','2-digit − 2-digit (no borrowing)','2-digit − 2-digit (borrowing)','3-digit − 2-digit','3-digit − 3-digit','4-digit − 3-digit','4-digit − 4-digit','5-digit − 4-digit'],
@@ -1032,9 +1114,9 @@ const KID_DESC={
  sub:['','Take away to 10','Take away to 20','Big − small','2-digit take away','Take away with borrowing','3-digit take away','Big 3-digit take away','4-digit take away','Giant take away','Mega take away'],
  mul:['','Easy times: 0, 1, 2','Times 2, 5, 10','Times 2 to 5','Times tables to 6','Times tables to 9','Times tables to 12','Teens times','2-digit times','2-digit × 2-digit','3-digit times'],
  div:['','Easy sharing: 1, 2, 3','Sharing by 2, 5, 10','Sharing by 2 to 5','Dividing to 6','Dividing to 9','Dividing to 12','2-digit dividing','3-digit dividing','Dividing by 2-digit numbers','Giant dividing']};
-Object.assign(KID_DESC,XDESC);Object.assign(LEVEL_DESC,XDESC);
+Object.assign(KID_DESC,XDESC,EADESC);Object.assign(LEVEL_DESC,XDESC,EADESC);
 // Everyone starts every skill at the easiest level (single digits) and climbs from there.
-const START={add:1,sub:1,mul:1,div:1,frac:1,money:1,time:1,vol:1,meas:1,word:1,graph:1,grp:1};const GRADE_START={1:START,2:START,3:START,4:START,5:START,6:START};
+const START={add:1,sub:1,mul:1,div:1,frac:1,money:1,time:1,vol:1,meas:1,word:1,graph:1,grp:1,est:1,avg:1};const GRADE_START={1:START,2:START,3:START,4:START,5:START,6:START};
 const SKINS=['#ffe0c7','#f5c99b','#d9a066','#a86b3c','#6b4226'];
 const HAIRS=['#2b1d0e','#6a3d1a','#c68642','#f2d16b','#d9480f','#7c5cff','#1c7ed6','#ff6fb5','#e9ecef'];
 const HATS=[
@@ -1122,6 +1204,10 @@ const ZONES=[
   mons:[['Ruler Rattler','🐍'],['Yardstick Yak','🐃'],['Inchworm','🐛'],['Protractor Hawk','🦅'],['Canyon Coyote','🐺'],['Perimeter Pharaoh','🦂']]},
  {id:'summit',name:'Story Summit',op:'word',sym:'📖',cls:'z-summit',art:'🏔️',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock.',decor:['🏔️','📖'],
   mons:[['Riddle Raccoon','🦝'],['Snow Owl','🦉'],['Puzzle Goat','🐐'],['Word Wolf','🐺'],['Frost Troll','🧌'],['The Story Dragon','🐉']]},
+ {id:'station',name:'Estimation Station',op:'est',sym:'≈',cls:'z-station',art:'🚂',scene:'station',lockMsg:'Beat 1 boss to unlock Estimation Station!',decor:['🚂','🫘','🎟️'],
+  mons:[['Guessing Goose','🪿'],['Round Robin','🐦'],['Jellybean Jinx','🫙'],['About-It Otter','🦦'],['Ballpark Bear','🐻'],['The Close-Enough Express','🚂']]},
+ {id:'fair',name:'The Average Shoppe',op:'avg',sym:'x̄',cls:'z-fair',art:'🏪',scene:'fair',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock The Average Shoppe.',decor:['🏪','🥫','🏷️'],
+  mons:[['Cash-Register Crab','🦀'],['Price-Tag Parrot','🦜'],['Shopping-Cart Goblin','👺'],['Coupon Clipper Cat','🐱'],['Bargain Badger','🦡'],['The Mean Machine','🎰']]},
  {id:'haunt',name:'Haunted Hollow',op:'mix',sym:'🎃',cls:'z-haunt',art:'🎃',scene:'haunt',event:true,decor:['🎃','👻','🕸️','🍬'],
   mons:[['Pumpkin Pal','🎃'],['Giggle Ghost','👻'],['Candy Corn Creep','🍬'],['Shuffle Zombie','🧟‍♂️'],['Howly Werewolf','🐺︎'],['The Pumpkin King','👑']]}];
 Object.defineProperty(ZONES.find(z=>z.id==='haunt'),'lockMsg',{get(){return eventSoon()?'🎃 Opens October 18!':'🎃 Closed until next Halloween!';}});
@@ -1159,7 +1245,7 @@ const xpNeed=l=>60+l*40;
 const petOf=p=>p.pet&&!(window.Adv&&Adv.away(p,p.pet))?PETS.find(x=>x.id===p.pet):null; // a pet on an adventure can't help until it's back
 const petPerk=p=>{if(typeof B!=='undefined'&&B&&!B.over&&B.petFrozen>0&&curScreen==='battle')return null;const x=petOf(p);return x?x.perk:null;};
 const bossesBeaten=p=>ZONES.filter(z=>(p.progress[z.id]||[])[5]>0).length;
-const zoneLocked=(z,p)=>(!!z.event&&!eventOpen())||(z.id==='tower'&&bossesBeaten(p)<2)||(!!z.g5&&!((p.grade||0)>=5||bossesBeaten(p)>=6));
+const zoneLocked=(z,p)=>(!!z.event&&!eventOpen())||(z.id==='tower'&&bossesBeaten(p)<2)||(z.id==='station'&&bossesBeaten(p)<1)||(!!z.g5&&!((p.grade||0)>=5||bossesBeaten(p)>=6));
 
 /* ================= sound ================= */
 let AC=null;
@@ -1899,6 +1985,28 @@ function kindSpell(q,said){
  return true;}
 /* Hand-drawn monsters (used instead of an emoji where there is no good emoji) */
 const MON_ART={
+ '🚂':`<svg class="monart" viewBox="0 0 140 130" aria-label="The Close-Enough Express"><ellipse cx="70" cy="124" rx="52" ry="5" fill="rgba(0,0,0,.3)"/>
+  <circle cx="30" cy="22" r="10" fill="#f1f3f5" opacity=".9"/><circle cx="20" cy="8" r="7" fill="#f1f3f5" opacity=".7"/>
+  <rect x="22" y="30" width="18" height="30" rx="3" fill="#343a40"/><rect x="18" y="26" width="26" height="8" rx="3" fill="#495057"/>
+  <rect x="12" y="56" width="84" height="50" rx="10" fill="#e03131" stroke="#7a1f14" stroke-width="3"/><rect x="84" y="36" width="44" height="70" rx="8" fill="#e03131" stroke="#7a1f14" stroke-width="3"/>
+  <circle cx="44" cy="80" r="21" fill="#ffe8cc" stroke="#7a1f14" stroke-width="3"/><circle cx="37" cy="76" r="4" fill="#2b1a0b"/><circle cx="51" cy="76" r="4" fill="#2b1a0b"/><path d="M36 88 Q44 94 52 88" stroke="#2b1a0b" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M31 70 L41 72 M57 70 L47 72" stroke="#2b1a0b" stroke-width="3" stroke-linecap="round"/>
+  <path d="M30 60 Q44 50 58 60 L58 64 L30 64Z" fill="#1c3f8f"/><rect x="28" y="62" width="32" height="5" rx="2" fill="#15306b"/>
+  <rect x="92" y="44" width="28" height="22" rx="4" fill="#e7f5ff" stroke="#7a1f14" stroke-width="3"/><text x="106" y="62" font-size="15" font-weight="900" text-anchor="middle" fill="#e8590c">≈</text>
+  <path d="M6 106 L20 94 L20 106Z" fill="#ffd43b" stroke="#b08900" stroke-width="2"/>
+  <circle cx="34" cy="110" r="12" fill="#343a40" stroke="#212529" stroke-width="3"/><circle cx="74" cy="110" r="12" fill="#343a40" stroke="#212529" stroke-width="3"/><circle cx="110" cy="110" r="12" fill="#343a40" stroke="#212529" stroke-width="3"/><path d="M34 110 H110" stroke="#adb5bd" stroke-width="4"/></svg>`,
+ '🎰':`<svg class="monart" viewBox="0 0 120 130" aria-label="The Mean Machine"><ellipse cx="60" cy="124" rx="42" ry="5" fill="rgba(0,0,0,.3)"/>
+  <path d="M22 60 Q6 62 8 84" stroke="#c92a2a" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="8" cy="88" r="7" fill="#ffd43b" stroke="#b08900" stroke-width="2"/><text x="8" y="92" font-size="9" font-weight="900" text-anchor="middle" fill="#b08900">¢</text>
+  <path d="M98 60 Q114 56 112 36" stroke="#c92a2a" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="112" cy="32" r="7" fill="#fff" stroke="#c92a2a" stroke-width="2"/>
+  <rect x="22" y="6" width="76" height="112" rx="8" fill="#e03131" stroke="#8a1c1c" stroke-width="3"/>
+  <rect x="28" y="12" width="64" height="22" rx="4" fill="#212529"/><text x="60" y="28" font-size="13" font-weight="900" text-anchor="middle" fill="#8ce99a" font-family="monospace">MEAN</text>
+  <circle cx="44" cy="42" r="5" fill="#ffd43b" stroke="#2b1a0b" stroke-width="1.5"/><circle cx="76" cy="42" r="5" fill="#ffd43b" stroke="#2b1a0b" stroke-width="1.5"/><circle cx="45" cy="43" r="2" fill="#2b1a0b"/><circle cx="75" cy="43" r="2" fill="#2b1a0b"/><path d="M36 35 L50 39 M84 35 L70 39" stroke="#2b1a0b" stroke-width="3" stroke-linecap="round"/>
+  <rect x="28" y="50" width="48" height="50" rx="3" fill="#d0ebff" stroke="#8a1c1c" stroke-width="2"/>
+  ${[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${32+c*15}" y="${54+r*16}" width="10" height="11" rx="2" fill="${['#ff922b','#4dabf7','#51cf66','#f783ac','#ffd43b','#9775fa'][(r*3+c)%6]}"/>`).join('')+`<path d="M30 ${67+r*16} H74" stroke="#868e96" stroke-width="1.5"/>`).join('')}
+  <path d="M28 56 L40 50" stroke="#fff" stroke-width="3" opacity=".6"/>
+  <rect x="80" y="52" width="12" height="36" rx="3" fill="#495057"/>${[0,1,2,3].map(i=>`<circle cx="${83+(i%2)*6}" cy="${58+Math.floor(i/2)*8}" r="2" fill="#dee2e6"/>`).join('')}<rect x="84" y="78" width="4" height="7" rx="1" fill="#212529"/>
+  <path d="M52 48 Q60 45 68 48" stroke="#2b1a0b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <rect x="32" y="104" width="44" height="9" rx="2" fill="#212529"/><rect x="34" y="106" width="16" height="5" rx="1" fill="#ff922b"/>
+  <rect x="30" y="118" width="14" height="6" rx="2" fill="#495057"/><rect x="76" y="118" width="14" height="6" rx="2" fill="#495057"/></svg>`,
  '🧟‍♂️':`<svg class="monart" viewBox="0 0 120 130" aria-label="Shuffle Zombie"><ellipse cx="62" cy="124" rx="32" ry="5" fill="rgba(0,0,0,.3)"/>
   <path d="M48 96 L44 122 L56 122 L58 100 M68 100 L70 122 L82 122 L78 96" fill="#6b4f2a" stroke="#3b2a14" stroke-width="2.5"/><path d="M42 122 H58 M68 122 H84" stroke="#3b2a14" stroke-width="5" stroke-linecap="round"/>
   <path d="M40 60 Q62 54 84 60 L86 100 L78 96 L72 102 L64 96 L56 102 L48 96 L40 100Z" fill="#4dabf7" stroke="#1c5f99" stroke-width="2.5"/><path d="M52 72 L58 80 M70 70 L66 84" stroke="#1c5f99" stroke-width="2"/>
@@ -2555,6 +2663,8 @@ const BIOMES={
  summit:{c:[52,29],g:'#eef4fb',g2:'#e4ecf6',zone:'summit',bl:['🌲','🏔️'],de:['❄️','📖']},
  garden:{c:[31,11],g:'#b8e39a',g2:'#afdb90',zone:'garden',bl:['🌷','🌳'],de:['🌼','🐝']},
  reef:{c:[31,24],g:'#9fe0e8',g2:'#94d6df',zone:'reef',bl:['🌿','🪨'],de:['🐚','💧']},
+ station:{c:[46,11],g:'#d8c9a8',g2:'#d0c1a0',zone:'station',bl:['🌳','🚧'],de:['🛤️','🎟️']},
+ fair:{c:[46,24],g:'#d3f9d8',g2:'#c3f0cc',zone:'fair',bl:['🏪','🌳'],de:['🥫','🏷️']},
  haunt:{c:[14,24],g:'#5a4a7e',g2:'#524373',zone:'haunt',overlay:true,rad:3.2,bl:['🪦'],de:['🎃','🕸️']}};
 const NPCS=[
  {id:'school',x:18,y:15,e:'🌀',n:'Quest Portal'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
@@ -4126,7 +4236,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.29g';
+const APP_VER='2026.09.29h';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
@@ -4308,7 +4418,7 @@ const SC={
 };
 function sceneSVG(id){
  {const zz=ZONES.find(x=>x.id===id);if(zz&&zz.scene)id=zz.scene;}
- const r=rng({forest:7,caves:11,volcano:23,castle:31,tower:43,spell:53,quiz:61,hw:71,farm:83,market:89,temple:97,mesa:101,summit:103,garden:107,reef:109,haunt:113}[id]||5);
+ const r=rng({forest:7,caves:11,volcano:23,castle:31,tower:43,spell:53,quiz:61,hw:71,farm:83,market:89,temple:97,mesa:101,summit:103,garden:107,reef:109,haunt:113,station:127,fair:131}[id]||5);
  let d='',b='';
  if(id==='forest'){
   d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc3f0"/><stop offset=".75" stop-color="#d7f2fb"/></linearGradient><linearGradient id="sc-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ccf4f"/><stop offset="1" stop-color="#3f8f2c"/></linearGradient><radialGradient id="sc-sun"><stop offset="0" stop-color="#fffbe0"/><stop offset=".5" stop-color="#fff2a0" stop-opacity=".6"/><stop offset="1" stop-color="#fff2a0" stop-opacity="0"/></radialGradient>`;
@@ -4436,7 +4546,7 @@ function sceneSVG(id){
   ${[...Array(10)].map(()=>{const x=r()*800,y=300+r()*90;return `<path d="M${x} ${y} q-14 -18 -26 -10 q14 2 26 10 q-6 -22 6 -30 q2 16 -6 30 q14 -18 26 -10 q-14 2 -26 10z" fill="#2f9e44"/>`;}).join('')}
   ${SC.rock(40,390,80,44,'#8c929b','#6b717a','#c7ccd3')}${SC.rock(770,392,90,50,'#8c929b','#6b717a','#c7ccd3')}`;
  }
- else if(!['farm','market','temple','mesa','summit','garden','reef'].includes(id))return '';
+ else if(!['farm','market','temple','mesa','summit','garden','reef','station','fair'].includes(id))return '';
  if(id==='mesa'){
   d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9e6b"/><stop offset=".75" stop-color="#ffe0b5"/></linearGradient>`;
   const mesa=(x,y,w,h,c,c2)=>`<path d="M${x} ${y} L${x+w*.15} ${y-h} L${x+w*.85} ${y-h} L${x+w} ${y}Z" fill="${c}"/><path d="M${x+w*.15} ${y-h} L${x+w*.85} ${y-h} L${x+w*.82} ${y-h+10} L${x+w*.18} ${y-h+10}Z" fill="${c2}"/>${[1,2,3].map(k=>`<path d="M${x+w*(.1+k*.02)} ${y-h+k*h/4} H${x+w*(.9-k*.02)}" stroke="${c2}" stroke-width="3" opacity=".6"/>`).join('')}`;
@@ -4461,6 +4571,45 @@ function sceneSVG(id){
   <path d="M0 290 Q200 278 400 288 T800 282 V400 H0Z" fill="#7cc35a"/>
   ${[...Array(14)].map((_,i)=>tulip(20+i*58+r()*20,320+r()*20,pick(['#ff6b6b','#ffd43b','#f783ac','#9775fa']))).join('')}
   <path d="M250 400 Q330 330 400 312 Q470 330 560 400 Z" fill="#c9a86a" opacity=".6"/>${SC.tufts(r,30,300,395,'#4f8f2c')}`;
+ }
+ if(id==='station'){
+  d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd3ff"/><stop offset=".8" stop-color="#fff4dc"/></linearGradient>`;
+  const car=(x,c)=>`<g transform="translate(${x},224)"><rect x="0" y="0" width="120" height="58" rx="8" fill="${c}" stroke="#2b2250" stroke-width="3"/>${[0,1,2].map(i=>`<rect x="${12+i*36}" y="10" width="26" height="22" rx="4" fill="#e7f5ff" stroke="#2b2250" stroke-width="2"/>`).join('')}<circle cx="26" cy="62" r="10" fill="#343a40"/><circle cx="94" cy="62" r="10" fill="#343a40"/></g>`;
+  b=`<rect width="800" height="400" fill="url(#sc-sky)"/><circle cx="120" cy="80" r="34" fill="#fff3bf"/><g class="drift">${SC.cloud(260,60,1)}${SC.cloud(620,45,.8)}${SC.cloud(1000,70,1)}</g>
+  <path d="M0 230 Q150 190 320 222 T640 210 T800 222 V400 H0Z" fill="#b2e59a"/>
+  <g transform="translate(470,120)"><rect x="0" y="40" width="250" height="110" fill="#f4d9a8" stroke="#8a5a2b" stroke-width="4"/><path d="M-20 44 L125 -10 L270 44Z" fill="#c0392b" stroke="#7a1f14" stroke-width="4"/>
+   <circle cx="125" cy="20" r="18" fill="#fff" stroke="#2b2250" stroke-width="3"/><path d="M125 20 V9 M125 20 L133 24" stroke="#2b2250" stroke-width="3" stroke-linecap="round"/>
+   <rect x="30" y="70" width="44" height="56" rx="6" fill="#74c0fc" stroke="#2b2250" stroke-width="3"/><rect x="176" y="70" width="44" height="56" rx="6" fill="#74c0fc" stroke="#2b2250" stroke-width="3"/><rect x="100" y="80" width="50" height="70" rx="6" fill="#8a5a2b"/>
+   <rect x="34" y="48" width="182" height="18" rx="4" fill="#fff" stroke="#2b2250" stroke-width="2"/><text x="125" y="62" font-size="13" font-weight="800" text-anchor="middle" fill="#2b2250">ESTIMATION STATION</text></g>
+  ${SC.oak(60,280,1,'#2f9e44','#69db7c')}${SC.oak(390,276,.75,'#37b24d','#8ce99a')}
+  <rect x="0" y="268" width="800" height="16" fill="#adb5bd"/><rect x="0" y="266" width="800" height="4" fill="#868e96"/>
+  <g class="drift" style="animation-duration:40s">${car(-20,'#4dabf7')}${car(110,'#ffd43b')}<g transform="translate(240,202)"><rect x="0" y="22" width="120" height="58" rx="8" fill="#e03131" stroke="#2b2250" stroke-width="3"/><rect x="70" y="-4" width="48" height="40" rx="6" fill="#e03131" stroke="#2b2250" stroke-width="3"/><rect x="18" y="0" width="16" height="26" fill="#343a40"/><circle cx="26" cy="84" r="12" fill="#343a40"/><circle cx="94" cy="84" r="12" fill="#343a40"/><circle cx="26" cy="-8" r="9" fill="#fff" opacity=".8"/><circle cx="16" cy="-24" r="12" fill="#fff" opacity=".6"/></g></g>
+  <path d="M0 296 H800" stroke="#8a5a2b" stroke-width="6"/>${[...Array(20)].map((_,i)=>`<rect x="${i*42}" y="292" width="10" height="14" fill="#6b4423"/>`).join('')}<path d="M0 306 H800" stroke="#8a5a2b" stroke-width="6"/>
+  <path d="M0 310 Q200 302 400 310 T800 306 V400 H0Z" fill="#8fce72"/>${SC.tufts(r,30,320,395,'#5c9e3f')}`;
+ }
+ if(id==='fair'){
+  d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd3ff"/><stop offset=".85" stop-color="#e7f8ff"/></linearGradient>`;
+  const can=(x,y,c)=>`<rect x="${x}" y="${y}" width="16" height="18" rx="2" fill="${c}" stroke="#2b2250" stroke-width="1.5"/><rect x="${x}" y="${y+6}" width="16" height="6" fill="#fff" opacity=".7"/>`;
+  const stack=(x,base,n,c)=>[...Array(n)].map((_,i)=>can(x,base-18*(i+1),c)).join('');
+  b=`<rect width="800" height="400" fill="url(#sc-sky)"/><g class="drift">${SC.cloud(120,60,.9)}${SC.cloud(620,45,.8)}</g>
+  <g opacity=".45" fill="#a5b4c4">${[[0,120,140],[610,150,120],[680,110,130]].map(([x,w,h])=>`<rect x="${x}" y="${300-h-60}" width="${w}" height="${h+60}"/>`).join('')}</g>
+  <rect x="180" y="96" width="440" height="210" fill="#fff4e0" stroke="#2b2250" stroke-width="3"/>
+  <path d="M170 96 L400 58 L630 96Z" fill="#c2864a" stroke="#2b2250" stroke-width="3"/>
+  <rect x="236" y="68" width="328" height="44" rx="8" fill="#0b7285" stroke="#2b2250" stroke-width="3"/>
+  <text x="400" y="99" font-size="25" font-weight="800" text-anchor="middle" fill="#fff">The <tspan font-style="italic" fill="#ffe066">Average</tspan> Shoppe</text>
+  <path d="M184 128 H616 L604 152 H196Z" fill="#fff"/>${[...Array(12)].map((_,i)=>`<path d="M${184+i*36} 128 h18 l-2 24 h-18Z" fill="#20c997"/>`).join('')}${[...Array(12)].map((_,i)=>`<path d="M${196+i*34.2} 152 q8.5 12 17 0" fill="${i%2?'#20c997':'#fff'}" stroke="#2b2250" stroke-width="1"/>`).join('')}
+  <rect x="204" y="172" width="210" height="112" fill="#d0ebff" stroke="#2b2250" stroke-width="3"/>
+  <path d="M204 246 H414" stroke="#8a5a2b" stroke-width="5"/>
+  ${stack(222,246,3,'#ff6b6b')}${stack(252,246,3,'#ffd43b')}${stack(282,246,3,'#51cf66')}${stack(312,246,3,'#4dabf7')}${stack(342,246,3,'#f783ac')}${stack(372,246,3,'#ffa94d')}
+  <path d="M214 184 L240 176" stroke="#fff" stroke-width="5" opacity=".7"/>
+  <rect x="218" y="256" width="182" height="20" rx="4" fill="#fff" stroke="#2b2250" stroke-width="2"/><text x="309" y="271" font-size="12" font-weight="800" text-anchor="middle" fill="#0b7285">Nothing fancy · Just fair!</text>
+  <rect x="446" y="170" width="84" height="136" rx="4" fill="#0b7285" stroke="#2b2250" stroke-width="3"/><rect x="456" y="182" width="64" height="50" fill="#d0ebff" stroke="#2b2250" stroke-width="2"/><circle cx="518" cy="248" r="5" fill="#ffd43b"/>
+  <g class="sway" style="transform-origin:488px 236px"><path d="M476 236 L488 226 L500 236" stroke="#495057" stroke-width="1.5" fill="none"/><rect x="468" y="236" width="40" height="16" rx="3" fill="#fff" stroke="#e03131" stroke-width="2"/><text x="488" y="248" font-size="10" font-weight="900" text-anchor="middle" fill="#e03131">OPEN</text></g>
+  <rect x="548" y="186" width="54" height="70" fill="#d0ebff" stroke="#2b2250" stroke-width="3"/><text x="575" y="232" font-size="30" text-anchor="middle">🧸</text>
+  <path d="M0 306 H800 V400 H0Z" fill="#ced4da"/><path d="M0 306 H800" stroke="#868e96" stroke-width="4"/>${[...Array(10)].map((_,i)=>`<path d="M${i*90} 306 L${i*90-30} 400" stroke="#adb5bd" stroke-width="2"/>`).join('')}
+  <g transform="translate(130,306)"><rect x="-4" y="-150" width="8" height="150" fill="#343a40"/><rect x="-14" y="-172" width="28" height="24" rx="4" fill="#ffe066" stroke="#343a40" stroke-width="3"/></g>
+  <g transform="translate(660,306)"><rect x="-22" y="-28" width="44" height="28" rx="4" fill="#c2864a" stroke="#2b2250" stroke-width="2"/><circle cx="0" cy="-48" r="24" fill="#51cf66" stroke="#2f9e44" stroke-width="3"/><circle cx="-12" cy="-58" r="14" fill="#69db7c"/></g>
+  <g transform="translate(740,306)"><rect x="-40" y="-26" width="80" height="8" rx="3" fill="#8a5a2b"/><rect x="-36" y="-18" width="6" height="18" fill="#495057"/><rect x="30" y="-18" width="6" height="18" fill="#495057"/><rect x="-40" y="-46" width="80" height="6" rx="3" fill="#8a5a2b"/></g>`;
  }
  if(id==='reef'){
   d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fb6d6"/><stop offset="1" stop-color="#0d4f7a"/></linearGradient>`;
