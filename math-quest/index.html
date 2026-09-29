@@ -674,6 +674,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .joinbox{max-width:520px;margin:18px auto 6px;background:rgba(255,255,255,.95);color:var(--ink);border-radius:20px;padding:14px 18px;box-shadow:0 4px 0 rgba(0,0,0,.2);text-align:center}.joinbox .jb-h{font-size:21px;font-weight:700}.joinbox p{margin:6px 0;font-size:16px}.joinbox .row{justify-content:center;flex-wrap:wrap;gap:8px}.joinbox .inp{max-width:300px;text-transform:uppercase;text-align:center}.joinbox .muted{opacity:.7;font-size:14px}
 .sugbox{flex:none;width:150px;align-self:stretch;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:inherit;color:#fff;cursor:pointer;border:4px solid #5c3b1e;border-radius:14px;background:repeating-linear-gradient(90deg,#a0672f 0 18px,#94602b 18px 20px),#a0672f;box-shadow:0 5px 0 #3e2712;position:relative;padding:18px 8px 10px}.sugbox .sb-slot{position:absolute;top:10px;left:30%;right:30%;height:7px;border-radius:4px;background:#2b1a0b}.sugbox .sb-ico{font-size:34px;line-height:1}.sugbox b{font-size:17px;text-shadow:0 2px 0 rgba(0,0,0,.35)}.sugbox small{font-size:13px;opacity:.95}.sugbox:active{transform:translateY(3px);box-shadow:0 2px 0 #3e2712}
 @media(max-width:600px){.lib-head{flex-wrap:wrap}.sugbox{width:100%;min-height:0;flex-direction:row;gap:8px;padding:12px 10px 10px}.sugbox .sb-slot{top:4px}.sugbox small{display:none}.sugbox .sb-ico{font-size:24px}}
+.revq{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}.ansbox.rb{min-width:1.6em;cursor:pointer;opacity:.75}.ansbox.rb.on{opacity:1;outline:4px solid #ffd43b;outline-offset:2px}@media(max-width:600px){.revq{gap:5px}.ansbox.rb{min-width:1.3em}}.revnote{font-size:15px;font-weight:500;opacity:.8;margin-top:6px;line-height:1.3}
 </style>
 </head>
 <body>
@@ -1619,6 +1620,30 @@ function genQ(op,L){
  }
  const q={op,L,a,b,answer:ans,text};if(c!==undefined)q.c=c;return q;
 }
+/* Reverse problems ("make the number"): the kid picks BOTH numbers, e.g. ☐ × ☐ = 12 (6×2, 3×4, 12×1 all count). */
+const REV_SYM={add:'+',sub:'−',mul:'×',div:'÷'};
+function factorPairs(n){const r=[];for(let i=1;i*i<=n;i++)if(n%i===0)r.push([n/i,i]);return r;}
+function makeRev(op,L){
+ if(!REV_SYM[op]||L>10)return null;const base=genQ(op,L);if(base.c!==undefined)return null;const t=base.answer;let cap,note,ex,explain;
+ if(op==='add'){if(t<3)return null;note='Pick two numbers bigger than 0 that add up to '+t+'.';
+  ex=[[t-1,1],[Math.ceil(t/2),Math.floor(t/2)],[base.a,base.b]];explain=`<p>Start with any number smaller than <b>${t}</b>, then ask: how many more to get to ${t}?</p><p>Example: ${t-1} + <b>1</b> = ${t}</p>`;}
+ else if(op==='sub'){cap=Math.max(20,base.a);if(t<1||t>=cap)return null;note=`Use numbers up to ${cap}. The first number must be bigger!`;
+  ex=[[t+1,1],[t+5,5],[base.a,base.b]].filter(p=>p[0]<=cap);explain=`<p>Pick a number to take away, then <b>add it to ${t}</b> to get your first number.</p><p>Example: take away 5 → start at ${t}+5 = ${t+5}. So ${t+5} − 5 = ${t}.</p>`;}
+ else if(op==='mul'){if(t<4||factorPairs(t).length<2)return null;note=`Find two numbers that multiply to make ${t}. There's more than one way!`;
+  ex=factorPairs(t).reverse();explain=`<p>Think: what numbers can you <b>skip-count by</b> to land on ${t}?</p><p>Try 2, 3, 4, 5… If one works, count how many jumps it took!</p>`;}
+ else{if(t<1)return null;cap=Math.max(12,base.b);note=`Divide by a number from 1 to ${cap}.`;
+  ex=[[t*2,2],[t*3,3],[base.a,base.b]];explain=`<p>Pick a number to divide by (like <b>2</b>), then multiply: ${t} × 2 = ${t*2}.</p><p>So ${t*2} ÷ 2 = ${t}!</p>`;}
+ const seen={};ex=ex.filter(p=>{const k=[...p].sort((x,y)=>x-y).join('-');if(seen[k]||p[0]<=0||p[1]<=0)return false;seen[k]=1;return true;}).slice(0,4);
+ return {op,L,rev:true,target:t,cap,a:base.a,b:base.b,answer:t,text:`☐ ${REV_SYM[op]} ☐ = ${t}`,note,ex,explain,fast:fastLimit(base)*1.8};
+}
+function revCheck(q,x,y){if(!Number.isFinite(x)||!Number.isFinite(y)||x<0||y<0)return false;
+ if(q.op==='add')return x>0&&y>0&&x+y===q.target;
+ if(q.op==='sub')return x>0&&y>0&&x<=q.cap&&x-y===q.target;
+ if(q.op==='mul')return x*y===q.target;
+ return y>0&&y<=q.cap&&x===y*q.target;}
+function revSaid(q){return `${B.input||'?'} ${REV_SYM[q.op]} ${B.input2||'?'}`;}
+function revBox(i){if(!B||!B.q||!B.q.rev||B.busy)return;B.box=i;SFX.tap();showQ();}
+function revExamples(q){return q.ex.map(p=>`<b>${p[0]} ${REV_SYM[q.op]} ${p[1]}</b>`).join(', ');}
 function practiceFact(p,op){
  const L=lvl(p,op);
  const c=Object.values(p.missed).filter(m=>m.q&&m.q.op===op&&(m.fixed||0)<2&&m.q.L<=L+1&&m.q.L>=L-2);
@@ -1837,7 +1862,7 @@ function kindMath(q){
  kindLog(p,'math',q.text);B.charge=Math.min(MAX_CHARGE,(B.charge||0)+2);
  const nm=esc(p.name);
  kindAppear({say:`${nm}, I have been watching you try so hard. Let me show you a little magic for this one.`,voice:`${p.name}, I have been watching you try so hard. Let me show you a little magic for this one.`,
-  body:`<div class="kind-problem">${q.tpl?xFeedback(q):`<div class="fb-ans">${esc(q.text)} = <b>?</b></div>`}</div><div class="hint kind-hint">${hintHTML(q)}</div><div class="kind-gift">🎁 She also gave you <b>2 streak power</b> for your spells!</div>`,
+  body:`<div class="kind-problem">${q.tpl?xFeedback(q):`<div class="fb-ans">${esc(q.text)}${q.rev?'':' = <b>?</b>'}</div>`}</div><div class="hint kind-hint">${hintHTML(q)}</div><div class="kind-gift">🎁 She also gave you <b>2 streak power</b> for your spells!</div>`,
   btn:'I can do it! ✨',done:()=>{updateBars();B.forceQ=Object.assign({},q,{hinted:true,kind:true,again:undefined,practice:undefined});nextQ();}});
  return true;}
 function kindBless(reason){
@@ -1989,10 +2014,11 @@ function nextQ(){
   else{
    const L0=lvl(p,op),mast=B.round>=4&&!B.wild&&!B.asc&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
    let t=0;do{q=genQ(op,L);}while(B.recent.includes(q.text)&&t++<12);if(mast)q.mastered=true;
+   if(!mast&&!B.wild&&Math.random()<.2){const rq=makeRev(op,L);if(rq&&!B.recent.includes(rq.text)){q=rq;label='🔄 Flip it! You pick both numbers';}}
   }
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
- B.q=q;B.input='';B.t0=performance.now();B.busy=false;
+ B.q=q;B.input='';B.input2='';B.box=0;B.t0=performance.now();B.busy=false;
  B.chargeEl=0;B.chargeLim=B.round>=4&&!B.wild?(()=>{const md=medianThink(p),fl=fastLimit(q)*(B.round>=5?2:2.5);return Math.max(B.round>=5?6:8,md?Math.min(fl,md*(B.round>=5?2.5:3)):fl,md*(B.round>=5?1.8:2.2));})():0;
  snapBattle(p);
  $('#qlabel').textContent=label;
@@ -2006,6 +2032,7 @@ function showQ(){
  if(B.mode!=='math'){questShowQ();return;}
  const q=B.q,inp=B.input||'?';{const mp=$('#mpad');if(mp)mp.classList.toggle('negon',!!q.neg);}setTimeout(fitBattle,0);
  if(q.tpl){xShowQ(q,B.input);return;}
+ if(q.rev){$('#qtext').innerHTML=`<div class="revq"><span class="ansbox rb ${B.box===0?'on':''}" onclick="revBox(0)">${B.input||'?'}</span> ${REV_SYM[q.op]} <span class="ansbox rb ${B.box===1?'on':''}" onclick="revBox(1)">${B.input2||'?'}</span> = <b>${q.target}</b></div><div class="revnote">${q.note}</div>`;return;}
  if(isVertical(q)){
   const nums=q.c!==undefined?[q.a,q.b,q.c]:[q.a,q.b];const sym=q.op==='add'?'+':q.op==='sub'?'−':'×';
   const w=Math.max(...nums.map(n=>String(n).length),String(q.answer).length,inp.length);
@@ -2020,6 +2047,12 @@ function press(k){
  if(fbOpen){if(k==='go')closeFeedback();return;}
  if(B.busy)return;
  if(B.mode!=='math'){questPress(k);return;}
+ if(B.q&&B.q.rev){const key=B.box===1?'input2':'input';
+  if(k==='del'){if(!B[key]&&B.box===1)B.box=0;else B[key]=B[key].slice(0,-1);}
+  else if(k==='tab')B.box=1-B.box;
+  else if(k==='go'){if(!B.input){B.box=0;}else if(!B.input2){B.box=1;}else{answer();return;}}
+  else if(k!=='neg'&&B[key].length<5)B[key]=B[key]==='0'?k:B[key]+k;
+  SFX.tap();showQ();return;}
  if(k==='del')B.input=B.input.slice(0,-1);
  else if(k==='neg'){B.input=B.input.startsWith('-')?B.input.slice(1):'-'+B.input;}
  else if(k==='go'){if(B.input&&B.input!=='-')answer();return;}
@@ -2033,7 +2066,7 @@ function fitBattle(){const bt=document.querySelector('.battle'),pad=$('#mpad');i
 window.addEventListener('resize',()=>{if(typeof curScreen!=='undefined'&&curScreen==='battle')fitBattle();});
 function answer(){
  const p=P(),q=B.q,secs=(performance.now()-B.t0)/1000;
- const v=parseInt(B.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const med=medianThink(p);const fast=med?secs<med*0.85:secs<fastLimit(q);const slip=!ok&&!q.tpl&&isSlip(q,B.input);
+const v=parseInt(B.input,10);const ok=q.rev?revCheck(q,v,parseInt(B.input2,10)):(v===q.answer||!!(q.alt&&q.alt.includes(v)));const med=medianThink(p);const fast=med?secs<med*0.85:secs<fastLimit(q);const slip=!ok&&!q.tpl&&!q.rev&&isSlip(q,B.input);
  B.busy=true;B.hist=B.hist||[];B.hist.push({op:q.op,ok});if(B.hist.length>12)B.hist.shift();
  p.stats[q.op][ok?'r':'w']++;
  const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
@@ -2054,6 +2087,7 @@ function answer(){
   const pcb=perk==='coins'?2+Math.min(4,Math.floor(petLv(petData(p,p.pet))/5)):0;const c=coinPer(p,q)+pcb;B.coins+=c;p.coins+=c;if(pcb)petCredit(p,'c',pcb);
   B.xp+=Math.round(10*(perk==='xp'?1.5:1));if(perk==='xp')petCredit(p,'xp',5);if(perk==='power')petCredit(p,'dmg',Math.round(dmg*.15/1.15));
   save();SFX.correct();$('#qcard').classList.add('right');
+  if(q.rev){const others=q.ex.filter(p=>!((p[0]===+B.input&&p[1]===+B.input2)||(q.op==='mul'&&p[1]===+B.input&&p[0]===+B.input2)));if(others.length)setTimeout(()=>toast(`🔄 Other ways to make ${q.target}: ${others.slice(0,3).map(p=>p[0]+' '+REV_SYM[q.op]+' '+p[1]).join(', ')}`),500);}
   const blocked=!!B.monShield;if(blocked){B.monShield=0;dmg=0;}
   castSpell(spell,crit,()=>{
    if(blocked){floatText('#monS','🪨 Bounced off!','#d6d0c4');SFX.wrong();updateBars();setTimeout(nextQ,450);return;}
@@ -2073,7 +2107,7 @@ function answer(){
   if(!q.again)B.review.push({q:Object.assign({},q),wait:3});
   bufferMiss(p);snapBattle(p);SFX.wrong();
   const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
-  const said=B.input;monsterAttack(()=>{if(B.hhp>0&&(kindMath(q)||(B.hhp<B.hmax*.3&&B.wrong>=4&&Math.random()<.25&&kindBless('low'))))return;showFeedback(q,said,slip);});
+  const said=q.rev?revSaid(q):B.input;monsterAttack(()=>{if(B.hhp>0&&(kindMath(q)||(B.hhp<B.hmax*.3&&B.wrong>=4&&Math.random()<.25&&kindBless('low'))))return;showFeedback(q,said,slip);});
  }
  updateBars();
 }
@@ -2170,7 +2204,7 @@ function showFeedback(q,said,slip){
  if(slip){
   modal(`<div class="mcard"><div class="fb-title">So close! 🤏</div><div class="fb-ans">${q.text} = <b>${q.answer}</b></div><div class="fb-you">You said ${esc(said)}. Two digits got flipped around!</div><div class="row"><button class="btn green big" onclick="closeFeedback()">OK ➜</button></div></div>`);return;}
  modal(`<div class="mcard"><div class="fb-title">${pick(['So close! 💪','Nice try! 🙂','Let\'s figure it out! 🧠','Almost! ✨'])}</div>
- ${q.tpl?xFeedback(q):`<div class="fb-ans">${q.text} = <b>${q.answer}</b></div>`}<div class="fb-you">You said ${esc(q.tpl?xInpFmt(q,said):said)}</div>
+ ${q.tpl?xFeedback(q):q.rev?`<div class="fb-ans">${q.text}</div><div class="fb-you">Some answers that work: ${revExamples(q)}</div>`:`<div class="fb-ans">${q.text} = <b>${q.answer}</b></div>`}<div class="fb-you">You said ${esc(q.tpl?xInpFmt(q,said):said)}</div>
  <div class="hint">${hintHTML(q)}</div>
  <button class="btn green big" onclick="closeFeedback()">Got it! ➜</button></div>`);
 }
@@ -2243,6 +2277,7 @@ document.addEventListener('keydown',e=>{
  if(/^[0-9]$/.test(e.key)){press(e.key);e.preventDefault();}
  else if(e.key==='-'&&B.mode==='math'&&B.q&&B.q.neg){press('neg');e.preventDefault();}
  else if(e.key==='Backspace'){press('del');e.preventDefault();}
+ else if((e.key==='Tab'||e.key===' ')&&B.q&&B.q.rev){press('tab');e.preventDefault();}
  else if(e.key==='Enter'){press('go');e.preventDefault();}
 });
 
@@ -4017,7 +4052,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28t';
+const APP_VER='2026.09.28u';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
