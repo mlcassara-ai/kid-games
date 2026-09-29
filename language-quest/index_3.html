@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Language Quest – World Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#1E5AA8; --saffron:#F2B134; --mint:#2FA894; --card:#FFFFFF; --ink:#12233D; --muted:#5A6B82; --line:#D5DFEA;
+  --font:"Baloo Bhaijaan 2","Geeza Pro","Noto Sans Arabic",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --card:#172742; --ink:#EAF1FA; --muted:#9FB0C8; --line:#2A3F62; } }
+:root[data-theme="dark"]{ --card:#172742; --ink:#EAF1FA; --muted:#9FB0C8; --line:#2A3F62; }
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%; margin:0; overflow:hidden; background:#2a5d8f; font-family:var(--font); -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:none}
+#game{position:fixed; inset:0; width:100%; height:100%; display:block; cursor:pointer}
+.hud{position:fixed; top:calc(env(safe-area-inset-top,0px) + 10px); left:10px; display:flex; gap:8px; align-items:center; z-index:2}
+.pill{background:var(--card); color:var(--ink); border-radius:999px; padding:6px 14px; font-weight:800; box-shadow:0 3px 10px rgba(0,0,0,.2)}
+button.pill{border:0; font:inherit; font-weight:800; cursor:pointer}
+select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width:150px}
+@media (max-width:640px){ .hud .pill:first-child{display:none} select.pill{max-width:110px} }
+#start{position:fixed; inset:0; background:rgba(18,35,61,.55); display:flex; align-items:center; justify-content:center; z-index:5}
+#start .box{background:var(--card); color:var(--ink); border-radius:26px; padding:24px 28px; text-align:center; width:min(88vw,360px)}
+#start h2{margin:4px 0}#start p{color:var(--muted); margin:4px 0 16px}
+#mini{position:fixed; top:calc(env(safe-area-inset-top,0px) + 10px); right:10px; width:168px; height:126px; border-radius:14px; border:3px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,.3); z-index:2; cursor:pointer}
+#zone{position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 62px); transform:translate(-50%,-20px); opacity:0; background:var(--card); color:var(--ink); border-radius:18px; padding:8px 20px; text-align:center; box-shadow:0 4px 14px rgba(0,0,0,.25); z-index:2; pointer-events:none; transition:opacity .4s, transform .4s}
+#zone.show{opacity:1; transform:translate(-50%,0)}
+#zone b{display:block; font-size:1.3rem}
+#zone span{font-size:1.5rem; color:var(--sky)}
+#hint{position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); left:50%; transform:translateX(-50%); background:rgba(18,35,61,.8); color:#fff; border-radius:999px; padding:8px 18px; font-size:1rem; z-index:2; pointer-events:none; transition:opacity .6s; white-space:nowrap}
+#card{position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); transform:translate(-50%,130%); width:min(92vw,420px); background:var(--card); color:var(--ink); border-radius:24px; padding:16px 18px; box-shadow:0 8px 30px rgba(0,0,0,.35); z-index:3; transition:transform .35s}
+#card.show{transform:translate(-50%,0)}
+#card .icon{font-size:2.6rem; float:right; margin-left:10px}
+#card h2{margin:0; font-size:1.4rem}
+#card .ar{font-size:1.6rem; color:var(--sky); direction:rtl; cursor:pointer}
+#card p{margin:6px 0 12px; color:var(--muted); line-height:1.4}
+#card .row{display:flex; gap:8px}
+.btn{font:inherit; font-weight:700; font-size:1.05rem; border:0; border-radius:14px; padding:10px 16px; min-height:46px; cursor:pointer; flex:1}
+.btn.go{background:var(--mint); color:#fff}
+.btn.ghost{background:var(--line); color:var(--ink)}
+.btn:focus-visible{outline:3px solid var(--saffron); outline-offset:2px}
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="Language Quest world map. Tap to walk."></canvas>
+<div class="hud"><div class="pill">Language Quest</div><div class="pill">🪙 0</div>
+  <button class="pill" id="soundBtn" aria-label="Sound on or off">🔊</button></div>
+<div id="start"><div class="box"><div style="font-size:3rem">🗺️</div><h2>Language Quest</h2><p>Tap things to hear their names in Arabic.</p>
+  <button class="btn go" id="startBtn">▶ Tap to start</button></div></div>
+<canvas id="mini" aria-label="Mini map"></canvas>
+<div id="zone"><b></b><span lang="ar"></span></div>
+<div id="hint">Tap anywhere to walk · tap things to learn their names</div>
+<div id="card" role="dialog" aria-live="polite">
+  <div class="icon" id="cIcon"></div>
+  <h2 id="cTitle"></h2>
+  <div class="ar" id="cAr" lang="ar"></div>
+  <p id="cDesc"></p>
+  <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
+</div>
+
+<script>
+/* ============ world setup ============ */
+const W=3200, H=2400;
+const BIOMES={
+  oasis:{en:"Oasis Town", ar:"الوَاحَة", c1:[128,184,98], c2:[176,204,120]},
+  desert:{en:"The Desert", ar:"الصَّحْرَاء", c1:[226,188,122], c2:[248,222,164]},
+  forest:{en:"Cedar Forest", ar:"غَابَةُ الأَرْز", c1:[38,92,52], c2:[74,132,72]},
+  mountain:{en:"The Mountains", ar:"الجِبَال", c1:[128,110,94], c2:[172,154,132]},
+  snow:{en:"Snowy Peak", ar:"القِمَّةُ الثَّلْجِيَّة", c1:[214,228,246], c2:[252,253,255]},
+  falls:{en:"The Waterfalls", ar:"الشَّلَّالَات", c1:[74,146,82], c2:[122,182,102]},
+  coast:{en:"The Coast", ar:"الشَّاطِئ", c1:[236,214,166], c2:[250,236,196]},
+  sea:{en:"The Sea", ar:"البَحْر", c1:[28,100,172], c2:[64,152,212]},
+  farm:{en:"Farms of Palestine", ar:"مَزَارِعُ فِلَسْطِين", c1:[118,150,72], c2:[170,176,96]},
+  marsh:{en:"The Marshes", ar:"الأَهْوَار", c1:[92,138,94], c2:[86,140,150]}
+};
+const SEEDS=[
+ ["oasis",1600,1250],
+ ["farm",860,1130],["farm",1120,1050],["farm",520,1100],["farm",820,1400],["farm",1120,1320],["farm",300,1250],
+ ["desert",700,1500],["desert",1100,2000],["desert",1700,2080],["desert",380,2050],["desert",200,1500],["desert",1250,1650],
+ ["forest",450,450],["forest",820,760],["forest",220,760],["forest",700,250],
+ ["mountain",1250,560],["mountain",1720,700],["mountain",2050,420],["mountain",950,450],
+ ["snow",1500,190],["snow",1150,140],["snow",1850,180],
+ ["falls",2380,720],["falls",2250,1050],
+ ["coast",2620,1200],["coast",2640,1700],["coast",2680,2150],["coast",2700,450],
+ ["sea",3120,300],["sea",3120,900],["sea",3120,1500],["sea",3120,2100],["sea",3050,2380],["sea",3050,40],
+ ["marsh",2150,1900],["marsh",2250,2250],["marsh",1950,2250]
+];
+/* ---- noise ---- */
+function hash(ix,iy){ let h=Math.imul(ix,374761393)+Math.imul(iy,668265263)|0; h=Math.imul(h^(h>>>13),1274126177); return ((h^(h>>>16))>>>0)/4294967295; }
+function vnoise(x,y){ const ix=Math.floor(x), iy=Math.floor(y), fx=x-ix, fy=y-iy; const u=fx*fx*(3-2*fx), v=fy*fy*(3-2*fy);
+  const a=hash(ix,iy), b=hash(ix+1,iy), c=hash(ix,iy+1), d=hash(ix+1,iy+1); return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v; }
+function fbm(x,y){ return (vnoise(x,y)*0.55+vnoise(x*2.1,y*2.1)*0.3+vnoise(x*4.3,y*4.3)*0.15); }
+function biomeAt(x,y){
+  const nx=x+(fbm(x*0.003,y*0.003)-0.5)*320, ny=y+(fbm(x*0.003+17,y*0.003+9)-0.5)*320;
+  let best=null, bd=1e18;
+  for(const s of SEEDS){ const dx=nx-s[1], dy=ny-s[2], d=dx*dx+dy*dy; if(d<bd){bd=d; best=s[0];} }
+  return best;
+}
+const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t];
+
+/* ---- ground buffer ---- */
+const S=6, BW=Math.ceil(W/S), BH=Math.ceil(H/S);
+const ground=document.createElement("canvas"); ground.width=BW; ground.height=BH;
+(function paint(){
+  const g=ground.getContext("2d"), img=g.createImageData(BW,BH), d=img.data;
+  for(let py=0;py<BH;py++) for(let px=0;px<BW;px++){
+    const x=px*S, y=py*S, b=biomeAt(x,y), B=BIOMES[b], n=fbm(x*0.008,y*0.008);
+    let c=mix(B.c1,B.c2,n);
+    if(b==="desert"){ const r=Math.sin(x*0.022+y*0.009+n*7)*0.5+0.5; c=mix(c,[252,230,176],r*0.35); }
+    if(b==="sea"){ const r=Math.sin(x*0.05+y*0.02+n*9)*0.5+0.5; c=mix(c,[110,190,230],r*0.18); }
+    if(b==="mountain"){ const r=fbm(x*0.03,y*0.03); c=mix(c,[96,84,74],Math.max(0,r-0.55)*1.6); }
+    if(b==="farm"){
+      const f=fbm(x*0.004+31,y*0.004+7);
+      if(f<0.42) c=mix([112,138,70],[140,150,84],n);            // olive grove
+      else if(f<0.55) c=mix([214,184,96],[232,204,120],n);      // wheat
+      else { c=mix([150,108,70],[170,126,84],n); if(Math.sin(y*0.16+x*0.02)>0.3) c=mix(c,[120,84,54],0.5); } // plowed rows
+      if(f>=0.42&&f<0.55&&Math.sin(y*0.12+x*0.03)>0.6) c=mix(c,[246,222,140],0.4);
+      const ty=(y+fbm(x*0.006,y*0.006)*80)%95; if(ty<5) c=mix(c,[200,190,170],0.85); // stone terrace walls
+    }
+    if(b==="marsh"){ if(fbm(x*0.02+50,y*0.02)>0.6) c=mix(c,[70,130,165],0.7); }
+    const i=(py*BW+px)*4; d[i]=c[0]; d[i+1]=c[1]; d[i+2]=c[2]; d[i+3]=255;
+  }
+  g.putImageData(img,0,0);
+})();
+
+/* ---- river from waterfall to marshes ---- */
+const RIVER=[[2380,800],[2330,1000],[2400,1200],[2330,1420],[2250,1620],[2200,1820]];
+function riverDist(x,y){ let m=1e9; for(let i=0;i<RIVER.length-1;i++){ const [ax,ay]=RIVER[i],[bx,by]=RIVER[i+1]; const dx=bx-ax, dy=by-ay;
+  let t=((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy); t=Math.max(0,Math.min(1,t)); const px=ax+t*dx-x, py=ay+t*dy-y; m=Math.min(m,Math.hypot(px,py)); } return m; }
+const POND={x:1760,y:1180,rx:130,ry:70};
+
+/* ---- landmarks (learning zones) ---- */
+const LANDMARKS=[
+ {id:"souq",  x:1480,y:1130, icon:"🛍️", en:"The Souq", ar:"السُّوق", desc:"Spend your dinars on outfits, and adopt a pet that gives you hints."},
+ {id:"farm",  x:880, y:1080, icon:"🏡", en:"Olive Farm", ar:"مَزْرَعَةُ الزَّيْتُون", desc:"Harvest time! Hear a word, then pick the right fruit or vegetable to fill your basket."},
+ {id:"dunes", x:760, y:1850, icon:"⛺", en:"Letter Dunes", ar:"كُثْبَانُ الحُرُوف", desc:"Meet the letter shapeshifters and learn all 28 letters and their shapes."},
+ {id:"forest",x:640, y:600,  icon:"🌳", en:"Word Forest", ar:"غَابَةُ الكَلِمَات", desc:"Learn new words with pictures. This week's words from your teacher live here."},
+ {id:"falls", x:2380,y:640,  icon:"💦", en:"Sound Falls", ar:"شَلَّالُ الأَصْوَات", desc:"Vowel marks and sounds. Join letters into syllables: بَ ... بِ ... بُ"},
+ {id:"tower", x:1640,y:640,  icon:"🏰", en:"Spelling Tower", ar:"بُرْجُ التَّهْجِئَة", desc:"Spell words to climb. Every floor gets a little harder."},
+ {id:"arena", x:1450,y:250,  icon:"🏟️", en:"Frost Arena", ar:"سَاحَةُ الجَلِيد", desc:"Spell words correctly to beat the snow monsters!"},
+ {id:"harbor",x:2640,y:1420, icon:"⛵", en:"Story Harbor", ar:"مِينَاءُ القِصَص", desc:"Read short stories aloud together. Coming in part two."},
+ {id:"reeds", x:2180,y:2080, icon:"🛖", en:"Reed Village", ar:"قَرْيَةُ القَصَب", desc:"Build sentences word by word. Coming in part two."}
+];
+
+/* ---- props: things on the ground ---- */
+const PROPS={
+ oasis:[["🌴","نَخْلَة","palm tree",6,58],["🐓","دِيك","rooster",1,34],["🐈","قِطَّة","cat",1,32],["🍉","بِطِّيخ","watermelon",1,30],["🐑","خَرُوف","sheep",2,36],["🌼","زَهْرَة","flower",2,24]],
+ desert:[["🐪","جَمَل","camel",2,52],["🦎","سِحْلِيَّة","lizard",2,28],["🪨","صَخْرَة","rock",4,34],["🦂","عَقْرَب","scorpion",1,26],["🏺","جَرَّة","clay jar",1,30],["🌵","صَبَّار","cactus",1,40],["🌴","نَخْلَة","palm tree",1,54]],
+ forest:[["🌲","أَرْزَة","cedar tree",10,64],["🍄","فُطْر","mushroom",2,26],["🦊","ثَعْلَب","fox",1,36],["🐿️","سِنْجَاب","squirrel",1,28],["🦉","بُومَة","owl",1,30],["🦔","قُنْفُذ","hedgehog",1,28]],
+ mountain:[["🪨","صَخْرَة","rock",6,40],["🐐","وَعْل","ibex",2,40],["🦅","نَسْر","eagle",1,36],["🌸","زَهْرَة","flower",2,24],["🐇","أَرْنَب","rabbit",1,28],["🌲","شَجَرَة","tree",2,50]],
+ snow:[["⛄","رَجُلُ ثَلْج","snowman",1,44],["❄️","ثَلْج","snow",3,26],["🌲","شَجَرَة","tree",4,54],["🧊","جَلِيد","ice",2,30],["🐺","ذِئْب","wolf",1,38]],
+ falls:[["🐸","ضِفْدَع","frog",2,28],["🦋","فَرَاشَة","butterfly",2,26],["🐢","سُلَحْفَاة","turtle",1,32],["🌿","عُشْب","grass",4,30],["🪨","صَخْرَة","rock",2,32],["🌳","شَجَرَة","tree",3,56]],
+ coast:[["🐚","صَدَفَة","shell",3,26],["🦀","سَرَطَان","crab",2,28],["🌴","نَخْلَة","palm tree",2,54],["🪸","مَرْجَان","coral",1,30],["🪣","دَلْو","bucket",1,26]],
+ sea:[["🐬","دُلْفِين","dolphin",1,44],["🐠","سَمَكَة","fish",2,30],["⛵","قَارِب","boat",1,44]],
+ farm:[["🌳","زَيْتُونَة","olive tree",7,56],["🫒","زَيْتُون","olives",3,28],["🍊","بُرْتُقَال","orange",2,30],["🍋","لَيْمُون","lemon",2,28],["🍇","عِنَب","grapes",2,30],["🍅","طَمَاطِم","tomato",2,28],["🍆","بَاذِنْجَان","eggplant",1,30],["🥒","خِيَار","cucumber",1,28],["🌾","قَمْح","wheat",4,40],["🌿","زَعْتَر","za'atar (thyme)",2,28],["🐑","خَرُوف","sheep",2,38],["🐐","مَاعِز","goat",2,38],["🐔","دَجَاجَة","chicken",2,32],["🫏","حِمَار","donkey",1,46],["🐝","نَحْلَة","bee",1,22],["🌻","زَهْرَةُ الشَّمْس","sunflower",1,40],["🧺","سَلَّة","basket",1,28]],
+ marsh:[["🐃","جَامُوس","water buffalo",2,48],["🦆","بَطَّة","duck",2,30],["🌾","قَصَب","reeds",5,40],["🦩","فْلَامِنْغُو","flamingo",1,42],["🐟","سَمَكَة","fish",1,28]]
+};
+const COUNTS={farm:100,oasis:30,desert:80,forest:90,mountain:60,snow:40,falls:40,coast:40,sea:22,marsh:45};
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rng=mulberry(20260927);
+const props=[], have={};
+for(let tries=0; tries<20000; tries++){
+  const x=40+rng()*(W-80), y=60+rng()*(H-100), b=biomeAt(x,y);
+  if((have[b]||0)>=COUNTS[b]) continue;
+  if(LANDMARKS.some(l=>Math.hypot(l.x-x,l.y-y)<150)) continue;
+  if(Math.hypot(x-900,y-1320)<90) continue;
+  if(riverDist(x,y)<45) continue;
+  if(((x-POND.x)/(POND.rx+30))**2+((y-POND.y)/(POND.ry+30))**2<1) continue;
+  if(props.some(p=>Math.hypot(p.x-x,p.y-y)<62)) continue;
+  const list=PROPS[b], tot=list.reduce((s,p)=>s+p[3],0); let r=rng()*tot, pick=list[0];
+  for(const p of list){ r-=p[3]; if(r<=0){pick=p;break;} }
+  props.push({x,y,e:pick[0],ar:pick[1],en:pick[2],s:pick[4],b}); have[b]=(have[b]||0)+1;
+}
+
+/* ============ player & camera ============ */
+const player={x:900,y:1320,tx:900,ty:1320,moving:false,t:0,face:1};
+const cam={x:0,y:0};
+let bubble=null, pendingLandmark=null, currentZone=null, marker=null;
+
+/* ============ canvas ============ */
+const cv=document.getElementById("game"), ctx=cv.getContext("2d");
+let VW=0, VH=0, DPR=1, ZOOM=1;
+function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); VW=innerWidth; VH=innerHeight; cv.width=VW*DPR; cv.height=VH*DPR;
+  ZOOM = VW<600 ? 0.8 : 1; }
+addEventListener("resize",resize); resize();
+cam.x=player.x-VW/2/ZOOM; cam.y=player.y-VH/2/ZOOM;
+
+/* ============ voice ============ */
+let soundOn=true;
+/* Generated Google voice (Chirp3-HD Puck), served from Cloud Storage.
+   Each phrase's file is named by an FNV-1a hash of its UTF-8 text. */
+const AUDIO_BASE="https://storage.googleapis.com/kid-games-dc068-voices/lq/ar-XA-Chirp3-HD-Puck/";
+function audioKey(t){ let h=0x811c9dc5; for(const b of new TextEncoder().encode(t)){ h^=b; h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,"0"); }
+const player_audio=new Audio(); player_audio.preload="auto";
+let speakId=0;
+function deviceSay(t){ if(!("speechSynthesis" in window))return; speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t); u.lang="ar-SA"; u.rate=0.75;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith("ar")); if(v)u.voice=v; speechSynthesis.speak(u); }
+function say(t){ if(!soundOn) return; const id=++speakId;
+  player_audio.pause(); player_audio.src=AUDIO_BASE+audioKey(t)+".mp3"; player_audio.currentTime=0;
+  player_audio.onerror=()=>{ if(id===speakId) deviceSay(t); };   // fallback if a file is missing or offline
+  const p=player_audio.play(); if(p&&p.catch) p.catch(()=>{ if(id===speakId) deviceSay(t); }); }
+function pickVoice(){}
+/* ============ input ============ */
+function toWorld(sx,sy){ return [cam.x+sx/ZOOM, cam.y+sy/ZOOM]; }
+function walkable(x,y){ return x>20&&y>40&&x<W-20&&y<H-20 && biomeAt(x,y)!=="sea"; }
+function setTarget(x,y){ player.tx=Math.max(20,Math.min(W-20,x)); player.ty=Math.max(40,Math.min(H-20,y)); player.moving=true; marker={x:player.tx,y:player.ty,t:0}; }
+let hintHidden=false;
+cv.addEventListener("pointerup",e=>{
+  if(!hintHidden){ document.getElementById("hint").style.opacity=0; hintHidden=true; }
+  const [wx,wy]=toWorld(e.clientX,e.clientY);
+  closeCard();
+  for(const l of LANDMARKS){ if(Math.abs(wx-l.x)<70 && wy>l.y-130 && wy<l.y+40){ pendingLandmark=l; setTarget(l.x,l.y+150); return; } }
+  let hit=null, hd=1e9;
+  for(const p of props){ const cx=p.x, cy=p.y-p.s*0.45, d=Math.hypot(wx-cx,wy-cy); if(d<p.s*0.7 && d<hd){hit=p; hd=d;} }
+  if(hit){ bubble={p:hit,t:0}; say(hit.ar); if(hit.b!=="sea") setTarget(hit.x, hit.y+28); return; }
+  pendingLandmark=null; setTarget(wx,wy);
+});
+
+/* ============ zone banner + card ============ */
+const zoneEl=document.getElementById("zone"); let zoneTimer=null;
+function showZone(b){ const B=BIOMES[b]; zoneEl.querySelector("b").textContent=B.en; zoneEl.querySelector("span").textContent=B.ar;
+  zoneEl.classList.add("show"); clearTimeout(zoneTimer); zoneTimer=setTimeout(()=>zoneEl.classList.remove("show"),2600); say(B.ar); }
+const card=document.getElementById("card");
+function openCard(l){ document.getElementById("cIcon").textContent=l.icon; document.getElementById("cTitle").textContent=l.en;
+  document.getElementById("cAr").textContent=l.ar; document.getElementById("cDesc").textContent=l.desc; card.classList.add("show"); say(l.ar); }
+function closeCard(){ card.classList.remove("show"); }
+document.getElementById("cClose").onclick=closeCard;
+document.getElementById("cAr").onclick=()=>say(document.getElementById("cAr").textContent);
+document.getElementById("cEnter").onclick=()=>{ document.getElementById("cEnter").textContent="Coming soon!"; setTimeout(()=>document.getElementById("cEnter").textContent="Enter (coming soon)",1500); };
+
+/* ============ minimap ============ */
+const mini=document.getElementById("mini"), mctx=mini.getContext("2d");
+mini.width=168*2; mini.height=126*2;
+mini.addEventListener("pointerup",e=>{ e.stopPropagation(); const r=mini.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width*W, y=(e.clientY-r.top)/r.height*H; pendingLandmark=null; closeCard(); setTarget(x,y); });
+function drawMini(){ mctx.drawImage(ground,0,0,mini.width,mini.height);
+  const sx=mini.width/W, sy=mini.height/H;
+  mctx.font="22px sans-serif"; mctx.textAlign="center"; mctx.textBaseline="middle";
+  for(const l of LANDMARKS) mctx.fillText(l.icon,l.x*sx,l.y*sy);
+  mctx.strokeStyle="#fff"; mctx.lineWidth=2; mctx.strokeRect(cam.x*sx,cam.y*sy,VW/ZOOM*sx,VH/ZOOM*sy);
+  mctx.fillStyle="#F2B134"; mctx.strokeStyle="#12233D"; mctx.lineWidth=3;
+  mctx.beginPath(); mctx.arc(player.x*sx,player.y*sy,8,0,7); mctx.fill(); mctx.stroke(); }
+
+/* ============ drawing ============ */
+const EMOJI='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+function shadow(x,y,w){ ctx.fillStyle="rgba(0,0,0,.18)"; ctx.beginPath(); ctx.ellipse(x,y,w,w*0.32,0,0,7); ctx.fill(); }
+function drawEmoji(e,x,y,s){ ctx.fillStyle="#000"; ctx.font=`${s}px ${EMOJI}`; ctx.textAlign="center"; ctx.textBaseline="bottom"; ctx.fillText(e,x,y+s*0.12); }
+function rr(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,r) : ctx.rect(x,y,w,h); }
+
+function drawRiver(time){
+  ctx.lineCap="round"; ctx.lineJoin="round";
+  const path=()=>{ ctx.beginPath(); ctx.moveTo(...RIVER[0]); for(let i=1;i<RIVER.length-1;i++){ const mx=(RIVER[i][0]+RIVER[i+1][0])/2, my=(RIVER[i][1]+RIVER[i+1][1])/2; ctx.quadraticCurveTo(RIVER[i][0],RIVER[i][1],mx,my);} ctx.lineTo(...RIVER[RIVER.length-1]); };
+  path(); ctx.strokeStyle="#2F7FC4"; ctx.lineWidth=46; ctx.stroke();
+  path(); ctx.strokeStyle="#5BAEE6"; ctx.lineWidth=30; ctx.stroke();
+  ctx.setLineDash([18,26]); ctx.lineDashOffset=-time*40; path(); ctx.strokeStyle="rgba(255,255,255,.5)"; ctx.lineWidth=4; ctx.stroke(); ctx.setLineDash([]);
+}
+function drawPond(){ ctx.fillStyle="#2F7FC4"; ctx.beginPath(); ctx.ellipse(POND.x,POND.y,POND.rx+8,POND.ry+8,0,0,7); ctx.fill();
+  ctx.fillStyle="#63B6EA"; ctx.beginPath(); ctx.ellipse(POND.x,POND.y,POND.rx,POND.ry,0,0,7); ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,.35)"; ctx.beginPath(); ctx.ellipse(POND.x-30,POND.y-18,40,10,0,0,7); ctx.fill(); }
+function drawWaterfall(l,time){
+  const x=l.x, y=l.y+40;
+  ctx.fillStyle="#7A6A5C"; rr(x-120,y-230,240,200,40); ctx.fill();
+  ctx.fillStyle="#8E7D6D"; rr(x-100,y-220,200,60,30); ctx.fill();
+  ctx.fillStyle="#5BAEE6"; ctx.fillRect(x-45,y-200,90,170);
+  ctx.strokeStyle="rgba(255,255,255,.75)"; ctx.lineWidth=5;
+  for(let i=0;i<6;i++){ const lx=x-38+i*15, off=(time*160+i*37)%60; ctx.setLineDash([22,38]); ctx.lineDashOffset=-off; ctx.beginPath(); ctx.moveTo(lx,y-200); ctx.lineTo(lx,y-30); ctx.stroke(); }
+  ctx.setLineDash([]);
+  ctx.fillStyle="#2F7FC4"; ctx.beginPath(); ctx.ellipse(x,y-10,120,42,0,0,7); ctx.fill();
+  ctx.fillStyle="#63B6EA"; ctx.beginPath(); ctx.ellipse(x,y-12,105,34,0,0,7); ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,.7)"; for(let i=0;i<5;i++){ ctx.beginPath(); ctx.arc(x-40+i*20+Math.sin(time*3+i)*4,y-28,6,0,7); ctx.fill(); }
+}
+function drawFarmhouse(l){
+  const x=l.x, y=l.y; shadow(x,y,90);
+  ctx.fillStyle="#E8DCC2"; rr(x-80,y-100,160,100,6); ctx.fill();               // limestone walls
+  ctx.strokeStyle="rgba(120,100,70,.35)"; ctx.lineWidth=2;
+  for(let r=1;r<5;r++){ ctx.beginPath(); ctx.moveTo(x-80,y-100+r*20); ctx.lineTo(x+80,y-100+r*20); ctx.stroke(); }
+  ctx.fillStyle="#D9CBAE"; ctx.beginPath(); ctx.ellipse(x,y-100,54,34,0,Math.PI,0); ctx.fill(); // dome
+  ctx.fillStyle="#5B3A22"; ctx.beginPath(); ctx.moveTo(x-18,y); ctx.lineTo(x-18,y-38); ctx.arc(x,y-38,18,Math.PI,0); ctx.lineTo(x+18,y); ctx.fill(); // arched door
+  ctx.fillStyle="#2F7FC4"; for(const dx of[-52,40]){ ctx.beginPath(); ctx.moveTo(dx+x,y-44); ctx.lineTo(dx+x,y-66); ctx.arc(dx+x+6,y-66,6,Math.PI,0); ctx.lineTo(dx+x+12,y-44); ctx.fill(); }
+  drawEmoji("🫒",x-110,y+6,30); drawEmoji("🧺",x+104,y+6,32);
+}
+function drawStall(l){
+  const x=l.x, y=l.y; shadow(x,y,75);
+  ctx.fillStyle="#8B5E3C"; ctx.fillRect(x-62,y-86,8,86); ctx.fillRect(x+54,y-86,8,86);
+  ctx.fillStyle="#C98B55"; rr(x-66,y-34,132,34,6); ctx.fill();
+  const cols=["#E0607E","#FFFFFF"]; for(let i=0;i<6;i++){ ctx.fillStyle=cols[i%2]; ctx.beginPath(); ctx.moveTo(x-72+i*24,y-86); ctx.lineTo(x-48+i*24,y-86); ctx.lineTo(x-48+i*24,y-112); ctx.lineTo(x-72+i*24,y-112); ctx.fill();
+    ctx.beginPath(); ctx.arc(x-60+i*24,y-86,12,0,Math.PI); ctx.fill(); }
+  drawEmoji("🍊",x-40,y-30,26); drawEmoji("🏺",x-8,y-30,30); drawEmoji("🧺",x+30,y-30,28);
+}
+function drawLandmark(l,time){
+  if(l.id==="falls") drawWaterfall(l,time); else if(l.id==="souq") drawStall(l); else if(l.id==="farm") drawFarmhouse(l); else { shadow(l.x,l.y,60); drawEmoji(l.icon,l.x,l.y,110); }
+  // signboard
+  const sy=l.y+14; ctx.font=`800 18px ${'"Baloo Bhaijaan 2",system-ui,sans-serif'}`; const w1=ctx.measureText(l.en).width;
+  ctx.font=`500 22px "Baloo Bhaijaan 2","Geeza Pro",sans-serif`; const w2=ctx.measureText(l.ar).width;
+  const w=Math.max(w1,w2)+28;
+  ctx.fillStyle="#6B4A2B"; ctx.fillRect(l.x-4,sy,8,18);
+  ctx.fillStyle="#F7E2B5"; ctx.strokeStyle="#6B4A2B"; ctx.lineWidth=4; rr(l.x-w/2,sy+10,w,62,12); ctx.fill(); ctx.stroke();
+  ctx.fillStyle="#12233D"; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  ctx.font=`800 18px "Baloo Bhaijaan 2",system-ui,sans-serif`; ctx.fillText(l.en,l.x,sy+34);
+  ctx.direction="rtl"; ctx.font=`500 22px "Baloo Bhaijaan 2","Geeza Pro",sans-serif`; ctx.fillStyle="#1E5AA8"; ctx.fillText(l.ar,l.x,sy+62); ctx.direction="ltr";
+}
+function drawPlayer(time){
+  const x=player.x, y=player.y, bob=player.moving?Math.abs(Math.sin(time*12))*5:0;
+  shadow(x,y,22);
+  ctx.save(); ctx.translate(x,y-bob);
+  // legs
+  ctx.fillStyle="#12233D"; const sw=player.moving?Math.sin(time*12)*5:0;
+  rr(-11+sw,-18,8,18,4); ctx.fill(); rr(3-sw,-18,8,18,4); ctx.fill();
+  // body
+  ctx.fillStyle="#1E5AA8"; rr(-16,-50,32,36,12); ctx.fill();
+  ctx.fillStyle="#F2B134"; rr(-16,-36,32,6,3); ctx.fill();
+  // head
+  ctx.fillStyle="#E9B98E"; ctx.beginPath(); ctx.arc(0,-66,18,0,7); ctx.fill();
+  ctx.fillStyle="#3B2A20"; ctx.beginPath(); ctx.arc(0,-72,18,Math.PI,0); ctx.fill();
+  ctx.fillStyle="#12233D"; const fx=player.face*3; ctx.beginPath(); ctx.arc(-6+fx,-65,2.6,0,7); ctx.fill(); ctx.beginPath(); ctx.arc(6+fx,-65,2.6,0,7); ctx.fill();
+  ctx.restore();
+  // name tag
+  ctx.font=`800 15px "Baloo Bhaijaan 2",system-ui,sans-serif`; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  const tw=ctx.measureText("You").width+16; ctx.fillStyle="rgba(18,35,61,.75)"; rr(x-tw/2,y-bob-112,tw,22,11); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.fillText("You",x,y-bob-96);
+}
+function drawBubble(){
+  if(!bubble) return; const p=bubble.p; const a=Math.min(1,(3.2-bubble.t)*2);
+  if(a<=0){bubble=null;return;}
+  ctx.globalAlpha=a;
+  ctx.font=`500 30px "Baloo Bhaijaan 2","Geeza Pro",sans-serif`; const w1=ctx.measureText(p.ar).width;
+  ctx.font=`700 15px "Baloo Bhaijaan 2",system-ui,sans-serif`; const w2=ctx.measureText(p.en).width;
+  const w=Math.max(w1,w2)+30, h=74, bx=p.x-w/2, by=p.y-p.s-h-14;
+  ctx.fillStyle="#fff"; ctx.strokeStyle="#1E5AA8"; ctx.lineWidth=3; rr(bx,by,w,h,16); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(p.x-10,by+h-1); ctx.lineTo(p.x,by+h+12); ctx.lineTo(p.x+10,by+h-1); ctx.fill();
+  ctx.fillStyle="#1E5AA8"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.direction="rtl";
+  ctx.font=`500 30px "Baloo Bhaijaan 2","Geeza Pro",sans-serif`; ctx.fillText(p.ar,p.x,by+40); ctx.direction="ltr";
+  ctx.fillStyle="#5A6B82"; ctx.font=`700 15px "Baloo Bhaijaan 2",system-ui,sans-serif`; ctx.fillText(p.en,p.x,by+62);
+  ctx.globalAlpha=1;
+}
+
+/* ============ loop ============ */
+let last=performance.now(), T=0;
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now; T+=dt;
+  // move
+  if(player.moving){
+    const dx=player.tx-player.x, dy=player.ty-player.y, d=Math.hypot(dx,dy), step=280*dt;
+    if(Math.abs(dx)>2) player.face=dx>0?1:-1;
+    if(d<=step){ player.x=player.tx; player.y=player.ty; player.moving=false; marker=null;
+      if(pendingLandmark){ openCard(pendingLandmark); pendingLandmark=null; } }
+    else { const nx=player.x+dx/d*step, ny=player.y+dy/d*step;
+      if(walkable(nx,ny)){ player.x=nx; player.y=ny; } else { player.moving=false; marker=null; } }
+  }
+  const z=biomeAt(player.x,player.y); if(z!==currentZone){ if(currentZone!==null) showZone(z); currentZone=z; }
+  // camera
+  const tx=player.x-VW/2/ZOOM, ty=player.y-VH/2/ZOOM;
+  cam.x+=(tx-cam.x)*Math.min(1,dt*5); cam.y+=(ty-cam.y)*Math.min(1,dt*5);
+  cam.x=Math.max(0,Math.min(W-VW/ZOOM,cam.x)); cam.y=Math.max(0,Math.min(H-VH/ZOOM,cam.y));
+  if(bubble) bubble.t+=dt;
+
+  ctx.setTransform(DPR*ZOOM,0,0,DPR*ZOOM,-cam.x*DPR*ZOOM,-cam.y*DPR*ZOOM);
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
+  ctx.drawImage(ground,0,0,W,H);
+  drawRiver(T); drawPond();
+  if(marker){ marker.t+=dt; const r=14+Math.sin(marker.t*6)*4; ctx.strokeStyle="rgba(255,255,255,.9)"; ctx.lineWidth=4; ctx.beginPath(); ctx.ellipse(marker.x,marker.y,r,r*0.45,0,0,7); ctx.stroke(); }
+  const vx0=cam.x-120, vx1=cam.x+VW/ZOOM+120, vy0=cam.y-60, vy1=cam.y+VH/ZOOM+160;
+  const list=[];
+  for(const p of props) if(p.x>vx0&&p.x<vx1&&p.y>vy0&&p.y<vy1) list.push({y:p.y,f:()=>{ if(p.b!=="sea") shadow(p.x,p.y,p.s*0.32); const bob=(p.b==="sea")?Math.sin(T*2+p.x)*3:0; drawEmoji(p.e,p.x,p.y+bob,p.s);} });
+  for(const l of LANDMARKS) list.push({y:l.y,f:()=>drawLandmark(l,T)});
+  list.push({y:player.y,f:()=>drawPlayer(T)});
+  list.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
+  drawBubble();
+  drawMini();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.getElementById("startBtn").onclick=()=>{
+  pickVoice(); say("أَهْلًا وَسَهْلًا");            // first sound inside a tap unlocks speech on iPad
+  document.getElementById("start").remove();
+  setTimeout(()=>showZone(biomeAt(player.x,player.y)),1400);
+};
+document.getElementById("soundBtn").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ player_audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
+
+</script>
+</body>
+</html>
