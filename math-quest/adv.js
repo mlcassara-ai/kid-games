@@ -234,7 +234,7 @@ function toScene(fn){const c=document.getElementById('advScene');if(!c)return fn
 /* ---------- screens ---------- */
 function draw(){css();const p=P(),a=A(p);a.crew=a.crew.filter(id=>p.pets.includes(id)).slice(0,slots(p));if(!destOpen(a,dest(a.dest)))a.dest='meadow';
  const body=TAB==='shelf'?shelfHTML(p,a):TAB==='cards'?cardsHTML(a):campHTML(p,a);
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏕️ Adventure Camp</h2></div>
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏕️ Adventure Camp</h2></div>
  <div class="adv-tabs">${[['camp','🏕️ Camp'],['shelf','🗄️ Curiosity Shelf'],['cards','🖼️ Postcards']].map(([k,t])=>`<button class="${TAB===k?'on':''}" onclick="Adv.tab('${k}')">${t}</button>`).join('')}</div>${body}</div>`;
  if(TAB==='camp')requestAnimationFrame(sitters);}
 function campHTML(p,a){const tr=a.trip,d=dest(tr?tr.dest:a.dest),n=slots(p);

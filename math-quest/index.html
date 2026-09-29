@@ -61,13 +61,27 @@ input,select{font-family:inherit}
 .pcard:hover{transform:translateY(-4px) rotate(-1deg)}
 .pcard svg{width:100px;height:130px}
 .pname{font-size:22px;font-weight:700}
-.plive{display:inline-block;background:#2ecc71;color:#fff;border-radius:999px;padding:2px 10px;font-weight:700;font-size:14px;animation:livep 2s ease-in-out infinite}@keyframes livep{50%{opacity:.7}}
+.plive{display:inline-block;background:#138a45;color:#fff;border-radius:999px;padding:2px 10px;font-weight:700;font-size:14px;animation:livep 2s ease-in-out infinite}@keyframes livep{50%{opacity:.7}}
 .plwait{display:block;font-size:13px;line-height:1.3;margin-top:3px;color:inherit;opacity:.95}.plwait b{color:#d9480f}.plv{font-size:15px;color:var(--muted)}
 .lockgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:12px auto}
 .lockgrid button{font-size:44px;background:#f1edff;border-radius:18px;padding:8px 0;box-shadow:0 4px 0 #cfc6f2}
 .chip.pic{font-size:22px;padding:3px 10px}
 .contcard{width:100%;min-height:110px;margin-bottom:16px}
 .contcard .zart{font-size:70px}
+.pnote{text-align:left;background:rgba(255,255,255,.1);border-radius:16px;padding:10px 14px;max-width:760px;margin:10px auto}.pnote ul{margin:6px 0;padding-left:4px;list-style:none;line-height:1.6}.pnote summary{cursor:pointer;font-weight:600;color:#ffe066}
+.cst{display:flex;flex-direction:column;align-items:center;gap:3px}.cst small{font-size:11px;font-weight:700;color:#7a3e0e;opacity:.85}
+.bptabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;position:sticky;top:70px;z-index:4}.bptab{position:relative;flex:1;min-width:64px;background:rgba(255,255,255,.18);color:#fff;border-radius:14px;padding:8px 6px;font-weight:700;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:2px}.bptab span{font-size:24px}.bptab.on{background:#fff;color:var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.25)}.bptab .dot{position:absolute;top:4px;right:6px;width:12px;height:12px;border-radius:50%;background:#ff3b3b;border:2px solid #fff}
+.bptabs-wrap .bpsec{display:none}.bptabs-wrap.tab-pets .bpsec[data-t=pets],.bptabs-wrap.tab-spell .bpsec[data-t=spell],.bptabs-wrap.tab-hat .bpsec[data-t=hat],.bptabs-wrap.tab-robe .bpsec[data-t=robe],.bptabs-wrap.tab-more .bpsec[data-t=more]{display:block}
+.bpsec[data-t=more] .panel~.bpempty,.bpsec[data-t=more] div~.bpempty{display:none}.moretile{border:2px dashed #b197fc!important;background:#f8f6ff!important}
+@media(max-width:520px){.bptabs{top:62px}.bptab{min-width:0;font-size:12px;padding:6px 2px}.bptab span{font-size:20px}}
+.bigcont{display:flex;align-items:center;gap:14px;width:100%;margin:6px 0 14px;padding:14px 18px;border-radius:22px;background:linear-gradient(135deg,#2fd27a,#16a34a);color:#fff;text-align:left;box-shadow:0 6px 0 #11803a,0 0 22px rgba(47,210,122,.45);animation:glowbtn 1.6s ease-in-out infinite}
+.bigcont .bc-art{font-size:58px;flex:none;line-height:1}.bigcont .bc-txt{flex:1;min-width:0}.bigcont b{display:block;font-size:24px;line-height:1.2}.bigcont small{display:block;font-size:16px;opacity:.95;margin-top:3px}
+.bigcont .bc-go{flex:none;background:#fff;color:#16a34a;font-weight:800;font-size:22px;border-radius:999px;padding:10px 18px}
+@media(max-width:520px){.bigcont{padding:12px}.bigcont .bc-art{font-size:44px}.bigcont b{font-size:19px}.bigcont small{font-size:14px}.bigcont .bc-go{font-size:17px;padding:8px 12px}}
+.qboard .zhead .title{margin-right:0}@media(max-width:520px){.qboard .zhead .title{font-size:24px;white-space:nowrap}.createbar{flex-wrap:nowrap!important;gap:8px}.createbar .btn{padding:12px 12px}.createbar .btn.big{font-size:18px;flex:1}}.qb-lead{white-space:nowrap}@media(max-width:520px){.qb-lead span{display:none}}
+.qpanel.compact{padding:10px 12px}.qpanel.compact h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:18px}.qstreak{margin-left:auto;font-size:14px;color:#d9480f}
+.qline{display:flex;align-items:center;gap:10px;padding:6px 4px;border-top:1px solid #eee7ff}.qline:first-of-type{border-top:0}.qline .qnpc{font-size:26px}.qline .qbody{flex:1;min-width:0;font-size:14px}.qline .qbody b{font-size:15px;display:block}.qline .qbody small{display:block;color:#6a5fa0}.qline .qbar{display:block}.qline .qcount{font-weight:700;color:#5f3dc4;white-space:nowrap}.qline.done{background:#fff9db;border-radius:10px}
+.lockmore{margin:14px auto 6px;text-align:center;color:#d0c8ff;font-size:17px;font-weight:600}
 .mf.done{background:#e8f9ee}.mf.done em{color:#1e9a53}
 .mf.lvlog{background:#f1edff}
 .questbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:rgba(255,255,255,.12);color:#fff;border-radius:16px;padding:10px 16px;margin-bottom:14px;font-size:17px}
@@ -156,7 +170,11 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .inp:focus{border-color:var(--accent)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{background:#f1edff;padding:7px 14px;border-radius:999px;font-size:16px;font-weight:600;border:3px solid transparent}
-.chip.on{border-color:var(--accent);background:#e3dbff}
+.chip.on{border-color:#4a31c9;background:var(--accent);color:#fff;box-shadow:0 3px 0 #4a31c9}.chip.on sup{color:#ffe066}
+.chip.on::before{content:'✓ ';font-weight:800}.chip.pic.on::before,.chip.pic::before{content:none}
+.needpick{outline:4px solid #ff6b6b;outline-offset:4px;border-radius:14px;background:#fff5f5}
+.createbar{position:sticky;bottom:0;z-index:6;background:linear-gradient(transparent,rgba(20,12,50,.85) 30%);padding:18px 10px calc(10px + env(safe-area-inset-bottom));margin:0 -10px}
+.preview.unk svg{filter:brightness(0) opacity(.18);animation:none}.preview.unk{position:relative}.preview.unk::after{content:'?';position:absolute;font-size:110px;font-weight:800;color:#7048e8;opacity:.7}
 .sw{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #ddd}
 .sw.on{box-shadow:0 0 0 4px var(--accent)}
 .shake-x{animation:shakex .4s}
@@ -389,6 +407,9 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .pethome h4{margin:14px 0 8px;color:#6a5fa0}
 .homecards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 @media(max-width:520px){.homecards{grid-template-columns:1fr}}
+.qboard .hcard{width:100%;box-sizing:border-box;margin:6px 0}
+.hcard.raidc{background:linear-gradient(135deg,#e7f5ff,#d0ebff);border:2px solid #4dabf7}
+.hcard.bonusw{background:linear-gradient(135deg,#fff3bf,#ffe066);border:2px solid #f59f00}
 .hcard{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.95);border-radius:18px;padding:10px 14px;text-align:left;color:var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.2)}
 .hcard .pav{font-size:46px}.hcard b{font-size:18px;display:block}.hcard small{color:#6a5fa0;font-size:14px}
 .hcard.glow{animation:glowbtn 1.2s ease-in-out infinite;box-shadow:0 4px 0 rgba(0,0,0,.2),0 0 18px #ffe066}
@@ -397,7 +418,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .wptr{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:34px;color:#e0245e;z-index:2;text-shadow:0 2px 0 #fff}
 .wheel{width:100%;height:100%;border-radius:50%;border:6px solid #fff;box-shadow:0 0 0 4px #b99cff,0 6px 16px rgba(0,0,0,.3);position:relative}
 .wl{position:absolute;inset:0;display:flex;justify-content:center}
-.wl span{margin-top:8%;display:flex;flex-direction:column;align-items:center;font-size:min(30px,7vw);line-height:1}
+.wl span{align-self:flex-start;margin-top:8%;display:flex;flex-direction:column;align-items:center;font-size:min(30px,7vw);line-height:1}
 .wl small{font-size:12px;font-weight:700;color:#3b2b6b}
 .petf .pav{font-size:inherit}
 .tiertag{display:inline-block;color:#fff !important;font-weight:700 !important;border-radius:10px;padding:1px 8px;font-size:12px}
@@ -439,12 +460,12 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .warea{background:rgba(30,15,70,.8);color:#fff;font-weight:700;font-size:18px;padding:6px 14px;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.25)}
 .warea.pop{animation:wpop .5s ease-out}
 @keyframes wpop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:none;opacity:1}}
-.whelp{width:max-content;position:absolute;left:50%;top:58px;transform:translateX(-50%);background:rgba(255,255,255,.92);color:var(--ink);font-weight:600;font-size:14px;padding:6px 12px;border-radius:12px;transition:opacity 1s;pointer-events:none;text-align:center;max-width:92%}
+.whelp{width:max-content;position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));background:rgba(255,255,255,.92);color:var(--ink);font-weight:600;font-size:14px;padding:6px 12px;border-radius:12px;transition:opacity 1s;pointer-events:none;text-align:center;max-width:calc(100% - 180px)}
 .whelp.fade{opacity:0}
-.dpad{position:absolute;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));display:grid;grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:2px;opacity:.85}
-.dpad button{background:rgba(255,255,255,.9);border-radius:14px;font-size:22px;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.25);touch-action:none}
+.dpad{position:absolute;left:10px;bottom:calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-areas:". u ." "l . r" ". d .";grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:2px;opacity:.4;pointer-events:none;transition:opacity .3s}.dpad button{pointer-events:auto}.dpad:active,.dpad.used{opacity:.85}
+.dpad button{background:rgba(255,255,255,.75);border-radius:12px;font-size:18px;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.25);touch-action:none}
 .dpad button:active{transform:translateY(2px)}
-@media(hover:hover) and (pointer:fine){.dpad{opacity:.55}}
+@media(hover:hover) and (pointer:fine){.dpad{opacity:.4}}
 .questbar.dark{background:#f6f3ff;color:var(--ink);margin-top:12px}
 .lbhero{display:flex;align-items:center;gap:16px;background:linear-gradient(120deg,#f7b733,#fc4a1a);color:#fff;border-radius:22px;padding:16px 20px;margin-bottom:16px;position:relative;font-size:17px}
 .lbhero .lbface,.lbhero .lbface svg{width:84px;height:84px;flex:none}
@@ -500,6 +521,8 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .iconbtn.tbi svg{width:100%;height:100%;display:block;border-radius:12px}
 .iconbtn.tbi:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.4)}
 .iconbtn.tbi .dot{top:-6px;right:-6px;width:15px;height:15px;border:2px solid #fff;background:#ff3b3b}
+.topbar{padding-bottom:20px}.iconbtn.tbi .tbl{position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);font-style:normal;font-size:11px;font-weight:700;line-height:1;white-space:nowrap;color:#e9e4ff;pointer-events:none}
+@media(max-width:420px){.iconbtn.tbi .tbl{font-size:10px;bottom:-15px}.topbar{padding-bottom:18px}}
 @media(max-width:520px){.iconbtn.tbi{width:40px;height:40px;border-radius:12px}.iconbtn.tbi svg{border-radius:10px}}
 @media(max-width:420px){.topbar .iconbtn.tbi{width:36px;height:36px;border-radius:10px}.topbar .iconbtn.tbi svg{border-radius:8px}}
 .giftwho{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:10px 0}
@@ -563,6 +586,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 #modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(10,5,30,.65);z-index:50;padding:16px}
 #modal.show{display:grid}
 .mcard{background:#fff;border-radius:24px;padding:22px;max-width:540px;width:100%;text-align:center;max-height:92dvh;overflow:auto;animation:pop .25s}
+.mcard>.row:last-child{position:sticky;bottom:-22px;background:linear-gradient(rgba(255,255,255,.85),#fff 30%);padding:10px 0 12px;margin-bottom:-12px;z-index:2} /* action buttons always visible on small screens */
 .mcard h2{margin:6px 0}
 .big-emoji{font-size:72px;line-height:1}
 .fb-title{font-size:26px;font-weight:700;color:#e8590c}
@@ -600,6 +624,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 @media(max-width:720px){.bp{grid-template-columns:1fr}.bp-hero{position:static!important}}
 .bp-hero{background:#fff;border-radius:22px;padding:16px;text-align:center;position:sticky;top:84px}
 .bp-hero .hv{position:relative;display:inline-block}
+@media(max-width:600px){.bp-hero{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px}.bp-hero .hv svg{width:84px!important;height:auto!important}.bp-hero .bp-stats{font-size:14px}.bp-hero .row{justify-content:flex-start;margin-top:4px}}
 .bp-hero svg{width:160px;height:208px}
 .bp-pet{position:absolute;left:-18px;bottom:6px;font-size:44px;animation:bob 1.6s ease-in-out infinite}
 .bp-stats{font-size:15px;line-height:1.5;color:#4c3f78}
@@ -664,7 +689,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 @media(max-width:520px){
  .topbar .tb-hero{display:none}
  .topbar .iconbtn.tbi[aria-label="Sound on or off"]{display:none}
- .topbar{gap:4px!important;padding:8px 6px!important}.topbar .iconbtn.tbi{width:40px;height:40px}
+ .topbar{gap:4px!important;padding:8px 6px 20px!important}.topbar .iconbtn.tbi{width:40px;height:40px}
  .topbar .coins{padding:4px 6px;font-size:13px}.topbar .coins.tbchip{padding:4px 5px}
  .tb-name .lv{display:none}.xprow .lv2{display:inline-block}
  .tb-info{min-width:0;flex:1}.tb-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -692,7 +717,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="adv.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="adv.js?t='+Date.now()+'"><\/script>');document.write('<script src="mastery.js?t='+Date.now()+'"><\/script>');document.write('<script src="insights.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1147,12 +1172,26 @@ const SPELLS=[
  {id:'leaf',name:'Leaf Storm',e:'🍃',mult:1.25,price:450,lvl:3,color:'#5be37d'},
  {id:'bolt',name:'Lightning',e:'⚡',mult:1.35,price:650,lvl:5,color:'#ffd43b'},
  {id:'rainbow',name:'Rainbow Blast',e:'🌈',mult:1.5,price:950,lvl:8,color:'#ff5fa2'},
- {id:'comet',name:'Comet Crash',e:'☄️',mult:1.7,price:1400,lvl:12,color:'#ff9f43'},
- {id:'meteor',name:'Meteor Shower',e:'🌠',mult:1.8,price:2200,lvl:16,color:'#9775fa'},
- {id:'galaxy',name:'Galaxy Spiral',e:'🌌',mult:1.9,price:3200,lvl:20,color:'#5c7cfa'},
- {id:'nova',name:'Supernova',e:'💫',mult:2,price:4500,lvl:25,color:'#ffe066'}];
+ {id:'comet',name:'Comet Crash',e:'☄️',mult:1.7,price:2000,lvl:12,color:'#ff9f43'},
+ {id:'meteor',name:'Meteor Shower',e:'🌠',mult:1.8,price:3500,lvl:16,color:'#9775fa'},
+ {id:'galaxy',name:'Galaxy Spiral',e:'🌌',mult:1.9,price:5000,lvl:20,color:'#5c7cfa'},
+ {id:'nova',name:'Supernova',e:'💫',mult:2,price:7000,lvl:25,color:'#ffe066'}];
 /* higher-end balance: rewards follow challenge, monsters grow with the hero */
 function challengeD(p,op){const exp=gradeExp(p);const L=op==='mix'?Math.round(BASIC_OPS.reduce((s,o)=>s+lvl(p,o),0)/4):lvl(p,op);return Math.max(-2,Math.min(2,L-exp));}
+/* ⭐ Bonus World of the Day: nudges each kid toward the skill they need most (weakest accuracy or not practised lately). */
+function bonusZone(p){const d=dayKey();if(p.bonusZ&&p.bonusZ.d===d)return p.bonusZ.z;
+ const g=p.grade||3;const GO=g<=1?['add','sub','money','time','graph']:g<=2?['add','sub','money','time','graph','grp','meas']:g<=3?['add','sub','mul','div','frac','money','time','graph','grp','meas','est']:null;
+ const cand=ZONES.filter(z=>!z.event&&z.op&&z.op!=='mix'&&OPS.includes(z.op)&&!zoneLocked(z,p)&&!(z.g5&&g<4)&&(!GO||GO.includes(z.op)));
+ const last=(p.ins&&p.ins.lp)||{};const ymd=v=>{v=String(v);return new Date(2000+ +v.slice(0,2),+v.slice(2,4)-1,+v.slice(4,6)).getTime();};
+ const sc=z=>{const st=(p.stats||{})[z.op]||{r:0,w:0},n=st.r+st.w,acc=n?st.r/n:.5;const idle=last[z.op]?Math.min(30,(Date.now()-ymd(last[z.op]))/864e5):(n?10:6);return (1-acc)*2+idle/10+(n<20?.4:0)+((d.charCodeAt(9)+z.id.length)%5)*.05;};
+ const best=cand.sort((a,b)=>sc(b)-sc(a))[0];p.bonusZ={d,z:best?best.id:null};return p.bonusZ.z;}
+/* 🔁 Review Raid: spaced review of skills not practised for a week (weekend players forget between sessions) */
+function raidOps(p){const lp=(p.ins&&p.ins.lp)||{};const now=Date.now();const ymd=v=>{v=String(v);return new Date(2000+ +v.slice(0,2),+v.slice(2,4)-1,+v.slice(4,6)).getTime();};
+ return OPS.filter(o=>{const st=(p.stats||{})[o];return st&&st.r+st.w>=10&&lp[o]&&(now-ymd(lp[o]))/864e5>=7&&ZONES.some(z=>z.op===o&&!zoneLocked(z,p));}).sort((a,b)=>ymd(lp[a])-ymd(lp[b])).slice(0,4);}
+function raidCard(p){try{const ops=raidOps(p);if(ops.length<2||p.raidDay===dayKey())return '';return `<button class="hcard raidc" onclick="startRaid()"><span style="font-size:34px">🔁</span><span><b>Review Raid: keep old skills sharp!</b><br><small>${ops.map(o=>OPNAME[o]).join(' · ')} · mixed questions</small></span></button>`;}catch(e){return '';}}
+function startRaid(){const p=P();const ops=raidOps(p);if(!ops.length)return;p.raidDay=dayKey();const z=ZONES.find(z=>z.op===ops[0]&&!zoneLocked(z,p));SFX.tap();startBattle(z.id,0,null,{wild:true,n:'Memory Moth',e:'🦋'});B.raidOps=ops;B.name='Memory Moth';save();}
+function bonusCard(p){try{const id=bonusZone(p),z=id&&ZONES.find(x=>x.id===id);if(!z)return '';return `<button class="hcard bonusw" onclick="go('zone','${z.id}')"><span style="font-size:34px">${z.art||'⭐'}</span><span><b>⭐ Bonus World today: ${esc(z.name)}</b><br><small>Double coins there all day!</small></span></button>`;}catch(e){return '';}}
+const isBonusZ=(p,zid)=>!!zid&&bonusZone(p)===zid;
 function coinPer(p,q){const exp=gradeExp(p);return 3+Math.max(-1,Math.min(2,(q.L||1)-exp));}
 function lvlScale(p,round){const over=Math.max(0,(p.level||1)-10);const sp=(SPELLS.find(s=>s.id===p.spell)||SPELLS[0]).mult;return {hp:(1+Math.min(.5,over*.025))*((round||1)>=3?1+(sp-1)*.6:1),dmg:1+Math.min(.6,over*.03)};}
 const PERKS={coins:'🪙 Extra coins',power:'💥 Stronger spells',shield:'🛡️ Blocks a hit',xp:'✨ Levels up faster',lucky:'🥚 Finds more eggs',heal:'❤️ Heals you on streaks'};
@@ -1184,7 +1223,10 @@ const PETS=[
 PETS.forEach(x=>{x.rare=x.tier!=='common';});
 const REG_PETS=PETS.filter(x=>x.tier!=='mythic'&&x.tier!=='event');const EVENT_PETS=PETS.filter(x=>x.tier==='event');const MYTHIC=PETS.filter(x=>x.tier==='mythic');const regHave=p=>(p.pets||[]).filter(id=>REG_PETS.some(x=>x.id===id)).length;
 const tierTag=x=>`<small class="tiertag" style="background:${PET_TIERS[x.tier].c}">${x.tier==='event'?'🎃 ':x.tier==='mythic'?'🌌 ':x.tier==='legend'?'🌟 ':x.tier==='epic'?'💜 ':x.tier==='rare'?'✨ ':''}${PET_TIERS[x.tier].n}</small>`;
-const eggPrice=p=>Math.round((p.pets.length<20?Math.min(900,150+p.pets.length*30):Math.min(2500,900+(p.pets.length-20)*100))*(1-.05*vLv(p,'shop')));
+/* reward pacing (Sep 2026 rebalance): the pet collection should take weeks, not days.
+   Shop eggs get pricier as the collection grows; the daily 3-win quest gives an egg every other time (coins otherwise). */
+const eggPrice=p=>Math.round((p.pets.length<20?500+p.pets.length*80:Math.min(5000,2100+(p.pets.length-20)*200))*(1-.05*vLv(p,'shop')));
+const dailyEggDay=p=>((p.qEggN||0)%2)===0;
 const ZONES=[
  {id:'forest',name:'Addition Forest',op:'add',sym:'+',cls:'z-forest',art:'🌳',decor:['🌲','🌳','🍄','🌼','🌿'],
   mons:[['Grumbug','🐛'],['Shroomling','🍄'],['Buzzbee','🐝'],['Twigwolf','🐺'],['Vinesnake','🐍'],['King Mossback','🦍']]},
@@ -1245,11 +1287,11 @@ function newPlayer(name,grade){
   recent:Object.fromEntries(OPS.map(o=>[o,[]])),log:[],lock:null,battle:null,maxL:Object.fromEntries(OPS.map(o=>[o,Math.floor(g[o])])),champ:{},pb:{},days:[],quest:null,pantry:{},toys:[],petGear:[],spinDay:null};
 }
 let state=load();
-function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{if(/^ethan$/i.test((p.name||'').trim())&&p.grade===3&&!p.gradeFix11){p.grade=11;p.gradeFix11=1;if(p.spellSig!==undefined)try{p.spellSig=spellSchool(p).map(x=>x.w).join('|');}catch(e){}}if(p.setup&&!(p.wkHist&&p.wkHist[weekKey()])&&typeof wkOf==='function'){const w=wkOf(p);weekDays(weekKey()).forEach(k=>{const d=p.daily&&p.daily[k];if(d&&d.r){const n=Math.min(DAY_CAP,d.r);w.dc[k]=n;w.pts+=n*8;}});(p.log||[]).forEach(l=>{if(l.to>l.from&&weekDays(weekKey()).includes(l.d))w.lv++;});}p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1.5;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel|mika/i.test(p.name))p.look.kind='boy';}if(!p.mikaBoy&&/mika/i.test(p.name)){p.look.kind='boy';p.mikaBoy=true;}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{if(/^ethan$/i.test((p.name||'').trim())&&p.grade===3&&!p.gradeFix11){p.grade=11;p.gradeFix11=1;if(p.spellSig!==undefined)try{p.spellSig=spellSchool(p).map(x=>x.w).join('|');}catch(e){}}if(p.setup&&!(p.wkHist&&p.wkHist[weekKey()])&&typeof wkOf==='function'){const w=wkOf(p);weekDays(weekKey()).forEach(k=>{const d=p.daily&&p.daily[k];if(d&&d.r){const n=Math.min(DAY_CAP,d.r);w.dc[k]=n;w.pts+=n*8;}});(p.log||[]).forEach(l=>{if(l.to>l.from&&weekDays(weekKey()).includes(l.d))w.lv++;});}p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1.5;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel|mika/i.test(p.name))p.look.kind='boy';}if(!p.mikaBoy&&/mika/i.test(p.name)){p.look.kind='boy';p.mikaBoy=true;}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(!p.hsLv&&(p.grade||0)>=9&&p.setup&&p.skill){p.hsLv=1;['add','sub','mul','div'].forEach(o=>{if(Math.floor(p.skill[o]||1)<10){p.skill[o]=Math.min(maxLv(o),13)+.5;p.recent[o]=[];p.log.unshift({d:dayKey(),op:o,from:'-',to:13});}});} /* Sep 2026: high schoolers start on high-school levels */if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
-const xpNeed=l=>60+l*40;
+const xpNeed=l=>60+l*40+(l>10?10*(l-10)*(l-10):0); /* steeper after level 10 so hero levels (and the spells they unlock) last for weeks */
 const petOf=p=>p.pet&&!(window.Adv&&Adv.away(p,p.pet))?PETS.find(x=>x.id===p.pet):null; // a pet on an adventure can't help until it's back
 const petPerk=p=>{if(typeof B!=='undefined'&&B&&!B.over&&B.petFrozen>0&&curScreen==='battle')return null;const x=petOf(p);return x?x.perk:null;};
 const bossesBeaten=p=>ZONES.filter(z=>(p.progress[z.id]||[])[5]>0).length;
@@ -1367,7 +1409,11 @@ SCREENS.rest=()=>{const p=P();if(!p){go('profiles');return;}tbTick(p,false);if(!
  <p class="muted">Every 2 minutes of rest earns 1 minute of play. Go outside, read a book, or help someone at home!</p>
  <div class="row"><button class="btn gold" onclick="state.cur=null;go('profiles')">Switch player</button></div></div></div>`;};
 
-function go(s,arg){if(!TB_FREE.includes(s)&&s!=='battle'&&typeof state!=='undefined'&&state&&state.cur){const p=P();if(p&&p.setup&&tbOn(p)){tbTick(p,false);if(tbState(p).locked)s='rest';}}curScreen=s;curArg=arg;window.scrollTo(0,0);SCREENS[s](arg);}
+/* extension hooks: optional add-on files (mastery.js, insights.js) register listeners here. Never let them break the game. */
+window.MQ_HOOKS=window.MQ_HOOKS||[];
+function hook(name,...a){for(const h of window.MQ_HOOKS){try{h[name]&&h[name](...a);}catch(e){console.warn('hook',name,e);}}}
+function go(s,arg){if(!TB_FREE.includes(s)&&s!=='battle'&&typeof state!=='undefined'&&state&&state.cur){const p=P();if(p&&p.setup&&tbOn(p)){tbTick(p,false);if(tbState(p).locked)s='rest';}}if(s!=='battle'){const ko=document.getElementById('kindOv');if(ko){ko.remove();try{speechSynthesis.cancel();}catch(e){}kindOpen=false;fbOpen=false;}}
+ curScreen=s;curArg=arg;window.scrollTo(0,0);SCREENS[s](arg);hook('screen',s,arg);}
 function modal(html){const m=$('#modal');m.innerHTML=html;m.classList.add('show');}
 function closeModal(){const m=$('#modal');m.classList.remove('show');m.innerHTML='';}
 let toastT=null;
@@ -1406,17 +1452,19 @@ players:`<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#2f
  <path d="M34 30 Q35 19 43 20 Q52 20 52 30 Q49 24 34 30Z" fill="#2b1d0e"/>
  <circle cx="19" cy="29" r="1.4" fill="#2b2250"/><circle cx="25" cy="29" r="1.4" fill="#2b2250"/><circle cx="40" cy="32" r="1.3" fill="#2b2250"/><circle cx="46" cy="32" r="1.3" fill="#2b2250"/></svg>`};
 
+/* red dot on the Pets button: only for something NEW (a pet back from Adventure Camp); it clears once the kid visits Pet Home */
+function petDotKey(p){try{return window.Adv&&Adv.back(p)&&p.adv&&p.adv.trip?'adv'+p.adv.trip.end:'';}catch(e){return '';}}
 function topbar(){
  const p=P();const need=xpNeed(p.level);
  return `<div class="topbar">
  <button class="tb-hero" title="Backpack" onclick="go('backpack')">${heroSVG(p.look,{spell:p.spell})}</button>
  <div class="tb-info"><div class="tb-name">${esc(p.name)}<span class="lv">Lv ${p.level}</span></div><div class="xprow"><div class="xpbar"><i style="width:${Math.min(100,p.xp/need*100)}%"></i></div><span class="lv2">Lv ${p.level}</span></div></div>
  <div class="coins">🪙 ${p.coins}</div>${tbOn(p)?`<div class="coins tbchip ${tbLeft(p)<=10?'low':''}" id="tbChip" title="Play time left">⏳ ${tbLeft(p)}m</div>`:''}
- <button class="iconbtn tbi" title="Explore the world" aria-label="Explore the world" onclick="go('world')">${TB_ICONS.map}</button>
- <button class="iconbtn tbi" title="Backpack &amp; shop" aria-label="Backpack and shop" onclick="go('backpack')">${TB_ICONS.bag}${p.eggs?'<b class="dot"></b>':''}</button>
- <button class="iconbtn tbi" title="Pet home" aria-label="Pet home" onclick="go('pethome')">${TB_ICONS.pet}${spinReady(p)||(window.Adv&&Adv.back(p))?'<b class="dot"></b>':''}</button>
- <button class="iconbtn tbi" title="Sound &amp; music" aria-label="Sound on or off" onclick="window.Music?Music.menu():toggleSound()">${fxVol()>0||((p.music||'auto')!=='off'&&state.musicVol!==0)?TB_ICONS.sound:TB_ICONS.mute}</button>
- <button class="iconbtn tbi" title="Switch player" aria-label="Switch player" onclick="go('profiles')">${TB_ICONS.players}</button></div>`;
+ <button class="iconbtn tbi" title="World" aria-label="World" onclick="go('world')">${TB_ICONS.map}<i class="tbl">World</i></button>
+ <button class="iconbtn tbi" title="Backpack &amp; shop" aria-label="Backpack and shop" onclick="go('backpack')">${TB_ICONS.bag}${p.eggs?'<b class="dot"></b>':''}<i class="tbl">Bag</i></button>
+ <button class="iconbtn tbi" title="Pet home" aria-label="Pet home" onclick="go('pethome')">${TB_ICONS.pet}${petDotKey(p)&&petDotKey(p)!==p.petSeen?'<b class="dot"></b>':''}<i class="tbl">Pets</i></button>
+ <button class="iconbtn tbi" title="Sound &amp; music" aria-label="Sound on or off" onclick="window.Music?Music.menu():toggleSound()">${fxVol()>0||((p.music||'auto')!=='off'&&state.musicVol!==0)?TB_ICONS.sound:TB_ICONS.mute}<i class="tbl">Sound</i></button>
+ <button class="iconbtn tbi" title="Switch player" aria-label="Switch player" onclick="go('profiles')">${TB_ICONS.players}<i class="tbl">Players</i></button></div>`;
 }
 
 /* ---------- profiles ---------- */
@@ -1459,13 +1507,26 @@ function tryLock(id,e){
  lockTry=[];if(dots)dots.textContent=p.lock.map(()=>'○').join(' ');
  SFX.wrong();const g=$('#lockgrid');g.classList.remove('shake-x');void g.offsetWidth;g.classList.add('shake-x');toast('Oops! Try again.');
 }
-function enter(p){try{liveMark(p.id,true);setTimeout(scheduleSync,50);}catch(e){}
+/* ---- popup budget: at most ONE automatic popup when a kid logs in (the most time-limited / story-critical one).
+   Everything else waits: it glows on the Quest Board / in the World, or pops on a later visit — one at a time, a few minutes apart.
+   Walk-up visitors (Dr. Quartz, Ozzy) already wait for window.visitorQuiet, so we just keep that quiet after a popup. */
+let AUTO_POP_AT=0,LOGIN_QUIET=0;
+function autoPopOK(){const q=window.visitorQuiet||0;return Date.now()-AUTO_POP_AT>150e3&&(Date.now()>=q||q===LOGIN_QUIET)&&!document.querySelector('#modal.show');}
+function autoPopUsed(){AUTO_POP_AT=Date.now();LOGIN_QUIET=0;window.visitorQuiet=Math.max(window.visitorQuiet||0,Date.now()+150e3);}
+function autoPopups(scr){const p=P();if(!p)return;if(!(p.battles>0))return; /* brand-new kid: let them play first */setTimeout(()=>{if(curScreen!==scr||P()!==p||!autoPopOK())return;let f=null;
+ if(scr==='map'&&ceremonyDue(p))f=()=>modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>The Sunday Star Ceremony is here!</h2><p>Let's see who earned stars last week…</p><button class="btn gold big" onclick="closeModal();go('leaders','ceremony')">See the stars! ✨</button></div>`);
+ else if(spinReady(p)&&p.spinShown!==dayKey())f=()=>{p.spinShown=dayKey();saveLocal();openSpin();};
+ else if(pendingGifts(p).length)f=showGift;
+ else if(petMilestones(p).length)f=offerPet;
+ else if(scr==='map'&&goalPrizeDue(p))f=()=>checkGoalPrize(p);
+ if(f){autoPopUsed();f();}},700);}
+function enter(p){try{hook('session',p);}catch(e){}AUTO_POP_AT=0;LOGIN_QUIET=Date.now()+30e3;window.visitorQuiet=Math.max(window.visitorQuiet||0,LOGIN_QUIET);if(window.visitorQuiet!==LOGIN_QUIET)LOGIN_QUIET=0;try{liveMark(p.id,true);setTimeout(scheduleSync,50);}catch(e){}
  state.cur=p.id;applyHeroSound(p);save();
  if(!p.setup){go('create',p.id);return;}
  go('world');
- if(!p.welcomed){welcomeIfNew(p);return;}
+ if(!p.welcomed){autoPopUsed();welcomeIfNew(p);return;}
  if(p.battle){const b=p.battle,z=ZONES.find(x=>x.id===b.zid);const f0=b.foes&&b.foes[b.ti||0];const m=f0?[f0.n,f0.e]:z.mons[b.i];
-  modal(`<div class="mcard"><div class="big-emoji">${m[1]}</div><h2>Welcome back, ${esc(p.name)}!</h2><p>You were in the middle of a battle with <b>${esc(m[0])}</b>. Want to finish it?</p><div class="row"><button class="btn ghost dark" onclick="P().battle=null;save();closeModal()">Not now</button><button class="btn green" onclick="resumeBattle()">Keep fighting ⚔️</button></div></div>`);}
+  autoPopUsed(); modal(`<div class="mcard"><div class="big-emoji">${m[1]}</div><h2>Welcome back, ${esc(p.name)}!</h2><p>You were in the middle of a battle with <b>${esc(m[0])}</b>. Want to finish it?</p><div class="row"><button class="btn ghost dark" onclick="P().battle=null;save();closeModal()">Not now</button><button class="btn green" onclick="resumeBattle()">Keep fighting ⚔️</button></div></div>`);}
  else toast(`Welcome back, ${p.name}! 👋`);
 }
 function resumeBattle(){const b=P().battle;closeModal();if(b)startBattle(b.zid,b.i,b);}
@@ -1484,30 +1545,32 @@ function renderCreate(){
  const robes=ROBES.filter(r=>ex?ex.owned.robes.includes(r.id):!r.price);
  const sw=(bg,on,act)=>`<button class="sw ${on?'on':''}" style="background:${bg}" onclick="${act};renderCreate()"></button>`;
  app.innerHTML=`<div class="page"><h2 class="title">${draft.id?(draft.edit?`Change ${esc(draft.name)}'s look`:`Create ${esc(draft.name)}'s hero!`):'Create your hero!'}</h2>
- <div class="creator"><div class="preview">${heroSVG(draft.look)}</div>
+ <div class="creator"><div class="preview ${draft.look.kind!=='boy'&&draft.look.kind!=='girl'?'unk':''}">${heroSVG(draft.look)}</div>
  <div class="opts">
-  <label class="lbl">Boy or girl?</label><div class="chips"><button class="chip big ${draft.look.kind==='boy'?'on':''}" onclick="draft.look.kind='boy';renderCreate()">🧙‍♂️ Boy wizard</button><button class="chip big ${draft.look.kind==='girl'?'on':''}" onclick="draft.look.kind='girl';renderCreate()">🧙‍♀️ Girl wizard</button></div>
+  <div id="ckind"><label class="lbl">Boy or girl?</label><div class="chips"><button class="chip big ${draft.look.kind==='boy'?'on':''}" onclick="draft.look.kind='boy';renderCreate()">🧙‍♂️ Boy wizard</button><button class="chip big ${draft.look.kind==='girl'?'on':''}" onclick="draft.look.kind='girl';renderCreate()">🧙‍♀️ Girl wizard</button></div></div>
   <label class="lbl">Hero name</label><input id="nm" class="inp" maxlength="16" value="${esc(draft.name)}" placeholder="Type a name" oninput="draft.name=this.value">
-  ${!draft.pickGrade?'':`<label class="lbl">What grade are you in?</label><div class="chips">${[1,2,3,4,5,6,7,8,9,10,11,12].map(g=>`<button class="chip ${draft.grade===g&&!draft.adult?'on':''}" onclick="draft.grade=${g};draft.adult=false;renderCreate()">${g}</button>`).join('')}<button class="chip ${draft.adult?'on':''}" onclick="draft.grade=12;draft.adult=true;renderCreate()">🧑 Adult</button></div>`}
+  ${!draft.pickGrade?'':`<div id="cgrade"><label class="lbl">What grade are you in?</label><div class="chips">${[1,2,3,4,5,6,7,8,9,10,11,12].map(g=>`<button class="chip ${draft.grade===g&&!draft.adult?'on':''}" onclick="draft.grade=${g};draft.adult=false;renderCreate()">${g}</button>`).join('')}<button class="chip ${draft.adult?'on':''}" onclick="draft.grade=12;draft.adult=true;renderCreate()">🧑 Adult</button></div></div>`}
   <label class="lbl">Skin</label><div class="chips">${SKINS.map(c=>sw(c,draft.look.skin===c,`draft.look.skin='${c}'`)).join('')}</div>
   <label class="lbl">Hair</label><div class="chips">${HAIRS.map(c=>sw(c,draft.look.hair===c,`draft.look.hair='${c}'`)).join('')}</div>
   <label class="lbl">Robe</label><div class="chips">${robes.map(r=>sw(r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c,draft.look.robe===r.id,`draft.look.robe='${r.id}'`)).join('')}</div>
   <label class="lbl">Secret pictures <span class="muted">(if you want: tap 2 pictures. Only you will know them!)</span></label><div class="chips"><button class="chip ${!draft.lock||!draft.lock.length?'on':''}" onclick="draft.lock=[];renderCreate()">${draft.lock&&draft.lock.length?'Clear':'None'}</button>${PICS.map(e=>{const k=(draft.lock||[]).indexOf(e);return `<button class="chip pic ${k>=0?'on':''}" onclick="pickLock('${e}')">${e}${k>=0?`<sup>${k+1}</sup>`:''}</button>`;}).join('')}</div>
   <label class="lbl">Hat</label><div class="chips">${hats.map(h=>`<button class="chip ${draft.look.hat===h.id?'on':''}" onclick="draft.look.hat='${h.id}';renderCreate()">${h.name}</button>`).join('')}</div>
  </div></div>
- <div class="row"><button class="btn ghost" onclick="leaveCreate()">← Back</button><button class="btn green big" onclick="saveHero('save')">💾 Save${heroDirty()?'':'d ✓'}</button><button class="btn gold big" onclick="saveHero('${draft.edit?'done':'start'}')">${draft.edit?'Done ✓':'Start the adventure! ⚔️'}</button></div></div>`;
+ <div class="row createbar"><button class="btn ghost" onclick="leaveCreate()">← Back</button>${ex&&ex.setup?`<button class="btn ghost" onclick="saveHero('save')">💾 Save${heroDirty()?'':'d ✓'}</button>`:''}<button class="btn green big" onclick="saveHero('${draft.edit?'done':'start'}')">${draft.edit?'Done ✓':'Start the adventure! ⚔️'}</button></div></div>`;
 }
+/* missing choice on the hero screen: scroll to it, shake it, ring it in red */
+function needPick(id,msg){const el=document.getElementById(id);toast(msg);try{SFX.wrong();}catch(e){}if(!el)return;el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.remove('shake-x','needpick');void el.offsetWidth;el.classList.add('shake-x','needpick');}
 function pickLock(e){draft.lock=draft.lock||[];if(draft.lock.length>=2||draft.lock.includes(e))draft.lock=[];draft.lock.push(e);renderCreate();}
 function heroSnap(){return JSON.stringify({n:draft.name.trim(),l:draft.look,k:draft.lock||[],g:draft.grade});}
 function heroDirty(){return draft.saved!==heroSnap();}
 function heroChanged(){return (draft.saved||draft.init)!==heroSnap();}
 function saveHero(mode){
  const name=draft.name.trim();
- if(draft.look.kind!=='boy'&&draft.look.kind!=='girl'){toast('Pick a boy or girl wizard first!');return false;}
+ if(draft.look.kind!=='boy'&&draft.look.kind!=='girl'){needPick('ckind','Pick a boy or girl wizard first!');return false;}
  if(draft.lock&&draft.lock.length===1){toast('Pick one more secret picture (or tap Clear).');return false;}
- if(!name){const i=$('#nm');i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');i.focus();toast('Give your hero a name!');return false;}
+ if(!name){const i=$('#nm');i.scrollIntoView({block:'center'});i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x','needpick');i.focus();toast('Give your hero a name!');return false;}
  {const cur=draft.id?state.players.find(x=>x.id===draft.id):null;if(window.nameProblem&&(!cur||!cur.setup||!nameSame(cur.name,name))){const pr=nameProblem(name,state.players.filter(x=>x.id!==draft.id).map(x=>x.name));if(pr){const i=$('#nm');i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');i.focus();toast(pr);return false;}}}
- if(draft.pickGrade&&draft.grade==null){toast('Pick your grade (or Adult) so the game starts at the right level!');const c=document.querySelector('.chips');if(c){c.classList.remove('shake-x');void c.offsetWidth;c.classList.add('shake-x');}return false;}
+ if(draft.pickGrade&&draft.grade==null){needPick('cgrade','Pick your grade (or Adult) so the game starts at the right level!');return false;}
  let p=draft.id?state.players.find(x=>x.id===draft.id):null;
  if(!p){p=newPlayer(name,draft.grade);p.welcomed=false;state.players.push(p);}else if(draft.pickGrade&&!p.setup)p.grade=draft.grade;
  if(draft.pickGrade){p.adult=!!draft.adult;p.gradeSet=true;}
@@ -1532,13 +1595,13 @@ function welcomeIfNew(p){
  <div class="row"><button class="btn gold big" onclick="closeModal();SKC=null;go('skillcheck')">🎯 Start the skill check</button><button class="btn ghost dark" onclick="closeModal();scSkip(P());go('backpack')">Skip, hatch my egg</button></div></div>`);
 }
 /* ---------- skill check: quick placement for + − × ÷ ---------- */
-let SKC=null;const SC_OPS=['add','sub','mul','div'];
-function scStart(p){const L0=clamp(gradeExp(p)-2,1,15);SKC={i:0,L:L0,start:L0,ok:0,asked:0,passed:{},failedAt:{},q:null,input:'',n:0,msg:'',done:false};scNextQ();}
-function scNextQ(){const op=SC_OPS[SKC.i];SKC.q=genQ(op,SKC.L);SKC.input='';SKC.n++;}
-function scFinishOp(){const op=SC_OPS[SKC.i];SKC.i++;SKC.ok=0;SKC.asked=0;if(SKC.i>=SC_OPS.length){scApply();return;}SKC.L=SKC.start;scNextQ();}
-function scAnswer(){const p=P();const q=SKC.q;if(!SKC.input||SKC.input==='-')return;const v=parseInt(SKC.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const op=SC_OPS[SKC.i];
+let SKC=null;const SC_OPS=['add','sub','mul','div'];const scOps=()=>(SKC&&SKC.ops)||SC_OPS; // grades 1–2 are only checked on + and −
+function scStart(p){const L0=clamp(gradeExp(p)-2,1,15);SKC={ops:(p.grade!=null&&p.grade<=2)?['add','sub']:SC_OPS,i:0,L:L0,start:L0,ok:0,asked:0,passed:{},failedAt:{},q:null,input:'',n:0,msg:'',done:false};scNextQ();}
+function scNextQ(){const op=scOps()[SKC.i];SKC.q=genQ(op,SKC.L);SKC.input='';SKC.n++;}
+function scFinishOp(){const op=scOps()[SKC.i];SKC.i++;SKC.ok=0;SKC.asked=0;if(SKC.i>=scOps().length){scApply();return;}SKC.L=SKC.start;scNextQ();}
+function scAnswer(){const p=P();const q=SKC.q;if(!SKC.input||SKC.input==='-')return;const v=parseInt(SKC.input,10);const ok=v===q.answer||!!(q.alt&&q.alt.includes(v));const op=scOps()[SKC.i];
  SKC.asked++;if(ok){SFX.correct();SKC.ok++;}else SFX.wrong();
- SKC.msg=ok?'✅ '+pick(['Nice!','Yes!','Correct!','Great!']):`Last question: the answer was <b>${q.tpl?xAnsStr(q,true):(q.answer<0?'−'+(-q.answer):q.answer)}</b>. No worries — here's a new one!`;SKC.msgOk=ok;
+ SKC.msg=ok?'✅ '+pick(['Nice!','Yes!','Correct!','Great!']):(q.tpl?`Last question: the answer was <b>${xAnsStr(q,true)}</b>.`:(()=>{const a=q.answer<0?'−'+(-q.answer):q.answer;const t=String(q.text);return `Last question: <b>${esc(t)}${/\?|_/.test(t)?' → '+a:' = '+a}</b>`;})())+` No worries — here's a new one!`;SKC.msgOk=ok;
  const tries=Object.keys(SKC.passed).length;
  if(!ok){SKC.failedAt[op]=Math.min(SKC.failedAt[op]||99,SKC.L);if(SKC.passed[op]){scFinishOp();}else if(SKC.L<=1){SKC.passed[op]=1;scFinishOp();}else{SKC.L=Math.max(1,SKC.L-2);SKC.ok=0;SKC.asked=0;scNextQ();}}
  else if(SKC.ok>=2){SKC.passed[op]=SKC.L;const nx=Math.min(maxLv(op),SKC.L+2,(p.grade||3)>=7?20:15); /* algebra levels (16+) only for grade 7 and up */if(nx===SKC.L||nx>=(SKC.failedAt[op]||99)){scFinishOp();}else{SKC.L=nx;SKC.ok=0;SKC.asked=0;scNextQ();}}
@@ -1546,22 +1609,22 @@ function scAnswer(){const p=P();const q=SKC.q;if(!SKC.input||SKC.input==='-')ret
  if(SKC.n>50&&!SKC.done)scApply();
  go('skillcheck');}
 function scApply(){const p=P();SKC.done=true;SKC.res={};
- SC_OPS.forEach(op=>{const to=SKC.passed[op]||1;SKC.res[op]=to;if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});
- const avg=SC_OPS.reduce((a,o)=>a+(SKC.passed[o]||1),0)/4;
+ scOps().forEach(op=>{const to=SKC.passed[op]||1;SKC.res[op]=to;if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});
+ const avg=scOps().reduce((a,o)=>a+(SKC.passed[o]||1),0)/scOps().length;
  if(avg>=6)XOPS.forEach(op=>{const to=Math.min(10,Math.floor(avg-2));if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});
  p.skillChecked=dayKey();save();}
 function scKey(k){if(!SKC||SKC.done)return;if(k==='del')SKC.input=SKC.input.slice(0,-1);else if(k==='neg')SKC.input=SKC.input.startsWith('-')?SKC.input.slice(1):'-'+SKC.input;else if(SKC.input.length<7)SKC.input+=k;SFX.tap();go('skillcheck');}
 /* leaving the skill check early (or skipping it) still gives a sensible start: tested skills keep what they showed, untested ones start near the kid's grade */
-function scLeave(){const p=P();if(!p)return;if(SKC&&!SKC.done){const L0=SKC.start;SC_OPS.forEach((op,i)=>{const to=SKC.passed[op]||(i<SKC.i?1:i===SKC.i?Math.max(1,Math.min(L0,SKC.L)-2):Math.max(1,L0-2));if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});save();}SKC=null;}
+function scLeave(){const p=P();if(!p)return;if(SKC&&!SKC.done){const L0=SKC.start;scOps().forEach((op,i)=>{const to=SKC.passed[op]||(i<SKC.i?1:i===SKC.i?Math.max(1,Math.min(L0,SKC.L)-2):Math.max(1,L0-2));if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});save();}SKC=null;}
 function scSkip(p){if(p.skillChecked||SC_OPS.some(op=>lvl(p,op)>1))return;const L0=Math.max(1,clamp(gradeExp(p)-2,1,15)-2);SC_OPS.forEach(op=>{if(L0>lvl(p,op)){applyLevel(p,op,L0);p.recent[op]=[];}});save();}
 SCREENS.skillcheck=()=>{const p=P();if(!SKC)scStart(p);
- const head=`<div class="zhead"><button class="btn ghost small" onclick="scLeave();go('map')">← Map</button><h2 class="title">🎯 Skill Check</h2></div>`;
+ const head=`<div class="zhead"><button class="btn ghost small" onclick="scLeave();go('map')">← Quest Board</button><h2 class="title">🎯 Skill Check</h2></div>`;
  if(SKC.done){app.innerHTML=topbar()+`<div class="page">${head}<div class="cafe-card center"><div class="big-emoji">🧙</div><h3>All done, ${esc(p.name)}!</h3><p>Your monsters will start at these levels. They'll keep adjusting as you play.</p>
-  <div class="scres">${SC_OPS.map(o=>`<div><b>${OPNAME[o]}</b><span>Level ${lvl(p,o)}</span><small>${KID_DESC[o][lvl(p,o)]}</small></div>`).join('')}</div>
-  <div class="row"><button class="btn green big" onclick="SKC=null;go('map')">To the map! 🗺️</button>${p.eggs?`<button class="btn gold" onclick="SKC=null;go('backpack')">Hatch my egg 🥚</button>`:''}</div></div></div>`;return;}
- const q=SKC.q,op=SC_OPS[SKC.i];const box=`<span class="ansbox">${SKC.input?SKC.input.replace('-','−'):'?'}</span>`;
+  <div class="scres">${scOps().map(o=>`<div><b>${OPNAME[o]}</b><span>Level ${lvl(p,o)}</span><small>${KID_DESC[o][lvl(p,o)]}</small></div>`).join('')}</div>
+  <div class="row"><button class="btn green big" onclick="SKC=null;go('map')">To the Quest Board! 📜</button>${p.eggs?`<button class="btn gold" onclick="SKC=null;go('backpack')">Hatch my egg 🥚</button>`:''}</div></div></div>`;return;}
+ const q=SKC.q,op=scOps()[SKC.i];const box=`<span class="ansbox">${SKC.input?SKC.input.replace('-','−'):'?'}</span>`;
  const qh=q.tpl?`<div class="xq">${q.vis?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div></div></div>`:`<div class="scq">${q.text} = ${box}</div>`;
- app.innerHTML=topbar()+`<div class="page">${head}<div class="scsteps">${SC_OPS.map((o,k)=>`<span class="${k<SKC.i?'done':k===SKC.i?'on':''}">${{add:'+',sub:'−',mul:'×',div:'÷'}[o]}</span>`).join('')}</div>
+ app.innerHTML=topbar()+`<div class="page">${head}<div class="scsteps">${scOps().map((o,k)=>`<span class="${k<SKC.i?'done':k===SKC.i?'on':''}">${{add:'+',sub:'−',mul:'×',div:'÷'}[o]}</span>`).join('')}</div>
  <div class="cafe-card">${SKC.msg?`<div class="scfb ${SKC.msgOk?'ok':''}">${SKC.msg}</div>`:''}<div class="cafe-lab">${OPNAME[op]} · it's okay to miss!</div>${qh}
  <div class="cpad">${['1','2','3','4','5','6','7','8','9','del','0'].map(k=>`<button onclick="scKey('${k}')">${k==='del'?'⌫':k}</button>`).join('')}<button class="go" style="grid-column:auto" onclick="scAnswer()">✓</button>${q.neg?`<button class="scneg" onclick="scKey('neg')">± make it negative</button>`:''}</div>
  <div class="row"><button class="btn ghost dark small" onclick="scFinishOp();go('skillcheck')">I don't know these yet ➜</button></div></div></div>`;
@@ -1570,19 +1633,16 @@ SCREENS.skillcheck=()=>{const p=P();if(!SKC)scStart(p);
 /* ---------- world map ---------- */
 SCREENS.map=()=>{
  const p=P();
- app.innerHTML=topbar()+`<div class="page"><h2 class="title">🌀 The Quest Realms</h2><div class="explore-btn"><button class="btn gold big" onclick="go('world')">🧭 Explore the world</button><button class="btn big" onclick="go('leaders')">📜 Leaderboard</button></div>${questBar(p)}${eventBanner(p)}${questPanel(p)}${homeCards(p)}${continueCard(p)}${schoolCards(p)}
- <h2 class="title" style="margin-top:26px">🔢 Math Worlds</h2><div class="zones">${ZONES.map(z=>{
+ const hide=z=>zoneLocked(z,p)&&((z.g5&&(p.grade||0)<4)||(z.event&&!eventOpen()));const shown=ZONES.filter(z=>!hide(z)).sort((a,b)=>zoneLocked(a,p)-zoneLocked(b,p));const nHid=ZONES.length-shown.length;
+ app.innerHTML=topbar()+`<div class="page qboard"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">📜 Quest Board</h2><button class="btn ghost small qb-lead" onclick="go('leaders')">🏆 <span>Leaderboard</span></button></div>${bigContinue(p)}${raidCard(P())}${bonusCard(P())}${window.Mastery?Mastery.cardHTML(P()):''}${eventBanner(p)}${questPanel(p,true)}${homeCards(p)}${schoolCards(p)}
+ <h2 class="title" style="margin-top:26px">🔢 Math Worlds</h2><div class="zones">${shown.map(z=>{
   const locked=zoneLocked(z,p);const pr=p.progress[z.id]||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
   return `<button class="zone-card ${z.cls} ${locked?'locked':''}" onclick="${locked?`toast('${z.lockMsg}')`:`go('zone','${z.id}')`}">
   <div class="op">${z.sym}</div><h3>${z.name}</h3>
   <div class="zsub">${locked?'🔒 '+z.lockMsg:`⭐ ${stars} / 18`}</div>
   <div class="zlv">${locked?'':(z.op==='mix'?'Add, subtract, times and divide!':KID_DESC[z.op][lvl(p,z.op)])}</div>
-  <div class="zart">${z.art}</div>${z.g5&&!medal(p,z.id)?'<div class="g5tag">5th grade</div>':''}${z.g3&&!medal(p,z.id)?'<div class="g5tag g3tag">📚 From class</div>':''}${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div></div>`;
- if(!$('#modal.show')&&ceremonyDue(p))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>The Sunday Star Ceremony is here!</h2><p>Let's see who earned stars last week…</p><button class="btn gold big" onclick="closeModal();go('leaders','ceremony')">See the stars! ✨</button></div>`);},600);
- else if(!$('#modal.show')&&goalPrizeDue(p))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))checkGoalPrize(p);},600);
- else if(petMilestones(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))offerPet();},600);
- else if(pendingGifts(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map')showGift();},650);
- else if(spinReady(p)&&p.spinShown!==dayKey()&&!$('#modal.show')){p.spinShown=dayKey();saveLocal();setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))openSpin();},700);}
+  <div class="zart">${z.art}</div>${z.g5&&!medal(p,z.id)?'<div class="g5tag">5th grade</div>':''}${z.g3&&!medal(p,z.id)?'<div class="g5tag g3tag">📚 From class</div>':''}${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div>${nHid?`<div class="lockmore">🔒 ${nHid} more world${nHid>1?'s':''} unlock${nHid>1?'':'s'} as you grow!</div>`:''}</div>`;
+ autoPopups('map');
 };
 function homeCards(p){const pet=petOf(p);let petLine='';const awayP=!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)?PETS.find(x=>x.id===p.pet):null;
  if(pet){const pd=petMood(petData(p,pet.id));petLine=pd.food<=1?`${esc(pet.name)} is hungry!`:pd.joy<=1?`${esc(pet.name)} wants to play!`:`${pips(pd.food,'🍗')} ${pips(pd.joy,'💖')}`;}
@@ -1596,7 +1656,7 @@ SCREENS.zone=zid=>{
  const nodes=z.mons.map((m,i)=>{
   const open=i===0||pr[i-1]>0;const st=pr[i]||0;const next=open&&!st;
   return `<button class="node ${i===5?'boss':''} ${open?'':'locked'} ${st?'done':''} ${next?'next':''}" style="left:${NODE_POS[i][0]}%;top:${NODE_POS[i][1]}%" title="${esc(m[0])}" onclick="${open?`startBattle('${z.id}',${i},null,${av?'{asc:true}':'null'})`:`toast('Beat the monster before this one first!')`}">${open?monArt(m[1]):'🔒'}${next?'<span class="go-tag">GO!</span>':''}${st?`<span class="nstars">${'⭐'.repeat(st)}</span>`:''}</button>`;}).join('');
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">${av?`✨ ★${ar}`:ROUNDS[cr].m} ${z.name}</h2></div>
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">${av?`✨ ★${ar}`:ROUNDS[cr].m} ${z.name}</h2></div>
  ${roundTabs(p,z)}
  <div class="zmap ${z.cls} r${cr} ${av?'ascmap':''}" style="--asch:${ar*47}deg"><svg class="zpath" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${NODE_POS.map(q=>q.join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>${decor}${nodes}</div>
  <p class="ztip">${z.op==='spell'?`${esc(spellTitle(p))}: ${spellList(p).length} words · ${spellList(p).filter(x=>learned(p,x.w)).length} learned. Each battle uses about 6 words; the boss uses 20!${bankPacks(p).length?` 📚 Bonus word packs: ${packsOpen(p)} of ${bankPacks(p).length} open (learn 15 words in a pack to open the next).`:''}`:z.op==='mix'?'Every kind of problem lives here. Watch out!':'Now practicing: <b>'+KID_DESC[z.op][lvl(p,z.op)]+'</b>'}</p></div>`;
@@ -1770,6 +1830,7 @@ function practiceFact(p,op){
 function pickOpFair(p){const g=p.grade||3;const ok=BASIC_OPS.filter(o=>o==='add'||o==='sub'||g>=3||((p.stats[o]||{}).r||0)>=10);
  const w=ok.map(o=>{const s=p.stats[o]||{r:0,w:0};return 1+3*(s.w/(s.r+s.w+2));});let r=Math.random()*w.reduce((x,y)=>x+y,0);for(let i=0;i<ok.length;i++){r-=w[i];if(r<=0)return ok[i];}return ok[0];}
 function pickOp(p,zop){
+ if(typeof B!=='undefined'&&B&&B.raidOps&&B.raidOps.length)return pick(B.raidOps);
  if(zop!=='mix')return zop;
  const w=BASIC_OPS.map(o=>{const s=p.stats[o];return 1+3*(s.w/(s.r+s.w+2));});
  let r=Math.random()*w.reduce((x,y)=>x+y,0);
@@ -1785,7 +1846,7 @@ const fastLimit=q=>q.fast||3+(String(q.a).length+String(q.b).length+(q.c!==undef
    DOWN: 3 wrong out of the last 4 at the current level -> one level easier.
    The count starts over after every level change, so each level needs a few answers
    before it can move again. Repeats of missed problems and swapped-digit typos don't count. */
-const UP_N=5,DOWN_N=3,DOWN_WIN=4;const upN=p=>(p&&(p.grade||3)<=3)?6:UP_N;
+const UP_N=6,DOWN_N=2,DOWN_WIN=4;const upN=p=>UP_N; /* Sep 2026: tuned by simulation so kids settle near 80% right (was ~70%) */
 function adjustSkill(p,op,ok,slip){
  p.recent=p.recent||{};p.recent[op]=p.recent[op]||[];p.log=p.log||[];
  if(slip)return null;
@@ -2191,14 +2252,15 @@ function nextQ(){
  const due=B.review.findIndex(r=>r.wait<=0);
  let label='';
  if(B.forceQ){q=B.forceQ;B.forceQ=null;label='✨ The Kind Teacher believes in you!';}
- else if(due>=0){q=B.review.splice(due,1)[0].q;q.again=true;label='⭐ Bonus try! Get it for +3 coins';}
+ else if(due>=0){const o=B.review.splice(due,1)[0].q;q=o;if(!o.tpl&&!o.rev&&!o.story&&OPS.includes(o.op)){try{let t=genQ(o.op,o.L||lvl(p,o.op)),k=0;while(t&&t.text===o.text&&k++<5)t=genQ(o.op,o.L||lvl(p,o.op));if(t&&!t.rev)q=t;}catch(e){}}q.again=true;label=q===o?'⭐ Bonus try! Get it for +3 coins':'⭐ Twin problem! Same kind, new numbers: +3 coins';}
  else{
   const op=pickOp(p,B.z.op);
   const old=(!B.review.length&&Math.random()<.1)?practiceFact(p,op):null;
   if(old){q=Object.assign({},old,{practice:true});label='⭐ Star problem: +3 coins';}
   else{
-   const L0=lvl(p,op),mast=B.round>=4&&!B.wild&&!B.asc&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
-   let t=0;do{q=genQ(op,L);}while(B.recent.includes(q.text)&&t++<12);if(mast)q.mastered=true;
+   let op2=op;if(B.isBoss&&!B.wild&&(p.grade||3)>=4&&B.z.op!=='word'&&XOPS.includes('word')&&Math.random()<.3){op2='word';label='📖 Boss word problem!';}
+   const L0=lvl(p,op2),mast=B.round>=4&&!B.wild&&!B.asc&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
+   let t=0;do{q=genQ(op2,L);}while(B.recent.includes(q.text)&&t++<12);if(mast)q.mastered=true;
    if(!mast&&!B.wild&&Math.random()<.2){const rq=makeRev(op,L);if(rq&&!B.recent.includes(rq.text)){q=rq;label='🔄 Flip it! You pick both numbers';}}
    if(B.z.id==='haunt'&&!q.rev&&!q.tpl&&!q.mastered){const st=trickStory(q);if(st&&Math.random()<.35){q=Object.assign({},q,{story:st});label='🎃 Trick-or-treat problem!';}}
   }
@@ -2264,6 +2326,7 @@ const v=parseInt(B.input,10);const ok=q.rev?revCheck(q,v,parseInt(B.input2,10)):
  p.stats[q.op][ok?'r':'w']++;
  const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
  let lvChange=null;const prevL=lvl(p,q.op);
+ hook('answer',p,q,ok,secs,{slip,zone:B.z&&B.z.id,round:B.round||1,boss:!!B.isBoss});
  if(!q.again&&!q.practice&&!q.hinted&&!q.mastered)lvChange=adjustSkill(p,q.op,ok,slip);
  if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${upN(p)} right in a row to move back up!`);},900);}
  if(ok){
@@ -2277,7 +2340,7 @@ const v=parseInt(B.input,10);const ok=q.rev?revCheck(q,v,parseInt(B.input2,10)):
   let dmg=20*(B.spellFrozen>0?1:spell.mult)*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
   p.thinkT=p.thinkT||[];p.thinkT.push(Math.round(Math.min(60,secs)*10)/10);if(p.thinkT.length>20)p.thinkT.shift();
   const crit=fast&&!q.hinted&&Math.random()<(B.streak>=2?.6:.35);if(crit)dmg*=2;dmg=Math.round(dmg);
-  const pcb=perk==='coins'?2+Math.min(4,Math.floor(petLv(petData(p,p.pet))/5)):0;const c=coinPer(p,q)+pcb;B.coins+=c;p.coins+=c;if(pcb)petCredit(p,'c',pcb);
+  const pcb=perk==='coins'?2+Math.min(4,Math.floor(petLv(petData(p,p.pet))/5)):0;const c=(coinPer(p,q)+pcb)*(B&&B.z&&!B.wild&&isBonusZ(p,B.z.id)?2:1);B.coins+=c;p.coins+=c;if(pcb)petCredit(p,'c',pcb);
   B.xp+=Math.round(10*(perk==='xp'?1.5:1));if(perk==='xp')petCredit(p,'xp',5);if(perk==='power')petCredit(p,'dmg',Math.round(dmg*.15/1.15));
   save();SFX.correct();$('#qcard').classList.add('right');
   if(q.rev){const others=q.ex.filter(p=>!((p[0]===+B.input&&p[1]===+B.input2)||(q.op==='mul'&&p[1]===+B.input&&p[0]===+B.input2)));if(others.length)setTimeout(()=>toast(`🔄 Other ways to make ${q.target}: ${others.slice(0,3).map(p=>p[0]+' '+REV_SYM[q.op]+' '+p[1]).join(', ')}`),500);}
@@ -2300,7 +2363,7 @@ const v=parseInt(B.input,10);const ok=q.rev?revCheck(q,v,parseInt(B.input2,10)):
   if(!q.again)B.review.push({q:Object.assign({},q),wait:3});
   bufferMiss(p);snapBattle(p);SFX.wrong();
   const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
-  const said=q.rev?revSaid(q):B.input;monsterAttack(()=>{if(B.hhp>0&&(kindMath(q)||(B.hhp<B.hmax*.3&&B.wrong>=4&&Math.random()<.25&&kindBless('low'))))return;showFeedback(q,said,slip);});
+  const said=q.rev?revSaid(q):B.input;monsterAttack(()=>{if(B.hhp>0&&(kindMath(q)||((P().grade||3)<=3&&B.hhp<B.hmax*.3&&B.wrong>=4&&Math.random()<.25&&kindBless('low'))))return;showFeedback(q,said,slip);});
  }
  updateBars();
 }
@@ -2408,29 +2471,29 @@ function closeFeedback(){
 function endBattleBook(){
  const p=P();p.battle=null;p.time+=Math.round((Date.now()-B.start)/1000);p.bestStreak=Math.max(p.bestStreak,B.best);
  B.downs=Object.keys(B.pendingDown||{}).filter(op=>lvl(p,op)>1);B.downs.forEach(op=>applyLevel(p,op,lvl(p,op)-1));B.pendingDown={};
- const d=dayKey();if(!p.days.includes(d)){p.days.push(d);if(p.days.length>60)p.days.shift();}
+ const d=dayKey();if(!p.days.includes(d)){p.days.push(d);if(p.days.length>60)p.days.shift();try{if(weekDaysPlayed(p,monKey(new Date()))===2){p.coins+=50;setTimeout(()=>toast('🔥 Week streak kept! +50 🪙'),2500);}}catch(e){}}
  const up=addXP(p,B.xp);return up;
 }
 function fmtClock(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function downsNote(){if(!B||!B.downs||!B.downs.length)return '';return `<div class="downnote">🎯 ${B.downs.map(op=>`<b>${OPNAME[op]}</b> will be a bit easier next time (${KID_DESC[op][lvl(P(),op)]})`).join('<br>🎯 ')}.<br>Get ${upN(P())} right in a row to move back up!</div>`;}
 function addXP(p,x){let up=false;p.xp+=x;while(p.xp>=xpNeed(p.level)){p.xp-=xpNeed(p.level);p.level++;up=true;}return up;}
-function winBattle(){
+function winBattle(){try{hook('battle',P(),{win:true,zone:B.z.id,op:B.z.op,round:B.round||1,boss:!!B.isBoss,i:B.i,right:B.right,wrong:B.wrong,secs:Math.round((Date.now()-B.start)/1000)});}catch(e){}
  if(B.mode!=='math'){questWin();return;}
  if(B.wild){wildWin();return;}
  const p=P();SFX.win();
  const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
  const stars=B.wrong<=1?3:B.wrong<=3?2:1;
- const R=B.round||1;if(B.tiredN>0)wkBump(p,'cb');if(B.isBoss)wkBump(p,'boss');if(p.tired)delete p.tired[tiredKey(B.z.id,R,B.i)];const pr=B.asc?ascProg(p,B.z.id):rstore(p,B.z.id,R);if(p.bufFails)delete p.bufFails[B.z.id+'-'+R+'-'+B.i];const first=!pr[B.i];pr[B.i]=Math.max(pr[B.i]||0,stars);
- let bonus=B.isBoss?100:25+B.i*5;if(!first)bonus=Math.round(bonus/2);bonus=Math.round(bonus*(1+.25*(R-1))*(1+.2*challengeD(p,B.z.op))*(1+.02*vLv(p,'portal'))*(1+Math.min(30,ascTotal(p))/100)*(B.asc?1+.1*B.asc:1));
+ const R=B.round||1;if(B.tiredN>0)wkBump(p,'cb');if(B.isBoss)wkBump(p,'boss');if(p.tired)delete p.tired[tiredKey(B.z.id,R,B.i)];const pr=B.asc?ascProg(p,B.z.id):rstore(p,B.z.id,R);if(p.bufFails)delete p.bufFails[B.z.id+'-'+R+'-'+B.i];const first=!pr[B.i],was3=(pr[B.i]||0)>=3;pr[B.i]=Math.max(pr[B.i]||0,stars);
+ let bonus=(B.isBoss?100:25+B.i*5)*(isBonusZ(p,B.z.id)?1.5:1);if(!first)bonus=Math.round(bonus/(was3?4:2));bonus=Math.round(bonus*(1+.25*(R-1))*(1+.2*challengeD(p,B.z.op))*(1+.02*vLv(p,'portal'))*(1+Math.min(30,ascTotal(p))/100)*(B.asc?1+.1*B.asc:1));
  const rhtml=(B.isBoss&&first?(B.asc?ascPrize(p,B.z,B):roundPrize(p,R,B.z,B)):'')+(B.isBoss&&first&&B.z.event&&!B.asc?eventPrize(p,R):'');
  const secs=Math.round((Date.now()-B.start)/1000),key=(R>1?'r'+R+'-':'')+B.z.id+'-'+B.i,old=p.pb[key];
  const newBest=!old||secs<old.t;if(newBest)p.pb[key]={t:secs,streak:Math.max(B.best,old?old.streak:0)};else if(B.best>old.streak)old.streak=B.best;
  const bestLine=old?(newBest?`<div class="pbest">⏱ ${fmtClock(secs)} · NEW PERSONAL BEST!</div>`:`<div class="pbest dim">⏱ ${fmtClock(secs)} · your best is ${fmtClock(old.t)}</div>`):'';
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
- let questDone=false,questEgg=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length){p.eggs++;questEgg=true;}else{p.coins+=150;B.coins+=150;}}
+ let questDone=false,questEgg=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length&&dailyEggDay(p)){p.eggs++;questEgg=true;}else{p.coins+=150;B.coins+=150;}p.qEggN=(p.qEggN||0)+1;}
  const gangN=(B.foes||[]).length;if(gangN>1)bonus+=25*(gangN-1);
  p.coins+=bonus;B.coins+=bonus;B.xp+=(B.isBoss?60:20)+(gangN>1?15*(gangN-1):0);questEvent(p,'win',1);if(B.isBoss)questEvent(p,'boss',1);if(B.isBoss&&first&&!B.asc)questEvent(p,'medal',R);
- const chance=B.isBoss&&first?1:(petPerk(p)==='lucky'?.2:.1)*(p.pets.length>=20?.5:1);const egg=Math.random()<chance;if(egg){p.eggs++;if(petPerk(p)==='lucky'&&!(B.isBoss&&first))petCredit(p,'egg',1);}
+ const chance=B.isBoss&&first&&R===1&&!B.asc?1:(petPerk(p)==='lucky'?.06:.03)*(p.pets.length>=20?.5:1);const egg=Math.random()<chance;if(egg){p.eggs++;if(petPerk(p)==='lucky'&&!(B.isBoss&&first))petCredit(p,'egg',1);}
  p.battles++;B.rock=!!(window.Quartz&&Quartz.drop(B.isBoss&&first?'boss':'win'));const up=endBattleBook();save();
  const z=B.z.id,i=B.i;
  setTimeout(()=>{
@@ -2438,24 +2501,24 @@ function winBattle(){
   <div class="stars">${[0,1,2].map(k=>`<span style="animation-delay:${.2+k*.25}s">${k<stars?'⭐':'☆'}</span>`).join('')}</div>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}${B.rock?Quartz.DROP_HTML:''}</div>${bestLine}
   ${questDone?`<div class="lvup" style="background:linear-gradient(90deg,#22b35e,#16c2c9)">🎯 Today's quest done! ${questEgg?'+1 mystery egg 🥚':'+150 coins 🪙'}</div>`:''}
-  ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${petMilestones(p).length?`<button class="btn gold" style="margin-top:10px" onclick="offerPet()">🎁 Choose your new pet buddy!</button>`:''}${downsNote()}
+  ${up?`<div class="lvup">⬆️ HERO LEVEL ${p.level}! You got stronger! ❤️</div>`:''}${petMilestones(p).length?`<button class="btn gold" style="margin-top:10px" onclick="offerPet()">🎁 Pick a FREE pet buddy!</button>`:''}${downsNote()}
   ${B.isBoss&&first&&R===1?`<p><b>👑 You freed ${B.z.name}!</b>${B.z.id!=='tower'&&bossesBeaten(p)===2?' The Chaos Tower is now open!':''}</p>`:''}
   ${rhtml}
-  <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button>
+  <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">← ${esc(findZone(z).name)}</button>
   ${i<5?`<button class="btn green" onclick="startBattle('${z}',${i+1})">Next battle ⚔️</button>`:''}
   ${egg||questEgg?`<button class="btn gold" onclick="closeModal();go('backpack')">Hatch egg 🥚</button>`:''}</div></div>`;modal(B.endModal());
   if(up)setTimeout(SFX.level,400);
  },750);
 }
-function loseBattle(){
+function loseBattle(){try{hook('battle',P(),{win:false,zone:B.z.id,op:B.z.op,round:B.round||1,boss:!!B.isBoss,i:B.i,right:B.right,wrong:B.wrong,secs:Math.round((Date.now()-B.start)/1000)});}catch(e){}
  if(B.wild){endBattleBook();save();modal(`<div class="mcard"><div class="big-emoji">😵‍💫</div><h2>The wild ${esc(B.name)} got away!</h2><p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned.</p><div class="row"><button class="btn green big" onclick="closeModal();go('world')">Back to exploring 🧭</button></div></div>`);return;}
  {const p=P();p.tired=p.tired||{};const k=tiredKey(B.z.id,B.round||1,B.i);p.tired[k]=Math.min(3,(p.tired[k]||0)+1);}
  endBattleBook();save();const z=B.z.id,i=B.i;
  modal(`<div class="mcard"><div class="big-emoji">😵‍💫</div><h2>${esc(B.name)} won this time!</h2>
- <p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned. Every hero gets knocked down sometimes. Try again!</p><p class="muted">😴 ${esc(B.name)} is getting tired, so it will be a little weaker next time!</p>
-  ${downsNote()}<div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">Map</button><button class="btn green" onclick="startBattle('${z}',${i})">Try again 💪</button></div></div>`);
+ <p>${B.coins||B.xp?`You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned. `:''}Every hero gets knocked down sometimes. Try again!</p><p class="muted">😴 ${esc(B.name)} is getting tired, so it will be a little weaker next time!</p>
+  ${downsNote()}<div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${z}')">← ${esc(findZone(z).name)}</button><button class="btn green" onclick="startBattle('${z}',${i})">Try again 💪</button></div></div>`);
 }
-function fleeBattle(){
+function fleeBattle(){try{hook('flee',P(),{zone:B.z.id,right:B.right,wrong:B.wrong});}catch(e){}
  if(B&&!B.over&&B.busy&&B.mhp<=0)return; // the winning spell is still flying
  if(!B||B.over){if(B&&B.backTo)go(B.backTo,B.backArg);else go('zone',B?B.z.id:'forest');return;}
  modal(`<div class="mcard"><div class="big-emoji">🏃</div><h2>Run away?</h2><p>You'll keep the coins you earned in this battle.</p>
@@ -2478,27 +2541,32 @@ document.addEventListener('keydown',e=>{
 SCREENS.backpack=()=>{
  const p=P();const pet=petOf(p);const sp=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
  const item=(kind,id,prev,name,price,owned,eq,sub,need)=>{const locked=!owned&&need&&p.level<need;return `<button class="item ${eq?'eq':''} ${!owned&&(p.coins<price||locked)?'need':''}" onclick="shopClick('${kind}','${id}')">${prev}<div>${name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${owned?(eq?'✓ Using':'Use'):locked?'🔒 Level '+need:'🪙 '+price}</div></button>`;};
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🎒 Backpack &amp; Shop</h2></div><div class="bp">
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🎒 Backpack &amp; Shop</h2></div><div class="bp">
  <div class="bp-hero"><div class="hv">${heroSVG(p.look,{spell:p.spell})}${pet?`<div class="bp-pet">${pet.e}</div>`:''}</div>
   <div class="bp-stats"><b style="font-size:20px">${esc(p.name)}</b><br>Level ${p.level} · ❤️ ${heroMax(p)} HP<br>Spell: ${sp.e} ${sp.name}<br>${pet?`Pet: ${pet.e} ${pet.name}<br><small>${PERKS[pet.perk]}</small>`:'No pet yet'}</div>
   <div class="row"><button class="btn small" onclick="go('create','${p.id}')">✏️ Change look</button></div></div>
- <div>${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}${typeof eagleHoardHTML==='function'?eagleHoardHTML(p):''}${window.Quartz?Quartz.bagHTML(p):''}${window.Inner?Inner.bagHTML(p):''}
+ <div class="bptabs-wrap tab-${bpTab()}"><div class="bptabs" role="tablist">${[['pets','🐾','Pets'],['spell','🪄','Spells'],['hat','🎩','Hats'],['robe','👘','Robes'],['more','⭐','More']].map(([k,e,n])=>`<button class="bptab ${bpTab()===k?'on':''}" onclick="bpSetTab('${k}')"><span>${e}</span>${n}${k==='pets'&&(p.eggs||p.legendEggs)?'<b class="dot"></b>':''}</button>`).join('')}</div>
+  <div class="bpsec" data-t="more">${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}${typeof eagleHoardHTML==='function'?eagleHoardHTML(p):''}${window.Quartz?Quartz.bagHTML(p):''}${window.Inner?Inner.bagHTML(p):''}
   ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
   ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
-  ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards</h3><div class="awards">${p.awards.slice().reverse().map(a=>`<div class="award"><b>🏅 ${esc(a.t)}</b><small>${esc(niceDate(a.d))}</small></div>`).join('')}</div></div>`:''}
-  <div class="panel"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(poss(pet.name))} home (feed, play &amp; pet shop)</button>`:''}
+  ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards</h3><div class="awards">${p.awards.slice().reverse().map(a=>`<div class="award"><b>🏅 ${esc(a.t)}</b><small>${esc(niceDate(a.d))}</small></div>`).join('')}</div></div>`:''}<div class="panel muted bpempty">Your trophies, gifts and treasure notes show up here.</div></div>
+  <div class="panel bpsec" data-t="pets"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(poss(pet.name))} home (feed, play &amp; pet shop)</button>`:''}
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs}) · Epic or Legendary pet!</button>`:''}
    ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="muted" style="margin-bottom:6px">Pets found: <b>${regHave(p)} / ${REG_PETS.length}</b></div>
-   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${window.Adv&&Adv.away(p,x.id)?'🎒 On an adventure<br>':''}${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}
-   <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):`<div class="item mystery"><div class="ie"><span class="cloud">☁️</span><span class="qm">❓</span></div><div>???</div><small>A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal it.</small></div>`).join('')}</div>
-   ${EVENT_PETS.some(x=>p.pets.includes(x.id))||eventOpen()||eventSoon()?`<h4 class="tierh" style="color:#fd7e14">🎃 Halloween <span class="muted">${EVENT_PETS.filter(x=>p.pets.includes(x.id)).length} / ${EVENT_PETS.length}</span></h4><div class="items">${EVENT_PETS.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}`):`<div class="item mystery"><div class="ie" style="filter:brightness(0);opacity:.3">${x.e}</div><div>???</div><small>Beat the Haunted Hollow boss (Oct 18 to Nov 1).</small></div>`).join('')}</div>`:''}</div>
-  <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
-  <div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.filter(h=>!h.event||p.owned.hats.includes(h.id)).map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
-  <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.filter(r=>!r.event||p.owned.robes.includes(r.id)).map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
+   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${window.Adv&&Adv.away(p,x.id)?'🎒 On an adventure<br>':''}${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:'';}).join('')}${moreTile(list.filter(x=>!p.pets.includes(x.id)&&!heldBy(p,x.id)).length,t==='legend'?'Super rare!':'Hatch eggs to find them')}</div>`;}).join('')}
+   <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):'').join('')}${moreTile(MYTHIC.filter(x=>!p.pets.includes(x.id)).length,'A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal them.')}</div>
+   ${EVENT_PETS.some(x=>p.pets.includes(x.id))||eventOpen()||eventSoon()?`<h4 class="tierh" style="color:#fd7e14">🎃 Halloween <span class="muted">${EVENT_PETS.filter(x=>p.pets.includes(x.id)).length} / ${EVENT_PETS.length}</span></h4><div class="items">${EVENT_PETS.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}`):'').join('')}${moreTile(EVENT_PETS.filter(x=>!p.pets.includes(x.id)).length,'Beat the Haunted Hollow boss (Oct 18 to Nov 1).')}</div>`:''}</div>
+  <div class="panel bpsec" data-t="spell"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
+  <div class="panel bpsec" data-t="hat"><h3>🎩 Hats</h3><div class="items">${HATS.filter(h=>!h.event||p.owned.hats.includes(h.id)).map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
+  <div class="panel bpsec" data-t="robe"><h3>👘 Robes</h3><div class="items">${ROBES.filter(r=>!r.event||p.owned.robes.includes(r.id)).map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
  </div></div></div>`;
 };
+/* Backpack tabs (remembered per device) + compact "N more to discover" tile instead of dozens of ??? tiles */
+let BP_TAB=null;function bpTab(){if(!BP_TAB){try{BP_TAB=localStorage.getItem('mq.bptab');}catch(e){}if(!['pets','spell','hat','robe','more'].includes(BP_TAB))BP_TAB='pets';}return BP_TAB;}
+function bpSetTab(k){BP_TAB=k;try{localStorage.setItem('mq.bptab',k);}catch(e){}SFX.tap();const w=document.querySelector('.bptabs-wrap');if(w){w.className='bptabs-wrap tab-'+k;w.querySelectorAll('.bptab').forEach(b=>b.classList.toggle('on',b.getAttribute('onclick').includes("'"+k+"'")));}}
+function moreTile(n,sub){return n?`<div class="item mystery moretile"><div class="ie">❓</div><div>${n} more to discover</div><small>${sub}</small></div>`:'';}
 function goStay(s,a){const y=window.scrollY;go(s,a);window.scrollTo(0,y);} // re-draw without jumping back to the top
 const poss=n=>n+(/s$/i.test(n)?"'":"'s");
 function shopClick(kind,id){
@@ -2547,10 +2615,10 @@ function hatchEgg(legend){
  setTimeout(()=>{
   const e=$('#egg');if(!e)return;
   if(!pet){e.textContent='🍬';e.classList.add('hatched');SFX.coin();$('#hT').textContent='A snack egg!';
-   $('#hR').innerHTML=`<p>No new pet this time, but it had treats inside: <b>${prize}</b> and 🪙 40!</p><p class="muted">The rarest pets are still out there… keep trying! 🌟</p><div class="row"><button class="btn green" onclick="closeModal();go('backpack')">OK</button></div>`;return;}
+   $('#hR').innerHTML=`<p>No new pet this time, but it had treats inside: <b>${prize}</b> and 🪙 40!</p><p class="muted">The rarest pets are still out there… keep trying! 🌟</p><div class="row"><button class="btn green big" onclick="closeModal();go('backpack')">Keep exploring</button></div>`;return;}
   e.textContent=pet.e;e.classList.add('hatched');if(big){e.classList.add('glowegg');e.style.setProperty('--gc',PET_TIERS[pet.tier].c);}SFX.win();
   $('#hT').innerHTML=`${pet.tier==='legend'?'🌟 LEGENDARY! 🌟<br>':pet.tier==='epic'?'💜 EPIC! 💜<br>':pet.tier==='rare'?'✨ Rare! ✨<br>':''}You got ${esc(pet.name)}!`;
-  $('#hR').innerHTML=`${tierTag(pet)}<p>Pet power: <b>${PERKS[pet.perk]}</b></p><p class="muted">Pets found: ${regHave(p)} / ${REG_PETS.length}</p><div class="row"><button class="btn ghost dark" onclick="closeModal();go('backpack')">OK</button><button class="btn green" onclick="P().pet='${pet.id}';save();closeModal();go('backpack')">Take ${esc(pet.name)} along!</button></div>`;
+  $('#hR').innerHTML=`${tierTag(pet)}<p>Pet power: <b>${PERKS[pet.perk]}</b></p><p class="muted">Pets found: ${regHave(p)} / ${REG_PETS.length}</p><div class="row"><button class="btn ghost dark" onclick="closeModal();go('backpack')">Keep exploring</button><button class="btn green big" onclick="P().pet='${pet.id}';save();closeModal();go('backpack')">Make ${esc(pet.name)} my buddy! 🐾</button></div>`;
   if(big)for(let i=0;i<3;i++)setTimeout(SFX.coin,300+i*180);
  },big?2300:1700);
 }
@@ -2590,14 +2658,14 @@ function petMovesMax(pd){const st=petStage(pd);return st.n==='Baby'?0:st.n==='Bi
 function petGain(p,pet,xp){wkBump(p,'pet');xp*=1+.1*vLv(p,'pethome');const pd=petData(p,pet.id);const st=petStage(pd);const lv0=petLv(pd);pd.xp+=xp;const st2=petStage(pd);petLvCheck(p,pet,lv0);
  if(st2!==st){pd.hints=Math.min(st2.max,pd.hints+1);setTimeout(()=>{SFX.level();modal(`<div class="mcard"><div class="big-emoji">${pet.e}</div><h2>${esc(pet.name)} grew up!</h2><p>${esc(pet.name)} is now <b>${st2.n}</b>!</p>${petMovesMax(pd)?`<p>In math battles, ${esc(pet.name)} can use <b>🐾 ${PET_MOVES[pet.id]||'Pet Attack'}</b> ${petMovesMax(pd)} time${petMovesMax(pd)>1?'s':''} per battle!</p>`:''}<button class="btn green big" onclick="closeModal()">Yay!</button></div>`);},500);}}
 SCREENS.pethome=()=>{
- const p=P();const pet=petOf(p);
- if(!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)){app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 Pet Home</h2></div>${Adv.petCard(p)}${Adv.awayCard(p,p.pet)}</div>`;return;}
+ const p=P();const pet=petOf(p);{const k=petDotKey(p);if(k&&p.petSeen!==k){p.petSeen=k;saveLocal();}}
+ if(!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)){app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏠 Pet Home</h2></div>${Adv.petCard(p)}${Adv.awayCard(p,p.pet)}</div>`;return;}
  if(!pet){app.innerHTML=topbar()+`<div class="page"><h2 class="title">🏠 Pet Home</h2><div class="panel" style="text-align:center"><div style="font-size:70px">🥚</div><p>You don't have a pet yet!</p><p class="muted">Hatch an egg in your backpack, or reach hero level 2.</p><button class="btn gold" onclick="go('backpack')">🎒 Go to backpack</button></div></div>`;return;}
  const pd=petMood(petData(p,pet.id));const st=petStage(pd);const nx=PET_STAGES[PET_STAGES.indexOf(st)+1];
  const pct=nx?Math.min(100,(pd.xp-st.xp)/(nx.xp-st.xp)*100):100;const today=dayKey();pd.played=pd.played||{};
  const pantry=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0);
  const shopItem=(kind,it,owned,eq,sub)=>`<button class="item ${eq?'eq':''} ${!owned&&p.coins<it.price?'need':''}" onclick="petShop('${kind}','${it.id}')"><div class="ie">${it.e}</div><div>${it.name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${kind==='food'?`🪙 ${it.price}`:owned?(eq?'✓ Wearing':kind==='toy'?'✓ Yours':'Wear'):'🪙 '+it.price}</div></button>`;
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 ${esc(poss(pet.name))} Home</h2></div>${window.Adv?Adv.petCard(p):''}
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏠 ${esc(poss(pet.name))} Home</h2></div>${window.Adv?Adv.petCard(p):''}
  <div class="pethome">
   <div class="panel phcard">
    <div class="phstage" id="phStage" onclick="patPet()">${petAvatar(p,pet,'big')}<div class="bubblesay" id="petSay">${esc(petSays(pd,pet))}</div></div>
@@ -2653,13 +2721,13 @@ function petShop(kind,id,sure){const p=P(),pet=petOf(p);const pd=pet&&petData(p,
  save();SFX.coin();goStay('pethome');toast(kind==='food'?`${it.e} ${it.name} added to your food bag!`:kind==='toy'?`${it.e} You got the ${it.name}!`:`${pet.e} ${pet.name} looks great in the ${it.name}!`);}
 /* ---------- daily spin ---------- */
 const SPIN_PRIZES=[{t:'coins',n:10,e:'🪙',l:'10',w:18,c:'#ffd84a'},{t:'food',id:'apple',e:'🍎',l:'Apple',w:14,c:'#ff8a8a'},{t:'coins',n:25,e:'🪙',l:'25',w:16,c:'#7fe3ff'},
- {t:'food',id:'cookie',e:'🍪',l:'Cookie',w:12,c:'#ffb86b'},{t:'coins',n:50,e:'💰',l:'50',w:9,c:'#8dffb0'},{t:'food',id:'cake',e:'🎂',l:'Cake',w:6,c:'#ff9ce0'},
- {t:'coins',n:100,e:'💎',l:'100',w:4,c:'#b99cff'},{t:'egg',e:'🥚',l:'Egg!',w:3,c:'#fff3b0'}];
+ {t:'food',id:'cookie',e:'🍪',l:'Cookie',w:12,c:'#ffb86b'},{t:'coins',n:50,e:'🪙',l:'50',w:9,c:'#8dffb0'},{t:'food',id:'cake',e:'🎂',l:'Cake',w:6,c:'#ff9ce0'},
+ {t:'coins',n:100,e:'🪙',l:'100',w:4,c:'#b99cff'},{t:'egg',e:'🥚',l:'Egg!',w:3,c:'#fff3b0'}];
 const spinReady=p=>p.setup&&p.spinDay!==dayKey();
 function openSpin(){const p=P();if(!spinReady(p)){toast('Come back tomorrow for another spin! 🎡');return;}
  const n=SPIN_PRIZES.length,seg=360/n;
  const grad=SPIN_PRIZES.map((s,i)=>`${s.c} ${i*seg}deg ${(i+1)*seg}deg`).join(',');
- const labels=SPIN_PRIZES.map((s,i)=>`<div class="wl" style="transform:rotate(${i*seg+seg/2}deg)"><span>${s.e}<small>${s.l}</small></span></div>`).join('');
+ const labels=SPIN_PRIZES.map((s,i)=>`<div class="wl" style="transform:rotate(${i*seg+seg/2}deg)"><span style="transform:rotate(${-(i*seg+seg/2)}deg)">${s.e}<small>${s.l}</small></span></div>`).join('');
  modal(`<div class="mcard spincard"><h2>🎡 Daily Spin!</h2><p>One free spin every day.</p><div class="wheelwrap"><div class="wptr">▼</div><div class="wheel" id="wheel" style="background:conic-gradient(${grad})">${labels}</div></div>
  <div id="spinOut"><button class="btn gold big" id="spinBtn" onclick="doSpin()">SPIN!</button></div></div>`);}
 function doSpin(){const p=P();if(!spinReady(p))return;const b=$('#spinBtn');if(b)b.disabled=true;
@@ -2693,7 +2761,7 @@ const BIOMES={
  fair:{c:[46,24],g:'#d3f9d8',g2:'#c3f0cc',zone:'fair',bl:['🏪','🌳'],de:['🥫','🏷️']},
  haunt:{c:[14,24],g:'#5a4a7e',g2:'#524373',zone:'haunt',overlay:true,rad:3.2,bl:['🪦'],de:['🎃','🕸️']}};
 const NPCS=[
- {id:'school',x:18,y:15,e:'🌀',n:'Quest Portal'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
+ {id:'school',x:18,y:15,e:'🌀',n:'Quest Board'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
  {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'},{id:'library',x:24,y:19,e:'📚',n:'Library'},{id:'build',x:26,y:17,e:'🏗️',n:'Builder'}];
 let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
@@ -2754,7 +2822,7 @@ SCREENS.world=()=>{
  if(W.mobs.length<8)for(let i=W.mobs.length;i<16;i++){const ks=Object.keys(BIOMES).filter(k=>k!=='village');wSpawn(ks[i%ks.length]);}
  if(!W.mobs.some(m=>m.principal)||W.prFor!==p.id){W.prFor=p.id;principalSpawn();}
  app.innerHTML=topbar()+`<div class="world" id="world"><canvas id="wcv"></canvas>
- <div class="wtop"><div class="warea" id="warea"></div><button class="btn small" onclick="go('map')">📜 Quests${(()=>{const n=qState(p).active.filter(a=>a.done).length;return n?` <b class="qdot">${n}</b>`:'';})()}</button></div>
+ <div class="wtop"><div class="warea" id="warea"></div><button class="btn small" onclick="go('map')">📜 Quest Board${(()=>{const n=qState(p).active.filter(a=>a.done).length;return n?` <b class="qdot">${n}</b>`:'';})()}</button></div>
  ${(p.wHelp||0)<4?'<div class="whelp" id="whelp">Tap anywhere to walk · Bump into monsters to battle · Find the 🎁 treasure!</div>':''}
  <div class="dpad"><button data-d="0,-1" style="grid-area:u">▲</button><button data-d="-1,0" style="grid-area:l">◀</button><button data-d="1,0" style="grid-area:r">▶</button><button data-d="0,1" style="grid-area:d">▼</button></div></div>`;
  if((p.wHelp||0)<4){p.wHelp=(p.wHelp||0)+1;saveLocal();}
@@ -2762,20 +2830,19 @@ SCREENS.world=()=>{
  const cv=$('#wcv');wResize();
  cv.addEventListener('pointerdown',wTap);
  document.querySelectorAll('.dpad button').forEach(b=>{const [dx,dy]=b.dataset.d.split(',').map(Number);let iv=null;
-  const start=e=>{e.preventDefault();W.path=[];W.viaPad=true;wStep(dx,dy);clearInterval(iv);iv=setInterval(()=>{if(curScreen!=='world'){clearInterval(iv);return;}if(!W.moving)wStep(dx,dy);},60);};
-  const stop=()=>{clearInterval(iv);iv=null;};b.addEventListener('pointerdown',start);b.addEventListener('pointerup',stop);b.addEventListener('pointerleave',stop);b.addEventListener('pointercancel',stop);});
+  const start=e=>{e.preventDefault();wHintDone();const dp=b.parentNode;dp.classList.add('used');clearTimeout(dp._t);W.path=[];W.viaPad=true;wStep(dx,dy);clearInterval(iv);iv=setInterval(()=>{if(curScreen!=='world'){clearInterval(iv);return;}if(!W.moving)wStep(dx,dy);},60);};
+  const stop=()=>{clearInterval(iv);iv=null;const dp=b.parentNode;clearTimeout(dp._t);dp._t=setTimeout(()=>dp.classList.remove('used'),1500);};b.addEventListener('pointerdown',start);b.addEventListener('pointerup',stop);b.addEventListener('pointerleave',stop);b.addEventListener('pointercancel',stop);});
  setTimeout(()=>{const h=$('#whelp');if(h)h.classList.add('fade');},5000);
  cancelAnimationFrame(W.raf);W.raf=requestAnimationFrame(wFrame);
- if(petMilestones(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='world'&&!$('#modal.show'))offerPet();},600);
- else if(pendingGifts(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='world')showGift();},650);
- else if(spinReady(p)&&p.spinShown!==dayKey()&&!$('#modal.show')){p.spinShown=dayKey();saveLocal();setTimeout(()=>{if(curScreen==='world'&&!$('#modal.show'))openSpin();},700);}
+ autoPopups('world');
 };
 function wResize(){const cv=$('#wcv');if(!cv)return;const box=$('#world').getBoundingClientRect();const dpr=window.devicePixelRatio||1;
  cv.width=Math.round(box.width*dpr);cv.height=Math.round(box.height*dpr);cv.style.width=box.width+'px';cv.style.height=box.height+'px';
  W.ts=Math.round(clamp(Math.min(box.width,box.height)/9,38,58));W.vw=box.width;W.vh=box.height;}
 window.addEventListener('resize',()=>{if(curScreen==='world'&&W)wResize();});
 function wCam(){const ts=W.ts;let cx=W.drawX*ts+ts/2-W.vw/2,cy=W.drawY*ts+ts/2-W.vh/2;cx=clamp(cx,0,Math.max(0,WCOLS*ts-W.vw));cy=clamp(cy,0,Math.max(0,WROWS*ts-W.vh));return [cx,cy];}
-function wTap(e){const cv=$('#wcv');const r=cv.getBoundingClientRect();const [cx,cy]=wCam();const x=Math.floor((e.clientX-r.left+cx)/W.ts),y=Math.floor((e.clientY-r.top+cy)/W.ts);
+function wHintDone(){const h=$('#whelp');if(h)h.classList.add('fade');}
+function wTap(e){wHintDone();const cv=$('#wcv');const r=cv.getBoundingClientRect();const [cx,cy]=wCam();const x=Math.floor((e.clientX-r.left+cx)/W.ts),y=Math.floor((e.clientY-r.top+cy)/W.ts);
  if(x<0||y<0||x>=WCOLS||y>=WROWS)return;W.viaPad=false;W.path=wPathTo(x,y);if(!W.path.length){const t=W.T[y][x];if(Math.abs(x-W.hx)+Math.abs(y-W.hy)===1)wStep(x-W.hx,y-W.hy);else if(t.block)toast('You can\'t walk there!');}
  else{wMark(x,y);if(!W.moving){const [nx,ny]=W.path.shift();wStep(nx-W.hx,ny-W.hy);}}}
 function wMark(x,y){W.mark={x,y,t:performance.now()};}
@@ -2838,9 +2905,9 @@ function wFrame(now){
   if(t.gate){const z=ZONES.find(zz=>zz.id===t.gate);const lock=zoneLocked(z,P());const s=ts*1.5;
    items.push({y,draw:()=>{ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.8,ts*.8,ts*.3,0,0,7);ctx.fill();
     ctx.drawImage(wSprite(lock?'🔒':z.art,Math.round(ts*1.3)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.25+Math.sin(now/500)*2,s,s);
-    wLabel(ctx,z.name+(z.event&&lock?(eventSoon()?' · Opens Oct 18':' · Closed'):''),sx+ts/2,sy-ts*.55,'#fff',z.event?'rgba(200,80,0,.9)':'rgba(40,20,80,.85)');}});}
+    wLabel(ctx,z.name+(z.event&&lock?(eventSoon()?' · Opens Oct 18':' · Closed'):'')+(!lock&&isBonusZ(P(),z.id)?' ⭐2×':''),sx+ts/2,sy-ts*.55,'#fff',z.event?'rgba(200,80,0,.9)':'rgba(40,20,80,.85)');}});}
   if(t.plaza&&!t.npc){const dc=plazaDecor(x,y);if(dc)items.push({y:y-.01,draw:()=>ctx.drawImage(wSprite(dc,Math.round(ts*.7)),sx+ts*.15,sy+ts*.05,ts*.7,ts*.7)});}
-  if(t.npc){const n=NPCS.find(q=>q.id===t.npc);const s=ts*(n.id==='fountain'?1.2:1.05);items.push({y,draw:()=>{ctx.drawImage(wSprite(n.e,Math.round(ts*.95)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.1,s,s);if(n.n){const vb=VIL.find(v=>v.npc===n.id);const vl=vb?vLv(P(),vb.id):0;wLabel(ctx,n.n+(vl?` ★${vl}`:''),sx+ts/2,sy-ts*.18,'#3b2b6b','rgba(255,255,255,.9)');}const qm=npcQuestMark(P(),n.id);if(qm){const rdy=qm==='❗',bob=Math.sin(now/300)*ts*.05,qs=Math.round(ts*.42),cx0=sx+ts/2,cy0=sy-ts*.18-ts*.58+bob;ctx.beginPath();ctx.arc(cx0,cy0,ts*.3,0,7);ctx.fillStyle=rdy?'#ffd43b':'#7048e8';ctx.fill();ctx.lineWidth=Math.max(2,ts*.05);ctx.strokeStyle='#fff';ctx.stroke();ctx.drawImage(wSprite(rdy?'❗':'❓',qs),cx0-qs/2,cy0-qs/2,qs,qs);}}});}
+  if(t.npc){const n=NPCS.find(q=>q.id===t.npc);const s=ts*(n.id==='fountain'?1.2:1.05);items.push({y,draw:()=>{ctx.drawImage(wSprite(n.e,Math.round(ts*.95)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.1,s,s);if(n.n){const vb=VIL.find(v=>v.npc===n.id);const vl=vb?vLv(P(),vb.id):0;wLabel(ctx,n.n+(vl?` ★${vl}`:''),sx+ts/2,sy-ts*.18,'#3b2b6b','rgba(255,255,255,.9)');}const qm=npcQuestMark(P(),n.id);if(qm){const rdy=qm==='❗',bob=Math.sin(now/300)*ts*.05,qs=Math.round(ts*.42),cx0=sx+ts/2,cy0=Math.max(ts*.34,sy-ts*.18-ts*.58+bob);ctx.beginPath();ctx.arc(cx0,cy0,ts*.3,0,7);ctx.fillStyle=rdy?'#ffd43b':'#7048e8';ctx.fill();ctx.lineWidth=Math.max(2,ts*.05);ctx.strokeStyle='#fff';ctx.stroke();ctx.drawImage(wSprite(rdy?'❗':'❓',qs),cx0-qs/2,cy0-qs/2,qs,qs);}}});}
   if(t.chest){const done=wChestOpen(t.chest);items.push({y,draw:()=>{ctx.globalAlpha=done?.45:1;const bob=done?0:Math.sin(now/300)*2;ctx.drawImage(wSprite(done?'📦':'🎁',Math.round(ts*.75)),sx+ts*.1,sy+ts*.05+bob,ts*.8,ts*.8);ctx.globalAlpha=1;
    if(!done&&(Math.floor(now/400)%2)){ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.6,sy-ts*.1,ts*.4,ts*.4);}}});}}
  W.mobs.forEach(m=>{if(m.x<x0-1||m.x>x1+1||m.y<y0-1||m.y>y1+1)return;let mx=m.x,my=m.y;if(m.mt&&now-m.mt<300){const k=(now-m.mt)/300;mx=m.fx+(m.x-m.fx)*k;my=m.fy+(m.y-m.fy)*k;}
@@ -2857,7 +2924,7 @@ function wFrame(now){
  // area name
  const bn=W.T[W.hy][W.hx].b;if(bn!==W.lastBiome){W.lastBiome=bn;const B=BIOMES[bn];const z=B.zone&&ZONES.find(zz=>zz.id===B.zone);const el=$('#warea');if(el){el.textContent=B.name||`${z.art} ${z.name}`;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}}
 }
-function wLabel(ctx,txt,x,y,fg,bg){ctx.font=`700 ${Math.round(W.ts*.26)}px Fredoka, system-ui, sans-serif`;const w=ctx.measureText(txt).width+12,h=W.ts*.36;ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect?ctx.roundRect(x-w/2,y-h/2,w,h,h/2):ctx.rect(x-w/2,y-h/2,w,h);ctx.fill();ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,x,y+1);}
+function wLabel(ctx,txt,x,y,fg,bg){ctx.font=`700 ${Math.round(W.ts*.26)}px Fredoka, system-ui, sans-serif`;const w=ctx.measureText(txt).width+12,h=W.ts*.36;if(W.vw){x=clamp(x,w/2+4,Math.max(w/2+4,W.vw-w/2-4));y=clamp(y,h/2+3,Math.max(h/2+3,W.vh-h/2-3));} /* keep labels fully on screen */ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect?ctx.roundRect(x-w/2,y-h/2,w,h,h/2):ctx.rect(x-w/2,y-h/2,w,h);ctx.fill();ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,x,y+1);}
 document.addEventListener('keydown',e=>{if(curScreen!=='world'||!W||$('#modal.show'))return;const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[e.key];if(!d)return;e.preventDefault();W.path=[];wStep(d[0],d[1]);});
 
 /* ================= Principal Wise: visits the map about every 3 days, invites you to his office ================= */
@@ -3213,9 +3280,9 @@ function cafePlateSVG(){const P0=CAFE.plate;const ctr={veg:[92,104],fruit:[208,1
 function cafeDone(){const P0=CAFE.plate;return {fv:(P0.veg.length?1:0)+(P0.fruit.length?1:0),pr:P0.prot.length>0,gr:P0.grain.length>0,dr:!!(CAFE.drink&&CAFE.drink[2])};}
 SCREENS.cafe=()=>{const p=P();const today=dayKey();
  const head=(say)=>`<div class="cafe-head"><div class="cafe-stage"><div class="rosa">${rosaSVG()}</div><div class="counter"><span class="pan"><i>🥦</i><i>🥕</i></span><span class="pan"><i>🍝</i><i>🍗</i></span><span class="pan"><i>🍎</i><i>🍇</i></span><b class="steam">〰</b><b class="steam s2">〰</b></div></div><div class="cafe-bubble"><b class="nm">Ms. Rosa, the Lunch Lady</b><div>${say}</div></div></div>`;
- const back=`<div class="zhead"><button class="btn ghost small" onclick="CAFE=null;go('world')">← Explore</button><h2 class="title">🍱 The Cafeteria</h2></div>`;
+ const back=`<div class="zhead"><button class="btn ghost small" onclick="CAFE=null;go('world')">← World</button><h2 class="title">🍱 The Cafeteria</h2></div>`;
  if(p.cafe&&p.cafe.d===today&&p.cafe.done&&(!CAFE||CAFE.step!==5)){app.innerHTML=topbar()+`<div class="room cafe-room"><div class="page cafe">${back}${head(`Thanks for lunch today, ${esc(p.name)}! The kitchen is closed now. Come back <b>tomorrow</b> for a brand new lunch order! 🍎`)}${p.lunchTray?'<div class="cafe-card center">🍱 Your <b>Lunch Tray power-up</b> is ready for your next battle!</div>':''}</div></div>`;return;}
- if(!CAFE)cafeStart();const C=CAFE;const dots=`<div class="cafe-steps">${['🍽️','🧮','💵','📖','⚡'].map((e,i)=>`<span class="${i<C.step?'done':i===C.step?'on':''}">${e}</span>`).join('')}</div>`;
+ if(!CAFE)cafeStart();const C=CAFE;const dots=`<div class="cafe-steps">${['🍽️','🧮','💵','📖','⚡'].map((e,i)=>`<div class="cst"><span class="${i<C.step?'done':i===C.step?'on':''}">${e}</span><small>${['Plate','Math','Money','Menu','Fuel'][i]}</small></div>`).join('')}</div>`;
  let body='';
  if(C.step===0){const d=cafeDone();const ok=d.fv===2&&d.pr&&d.gr&&d.dr;
   const goal=(done,t,n)=>`<div class="goal ${done?'done':''}"><span class="ck">✓</span>${t}<span class="gn">${n}</span></div>`;
@@ -3364,7 +3431,7 @@ function vilUp(id){const p=P();const b=VIL.find(v=>v.id===id);const l=vLv(p,id);
  p.coins-=c;p.vil=p.vil||{};p.vil[id]=l+1;questEvent(p,'build',1);save();SFX.level();
  modal(`<div class="mcard"><div class="big-emoji">${b.e}</div><h2>${b.n} upgraded!</h2><p>${vStars(l+1)}</p><p><b>${b.perk(l+1)}</b></p><button class="btn green big" onclick="closeModal();go('village')">Awesome!</button></div>`);}
 SCREENS.village=()=>{const p=P();const tot=VIL.reduce((a,b)=>a+vLv(p,b.id),0);
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏗️ Build Your Village</h2></div>
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏗️ Build Your Village</h2></div>
  <div class="cafe-card center" style="margin-bottom:12px">🧱 Bo the Builder: "Your coins can make this village amazing! Every upgrade helps you on your quest." <div class="muted">Village stars: <b>${tot} / ${VIL.length*VIL_MAX}</b> · You have 🪙 ${p.coins}</div></div>
  <div class="vgrid">${VIL.map(b=>{const l=vLv(p,b.id),c=b.cost[l];return `<div class="vcard"><div class="ve">${b.e}</div><b>${b.n}</b><div class="vstars">${vStars(l)}</div><div class="vperk">${b.perk(l)}</div>${l<VIL_MAX?`<div class="vnext">Next: ${b.perk(l+1)}</div><button class="btn ${p.coins>=c?'gold':'ghost dark'} small" onclick="vilUp('${b.id}')">Upgrade · 🪙 ${c}</button>`:'<div class="vnext">⭐ Fully upgraded!</div>'}</div>`;}).join('')}</div></div>`;};
 const LIB_PER_DAY=2;let LIB=null;
@@ -3397,7 +3464,7 @@ function libHead(say,sug){return `<div class="lib-head"><div class="hoot">${hoot
 const libStars=(n,of)=>'⭐'.repeat(n)+'☆'.repeat(Math.max(0,of-n));
 function libMeter(p){const L=libState(p);const lv=libLevel(p);const frac=Math.max(0,Math.min(1,L.rl-Math.floor(L.rl)));const top=lv>=LIB_MAX&&Math.floor(L.rl)>=LIB_MAX;
  return `<div class="rlmeter"><div class="rlbadge">📖 Reading Level <b>${lv}</b></div><div class="rlbar"><i style="width:${top?100:Math.round(frac*100)}%"></i></div><small>${top?'Top level! You read like a scholar. 🎓':`Getting to Level ${lv+1}: ${Math.round(frac*100)}%. Stories get longer and trickier as you climb!`}</small></div>`;}
-SCREENS.library=()=>{const p=P();const back=`<div class="zhead"><button class="btn ghost small" onclick="LIB=null;go('world')">← Explore</button><h2 class="title">📚 The Library</h2></div>`;
+SCREENS.library=()=>{const p=P();const back=`<div class="zhead"><button class="btn ghost small" onclick="LIB=null;go('world')">← World</button><h2 class="title">📚 The Library</h2></div>`;
  const wrap=b=>{app.innerHTML=topbar()+`<div class="room lib-room"><div class="page lib">${back}${b}</div></div>`;};
  const cols=['#e03131','#1c7ed6','#2f9e44','#f08c00','#7048e8','#0c8599','#c2255c','#5c940d','#e8590c','#364fc7'];
  if(!LIB){const {band,next,L,lv,readOther}=libShelf(p);
@@ -3450,7 +3517,7 @@ function npcQuestCard(p,k,cont){const a=qState(p).active[k],d=qDef(a.c,a.i),N=QN
 function npcQuestGate(npcId,cont){const p=P();const k=npcQuestIdx(p,npcId);if(k<0||!qState(p).active[k].done)return false;const a=qState(p).active[k],N=QNPC[a.c];
  modal(`<div class="mcard"><div class="big-emoji">${N.e}</div><h2>${N.n}: "You did it!"</h2><p>You finished my quest, ${esc(p.name)}. Here's your reward!</p>${npcQuestCard(p,k,cont)}</div>`);return true;}
 function wNpc(id){const p=P();
- if(id==='school'){if(W&&W.viaPad){W.path=[];modal(`<div class="mcard"><div class="big-emoji">🌀</div><h2>The Quest Portal</h2><p>Go to the Quest Realms?</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green big" onclick="closeModal();go('map')">🌀 Go!</button></div></div>`);return;}go('map');return;} // bumping it with the arrow pad asks first
+ if(id==='school'){if(W&&W.viaPad){W.path=[];modal(`<div class="mcard"><div class="big-emoji">🌀</div><h2>The Quest Board</h2><p>See your quests and all the math worlds?</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green big" onclick="closeModal();go('map')">🌀 Go!</button></div></div>`);return;}go('map');return;} // bumping it with the arrow pad asks first
  if(id==='shop'){go('backpack');return;}
  if(id==='pets'){if(npcQuestGate('pets',"go('pethome')"))return;go('pethome');return;}
  if(id==='spin'){openSpin();return;}
@@ -3480,9 +3547,9 @@ function wChestTry(){const p=P();const {q,k}=W.chestQ||{};if(!q)return;const raw
 /* wild battles (from exploring) */
 function wildWin(){
  const p=P();questEvent(p,'wild',1);SFX.win();const ms=$('#monS');if(ms)ms.animate([{transform:'none',opacity:1},{transform:'scale(.1) rotate(720deg)',opacity:0}],{duration:700,fill:'forwards'});
- const bonus=10+rnd(0,10);p.coins+=bonus;B.coins+=bonus;B.xp+=15;const egg=Math.random()<(petPerk(p)==='lucky'?.08:.04);if(egg){p.eggs++;if(petPerk(p)==='lucky')petCredit(p,'egg',1);}
+ const bonus=10+rnd(0,10);p.coins+=bonus;B.coins+=bonus;B.xp+=15;const egg=Math.random()<(petPerk(p)==='lucky'?.04:.02);if(egg){p.eggs++;if(petPerk(p)==='lucky')petCredit(p,'egg',1);}
  const qd=dayKey();if(!p.quest||p.quest.d!==qd)p.quest={d:qd,wins:0,done:false};p.quest.wins++;
- let questDone=false,questEgg=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length){p.eggs++;questEgg=true;}else{p.coins+=150;B.coins+=150;}}
+ let questDone=false,questEgg=false;if(!p.quest.done&&p.quest.wins>=3){p.quest.done=true;questDone=true;if(regHave(p)<REG_PETS.length&&dailyEggDay(p)){p.eggs++;questEgg=true;}else{p.coins+=150;B.coins+=150;}p.qEggN=(p.qEggN||0)+1;}
  p.wild=(p.wild||0)+1;p.battles++;const rock=!!(window.Quartz&&Quartz.drop('wild'));const up=endBattleBook();save();
  setTimeout(()=>{modal(`<div class="mcard"><div class="big-emoji">🏆</div><h2>You beat the wild ${esc(B.name)}!</h2>
   <div class="rewards"><div>🪙 +${B.coins}</div><div>✨ +${B.xp} XP</div>${egg?'<div>🥚 +1 Egg!</div>':''}${rock?Quartz.DROP_HTML:''}</div>
@@ -3618,7 +3685,7 @@ const board=(e,n,how,rows,fmt,note)=>{let rank=0,last=null,shown=0;return `<div 
  }else{
   const rows=ps.map(p=>({p,t:trophyOf(p)}));
   body=`<div class="panel"><h3>🏅 All-Time Stars</h3><div class="lbhow">Every Sunday's stars are saved here forever.</div><div class="tcases">${rows.map(r=>`<div class="tcase ${r.p.id===me.id?'me':''}">${face(r.p)}<b>${esc(r.p.name)}</b><div class="tstars">${r.t.n?'⭐'.repeat(Math.min(r.t.n,30)):'<span class="muted">No stars yet</span>'}</div><div>${r.t.n} star${r.t.n===1?'':'s'}${r.t.fav?` · favorite: ${r.t.fav.c.e} ${r.t.fav.c.n} ×${r.t.fav.k}`:''}</div></div>`).join('')}</div></div>`;}
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">📜 Family Leaderboard</h2></div>${tabs}${body}<p class="ztip">Everyone gets better by practicing. Keep going! 💪</p></div>`;
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">📜 Family Leaderboard</h2></div>${tabs}${body}<p class="ztip">Everyone gets better by practicing. Keep going! 💪</p></div>`;
 };
 
 /* ================= gifts between family players ================= */
@@ -3712,7 +3779,7 @@ function bufferReset(){const p=P();const zid=B.z.id,r=B.round,i=B.i;B.over=true;
  modal(`<div class="mcard"><div class="big-emoji">${ROUNDS[r].m}</div><h2>Start this battle over!</h2>
  <p>${lim===1?`In the <b>${ROUNDS[r].n}</b> round, one miss means you start the battle over.`:`That was miss number ${lim} in this <b>${ROUNDS[r].n}</b> battle, so it starts over.`} Your other ${ROUNDS[r].n} wins are safe. Legends are made by trying again! 💪</p>${helpNow||p.bufFails[fk]>3?`<div class="hint">✨ <b>The Kind Teacher is coming to help!</b> Next time you try this battle, you can miss <b>one extra</b>.</div>`:''}
  <p>You keep the <b>🪙 ${B.coins}</b> coins and <b>${B.xp} XP</b> you earned.</p>
- <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${zid}')">Map</button><button class="btn green" onclick="closeModal();startBattle('${zid}',${i})">Try again ${ROUNDS[r].m}</button></div></div>`);}
+ <div class="row"><button class="btn ghost dark" onclick="closeModal();go('zone','${zid}')">← ${esc(findZone(zid).name)}</button><button class="btn green" onclick="closeModal();startBattle('${zid}',${i})">Try again ${ROUNDS[r].m}</button></div></div>`);}
 const RMUL={1:{hp:1,dmg:1},2:{hp:1.2,dmg:1.15},3:{hp:1.35,dmg:1.25},4:{hp:1.45,dmg:1.3},5:{hp:1.6,dmg:1.4}};
 function medianThink(p){const a=(p.thinkT||[]);if(a.length<5)return 0;const b=[...a].sort((x,y)=>x-y);return b[Math.floor(b.length/2)];}
 const tiredKey=(zid,r,i)=>zid+'-'+r+'-'+i;
@@ -3762,7 +3829,14 @@ function checkSpellSig(p){const sig=spellSchool(p).map(x=>x.w).join('|');if(!sig
 function spellRound(){return B&&B.mode==='spell'?(B.round||1):0;}
 
 /* ================= parent corner ================= */
+/* fresh device: a grown-up check BEFORE anyone can pick the Parent PIN (so a kid can't set it) */
+let GROWN_OK=false,GROWN_Q=null;
+function grownCheck(then){const a=13+Math.floor(Math.random()*7),b=6+Math.floor(Math.random()*4);GROWN_Q={ans:a*b,then};
+ modal(`<div class="mcard"><h2>👪 Grown-ups only</h2><p>Before setting a Parent PIN, please answer:</p><div style="font-size:34px;font-weight:800;margin:6px 0 10px">${a} × ${b} = ?</div><input id="grownIn" class="inp" type="text" inputmode="numeric" autocomplete="off" maxlength="4" style="max-width:160px;text-align:center" onkeydown="if(event.key==='Enter')grownAnswer()"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="grownAnswer()">OK</button></div></div>`);
+ setTimeout(()=>{const i=$('#grownIn');if(i)i.focus();},50);}
+function grownAnswer(){const i=$('#grownIn');if(!i||!GROWN_Q)return;if(parseInt(i.value,10)===GROWN_Q.ans){const t=GROWN_Q.then;GROWN_Q=null;closeModal();t();}else{closeModal();toast('That is not right. Please ask a grown-up to set the Parent PIN.');}}
 function parentGate(){
+ if(!state.pin&&!PIN_CHANGE&&!GROWN_OK){grownCheck(()=>{GROWN_OK=true;parentGate();});return;}
  if(!state.pin||PIN_CHANGE){const chg=!!(PIN_CHANGE&&state.pin);PIN_CHANGE=false;modal(`<div class="mcard"><h2>👪 ${chg?'Change the':'Set a'} Parent PIN</h2><p>${chg?'Type the new 4-digit PIN twice. (Cancel keeps the old one.)':'Grown-ups: pick a 4-digit PIN.'} You'll need it to open the Parent Corner.</p><input id="pin1" class="inp" type="password" inputmode="numeric" maxlength="4" placeholder="New PIN" style="max-width:200px;text-align:center"><br><input id="pin2" class="inp" type="password" inputmode="numeric" maxlength="4" placeholder="Type it again" style="max-width:200px;text-align:center;margin-top:8px"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="setPin()">Save PIN</button></div></div>`);return;}
  modal(`<div class="mcard"><h2>👪 Parent Corner</h2><p>Enter the Parent PIN.</p><input id="pinIn" class="inp" type="password" inputmode="numeric" maxlength="4" style="max-width:200px;text-align:center" onkeydown="if(event.key==='Enter')checkPin()"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="checkPin()">Open</button></div></div>`);
  setTimeout(()=>{const i=$('#pinIn');if(i)i.focus();},50);
@@ -3811,7 +3885,8 @@ function parentCard(p){
 }
 SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
- <p class="note">A new player takes a quick skill check so each skill starts near the right level (a kid who skips it starts a little below their grade). Difficulty adjusts itself for each child and each skill, right away during play. <b>Harder:</b> 5 right in a row at the current level (6 in a row for grades 1-3). <b>Easier:</b> 3 wrong out of the last 4 at the current level. The count starts over at every new level, so each level gets a few answers before it can change again. Repeats of missed problems and swapped-digit typos (84 for 48) don't count. Use − / + to set a level yourself.</p>
+ <div class="note pnote"><b>How levels work</b><ul><li>🎯 A quick skill check sets each skill's starting level.</li><li>⬆️ <b>Harder</b> after 6 right in a row.</li><li>⬇️ <b>Easier</b> after 2 misses in the last 4 (kids settle near 80% right).</li><li>✋ Use − / + below to set a level yourself.</li></ul><details><summary>More detail</summary>A kid who skips the skill check starts a little below their grade. The count starts over at every new level. Repeats of missed problems and swapped-digit typos (84 for 48) don't count.</details></div>
+ ${(window.MQ_PARENT||[]).map(f=>{try{return f()||''}catch(e){console.warn(e);return ''}}).join('')}
  ${cloudSection()}
  ${window.Groups?Groups.section():''}
  ${window.Groups&&Groups.sugSection?Groups.sugSection():''}
@@ -3829,6 +3904,12 @@ function changePin(){PIN_CHANGE=true;parentGate();} // the old PIN stays until a
 function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save();refreshParent(`pp-${id}`,true);}
 function downloadBackup(){const b=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='math-quest-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();toast('Backup downloaded.');}
 function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;const keep=state.pin;state=s;if(!state.pin)state.pin=keep;state.family=cloud.code;state.players.forEach(p=>p.upd=Date.now());migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
+/* weekly streak (kids mostly play on weekends): a week counts if they played on 2+ days. Skipping school days never breaks it. */
+const monKey=d=>{d=new Date(d);d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return dayKey(d);}; /* Monday-start weeks keep Sat+Sun together */
+function weekDaysPlayed(p,wk){return (p.days||[]).filter(d=>monKey(new Date(d+'T12:00:00'))===wk).length;}
+function weekStreak(p){const now=new Date();let n=0;const cur=monKey(now);const thisWk=weekDaysPlayed(p,cur);if(thisWk>=2)n++;
+ const d=new Date(now);let shield=false;for(let i=0;i<30;i++){d.setDate(d.getDate()-7);if(weekDaysPlayed(p,monKey(d))>=2)n++;else{const o=new Date(d);o.setDate(o.getDate()-7);if(!shield&&(n>=1||thisWk>=1)&&weekDaysPlayed(p,monKey(o))>=2){shield=true;continue;}break;}}return {n,thisWk,shield};} /* 🛡️ one missed week (vacation, busy weekend) is forgiven */
+function streakBadge(p){const w=weekStreak(p);if(w.n<1&&w.thisWk<1)return '';if(w.n<1)return `🔥 Play ${2-w.thisWk} more day this week to start a streak!`;return `🔥 ${w.n}-week streak${w.shield?' 🛡️':''}${w.thisWk<2?` · play ${2-w.thisWk} more day${w.thisWk?'':'s'} this week`:' ✓'}`;}
 function dayStreak(p){let n=0;const d=new Date();if(!p.days.includes(dayKey(d)))d.setDate(d.getDate()-1);while(p.days.includes(dayKey(d))){n++;d.setDate(d.getDate()-1);}return n;}
 /* ================= NPC quest chains: always 3 active quests with a clear next step ================= */
 const QNPC={elder:{e:'🧙',n:'Elder Wiz'},hoot:{e:'🦉',n:'Professor Hoot'},pet:{e:'🧑‍🌾',n:'Pet Keeper'},rosa:{e:'👩‍🍳',n:'Ms. Rosa'},principal:{e:'🎓',n:'Principal Wise'}};
@@ -3905,15 +3986,27 @@ function nextSteps(p){const out=[];if(!p.skillChecked&&(p.battles||0)<40)out.pus
  const z=ZONES.filter(z=>!zoneLocked(z,p)&&medal(p,z.id)<5).sort((a,b)=>medal(p,a.id)-medal(p,b.id))[0];
  if(z){const r=Math.min(5,medal(p,z.id)+1);out.push(`<button class="nstep" onclick="go('zone','${z.id}')">${ROUNDS[r].m} ${ROUNDS[r].n} medal in ${z.name}</button>`);}
  return out.slice(0,4).join('');}
-function questPanel(p){const Q=qState(p);const ready=Q.active.filter(a=>a.done).length;
+function questPanel(p,compact){const Q=qState(p);const ready=Q.active.filter(a=>a.done).length;
+ if(compact){const q=(p.quest&&p.quest.d===dayKey())?p.quest:{wins:0,done:false};const st=dayStreak(p);
+  return `<div class="qpanel compact"><h3>📜 My Quests${ready?` <span class="qready">${ready} ready!</span>`:''}${streakBadge(p)?`<span class="qstreak">${streakBadge(p)}</span>`:''}</h3>
+  <div class="qline ${q.done?'done':''}"><span class="qnpc">🎯</span><span class="qbody"><b>Today: win 3 battles</b></span><span class="qcount">${q.done?'✅':`${Math.min(q.wins,3)}/3 → ${dailyEggDay(P())&&regHave(P())<REG_PETS.length?'🥚':'🪙'}`}</span></div>
+  ${Q.active.map((a,k)=>{const d=qDef(a.c,a.i),N=QNPC[a.c];const pct=Math.round(a.prog/d.n*100);
+  return `<div class="qline ${a.done?'done':''}"><span class="qnpc">${N.e}</span><span class="qbody"><b>${esc(d.t)}</b><small>${esc(qDesc(a,d))}</small><span class="qbar"><i style="width:${pct}%"></i></span></span>${a.done?`<button class="btn gold small" onclick="questClaim(${k})">Claim!</button>`:`<span class="qcount">${a.prog}/${d.n}</span>`}</div>`;}).join('')}
+  <div class="nsteps"><b>Ideas:</b> ${nextSteps(p)}</div></div>`;}
  return `<div class="qpanel"><h3>📜 Quests${ready?` <span class="qready">${ready} ready!</span>`:''}</h3><div class="qgrid">${Q.active.map((a,k)=>{const d=qDef(a.c,a.i),N=QNPC[a.c];const pct=Math.round(a.prog/d.n*100);
   return `<div class="qitem ${a.done?'done':''}"><div class="qnpc">${N.e}</div><div class="qbody"><b>${esc(d.t)}</b><small>${esc(N.n)}</small><div>${esc(qDesc(a,d))}</div><div class="qbar"><i style="width:${pct}%"></i></div><small>${a.prog} / ${d.n}</small></div>${a.done?`<button class="btn gold small" onclick="questClaim(${k})">Claim!</button>`:''}</div>`;}).join('')}</div>
   <div class="nsteps"><b>Next up:</b> ${nextSteps(p)}</div></div>`;}
+/* the ONE big "what do I do next?" card at the top of the Quest Board */
+function nextBattleFor(p){let z=null;const l=p.last;if(l){z=findZone(l.zid);if(z&&(zoneLocked(z,p)||z.op==='spell'))z=null;}
+ if(!z)z=ZONES.filter(x=>!zoneLocked(x,p)&&!x.event&&x.op!=='spell').sort((a,b)=>medal(p,a.id)-medal(p,b.id))[0];
+ if(!z)return null;const cr=curRound(p,z.id);const pr=rpeek(p,z.id,cr);let i=[0,1,2,3,4,5].findIndex(k=>!pr[k]);const done=i<0;if(i<0)i=5;return {z,i,cr,done,m:z.mons[i]};}
+function bigContinue(p){const n=nextBattleFor(p);if(!n)return '';const {z,i,cr,done,m}=n;
+ return `<button class="bigcont" onclick="startBattle('${z.id}',${i})"><span class="bc-art">${m[1]}</span><span class="bc-txt"><b>▶ ${p.last?'Continue':'Start'}: ${esc(z.name)} ⚔️</b><small>${done?'Rematch':'Next battle'}: ${esc(m[0])}${i===5?' (BOSS)':''}${cr>1?' · '+ROUNDS[cr].m+' '+ROUNDS[cr].n:''}</small></span><span class="bc-go">GO!</span></button>`;}
 
 function eventBanner(p){const z=ZONES.find(z=>z.id==='haunt');if(eventOpen())return `<button class="evbanner" onclick="go('zone','haunt')">🎃 <b>Haunted Hollow is open!</b> Beat the Pumpkin King for <b>Boo the Ghost</b>, a pet you can only get until Nov 1. 👻</button>`;
  if(eventSoon()){const days=Math.ceil((new Date(EVENT_START+'T00:00:00')-new Date())/864e5);if(days<=30)return `<div class="evbanner soon">🎃 <b>Haunted Hollow</b> opens in ${days} day${days===1?'':'s'} (Oct 18)! A spooky event world with a ghost pet and a pumpkin hat you can only get then.</div>`;}return '';}
 function questBar(p){const q=(p.quest&&p.quest.d===dayKey())?p.quest:{wins:0,done:false};const st=dayStreak(p);
- return `<div class="questbar"><div>🎯 <b>Today's quest:</b> win 3 battles ${q.done?'✅ Done!':`(${Math.min(q.wins,3)}/3) → 🥚`}</div>${st>=2?`<div>🔥 ${st}-day streak</div>`:''}</div>`;}
+ return `<div class="questbar"><div>🎯 <b>Today's quest:</b> win 3 battles ${q.done?'✅ Done!':`(${Math.min(q.wins,3)}/3) → ${dailyEggDay(P())&&regHave(P())<REG_PETS.length?'🥚':'🪙 150'}`}</div>${streakBadge(p)?`<div>${streakBadge(p)}</div>`:''}</div>`;}
 function continueCard(p){
  const l=p.last;if(!l)return '';const z=findZone(l.zid);if(!z||zoneLocked(z,p))return '';
  const cr=curRound(p,z.id);const pr=rpeek(p,z.id,cr);let i=[0,1,2,3,4,5].findIndex(k=>!pr[k]);const done=i<0;if(i<0)i=5;const m=z.mons[i];
@@ -4117,7 +4210,7 @@ function questWin(){
 function schoolCards(p){
  const words=spellList(p),lw=words.filter(x=>learned(p,x.w)).length,qz=quizList(p),hw=hwList(p);
  const pr=p.progress.spell||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
- return `<h2 class="title" style="margin-top:10px">📚 School Quests</h2><div class="zones">
+ return `<h2 class="title" style="margin-top:10px">🏫 School Quests</h2><p class="lockmore" style="margin:-4px 0 10px">Spelling words, quizzes and homework from your teacher</p><div class="zones">
  <button class="zone-card z-spell" onclick="go('zone','spell')"><div class="op">Aa</div><h3>Spelling Grove</h3><div class="zsub">${words.length?`${lw} of ${words.length} words learned`:'No words yet'}</div><div class="zlv">⭐ ${stars} / 18 · ${esc(spellTitle(p))}</div><div class="zart">📜</div></button>
  <button class="zone-card z-quiz" onclick="go('quests','quiz')"><div class="op">?</div><h3>Knowledge Quests</h3><div class="zsub">${qz.length?`${qz.length} quiz${qz.length>1?'zes':''}`:'No quizzes yet'}</div><div class="zlv">${qz.map(x=>esc(x.title)).join(', ')}</div><div class="zart">🧞</div></button>
  <button class="zone-card z-hw" onclick="go('quests','hw')"><div class="op">📝</div><h3>Homework Quest</h3><div class="zsub">${hw.length?`${hw.length} assignment${hw.length>1?'s':''}`:'No homework yet'}</div><div class="zlv">${hw.length?esc(hw[hw.length-1].title):'Coming soon!'}</div><div class="zart">🦖</div></button></div>`;
@@ -4125,7 +4218,7 @@ function schoolCards(p){
 SCREENS.quests=kind=>{
  const p=P();const list=kind==='quiz'?quizList(p):hwList(p);const store=kind==='quiz'?p.quizStats:p.hwStats;
  const title=kind==='quiz'?'🧞 Knowledge Quests':'🦖 Homework Quest';
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('map')">← Map</button><h2 class="title">${title}</h2></div>
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('map')">← Quest Board</button><h2 class="title">${title}</h2></div>
  ${list.length?`<div class="zones">${list.slice().reverse().map(x=>{const s=store[x.id];const n=kind==='quiz'?x.questions.length:x.problems.length;
   return `<button class="zone-card ${kind==='quiz'?'z-quiz':'z-hw'}" onclick="startQuest('${kind}','${x.id}')"><h3>${esc(x.title)}</h3><div class="zsub">${n} ${kind==='quiz'?'questions':'problems'}${x.note?' · '+esc(x.note):''}</div><div class="zlv">${s?`Best: ${s.best}% first try · ${'⭐'.repeat(s.stars)}`:'Not tried yet · GO!'}</div><div class="zart">${x.emoji||(kind==='quiz'?'📚':'📝')}</div></button>`;}).join('')}</div>`
  :`<div class="pp center"><div class="big-emoji">${kind==='quiz'?'📚':'📝'}</div><h3>Nothing here yet!</h3><p class="muted">${kind==='quiz'?'Quizzes about what you are learning at school will show up here.':'Your homework problems will show up here when a grown-up adds them.'}</p></div>`}</div>`;
@@ -4265,7 +4358,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.29k';
+const APP_VER='2026.09.29l';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
