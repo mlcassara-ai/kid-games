@@ -61,7 +61,7 @@ input,select{font-family:inherit}
 .pcard:hover{transform:translateY(-4px) rotate(-1deg)}
 .pcard svg{width:100px;height:130px}
 .pname{font-size:22px;font-weight:700}
-.plv{font-size:15px;color:var(--muted)}
+.plwait{display:block;font-size:13px;line-height:1.3;margin-top:3px;color:inherit;opacity:.95}.plwait b{color:#d9480f}.plv{font-size:15px;color:var(--muted)}
 .lockgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:12px auto}
 .lockgrid button{font-size:44px;background:#f1edff;border-radius:18px;padding:8px 0;box-shadow:0 4px 0 #cfc6f2}
 .chip.pic{font-size:22px;padding:3px 10px}
@@ -1249,8 +1249,13 @@ function tbTick(p,active){const T=tbState(p);const now=Date.now();const dt=Math.
  if(T.locked&&T.bank>=tbCap(p)-.01){T.locked=false;T.bank=tbCap(p);}
  if(T.bank<=0&&!T.locked){T.locked=true;T.bank=Math.max(T.bank,-15);}return T;}
 function tbLeft(p){return Math.max(0,Math.ceil(tbState(p).bank));}
-function tbBackAt(p){const T=tbState(p);const mins=(tbCap(p)-Math.max(0,T.bank))*2;return new Date(Date.now()+mins*60000);}
+function tbBackAt(p){const T=tbState(p);const mins=(tbCap(p)-T.bank)*2;return new Date(Date.now()+mins*60000);}
 const tbBlocked=p=>tbOn(p)&&tbState(p).locked;
+/* how long until a kid on a break can play again: '3:45 PM' and '1h 20m' */
+function tbWait(p){tbTick(p,false);const at=tbBackAt(p);const mins=Math.max(1,Math.ceil((at-Date.now())/60000));
+ return {hm:at.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),dur:mins>=60?`${Math.floor(mins/60)} hr${mins>=120?'s':''}${mins%60?' '+mins%60+' min':''}`:`${mins} minute${mins>1?'s':''}`,mins};}
+setInterval(()=>{try{if(typeof curScreen==='undefined')return;if(curScreen==='profiles'&&!document.querySelector('#modal.show')&&state.players.some(o=>o.setup&&tbOn(o)&&o.tb&&o.tb.locked))go('profiles');
+ else if(curScreen==='rest')go('rest');}catch(e){}},30000); // keep the "come back at" times fresh, and let kids back in when the break ends
 setInterval(()=>{try{const p=state&&state.cur&&P();if(!p||!p.setup)return;
  const active=tbOn(p)&&!TB_FREE.includes(curScreen)&&document.visibilityState==='visible'&&Date.now()-tbLastInput<120000;
  const before=tbState(p).bank;const T=tbTick(p,active);
@@ -1262,9 +1267,9 @@ setInterval(()=>{try{const p=state&&state.cur&&P();if(!p||!p.setup)return;
  if(active)p.upd=Date.now(); // this device is where this kid is playing right now
  tbSaves=(tbSaves+1)%4;if(!tbSaves||T.locked)save();}catch(e){}},15000);let tbSaves=0;
 SCREENS.rest=()=>{const p=P();if(!p){go('profiles');return;}tbTick(p,false);if(!tbBlocked(p)){go('map');return;}
- const at=tbBackAt(p);const hm=at.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+ const w=tbWait(p),hm=w.hm;
  app.innerHTML=`<div class="page"><div class="cafe-card center restcard"><div class="big-emoji">🌙</div><h2>Time for a break, ${esc(p.name)}!</h2>
- <p>You've used your play time. Heroes need rest too! 🧠💤</p><p style="font-size:22px">Come back at <b>${hm}</b></p>
+ <p>You've used your play time. Heroes need rest too! 🧠💤</p><p style="font-size:22px">Come back at <b>${hm}</b></p><p style="font-size:18px;margin-top:-6px">That's <b>${w.dur}</b> from now.</p>
  <p class="muted">Every 2 minutes of rest earns 1 minute of play. Go outside, read a book, or help someone at home!</p>
  <div class="row"><button class="btn gold" onclick="state.cur=null;go('profiles')">Switch player</button></div></div></div>`;};
 
@@ -1325,7 +1330,7 @@ SCREENS.profiles=()=>{
  app.innerHTML=`<div class="page">
  <div class="logo"><div class="logo-top">MATH</div><div class="logo-main">QUEST</div><div class="logo-sub"><span class="floaty">➕</span> The Quest Realms <span class="floaty">✖️</span></div></div>
  <h2 class="title">Who's playing?</h2>
- <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?(tbOn(p)&&tbState(p).locked?'😴 On a break':(petOf(p)?petOf(p).e+' ':'')+'Tap to play'+(p.lock?' 🔒':'')):'New hero!'}</div></button>`).join('')}
+ <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?(tbOn(p)&&tbTick(p,false).locked?(w=>`😴 On a break<br><span class="plwait">Back at <b>${w.hm}</b><br>in ${w.dur}</span>`)(tbWait(p)):(petOf(p)?petOf(p).e+' ':'')+'Tap to play'+(p.lock?' 🔒':'')):'New hero!'}</div></button>`).join('')}
  <button class="pcard add" onclick="go('create')"><div class="plus">＋</div><div class="pname">New Hero</div><div class="plv">Add a player</div></button></div>
  ${!state.players.length&&!cloud.code?`<div class="joinbox"><div class="jb-h">☁️ Already play on another device?</div><p>Type your family code to bring your heroes here. (It's in the Parent Corner on your other device, under Online save.)</p><div class="row"><input id="joinCode0" class="inp" placeholder="TIGER-PLUM-ROCKET-KITE-42" autocapitalize="characters" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')joinFamily(this.value,true)"><button class="btn green" onclick="joinFamily($('#joinCode0').value,true)">Join</button></div><p class="muted">New here? Just tap <b>New Hero</b> above.</p></div>`:''}
  <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button> <button class="btn ghost small" onclick="window.Music?Music.menu():toggleSound()">${state.sound?'🔊 Sound':'🔇 Sound off'}</button><div class="note" id="cloudBadge" style="margin-top:8px">${cloudBadgeText()}</div></div></div>`;
@@ -4121,7 +4126,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.29f';
+const APP_VER='2026.09.29g';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
