@@ -62,6 +62,8 @@ const CSS=`
 .adv-sign{position:absolute;right:3%;top:6%;background:#fff;border-radius:16px;padding:8px 12px;box-shadow:0 4px 0 rgba(0,0,0,.2);font-weight:600;max-width:46%;color:var(--ink)}
 .adv-sign .t{font-size:13px;opacity:.7;font-weight:500}
 .adv-sign .big{font-size:clamp(15px,2.6vw,22px);font-variant-numeric:tabular-nums}
+.adv-go{position:absolute;right:3%;top:6%;text-align:center;background:rgba(255,255,255,.95);border-radius:18px;padding:8px 10px 6px;box-shadow:0 4px 0 rgba(0,0,0,.2);color:var(--ink);max-width:60%}.adv-go .btn{margin:0}.adv-go .bk{font-size:13px;margin-top:5px;font-weight:600}
+@media(max-width:560px){.adv-go{padding:6px 7px 4px}.adv-go .btn.big{font-size:15px;padding:8px 12px;white-space:nowrap}.adv-go .bk{font-size:11px;margin-top:3px}.adv-go .to{display:none}}
 .adv-tip{position:absolute;left:3%;top:6%;background:rgba(255,255,255,.95);border-radius:14px;padding:6px 11px;font-weight:600;font-size:14px;box-shadow:0 3px 0 rgba(0,0,0,.15);max-width:48%;color:var(--ink)}
 .adv-cols{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px;align-items:start}
 @media (max-width:820px){.adv-cols{grid-template-columns:minmax(0,1fr)}}
@@ -239,7 +241,7 @@ function campHTML(p,a){const tr=a.trip,d=dest(tr?tr.dest:a.dest),n=slots(p);
  const done=tr&&Date.now()>=tr.end;
  const scene=`<div class="adv-scene" id="advScene"><div class="sc" id="advSc">${sceneSVG(d)}<div class="adv-actors" id="advActors"></div>
   ${tr?`<div class="adv-sign"><div class="t">${d.e} ${d.n}</div><div class="big" id="advLeft">${done?"They're back! 🎉":`Back in ${fmtLeft(tr.end-Date.now())}`}</div></div>${done?'':'<div class="adv-tip">🏕️ The camp is quiet… the crew is off exploring!</div>'}`:
-  `<div class="adv-tip">${a.crew.length?`${a.crew.length} pet${a.crew.length>1?'s':''} ready to go!`:'Pick a crew below 👇'}</div>`}</div></div>`;
+  (a.crew.length&&p.pets.length?(bk=>`<div class="adv-go"><button class="btn green big" onclick="Adv.send()">🥾 Send them off!</button><div class="bk"><span class="to">${a.crew.length} pet${a.crew.length>1?'s':''} to ${d.e} ${d.n}<br></span>Back at <b>${fmtClock(bk)}</b> ${dayWord(bk)}</div></div>`)(Date.now()+(TRIPS[a.len]||TRIPS.short).hrs*36e5):`<div class="adv-tip">Pick a crew below 👇</div>`)}</div></div>`;
  if(!p.pets.length)return scene+`<div class="panel" style="text-align:center;color:var(--ink)"><div style="font-size:60px">🥚</div><p>You need a pet to go on adventures! Hatch an egg in your backpack.</p><button class="btn gold" onclick="go('backpack')">🎒 Go to backpack</button></div>`;
  if(tr){const TT=TRIPS[tr.len]||TRIPS.mid;const pct=Math.min(100,(Date.now()-tr.start)/Math.max(1,tr.end-tr.start)*100);const L=DOING[tr.dest]||DOING.meadow;
   return scene+`<div class="adv-cols"><div class="panel"><h3>${done?'🎉 Your crew is back!':`${TT.e} Exploring ${d.e} ${d.n}`}</h3>
@@ -259,10 +261,9 @@ function campHTML(p,a){const tr=a.trip,d=dest(tr?tr.dest:a.dest),n=slots(p);
   <div class="adv-opt">${Object.values(TRIPS).map(t=>`<button class="adv-optb ${a.len===t.id?'on':''}" onclick="Adv.set('len','${t.id}')"><span class="e">${t.e}</span><b>${t.n}</b><small>${t.hrs} hour${t.hrs>1?'s':''}</small><span style="font-size:12px">${'🐾'.repeat(t.paws)}<span style="opacity:.25">${'🐾'.repeat(3-t.paws)}</span></span></button>`).join('')}</div>
   <p class="muted" style="margin:0">Longer trips bring back more stuff, and better stuff!</p>
   <h3 style="margin-top:12px">🧭 Where to?</h3>
-  <div class="adv-dests">${DESTS.filter(x=>!x.event||destOpen(a,x)).map(x=>{const ok=destOpen(a,x);const c=pets.filter(id=>x.home.includes(id)).length;return `<button class="adv-dest ${a.dest===x.id?'on':''} ${ok?'':'lock'}" style="background:linear-gradient(160deg,${x.c1},${x.c2})" onclick="${ok?`Adv.set('dest','${x.id}')`:`toast('🔒 ${x.n} opens after ${x.need} adventures. You've been on ${a.trips}.')`}"><span class="e">${ok?x.e:'🔒'}</span><b>${x.n}</b><small>${x.event?'Halloween only!':ok?(c?`⭐ ${c} of your pets love it`:'Explore!'):`after ${x.need} trips`}</small></button>`;}).join('')}</div>
+  <div class="adv-dests">${DESTS.filter(x=>!x.event||destOpen(a,x)).map(x=>{const ok=destOpen(a,x);const c=a.crew.filter(id=>x.home.includes(id)).length;return `<button class="adv-dest ${a.dest===x.id?'on':''} ${ok?'':'lock'}" style="background:linear-gradient(160deg,${x.c1},${x.c2})" onclick="${ok?`Adv.set('dest','${x.id}')`:`toast('🔒 ${x.n} opens after ${x.need} adventures. You've been on ${a.trips}.')`}"><span class="e">${ok?x.e:'🔒'}</span><b>${x.n}</b><small>${x.event?'Halloween only!':ok?(c?`⭐ ${c===a.crew.length&&c>1?'Your whole crew loves':c===1?`${esc(petN(a.crew.find(id=>x.home.includes(id))))} loves`:`${c} of your crew love`} it`:'Explore!'):`after ${x.need} trips`}</small></button>`;}).join('')}</div>
   ${home.length?`<div class="adv-note">⭐ ${home.map(id=>esc(petN(id))).join(', ')} ${home.length>1?'love':'loves'} ${d.n} and will find an extra treasure!</div>`:''}
-  <div class="row"><button class="btn green big" ${a.crew.length?'':'disabled'} onclick="Adv.send()">🥾 Send them off!</button></div>
-  <p class="muted" style="text-align:center;margin:8px 0 0">Back at ${fmtClock(back)} ${dayWord(back)}</p></div>
+</div>
   <div class="panel"><h3>🐾 Your pets</h3><p class="muted" style="margin:0 0 6px">Tap a pet to add it to the crew. Tap again to take it out.</p>
   <div class="adv-grid">${pets.map(id=>`<button class="adv-pc ${a.crew.includes(id)?'sel':''}" onclick="Adv.toggle('${id}')">${d.home.includes(id)?'<span class="home">⭐</span>':''}${p.pet===id?'<span class="bud" title="Battle buddy">⚔️</span>':''}<span class="pe">${petE(id)}</span><div class="nm">${esc(petN(id))}</div></button>`).join('')}</div></div></div>`;}
 function shelfHTML(p,a){const rows=[['🧦 Odd stuff from anywhere',JUNK.concat(SPECIAL)],...DESTS.map(d=>[`${d.e} ${d.n}`,d.cur])];

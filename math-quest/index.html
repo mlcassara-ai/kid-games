@@ -215,6 +215,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .mon-sprite{font-size:clamp(66px,15vh,130px);line-height:1.05;animation:bob 2s ease-in-out infinite;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
 .boss .mon-sprite{font-size:clamp(88px,20vh,170px)}
 .qcard{margin:0 auto;width:min(560px,94vw);background:#fff;color:var(--ink);border-radius:20px;padding:10px 16px;text-align:center;box-shadow:0 6px 0 rgba(0,0,0,.25);transition:background .2s}
+.bctrl .qcard{display:flex;flex-direction:column;justify-content:center}
 .qcard.right{background:#e2ffe9}
 .qlabel{font-size:15px;font-weight:600;color:var(--accent);min-height:0}
 .qtext{font-size:clamp(30px,6vh,52px);font-weight:700;letter-spacing:1px;font-variant-numeric:tabular-nums}
@@ -780,19 +781,24 @@ function genX(op,L){
    return fin({vis:{t:'coins',list},prompt:'How much money is this?',tpl:'{A} ¢',answer:t,text:`Coins: ${list.map(c=>c===100?'$1':c+'¢').join(' + ')}`,
     explain:`<p>Start with the biggest: ${list.map(c=>c===100?'100':c).join(' + ')} = <b>${t}¢</b>${t>=100?` (that's ${cents(t)})`:''}</p>`,
     nudge:`<p>Remember: 🪙 penny = 1¢, nickel = 5¢, dime = 10¢, quarter = 25¢, $1 = 100¢. Count the big ones first!</p>`});}
-  const items=[['🍎','apple'],['🍪','cookie'],['🧃','juice box'],['🍫','candy bar'],['🎈','balloon'],['✏️','pencil'],['🍦','ice cream cone'],['🧸','teddy bear']];
+  /* real-world prices (cents): each level only uses things that really cost about that much */
+  const PR5=[['🍬','piece of candy',10,25],['🍭','lollipop',25,50],['⭐','sticker',25,50],['✏️','pencil',25,50],['🐞','plastic bug',40,60],['🍌','banana',25,35]];
+  const PR6=[['🍌','banana',25,35],['✏️','pencil',40,60],['🏀','bouncy ball',50,75],['🍎','apple',75,95],['🍭','lollipop',25,50],['🐞','plastic bug',40,60],['⭐','sticker',25,50]];
+  const PR8=[['🍎','apple',100,125],['🧃','juice box',100,150],['🍫','candy bar',150,225],['🎈','balloon',200,300],['🍪','cookie',200,300],['🍦','ice cream cone',300,450],['📓','notebook',150,300]];
+  const PR9=[['📓','notebook','notebooks',2,4],['🖍️','box of crayons','boxes of crayons',2,4],['🍕','pizza slice','pizza slices',3,5],['🍦','ice cream cone','ice cream cones',3,5],['🥪','sandwich','sandwiches',6,9],['📚','book','books',6,12],['🎟️','movie ticket','movie tickets',10,14],['🧸','teddy bear','teddy bears',10,15]];
+  const c5=(lo,hi)=>5*rnd(Math.ceil(lo/5),Math.floor(hi/5));
   const an=n=>/^[aeiou]/i.test(n)?'An':'A',pl=(n,k)=>k===1?n:/(x|s|ch|sh)$/.test(n)?n+'es':n+'s';
-  if(L===5){const [e1,n1]=pick(items);let [e2,n2]=pick(items);if(n2===n1)[e2,n2]=items[(items.findIndex(x=>x[1]===n1)+1)%items.length];const a=5*rnd(2,12),b=5*rnd(2,12);
+  if(L===5){const i1=rnd(0,PR5.length-1),i2=(i1+rnd(1,PR5.length-1))%PR5.length;const [e1,n1,l1,h1]=PR5[i1],[e2,n2,l2,h2]=PR5[i2];const a=c5(l1,h1),b=c5(l2,h2);
    return fin({prompt:`${an(n1)} ${n1} ${e1} costs ${a}¢. ${an(n2)} ${n2} ${e2} costs ${b}¢.`,tpl:'Both together: {A} ¢',answer:a+b,text:`${a}¢ + ${b}¢`,explain:`<p>${a} + ${b} = <b>${a+b}¢</b></p>`,nudge:`<p>Add the two prices. Try the tens first: ${Math.floor(a/10)*10} + ${Math.floor(b/10)*10}.</p>`});}
-  if(L===6){const [e,n]=pick(items);const pr=5*rnd(3,19);
+  if(L===6){const [e,n,lo,hi]=pick(PR6);const pr=c5(lo,hi);
    return fin({vis:{t:'coins',list:[100]},prompt:`You pay <b>$1</b> for ${an(n).toLowerCase()} ${n} ${e} that costs <b>${pr}¢</b>.`,tpl:'Your change: {A} ¢',answer:100-pr,text:`Change from $1 for ${pr}¢`,explain:`<p>$1 = 100¢. &nbsp;100 − ${pr} = <b>${100-pr}¢</b></p><p class="tip">Count up from ${pr} to 100!</p>`,nudge:`<p>Count up from ${pr}¢ to 100¢. How far is it?</p>`});}
   if(L===7){const d=rnd(1,9),c=5*rnd(1,19);const v=d*100+c;
    return fin({tpl:`$${d}.${pad2(c)} = {A} ¢`,answer:v,text:`$${d}.${pad2(c)} in cents`,explain:`<p>Each dollar is 100¢: ${d} × 100 = ${d*100}.</p><p>${d*100} + ${c} = <b>${v}¢</b></p>`,nudge:`<p>How many cents is ${d} dollar${d>1?'s':''}? Then add the ${c}¢.</p>`});}
-  if(L===8){const [e,n]=pick(items);const pr=rnd(1,4)*100+25*rnd(0,3)+(Math.random()<.5?0:10);const v=500-pr;
+  if(L===8){const [e,n,lo,hi]=pick(PR8);const pr=c5(lo,hi);const v=500-pr;
    return fin({prompt:`You pay <b>$5</b> for ${an(n).toLowerCase()} ${n} ${e} that costs <b>${cents(pr)}</b>.`,tpl:'Change in cents: {A} ¢',answer:v,text:`Change from $5 for ${cents(pr)}`,explain:`<p>$5 = 500¢, ${cents(pr)} = ${pr}¢.</p><p>500 − ${pr} = <b>${v}¢</b> (${cents(v)})</p>`,nudge:`<p>Turn both into cents: $5 = 500¢. Then subtract.</p>`});}
-  if(L===9){const [e,n]=pick(items);const k=rnd(2,9),pr=rnd(2,12);
-   return fin({prompt:`${e.repeat(k)}<br>${k} ${pl(n,k)} cost <b>$${pr}</b> each.`,tpl:'Total: $ {A}',answer:k*pr,text:`${k} × $${pr}`,explain:`<p>${k} × ${pr} = <b>$${k*pr}</b></p>`,nudge:`<p>Multiply how many by the price: ${k} × ${pr}</p>`});}
-  const have=pick([10,20,20,50]),a=rnd(2,Math.floor(have/3)),b=rnd(2,Math.floor(have/3));
+  if(L===9){const [e,n,ns,lo,hi]=pick(PR9);const k=rnd(2,9),pr=rnd(lo,hi);
+   return fin({prompt:`${e.repeat(k)}<br>${k} ${ns} cost <b>$${pr}</b> each.`,tpl:'Total: $ {A}',answer:k*pr,text:`${k} × $${pr}`,explain:`<p>${k} × ${pr} = <b>$${k*pr}</b></p>`,nudge:`<p>Multiply how many by the price: ${k} × ${pr}</p>`});}
+  const have=pick([20,20,30,50]),b=rnd(5,15),a=rnd(3,Math.min(15,have-b-1));
   return fin({prompt:`You have <b>$${have}</b>. You buy a toy for <b>$${a}</b> and a book for <b>$${b}</b>.`,tpl:'Money left: $ {A}',answer:have-a-b,text:`$${have} − $${a} − $${b}`,explain:`<p>Spent: ${a} + ${b} = ${a+b}.</p><p>${have} − ${a+b} = <b>$${have-a-b}</b></p>`,nudge:`<p>Add up what you spent first, then take it away from $${have}.</p>`});
  }
  // time
@@ -976,13 +982,14 @@ function genG5(op,L){
   if(L===8){const w=rnd(4,20),l=w+rnd(3,20),P=2*(l+w);return fin({vis:{t:'rect',top:l+' ft',side:'? ft'},prompt:`The perimeter is <b>${P} feet</b>. The length is ${l} feet.`,tpl:'Width = {A} ft',answer:w,text:`P=${P}, l=${l}, width?`,explain:`<p>Two lengths: ${l} + ${l} = ${2*l}. ${P} − ${2*l} = ${P-2*l} for the two widths.</p><p>${P-2*l} ÷ 2 = <b>${w}</b></p>`,nudge:`<p>Take away both long sides from ${P}, then split what's left in half.</p>`});}
   const w=rnd(3,12),l=rnd(6,16);return fin({vis:{t:'rect',top:l+' ft',side:'? ft'},prompt:`The area is <b>${l*w} sq. ft</b>. The length is ${l} feet.`,tpl:'Width = {A} ft',answer:w,text:`Area ${l*w}, l=${l}, width?`,explain:`<p>Area = length × width, so ${l*w} ÷ ${l} = <b>${w}</b></p>`,nudge:`<p>${l} × ? = ${l*w}</p>`});
  }
- // word problems
+ // word problems  (price pairs: [big, small, small $ lo, hi, big $ lo, hi] — real-world prices)
+ const WP_PAIRS=[['bike','helmet',15,40,80,250],['backpack','lunchbox',8,15,20,60],['jacket','hat',10,20,25,60],['necklace','bracelet',5,15,15,60]];
  const name=pick(['Mario','Heather','Julia','Aiden','Phillip','Jasmine','Kaya','Celine']);const sib=pick(['sister','brother','cousin']);
  if(L===1){const a=rnd(3,12),k=rnd(2,6);const [thing,verb,base]=pick([['books','read','read'],['rocks','found','find'],['pushups','did','do'],['strawberries','picked','pick']]);
   return fin({prompt:`${name} ${verb} <b>${a}</b> ${thing}. Their ${sib} ${verb} <b>${k} times as many</b>. How many ${thing} did the ${sib} ${base}?`,tpl:`{A} ${thing}`,answer:a*k,text:`${a} × ${k} (times as many)`,explain:`<p>"${k} times as many" means multiply: ${a} × ${k} = <b>${a*k}</b></p>`,nudge:`<p>"Times as many" means <b>multiply</b>!</p>`});}
- if(L===2){const b=rnd(4,15),k=rnd(2,9);const [big,small]=pick([['backpack','lunchbox'],['bike','helmet'],['necklace','bracelet'],['jacket','hat']]);
+ if(L===2){const [big,small,sl,sh,bl,bh]=pick(WP_PAIRS);let b,k;do{b=rnd(sl,sh);k=rnd(2,9);}while(b*k<bl||b*k>bh);
   return fin({prompt:`A ${big} costs <b>$${b*k}</b>. That is <b>${k} times as much</b> as a ${small}. How much does the ${small} cost?`,tpl:'$ {A}',answer:b,text:`$${b*k} is ${k}× the ${small}`,explain:`<p>The ${small} is the smaller amount, so divide: ${b*k} ÷ ${k} = <b>$${b}</b></p>`,nudge:`<p>The ${big} is ${k} times bigger. To find the ${small}, <b>divide</b> by ${k}.</p>`});}
- if(L===3){const b=rnd(3,12),k=rnd(2,9);const [big,small]=pick([['backpack','lunchbox'],['necklace','bracelet'],['game','book']]);
+ if(L===3){const [big,small,sl,sh,bl,bh]=pick(WP_PAIRS.filter(x=>x[0]!=='bike').concat([['video game','book',5,15,20,60]]));let b,k;do{b=rnd(sl,sh);k=rnd(2,9);}while(b*k<bl||b*k>bh);
   return fin({prompt:`A ${big} costs <b>$${b*k}</b>. A ${small} costs <b>$${b}</b>. How many times as much does the ${big} cost?`,tpl:'{A} times as much',answer:k,text:`$${b*k} vs $${b}: how many times`,explain:`<p>${b*k} ÷ ${b} = <b>${k}</b>. The answer is "${k} times," not dollars!</p>`,nudge:`<p>How many ${b}s fit into ${b*k}? Divide.</p>`});}
  if(L===4){const d=rnd(2,9),n=rnd(6,19);const [a1,a2,a3]=pick([['cups of flour','cups','loaf of bread'],['cups of pecans','cups','pecan pie'],['stickers','stickers','page']]);
   return fin({prompt:`A bakeshop has <b>${d*n}</b> ${a1}. It takes <b>${d}</b> ${a2} to make one ${a3}. How many can it make?`,tpl:'{A}',answer:n,text:`${d*n} ÷ ${d}`,explain:`<p>${d*n} ÷ ${d} = <b>${n}</b></p>`,nudge:`<p>Share ${d*n} into groups of ${d}. Divide!</p>`});}
@@ -997,7 +1004,7 @@ function genG5(op,L){
  if(L===8){const t=rnd(5,19),h=rnd(1,9);return fin({prompt:'Write it as one number.',tpl:`${t} tens + ${h} hundreds = {A}`,answer:t*10+h*100,text:`${t} tens + ${h} hundreds`,explain:`<p>${t} tens = ${t*10}. ${h} hundreds = ${h*100}.</p><p>${t*10} + ${h*100} = <b>${t*10+h*100}</b></p>`,nudge:`<p>${t} tens is ${t} × 10. ${h} hundreds is ${h} × 100.</p>`});}
  if(L===9){const a=rnd(4,12),k=rnd(2,6);const thing=pick(['pushups','strawberries','books','rocks']);
   return fin({prompt:`${name} has <b>${a}</b> ${thing}. Their ${sib} has <b>${k} times as many</b>. How many do they have <b>together</b>?`,tpl:`{A} ${thing}`,answer:a+a*k,text:`${a} + ${a}×${k}`,explain:`<p>${sib}: ${a} × ${k} = ${a*k}.</p><p>Together: ${a} + ${a*k} = <b>${a+a*k}</b></p>`,nudge:`<p>Two steps: find the ${sib}'s amount, then add both.</p>`});}
- const ppl=rnd(3,8),each=rnd(12,30),extra=rnd(2,5);
+ const ppl=rnd(3,8),each=rnd(25,45),extra=rnd(2,5);
  return fin({prompt:`A family of <b>${ppl}</b> paid <b>$${ppl*each}</b> at the water park, the same for each person. Then <b>${extra}</b> friends joined at the same price. What did the friends pay in all?`,tpl:'$ {A}',answer:each*extra,text:`$${ppl*each}÷${ppl} × ${extra}`,explain:`<p>Each person: ${ppl*each} ÷ ${ppl} = $${each}.</p><p>Friends: ${each} × ${extra} = <b>$${each*extra}</b></p>`,nudge:`<p>Step 1: price for ONE person. Step 2: times ${extra}.</p>`});
 }
 Object.assign(XDESC,{
@@ -1659,7 +1666,7 @@ function genHigh(op,L){const q={op,L,fast:14};const fin=o=>{Object.assign(q,o);[
   const m=rnd(2,9),x=rnd(2,15),c=rnd(1,30);return fin({prompt:'Find <b>x</b>',tpl:`${m}x + ${c} = ${m*x+c} &nbsp; → &nbsp; x = {A}`,text:`${m}x + ${c} = ${m*x+c}`,answer:x,explain:`<p>Subtract ${c}: ${m}x = ${m*x}. Divide by ${m}: x = <b>${x}</b>.</p>`,nudge:`<p>First undo the + ${c}, then undo the × ${m}.</p>`});
  }
  if(k===1){const a=rnd(2,12),b=rnd(2,12);return eq(`${NEG(a*b)} ÷ ${NEG(b)}`,a,`<p>Negative ÷ negative is <b>positive</b>. ${a*b} ÷ ${b} = <b>${a}</b>.</p>`,`<p>Same signs give a positive answer.</p>`);}
- if(k===2){const n=rnd(3,12),u=rnd(2,15),it=pick([['🍎','apples'],['🎟️','tickets'],['📓','notebooks'],['🧃','juice boxes']]);return fin({prompt:`${it[0]} ${n} ${it[1]} cost <b>$${n*u}</b>. How much for <b>1</b>?`,tpl:`$ {A}`,text:`${n} ${it[1]} cost $${n*u}`,answer:u,explain:`<p>Divide the total by how many: ${n*u} ÷ ${n} = <b>$${u}</b> each.</p>`,nudge:`<p>Share $${n*u} equally among ${n}.</p>`});}
+ if(k===2){const it=pick([['🎟️','tickets',5,15],['📓','notebooks',2,5],['🧃','juice boxes',1,2],['🖍️','boxes of crayons',2,4],['📚','books',6,12]]),n=rnd(3,12),u=rnd(it[2],it[3]);return fin({prompt:`${it[0]} ${n} ${it[1]} cost <b>$${n*u}</b>. How much for <b>1</b>?`,tpl:`$ {A}`,text:`${n} ${it[1]} cost $${n*u}`,answer:u,explain:`<p>Divide the total by how many: ${n*u} ÷ ${n} = <b>$${u}</b> each.</p>`,nudge:`<p>Share $${n*u} equally among ${n}.</p>`});}
  if(k===3){const n=rnd(2,20);return eq(`√${n*n}`,n,`<p>√ asks "what number times itself makes ${n*n}?" ${n} × ${n} = ${n*n}, so the answer is <b>${n}</b>.</p>`,`<p>Think: ? × ? = ${n*n}</p>`);}
  if(k===4){const pc=pick([10,20,25,50]),whole=(pc===25?4:pc===20?5:pc===50?2:10)*rnd(2,30);const part=whole*pc/100;return fin({prompt:`<b>${part}</b> is <b>${pc}%</b> of what number?`,tpl:`Whole = {A}`,text:`${part} is ${pc}% of ?`,answer:whole,explain:`<p>${pc}% is ${part}, so 1% is ${part} ÷ ${pc}, and 100% is ${part} × ${100/pc} = <b>${whole}</b>.</p>`,nudge:`<p>${pc}% goes into 100% exactly ${100/pc} times.</p>`});}
  const d=rnd(2,9),m=rnd(2,15),c=rnd(1,20);return fin({prompt:'Find <b>x</b>',tpl:`x ÷ ${d} + ${c} = ${m+c} &nbsp; → &nbsp; x = {A}`,text:`x ÷ ${d} + ${c} = ${m+c}`,answer:d*m,explain:`<p>Subtract ${c}: x ÷ ${d} = ${m}. Multiply by ${d}: x = <b>${d*m}</b>.</p>`,nudge:`<p>Undo the + ${c} first, then undo the ÷ ${d}.</p>`});
@@ -2068,8 +2075,16 @@ function renderBattle(){
  </div>
  <div class="bctrl"><div class="qcard" id="qcard"><button class="hintbtn" id="hintBtn" onclick="useHint()"></button><div class="qlabel" id="qlabel"></div><div class="qtext" id="qtext">Get ready…</div></div>
  <div class="qpad">${B.mode!=='math'?'':`<div class="pad" id="mpad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="press('${n}')">${n}</button>`).join('')}<button class="del" onclick="press('del')">⌫</button><button onclick="press('0')">0</button><button class="go" onclick="press('go')">✓</button><button class="negk" onclick="press('neg')">± make it negative</button></div>`}</div></div></div></div>`;
- updateBars();
+ updateBars();qPrime();
 }
+/* keep the question card the same height all battle, so the scene doesn't jump when a tall picture question appears.
+   Before the first question we quietly measure a few sample questions for this world (nothing is painted in between). */
+function qPrime(){try{if(!B||B.mode!=='math'||B.wild)return;const qc=$('#qcard'),qt=$('#qtext'),ql=$('#qlabel');if(!qc||!qt)return;
+ const p=P(),keep=qt.innerHTML,kl=ql?ql.textContent:'',q0=B.q,i0=B.input;let h=0;
+ for(let i=0;i<6;i++){const op=B.z.op==='mix'?pickOp(p,'mix'):B.z.op;const q=genQ(op,lvl(p,op));if(!q)continue;B.q=q;B.input='';if(ql)ql.textContent='Level 1';showQ();h=Math.max(h,qc.getBoundingClientRect().height);}
+ B.q=q0;B.input=i0;qt.innerHTML=keep;if(ql)ql.textContent=kl;updateHintBtn();
+ B.qmin=Math.max(B.qmin||0,Math.min(h,window.innerHeight*.42));if(B.qmin)qc.style.minHeight=B.qmin+'px';}catch(e){console.warn('qPrime',e);}}
+function qRatchet(){try{const qc=$('#qcard');if(!B||!qc)return;const h=qc.getBoundingClientRect().height;if(h>(B.qmin||0)&&h<window.innerHeight*.42){B.qmin=h;qc.style.minHeight=h+'px';}}catch(e){}}
 function updateBars(){
  if(!$('#hhp'))return;
  $('#hhp').style.width=(B.hhp/B.hmax*100)+'%';$('#mhp').style.width=(B.mhp/B.mmax*100)+'%';
@@ -2196,7 +2211,7 @@ function snapBattle(p){if(!B||B.over||!B.z)return;
 function showQ(){
  updateHintBtn();
  if(B.mode!=='math'){questShowQ();return;}
- const q=B.q,inp=B.input||'?';{const mp=$('#mpad');if(mp)mp.classList.toggle('negon',!!q.neg);}setTimeout(fitBattle,0);
+ const q=B.q,inp=B.input||'?';{const mp=$('#mpad');if(mp)mp.classList.toggle('negon',!!q.neg);}setTimeout(()=>{qRatchet();fitBattle();},0);
  if(q.tpl){xShowQ(q,B.input);return;}
  if(q.rev){$('#qtext').innerHTML=`<div class="revq"><span class="ansbox rb ${B.box===0?'on':''}" onclick="revBox(0)">${B.input||'?'}</span> ${REV_SYM[q.op]} <span class="ansbox rb ${B.box===1?'on':''}" onclick="revBox(1)">${B.input2||'?'}</span> = <b>${q.target}</b></div><div class="revnote">${q.note}</div>`;return;}
  if(q.story){$('#qtext').innerHTML=`<div class="trickq"><div class="tqs">${q.story}</div><div class="tqa">Answer: <span class="ansbox">${inp}</span></div></div>`;return;}
@@ -3144,14 +3159,17 @@ function cafeMathQ(p){const g=p.grade||3;
  if(k===1){const n=pick([6,9,12,15]);return {kind:'num',q:`The recipe needs 2/3 cup of rice per plate. How many cups of rice for ${n} plates?`,pre:'',post:' cups',a:n*2/3,hint:`${n} ÷ 3 = ${n/3}, then × 2.`};}
  const pz=rnd(4,7),s=8,e=rnd(10,pz*s-3);return {kind:'num',q:`Ms. Rosa cut ${pz} pizzas into ${s} slices each. ${e} slices were eaten. How many slices are left?`,pre:'',post:' slices',a:pz*s-e,hint:`First ${pz} × ${s} = ${pz*s}. Then subtract ${e}.`};}
 function cafeMoneyQ(p){const g=p.grade||3;
- const items=[['🌮','Taco plate'],['🍝','Pasta bowl'],['🍕','Pizza slice'],['🥪','Sandwich'],['🥛','Milk'],['🍊','Orange'],['🍎','Apple'],['🥗','Salad']].sort(()=>Math.random()-.5).slice(0,4).map(([e,n],i)=>({e,n,pr:i<2?rnd(35,55)*5:rnd(6,14)*5}));
- if(g<=2){items.forEach((it,i)=>it.pr=(i<2?rnd(3,5):rnd(1,2))*100);const a=items[0],b=items[2];const tot=(a.pr+b.pr)/100;const pay=tot<5?5:10;
+ /* real school-cafe prices in cents; two mains first, then two sides */
+ const sh=a=>[...a].sort(()=>Math.random()-.5);
+ const mains=sh([['🌮','Taco plate',350,500],['🍝','Pasta bowl',400,600],['🍕','Pizza slice',250,400],['🥪','Sandwich',400,600],['🥗','Salad',400,600]]).slice(0,2),sides=sh([['🥛','Milk',75,100],['🍊','Orange',75,125],['🍎','Apple',75,125],['🍌','Banana',50,75]]).slice(0,2);
+ const items=[...mains,...sides].map(([e,n,lo,hi])=>({e,n,pr:5*rnd(lo/5,hi/5)}));
+ if(g<=2){items.forEach((it,i)=>it.pr=(i<2?rnd(3,5):1)*100);const a=items[0],b=items[2];const tot=(a.pr+b.pr)/100;const pay=tot<5?5:10;
   return {kind:'num',money:true,menu:items,q:`You have $${pay}. You buy the ${a.n.toLowerCase()} and the ${b.n.toLowerCase()}. How much money is left?`,pre:'$ ',post:'',a:pay-tot,hint:`$${a.pr/100} + $${b.pr/100} = $${tot}. Then $${pay} − $${tot}.`};}
- if(g>=6&&Math.random()<.5){const it=items.find(x=>!['Milk','Orange','Apple'].includes(x.n))||items[0];const pc=pick([10,20,25,50]);const base=pick([6,8,10,12]);it.pr=base*100;const sale=Math.round(base*(100-pc))/100;
+ if(g>=6&&Math.random()<.5){const it=items.find(x=>!['Milk','Orange','Apple'].includes(x.n))||items[0];const pc=pick([10,20,25,50]);const base=pick([4,5,6,8]);it.pr=base*100;const sale=Math.round(base*(100-pc))/100;
   return {kind:'num',money:true,menu:items,q:`Today the ${it.n.toLowerCase()} is ${pc}% off! It usually costs $${base}.00. What is the sale price?`,pre:'$ ',post:'',a:sale,hint:`${pc}% of $${base} is $${cents2(base*pc/100)}. Then $${base}.00 − $${cents2(base*pc/100)}.`};}
- if(g<=3){const a=items[0],b=items[2];const tot=a.pr+b.pr;const pay=tot<=300?300:500;
+ if(g<=3){const a=items[0],b=items[2];const tot=a.pr+b.pr;const pay=tot<=500?500:1000;
   return {kind:'num',money:true,menu:items,q:`You have $${pay/100}.00. You buy the ${a.n.toLowerCase()} and the ${b.n.toLowerCase()}. How much change do you get?`,pre:'$ ',post:'',a:(pay-tot)/100,hint:`$${cents2(a.pr/100)} + $${cents2(b.pr/100)} = $${cents2(tot/100)}. Then $${pay/100}.00 − $${cents2(tot/100)}.`};}
- if(Math.random()<.5){const n=pick([2,3,4]),each=rnd(70,130)*5;const tot=each*n;return {kind:'num',money:true,menu:items,q:`${n} friends split a pizza order that costs $${cents2(tot/100)}. They each pay the same. How much does each friend pay?`,pre:'$ ',post:'',a:each/100,hint:`$${cents2(tot/100)} ÷ ${n}.`};}
+ if(Math.random()<.5){const n=pick([2,3,4]),each=5*rnd(Math.ceil(1800/n/5),Math.floor(4000/n/5));const tot=each*n;return {kind:'num',money:true,menu:items,q:`${n} friends split a pizza order that costs $${cents2(tot/100)}. They each pay the same. How much does each friend pay?`,pre:'$ ',post:'',a:each/100,hint:`$${cents2(tot/100)} ÷ ${n}.`};}
  const a=items[0],b=items[2],c=items[3];const tot=a.pr+b.pr+c.pr;return {kind:'num',money:true,menu:items,q:`You buy the ${a.n.toLowerCase()}, the ${b.n.toLowerCase()} and the ${c.n.toLowerCase()} for you AND your friend (2 of each). What is the total?`,pre:'$ ',post:'',a:tot*2/100,hint:`One of each: $${cents2(tot/100)}. Then × 2.`};}
 function cafeStart(){const p=P();const pk=(arr,n)=>[...arr].sort(()=>Math.random()-.5).slice(0,n);
  const foods=[...pk(CAFE_FOODS.veg,3).map(f=>[...f,'veg']),...pk(CAFE_FOODS.fruit,3).map(f=>[...f,'fruit']),...pk(CAFE_FOODS.grain,2).map(f=>[...f,'grain']),...pk(CAFE_FOODS.prot,2).map(f=>[...f,'prot']),...pk(CAFE_FOODS.treat,1).map(f=>[...f,'treat'])].sort(()=>Math.random()-.5);
@@ -4236,7 +4254,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.29h';
+const APP_VER='2026.09.29j';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
