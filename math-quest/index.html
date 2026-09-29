@@ -1815,7 +1815,7 @@ let kindOpen=false;
 const KIND_TRICKS={because:'Big Elephants Can Always Understand Small Elephants: B-E-C-A-U-S-E!',different:'Clap it in three parts: dif - fer - ent. Two f\'s, like two little fish swimming together.',friend:'A friend is your friend to the END. Friend ends with E-N-D.',again:'a - GAIN. You gain another turn when you try again!',said:'Sally Ate Ice cream Daily: S-A-I-D.',people:'People Eat Orange Peels, Loving Everything.',beautiful:'Start with B-E-A-U, then tiful. Beau-ti-ful!',believe:'Never believe a LIE. There is a lie hiding inside be-LIE-ve.',enough:'e - n - OUGH. The OUGH is the same as in tough.',laugh:'Laugh And U Get Happy: L-A-U-G-H.',surprise:'sur - prise. Two r\'s, one in each part.',library:'li - BRAR - y. Don\'t forget the first r!',caught:'c - AUGH - t. The same AUGH as in daughter.',busy:'A bus is busy! Busy starts with B-U-S.',through:'t-h-r-OUGH. Go through the rough road.',often:'OFT - EN. There is a quiet t hiding in there.',almost:'Almost has only one L: al + most.',both:'b - o - t - h. It ends with th, like tooth.',coach:'Coach has the OA team, just like boat and goat.',young:'YOU + NG. You are young!',touch:'t - OU - ch. The OU team, then ch.',your:'YOU + R makes YOUR.',human:'hu + man. Two claps: hu - man.',music:'mu - sic. Say mew like a kitty, then sic.',country:'COUNT + RY. Count the states in our country!',california:'Cal - i - for - nia. Four claps!',new:'The EW team says oo: n-e-w.',few:'The EW team again: f-e-w, just like new.',fuel:'fu - el. Two claps.',throne:'The quiet e at the end makes the o say its name: throne.',rocket:'rock + et.',pocket:'pock + et, just like rocket!',sew:'You sew with a needle. S-E-W sounds like so!',state:'The quiet e makes the a say its name: st-A-t-e.',cute:'The quiet e makes the u say its name: c-U-t-e.',use:'u - s - e. The quiet e helps the u say its name.',unit:'u - nit. Two claps.',most:'m - o - s - t. Almost has the same ending!',hold:'h - OLD. Hold ends with old.',told:'t - OLD. Told ends with old, just like hold.',grow:'g - r - OW. The OW team says oh, like snow.',open:'o - pen. Two claps.',also:'al - so. Only one L!',under:'un - der. Two claps.',such:'s - u - ch.',much:'m - u - ch. Just like such!'};
 function kindCan(p){if(!B||B.wild||kindOpen)return false;if(p.kindDay===dayKey())return false;if(B.mode==='math'&&(B.round||1)>=5)return false;if(B.mode==='spell'&&spellRound()>=5)return false;return true;}
 function kindLog(p,kind,what){p.kindDay=dayKey();p.kindVisits=p.kindVisits||[];p.kindVisits.push({d:dayKey(),kind,what:String(what).slice(0,40)});if(p.kindVisits.length>60)p.kindVisits.shift();save();}
-function kindSay(text){try{if(!window.speechSynthesis||!state.sound)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';try{u.volume=Math.min(1,Math.max(.25,fxLevel()));}catch(e){}u.rate=.85;u.pitch=1.2;const v=pickVoice();if(v)u.voice=v;speechSynthesis.speak(u);}catch(e){}}
+function kindSay(text){try{if(!window.speechSynthesis||!state.sound)return;const u=new SpeechSynthesisUtterance(text);u.lang='en-US';try{u.volume=Math.min(1,Math.max(.25,fxLevel()));}catch(e){}u.rate=.85;u.pitch=1.2;const v=pickVoice();if(v)u.voice=v;ttsSpeak(u);}catch(e){}}
 function kindChime(){[523,659,784,1047,1319,1568,2093].forEach((f,i)=>tone(f,.9,'sine',.05,i*.13));[1568,2093,2637].forEach((f,i)=>tone(f,1.4,'triangle',.025,1.1+i*.2));}
 function kindSVG(){return `<svg class="kind-svg" viewBox="0 0 240 330" aria-label="The Kind Teacher">
 <defs><radialGradient id="kaura"><stop offset="0" stop-color="#fffbe6" stop-opacity=".95"/><stop offset=".45" stop-color="#ffe9a8" stop-opacity=".45"/><stop offset="1" stop-color="#ffd6f5" stop-opacity="0"/></radialGradient>
@@ -2680,7 +2680,7 @@ function principalSpawn(){if(!W)return;const p=P();W.mobs=W.mobs.filter(m=>!m.pr
   if(tile.block||tile.water||tile.plaza||d<5||d>11)continue;W.mobs.push({id:'principal',principal:true,x,y,dx:x,dy:y,e:'👨‍💼',n:'Principal Wise',b:tile.b});break;}
  setTimeout(()=>{if(curScreen==='world'){SFX.level();toast('🔔 Principal Wise is visiting today! Find him on the map. He wants to talk to you!');}},900);}
 function voicePrincipal(){try{const vs=speechSynthesis.getVoices()||[];return vs.find(v=>/en/i.test(v.lang)&&/Daniel|Alex|Fred|Guy|David|Mark|Google UK English Male|Arthur|Aaron|Tom/i.test(v.name))||null;}catch(e){return null;}}
-function sayPrincipal(t){try{if(!window.speechSynthesis||!state.sound)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.replace(/<[^>]+>/g,''));u.lang='en-US';try{u.volume=Math.min(1,Math.max(.25,fxLevel()));}catch(e){}u.rate=.92;u.pitch=.8;const v=voicePrincipal();if(v)u.voice=v;speechSynthesis.speak(u);}catch(e){}}
+function sayPrincipal(t){try{if(!window.speechSynthesis||!state.sound)return;const u=new SpeechSynthesisUtterance(t.replace(/<[^>]+>/g,''));u.lang='en-US';try{u.volume=Math.min(1,Math.max(.25,fxLevel()));}catch(e){}u.rate=.92;u.pitch=.8;const v=voicePrincipal();if(v)u.voice=v;ttsSpeak(u);}catch(e){}}
 function principalLines(p){
  const nm=p.name;const L=[];const ops=OPS.filter(o=>(p.stats[o].r+p.stats[o].w)>=8);
  const tot=OPS.reduce((s,o)=>s+p.stats[o].r,0),totW=OPS.reduce((s,o)=>s+p.stats[o].w,0);const acc=tot+totW?tot/(tot+totW):1;const struggling=acc<.78;
@@ -2911,9 +2911,9 @@ function fountainJoke(){const p=P();const f=fnt(p);
  [523,659,784].forEach((x,k)=>tone(x,.18,'triangle',.07,k*.1));
  modal(`<div class="mcard fountain"><div class="fnt-pool splash"><span class="fnt-e big">⛲</span><span class="fnt-face">😜</span></div><h2>💦 SPLOOSH! The fountain has a joke for you!</h2>
  <div class="fnt-joke">${esc(q)}</div><div class="fnt-punch" id="fntPunch">${esc(a)}</div>
- <div class="row"><button class="btn green big" id="fntTell" onclick="fountainPunch()">Tell me! 🤔</button></div>
+ <div class="row"><button class="btn ghost dark" id="fntHear" onclick="say(DAD_JOKES[${i}][0],.9)">🔊 Hear it</button><button class="btn green big" id="fntTell" onclick="fountainPunch()">Tell me! 🤔</button></div>
  <p class="muted">🤣 Joke ${f.seen.length} of ${DAD_JOKES.length} found</p></div>`);
- setTimeout(()=>say(q,.9),300);}
+ say(q,.9);}
 function fountainPunch(){const el=$('#fntPunch');if(!el)return;el.classList.add('show');const b=$('#fntTell');if(b){b.textContent='😂 Ha! Again!';b.onclick=()=>fountainOpen();}
  say(el.textContent,.9);setTimeout(()=>{tone(180,.08,'square',.06);tone(140,.08,'square',.06,.12);tone(1200,.35,'triangle',.04,.26);},1100);}
 /* ================= the Cafeteria: Ms. Rosa's daily lunch challenge ================= */
@@ -3756,7 +3756,16 @@ const learned=(p,w)=>wordStat(p,w).s>=2;
 
 /* speech */
 function pickVoice(){try{const vs=speechSynthesis.getVoices()||[];return vs.find(v=>/en[-_]US/i.test(v.lang)&&/Samantha|Google US|Aria|Jenny|Ava|Allison/i.test(v.name))||vs.find(v=>/en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;}catch(e){return null;}}
-function say(text,rate){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';try{u.volume=Math.min(1,Math.max(.25,fxLevel()));}catch(e){}u.rate=rate||.8;const v=pickVoice();if(v)u.voice=v;speechSynthesis.speak(u);}catch(e){}}
+/* One safe way to talk for the whole game. iPad/iPhone Safari drops speech when: it hasn't been "unlocked" by a tap yet,
+   cancel() and speak() happen in the same instant, the speech engine got paused in the background, or the utterance is
+   garbage-collected mid-sentence. ttsSpeak() works around all four. */
+let TTS_KEEP=null,TTS_UNLOCKED=false;
+function ttsSpeak(u){try{const ss=window.speechSynthesis;if(!ss)return;TTS_KEEP=u;u.onend=u.onerror=()=>{if(TTS_KEEP===u)TTS_KEEP=null;};
+ const go=()=>{try{ss.resume();ss.speak(u);}catch(e){}};
+ if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120);}else go();}catch(e){}}
+function ttsUnlock(){if(TTS_UNLOCKED)return;TTS_UNLOCKED=true;try{const ss=window.speechSynthesis;if(!ss)return;ss.getVoices();const u=new SpeechSynthesisUtterance(' ');u.volume=0;ss.speak(u);}catch(e){}}
+['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,ttsUnlock,{once:true,capture:true}));
+function say(text,rate){try{if(!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(text);u.lang='en-US';try{u.volume=Math.min(1,Math.max(.25,fxLevel()));}catch(e){}u.rate=rate||.8;const v=pickVoice();if(v)u.voice=v;ttsSpeak(u);}catch(e){}}
 try{if(window.speechSynthesis)speechSynthesis.onvoiceschanged=()=>{};}catch(e){}
 function spellReplayOK(){const q=B.q;if(spellRound()<3)return true;q.rp=q.rp||0;if(q.rp>=2){toast('No more replays for this word! 🙉 Give it your best try.');return false;}q.rp++;showQ();return true;}
 function sayWord(){if(B&&B.q&&B.q.type==='word'&&spellReplayOK())say(B.q.word,.75);}
@@ -4052,7 +4061,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28v';
+const APP_VER='2026.09.28w';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
