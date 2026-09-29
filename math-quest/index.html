@@ -3204,8 +3204,8 @@ SCREENS.library=()=>{const p=P();const back=`<div class="zhead"><button class="b
  const cols=['#e03131','#1c7ed6','#2f9e44','#f08c00','#7048e8','#0c8599','#c2255c','#5c940d','#e8590c','#364fc7'];
  if(!LIB){const {band,next,L,lv,readOther}=libShelf(p);
   const reqs=libReqFor(p);const book=(s,i)=>{const d=L.done[s.id];const isNext=next.includes(s);const idea=reqs.includes(s);return `<button class="lbook ${d?'read':''} ${isNext?'next':''} ${idea?'idea':''}" style="--bc:${cols[i%cols.length]}" ${isNext||d?`onclick="libOpen('${s.id}',${isNext?1:0})"`:`onclick="toast('🔒 Read the ✨ NEW books first! Professor Hoot opens more every day.')"`}><span class="be">${s.e}</span><span class="bt">${esc(s.t)}</span><span class="bs">${isNext?(d?'🔁 READ AGAIN':idea?'💡 YOUR IDEA':'✨ NEW'):d?libStars(d.best,s.q.length):'🔒'}</span><span class="blv">Lv ${s.lv}</span></button>`;};
-  L.reqSeen=L.reqSeen||{};const fresh1=reqs.find(s=>!L.reqSeen[s.id]&&!L.done[s.id]);if(fresh1){L.reqSeen[fresh1.id]=1;save();setTimeout(()=>{try{SFX.level();}catch(e){}},300);}
-  const say=fresh1?`Hoo-hoo! <b>${esc(p.name)}, your idea came true!</b> 💡 You asked for a story about <b>${esc(fresh1.req.a||fresh1.req.k)}</b>, so I wrote <b>${fresh1.e} ${esc(fresh1.t)}</b> just for you. It's first on the shelf. Enjoy!`:next.length?`Hoo-hoo! Welcome, ${esc(p.name)}! Pick a <b>✨ NEW</b> story. Read it carefully, then answer the questions. You can read <b>${libPerDay(p)} new stories</b> each day, and as you get better, the stories get longer and harder!`:`Wonderful reading today, ${esc(p.name)}! New stories arrive <b>tomorrow</b>. You can re-read any story with a ⭐ for practice.`;
+  L.reqSeen=L.reqSeen||{};const freshR=reqs.filter(s=>!L.reqSeen[s.id]&&!L.done[s.id]);const fresh1=freshR[0];if(fresh1){freshR.forEach(s=>L.reqSeen[s.id]=1);save();setTimeout(()=>{try{SFX.level();}catch(e){}},300);}
+  const say=freshR.length>1?`Hoo-hoo! <b>${esc(p.name)}, your ideas came true!</b> 💡 You asked for stories about ${freshR.map(s=>`<b>${esc(s.req.a||s.req.k)}</b>`).join(' and ')}, so I wrote ${freshR.map(s=>`<b>${s.e} ${esc(s.t)}</b>`).join(' and ')} just for you. They're first on the shelf!`:fresh1?`Hoo-hoo! <b>${esc(p.name)}, your idea came true!</b> 💡 You asked for a story about <b>${esc(fresh1.req.a||fresh1.req.k)}</b>, so I wrote <b>${fresh1.e} ${esc(fresh1.t)}</b> just for you. It's first on the shelf. Enjoy!`:next.length?`Hoo-hoo! Welcome, ${esc(p.name)}! Pick a <b>✨ NEW</b> story. Read it carefully, then answer the questions. You can read <b>${libPerDay(p)} new stories</b> each day, and as you get better, the stories get longer and harder!`:`Wonderful reading today, ${esc(p.name)}! New stories arrive <b>tomorrow</b>. You can re-read any story with a ⭐ for practice.`;
   wrap(`${libHead(say,1)}${libMeter(p)}<div class="shelf">${band.length?`<div class="shelf-lab">📕 Stories waiting for you</div><div class="shelf-row">${band.map(book).join('')}</div>`:''}${readOther.length?`<div class="shelf-lab">📗 Books you've read (${readOther.length})</div><div class="shelf-row">${readOther.map((s,i)=>book(s,i+3)).join('')}</div>`:''}</div>`);return;}
  const S=LIB.s,C=LIB,NQ=C.qs.length;
  if(C.stage==='read'){wrap(`${libHead(C.practice?'Practice reading! Take your time.':`Read carefully. This is a <b>Level ${S.lv}</b> story with <b>${NQ} questions</b>. Then tap <b>I'm ready for the questions!</b>`)}
@@ -4067,7 +4067,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28y';
+const APP_VER='2026.09.28z';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
