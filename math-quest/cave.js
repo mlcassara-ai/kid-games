@@ -591,7 +591,7 @@ function scratchTray(p,m){const b=hardBand(m.h),sc=p.scr||{};
 function scratchKnown(p){const sc=p.scr||{};for(let i=0;i<4;i++){if(sc[i]===true&&(i===0||sc[i-1]===false))return true;}return sc[3]===false;}
 /* the answers are "the FIRST tool that scratches it", so only one answer is ever true */
 const HB_OPT=['Your fingernail scratches it','Fingernail can\'t, but the copper coin can','Coin can\'t, but the steel nail can','Only the quartz point scratches it','Nothing scratches it'];
-function speak(t){try{if(!window.speechSynthesis||!sndOK())return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/<[^>]+>/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]/gu,'').replace(/—/g,','));u.lang='en-US';u.rate=.9;try{u.volume=Math.min(1,Math.max(.25,window.fxLevel?fxLevel():1));}catch(e){}speechSynthesis.speak(u);}catch(e){}}
+function speak(t){return;try{if(!window.speechSynthesis||!sndOK())return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/<[^>]+>/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]/gu,'').replace(/—/g,','));u.lang='en-US';u.rate=.9;try{u.volume=Math.min(1,Math.max(.25,window.fxLevel?fxLevel():1));}catch(e){}speechSynthesis.speak(u);}catch(e){}}
 function splits(t,C){return new Set(C.map(c=>JSON.stringify(tval(CD.MIN[c],t)))).size>1;}
 const TNAME={magnet:'🧲 Magnet',acid:'🧪 Vinegar drop',water:'💧 Water',streak:'⬜ Streak tile',hard:'💅 Scratch tools',uv:'🔦 UV lamp'};
 function openLab(){
@@ -615,9 +615,9 @@ function bench(k,st){
  if(!t){const tools=keyTests().filter(x=>!used.includes(x));
   body=`<div class="cv-kq">🧰 Which test should we try?</div><div class="cv-tray">${tools.map(x=>`<button class="cv-trayb ${(st.nohelp||[]).includes(x)?'bad':''}" data-pick="${x}" ${(st.nohelp||[]).includes(x)?'disabled':''}>${TNAME[x]}</button>`).join('')}</div>`;
   say=st.say||'Pick a test that will tell our suspects apart. Think: would they all give the same result?';}
- else if(t==='hard'){body=`<div class="cv-kq">${KQ.hard} <button class="cv-say" aria-label="Read it to me">🔊</button></div><div class="cv-kres">${scratchTray(p,m)}</div>${tested?`<div class="cv-kopts">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel('hard',v)}</button>`).join('')}</div>`:''}`;
+ else if(t==='hard'){body=`<div class="cv-kq">${KQ.hard} </div><div class="cv-kres">${scratchTray(p,m)}</div>${tested?`<div class="cv-kopts">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel('hard',v)}</button>`).join('')}</div>`:''}`;
   say=st.say||(tested?'Now we know! Which tool was the FIRST one to make a scratch?':Object.keys(p.scr).length?'Keep going! Try the next tool.':'Let\'s scratch it! Smart scientists start with the softest tool: your fingernail.');}
- else{body=`<div class="cv-kq">${KQ[t]} <button class="cv-say" aria-label="Read it to me">🔊</button></div>${tested?`<div class="cv-kres">${kPic(m,t,p)}</div>${['magnet','acid','water'].includes(t)?'<div style="text-align:center"><button class="cv-say cv-replay">↻ Watch again</button></div>':''}<div class="cv-kopts">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel(t,v)}</button>`).join('')}</div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN[t]}</button>`}`;
+ else{body=`<div class="cv-kq">${KQ[t]} </div>${tested?`<div class="cv-kres">${kPic(m,t,p)}</div>${['magnet','acid','water'].includes(t)?'<div style="text-align:center"><button class="cv-say cv-replay">↻ Watch again</button></div>':''}<div class="cv-kopts">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel(t,v)}</button>`).join('')}</div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN[t]}</button>`}`;
   say=st.say||(tested?'Watch closely! What happened? Pick the answer that matches.':KHINT[t]);}
  modal(`<button class="cv-back" data-back>‹ Lab</button><h2>🗝️ ${p.map?'Your Mystery Rock':'Mystery #'+(S.pack.indexOf(p)+1)}</h2>
   <div class="cv-key"><div class="cv-kleft"><div class="cv-specimen">${rockSVG(p.k,96)}</div><div class="cv-sus2"><b>Could still be:</b>${C.map(c=>`<span>${gemSVG(CD.MIN[c],22)} ${esc(CD.MIN[c].n)}</span>`).join('')}</div></div>
@@ -625,8 +625,6 @@ function bench(k,st){
    <div class="cv-kstep todo"><span class="cv-kn">?</span><div class="cv-kq">🎉 The answer!</div></div></div></div>
   ${guide(say,st.mood)}`,{wide:1});
  const qText=t?(t==='hard'?'How hard is it? Try the scratch tools, softest first.':KQ[t]):'Which test should we try?';
- if(young&&!st.quiet)speak(qText+' '+say);
- root.querySelectorAll('.cv-say').forEach(b=>b.onclick=()=>speak(qText+' '+say));
  root.querySelector('[data-back]').onclick=openLab;
  root.querySelectorAll('.cv-replay').forEach(b=>b.onclick=()=>{sfx(t);bench(k,Object.assign({},st,{t,tested:1,quiet:1}));});
  root.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const x=b.dataset.pick;sfx('tap');
