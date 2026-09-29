@@ -294,7 +294,8 @@ const CSS=`
 #ins-rep .paper{background:#fff;max-width:780px;margin:18px auto 40px;padding:40px 46px;box-shadow:0 4px 24px rgba(0,0,0,.18)}
 #ins-rep h1{font-size:23px;margin:0 0 2px;font-weight:700}#ins-rep h2{font-size:15px;margin:20px 0 6px;padding-bottom:3px;border-bottom:1.5px solid #222;text-transform:uppercase;letter-spacing:.06em;font-family:system-ui,-apple-system,sans-serif}
 #ins-rep .sub{color:#444;font-size:14px}#ins-rep .hdr{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;border-bottom:3px double #222;padding-bottom:10px}
-#ins-rep .hdr .r{text-align:right;white-space:nowrap;font-size:13px;color:#333;font-family:system-ui,sans-serif}
+#ins-rep .hh{font-size:15px;margin:14px 0 6px}
+.hdr .r{text-align:right;white-space:nowrap;font-size:13px;color:#333;font-family:system-ui,sans-serif}
 #ins-rep .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
 #ins-rep .tile{border:1px solid #bbb;border-radius:6px;padding:8px 6px;text-align:center}#ins-rep .tile b{display:block;font-size:22px;font-family:system-ui,sans-serif}#ins-rep .tile span{font-size:11.5px;color:#444;font-family:system-ui,sans-serif}
 #ins-rep table{width:100%;border-collapse:collapse;font-size:12.5px;font-family:system-ui,-apple-system,sans-serif}
@@ -378,8 +379,8 @@ function copy(){const t=summaryText();
 
 /* ================= PART C: teacher report ================= */
 function spellSum(p){const e=Object.entries(p.spellStats||{});if(!e.length)return null;let r=0,w=0,m=0;const tricky=[];
- e.forEach(([k,v])=>{r+=v.r||0;w+=v.w||0;if((v.s||0)>=2)m++;else if((v.w||0)>=2)tricky.push([k,v.w]);});
- return {words:e.length,mastered:m,acc:r+w?Math.round(r/(r+w)*100):null,answers:r+w,tricky:tricky.sort((a,b)=>b[1]-a[1]).slice(0,10).map(x=>x[0])};}
+ e.forEach(([k,v])=>{r+=v.r||0;w+=v.w||0;if((v.s||0)>=2)m++;else if((v.w||0)>=1)tricky.push([k,v.w]);});
+ return {words:e.length,mastered:m,acc:r+w?Math.round(r/(r+w)*100):null,answers:r+w,tricky:tricky.sort((a,b)=>b[1]-a[1]).slice(0,24).map(x=>x[0]),trickyN:tricky.sort((a,b)=>b[1]-a[1]).slice(0,24)};}
 let REP={pid:null,range:28};
 function report(pid){REP.pid=pid;renderReport();}
 function closeReport(){const el=document.getElementById('ins-rep');if(el)el.remove();document.documentElement.classList.remove('ins-printing');}
@@ -412,6 +413,7 @@ function renderReport(){
    else if(basic&&n>=15&&Lv<ex-1)areas.push(`${opName(op)}: currently on ${descOf(op,Lv).toLowerCase()} — a little below the typical grade ${p.grade} level.`);
    else if(rec.n>=10&&bef.n>=10&&bef.acc-rec.acc>=.08)areas.push(`${opName(op)}: accuracy has dipped recently (${Math.round(bef.acc*100)}% → ${Math.round(rec.acc*100)}%).`);
    const lpk=s.lp[op];if(nAll>=30&&lpk&&daysAgo(lpk)>=14&&s.since&&daysAgo(s.since)>=14)areas.push(`${opName(op)}: not practiced since ${fromK6(lpk).toLocaleDateString('en-US',{month:'short',day:'numeric'})} — worth a short review.`);}});
+ const probs=Object.entries(p.missed||{}).filter(([t,m])=>(m.fixed||0)<2&&t.length<70).sort((a,b)=>b[1].n-a[1].n||String(b[1].last||'').localeCompare(String(a[1].last||''))).slice(0,16).map(([t,m])=>({t:t.replace(/\s*=\s*\?\s*$/,''),a:m.a,n:m.n,op:m.op}));
  const facts=Object.entries(p.missed||{}).filter(([t,m])=>(m.fixed||0)<2&&m.n>=2&&/^[\d\s+\-−×÷*/=?]+$/.test(t)&&t.length<16).sort((a,b)=>b[1].n-a[1].n).slice(0,8).map(([t,m])=>`${t.replace(/\s*=\s*\?\s*$/,'')} = ${m.a}`);
  
  let fluency='';
@@ -429,20 +431,15 @@ function renderReport(){
  <div class="paper">
   <div class="hdr"><div><h1>Home Learning Practice Report</h1><div class="sub"><b style="font-size:17px;color:#111">${E(first)}</b> &nbsp;·&nbsp; ${E(grade)}</div></div>
    <div class="r">${fmtD(start)} – ${fmtD(now)}<br>Prepared ${fmtD(now)}</div></div>
-  <p style="margin-top:10px">${E(first)} practices at home with an adaptive math program. Each skill has its own difficulty level that rises after a run of correct answers and eases off after mistakes, so the levels below reflect what ${E(first)} is currently working on without help.</p>
+  <p style="margin-top:10px">${E(first)} practices at home with an adaptive math program. Each skill has its own difficulty level that rises after a run of correct answers and eases off after mistakes, so the list below shows only the specific skills, problems and spelling words ${E(first)} is still working on.</p>
   <h2>Practice summary</h2>
   <div class="tiles">${tile(days.size,'days practiced')}${tile(mins?fmtMin(mins):'—','active practice time'+(tracked?'*':''))}${tile(ans.toLocaleString(),'questions answered')}${tile(ans?Math.round(right/ans*100)+'%':'—','answered correctly')}</div>
   ${tracked?`<p class="muted" style="font-size:11.5px">* Practice time has been recorded since ${fmtD(fromK6(s.since))}.</p>`:''}
-  <h2>Math skills</h2>
-  <div class="tw"><table><tr><th>Skill</th><th>Currently practicing</th><th>Level</th><th class="n">Accuracy</th><th>Trend</th></tr>
-  ${rows.map(r=>`<tr><td><b>${E(r.name)}</b></td><td>${E(r.desc)}</td><td>${E(r.at)}</td><td class="n">${r.acc===null?'—':Math.round(r.acc*100)+'%'} <span class="muted">(${r.n})</span></td><td>${E(r.trend)}</td></tr>`).join('')||'<tr><td colspan="5">No math practice recorded yet.</td></tr>'}</table></div>
-  <p class="muted" style="font-size:11.5px">"Level" is the child's current level on the program's scale for that skill (it adapts continuously so the child answers about 80% correctly). Accuracy is for this period where there is enough data (question count in brackets). Trend compares the earlier and later weeks of the period.</p>
-  ${p.adult?'':`<div class="two keep"><div><h2>Strengths</h2>${strengths.length?`<ul>${strengths.slice(0,5).map(t=>`<li>${E(t)}</li>`).join('')}</ul>`:'<p class="muted">Not enough practice yet to name clear strengths.</p>'}</div>
-  <div><h2>Areas to practice</h2>${areas.length?`<ul>${areas.slice(0,4).map(t=>`<li>${E(t)}</li>`).join('')}</ul>`:(facts.length?'':'<p class="muted">No particular trouble spots right now.</p>')}${facts.length?`<p style="margin-top:6px"><b>Facts to review:</b> ${facts.map(f=>`<span style="white-space:nowrap">${E(f)}</span>`).join(', ')}</p>`:''}</div></div>`}
-  ${fluency}
-  ${readList.length||readLv?`<div class="keep"><h2>Reading</h2><p>${readLv?`Current reading level: <b>${readLv} of 10</b> (the program's 10 levels span roughly 1st to 12th grade). `:''}${rl.length?`${pl(rl.length,'story','stories')} read in this period.`:''} Each story is followed by comprehension questions (main idea, details, inference, vocabulary).</p>
-   ${readList.length?`<div class="tw"><table><tr><th style="width:70px">Date</th><th>Story</th><th class="n" style="width:60px">Level</th><th class="n" style="width:140px">Right on first try</th></tr>${readList.map(r=>`<tr><td style="white-space:nowrap">${E(new Date(r.d+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}))}</td><td>${E(r.t)}</td><td class="n">${r.lv||'—'}</td><td class="n">${r.s} of ${r.n||3}</td></tr>`).join('')}</table></div>`:''}</div>`:''}
-  ${sp?`<div class="keep"><h2>Spelling</h2><p><b>${sp.words}</b> words practiced, <b>${sp.mastered}</b> spelled correctly at least twice in a row${sp.acc!==null?`, ${sp.acc}% of ${sp.answers} attempts correct`:''}.</p>${sp.tricky.length?`<p>Words that still need practice: ${sp.tricky.map(E).join(', ')}.</p>`:''}</div>`:''}
+  <h2>Where ${E(first)} needs help</h2>
+  <p class="muted" style="font-size:12.5px">Only skills and items that still need work are listed. Skills going well are left out on purpose.</p>
+  ${p.adult?'':`<div class="keep"><h3 class="hh">Math skills</h3>${areas.length?`<ul>${areas.slice(0,6).map(t=>`<li>${E(t)}</li>`).join('')}</ul>`:'<p class="muted">No math skill needs extra help right now.</p>'}</div>`}
+  <div class="keep"><h3 class="hh">Math problems answered wrong and not yet corrected</h3>${probs.length?`<div class="tw"><table><tr><th>Problem</th><th class="n" style="width:90px">Answer</th><th class="n" style="width:90px">Times missed</th></tr>${probs.map(x=>`<tr><td>${E(x.t)}</td><td class="n">${E(String(x.a))}</td><td class="n">${x.n}</td></tr>`).join('')}</table></div>`:'<p class="muted">None right now. Missed problems are removed once answered correctly twice.</p>'}</div>
+  <div class="keep"><h3 class="hh">Spelling words still being learned</h3>${sp&&sp.trickyN.length?`<div class="tw"><table><tr><th>Word</th><th class="n" style="width:110px">Times misspelled</th></tr>${sp.trickyN.map(([w,n])=>`<tr><td><b>${E(w)}</b></td><td class="n">${n}</td></tr>`).join('')}</table></div>`:`<p class="muted">${sp?'No spelling words need extra help right now.':'No spelling practice recorded yet.'}</p>`}</div>
   <div class="fine">Generated from ${E(first)}'s home practice records. Questions are answered without a time limit; difficulty adjusts automatically for each skill. Shared by ${E(first)}'s family.</div>
  </div>`;
  let el=document.getElementById('ins-rep');if(!el){el=document.createElement('div');el.id='ins-rep';document.body.appendChild(el);}

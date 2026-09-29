@@ -587,6 +587,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 #modal.show{display:grid}
 .mcard{background:#fff;border-radius:24px;padding:22px;max-width:540px;width:100%;text-align:center;max-height:92dvh;overflow:auto;animation:pop .25s}
 .mcard>.row:last-child{position:sticky;bottom:-22px;background:linear-gradient(rgba(255,255,255,.85),#fff 30%);padding:10px 0 12px;margin-bottom:-12px;z-index:2} /* action buttons always visible on small screens */
+.mcard.cert>.row:last-child{background:transparent}
 .mcard h2{margin:6px 0}
 .big-emoji{font-size:72px;line-height:1}
 .fb-title{font-size:26px;font-weight:700;color:#e8590c}
@@ -657,6 +658,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .optable td{padding:8px 6px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
 .mini{width:34px;height:34px;border-radius:10px;background:#eee9ff;font-size:20px;font-weight:700;margin:0 2px}
 .missed{display:flex;flex-wrap:wrap;gap:8px}
+.phelp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:10px 0}@media(max-width:700px){.phelp{grid-template-columns:minmax(0,1fr)}}.phcol{background:#faf8ff;border-radius:14px;padding:10px 12px}.phcol h4{margin:0 0 4px}.phsub{font-weight:700;font-size:13.5px;color:var(--muted);margin:8px 0 4px}
 .mf{background:#fff1e6;border-radius:10px;padding:6px 10px;font-weight:600}
 .mf em{font-style:normal;color:#c2410c;font-weight:500;font-size:13px}
 .days{display:flex;gap:8px;align-items:flex-end;height:130px;margin-top:8px}
@@ -1155,7 +1157,9 @@ const HAIRS=['#2b1d0e','#6a3d1a','#c68642','#f2d16b','#d9480f','#7c5cff','#1c7ed
 const HATS=[
  {id:'wizard',name:'Wizard Hat',price:0},{id:'none',name:'No Hat',price:0},{id:'cap',name:'Cap',price:0},{id:'bow',name:'Bow',price:0},
  {id:'catears',name:'Cat Ears',price:80},{id:'helmet',name:'Knight Helm',price:120},{id:'viking',name:'Viking Helm',price:180},
- {id:'crown',name:'Royal Crown',price:250},{id:'astro',name:'Space Helmet',price:400},{id:'pumpkin',name:'Pumpkin Hat',price:1,event:true}];
+ {id:'crown',name:'Royal Crown',price:250},{id:'astro',name:'Space Helmet',price:400},
+ {id:'chef',name:'Chef Hat',price:1500},{id:'pirate',name:'Pirate Hat',price:2500},{id:'tophat',name:'Magic Top Hat',price:4000},{id:'dragon',name:'Dragon Helm',price:6000},{id:'halo',name:'Star Halo',price:9000},{id:'moonhat',name:'Moon Wizard Hat',price:12000},{id:'phoenix',name:'Phoenix Crown',price:18000}, /* Sep 2026: rare, very expensive hats to save up for */
+{id:'pumpkin',name:'Pumpkin Hat',price:1,event:true}];
 const ROBES=[
  {id:'purple',name:'Purple',c:'#7c5cff',price:0},{id:'blue',name:'Blue',c:'#2f8cff',price:0},{id:'red',name:'Red',c:'#ef4444',price:0},
  {id:'green',name:'Green',c:'#22b35e',price:0},{id:'orange',name:'Orange',c:'#ff8c1a',price:0},{id:'pink',name:'Pink',c:'#ff5fa2',price:0},
@@ -1164,6 +1168,7 @@ const ROBES=[
  {id:'rainbow',name:'Rainbow',grad:['#ff5a5f','#ffc83d','#2ecc71','#2f8cff','#7c5cff'],price:500},
  {id:'ocean',name:'Ocean',grad:['#023e8a','#00b4d8','#90e0ef'],price:700},{id:'lava',name:'Lava',grad:['#6a040f','#e85d04','#ffba08'],price:800},
  {id:'aurora',name:'Aurora',grad:['#00f5a0','#00d9f5','#7c5cff','#ff5fa2'],price:1200},
+ {id:'forest',name:'Enchanted Forest',grad:['#0b3d20','#2f9e44','#b2f2bb'],price:2000},{id:'sunset',name:'Sunset',grad:['#ff6b6b','#ff922b','#ffd43b','#f783ac'],price:3000},{id:'royal',name:'Royal Velvet',grad:['#3b0764','#7e22ce','#fbbf24'],price:4500},{id:'ice',name:'Ice Queen',grad:['#e7f5ff','#74c0fc','#1864ab'],price:6000},{id:'dragonscale',name:'Dragon Scale',grad:['#052e16','#15803d','#facc15','#15803d'],price:8000},{id:'starfield',name:'Starfield',grad:['#020617','#1e3a8a','#e0e7ff','#1e3a8a','#020617'],price:11000},{id:'phoenixrobe',name:'Phoenix Fire',grad:['#7f1d1d','#dc2626','#f97316','#fde047'],price:15000},{id:'diamond',name:'Diamond',grad:['#ffffff','#a5f3fc','#e9d5ff','#ffffff','#bae6fd'],price:22000}, /* very expensive robes */
  {id:'labcoat',name:'Lab Coat',grad:['#ffffff','#f1f3f5','#d0ebff'],price:1,event:true}]; /* labcoat: prize for completing the Inner Space Molecule Album (not sold) */
 const SPELLS=[
  {id:'spark',name:'Sparkle Bolt',e:'✨',mult:1,price:0,color:'#ffe066'},
@@ -1346,6 +1351,13 @@ function heroSVG(look,opts){
   case 'viking':hat=`<path d="M35 36 Q20 32 21 14 Q27 27 38 29Z M65 36 Q80 32 79 14 Q73 27 62 29Z" fill="#f4ead0" stroke="${O}" stroke-width="2.2" stroke-linejoin="round"/><path d="M32 40 Q32 23 50 23 Q68 23 68 40 Z" fill="#9aa4b1" stroke="${O}" stroke-width="2.5"/><rect x="31" y="36" width="38" height="5" rx="2" fill="#c68642" stroke="${O}" stroke-width="1.5"/>`;break;
   case 'crown':hat=`<path d="M35 34 L34 18 L42 25 L50 13 L58 25 L66 18 L65 34 Z" fill="#ffc83d" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="50" cy="28" r="2.6" fill="#ef4444"/><circle cx="41" cy="30" r="2" fill="#2f8cff"/><circle cx="59" cy="30" r="2" fill="#22b35e"/>`;break;
   case 'pumpkin':hat=`<ellipse cx="50" cy="25" rx="18" ry="12" fill="#ff8c1a" stroke="${O}" stroke-width="2.5"/><path d="M42 15 Q39 25 42 36 M58 15 Q61 25 58 36 M50 13 V37" stroke="#d9480f" stroke-width="2" fill="none"/><path d="M50 13 Q51 6 56 5" stroke="#2f9e44" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M52 9 Q60 6 63 11 Q56 13 52 9Z" fill="#40c057" stroke="${O}" stroke-width="1.2"/><path d="M43 25 L46 22 L49 25Z M51 25 L54 22 L57 25Z M44 30 Q50 34 56 30" fill="#5c2a00" stroke="#5c2a00" stroke-width="1"/>`;break;
+  case 'chef':hat=`<path d="M34 38 L35 26 Q28 20 34 14 Q38 6 46 11 Q50 4 56 10 Q64 6 67 14 Q72 21 65 26 L66 38 Z" fill="#fff" stroke="${O}" stroke-width="2.4" stroke-linejoin="round"/><rect x="34" y="33" width="32" height="6" rx="2" fill="#f1f3f5" stroke="${O}" stroke-width="1.6"/>`;break;
+  case 'pirate':hat=`<path d="M24 36 Q30 20 50 18 Q70 20 76 36 Q63 30 50 33 Q37 30 24 36Z" fill="#212529" stroke="${O}" stroke-width="2.4" stroke-linejoin="round"/><path d="M30 33 Q50 27 70 33" stroke="#ffd43b" stroke-width="2" fill="none"/><circle cx="50" cy="25" r="3.4" fill="#fff"/><path d="M46.5 29 l7 -3 M46.5 26 l7 3" stroke="#fff" stroke-width="1.4"/>`;break;
+  case 'tophat':hat=`<rect x="37" y="8" width="26" height="26" rx="3" fill="#1f1235" stroke="${O}" stroke-width="2.4"/><rect x="37" y="26" width="26" height="5" fill="#9775fa"/><ellipse cx="50" cy="35" rx="21" ry="4.5" fill="#1f1235" stroke="${O}" stroke-width="2.4"/><path d="M60 12 l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4z" fill="#ffe066"/>`;break;
+  case 'dragon':hat=`<path d="M36 30 Q26 22 24 8 Q33 18 40 24Z M64 30 Q74 22 76 8 Q67 18 60 24Z" fill="#fff3bf" stroke="${O}" stroke-width="2" stroke-linejoin="round"/><path d="M31 41 Q31 22 50 21 Q69 22 69 41 Z" fill="#2f9e44" stroke="${O}" stroke-width="2.5"/><path d="M40 26 l3 -5 3 5 M47 23 l3 -6 3 6 M54 26 l3 -5 3 5" fill="#ffd43b" stroke="${O}" stroke-width="1.4"/><circle cx="50" cy="33" r="3" fill="#ff6b6b" stroke="${O}" stroke-width="1.3"/>`;break;
+  case 'halo':hat=`<ellipse cx="50" cy="16" rx="18" ry="5.5" fill="none" stroke="#ffe066" stroke-width="4"/><ellipse cx="50" cy="16" rx="18" ry="5.5" fill="none" stroke="#fff9db" stroke-width="1.5"/><g fill="#fff3bf" stroke="#f59f00" stroke-width=".8"><path d="M32 16 l1.5 3 3 .4-2.2 2 .6 3-2.9-1.5-2.9 1.5.6-3-2.2-2 3-.4z"/><path d="M68 16 l1.5 3 3 .4-2.2 2 .6 3-2.9-1.5-2.9 1.5.6-3-2.2-2 3-.4z"/><path d="M50 6 l1.5 3 3 .4-2.2 2 .6 3-2.9-1.5-2.9 1.5.6-3-2.2-2 3-.4z"/></g>`;break;
+  case 'moonhat':hat=`<path d="M30 35 Q50 42 70 35 L60 3 Q56 -4 51 3 Z" fill="#1c2e6b" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="50" cy="35" rx="23" ry="5" fill="#1c2e6b" stroke="${O}" stroke-width="2.5"/><path d="M54 14 a6 6 0 1 0 5 9 a5 5 0 1 1 -5 -9z" fill="#ffe066"/><circle cx="44" cy="24" r="1.3" fill="#fff"/><circle cx="58" cy="30" r="1.1" fill="#fff"/><circle cx="48" cy="12" r="1" fill="#fff"/>`;break;
+  case 'phoenix':hat=`<path d="M34 36 Q30 22 36 12 Q38 22 42 24 Q42 10 50 2 Q58 10 58 24 Q62 22 64 12 Q70 22 66 36 Z" fill="#ff922b" stroke="${O}" stroke-width="2.3" stroke-linejoin="round"/><path d="M40 34 Q39 26 43 22 Q46 29 50 12 Q54 29 57 22 Q61 26 60 34Z" fill="#ffe066"/><rect x="34" y="32" width="32" height="6" rx="2" fill="#f59f00" stroke="${O}" stroke-width="1.6"/><circle cx="50" cy="35" r="2.4" fill="#e03131"/>`;break;
   case 'astro':hat=`<line x1="50" y1="24" x2="50" y2="12" stroke="${O}" stroke-width="2"/><circle cx="50" cy="11" r="3" fill="#ff5a5f" stroke="${O}" stroke-width="1.5"/><circle cx="50" cy="45" r="22" fill="rgba(170,225,255,.25)" stroke="#dfe9f5" stroke-width="3.5"/><path d="M36 36 Q40 29 47 27" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>`;break;
  }
  const vb=opts.head?'22 0 56 66':'0 0 100 130';
@@ -2549,7 +2561,7 @@ SCREENS.backpack=()=>{
   <div class="bpsec" data-t="more">${typeof trollHoardHTML==='function'?trollHoardHTML(p):''}${typeof eagleHoardHTML==='function'?eagleHoardHTML(p):''}${window.Quartz?Quartz.bagHTML(p):''}${window.Inner?Inner.bagHTML(p):''}
   ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
   ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
-  ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards</h3><div class="awards">${p.awards.slice().reverse().map(a=>`<div class="award"><b>🏅 ${esc(a.t)}</b><small>${esc(niceDate(a.d))}</small></div>`).join('')}</div></div>`:''}<div class="panel muted bpempty">Your trophies, gifts and treasure notes show up here.</div></div>
+  ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards <small class="muted" style="font-size:14px">tap one to see it again</small></h3><div class="awards">${p.awards.map((a,i)=>[a,i]).reverse().map(([a,i])=>`<div class="award" role="button" style="cursor:pointer" onclick="showCert(${i})" title="Tap to see the certificate"><b>🏅 ${esc(a.t)}</b><small>${esc(niceDate(a.d))}</small></div>`).join('')}</div></div>`:''}<div class="panel muted bpempty">Your trophies, gifts and treasure notes show up here.</div></div>
   <div class="panel bpsec" data-t="pets"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(poss(pet.name))} home (feed, play &amp; pet shop)</button>`:''}
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs}) · Epic or Legendary pet!</button>`:''}
@@ -3042,6 +3054,8 @@ function principalNext(){const s=PR_STATE;if(!s)return;const el=$('#prSay');cons
  if(el&&el.textContent.length<t.length){clearInterval(s.tw);el.textContent=t;return;}
  if(s.i<s.lines.length-1){s.i++;principalShow();return;}
  principalAward();}
+function certHTML(p,title,date){return `<div class="cert-in"><div class="cert-top">🏅 MATH QUEST ACADEMY 🏅</div><div class="cert-title">${esc(title)}</div><div class="cert-small">is proudly presented to</div><div class="cert-name">${esc(p.name)}</div><div class="cert-small">for trying so hard and never giving up</div><div class="cert-foot"><div><i>${esc(date)}</i><br><small>date</small></div><div class="cert-seal">⭐</div><div><i class="sig">Principal Wise</i><br><small>principal</small></div></div></div>`;}
+function showCert(i){const p=P();const a=(p.awards||[])[i];if(!a)return;SFX.tap();modal(`<div class="mcard cert">${certHTML(p,a.t,a.d)}<div class="row"><button class="btn green big" onclick="closeModal()">Back to my backpack</button></div></div>`);}
 function principalAward(){
  const p=P();try{speechSynthesis.cancel();}catch(e){}const title=principalAwardTitle(p);const coins=100;
  p.coins+=coins;p.awards=p.awards||[];p.awards.push({d:dayKey(),t:title});p.principalLast=dayKey();p.prSnap=Object.assign({},p.maxL);
@@ -3864,11 +3878,23 @@ function daysChart(p){
  return `<div class="days">${out.map(x=>`<div class="day"><div class="dbar"><i class="dr" style="height:${x.r/max*100}%"></i><i class="dw" style="height:${x.w/max*100}%"></i></div><div class="dn">${x.r+x.w}</div><div class="dl">${x.l}</div></div>`).join('')}</div>
  <div class="legend"><i style="background:#2ecc71"></i>right<i style="background:#ff8c42"></i>missed</div>`;
 }
+/* Parent Corner: at-a-glance "doing well / needs help" for math problems and spelling words */
+function parentHelp(p){
+ const miss=Object.entries(p.missed||{});const help=miss.filter(([t,m])=>(m.fixed||0)<2).sort((a,b)=>b[1].n-a[1].n).slice(0,14);
+ const fixed=miss.filter(([t,m])=>(m.fixed||0)>=2).sort((a,b)=>b[1].n-a[1].n).slice(0,10);
+ const strong=OPS.filter(o=>{const st=p.stats[o]||{r:0,w:0},n=st.r+st.w;return n>=20&&st.r/n>=.85;}).map(o=>{const st=p.stats[o];return `${OPNAME[o]} ${Math.round(st.r/(st.r+st.w)*100)}%`;});
+ const weak=OPS.filter(o=>{const st=p.stats[o]||{r:0,w:0},n=st.r+st.w;return n>=15&&st.r/n<.75;}).map(o=>{const st=p.stats[o];return `${OPNAME[o]} ${Math.round(st.r/(st.r+st.w)*100)}%`;});
+ const sp=Object.entries(p.spellStats||{});const sGood=sp.filter(([w,v])=>(v.s||0)>=2).sort((a,b)=>(b[1].r||0)-(a[1].r||0)).slice(0,24);const sBad=sp.filter(([w,v])=>(v.s||0)<2&&(v.w||0)>0).sort((a,b)=>b[1].w-a[1].w).slice(0,24);
+ const chip=(t,cls,em)=>`<span class="mf ${cls}">${esc(t)}${em?` <em>${em}</em>`:''}</span>`;
+ const col=(title,body)=>`<div class="phcol"><h4>${title}</h4>${body}</div>`;
+ return `<div class="phelp">${col('🆘 Needs help',`<div class="phsub">Math problems still being missed</div><div class="missed">${help.length?help.map(([t,m])=>chip(`${t.replace(/\s*=\s*\?\s*$/,'')} = ${m.a}`,'',`missed ${m.n}×`)).join(''):'<span class="muted">None right now 🎉</span>'}</div>${weak.length?`<div class="phsub">Skills below 75% right</div><div class="missed">${weak.map(t=>chip(t,'')).join('')}</div>`:''}<div class="phsub">Spelling words still being learned</div><div class="missed">${sBad.length?sBad.map(([w,v])=>chip(w,'',`missed ${v.w}×`)).join(''):'<span class="muted">None right now 🎉</span>'}</div>`)}
+ ${col('✅ Doing well',`${strong.length?`<div class="phsub">Strong skills (85%+ right)</div><div class="missed">${strong.map(t=>chip(t,'done')).join('')}</div>`:''}<div class="phsub">Problems they used to miss and now get right</div><div class="missed">${fixed.length?fixed.map(([t,m])=>chip(`${t.replace(/\s*=\s*\?\s*$/,'')} = ${m.a}`,'done')).join(''):'<span class="muted">None yet</span>'}</div><div class="phsub">Spelling words learned</div><div class="missed">${sGood.length?sGood.map(([w])=>chip(w,'done')).join(''):'<span class="muted">None yet</span>'}</div>`)}</div>`;}
 function parentCard(p){
  const tot=OPS.reduce((a,o)=>a+p.stats[o].r+p.stats[o].w,0),right=OPS.reduce((a,o)=>a+p.stats[o].r,0);
  const missed=Object.entries(p.missed).sort((a,b)=>((a[1].fixed||0)>=2)-((b[1].fixed||0)>=2)||b[1].n-a[1].n).slice(0,18);
  return `<div class="pp" id="pp-${p.id}"><div class="pp-head">${heroSVG(p.look,{spell:p.spell})}<div><h3>${esc(p.name)}</h3><div class="muted">${p.adult?'Adult':'Grade '+p.grade} · Hero level ${p.level} · 🪙 ${p.coins}${p.setup?'':' · hasn\'t played yet'}</div></div></div>
  <div class="kpis"><div><b>${tot}</b><span>problems answered</span></div><div><b>${tot?Math.round(right/tot*100):0}%</b><span>correct</span></div><div><b>${fmtTime(p.time)}</b><span>time in battles</span></div><div><b>${p.battles}</b><span>battles won</span></div><div><b>${p.bestStreak}</b><span>best streak</span></div></div>
+ ${p.setup?parentHelp(p):''}
  <div class="tblwrap"><table class="optable"><tr><th>Skill</th><th>Working on now</th><th>Accuracy</th><th>Level</th></tr>
  ${OPS.map(o=>{const s=p.stats[o],n=s.r+s.w,L=lvl(p,o);return `<tr id="lv-${p.id}-${o}"><td><b>${OPNAME[o]}</b></td><td>${LEVEL_DESC[o][L]}</td><td>${n?Math.round(s.r/n*100)+'% <span class="muted">of '+n+'</span>':'—'}</td><td style="white-space:nowrap"><button class="mini" onclick="adjLevel('${p.id}','${o}',-1)">−</button> ${L} <button class="mini" onclick="adjLevel('${p.id}','${o}',1)">+</button></td></tr>`;}).join('')}</table></div>
  <div class="row tbrow" style="justify-content:flex-start;margin:6px 0;align-items:center">⏳ <b>Play time:</b> <label><input type="checkbox" ${tbOn(p)?'checked':''} onchange="tbSet('${p.id}','on',this.checked)"> limit on</label>
@@ -3886,6 +3912,7 @@ function parentCard(p){
 SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
  <div class="note pnote"><b>How levels work</b><ul><li>🎯 A quick skill check sets each skill's starting level.</li><li>⬆️ <b>Harder</b> after 6 right in a row.</li><li>⬇️ <b>Easier</b> after 2 misses in the last 4 (kids settle near 80% right).</li><li>✋ Use − / + below to set a level yourself.</li></ul><details><summary>More detail</summary>A kid who skips the skill check starts a little below their grade. The count starts over at every new level. Repeats of missed problems and swapped-digit typos (84 for 48) don't count.</details></div>
+ <div class="row pjump" style="justify-content:flex-start;margin:8px 0"><b>Jump to:</b>${state.players.map(pl=>`<button class="btn small" onclick="document.getElementById('pp-${pl.id}').scrollIntoView({behavior:'smooth'})">${esc(pl.name)}</button>`).join('')}</div>
  ${(window.MQ_PARENT||[]).map(f=>{try{return f()||''}catch(e){console.warn(e);return ''}}).join('')}
  ${cloudSection()}
  ${window.Groups?Groups.section():''}
@@ -4358,7 +4385,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.29m';
+const APP_VER='2026.09.29n';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
