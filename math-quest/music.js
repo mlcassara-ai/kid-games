@@ -123,6 +123,9 @@ function panel(where){const p=typeof P==='function'&&state&&state.cur?P():null;c
  return `<h2>🎵 Sound</h2>
   ${slider('fx','🔊 Sound effects','Footsteps, taps, cheers',state.sound!==false?(state.fxVol==null?70:state.fxVol):0)}
   ${slider('mu','🎵 Music','How loud the music plays',mVol())}
+  ${!p?'':`<div class="snd-lab">Voices${p.name?` for ${esc(p.name)}`:''}</div>
+  ${opt(p.voice!==false,"Music.voice(true)",'🗣️ Voices on','Kind Teacher, Principal, fountain jokes')}
+  ${opt(p.voice===false,"Music.voice(false)",'🔇 Voices off','Spelling words are still read out loud')}`}
   ${!p?'':where==='cave'?`<div class="snd-lab">Music in the cave${p.name?` for ${esc(p.name)}`:''}</div>
   ${opt(caveOnNow,"Music.caveSet(true)",'⛏️ Cave music','Changes as you dig deeper')}
   ${opt(!caveOnNow,"Music.caveSet(false)",'🔇 No cave music','Quiet cave · the map music is not changed')}`:
@@ -135,6 +138,7 @@ function muted(where){const p=typeof P==='function'&&state&&state.cur?P():null;c
 /* the cave has its own music switch (the 🎵 button in the cave) — it never changes the map music */
 function caveToggle(){const p=P();if(!p)return false;p.caveMusic=p.caveMusic===false;save();update();return p.caveMusic!==false;}
 function caveOn(){try{return P().caveMusic!==false;}catch(e){return true;}}
+function voice(on){const p=P();if(!p)return;p.voice=!!on;save();if(!on)try{speechSynthesis.cancel();}catch(e){}try{window.__cvSndRefresh&&__cvSndRefresh();}catch(e){}if(document.querySelector('#modal.show .snd-card'))menu();}
 function set(v){const p=P();if(!p)return;p.music=v;save();menu();update();}
 function fx(on){state.sound=!!on;save();menu();try{if(on)SFX.tap();}catch(e){}if(typeof curScreen!=='undefined'&&!['world','battle','cave','inner'].includes(curScreen)){const y=window.scrollY;go(curScreen,curArg);window.scrollTo(0,y);}}
 const st=document.createElement('style');st.textContent=`.snd-card{max-width:440px}.snd-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:6px 0 14px;font-weight:700}
@@ -143,5 +147,5 @@ const st=document.createElement('style');st.textContent=`.snd-card{max-width:440
 .snd-sl{text-align:left;background:#f8f5ff;border-radius:16px;padding:10px 14px;margin:0 0 10px}.snd-slh{display:flex;justify-content:space-between;font-size:18px}.snd-slh span{font-weight:800;color:#7048e8;font-variant-numeric:tabular-nums}.snd-sl small{color:#6b5fa0;font-size:14px}
 .snd-slr{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:20px}.snd-slr input{flex:1;height:36px;accent-color:#7048e8}`;
 document.head.appendChild(st);
-window.Music={menu,panel,caveSet,muted,set,fx,vol,update,caveToggle,caveOn,trackFor,_state:()=>({playing,cur:cur&&cur.name,want,ac:AC&&AC.state})};
+window.Music={menu,panel,voice,caveSet,muted,set,fx,vol,update,caveToggle,caveOn,trackFor,_state:()=>({playing,cur:cur&&cur.name,want,ac:AC&&AC.state})};
 })();
