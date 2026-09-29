@@ -18,9 +18,9 @@ const TRACKS={
  inner:{name:'🚀 Inner Space',bpm:68,root:55,dark:1,gain:1.8,
   bars:[[0,[0,3,7]],[-1,[-1,2,7]],[-2,[-2,3,8]],[-3,[-3,0,3]],[-4,[-4,0,3]],[-5,[-5,-1,2]],[1,[1,5,8]],[-5,[-5,-1,2]],
         [0,[0,3,7]],[-4,[-4,0,3]],[1,[1,5,8]],[-5,[-5,-1,2]],[0,[0,3,7]],[3,[3,7,10]],[1,[1,5,8]],[-5,[-5,-1,5]]]},
- /* Haunted Hollow (Halloween event): spooky-FUN, not scary. A bouncy plucked walking bass, a tinkly music-box tune in a
-    'spooky' minor scale, soft organ chords, tick-tock clicks and now and then a silly ghost 'oooOOOooo'. Original tune. */
- haunt:{name:'🎃 Haunted Hollow',bpm:116,root:50,spook:1,gain:1.25,prog:[0,-4,5,7],scale:[0,2,3,5,7,8,11,12,14,15]},
+ /* Haunted Hollow (Halloween event): FUN Halloween, not sad — a swinging boogie-woogie bass, a bony xylophone tune with a
+    bluesy wink, finger-snap clicks, bouncy organ stabs and now and then a silly 'whoo-OOO!' ghost. Original tune. */
+ haunt:{name:'🎃 Haunted Hollow',bpm:138,root:53,fun:1,gain:1.2,prog:[0,0,5,0,7,5,0,7],scale:[0,2,3,4,7,9,12,14,15,16,19]},
  magma:{name:'🌋 Magma Deep',bpm:44,root:45,scale:[0,1,5,7,8],prog:[[0,7,12],[1,8,13],[-4,3,8],[0,7,12]],tone:'glass',rest:.6,padVol:.1,octave:12,padCut:380,rumble:.3}};
 const LEVEL=.34; // softer than sound effects
 const DAY_FROM=6,DUSK_FROM=17; // 6am–5pm = Morning Meadow, 5pm–6am = Quiet Dusk
@@ -91,7 +91,45 @@ function schedSpook(T,beat){const e8=beat/2;while(nextT<AC.currentTime+1.2){cons
    note(R0+12+T.scale[smi],t,e8*1.6,.1,'bell');}
   if(inBar===0&&bar%8===6)ghostOoo(t,.035);                                         // a silly ghost every so often
   step++;if(step%8===0)bar++;nextT+=e8;}}
-function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.spook){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedSpook(T,beat);return;}if(T.dark){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedDark(T,beat);return;}
+function xylo(m,t,vol){[[1,1,.22],[3.9,.18,.06],[9.2,.05,.03]].forEach(([mul,a,dec])=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=hz(m)*mul;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol*a,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+dec+.06);o.connect(g);g.connect(master);o.start(t);o.stop(t+dec+.1);});}
+let NOISE=null;function noiseBuf(){if(!NOISE){NOISE=AC.createBuffer(1,AC.sampleRate*.3,AC.sampleRate);const d=NOISE.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}return NOISE;}
+function snap(t,vol){const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=noiseBuf();f.type='bandpass';f.frequency.value=2200;f.Q.value=1.2;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+.12);s.connect(f);f.connect(g);g.connect(master);s.start(t);s.stop(t+.15);}
+function thump(t,vol){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(48,t+.14);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+.22);o.connect(g);g.connect(master);o.start(t);o.stop(t+.25);}
+function whoo(t,vol){const o=AC.createOscillator(),g=AC.createGain(),l=AC.createOscillator(),lg=AC.createGain();o.type='triangle';o.frequency.setValueAtTime(330,t);o.frequency.exponentialRampToValueAtTime(880,t+.55);o.frequency.exponentialRampToValueAtTime(520,t+1.1);
+ l.frequency.value=7;lg.gain.value=18;l.connect(lg);lg.connect(o.frequency);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.12);g.gain.linearRampToValueAtTime(vol*.8,t+.8);g.gain.linearRampToValueAtTime(0,t+1.2);o.connect(g);g.connect(master);o.start(t);l.start(t);o.stop(t+1.3);l.stop(t+1.3);}
+function monster(t,vol){ // a big goofy Frankenstein-monster voice: a low buzzy 'uhh… HUHH!' made with vowel filters
+ [[0,.55,92,78,[380,700],[900,1150]],[.62,.75,104,70,[520,760],[1000,1250]]].forEach(([dt,dur,f0,f1,F1,F2])=>{const s=t+dt,o=AC.createOscillator(),g=AC.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f0,s);o.frequency.linearRampToValueAtTime(f1,s+dur);
+  const vib=AC.createOscillator(),vg=AC.createGain();vib.frequency.value=9;vg.gain.value=4;vib.connect(vg);vg.connect(o.frequency);
+  g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(vol,s+.06);g.gain.setValueAtTime(vol,s+dur*.7);g.gain.linearRampToValueAtTime(0,s+dur);
+  [F1,F2].forEach(([a,b],k)=>{const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=5;f.frequency.setValueAtTime(a,s);f.frequency.linearRampToValueAtTime(b,s+dur*.6);const fg=AC.createGain();fg.gain.value=k?1.4:2.2;o.connect(f);f.connect(fg);fg.connect(g);});
+  g.connect(master);o.start(s);vib.start(s);o.stop(s+dur+.05);vib.stop(s+dur+.05);});}
+function growl(t,vol){ // 'GGGrrrooowwwlll': a low rolling growl that opens up into 'ow'
+ const dur=1.6,o=AC.createOscillator(),g=AC.createGain(),am=AC.createOscillator(),ag=AC.createGain();o.type='sawtooth';o.frequency.setValueAtTime(70,t);o.frequency.linearRampToValueAtTime(95,t+.9);o.frequency.linearRampToValueAtTime(62,t+dur);
+ am.frequency.setValueAtTime(28,t);am.frequency.linearRampToValueAtTime(12,t+dur);ag.gain.value=vol*.8;am.connect(ag);
+ const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=3;f.frequency.setValueAtTime(300,t);f.frequency.linearRampToValueAtTime(620,t+.9);f.frequency.linearRampToValueAtTime(420,t+dur);
+ const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1400;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.15);g.gain.setValueAtTime(vol,t+dur*.75);g.gain.linearRampToValueAtTime(0,t+dur);ag.connect(g.gain);
+ o.connect(f);f.connect(lp);lp.connect(g);g.connect(master);o.start(t);am.start(t);o.stop(t+dur+.05);am.stop(t+dur+.05);}
+function howl(t,vol){ // a werewolf 'ah-WOOOOoooo!'
+ const dur=2.2,o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),v=AC.createOscillator(),vg=AC.createGain();o.type='triangle';o2.type='sine';
+ [[o,1],[o2,2.01]].forEach(([x,m])=>{x.frequency.setValueAtTime(280*m,t);x.frequency.exponentialRampToValueAtTime(420*m,t+.25);x.frequency.exponentialRampToValueAtTime(700*m,t+.9);x.frequency.exponentialRampToValueAtTime(560*m,t+1.7);x.frequency.exponentialRampToValueAtTime(380*m,t+dur);});
+ v.frequency.setValueAtTime(3,t);v.frequency.linearRampToValueAtTime(6.5,t+dur);vg.gain.setValueAtTime(0,t);vg.gain.linearRampToValueAtTime(14,t+1.2);v.connect(vg);vg.connect(o.frequency);
+ const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.5;f.frequency.setValueAtTime(700,t);f.frequency.linearRampToValueAtTime(1100,t+.9);f.frequency.linearRampToValueAtTime(800,t+dur);
+ const g2=AC.createGain();g2.gain.value=.25;o2.connect(g2);g2.connect(f);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.3);g.gain.setValueAtTime(vol,t+1.5);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(f);f.connect(g);g.connect(master);o.start(t);o2.start(t);v.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05);v.stop(t+dur+.05);}
+const BOOGIE=[0,4,7,9,10,9,7,4];
+const RIFFS=[[[0,4],[2,5],[3,6],[5,4]],[[0,7],[2,6],[3,4],[6,2]],[[0,4],[1,3],[2,4],[4,6],[6,7]],[[0,8],[2,7],[3,6],[5,5],[6,4]]]; // [8th position, scale step] little motifs
+function schedFun(T,beat){const e8=beat/2;while(nextT<AC.currentTime+1.2){const inBar=step%8,r=T.prog[bar%T.prog.length],R0=T.root;const sw=inBar%2?e8*.34:0,t=nextT+sw; // swing
+  pluck(R0-24+r+BOOGIE[inBar],t,.17);                                               // boogie-woogie walking bass
+  if(inBar===0||inBar===4)thump(t,.16);if(inBar===2||inBar===6)snap(t,.09);          // boom… snap… boom… snap
+  if(inBar===3||inBar===7)organ([4,7,10].map(c=>R0+r+c),t,e8*.7,.012);               // bouncy organ stab on the off-beat
+  const riff=RIFFS[(Math.floor(bar/2)+(bar%8>=4?1:0))%RIFFS.length],answer=bar%2===1;
+  const hit=riff.find(x=>x[0]===inBar);if(hit&&!(answer&&inBar>4)){let deg=T.scale[Math.min(T.scale.length-1,hit[1]+(answer?1:0))];if(r===5&&deg%12===4)deg-=1;xylo(R0+12+r*(answer?0:0)+deg,t,.16);if(bar%4===3&&inBar===6)xylo(R0+24+deg,t+e8*.5,.08);}
+  if(inBar===0&&bar%6===5){const v=Math.floor(bar/6)%4;                              // every few seconds a Halloween friend joins in:
+   if(v===0)ghostOoo(t,.035);else if(v===1)monster(t+beat,.05);else if(v===2)howl(t,.04);else growl(t+beat,.06);} // ghost, Frankenstein, werewolf, growl
+  step++;if(step%8===0)bar++;nextT+=e8;}}
+function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.fun){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedFun(T,beat);return;}if(T.spook){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedSpook(T,beat);return;}if(T.dark){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedDark(T,beat);return;}
  if(nextT<AC.currentTime)nextT=AC.currentTime+.05; // after the app was in the background
  while(nextT<AC.currentTime+1.2){const t=nextT,chord=T.prog[bar%T.prog.length],inBar=step%8,quiet=(Math.floor(bar/4)%3===2);
   if(T.drips&&R()<T.drips*.5)drip(t+R()*beat);if(T.shimmer&&R()<T.shimmer*.4)note(T.root+36+T.scale[Math.floor(R()*T.scale.length)],t+R()*beat,beat,.03,'bell');if(T.rumble&&inBar===4&&R()<T.rumble)rumble(t);
