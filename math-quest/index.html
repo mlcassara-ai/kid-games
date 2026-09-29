@@ -2452,13 +2452,13 @@ function petGain(p,pet,xp){wkBump(p,'pet');xp*=1+.1*vLv(p,'pethome');const pd=pe
  if(st2!==st){pd.hints=Math.min(st2.max,pd.hints+1);setTimeout(()=>{SFX.level();modal(`<div class="mcard"><div class="big-emoji">${pet.e}</div><h2>${esc(pet.name)} grew up!</h2><p>${esc(pet.name)} is now <b>${st2.n}</b>!</p>${petMovesMax(pd)?`<p>In math battles, ${esc(pet.name)} can use <b>🐾 ${PET_MOVES[pet.id]||'Pet Attack'}</b> ${petMovesMax(pd)} time${petMovesMax(pd)>1?'s':''} per battle!</p>`:''}<button class="btn green big" onclick="closeModal()">Yay!</button></div>`);},500);}}
 SCREENS.pethome=()=>{
  const p=P();const pet=petOf(p);
- if(!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)){app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 Pet Home</h2></div>${Adv.awayCard(p,p.pet)}</div>`;return;}
+ if(!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)){app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 Pet Home</h2></div>${Adv.petCard(p)}${Adv.awayCard(p,p.pet)}</div>`;return;}
  if(!pet){app.innerHTML=topbar()+`<div class="page"><h2 class="title">🏠 Pet Home</h2><div class="panel" style="text-align:center"><div style="font-size:70px">🥚</div><p>You don't have a pet yet!</p><p class="muted">Hatch an egg in your backpack, or reach hero level 2.</p><button class="btn gold" onclick="go('backpack')">🎒 Go to backpack</button></div></div>`;return;}
  const pd=petMood(petData(p,pet.id));const st=petStage(pd);const nx=PET_STAGES[PET_STAGES.indexOf(st)+1];
  const pct=nx?Math.min(100,(pd.xp-st.xp)/(nx.xp-st.xp)*100):100;const today=dayKey();pd.played=pd.played||{};
  const pantry=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0);
  const shopItem=(kind,it,owned,eq,sub)=>`<button class="item ${eq?'eq':''} ${!owned&&p.coins<it.price?'need':''}" onclick="petShop('${kind}','${it.id}')"><div class="ie">${it.e}</div><div>${it.name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${kind==='food'?`🪙 ${it.price}`:owned?(eq?'✓ Wearing':kind==='toy'?'✓ Yours':'Wear'):'🪙 '+it.price}</div></button>`;
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 ${esc(poss(pet.name))} Home</h2></div>${window.Adv?`<div class="row" style="margin:-4px 0 12px"><button class="btn small" onclick="go('camp')">🏕️ Adventure Camp${Adv.back(p)?' · crew is back! 🎉':Adv.trip(p)?' · crew is exploring':''}</button></div>`:''}
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 ${esc(poss(pet.name))} Home</h2></div>${window.Adv?Adv.petCard(p):''}
  <div class="pethome">
   <div class="panel phcard">
    <div class="phstage" id="phStage" onclick="patPet()">${petAvatar(p,pet,'big')}<div class="bubblesay" id="petSay">${esc(petSays(pd,pet))}</div></div>
@@ -4121,7 +4121,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.29e';
+const APP_VER='2026.09.29f';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;

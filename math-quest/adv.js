@@ -133,6 +133,16 @@ const CSS=`
 .adv-postc .cap{font-size:13px;padding:4px 4px 2px;font-weight:600}
 .adv-postc .cap small{display:block;opacity:.6;font-weight:500}
 .hcard.adv-hc{grid-column:1/-1}
+.adv-pcard{background:linear-gradient(135deg,#fff 0%,#f3f0ff 100%);border-radius:22px;padding:14px 16px;margin:0 0 16px;color:var(--ink);box-shadow:0 5px 0 rgba(0,0,0,.2);display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;border:3px solid #d0bfff}
+.adv-pcard.back{border-color:var(--gold);background:linear-gradient(135deg,#fff9db,#fff 70%);animation:advglow 1.6s ease-in-out infinite}
+@keyframes advglow{50%{box-shadow:0 5px 0 rgba(0,0,0,.2),0 0 0 6px rgba(255,200,61,.35)}}
+.adv-pcard .ic{width:74px;height:74px;border-radius:18px;display:grid;place-items:center;font-size:44px;background:var(--dc,#8ce99a)}
+.adv-pcard h3{margin:0;font-size:20px}.adv-pcard .st{font-size:15px;margin:2px 0 6px}
+.adv-pcard .crew{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.adv-pcard .crew span{background:#fff;border-radius:12px;padding:3px 8px 3px 4px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:3px;box-shadow:0 1px 0 rgba(0,0,0,.08)}.adv-pcard .crew span i{font-style:normal;font-size:22px;line-height:1}
+.adv-pcard .left{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;line-height:1.1}.adv-pcard .left small{display:block;font-size:13px;font-weight:500;opacity:.7}
+.adv-pcard .adv-meter{margin:6px 0 2px}
+@media (max-width:620px){.adv-pcard{grid-template-columns:auto minmax(0,1fr)}.adv-pcard .act{grid-column:1/-1}.adv-pcard .left{text-align:left}}
+@media (prefers-reduced-motion:reduce){.adv-pcard.back{animation:none}}
 @media (prefers-reduced-motion:reduce){.adv-walker .bob,.adv-sitter,.adv-sk .bag{animation:none}}`;
 function css(){if(!document.getElementById('advCSS')){const s=document.createElement('style');s.id='advCSS';s.textContent=CSS;document.head.appendChild(s);}}
 const SACK=`<svg viewBox="0 0 60 60"><path d="M18 18 Q10 30 10 42 Q10 56 30 56 Q50 56 50 42 Q50 30 42 18Z" fill="#c68b4e" stroke="#7a4b1f" stroke-width="3"/><path d="M18 18 Q30 24 42 18 L38 12 Q30 16 22 12Z" fill="#a86b33" stroke="#7a4b1f" stroke-width="3"/><path d="M20 20 Q30 26 40 20" stroke="#ffd43b" stroke-width="3" fill="none"/><text x="30" y="46" text-anchor="middle" font-size="16">✨</text></svg>`;
@@ -285,19 +295,35 @@ function done(){const r=RES;RES=null;closeModal();draw();if(!r)return;
 function treasure(){const p=P(),a=A(p);if((a.shelf.map||0)<4)return;a.shelf.map-=4;p.coins+=150;const s=pk(PET_FOODS.slice(3));p.pantry[s.id]=(p.pantry[s.id]||0)+2;p.eggs=(p.eggs||0)+1;save();SFX.win();
  modal(`<div class="mcard"><div class="big-emoji">🧰</div><h2>X marks the spot!</h2><p>Your pets dug where the map said and found a treasure chest: <b>🪙 150</b>, ${s.e}${s.e} and an <b>🥚 egg</b>!</p><div class="row"><button class="btn green big" onclick="closeModal();Adv.draw()">Woo-hoo!</button></div></div>`);}
 
+/* big Adventure Camp block for the Pet Home page: what the crew is up to, who's out, and how long until they're back */
+function petCard(p){css();const a=A(p),t=a.trip,n=slots(p);const crewHTML=ids=>`<div class="crew">${ids.map(id=>`<span><i>${petE(id)}</i>${esc(petN(id))}</span>`).join('')}</div>`;
+ if(!t){const pets=(p.pets||[]).filter(id=>PETS.some(x=>x.id===id));const d=dest(a.dest);
+  return `<div class="adv-pcard"><div class="ic" style="--dc:linear-gradient(160deg,${d.c1},${d.c2})">🏕️</div><div><h3>🏕️ Adventure Camp</h3>
+   <div class="st">Your pets are home and ready to explore! Send up to <b>${n}</b> pet${n>1?'s':''} on a trip: 1, 6 or 12 hours.${a.trips?` <span class="muted">(${a.trips} adventure${a.trips>1?'s':''} so far)</span>`:''}</div>
+   ${a.crew.length?`<div class="muted" style="font-size:13px">Your last crew:</div>${crewHTML(a.crew.filter(id=>pets.includes(id)))}`:''}</div>
+   <div class="act"><button class="btn green" onclick="go('camp')">🥾 Plan a trip</button></div></div>`;}
+ const d=dest(t.dest),T=TRIPS[t.len]||TRIPS.mid,done=Date.now()>=t.end,pct=Math.min(100,(Date.now()-t.start)/Math.max(1,t.end-t.start)*100),L=DOING[t.dest]||DOING.meadow;
+ if(done)return `<div class="adv-pcard back"><div class="ic" style="--dc:linear-gradient(160deg,${d.c1},${d.c2})">🎒</div><div><h3>🎉 Your crew is back!</h3>
+   <div class="st">They're home from <b>${d.e} ${d.n}</b> with bulging sacks. Come see what they found!</div>${crewHTML(t.crew)}</div>
+   <div class="act"><button class="btn gold big" onclick="go('camp')">🎒 Open the sacks!</button></div></div>`;
+ return `<div class="adv-pcard"><div class="ic" style="--dc:linear-gradient(160deg,${d.c1},${d.c2})">${d.e}</div><div><h3>${T.e} Crew is exploring ${d.n}</h3>
+   <div class="st">💭 Right now they're probably ${L[Math.floor(Date.now()/9e5)%L.length]}…</div>${crewHTML(t.crew)}
+   <div class="adv-meter"><i style="width:${pct.toFixed(1)}%"></i></div><div class="muted" style="font-size:13px">Back at <b>${fmtClock(t.end)}</b> ${dayWord(t.end)}</div></div>
+   <div class="act"><div class="left">${fmtLeft(t.end-Date.now())}<small>to go</small></div><button class="btn ghost dark small" style="margin-top:6px" onclick="go('camp')">🏕️ Visit camp</button></div></div>`;}
 /* ---------- hooks for the rest of the game ---------- */
-window.Adv={away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
+window.Adv={petCard,away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
  toggle(id){const p=P(),a=A(p);if(a.trip)return toast('Wait for your crew to come home first!');const i=a.crew.indexOf(id);if(i>=0)a.crew.splice(i,1);else{const n=slots(p);if(a.crew.length>=n)return toast(`All ${n} crew spot${n>1?'s are':' is'} full! Win more battles to open more.`);a.crew.push(id);}SFX.tap();save();draw();},
  set(k,v){const a=A(P());a[k]=v;save();draw();},tab(t){TAB=t;draw();window.scrollTo(0,0);},
  askCall(){modal(`<div class="mcard"><div class="big-emoji">📯</div><h2>Call them home early?</h2><p>They'll run right back, but they'll only have time to grab a few coins.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Let them explore</button><button class="btn" onclick="closeModal();Adv.callHome()">Blow the horn!</button></div></div>`);},
  callHome,treasure,
  back:p=>tripDone(p),
  trip:p=>p&&p.adv&&p.adv.trip||null,
- awayCard(p,id){const t=p.adv.trip;return `<div class="panel" style="text-align:center;color:var(--ink)"><div style="font-size:70px">${petE(id)}🎒</div><h3>${esc(petN(id))} is on an adventure!</h3><p>${Date.now()>=t.end?`${esc(petN(id))} is back at camp with a full sack!`:`Exploring ${dest(t.dest).e} ${dest(t.dest).n}. Back at <b>${fmtClock(t.end)}</b> ${dayWord(t.end)}.`}</p><button class="btn gold" onclick="go('camp')">🏕️ Go to Adventure Camp</button></div>`;},
+ awayCard(p,id){const t=p.adv.trip;return `<div class="panel" style="text-align:center;color:var(--ink)"><div style="font-size:70px">${petE(id)}🎒</div><h3>${esc(petN(id))} is on the adventure!</h3><p class="muted" style="font-size:16px">${Date.now()>=t.end?`${esc(petN(id))} is back at camp. Open the sacks and ${esc(petN(id))} will be home again!`:`You can feed and play with ${esc(petN(id))} again when the crew comes home.`}</p></div>`;},
  homeCard(p){const t=A(p).trip;const back=t&&Date.now()>=t.end;return `<button class="hcard adv-hc ${back?'glow':''}" onclick="go('camp')"><span class="pav"><span class="pe">🏕️</span></span><div><b>Adventure Camp</b><small>${!t?'Send your pets exploring!':back?'Your crew is back! 🎉 Open their sacks':`${t.crew.map(petE).join('')} exploring… back in ${fmtLeft(t.end-Date.now())}`}</small></div></button>`;}};
 (function reg(){if(typeof SCREENS!=='undefined'){SCREENS.camp=()=>{TAB='camp';draw();};}else setTimeout(reg,30);})();
 /* keep the countdown fresh while the camp is open */
 setInterval(()=>{try{if(typeof curScreen==='undefined'||curScreen!=='camp'||TAB!=='camp'||document.querySelector('#modal.show')||document.querySelector('.adv-walker'))return;const p=P(),t=p&&p.adv&&p.adv.trip;if(!t)return;
  const el=document.getElementById('advLeft');const done=Date.now()>=t.end;if(done&&!document.getElementById('advWelcome'))return draw();if(el&&!done)el.textContent=`Back in ${fmtLeft(t.end-Date.now())}`;}catch(e){}},20000);
+setInterval(()=>{try{if(typeof curScreen!=='undefined'&&curScreen==='pethome'&&!document.querySelector('#modal.show')){const p=P();const t=p&&p.adv&&p.adv.trip;const el=document.querySelector('.adv-pcard');if(t&&el){const w=document.createElement('div');w.innerHTML=petCard(p);el.replaceWith(w.firstElementChild);}}}catch(e){}},30000);
 addEventListener('resize',()=>{try{if(curScreen==='camp'&&TAB==='camp'&&!document.querySelector('.adv-walker'))sitters();}catch(e){}});
 })();
