@@ -676,6 +676,13 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 @media(max-width:600px){.lib-head{flex-wrap:wrap}.sugbox{width:100%;min-height:0;flex-direction:row;gap:8px;padding:12px 10px 10px}.sugbox .sb-slot{top:4px}.sugbox small{display:none}.sugbox .sb-ico{font-size:24px}}
 .revq{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}.ansbox.rb{min-width:1.6em;cursor:pointer;opacity:.75}.ansbox.rb.on{opacity:1;outline:4px solid #ffd43b;outline-offset:2px}@media(max-width:600px){.revq{gap:5px}.ansbox.rb{min-width:1.3em}}.revnote{font-size:15px;font-weight:500;opacity:.8;margin-top:6px;line-height:1.3}
 .lbook.idea{box-shadow:0 0 0 4px #ffd43b,0 4px 0 rgba(0,0,0,.35)}
+.trickq{font-size:.46em;line-height:1.3;max-width:620px;margin:0 auto;text-align:center}.trickq .tqs{font-weight:700}.trickq b{color:#e8742a}.trickq .tqa{margin-top:.2em;font-size:1.6em}
+.monart{width:1.05em;height:1.1em;display:inline-block;vertical-align:bottom;overflow:visible}
+@keyframes leaffall{0%{transform:translate(0,-40px) rotate(0)}100%{transform:translate(-120px,440px) rotate(540deg)}}.leaffall{animation:leaffall linear infinite;transform-box:fill-box}
+@keyframes batflap{50%{transform:scaleY(.4)}}.batw{transform-box:fill-box;transform-origin:center;animation:batflap .35s ease-in-out infinite}
+@keyframes jackglow{50%{opacity:.55}}.jackglow{animation:jackglow 2.2s ease-in-out infinite}
+@keyframes fogmove{50%{transform:translateX(-40px)}}.fogmove{animation:fogmove 9s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.leaffall,.batw,.jackglow,.fogmove{animation:none}}
 </style>
 </head>
 <body>
@@ -683,7 +690,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="adv.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1115,8 +1122,8 @@ const ZONES=[
   mons:[['Ruler Rattler','🐍'],['Yardstick Yak','🐃'],['Inchworm','🐛'],['Protractor Hawk','🦅'],['Canyon Coyote','🐺'],['Perimeter Pharaoh','🦂']]},
  {id:'summit',name:'Story Summit',op:'word',sym:'📖',cls:'z-summit',art:'🏔️',g5:true,lockMsg:'5th-grade world! Beat 6 bosses to unlock.',decor:['🏔️','📖'],
   mons:[['Riddle Raccoon','🦝'],['Snow Owl','🦉'],['Puzzle Goat','🐐'],['Word Wolf','🐺'],['Frost Troll','🧌'],['The Story Dragon','🐉']]},
- {id:'haunt',name:'Haunted Hollow',op:'mix',sym:'🎃',cls:'z-haunt',art:'🎃',scene:'castle',event:true,decor:['🎃','👻','🕸️','🍬'],
-  mons:[['Pumpkin Pal','🎃'],['Giggle Ghost','👻'],['Bat Buddy','🦇'],['Spooky Spider','🕷️'],['Candy Goblin','👺'],['The Pumpkin King','🤴']]}];
+ {id:'haunt',name:'Haunted Hollow',op:'mix',sym:'🎃',cls:'z-haunt',art:'🎃',scene:'haunt',event:true,decor:['🎃','👻','🕸️','🍬'],
+  mons:[['Pumpkin Pal','🎃'],['Giggle Ghost','👻'],['Candy Corn Creep','🍬'],['Shuffle Zombie','🧟‍♂️'],['Howly Werewolf','🐺︎'],['The Pumpkin King','👑']]}];
 Object.defineProperty(ZONES.find(z=>z.id==='haunt'),'lockMsg',{get(){return eventSoon()?'🎃 Opens October 18!':'🎃 Closed until next Halloween!';}});
 const EVENT_START='2026-10-18',EVENT_END='2026-11-01';
 const eventOpen=()=>{const d=dayKey();return d>=EVENT_START&&d<=EVENT_END;};
@@ -1149,7 +1156,7 @@ function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
 const xpNeed=l=>60+l*40;
-const petOf=p=>p.pet?PETS.find(x=>x.id===p.pet):null;
+const petOf=p=>p.pet&&!(window.Adv&&Adv.away(p,p.pet))?PETS.find(x=>x.id===p.pet):null; // a pet on an adventure can't help until it's back
 const petPerk=p=>{if(typeof B!=='undefined'&&B&&!B.over&&B.petFrozen>0&&curScreen==='battle')return null;const x=petOf(p);return x?x.perk:null;};
 const bossesBeaten=p=>ZONES.filter(z=>(p.progress[z.id]||[])[5]>0).length;
 const zoneLocked=(z,p)=>(!!z.event&&!eventOpen())||(z.id==='tower'&&bossesBeaten(p)<2)||(!!z.g5&&!((p.grade||0)>=5||bossesBeaten(p)>=6));
@@ -1308,7 +1315,7 @@ function topbar(){
  <div class="coins">🪙 ${p.coins}</div>${tbOn(p)?`<div class="coins tbchip ${tbLeft(p)<=10?'low':''}" id="tbChip" title="Play time left">⏳ ${tbLeft(p)}m</div>`:''}
  <button class="iconbtn tbi" title="Explore the world" aria-label="Explore the world" onclick="go('world')">${TB_ICONS.map}</button>
  <button class="iconbtn tbi" title="Backpack &amp; shop" aria-label="Backpack and shop" onclick="go('backpack')">${TB_ICONS.bag}${p.eggs?'<b class="dot"></b>':''}</button>
- <button class="iconbtn tbi" title="Pet home" aria-label="Pet home" onclick="go('pethome')">${TB_ICONS.pet}${spinReady(p)?'<b class="dot"></b>':''}</button>
+ <button class="iconbtn tbi" title="Pet home" aria-label="Pet home" onclick="go('pethome')">${TB_ICONS.pet}${spinReady(p)||(window.Adv&&Adv.back(p))?'<b class="dot"></b>':''}</button>
  <button class="iconbtn tbi" title="Sound &amp; music" aria-label="Sound on or off" onclick="window.Music?Music.menu():toggleSound()">${fxVol()>0||((p.music||'auto')!=='off'&&state.musicVol!==0)?TB_ICONS.sound:TB_ICONS.mute}</button>
  <button class="iconbtn tbi" title="Switch player" aria-label="Switch player" onclick="go('profiles')">${TB_ICONS.players}</button></div>`;
 }
@@ -1468,10 +1475,10 @@ SCREENS.map=()=>{
  else if(pendingGifts(p).length&&!$('#modal.show'))setTimeout(()=>{if(curScreen==='map')showGift();},650);
  else if(spinReady(p)&&p.spinShown!==dayKey()&&!$('#modal.show')){p.spinShown=dayKey();saveLocal();setTimeout(()=>{if(curScreen==='map'&&!$('#modal.show'))openSpin();},700);}
 };
-function homeCards(p){const pet=petOf(p);let petLine='';
+function homeCards(p){const pet=petOf(p);let petLine='';const awayP=!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)?PETS.find(x=>x.id===p.pet):null;
  if(pet){const pd=petMood(petData(p,pet.id));petLine=pd.food<=1?`${esc(pet.name)} is hungry!`:pd.joy<=1?`${esc(pet.name)} wants to play!`:`${pips(pd.food,'🍗')} ${pips(pd.joy,'💖')}`;}
- return `<div class="homecards"><button class="hcard" onclick="go('pethome')">${pet?petAvatar(p,pet):'<span class="pav"><span class="pe">🥚</span></span>'}<div><b>${pet?esc(pet.name)+"'s Home":'Pet Home'}</b><small>${pet?petLine:'Hatch a pet to start!'}</small></div></button>
- <button class="hcard ${spinReady(p)?'glow':''}" onclick="openSpin()"><span class="pav"><span class="pe">🎡</span></span><div><b>Daily Spin</b><small>${spinReady(p)?'Ready! Tap to spin':'Come back tomorrow'}</small></div></button></div>`;}
+ return `<div class="homecards"><button class="hcard" onclick="go('pethome')">${pet?petAvatar(p,pet):awayP?`<span class="pav"><span class="pe">${awayP.e}</span></span>`:'<span class="pav"><span class="pe">🥚</span></span>'}<div><b>${pet?esc(pet.name)+"'s Home":awayP?esc(awayP.name)+"'s Home":'Pet Home'}</b><small>${pet?petLine:awayP?`🎒 ${esc(awayP.name)} is on an adventure!`:'Hatch a pet to start!'}</small></div></button>
+ <button class="hcard ${spinReady(p)?'glow':''}" onclick="openSpin()"><span class="pav"><span class="pe">🎡</span></span><div><b>Daily Spin</b><small>${spinReady(p)?'Ready! Tap to spin':'Come back tomorrow'}</small></div></button>${window.Adv&&p.pets.length?Adv.homeCard(p):''}</div>`;}
 
 /* ---------- zone ---------- */
 SCREENS.zone=zid=>{
@@ -1479,7 +1486,7 @@ SCREENS.zone=zid=>{
  let decor=`<div class="scene zscene">${sceneSVG(z.id)}</div>`;for(let i=0;i<0;i++){decor+=`<span class="decor" style="left:${(i*37+9)%96+2}%;top:${(i*53+13)%90+5}%;font-size:${24+(i*7)%22}px">${z.decor[i%z.decor.length]}</span>`;}
  const nodes=z.mons.map((m,i)=>{
   const open=i===0||pr[i-1]>0;const st=pr[i]||0;const next=open&&!st;
-  return `<button class="node ${i===5?'boss':''} ${open?'':'locked'} ${st?'done':''} ${next?'next':''}" style="left:${NODE_POS[i][0]}%;top:${NODE_POS[i][1]}%" title="${esc(m[0])}" onclick="${open?`startBattle('${z.id}',${i},null,${av?'{asc:true}':'null'})`:`toast('Beat the monster before this one first!')`}">${open?m[1]:'🔒'}${next?'<span class="go-tag">GO!</span>':''}${st?`<span class="nstars">${'⭐'.repeat(st)}</span>`:''}</button>`;}).join('');
+  return `<button class="node ${i===5?'boss':''} ${open?'':'locked'} ${st?'done':''} ${next?'next':''}" style="left:${NODE_POS[i][0]}%;top:${NODE_POS[i][1]}%" title="${esc(m[0])}" onclick="${open?`startBattle('${z.id}',${i},null,${av?'{asc:true}':'null'})`:`toast('Beat the monster before this one first!')`}">${open?monArt(m[1]):'🔒'}${next?'<span class="go-tag">GO!</span>':''}${st?`<span class="nstars">${'⭐'.repeat(st)}</span>`:''}</button>`;}).join('');
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">${av?`✨ ★${ar}`:ROUNDS[cr].m} ${z.name}</h2></div>
  ${roundTabs(p,z)}
  <div class="zmap ${z.cls} r${cr} ${av?'ascmap':''}" style="--asch:${ar*47}deg"><svg class="zpath" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${NODE_POS.map(q=>q.join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>${decor}${nodes}</div>
@@ -1885,9 +1892,47 @@ function kindSpell(q,said){
   btn:'I\'ll spell it now! ✨',after:()=>{[...w].forEach((ch,k)=>tone(900+k*60,.18,'sine',.035,.3+k*.45));setTimeout(()=>{if(kindOpen)kindSay(`${w}. ${[...w].join(', ')}. ${w}.`);},(1.6+w.length*.45)*1000);},
   done:()=>{const i=B.queue.indexOf(q);if(i>0){B.queue.splice(i,1);B.queue.unshift(q);}q.kind=true;nextQ();}});
  return true;}
+/* Hand-drawn monsters (used instead of an emoji where there is no good emoji) */
+const MON_ART={
+ '🧟‍♂️':`<svg class="monart" viewBox="0 0 120 130" aria-label="Shuffle Zombie"><ellipse cx="62" cy="124" rx="32" ry="5" fill="rgba(0,0,0,.3)"/>
+  <path d="M48 96 L44 122 L56 122 L58 100 M68 100 L70 122 L82 122 L78 96" fill="#6b4f2a" stroke="#3b2a14" stroke-width="2.5"/><path d="M42 122 H58 M68 122 H84" stroke="#3b2a14" stroke-width="5" stroke-linecap="round"/>
+  <path d="M40 60 Q62 54 84 60 L86 100 L78 96 L72 102 L64 96 L56 102 L48 96 L40 100Z" fill="#4dabf7" stroke="#1c5f99" stroke-width="2.5"/><path d="M52 72 L58 80 M70 70 L66 84" stroke="#1c5f99" stroke-width="2"/>
+  <path d="M44 66 Q24 66 6 70" stroke="#4dabf7" stroke-width="11" stroke-linecap="round" fill="none"/><path d="M50 74 Q30 78 10 84" stroke="#4dabf7" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <circle cx="4" cy="70" r="6" fill="#94d82d" stroke="#5c940d" stroke-width="2"/><circle cx="8" cy="84" r="6" fill="#94d82d" stroke="#5c940d" stroke-width="2"/>
+  <path d="M38 22 Q62 8 86 22 L88 50 Q86 64 62 64 Q38 64 36 50Z" fill="#94d82d" stroke="#5c940d" stroke-width="3"/>
+  <path d="M36 26 L40 12 L46 22 L52 8 L58 20 L66 6 L72 20 L80 10 L84 24 Q62 16 36 26Z" fill="#495057"/>
+  <circle cx="52" cy="38" r="8" fill="#fff" stroke="#5c940d" stroke-width="2"/><circle cx="74" cy="38" r="6" fill="#fff" stroke="#5c940d" stroke-width="2"/><circle cx="50" cy="39" r="3" fill="#2b1a0b"/><circle cx="73" cy="39" r="2.5" fill="#2b1a0b"/>
+  <path d="M50 54 Q62 50 76 55" stroke="#2b1a0b" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="58" y="51" width="5" height="5" fill="#fff" stroke="#2b1a0b" stroke-width="1"/>
+  <path d="M78 26 L86 34 M80 30 L84 26 M82 34 L88 30" stroke="#5c940d" stroke-width="2"/></svg>`,
+ '🐺︎':`<svg class="monart" viewBox="0 0 120 130" aria-label="Howly Werewolf"><ellipse cx="60" cy="124" rx="34" ry="5" fill="rgba(0,0,0,.3)"/>
+  <path d="M42 96 L38 122 L54 122 L56 100 M66 100 L68 122 L84 122 L80 96" fill="#8a6d52" stroke="#4a3522" stroke-width="2.5"/><path d="M36 122 l4 -4 l4 4 l4 -4 l4 4 M66 122 l4 -4 l4 4 l4 -4 l4 4" stroke="#4a3522" stroke-width="2" fill="none"/>
+  <path d="M36 58 Q60 48 84 58 L86 92 Q60 100 34 92Z" fill="#8a6d52" stroke="#4a3522" stroke-width="3"/><path d="M46 64 Q60 72 74 64 L72 88 Q60 94 48 88Z" fill="#d9c2a3"/>
+  <path d="M34 86 L86 86 L88 102 L74 98 L68 104 L60 98 L52 104 L46 98 L32 102Z" fill="#7048e8" stroke="#3b1f99" stroke-width="2"/>
+  <path d="M38 62 Q18 58 10 40" stroke="#8a6d52" stroke-width="11" stroke-linecap="round" fill="none"/><path d="M82 62 Q102 58 110 40" stroke="#8a6d52" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <path d="M6 38 l2 -8 M10 36 l2 -9 M14 38 l3 -7 M106 38 l-2 -8 M110 36 l-2 -9 M114 38 l-3 -7" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M34 14 L42 34 L30 34Z M86 14 L78 34 L90 34Z" fill="#8a6d52" stroke="#4a3522" stroke-width="2.5"/><path d="M36 22 L40 31 L34 31Z M84 22 L80 31 L86 31Z" fill="#f4a3b5"/>
+  <path d="M32 34 Q60 18 88 34 Q94 52 80 58 Q60 64 40 58 Q26 52 32 34Z" fill="#8a6d52" stroke="#4a3522" stroke-width="3"/>
+  <path d="M46 44 Q60 40 74 44 L70 58 Q60 64 50 58Z" fill="#d9c2a3"/><ellipse cx="60" cy="46" rx="6" ry="4" fill="#2b1a0b"/>
+  <circle cx="46" cy="38" r="5" fill="#ffd43b"/><circle cx="74" cy="38" r="5" fill="#ffd43b"/><circle cx="46" cy="38" r="2.2" fill="#2b1a0b"/><circle cx="74" cy="38" r="2.2" fill="#2b1a0b"/>
+  <path d="M40 31 L50 34 M80 31 L70 34" stroke="#4a3522" stroke-width="3" stroke-linecap="round"/>
+  <path d="M52 55 Q60 60 68 55" stroke="#2b1a0b" stroke-width="2.5" fill="none"/><path d="M54 56 L55 60 L57 57 M66 56 L65 60 L63 57" fill="#fff" stroke="#fff" stroke-width="1"/></svg>`,
+  '👑':`<svg class="monart" viewBox="0 0 120 130" aria-label="The Pumpkin King"><ellipse cx="60" cy="124" rx="36" ry="5" fill="rgba(0,0,0,.3)"/>
+  <path d="M30 82 Q60 72 90 82 L98 122 Q60 130 22 122Z" fill="#5f3dc4" stroke="#2b1a66" stroke-width="3"/><path d="M52 80 L60 96 L68 80" fill="#ffd43b"/>
+  <path d="M22 88 Q8 100 14 114" stroke="#5f3dc4" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M98 88 Q112 96 108 72" stroke="#5f3dc4" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M108 72 V40" stroke="#8d5a2b" stroke-width="4"/><circle cx="108" cy="36" r="7" fill="#ff922b" stroke="#e8590c" stroke-width="2"/>
+  <ellipse cx="60" cy="56" rx="34" ry="28" fill="#ff922b" stroke="#d9480f" stroke-width="3"/><path d="M42 32 Q38 56 44 82 M78 32 Q82 56 76 82 M60 28 V84" stroke="#e8590c" stroke-width="2.5" fill="none"/>
+  <path d="M42 50 L50 42 L56 52Z M64 52 L70 42 L78 50Z" fill="#2b1a0b"/><path d="M40 64 Q60 80 80 64 L74 66 L70 72 L64 67 L60 74 L56 67 L50 72 L46 66Z" fill="#2b1a0b"/>
+  <path d="M40 28 L42 10 L52 20 L60 4 L68 20 L78 10 L80 28Z" fill="#ffd43b" stroke="#e67700" stroke-width="2.5"/><circle cx="60" cy="18" r="3.5" fill="#e03131"/><circle cx="48" cy="24" r="2.5" fill="#1c7ed6"/><circle cx="72" cy="24" r="2.5" fill="#2b8a3e"/></svg>`,
+ '🍬':`<svg class="monart" viewBox="0 0 110 130" aria-label="Candy Corn Creep"><ellipse cx="55" cy="124" rx="30" ry="5" fill="rgba(0,0,0,.3)"/>
+  <path d="M55 6 Q70 8 84 60 Q96 104 90 112 Q55 122 20 112 Q14 104 26 60 Q40 8 55 6Z" fill="#fff4e6" stroke="#b36b00" stroke-width="3"/>
+  <path d="M21 102 Q55 112 89 102 L91 112 Q55 122 19 112Z" fill="#ffd43b"/><path d="M29 50 Q55 58 81 50 L90 100 Q55 110 20 100Z" fill="#ff922b"/><path d="M29 50 Q55 58 81 50" stroke="#e8590c" stroke-width="2" fill="none"/>
+  <path d="M34 66 L48 72 M76 66 L62 72" stroke="#2b1a0b" stroke-width="4" stroke-linecap="round"/><circle cx="43" cy="77" r="5" fill="#fff"/><circle cx="67" cy="77" r="5" fill="#fff"/><circle cx="44" cy="78" r="2.6" fill="#2b1a0b"/><circle cx="66" cy="78" r="2.6" fill="#2b1a0b"/>
+  <path d="M42 94 Q55 86 68 94" stroke="#2b1a0b" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M14 84 Q2 76 6 64 M96 84 Q108 76 104 64" stroke="#b36b00" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M20 118 L18 126 M90 118 L92 126" stroke="#b36b00" stroke-width="5" stroke-linecap="round"/></svg>`};
+const monArt=e=>MON_ART[e]||e;
 function foesHTML(){
  const bk=(B.foes||[]).map((f,k)=>({f,k})).filter(o=>o.k!==B.ti&&o.f.hp>0);
- const pw=curPowers();return `${pw.length?`<div class="mpow" title="Special powers">${pw.map(k=>`<span title="${POWERS[k].n}">${POWERS[k].e}</span>`).join('')}</div>`:''}<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div>${B.round>=4&&!B.wild?'<div class="mcharge" id="mcharge" title="Monster charging an attack"><i></i><span>⚡</span></div>':''}<div class="mon-sprite" id="monS">${B.emoji}</div>${bk.length?`<div class="gang">${bk.map(o=>`<div class="bk" data-k="${o.k}"><div class="minihp"><i></i></div><span class="bks">${o.f.e}</span></div>`).join('')}</div>`:''}`;
+ const pw=curPowers();return `${pw.length?`<div class="mpow" title="Special powers">${pw.map(k=>`<span title="${POWERS[k].n}">${POWERS[k].e}</span>`).join('')}</div>`:''}<div class="hp"><i id="mhp"></i></div><div class="hpnum" id="mhpn"></div>${B.round>=4&&!B.wild?'<div class="mcharge" id="mcharge" title="Monster charging an attack"><i></i><span>⚡</span></div>':''}<div class="mon-sprite" id="monS">${monArt(B.emoji)}</div>${bk.length?`<div class="gang">${bk.map(o=>`<div class="bk" data-k="${o.k}"><div class="minihp"><i></i></div><span class="bks">${monArt(o.f.e)}</span></div>`).join('')}</div>`:''}`;
 }
 function nextFoe(cont){
  if(!B||!B.foes||B.foes.length<2)return false;
@@ -2016,6 +2061,7 @@ function nextQ(){
    const L0=lvl(p,op),mast=B.round>=4&&!B.wild&&!B.asc&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
    let t=0;do{q=genQ(op,L);}while(B.recent.includes(q.text)&&t++<12);if(mast)q.mastered=true;
    if(!mast&&!B.wild&&Math.random()<.2){const rq=makeRev(op,L);if(rq&&!B.recent.includes(rq.text)){q=rq;label='🔄 Flip it! You pick both numbers';}}
+   if(B.z.id==='haunt'&&!q.rev&&!q.tpl&&!q.mastered){const st=trickStory(q);if(st&&Math.random()<.35){q=Object.assign({},q,{story:st});label='🎃 Trick-or-treat problem!';}}
   }
  }
  B.recent.push(q.text);if(B.recent.length>10)B.recent.shift();
@@ -2026,6 +2072,12 @@ function nextQ(){
  $('#qcard').classList.remove('right');
  showQ();
 }
+function trickStory(q){if(q.c!==undefined||q.neg||q.answer<0||!Number.isInteger(q.a)||!Number.isInteger(q.b)||q.a<2||q.b<2)return null;const A=q.a,Bn=q.b,st=pick(['Oak Street','Elm Street','Maple Lane','Pumpkin Road','Hollow Hill','Bat Alley']),st2=pick(['the haunted house','the house with the big spider','Grandma’s house','the spooky castle']);
+ if(q.op==='add')return pick([`You got <b>${A}</b> candies on ${st} and <b>${Bn}</b> more at ${st2}. How many candies in all?`,`Your bag has <b>${A}</b> chocolates. A friendly ghost drops in <b>${Bn}</b> more. How many now?`]);
+ if(q.op==='sub')return pick([`You had <b>${A}</b> candies and gave <b>${Bn}</b> to your little brother. How many are left?`,`You had <b>${A}</b> candies. A sneaky bat grabbed <b>${Bn}</b>! How many are left?`,`You got <b>${A}</b> candy corns and threw <b>${Bn}</b> away (yuck!). How many are left?`]);
+ if(q.op==='mul')return pick([`You got <b>${A}</b> candies at each of <b>${Bn}</b> houses. How many candies?`,`There are <b>${A}</b> jack-o'-lanterns on each of <b>${Bn}</b> porches. How many jack-o'-lanterns?`]);
+ if(q.op==='div'&&Bn>0&&A%Bn===0)return pick([`You have <b>${A}</b> candies to share equally with <b>${Bn}</b> friends. How many does each friend get?`,`<b>${A}</b> trick-or-treaters walk in groups of <b>${Bn}</b>. How many groups?`]);
+ return null;}
 function snapBattle(p){if(!B||B.over||!B.z)return;
  p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick,petSince:B.petSince,bufN:B.bufN||0,asc:B.asc||0};save();}
 function showQ(){
@@ -2034,6 +2086,7 @@ function showQ(){
  const q=B.q,inp=B.input||'?';{const mp=$('#mpad');if(mp)mp.classList.toggle('negon',!!q.neg);}setTimeout(fitBattle,0);
  if(q.tpl){xShowQ(q,B.input);return;}
  if(q.rev){$('#qtext').innerHTML=`<div class="revq"><span class="ansbox rb ${B.box===0?'on':''}" onclick="revBox(0)">${B.input||'?'}</span> ${REV_SYM[q.op]} <span class="ansbox rb ${B.box===1?'on':''}" onclick="revBox(1)">${B.input2||'?'}</span> = <b>${q.target}</b></div><div class="revnote">${q.note}</div>`;return;}
+ if(q.story){$('#qtext').innerHTML=`<div class="trickq"><div class="tqs">${q.story}</div><div class="tqa">Answer: <span class="ansbox">${inp}</span></div></div>`;return;}
  if(isVertical(q)){
   const nums=q.c!==undefined?[q.a,q.b,q.c]:[q.a,q.b];const sym=q.op==='add'?'+':q.op==='sub'?'−':'×';
   const w=Math.max(...nums.map(n=>String(n).length),String(q.answer).length,inp.length);
@@ -2299,7 +2352,7 @@ SCREENS.backpack=()=>{
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs}) · Epic or Legendary pet!</button>`:''}
    ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="muted" style="margin-bottom:6px">Pets found: <b>${regHave(p)} / ${REG_PETS.length}</b></div>
-   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}
+   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${window.Adv&&Adv.away(p,x.id)?'🎒 On an adventure<br>':''}${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:`<div class="item"><div class="ie" style="filter:brightness(0);opacity:.25">${x.e}</div><div>???</div><small>${t==='legend'?'Super rare!':'Hatch to find'}</small></div>`;}).join('')}</div>`;}).join('')}
    <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):`<div class="item mystery"><div class="ie"><span class="cloud">☁️</span><span class="qm">❓</span></div><div>???</div><small>A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal it.</small></div>`).join('')}</div>
    ${EVENT_PETS.some(x=>p.pets.includes(x.id))||eventOpen()||eventSoon()?`<h4 class="tierh" style="color:#fd7e14">🎃 Halloween <span class="muted">${EVENT_PETS.filter(x=>p.pets.includes(x.id)).length} / ${EVENT_PETS.length}</span></h4><div class="items">${EVENT_PETS.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}`):`<div class="item mystery"><div class="ie" style="filter:brightness(0);opacity:.3">${x.e}</div><div>???</div><small>Beat the Haunted Hollow boss (Oct 18 to Nov 1).</small></div>`).join('')}</div>`:''}</div>
   <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
@@ -2312,7 +2365,7 @@ const poss=n=>n+(/s$/i.test(n)?"'":"'s");
 function shopClick(kind,id){
  const p=P();if(p.troll&&(p.troll.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🧌 Grumbleroot the Troll is holding that one! Win it back by answering his questions.');return;}
  if(p.eagle&&(p.eagle.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🦅 Skyla the Eagle keeps that one in her nest! Win it back by solving her chicks\' homework.');return;}
- if(kind==='pet'){p.pet=id;save();SFX.tap();goStay('backpack');return;}
+ if(kind==='pet'){if(window.Adv&&Adv.away(p,id)){toast(`🎒 ${(PETS.find(x=>x.id===id)||{}).name} is on an adventure! Visit the Adventure Camp to see when they'll be back.`);return;}p.pet=id;save();SFX.tap();goStay('backpack');return;}
  const list=kind==='hat'?HATS:kind==='robe'?ROBES:SPELLS;const it=list.find(x=>x.id===id);
  const ownedList=p.owned[kind==='hat'?'hats':kind==='robe'?'robes':'spells'];
  const equip=()=>{if(kind==='hat')p.look.hat=id;else if(kind==='robe')p.look.robe=id;else p.spell=id;};
@@ -2399,12 +2452,13 @@ function petGain(p,pet,xp){wkBump(p,'pet');xp*=1+.1*vLv(p,'pethome');const pd=pe
  if(st2!==st){pd.hints=Math.min(st2.max,pd.hints+1);setTimeout(()=>{SFX.level();modal(`<div class="mcard"><div class="big-emoji">${pet.e}</div><h2>${esc(pet.name)} grew up!</h2><p>${esc(pet.name)} is now <b>${st2.n}</b>!</p>${petMovesMax(pd)?`<p>In math battles, ${esc(pet.name)} can use <b>🐾 ${PET_MOVES[pet.id]||'Pet Attack'}</b> ${petMovesMax(pd)} time${petMovesMax(pd)>1?'s':''} per battle!</p>`:''}<button class="btn green big" onclick="closeModal()">Yay!</button></div>`);},500);}}
 SCREENS.pethome=()=>{
  const p=P();const pet=petOf(p);
+ if(!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)){app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 Pet Home</h2></div>${Adv.awayCard(p,p.pet)}</div>`;return;}
  if(!pet){app.innerHTML=topbar()+`<div class="page"><h2 class="title">🏠 Pet Home</h2><div class="panel" style="text-align:center"><div style="font-size:70px">🥚</div><p>You don't have a pet yet!</p><p class="muted">Hatch an egg in your backpack, or reach hero level 2.</p><button class="btn gold" onclick="go('backpack')">🎒 Go to backpack</button></div></div>`;return;}
  const pd=petMood(petData(p,pet.id));const st=petStage(pd);const nx=PET_STAGES[PET_STAGES.indexOf(st)+1];
  const pct=nx?Math.min(100,(pd.xp-st.xp)/(nx.xp-st.xp)*100):100;const today=dayKey();pd.played=pd.played||{};
  const pantry=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0);
  const shopItem=(kind,it,owned,eq,sub)=>`<button class="item ${eq?'eq':''} ${!owned&&p.coins<it.price?'need':''}" onclick="petShop('${kind}','${it.id}')"><div class="ie">${it.e}</div><div>${it.name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${kind==='food'?`🪙 ${it.price}`:owned?(eq?'✓ Wearing':kind==='toy'?'✓ Yours':'Wear'):'🪙 '+it.price}</div></button>`;
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 ${esc(poss(pet.name))} Home</h2></div>
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← Explore</button><h2 class="title">🏠 ${esc(poss(pet.name))} Home</h2></div>${window.Adv?`<div class="row" style="margin:-4px 0 12px"><button class="btn small" onclick="go('camp')">🏕️ Adventure Camp${Adv.back(p)?' · crew is back! 🎉':Adv.trip(p)?' · crew is exploring':''}</button></div>`:''}
  <div class="pethome">
   <div class="panel phcard">
    <div class="phstage" id="phStage" onclick="patPet()">${petAvatar(p,pet,'big')}<div class="bubblesay" id="petSay">${esc(petSays(pd,pet))}</div></div>
@@ -4067,7 +4121,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.28z';
+const APP_VER='2026.09.29d';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
@@ -4249,7 +4303,7 @@ const SC={
 };
 function sceneSVG(id){
  {const zz=ZONES.find(x=>x.id===id);if(zz&&zz.scene)id=zz.scene;}
- const r=rng({forest:7,caves:11,volcano:23,castle:31,tower:43,spell:53,quiz:61,hw:71,farm:83,market:89,temple:97,mesa:101,summit:103,garden:107,reef:109}[id]||5);
+ const r=rng({forest:7,caves:11,volcano:23,castle:31,tower:43,spell:53,quiz:61,hw:71,farm:83,market:89,temple:97,mesa:101,summit:103,garden:107,reef:109,haunt:113}[id]||5);
  let d='',b='';
  if(id==='forest'){
   d=`<linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc3f0"/><stop offset=".75" stop-color="#d7f2fb"/></linearGradient><linearGradient id="sc-gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ccf4f"/><stop offset="1" stop-color="#3f8f2c"/></linearGradient><radialGradient id="sc-sun"><stop offset="0" stop-color="#fffbe0"/><stop offset=".5" stop-color="#fff2a0" stop-opacity=".6"/><stop offset="1" stop-color="#fff2a0" stop-opacity="0"/></radialGradient>`;
@@ -4295,6 +4349,25 @@ function sceneSVG(id){
   ${[...Array(8)].map(()=>{const x=r()*800,y=300+r()*20;return `<path d="M${x} ${y} l${6+r()*10} ${4+r()*6} l${-4} ${6}" stroke="#ff7a1f" stroke-width="2" fill="none" opacity=".8"/>`;}).join('')}
   ${SC.rock(40,330,100,60,'#2d2020','#1a1111','#5a3c36')}${SC.rock(760,335,110,66,'#2d2020','#1a1111','#5a3c36')}${SC.rock(180,305,40,24,'#352524','#1f1414','#6a4640')}${SC.rock(640,308,46,26,'#352524','#1f1414','#6a4640')}
   ${[...Array(18)].map(()=>`<circle class="ember" style="animation-delay:${(r()*6).toFixed(1)}s;animation-duration:${(4+r()*4).toFixed(1)}s" cx="${r()*800}" cy="${300+r()*80}" r="${1.2+r()*1.8}" fill="${pick(['#ffd43b','#ff8a3d','#ff5a1f'])}"/>`).join('')}`;
+ }
+ else if(id==='haunt'){
+  d=`<linearGradient id="sc-hs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1033"/><stop offset=".55" stop-color="#4c2a85"/><stop offset=".85" stop-color="#c2410c"/><stop offset="1" stop-color="#fd7e14"/></linearGradient><radialGradient id="sc-hm"><stop offset="0" stop-color="#fff9db"/><stop offset=".6" stop-color="#ffe8a3"/><stop offset="1" stop-color="#ffe8a3" stop-opacity="0"/></radialGradient><radialGradient id="sc-jg"><stop offset="0" stop-color="#ffd43b" stop-opacity=".8"/><stop offset="1" stop-color="#ff922b" stop-opacity="0"/></radialGradient><linearGradient id="sc-hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b1b3f"/><stop offset="1" stop-color="#140c22"/></linearGradient>`;
+  const tree=(x,y,h,flip,col)=>{const w=h*.07,s2=flip?-1:1;const br=(x0,y0,a,l,k)=>{if(k>3||l<8)return '';const x1=x0+Math.cos(a)*l,y1=y0-Math.sin(a)*l;return `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} L${x1.toFixed(1)} ${y1.toFixed(1)}" stroke="${col}" stroke-width="${Math.max(1.4,6-k*1.5)}" stroke-linecap="round"/>`+br(x1,y1,a+.45+r()*.25,l*.66,k+1)+br(x1,y1,a-.5-r()*.25,l*.62,k+1);};
+   return `<path d="M${x-w} ${y} Q${x-w*.4} ${y-h*.5} ${x-w*.3} ${y-h*.72} L${x+w*.3} ${y-h*.72} Q${x+w*.4} ${y-h*.5} ${x+w} ${y}Z" fill="${col}"/>`+br(x,y-h*.7,Math.PI/2+.5*s2,h*.3,0)+br(x,y-h*.7,Math.PI/2-.45*s2,h*.28,0)+br(x-w*.2,y-h*.45,Math.PI/2+1*s2,h*.22,1)+br(x+w*.2,y-h*.4,Math.PI/2-1.1*s2,h*.2,1);};
+  const jack=(x,y,s3)=>`<g transform="translate(${x},${y}) scale(${s3})"><circle r="30" fill="url(#sc-jg)" class="jackglow"/><ellipse rx="17" ry="13" fill="#ff922b" stroke="#c2410c" stroke-width="2"/><path d="M-8 -13 Q-10 0 -8 13 M8 -13 Q10 0 8 13" stroke="#e8590c" stroke-width="1.5" fill="none"/><rect x="-2" y="-17" width="4" height="6" rx="1" fill="#2f9e44"/><path d="M-10 -4 L-6 -9 L-3 -3Z M3 -3 L6 -9 L10 -4Z" fill="#ffe066"/><path d="M-10 3 Q0 11 10 3 L7 4 L5 8 L2 5 L0 9 L-2 5 L-5 8 L-7 4Z" fill="#ffe066"/></g>`;
+  const grave=(x,y,s3)=>`<g transform="translate(${x},${y}) scale(${s3})"><path d="M-14 0 V-26 Q-14 -40 0 -40 Q14 -40 14 -26 V0Z" fill="#6c6480" stroke="#3f3a52" stroke-width="2"/><path d="M-6 -24 H6 M0 -31 V-15" stroke="#3f3a52" stroke-width="3"/></g>`;
+  b=`<rect width="800" height="400" fill="url(#sc-hs)"/>
+  ${[...Array(34)].map(()=>`<circle cx="${r()*800}" cy="${r()*170}" r="${.8+r()*1.4}" fill="#fff" opacity="${.35+r()*.5}"/>`).join('')}
+  <circle cx="610" cy="110" r="95" fill="url(#sc-hm)" opacity=".7"/><circle cx="610" cy="110" r="46" fill="#fff4c2"/><circle cx="596" cy="100" r="8" fill="#f1e0a0" opacity=".7"/><circle cx="624" cy="124" r="6" fill="#f1e0a0" opacity=".7"/>
+  ${[[140,70,1],[480,50,.8],[700,170,.7]].map(([x,y,s3],i)=>`<g transform="translate(${x},${y}) scale(${s3})"><g class="batw" style="animation-delay:-${i*.12}s"><path d="M0 0 Q-10 -12 -26 -6 Q-18 -2 -16 6 Q-8 0 0 4 Q8 0 16 6 Q18 -2 26 -6 Q10 -12 0 0Z" fill="#12091f"/></g></g>`).join('')}
+  <path d="M0 250 Q140 205 300 238 T600 228 T800 240 V400 H0Z" fill="#2a1a47"/>
+  ${tree(70,262,190,0,'#1f1433')}${tree(300,250,120,1,'#241739')}${tree(520,248,110,0,'#241739')}${tree(760,262,200,1,'#1f1433')}${tree(640,255,140,0,'#1b1030')}
+  <path d="M0 292 Q200 270 400 286 T800 280 V400 H0Z" fill="url(#sc-hg)"/>
+  ${grave(170,312,1)}${grave(620,318,.85)}${grave(250,300,.6)}
+  <g stroke="#3a2c55" stroke-width="5">${[...Array(9)].map((_,i)=>`<path d="M${24+i*20} 330 V300 l4 -8 4 8"/>`).join('')}<path d="M20 312 H200"/></g>
+  <g class="fogmove"><ellipse cx="200" cy="330" rx="260" ry="24" fill="#ff922b" opacity=".16"/><ellipse cx="620" cy="336" rx="280" ry="26" fill="#b197fc" opacity=".14"/></g>
+  ${jack(96,352,1.1)}${jack(705,358,1.2)}${jack(250,340,.7)}${jack(560,346,.75)}
+  ${[...Array(10)].map((_,i)=>`<path class="leaffall" style="animation-duration:${7+r()*6}s;animation-delay:-${r()*10}s" transform="translate(${60+r()*760} 0)" d="M0 0 q6 -6 12 0 q-6 6 -12 0" fill="${pick(['#e8590c','#f08c00','#c92a2a','#fab005'])}"/>`).join('')}`;
  }
  else if(id==='castle'){
   d=`<linearGradient id="sc-ns" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140c2e"/><stop offset="1" stop-color="#4b2a7a"/></linearGradient><pattern id="sc-brick" width="40" height="20" patternUnits="userSpaceOnUse"><rect width="40" height="20" fill="#5a5270"/><path d="M0 0 H40 M0 10 H40 M20 0 V10 M0 10 V20 M40 10 V20" stroke="#433c58" stroke-width="2"/></pattern>`;

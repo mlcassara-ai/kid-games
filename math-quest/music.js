@@ -18,6 +18,9 @@ const TRACKS={
  inner:{name:'🚀 Inner Space',bpm:68,root:55,dark:1,gain:1.8,
   bars:[[0,[0,3,7]],[-1,[-1,2,7]],[-2,[-2,3,8]],[-3,[-3,0,3]],[-4,[-4,0,3]],[-5,[-5,-1,2]],[1,[1,5,8]],[-5,[-5,-1,2]],
         [0,[0,3,7]],[-4,[-4,0,3]],[1,[1,5,8]],[-5,[-5,-1,2]],[0,[0,3,7]],[3,[3,7,10]],[1,[1,5,8]],[-5,[-5,-1,5]]]},
+ /* Haunted Hollow (Halloween event): spooky-FUN, not scary. A bouncy plucked walking bass, a tinkly music-box tune in a
+    'spooky' minor scale, soft organ chords, tick-tock clicks and now and then a silly ghost 'oooOOOooo'. Original tune. */
+ haunt:{name:'🎃 Haunted Hollow',bpm:116,root:50,spook:1,gain:1.25,prog:[0,-4,5,7],scale:[0,2,3,5,7,8,11,12,14,15]},
  magma:{name:'🌋 Magma Deep',bpm:44,root:45,scale:[0,1,5,7,8],prog:[[0,7,12],[1,8,13],[-4,3,8],[0,7,12]],tone:'glass',rest:.6,padVol:.1,octave:12,padCut:380,rumble:.3}};
 const LEVEL=.34; // softer than sound effects
 const DAY_FROM=6,DUSK_FROM=17; // 6am–5pm = Morning Meadow, 5pm–6am = Quiet Dusk
@@ -69,7 +72,26 @@ function schedDark(T,beat){const e8=beat/2;while(nextT<AC.currentTime+1.2){const
   if(inBar===4&&I>.7)timp(R0-24,t,.12*I);
   if(inBar===0&&bar%4===2)lonely(R0+36+ch[1],t,beat*6,.012+.01*I);                  // a lonely high tone, far away
   step++;if(step%8===0)bar++;nextT+=e8;}}
-function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.dark){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedDark(T,beat);return;}
+function pluck(m,t,vol){const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='triangle';o.frequency.value=hz(m);f.type='lowpass';f.frequency.value=1300;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.32);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+.36);}
+function tick(t,vol,fr){const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=fr||1700;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+.05);o.connect(g);g.connect(master);o.start(t);o.stop(t+.07);}
+function organ(ms,t,dur,vol){ms.forEach(m=>[1,2].forEach(mul=>{const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='square';o.frequency.value=hz(m)*mul;f.type='lowpass';f.frequency.value=800;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol/mul,t+.06);g.gain.setValueAtTime(vol/mul,t+dur*.7);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.05);}));}
+function ghostOoo(t,vol){const o=AC.createOscillator(),g=AC.createGain(),l=AC.createOscillator(),lg=AC.createGain();o.type='sine';o.frequency.setValueAtTime(420,t);o.frequency.linearRampToValueAtTime(760,t+.9);o.frequency.linearRampToValueAtTime(380,t+2.2);
+ l.frequency.value=6;lg.gain.value=14;l.connect(lg);lg.connect(o.frequency);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.5);g.gain.linearRampToValueAtTime(0,t+2.3);o.connect(g);g.connect(master);o.start(t);l.start(t);o.stop(t+2.4);l.stop(t+2.4);}
+let smi=4;
+function schedSpook(T,beat){const e8=beat/2;while(nextT<AC.currentTime+1.2){const t=nextT,r=T.prog[bar%T.prog.length],inBar=step%8,R0=T.root;
+  if(inBar%2===0)pluck(R0-24+r+[0,7,12,7][inBar/2],t,.16);                       // bouncy walking bass
+  if(inBar%2===1)tick(t,.022,inBar===3||inBar===7?1300:1800);                        // tick-tock
+  if(inBar===0)organ([0,3,7].map(c=>R0-12+r+c+(r===7&&c===3?1:0)),t,beat*3.6,.022);  // soft organ chord (A chord gets its spooky major 3rd)
+  const phraseRest=(bar%4===3&&inBar>=4);
+  if(!phraseRest&&[0,1,2,4,6].includes(inBar)&&(inBar!==1||R()<.6)){                 // music-box tune: a little motif, wandering up and down
+   if(inBar===0){const tones=[0,2,4].map(i=>T.scale.indexOf(((r%12)+12)%12));smi=Math.max(1,Math.min(8,[3,4,5][Math.floor(R()*3)]));}
+   else smi=Math.max(0,Math.min(T.scale.length-1,smi+[-1,-1,1,1,2,-2][Math.floor(R()*6)]));
+   note(R0+12+T.scale[smi],t,e8*1.6,.1,'bell');}
+  if(inBar===0&&bar%8===6)ghostOoo(t,.035);                                         // a silly ghost every so often
+  step++;if(step%8===0)bar++;nextT+=e8;}}
+function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.spook){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedSpook(T,beat);return;}if(T.dark){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedDark(T,beat);return;}
  if(nextT<AC.currentTime)nextT=AC.currentTime+.05; // after the app was in the background
  while(nextT<AC.currentTime+1.2){const t=nextT,chord=T.prog[bar%T.prog.length],inBar=step%8,quiet=(Math.floor(bar/4)%3===2);
   if(T.drips&&R()<T.drips*.5)drip(t+R()*beat);if(T.shimmer&&R()<T.shimmer*.4)note(T.root+36+T.scale[Math.floor(R()*T.scale.length)],t+R()*beat,beat,.03,'bell');if(T.rumble&&inBar===4&&R()<T.rumble)rumble(t);
@@ -96,6 +118,7 @@ function update(){try{const p=typeof P==='function'&&state&&state.cur?P():null;
  const inCave=typeof curScreen!=='undefined'&&curScreen==='cave'&&!document.hidden&&!!document.getElementById('cvRoot')&&window.Cave&&Cave._dbg;
  let id=onMap&&p?trackFor(p):null;
  if(inCave&&p&&p.caveMusic!==false){try{const d=Cave._dbg();const y=d.S.y;if(y===0)id=trackFor({music:'auto'});else{const L=d.layerOf(y);const lid=L&&L.id;id=['magma','mantle'].includes(lid)?'magma':['crystal','granite'].includes(lid)?'crystal':'cave';}}catch(e){id='cave';}}
+ const inHaunt=typeof curScreen!=='undefined'&&!document.hidden&&((curScreen==='zone'&&typeof curArg!=='undefined'&&curArg==='haunt')||(curScreen==='battle'&&typeof B!=='undefined'&&B&&B.z&&B.z.id==='haunt'&&!B.over));if(inHaunt&&p&&choice(p)!=='off')id='haunt';
  const inRide=typeof curScreen!=='undefined'&&curScreen==='inner'&&!document.hidden&&!!document.getElementById('isRoot');if(inRide&&p&&choice(p)!=='off')id='inner';
  if(mVol()<=0)id=null;
  want=id;

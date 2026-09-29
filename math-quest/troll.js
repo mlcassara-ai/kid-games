@@ -9,14 +9,22 @@ let root=null,skip=false,busy=false;
 window.trollBusy=false;
 
 /* ---------- state ---------- */
-function T(p){p.troll=p.troll||{};const t=p.troll;t.visits=t.visits||0;t.hoard=t.hoard||[];t.play=t.play||0;return t;}
+function T(p){p.troll=p.troll||{};const t=p.troll;t.visits=t.visits||0;t.hoard=t.hoard||[];t.play=t.play||0;t.wk0=t.wk0||Date.now();return t;}
 /* about a 1-in-3 chance per hour of play: each hour of play time gets one roll; if it hits, the trap waits at a random moment in that hour
    and springs on the next unmarked square you step on after that moment */
 const HOUR=3600,CHANCE=.4;
 /* open sky biomes belong to the Giant Eagle; everywhere else (outside the village) is troll country */
 const EAGLE_BIOMES=['farm','market','temple','mesa','summit','reef'];
 function roll(t){const w=Math.floor(t.play/HOUR);if(t.win!==w){t.win=w;t.at=Math.random()<CHANCE?w*HOUR+Math.random()*HOUR:null;}}
-setInterval(()=>{try{const p=P();if(!p||document.hidden||!p.setup)return;const idle=typeof tbLastInput!=='undefined'?Date.now()-tbLastInput:0;if(idle>90000)return;const t=T(p);t.play+=10;roll(t);}catch(e){}},10000);
+setInterval(()=>{try{const p=P();if(!p||document.hidden||!p.setup)return;const idle=typeof tbLastInput!=='undefined'?Date.now()-tbLastInput:0;if(idle>90000)return;const t=T(p);t.play+=10;SESS+=10;roll(t);}catch(e){}},10000);
+/* once-a-week promise: kids who don't play often still meet Grumbleroot and Skyla. If it has been 7+ days since the troll
+   (or the eagle) last got you, the next empty square springs it — after at least 3 minutes of play this session, and never
+   the same day as another troll/eagle visit. The one waiting longest goes first. */
+let SESS=0;const WEEK=7*864e5,DAY=864e5;
+function weekDue(p,t){const now=Date.now(),e=p.eagle||{},b=x=>Math.max(x||0,t.wk0||now);
+ if(SESS<180)return null;if(now-Math.max(t.last||0,e.last||0)<DAY)return null;
+ const dT=now-b(t.last),dE=window.Eagle?now-b(e.last):0;
+ if(dT>=WEEK&&dT>=dE)return 'troll';if(dE>=WEEK)return 'eagle';return null;}
 /* unmarked squares: plain ground or path in the wild — no decorations, buildings, gates, chests, water, village */
 function unmarked(t){return t&&!t.block&&!t.water&&!t.deco&&!t.o&&!t.npc&&!t.gate&&!t.chest&&!t.plaza&&t.b!=='village';}
 window.trollCheck=function(tile){
@@ -25,11 +33,12 @@ window.trollCheck=function(tile){
  if(!unmarked(tile))return false;
  const t=T(p);roll(t);
  const armed=ARM; // a parent preview (?trolldemo / ?eagledemo) — kept in memory, not in saved data, so profile switches and cloud syncs can't lose it
- if(!armed&&!t.force&&(t.at==null||t.play<t.at))return false;
- const fe=t.forceEagle;ARM=null;t.force=0;t.forceEagle=0;
+ const wk=(!armed&&!t.force&&(t.at==null||t.play<t.at))?weekDue(p,t):null;
+ if(!armed&&!t.force&&!wk&&(t.at==null||t.play<t.at))return false;
+ const fe=t.forceEagle||wk==='eagle';ARM=null;t.force=0;t.forceEagle=0;
  if(armed){if(armed==='eagle'&&window.Eagle){Eagle.start(true);return true;}DEMO=snap(p);start();return true;}
  t.at=null;save();
- if(window.Eagle&&(fe||EAGLE_BIOMES.includes(tile.b))){Eagle.start();return true;}
+ if(window.Eagle&&wk!=='troll'&&(fe||EAGLE_BIOMES.includes(tile.b))){Eagle.start();return true;}
  start();return true;};
 /* ?trolldemo in the URL: the next unmarked step drops you in, and afterwards everything is put back exactly as it was (for parents to preview) */
 let DEMO=null,ARM=null;
@@ -40,7 +49,7 @@ if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();
 /* ---------- things the troll can take / give back ---------- */
 function takeable(p){const out=[];
  if((p.coins||0)>=5)out.push({k:'coins',v:Math.min(p.coins,Math.max(5,Math.min(400,Math.round(p.coins*.2))))});
- (p.pets||[]).filter(id=>id!==p.pet).forEach(id=>out.push({k:'pet',id}));
+ (p.pets||[]).filter(id=>id!==p.pet&&!(window.Adv&&Adv.away(p,id))).forEach(id=>out.push({k:'pet',id}));
  const ow=p.owned||{};
  (ow.hats||[]).filter(id=>id!==(p.look&&p.look.hat)&&(HATS.find(h=>h.id===id)||{}).price>0&&!(HATS.find(h=>h.id===id)||{}).event).forEach(id=>out.push({k:'hat',id}));
  (ow.robes||[]).filter(id=>id!==(p.look&&p.look.robe)&&(ROBES.find(h=>h.id===id)||{}).price>0&&!(ROBES.find(h=>h.id===id)||{}).event).forEach(id=>out.push({k:'robe',id}));
@@ -379,6 +388,6 @@ function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  box.querySelectorAll('.tr-pad button').forEach(b=>b.onclick=()=>{try{SFX.tap();}catch(e){}press(b.dataset.k);});
  const finish=()=>{if(done)return;done=true;clearInterval(tiv);document.removeEventListener('visibilitychange',vis);window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=!timedOut&&(v===q.answer||!!(q.alt&&q.alt.includes(v)));box.remove();resolve({ok,q,timeout:timedOut});};
 });}
-window.Troll={start,arm:k=>{ARM=k;},_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
+window.Troll={_wk:weekDue,_sess:v=>{SESS=v;},start,arm:k=>{ARM=k;},_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
 window.Surprise={reclaimed,say,tapWait,ask,label,take,giveBack,el,sleep,snd,makeQ,EAGLE_BIOMES,heroHTML,isDemo:()=>!!DEMO};
 })();

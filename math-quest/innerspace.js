@@ -87,7 +87,7 @@ function meet(){if(busy)return;const p=P();if(!p)return;const s=S(p);busy=true;W
    <div class="row">${last?`<button class="btn ghost dark" id="ozNo">Not now</button><button class="btn green big" id="ozGo">🎢 Hop in!</button>`:`<button class="btn green big" id="ozNext">Next ➜</button>`}</div></div>`);
   const nx=document.getElementById('ozNext');if(nx)nx.onclick=()=>{i++;show();};
   const go1=document.getElementById('ozGo');if(go1)go1.onclick=()=>{closeModal();busy=false;startRide(t);};window.visitorQuiet=Date.now()+90e3;
-  const no=document.getElementById('ozNo');if(no)no.onclick=()=>{closeModal();busy=false;if(DEMO===true)DEMO=null;else{s.snooze=Date.now()+SNOOZE_MS;save();}toast(`🎢 ${NAME}: "No problem! I'll come back for you a little later."`);};};
+  const no=document.getElementById('ozNo');if(no)no.onclick=()=>{closeModal();busy=false;if(DEMO===true)DEMO=null;else later(p);toast(`🎢 ${NAME}: "No problem! I'll come back ${S(p).decl>=2?'tomorrow':'after a few more battles'}."`);};};
  try{SFX.level();}catch(e){}show();}
 function startRide(t){const p=P();const s=S(p);
  if(DEMO===true)DEMO=JSON.stringify({inner:p.inner||null,coins:p.coins,robes:(p.owned.robes||[]).slice()});
@@ -100,7 +100,10 @@ function open(p){PL=p;if(!R){const s=S(p);if(!s.tix.length&&!DEMO){go('world');r
  if(root)root.remove();root=document.createElement('div');root.id='isRoot';document.body.appendChild(root);
  R.i=0;R.pts=0;scene();}
 function close(){stopAnim();if(root)root.remove();root=null;}
-function exit(){const fin=!!(R&&R.finished);close();const p=PL||P();R=null;PL=null;if(fin)setTimeout(()=>farewell(p),700);
+/* "Not now", leaving the ride, or the ride getting interrupted → Ozzy waits for a few more battles AND at least 20 minutes; the second time in a day he waits until tomorrow */
+function later(p){if(!p||DEMO)return;const s=S(p);const d=typeof dayKey==='function'?dayKey():'';if(s.declDay!==d){s.declDay=d;s.decl=0;}s.decl=(s.decl||0)+1;
+ s.after=(p.battles||0)+WAIT_BATTLES;const t=new Date();t.setHours(24,0,0,0);s.snooze=s.decl>=2?t.getTime():Date.now()+20*60e3;save();}
+function exit(){if(R&&!R.finished&&R.score!=null&&!DEMO)commit(R.score);const fin=!!(R&&R.finished);close();const p=PL||P();if(!fin)later(p);R=null;PL=null;if(fin)setTimeout(()=>farewell(p),700);
  if(DEMO&&DEMO!==true){const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();go('world');toast('🎢 That was a preview — nothing was changed.');return;}
  save();go('world');}
 const tier=()=>{const g=(PL&&PL.grade)||3;return g<=4?0:g<=8?1:2;};
@@ -155,7 +158,7 @@ function frame(inner){if(!root)return;const done=R.i;const fade=R.fresh;R.fresh=
  root.querySelector('#isX').onclick=R.finished?exit:askLeave;}
 function askLeave(){if(!root||root.querySelector('.is-leave'))return;const d=document.createElement('div');d.className='is-leave';
  d.innerHTML=`<div class="is-lbox">${OZZY_HEAD}<div><b>Leave the ride?</b><br>You keep your 🎟️ ticket — ${NAME} will come back for you later.</div><div class="is-lrow"><button class="is-btn green" id="isStay">🎢 Keep riding</button><button class="is-btn" id="isLeave">Leave</button></div></div>`;
- root.appendChild(d);d.querySelector('#isStay').onclick=()=>d.remove();d.querySelector('#isLeave').onclick=()=>{if(!DEMO&&PL){S(PL).snooze=Date.now()+SNOOZE_MS;}exit();};}
+ root.appendChild(d);d.querySelector('#isStay').onclick=()=>d.remove();d.querySelector('#isLeave').onclick=()=>{exit();};}
 function next(){R.i++;scene();}
 function onNext(fn){const b=root&&root.querySelector('#isNext');if(b)b.onclick=fn||next;}
 function scene(){stopAnim();if(!root)return;R.sz={board:0,shrink:0,inside:6,mol:7,atom:9,alarm:9,atoms:9,build:8,eye:8,quiz:8}[SCENES[R.i]];R.fresh=true;({board,shrink,inside,mol,atom,alarm,atoms,build,eye,quiz})[SCENES[R.i]]();}
@@ -450,7 +453,7 @@ function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];let qi=0,score=0,tries=0,
  onNext(()=>draw());}
 
 /* back at the start line, normal size again */
-function home(score){const k=document.createElement('div');k.className='is-black on';k.style.transition='opacity 1.2s';k.style.opacity='0';root.appendChild(k);requestAnimationFrame(()=>{k.style.opacity='1';});snd(440,.3,'triangle',.05);snd(660,.4,'triangle',.05,.3);
+function home(score){R.score=score;const k=document.createElement('div');k.className='is-black on';k.style.transition='opacity 1.2s';k.style.opacity='0';root.appendChild(k);requestAnimationFrame(()=>{k.style.opacity='1';});snd(440,.3,'triangle',.05);snd(660,.4,'triangle',.05,.3);
  setTimeout(()=>{if(!root)return;R.sz=0;R.fresh=true;
   frame(`<svg class="is-svg" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet"><rect x="-600" y="-900" width="2160" height="2400" fill="#2b1d5c"/>${Array.from({length:40},(_,i)=>`<circle cx="${(i*97)%960}" cy="${(i*53)%300}" r="${1+i%3*.6}" fill="#fff" opacity=".6"/>`).join('')}
    <rect x="-600" y="430" width="2160" height="470" fill="#3d2b7a"/><path d="M-600 470 H1560" stroke="#ffd43b" stroke-width="6" stroke-dasharray="30 20"/>
@@ -460,13 +463,15 @@ function home(score){const k=document.createElement('div');k.className='is-black
    <g transform="translate(520 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-48" cy="2" r="7" fill="#ffd43b"/><circle cx="48" cy="2" r="7" fill="#ffd43b"/></g></svg>
    ${nar(`We made it! You're back to <b>normal size</b>, ${NM()}! You fixed the Molecule Builder, stopped the shrink ray, and aced the quiz. What a scientist! 🎉`,'🃏 See my card ➜',{cls:'gold'})}`);
   onNext(()=>card(score));},1300);}
-function card(score){const s=R.s,p=PL;const st=S(p);const first=st.album[s.id]==null;const best=Math.max(st.album[s.id]||0,score);st.album[s.id]=best;
+/* the ride counts as soon as the quiz is done — even if the app is closed before the card screen — so the ticket is used up and Ozzy doesn't repeat the same ride */
+function commit(score){if(R.committed)return R.committed;const s=R.s,p=PL||P();const st=S(p);const first=st.album[s.id]==null;const best=Math.max(st.album[s.id]||0,score);st.album[s.id]=best;
  const coins=score+(first?FIRST_BONUS:0);p.coins=(p.coins||0)+coins;
  if(!R.t.demo){const k=st.tix.findIndex(x=>x.id===s.id);if(k>=0)st.tix.splice(k,1);else st.tix.shift();}
- st.rides++;st.last=typeof dayKey==='function'?dayKey():'';st.pts=(st.pts||0)+score;
+ st.rides++;st.last=typeof dayKey==='function'?dayKey():'';st.pts=(st.pts||0)+score;st.after=(p.battles||0)+WAIT_BATTLES;st.decl=0;
  const n=Object.keys(st.album).length,all=n>=D.SUB.length;let prize=false;
  if(all&&!st.prize){st.prize=1;prize=true;p.owned.robes=p.owned.robes||[];if(!p.owned.robes.includes('labcoat'))p.owned.robes.push('labcoat');p.coins+=PRIZE_COINS;}
- R.finished=true;R.i=SCENES.length;save();
+ R.finished=true;save();R.committed={first,coins,prize,n,all,best};return R.committed;}
+function card(score){const s=R.s,p=PL;const st=S(p);const {first,coins,prize,n,all,best}=commit(score);R.i=SCENES.length;
  frame(`<div class="is-quiz"><div class="is-card"><div style="font-weight:700;color:#e67700">📖 ${first?'NEW MOLECULE ALBUM CARD!':'ALBUM CARD'}</div><canvas id="isCard" width="300" height="170" style="width:100%;max-width:300px"></canvas><div class="n">${esc(s.n)} · ${s.f}</div>
   <ul><li>⚛️ ${Object.entries(s.atoms).map(([e,k])=>`${s.elem?'':k+' '}${EL[e].n.toLowerCase()}`).join(' + ')}</li>${s.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
   <div style="font-weight:700">⭐ ${score} / 60 points${score<best?` · your best: ${best}`:''}</div>
@@ -518,7 +523,7 @@ function driveOff(m){if(m.st==='drive')return;m.st='drive';snd(520,.1,'square',.
 /* ---------- loops ---------- */
 setInterval(()=>{try{
  if(root&&typeof curScreen!=='undefined'&&curScreen!=='inner'){ // time's up (play-time bank) or the screen changed → close the ride; the ticket is kept
-  close();R=null;if(DEMO&&DEMO!==true){const p=PL||P();const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();}PL=null;}
+  if(R&&!DEMO){if(!R.finished&&R.score!=null)commit(R.score);else if(!R.finished)later(PL||P());}close();R=null;if(DEMO&&DEMO!==true){const p=PL||P();const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();}PL=null;}
  if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
  {const bye=W.mobs.find(m=>m.byeOzzy);if(bye){if(bye.st==='talk'&&!document.querySelector('#modal.show'))driveOff(bye);return;}}
  if(!wants(p)){if(W.mobs.some(m=>m.ozzy))W.mobs=W.mobs.filter(m=>!m.ozzy);return;}
