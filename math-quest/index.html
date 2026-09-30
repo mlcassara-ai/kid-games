@@ -2577,7 +2577,7 @@ SCREENS.backpack=()=>{
   ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
   ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards <small class="muted" style="font-size:14px">tap one to see it again</small></h3><div class="awards">${p.awards.map((a,i)=>[a,i]).reverse().map(([a,i])=>`<div class="award" role="button" style="cursor:pointer" onclick="showCert(${i})" title="Tap to see the certificate"><b>🏅 ${esc(a.t)}</b><small>${esc(niceDate(a.d))}</small></div>`).join('')}</div></div>`:''}<div class="panel muted bpempty">Your trophies, gifts and treasure notes show up here.</div></div>
   <div class="panel bpsec" data-t="pets"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit the Pet Home (feed, play &amp; pet shop)</button>`:''}
-   <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
+   <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}${p.eggs&&p.eggB!=null&&p.eggB<p.eggs?` <small class="muted">(${p.eggB?`${Math.min(p.eggB,p.eggs)} from the Shop · `:''}${p.eggs-Math.min(p.eggB,p.eggs)} 🎁 mystery)</small>`:''}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs}) · Epic or Legendary pet!</button>`:''}
    ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="muted" style="margin-bottom:6px">Pets found: <b>${regHave(p)} / ${REG_PETS.length}</b></div>
@@ -2593,7 +2593,9 @@ SCREENS.backpack=()=>{
 let BP_TAB=null;function bpTab(){if(!BP_TAB){try{BP_TAB=localStorage.getItem('mq.bptab');}catch(e){}if(!['pets','spell','hat','robe','more'].includes(BP_TAB))BP_TAB='pets';}return BP_TAB;}
 function bpSetTab(k){BP_TAB=k;try{localStorage.setItem('mq.bptab',k);}catch(e){}SFX.tap();const w=document.querySelector('.bptabs-wrap');if(w){w.className='bptabs-wrap tab-'+k;w.querySelectorAll('.bptab').forEach(b=>b.classList.toggle('on',b.getAttribute('onclick').includes("'"+k+"'")));}}
 function moreTile(n,sub){return n?`<div class="item mystery moretile"><div class="ie">❓</div><div>${n} more to discover</div><small>${sub}</small></div>`:'';}
-function goStay(s,a){const y=window.scrollY;go(s,a);window.scrollTo(0,y);} // re-draw without jumping back to the top
+function goStay(s,a){const y=window.scrollY;go(s,a);window.scrollTo(0,y);}
+/* re-draw and keep one element (e.g. the shop item you just tapped) exactly where it was on screen */
+function goAnchor(s,sel){const el=sel&&document.querySelector(sel);const t0=el?el.getBoundingClientRect().top:null;goStay(s);if(t0==null)return;const el2=document.querySelector(sel);if(el2)window.scrollBy(0,el2.getBoundingClientRect().top-t0);} // re-draw without jumping back to the top
 const poss=n=>n+(/s$/i.test(n)?"'":"'s");
 function shopClick(kind,id){
  const p=P();if(p.troll&&(p.troll.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🧌 Grumbleroot the Troll is holding that one! Win it back by answering his questions.');return;}
@@ -2617,7 +2619,7 @@ function buyItem(kind,id){
 function buyEgg(sure){
  const p=P();const price=eggPrice(p);if(p.coins<price){toast(`You need ${price-p.coins} more coins for an egg!`);return;}
  if(!sure){modal(`<div class="mcard"><div class="big-emoji">🥚</div><h2>Buy an egg?</h2><p>It costs <b>🪙 ${price}</b>. You have 🪙 ${p.coins}.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">No</button><button class="btn gold" onclick="closeModal();buyEgg(true)">Buy it!</button></div></div>`);return;}
- p.coins-=price;p.eggs++;save();SFX.coin();goStay('backpack');toast('You got an egg! 🥚');
+ if(p.eggB==null)p.eggB=p.eggs||0;p.coins-=price;p.eggs++;p.eggB++;save();SFX.coin();goStay('backpack');toast('You got an egg! 🥚 Shop eggs always hatch a pet.');
 }
 function rollEggPet(p,legend){
  if(legend){for(const k of (Math.random()<.35?['legend','epic']:['epic','legend'])){const pool=PETS.filter(x=>x.tier===k&&!p.pets.includes(x.id));if(pool.length)return pick(pool);}}
@@ -2628,20 +2630,34 @@ function rollEggPet(p,legend){
  for(const k of ['epic','legend']){const pool=PETS.filter(x=>x.tier===k&&!p.pets.includes(x.id));if(pool.length)return pick(pool);}
  return null;
 }
+/* what's inside a Mystery Egg when it isn't a pet: something worth about the same as a found egg */
+function eggGoodie(p){p.pantry=p.pantry||{};p.toys=p.toys||[];p.petGear=p.petGear||[];const r=Math.random();
+ const toy=PET_TOYS.filter(t=>!p.toys.includes(t.id)),gear=PET_GEAR.filter(g=>!p.petGear.includes(g.id));
+ if(r<.35&&toy.length){const t=pick(toy);p.toys.push(t.id);p.coins+=20;return {e:t.e,t:`A new toy: ${t.name}!`,h:`Inside was a <b>${t.e} ${esc(t.name)}</b> for your pets to play with, plus 🪙 20! Find it in the Pet Home.`};}
+ if(r<.6&&gear.length){const g=pick(gear);p.petGear.push(g.id);p.coins+=20;return {e:g.e,t:`A pet outfit: ${g.name}!`,h:`Inside was a <b>${g.e} ${esc(g.name)}</b> for a pet to wear, plus 🪙 20! Dress up a pet in the Pet Home.`};}
+ if(r>=.85){const sp=[];
+  if(p.sci&&p.sci.met&&(p.sci.rocks||0)<3)sp.push(()=>{p.sci.rocks=(p.sci.rocks||0)+1;return {e:'🪨',t:'A mystery rock!',h:'Inside was a <b>🪨 mystery rock</b>! Dr. Quartz will want to see this. He\'ll come find you soon.'};});
+  if(window.Inner&&p.inner&&p.inner.met&&(p.inner.tix||[]).length<3)sp.push(()=>{const t=Inner.award(p,{});return t?{e:'🎟️',t:'A Shrink Ticket!',h:`Inside was a <b>🎟️ Shrink Ticket</b> for the <b>${t.s.e} ${esc(t.s.n)}</b> ride! Ozzy will pick you up after a few battles.`}:null;});
+  sp.push(()=>{p.pantry.cake=(p.pantry.cake||0)+1;p.coins+=50;return {e:'🎂',t:'A Party Cake!',h:'Inside was a <b>🎂 Party Cake</b> (the fanciest pet treat) and 🪙 50!'};});
+  const g=pick(sp)();if(g)return g;}
+ const foods=[pick(PET_FOODS),pick(PET_FOODS),pick(PET_FOODS)];if(Math.random()<.5)foods.push(pick(PET_FOODS));foods.forEach(f=>{p.pantry[f.id]=(p.pantry[f.id]||0)+1;});p.coins+=30;
+ return {e:'🧺',t:'A snack basket!',h:`Inside was a snack basket: <b>${foods.map(f=>f.e).join(' ')}</b> and 🪙 30! Your pets will love it.`};}
 function hatchEgg(legend){
  const p=P();if(legend){if(!(p.legendEggs>0))return;p.legendEggs--;}else{if(p.eggs<1)return;p.eggs--;}
  if(regHave(p)>=REG_PETS.length&&!legend){p.pantry.cake=(p.pantry.cake||0)+1;p.coins+=50;const cp=petOf(p);if(cp)petGain(p,cp,30);save();go('backpack');toast(`You have every pet! The egg had a 🎂 Party Cake, 🪙 50${cp?` and +30 XP for ${cp.name}`:''}!`);return;}
- const pet=rollEggPet(p,legend);let prize='';
+ /* Shop eggs (p.eggB) always hatch a pet. Found eggs are 🎁 Mystery Eggs: about 60% a new pet, 40% a goodie bundle. Eggs held before this change count as Shop eggs. */
+ if(p.eggB==null)p.eggB=(p.eggs||0)+(legend?0:1);let shopEgg=false;if(!legend&&p.eggB>0){p.eggB--;shopEgg=true;}
+ const pet=legend||shopEgg||Math.random()<.6?rollEggPet(p,legend):null;let prize='',gd=null;
  if(pet){p.pets.push(pet.id);if(!p.pet)p.pet=pet.id;petData(p,pet.id);}
- else{const a=pick(PET_FOODS),b=pick(PET_FOODS);p.pantry[a.id]=(p.pantry[a.id]||0)+1;p.pantry[b.id]=(p.pantry[b.id]||0)+1;p.coins+=40;prize=`${a.e}${b.e}`;}
+ else gd=eggGoodie(p);
  save();
  modal(`<div class="mcard"><div class="egg" id="egg">🥚</div><h2 id="hT">Hatching…</h2><div id="hR"></div></div>`);
  const big=pet&&(pet.tier==='epic'||pet.tier==='legend');
  [0,400,800,1200].concat(big?[1500,1800]:[]).forEach(t=>setTimeout(()=>tone(600+t/4,.08,'triangle',.08),t));
  setTimeout(()=>{
   const e=$('#egg');if(!e)return;
-  if(!pet){e.textContent='🍬';e.classList.add('hatched');SFX.coin();$('#hT').textContent='A snack egg!';
-   $('#hR').innerHTML=`<p>No new pet this time, but it had treats inside: <b>${prize}</b> and 🪙 40!</p><p class="muted">The rarest pets are still out there… keep trying! 🌟</p><div class="row"><button class="btn green big" onclick="closeModal();go('backpack')">Keep exploring</button></div>`;return;}
+  if(!pet){e.textContent=gd.e;e.classList.add('hatched');SFX.coin();$('#hT').textContent=gd.t;
+   $('#hR').innerHTML=`<p>${gd.h}</p><p class="muted">This was a 🎁 Mystery Egg. Found eggs can hold a pet or a surprise. Eggs from the Shop always hatch a pet!</p><div class="row"><button class="btn green big" onclick="closeModal();go('backpack')">Yay! 🎉</button></div>`;return;}
   e.textContent=pet.e;e.classList.add('hatched');if(big){e.classList.add('glowegg');e.style.setProperty('--gc',PET_TIERS[pet.tier].c);}SFX.win();
   $('#hT').innerHTML=`${pet.tier==='legend'?'🌟 LEGENDARY! 🌟<br>':pet.tier==='epic'?'💜 EPIC! 💜<br>':pet.tier==='rare'?'✨ Rare! ✨<br>':''}You got ${esc(pet.name)}!`;
   $('#hR').innerHTML=`${tierTag(pet)}<p>Pet power: <b>${PERKS[pet.perk]}</b></p><p class="muted">Pets found: ${regHave(p)} / ${REG_PETS.length}</p><div class="row"><button class="btn ghost dark" onclick="closeModal();go('backpack')">Keep exploring</button><button class="btn green big" onclick="P().pet='${pet.id}';save();closeModal();go('backpack')">Make ${esc(pet.name)} my buddy! 🐾</button></div>`;
@@ -2723,18 +2739,18 @@ function petBounce(){const e=$('#phStage .pav');if(e)e.animate([{transform:'none
 function sayPet(t){const b=$('#petSay');if(b)b.textContent=t;}
 function patPet(){const p=P(),pet=petOf(p);if(!pet)return;const pd=petMood(petData(p,pet.id));
  petFx('💕');petBounce();tone(880,.08,'sine',.08);setTimeout(()=>tone(1175,.1,'sine',.08),90);
- const now=Date.now();if(!pd.patT||now-pd.patT>15*60e3){pd.patT=now;if(pd.joy<MOOD_MAX)pd.joy++;petGain(p,pet,.5);save();setTimeout(()=>go('pethome'),700);}
+ const now=Date.now();if(!pd.patT||now-pd.patT>15*60e3){pd.patT=now;if(pd.joy<MOOD_MAX)pd.joy++;petGain(p,pet,.5);save();setTimeout(()=>{if(curScreen==='pethome')goStay('pethome');},700);}
  else sayPet(pick(['Hehe, that tickles!','Purr… 😊','More pats please!','I love you!']));}
 function feedPet(id){const p=P(),pet=petOf(p);const f=PET_FOODS.find(x=>x.id===id);const pd=petMood(petData(p,pet.id));
  if(!(p.pantry[id]>0))return;if(pd.food>=MOOD_MAX){sayPet(`I'm too full! Maybe later. 😋`);petBounce();return;}
  p.pantry[id]--;questEvent(p,'petcare',1);pd.food=Math.min(MOOD_MAX,pd.food+f.food);pd.joy=Math.min(MOOD_MAX,pd.joy+f.joy);petGain(p,pet,f.xp);save();SFX.coin();
- petFx(f.e);setTimeout(()=>petFx('😋'),250);petBounce();setTimeout(()=>{if(curScreen==='pethome')go('pethome');toast(`${pet.e} ${pet.name} loved the ${f.name}! +${f.xp} pet XP`);},800);}
+ petFx(f.e);setTimeout(()=>petFx('😋'),250);petBounce();setTimeout(()=>{if(curScreen==='pethome')goStay('pethome');toast(`${pet.e} ${pet.name} loved the ${f.name}! +${f.xp} pet XP`);},800);}
 function playPet(id){const p=P(),pet=petOf(p);const t=PET_TOYS.find(x=>x.id===id);const pd=petMood(petData(p,pet.id));pd.played=pd.played||{};const today=dayKey();
  if(pd.played[id]===today){sayPet(`We already played with the ${t.name} today. Try tomorrow!`);return;}
  pd.played[id]=today;questEvent(p,'petcare',1);pd.joy=Math.min(MOOD_MAX,pd.joy+2);petGain(p,pet,3);save();SFX.win();
  const s=$('#phStage');if(s){const el=document.createElement('div');el.className='phfx';el.textContent=t.e;el.style.left='10%';s.appendChild(el);
   el.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate(120px,-80px) rotate(360deg)',opacity:1},{transform:'translate(240px,0) rotate(720deg)',opacity:0}],{duration:1000}).onfinish=()=>el.remove();}
- petBounce();setTimeout(()=>petFx('💖'),400);setTimeout(()=>{if(curScreen==='pethome')go('pethome');toast(`${pet.e} ${pet.name} had fun with the ${t.name}! +3 pet XP`);},1100);}
+ petBounce();setTimeout(()=>petFx('💖'),400);setTimeout(()=>{if(curScreen==='pethome')goStay('pethome');toast(`${pet.e} ${pet.name} had fun with the ${t.name}! +3 pet XP`);},1100);}
 function heldBy(p,id,k){k=k||'pet';if(p.troll&&(p.troll.hoard||[]).some(x=>x.k===k&&x.id===id))return '🧌 Grumbleroot has it';if(p.eagle&&(p.eagle.hoard||[]).some(x=>x.k===k&&x.id===id))return '🦅 In Skyla\'s nest';return '';}
 function petShop(kind,id,sure){const p=P(),pet=petOf(p);const pd=pet&&petData(p,pet.id);
  if(kind==='toy'&&heldBy(p,id,'toy')){toast(`${heldBy(p,id,'toy')}! Win it back instead of buying it again.`);return;}
@@ -2745,7 +2761,7 @@ function petShop(kind,id,sure){const p=P(),pet=petOf(p);const pd=pet&&petData(p,
  if(it.price>=100&&!sure){modal(`<div class="mcard"><div class="big-emoji">${it.e}</div><h2>Buy the ${esc(it.name)}?</h2><p>It costs <b>🪙 ${it.price}</b>. You have 🪙 ${p.coins}.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">No</button><button class="btn gold" onclick="closeModal();petShop('${kind}','${id}',true)">Buy it!</button></div></div>`);return;}
  p.coins-=it.price;
  if(kind==='food')p.pantry[id]=(p.pantry[id]||0)+1;else if(kind==='toy')p.toys.push(id);else{p.petGear.push(id);pd.acc=id;}
- save();SFX.coin();goStay('pethome');toast(kind==='food'?`${it.e} ${it.name} added to your food bag!`:kind==='toy'?`${it.e} You got the ${it.name}!`:`${pet.e} ${pet.name} looks great in the ${it.name}!`);}
+ save();SFX.coin();goAnchor('pethome',`.item[onclick*="petShop('${kind}','${id}'"]`);toast(kind==='food'?`${it.e} ${it.name} added to your food bag!`:kind==='toy'?`${it.e} You got the ${it.name}!`:`${pet.e} ${pet.name} looks great in the ${it.name}!`);}
 /* ---------- daily spin ---------- */
 const SPIN_PRIZES=[{t:'coins',n:10,e:'🪙',l:'10',w:18,c:'#ffd84a'},{t:'food',id:'apple',e:'🍎',l:'Apple',w:14,c:'#ff8a8a'},{t:'coins',n:25,e:'🪙',l:'25',w:16,c:'#7fe3ff'},
  {t:'food',id:'cookie',e:'🍪',l:'Cookie',w:12,c:'#ffb86b'},{t:'coins',n:50,e:'🪙',l:'50',w:9,c:'#8dffb0'},{t:'food',id:'cake',e:'🎂',l:'Cake',w:6,c:'#ff9ce0'},
@@ -4401,7 +4417,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.30d';
+const APP_VER='2026.09.30g';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
