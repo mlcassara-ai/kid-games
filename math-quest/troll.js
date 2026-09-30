@@ -49,7 +49,7 @@ if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();
 /* ---------- things the troll can take / give back ---------- */
 function takeable(p){const out=[];
  if((p.coins||0)>=5)out.push({k:'coins',v:Math.min(p.coins,Math.max(5,Math.min(400,Math.round(p.coins*.2))))});
- (p.pets||[]).filter(id=>id!==p.pet&&!(window.Adv&&Adv.away(p,id))).forEach(id=>out.push({k:'pet',id}));
+ (p.pets||[]).filter(id=>id!==p.pet&&!(window.Adv&&Adv.away(p,id))&&!((typeof PETS!=='undefined'?PETS:[]).find(x=>x.id===id&&(x.tier==='event'||x.prize)))).forEach /* earned prize/event pets are never stolen */(id=>out.push({k:'pet',id}));
  const ow=p.owned||{};
  (ow.hats||[]).filter(id=>id!==(p.look&&p.look.hat)&&(HATS.find(h=>h.id===id)||{}).price>0&&!(HATS.find(h=>h.id===id)||{}).event).forEach(id=>out.push({k:'hat',id}));
  (ow.robes||[]).filter(id=>id!==(p.look&&p.look.robe)&&(ROBES.find(h=>h.id===id)||{}).price>0&&!(ROBES.find(h=>h.id===id)||{}).event).forEach(id=>out.push({k:'robe',id}));

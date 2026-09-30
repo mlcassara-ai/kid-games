@@ -29,7 +29,7 @@ const JUNK=[['sock','🧦','Odd Sock'],['pebble','🪨','Smooth Pebble'],['stick
 const SPECIAL=[['map','🗺️','Treasure Map Piece',1],['tinycrown','👑','Tiny Crown',1]];
 const ALLCUR=()=>JUNK.concat(SPECIAL,...DESTS.map(d=>d.cur));
 const DIARY_PAIR=['{A} and {B} raced to the top of a hill. {B} won… by rolling down it.','It started to rain. {A} used {B} as an umbrella. {B} did not love that.','{A} told {B} a joke so funny that {B} snorted.','{A} and {B} built a fort out of sticks and named it "Castle Awesome".','{A} and {B} shared the last snack. Then they found another snack!','{A} got a little lost. {B} found them by following the giggles.','{B} carried {A}\'s bag when {A} got sleepy. What a pal!'];
-const DIARY_SOLO=['{A} explored {D} and made friends with a very grumpy snail.','{A} counted every cloud in the sky. There were a lot.','{A} took a nap under a tree. It was a great nap.','{A} practised a brand-new dance move. Nobody saw. Probably for the best.'];
+const DIARY_SOLO=['{A} explored {D} and made friends with a very grumpy snail.','{A} counted every cloud in the sky. There were a lot.','{A} took a nap under a tree. It was a great nap.','{A} practiced a brand-new dance move. Nobody saw. Probably for the best.'];
 const DIARY_PLACE={meadow:['The whole crew rolled down a flower hill in {D}.'],woods:['An owl in {D} said "hoo". The crew said "hoo" back. This went on for a while.'],cove:['The crew splashed in the waves at {D} until everyone was soggy.'],caves:['In {D} everything echoed… echoed… echoed…'],peaks:['At {D} the crew bounced on a cloud like a trampoline.'],volcano:['{D} was SO warm the crew roasted marshmallows on a rock.'],haunt:['In {D} a friendly ghost said BOO. Everyone screamed, then laughed.']};
 const DOING={meadow:['chasing butterflies','rolling down a flower hill','having a picnic','counting ladybugs'],woods:['climbing trees','hunting for acorns','telling stories by a stump','following a squirrel'],cove:['splashing in the waves','building a sandcastle','looking in tide pools','racing a crab'],caves:['exploring a tunnel','making echoes','digging for crystals','looking at old cave drawings'],peaks:['bouncing on a cloud','sliding down a rainbow','looking for eagle nests','making snow angels'],volcano:['roasting marshmallows','hopping over warm rocks','looking for dragon scales','watching the lava glow'],haunt:['trick-or-treating','hiding from a friendly ghost','carving a pumpkin','telling spooky stories']};
 const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
@@ -99,7 +99,7 @@ const CSS=`
 .adv-tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 12px}
 .adv-tabs button{background:rgba(255,255,255,.15);color:#fff;border-radius:14px;padding:8px 14px;font-weight:600;font-size:15px}
 .adv-tabs button.on{background:var(--accent)}
-.adv-diary{background:#fffbea repeating-linear-gradient(#fffbea 0 27px,#e9dfb6 27px 28px);border-radius:16px;padding:12px 16px 8px;text-align:left;font-size:17px;line-height:28px;border:2px solid #efe2a8;margin:10px 0;color:var(--ink)}
+.adv-diary{background:#fffbea repeating-linear-gradient(#fffbea 0 27px,#e9dfb6 27px 28px);border-radius:16px;padding:12px 16px 8px;text-align:left;font-size:17px;line-height:28px;border:2px solid #efe2a8;margin:10px 0;color:var(--ink);background-origin:content-box;background-clip:border-box} .adv-diary *{line-height:28px}
 .adv-diary p{margin:0}
 .adv-diary .d{color:#8a6d00;font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
 .mcard.adv-wide{max-width:760px}
@@ -129,6 +129,9 @@ const CSS=`
 .adv-shh{display:flex;align-items:center;gap:8px;margin:14px 0 6px;font-weight:600}
 .adv-pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
 .adv-postc{background:#fff;border-radius:14px;padding:6px;box-shadow:0 3px 0 rgba(0,0,0,.15);transform:rotate(var(--r,0deg));color:var(--ink)}
+.adv-letter>.row:last-child{background:#fffaf0}
+.adv-bubble{position:relative;background:#fff;border:3px solid #ffd43b;border-radius:18px;padding:12px 16px;margin:12px auto 14px;font-size:19px;font-weight:700;max-width:340px;color:var(--ink)}.adv-bubble:before{content:'';position:absolute;top:-12px;left:50%;margin-left:-10px;border:10px solid transparent;border-top:0;border-bottom:12px solid #ffd43b}.adv-letter .adv-lbody{max-height:58vh;overflow:auto}
+.adv-postc:hover{transform:rotate(0deg) scale(1.03)}.adv-letter{text-align:left;background:#fffaf0;max-width:460px;border:3px solid #e9d8a6}.adv-lhead{display:flex;justify-content:space-between;align-items:center;font-family:var(--display,inherit);font-weight:700;font-size:18px;border-bottom:2px dashed #e0cf8f;padding-bottom:8px;margin-bottom:8px}.adv-stamp{border:2px dashed #c92a2a;border-radius:6px;padding:2px 6px;font-size:22px;transform:rotate(6deg);background:#fff}.adv-lbody{font-family:"Comic Sans MS","Chalkboard SE","Marker Felt",var(--body,inherit);font-size:17px;line-height:1.5;color:#3b2f1a}.adv-lbody p{margin:0 0 8px}.adv-lps{font-style:italic;color:#6b5a3a}.adv-lsign{font-weight:700;margin-top:2px}
 .adv-postc .ph{border-radius:10px;overflow:hidden;position:relative;aspect-ratio:3/2}
 .adv-postc .ph svg{width:100%;height:100%;display:block}
 .adv-postc .ps{position:absolute;bottom:6%;left:0;right:0;display:flex;justify-content:center;gap:2px;font-size:28px}
@@ -180,6 +183,8 @@ function finish(){const p=P(),a=A(p),tr=a.trip;if(!tr)return null;const T=TRIPS[
    if(it.k==='cur'){it.isNew=!seen[it.id];seen[it.id]=(seen[it.id]||0)+1;}items.push(it);}
   if(coins)items.unshift({k:'coins',e:'🪙',n:coins+' coins',v:coins});
   res.sacks.push({id,items,home});});
+ // food truck (beta): 0-1 rare ingredient per trip, straight into p.truck; nothing happens unless the truck is enabled
+ if(!early&&res.sacks.length&&window.Truck&&typeof Truck.campFind==='function'&&Truck.enabled(p)){const it=Truck.campFind(p,tr.len);if(it)res.sacks[rnd(0,res.sacks.length-1)].items.push(it);}
  // put it all away
  res.sacks.forEach(s=>s.items.forEach(it=>{if(it.k==='coins')p.coins+=it.v;else if(it.k==='cur')a.shelf[it.id]=(a.shelf[it.id]||0)+1;
   else if(it.k==='snack')p.pantry[it.id]=(p.pantry[it.id]||0)+1;else if(it.k==='toy'){p.toys=p.toys||[];if(!p.toys.includes(it.id))p.toys.push(it.id);}
@@ -188,7 +193,8 @@ function finish(){const p=P(),a=A(p),tr=a.trip;if(!tr)return null;const T=TRIPS[
  tr.crew.forEach(id=>{const pd=petData(p,id);const m=tr.mood&&tr.mood[id];if(m){pd.food=m[0];pd.joy=Math.min(typeof MOOD_MAX!=='undefined'?MOOD_MAX:5,m[1]+(early?0:1));pd.t=Date.now();}
   const st=petStage(pd);pd.xp+=res.xp;const st2=petStage(pd);if(st2!==st){pd.hints=Math.min(st2.max,(pd.hints||0)+1);res.grew.push([id,st2.n]);}});
  const pc=early?0:{short:.08,mid:.25,night:.5}[tr.len];
- if(Math.random()<pc||(a.trips===0&&!early)){res.card={dest:tr.dest,crew:tr.crew.slice(0,5),t:Date.now(),r:rnd(-4,4)};a.cards.unshift(res.card);a.cards=a.cards.slice(0,60);}
+ if(!early){res.tale={dest:tr.dest,crew:tr.crew.slice(0,5),t:Date.now(),r:rnd(-4,4),n:tr.len==='short'?1:2};res.tale.k=taleKeys(p,res.tale);}
+ if(!early&&(Math.random()<pc||a.trips===0)){res.card=res.tale;a.cards.unshift(res.card);a.cards=a.cards.slice(0,60);}
  const nm=id=>`<b>${esc(petN(id))}</b>`,fill=(s,x,y,it)=>s.replace(/\{A\}/g,nm(x)).replace(/\{B\}/g,nm(y||x)).replace(/\{D\}/g,d.n).replace(/\{I\}/g,it?`${it.e} ${esc(it.n)}`:'a shiny button');
  if(early)res.diary=[`The crew came home early from ${d.n}. They only had time to grab a few coins!`];
  else{res.diary.push(fill(pk(DIARY_PLACE[d.id]),tr.crew[0]));
@@ -271,12 +277,58 @@ function shelfHTML(p,a){const rows=[['🧦 Odd stuff from anywhere',JUNK.concat(
  return `<div class="panel" style="color:var(--ink)"><p style="margin-top:0">Everything your pets drag home goes here, even the socks. Found <b>${have}</b> of ${tot}.${a.shelf.map?` 🗺️ Map pieces: <b>${Math.min(4,a.shelf.map)}/4</b>`:''}</p>
  ${(a.shelf.map||0)>=4?`<div class="adv-note">🗺️ You have all 4 pieces of a treasure map! <button class="btn gold small" onclick="Adv.treasure()">Follow the map!</button></div>`:''}
  ${rows.map(([t,list])=>`<div class="adv-shh">${t} <span class="muted">${list.filter(x=>a.shelf[x[0]]).length}/${list.length}</span></div><div class="adv-shelf">${list.map(x=>{const n=a.shelf[x[0]]||0;return `<div class="adv-cur ${n?'':'no'} ${x[3]?'rare':''}"><div class="e">${x[1]}</div><div class="nm">${n?esc(x[2]):'???'}</div><div class="n">${n?'× '+n:x[3]?'rare!':'not found yet'}</div></div>`;}).join('')}</div>`).join('')}</div>`;}
+
+/* ---------- crew tales: postcards + "want to hear about our adventure?" ----------
+   Lines come from tales.js (ADV_TALES). Each story remembers which lines it used (c.k), so a postcard always
+   reads the same and the story told at home matches the postcard. p.adv.heard keeps recent lines so they don't repeat soon. */
+const TB=()=>window.ADV_TALES||{open:['Dear {K},'],sayOpen:['Guess what, {K}!'],close:['Love,'],sayClose:['The end!'],pal:['a frog'],food:['stew'],thing:['a sock'],num:['3'],plot:[['We went on a trip.','It was fun.','We missed you!']],plotAt:{},any:['{A} had fun.'],at:{},ps:['P.S. Hi!']};
+function seeded(n){let x=(n>>>0)||1;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return ((x>>>0)%100000)/100000;};}
+function taleKeys(p,c){const a=A(p),T=TB(),R=seeded(Math.floor(c.t/1000)+(c.r||0)*97+7),heard=a.heard=a.heard||[],used=[];
+ const pick=keys=>{const fresh=keys.filter(k=>!heard.includes(k)&&!used.includes(k));let l=fresh;if(!l.length){const rest=keys.filter(k=>!used.includes(k)).map(k=>[k,heard.lastIndexOf(k)]).sort((x,y)=>x[1]-y[1]);l=rest.slice(0,Math.max(1,Math.ceil(rest.length/3))).map(x=>x[0]);}/* all heard: use the oldest third */const k=(l.length?l:keys)[Math.floor(R()*(l.length||keys.length))];used.push(k);return k;};
+ const ids=(pre,arr)=>(arr||[]).map((_,i)=>pre+i),pa=(T.plotAt||{})[c.dest],sa=(T.at||{})[c.dest];
+ const placePlot=pa&&pa.length&&R()<.6;const k=[pick(ids('o',T.open)),pick(ids('so',T.sayOpen)),placePlot?pick(ids('q:'+c.dest+':',pa)):pick(ids('p',T.plot))];
+ const n=c.n||2;if(!placePlot&&sa&&sa.length)k.push(pick(ids('w:'+c.dest+':',sa)));while(k.length<3+n)k.push(pick(ids('a',T.any)));
+ k.push(pick(ids('s',T.ps)),pick(ids('c',T.close)),pick(ids('sc',T.sayClose)));
+ a.heard=heard.concat(used.filter(x=>!/^(o|so|c|sc)\d/.test(x))).slice(-90);return k;}
+function tale(p,c){const T=TB();if(!c.k||!c.k.length)c.k=taleKeys(p,c);
+ const R=seeded(Math.floor(c.t/1000)+(c.r||0)*97);const pk2=arr=>arr[Math.floor(R()*arr.length)];
+ const crew=c.crew&&c.crew.length?c.crew:['?'];const nm=id=>esc(petN(id));const A0=crew[Math.floor(R()*crew.length)];const B0=crew.length>1?crew.filter(x=>x!==A0)[Math.floor(R()*(crew.length-1))]:A0;
+ const pal=pk2(T.pal),food=pk2(T.food),thing=pk2(T.thing),num=pk2(T.num),Bn=B0===A0?pal:`<b>${nm(B0)}</b>`;/* solo crews get a silly camp friend */
+ const pal2=B0===A0?pk2(T.pal.filter(x=>x!==pal)):pal,d=dest(c.dest);
+ const fill=t=>String(t).replace(/\{K\}/g,esc(String(p.name||'').split(' ')[0])).replace(/\{A\}/g,`<b>${nm(A0)}</b>`).replace(/\{B\}/g,Bn).replace(/\{P\}/g,pal2).replace(/\{F\}/g,food).replace(/\{X\}/g,thing).replace(/\{N\}/g,num).replace(/\{D\}/g,d?esc(d.n):'camp');
+ const get=k=>{let m;if((m=/^q:(\w+):(\d+)$/.exec(k)))return ((T.plotAt||{})[m[1]]||[])[+m[2]];if((m=/^w:(\w+):(\d+)$/.exec(k)))return ((T.at||{})[m[1]]||[])[+m[2]];
+  m=/^([a-z]+)(\d+)$/.exec(k);if(!m)return '';const L={o:T.open,so:T.sayOpen,p:T.plot,a:T.any,s:T.ps,c:T.close,sc:T.sayClose}[m[1]];return L?L[+m[2]]:'';};
+ const tx=k=>{const v=get(k);return v==null?'':Array.isArray(v)?v.map(fill).join(' '):fill(v);};
+ const k=c.k,body=k.slice(2,-3).map(tx).filter(Boolean);
+ return {open:tx(k[0]),sayOpen:tx(k[1]),lines:body,ps:tx(k[k.length-3]),close:tx(k[k.length-2]),sayClose:tx(k[k.length-1]),sign:crew.map(id=>`${petE(id)} ${nm(id)}`).join(', ')};}
+const letter=(p,c)=>tale(p,c);
+function readAloud(parts){try{const t=parts.join(' ').replace(/<[^>]+>/g,'').replace(/P\.S\./g,'P S,');if(typeof say==='function')say(t,.9);}catch(e){}}
+let LAST_TALE=null;
+function readCard(i){const p=P(),a=A(p),c=a.cards[i];if(!c)return;const d=dest(c.dest);const had=!!c.k;const L=tale(p,c);if(!had)save();try{SFX.tap();}catch(e){}
+ LAST_TALE=[L.open,...L.lines,L.ps,L.close,L.sign];
+ modal(`<div class="mcard adv-letter"><div class="adv-lhead"><span>${d.e} ${esc(d.n)}</span><span class="adv-stamp">${c.crew.slice(0,2).map(petE).join('')}</span></div>
+  <div class="adv-lbody"><p>${L.open}</p>${L.lines.map(t=>`<p>${t}</p>`).join('')}<p class="adv-lps">${L.ps}</p><p style="margin-bottom:0">${L.close}</p><p class="adv-lsign">${L.sign}</p></div>
+  <div class="row"><button class="btn" onclick="Adv.readAloud()">🔊 Read it to me</button><button class="btn green" onclick="try{speechSynthesis.cancel()}catch(e){};closeModal()">😂 Ha! Close</button></div></div>`);}
+/* the crew tells the story out loud when they get home */
+function offerTale(){const r=RES;if(!r||!r.tale)return diary();const p=P();const crew=r.crew||[];try{SFX.tap();}catch(e){}
+ const who=crew.length>1?'We\'re':'I\'m',askers=['Want to hear about our adventure?','Can we tell you what happened?!','Guess what happened on our trip!','Ooh ooh! Want to hear a story?','You will NOT believe what happened. Want to hear?'];
+ const ask=crew.length>1?askers[Math.floor(Math.random()*askers.length)]:askers[Math.floor(Math.random()*askers.length)].replace(/\bour\b/,'my').replace(/\bwe\b/i,'I');
+ modal(`<div class="mcard" style="text-align:center"><div style="font-size:54px;line-height:1.1">${crew.map(petE).join('')}</div>
+  <div class="adv-bubble">${who} back, ${esc(String(p.name||'').split(' ')[0])}! ${ask}</div>
+  <div class="row"><button class="btn gold big" onclick="Adv.tellTale()">📣 Yes! Tell me!</button><button class="btn" onclick="Adv.diary()">Maybe later</button></div></div>`);}
+function tellTale(){const r=RES;if(!r||!r.tale)return diary();const p=P(),d=dest(r.dest);const L=tale(p,r.tale);try{SFX.tap();}catch(e){}
+ LAST_TALE=[L.sayOpen,...L.lines,L.sayClose];
+ modal(`<div class="mcard adv-letter adv-tale"><div class="adv-lhead"><span>📣 Our adventure in ${d.e} ${esc(d.n)}</span><span class="adv-stamp">${r.crew.slice(0,3).map(petE).join('')}</span></div>
+  <div class="adv-lbody"><p><i>${L.sayOpen}</i></p>${L.lines.map(t=>`<p>${t}</p>`).join('')}<p class="adv-lps">${L.sayClose}</p></div>
+  ${r.card?`<p style="margin:6px 0 0;font-size:14px">📮 We wrote this on a <b>postcard</b> too! It's on the Postcards page.</p>`:''}
+  <div class="row"><button class="btn" onclick="Adv.readAloud()">🔊 Read it to me</button><button class="btn gold big" onclick="try{speechSynthesis.cancel()}catch(e){};Adv.diary()">📔 Trip Diary</button></div></div>`);
+ try{if(typeof voiceOn!=='function'||voiceOn())setTimeout(()=>readAloud(LAST_TALE),250);}catch(e){}}
 function cardsHTML(a){return `<div class="panel" style="color:var(--ink)"><p style="margin-top:0">Sometimes your crew mails a postcard from where they went. Longer trips mean more postcards!</p>
- ${a.cards.length?`<div class="adv-pcards">${a.cards.map(c=>{const d=dest(c.dest);return `<div class="adv-postc" style="--r:${c.r}deg"><div class="ph"><svg viewBox="0 0 300 200"><defs><linearGradient id="apg${c.t}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${d.sky}"/><stop offset="1" stop-color="#fff"/></linearGradient></defs><rect width="300" height="200" fill="url(#apg${c.t})"/><path d="M0 120 Q80 70 150 110 Q220 60 300 100 L300 200 L0 200Z" fill="${d.c1}"/><path d="M0 160 Q150 130 300 160 L300 200 L0 200Z" fill="${d.c2}"/><text x="250" y="60" font-size="44" text-anchor="middle">${d.e}</text><text x="18" y="34" font-size="20" font-weight="700" fill="#fff" stroke="#0005" stroke-width="3" paint-order="stroke">Hi from ${esc(d.n)}!</text></svg><div class="ps">${c.crew.map(id=>`<span>${petE(id)}</span>`).join('')}</div></div><div class="cap">${c.crew.map(id=>esc(petN(id))).join(', ')}<small>${new Date(c.t).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div></div>`;}).join('')}</div>`:'<p class="muted">No postcards yet. Send a crew on an adventure!</p>'}</div>`;}
+ ${a.cards.length?`<p class="muted" style="margin:0 0 8px">💌 Tap a postcard to read what your crew wrote!</p><div class="adv-pcards">${a.cards.map((c,ci)=>{const d=dest(c.dest);return `<div class="adv-postc" role="button" tabindex="0" style="--r:${c.r}deg;cursor:pointer" onclick="Adv.readCard(${ci})" title="Read the postcard"><div class="ph"><svg viewBox="0 0 300 200"><defs><linearGradient id="apg${c.t}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${d.sky}"/><stop offset="1" stop-color="#fff"/></linearGradient></defs><rect width="300" height="200" fill="url(#apg${c.t})"/><path d="M0 120 Q80 70 150 110 Q220 60 300 100 L300 200 L0 200Z" fill="${d.c1}"/><path d="M0 160 Q150 130 300 160 L300 200 L0 200Z" fill="${d.c2}"/><text x="250" y="60" font-size="44" text-anchor="middle">${d.e}</text><text x="18" y="34" font-size="20" font-weight="700" fill="#fff" stroke="#0005" stroke-width="3" paint-order="stroke">Hi from ${esc(d.n)}!</text></svg><div class="ps">${c.crew.map(id=>`<span>${petE(id)}</span>`).join('')}</div></div><div class="cap">${c.crew.map(id=>esc(petN(id))).join(', ')}<small>${new Date(c.t).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div></div>`;}).join('')}</div>`:'<p class="muted">No postcards yet. Send a crew on an adventure!</p>'}</div>`;}
 
 /* ---------- welcome home ---------- */
 function welcome(){const p=P(),a=A(p);if(!a.trip||Date.now()<a.trip.end)return;const b=document.getElementById('advWelcome');if(b)b.disabled=true;const crew=a.trip.crew;
- RES=finish();SFX.coin();toScene(()=>comeHome(crew,()=>diary()));}
+ RES=finish();SFX.coin();toScene(()=>comeHome(crew,()=>offerTale()));}
 function diary(){const r=RES;if(!r)return;const d=dest(r.dest),T=TRIPS[r.len]||TRIPS.mid;
  modal(`<div class="mcard"><h2>📔 Trip Diary</h2><div class="adv-diary"><p class="d">${d.e} ${d.n} · ${T.n}</p>${r.diary.map(l=>`<p>${l}</p>`).join('')}</div>
  ${r.card?`<p style="margin:4px 0">📮 Someone mailed you a <b>postcard</b>! It's on the Postcards page.</p>`:''}<div class="row"><button class="btn gold big" onclick="Adv.sacks()">🎒 Open the sacks!</button></div></div>`);}
@@ -312,7 +364,7 @@ function petCard(p){css();const a=A(p),t=a.trip,n=slots(p);const crewHTML=ids=>`
    <div class="adv-meter"><i style="width:${pct.toFixed(1)}%"></i></div><div class="muted" style="font-size:13px">Back at <b>${fmtClock(t.end)}</b> ${dayWord(t.end)}</div></div>
    <div class="act"><div class="left">${fmtLeft(t.end-Date.now())}<small>to go</small></div><button class="btn ghost dark small" style="margin-top:6px" onclick="go('camp')">🏕️ Visit camp</button></div></div>`;}
 /* ---------- hooks for the rest of the game ---------- */
-window.Adv={petCard,away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
+window.Adv={readCard,tellTale,_tale:(c)=>tale(P(),c),diary:()=>{try{speechSynthesis.cancel()}catch(e){};diary();},readAloud:()=>readAloud(LAST_TALE||[]),petCard,away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
  toggle(id){const p=P(),a=A(p);if(a.trip)return toast('Wait for your crew to come home first!');const i=a.crew.indexOf(id);if(i>=0)a.crew.splice(i,1);else{const n=slots(p);if(a.crew.length>=n)return toast(`All ${n} crew spot${n>1?'s are':' is'} full! Win more battles to open more.`);a.crew.push(id);}SFX.tap();save();draw();},
  set(k,v){const a=A(P());a[k]=v;save();draw();},tab(t){TAB=t;draw();window.scrollTo(0,0);},
  askCall(){modal(`<div class="mcard"><div class="big-emoji">📯</div><h2>Call them home early?</h2><p>They'll run right back, but they'll only have time to grab a few coins.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Let them explore</button><button class="btn" onclick="closeModal();Adv.callHome()">Blow the horn!</button></div></div>`);},

@@ -318,7 +318,7 @@ const CSS=`
 #ins-rep .two table{align-self:start}
 #ins-rep .words{display:grid;grid-template-columns:repeat(4,1fr);gap:3px 12px;font-size:13px;font-family:system-ui,sans-serif}#ins-rep .words span{border-bottom:1px solid #eee;padding:2px 0}#ins-rep .words small{color:#666}
 @media (max-width:640px){#ins-rep .paper{margin:0;padding:18px 14px;box-shadow:none}#ins-rep .tiles{grid-template-columns:repeat(2,1fr)}#ins-rep .two{grid-template-columns:1fr}#ins-rep .fl{grid-template-columns:repeat(2,1fr)}#ins-rep .words{grid-template-columns:repeat(2,1fr)}#ins-rep .hdr{flex-direction:column;align-items:flex-start}#ins-rep .hdr .r{text-align:left}#ins-rep table{font-size:11.5px}#ins-rep .bar button,#ins-rep .bar select{padding:8px 10px;font-size:14px}#ins-rep .bar{flex-wrap:nowrap;gap:6px;padding:8px}#ins-rep .bar button,#ins-rep .bar select{white-space:nowrap}#ins-rep .bar .sp{display:none}#ins-rep .ins-long{display:none}}
-@page{margin:14mm 13mm}
+@page{size:8.5in 11in;margin:0.55in 0.5in}
 @media print{
  html.ins-printing,html.ins-printing body{background:#fff!important;height:auto!important;overflow:visible!important;min-height:0!important}
  html.ins-printing body>*:not(#ins-rep){display:none!important}
@@ -611,7 +611,7 @@ function renderReport(){
  <div class="paper">
   <div class="hdr"><div><h1>Home Math Practice Report</h1><div class="sub"><b style="font-size:17px;color:#111">${E(F)}</b> &nbsp;·&nbsp; ${E(grade)}</div></div>
    <div class="r">${fmtD(start)} – ${fmtD(now)}<br>Prepared ${fmtD(now)}</div></div>
-  <p class="about"><b>About this report.</b> ${E(F)} practices at home with an adaptive program. Each skill has its own difficulty level that moves up after 6 correct answers in a row and eases off after 2 misses out of 4, so children settle where they get <b>about 80% right</b>. Accuracy near 80% means the work is at the right challenge; well below 75% points to a real sticking point. Only skills and items that still need work are listed — skills going well are left out on purpose. Questions have no time limit.</p>
+  <p class="about"><b>About this report.</b> ${E(F)} practices at home with an adaptive program. Each skill has its own difficulty level that rises in small 5% steps after runs of correct answers and eases off 5% after each miss, so children settle where they get <b>about 80% right</b>. Accuracy near 80% means the work is at the right challenge; well below 75% points to a real sticking point. Only skills and items that still need work are listed — skills going well are left out on purpose. Questions have no time limit.</p>
   <h2>Practice at a glance</h2>
   <div class="tiles">${tile(days.size,'days practiced')}${tile(mins?fmtMin(mins):'—','active practice time'+(tracked?'*':''))}${tile(ans.toLocaleString(),'math questions answered')}${tile(ans?Math.round(right/ans*100)+'%':'—','answered correctly')}</div>
   ${habits.length?`<div class="kv">${habits.map(([k,v])=>`<span>${E(k)}</span><div>${E(v)}</div>`).join('')}</div>`:''}

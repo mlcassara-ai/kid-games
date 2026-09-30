@@ -719,7 +719,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="adv.js?t='+Date.now()+'"><\/script>');document.write('<script src="mastery.js?t='+Date.now()+'"><\/script>');document.write('<script src="insights.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="tales.js?t='+Date.now()+'"><\/script>');document.write('<script src="adv.js?t='+Date.now()+'"><\/script>');document.write('<script src="mastery.js?t='+Date.now()+'"><\/script>');document.write('<script src="insights.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1292,7 +1292,7 @@ function newPlayer(name,grade){
   recent:Object.fromEntries(OPS.map(o=>[o,[]])),log:[],lock:null,battle:null,maxL:Object.fromEntries(OPS.map(o=>[o,Math.floor(g[o])])),champ:{},pb:{},days:[],quest:null,pantry:{},toys:[],petGear:[],spinDay:null};
 }
 let state=load();
-function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{if(/^ethan$/i.test((p.name||'').trim())&&p.grade===3&&!p.gradeFix11){p.grade=11;p.gradeFix11=1;if(p.spellSig!==undefined)try{p.spellSig=spellSchool(p).map(x=>x.w).join('|');}catch(e){}}if(p.setup&&!(p.wkHist&&p.wkHist[weekKey()])&&typeof wkOf==='function'){const w=wkOf(p);weekDays(weekKey()).forEach(k=>{const d=p.daily&&p.daily[k];if(d&&d.r){const n=Math.min(DAY_CAP,d.r);w.dc[k]=n;w.pts+=n*8;}});(p.log||[]).forEach(l=>{if(l.to>l.from&&weekDays(weekKey()).includes(l.d))w.lv++;});}p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1.5;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1.5;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel|mika/i.test(p.name))p.look.kind='boy';}if(!p.mikaBoy&&/mika/i.test(p.name)){p.look.kind='boy';p.mikaBoy=true;}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(!p.hsLv&&(p.grade||0)>=9&&p.setup&&p.skill){p.hsLv=1;['add','sub','mul','div'].forEach(o=>{if(Math.floor(p.skill[o]||1)<10){p.skill[o]=Math.min(maxLv(o),13)+.5;p.recent[o]=[];p.log.unshift({d:dayKey(),op:o,from:'-',to:13});}});} /* Sep 2026: high schoolers start on high-school levels */if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.deleted=state.deleted||{};state.players.forEach(p=>{if(/^ethan$/i.test((p.name||'').trim())&&p.grade===3&&!p.gradeFix11){p.grade=11;p.gradeFix11=1;if(p.spellSig!==undefined)try{p.spellSig=spellSchool(p).map(x=>x.w).join('|');}catch(e){}}if(p.setup&&!(p.wkHist&&p.wkHist[weekKey()])&&typeof wkOf==='function'){const w=wkOf(p);weekDays(weekKey()).forEach(k=>{const d=p.daily&&p.daily[k];if(d&&d.r){const n=Math.min(DAY_CAP,d.r);w.dc[k]=n;w.pts+=n*8;}});(p.log||[]).forEach(l=>{if(l.to>l.from&&weekDays(weekKey()).includes(l.d))w.lv++;});}p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel|mika/i.test(p.name))p.look.kind='boy';}if(!p.mikaBoy&&/mika/i.test(p.name)){p.look.kind='boy';p.mikaBoy=true;}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(!p.dial&&p.skill){p.dial=1;Object.keys(p.skill).forEach(o=>{p.skill[o]=Math.max(1,Math.floor(p.skill[o]));});} /* Oct 2026 difficulty dial */if(!p.hsLv&&(p.grade||0)>=9&&p.setup&&p.skill){p.hsLv=1;['add','sub','mul','div'].forEach(o=>{if(Math.floor(p.skill[o]||1)<10){p.skill[o]=Math.min(maxLv(o),13);p.recent[o]=[];p.log.unshift({d:dayKey(),op:o,from:'-',to:13});}});} /* Sep 2026: high schoolers start on high-school levels */if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -1859,16 +1859,30 @@ const fastLimit=q=>q.fast||3+(String(q.a).length+String(q.b).length+(q.c!==undef
    The count starts over after every level change, so each level needs a few answers
    before it can move again. Repeats of missed problems and swapped-digit typos don't count. */
 const UP_N=6,DOWN_N=2,DOWN_WIN=4;const upN=p=>UP_N; /* Sep 2026: tuned by simulation so kids settle near 80% right (was ~70%) */
+/* Difficulty dial (Oct 2026): each level has 20 notches of 5%. At notch n, n×5% of questions come from the next level,
+   so difficulty creeps up gently instead of jumping a whole level.
+   +5% after every 4 right in a row · fast lane: every 10th right in a row adds +20% · each miss −5%.
+   Simulated: kids settle near 80% right (same target as before), with much smaller steps. */
+const DIAL=.05,DIAL_FAST=.20;
 function adjustSkill(p,op,ok,slip){
- p.recent=p.recent||{};p.recent[op]=p.recent[op]||[];p.log=p.log||[];
+ p.recent=p.recent||{};p.recent[op]=p.recent[op]||[];p.log=p.log||[];p.rs=p.rs||{};
  if(slip)return null;
  const w=p.recent[op];w.push(ok?1:0);if(w.length>8)w.shift();
- const L=lvl(p,op);
- if(L<maxLv(op)&&w.length>=upN(p)&&w.slice(-upN(p)).every(x=>x===1)){applyLevel(p,op,L+1);p.recent[op]=[];return 1;}
- if(L>1&&w.length>=DOWN_N&&w.slice(-DOWN_WIN).filter(x=>x===0).length>=DOWN_N){applyLevel(p,op,L-1);p.recent[op]=[];return -1;}
+ const L0=lvl(p,op);let v=p.skill[op]||1;
+ if(ok){const r=p.rs[op]=(p.rs[op]||0)+1;if(r%10===0)v+=DIAL_FAST;else if(r%4===0)v+=DIAL;}
+ else{p.rs[op]=0;v-=DIAL;}
+ v=Math.round(Math.min(maxLv(op),Math.max(1,v))*100)/100;p.skill[op]=v;
+ const L1=lvl(p,op),best=(p.maxL&&p.maxL[op])||1;p.dn=p.dn||{};
+ /* announce only real changes, so kids hovering around a level boundary aren't spammed: a brand-new level going up,
+    or dropping half a level below their best (announced once until they climb back) */
+ if(L1>L0&&L1>best){p.log.unshift({d:dayKey(),op,from:L0,to:L1});if(p.log.length>30)p.log.pop();p.recent[op]=[];p.dn[op]=0;return 1;}
+ if(v>=best)p.dn[op]=0;
+ if(!ok&&!p.dn[op]&&v<best-.5&&best>1){p.dn[op]=1;p.log.unshift({d:dayKey(),op,from:best,to:L1});if(p.log.length>30)p.log.pop();return -1;}
  return null;
 }
-function applyLevel(p,op,to){const L=lvl(p,op);p.skill[op]=clamp(to,1,maxLv(op))+.5;p.log.unshift({d:dayKey(),op,from:L,to:lvl(p,op)});if(p.log.length>30)p.log.pop();}
+/* the level a battle question is drawn from: the dial blends in the next level */
+function dialLevel(p,op){const v=p.skill[op]||1,L=Math.floor(v);return (L<maxLv(op)&&Math.random()<v-L)?L+1:L;}
+function applyLevel(p,op,to){const L=lvl(p,op);p.skill[op]=clamp(to,1,maxLv(op));p.log.unshift({d:dayKey(),op,from:L,to:lvl(p,op)});if(p.log.length>30)p.log.pop();}
 function isSlip(q,given){
  const a=String(q.answer),g=String(given);if(q.answer<20||a.length!==g.length)return false;
  const diff=[];for(let i=0;i<a.length;i++)if(a[i]!==g[i])diff.push(i);
@@ -2271,7 +2285,7 @@ function nextQ(){
   if(old){q=Object.assign({},old,{practice:true});label='⭐ Star problem: +3 coins';}
   else{
    let op2=op;if(B.isBoss&&!B.wild&&(p.grade||3)>=4&&B.z.op!=='word'&&XOPS.includes('word')&&Math.random()<.3){op2='word';label='📖 Boss word problem!';}
-   const L0=lvl(p,op2),mast=B.round>=4&&!B.wild&&!B.asc&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
+   const L0=dialLevel(p,op2),mast=B.round>=4&&!B.wild&&!B.asc&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
    let t=0;do{q=genQ(op2,L);}while(B.recent.includes(q.text)&&t++<12);if(mast)q.mastered=true;
    if(!mast&&!B.wild&&Math.random()<.2){const rq=makeRev(op,L);if(rq&&!B.recent.includes(rq.text)){q=rq;label='🔄 Flip it! You pick both numbers';}}
    if(B.z.id==='haunt'&&!q.rev&&!q.tpl&&!q.mastered){const st=trickStory(q);if(st&&Math.random()<.35){q=Object.assign({},q,{story:st});label='🎃 Trick-or-treat problem!';}}
@@ -2340,7 +2354,7 @@ const v=parseInt(B.input,10);const ok=q.rev?revCheck(q,v,parseInt(B.input2,10)):
  let lvChange=null;const prevL=lvl(p,q.op);
  hook('answer',p,q,ok,secs,{slip,zone:B.z&&B.z.id,round:B.round||1,boss:!!B.isBoss});
  if(!q.again&&!q.practice&&!q.hinted&&!q.mastered)lvChange=adjustSkill(p,q.op,ok,slip);
- if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now: ${KID_DESC[q.op][nl]}. Get ${upN(p)} right in a row to move back up!`);},900);}
+ if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now mixing in more ${KID_DESC[q.op][Math.max(1,lvl(p,q.op))]}. Keep going and you'll climb back up!`);},900);}
  if(ok){
   B.right++;B.petSince=(B.petSince||0)+1;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();thawTick();
   wkAnswer(p,champPts(p,q.L));{const w=wkOf(p);w.bs=Math.max(w.bs||0,B.streak);}questRight(p,q);questEvent(p,'streak',B.streak);
@@ -3911,7 +3925,7 @@ function parentCard(p){
 }
 SCREENS.parent=()=>{
  app.innerHTML=`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('profiles')">← Back</button><h2 class="title">👪 Parent Corner</h2></div>
- <div class="note pnote"><b>How levels work</b><ul><li>🎯 A quick skill check sets each skill's starting level.</li><li>⬆️ <b>Harder</b> after 6 right in a row.</li><li>⬇️ <b>Easier</b> after 2 misses in the last 4 (kids settle near 80% right).</li><li>✋ Use − / + below to set a level yourself.</li></ul><details><summary>More detail</summary>A kid who skips the skill check starts a little below their grade. The count starts over at every new level. Repeats of missed problems and swapped-digit typos (84 for 48) don't count.</details></div>
+ <div class="note pnote"><b>How levels work</b><ul><li>🎯 A quick skill check sets each skill's starting level.</li><li>⬆️ <b>Harder</b> in small 5% steps: every 4 right in a row nudges it up; 10 in a row is a fast lane (+20%).</li><li>⬇️ <b>Easier</b> by 5% after each miss. Kids settle near 80% right.</li><li>✋ Use − / + below to set a level yourself.</li></ul><details><summary>More detail</summary>A kid who skips the skill check starts a little below their grade. The count starts over at every new level. Repeats of missed problems and swapped-digit typos (84 for 48) don't count.</details></div>
  <div class="row pjump" style="justify-content:flex-start;margin:8px 0"><b>Jump to:</b>${state.players.map(pl=>`<button class="btn small" onclick="document.getElementById('pp-${pl.id}').scrollIntoView({behavior:'smooth'})">${esc(pl.name)}</button>`).join('')}</div>
  ${(window.MQ_PARENT||[]).map(f=>{try{return f()||''}catch(e){console.warn(e);return ''}}).join('')}
  ${cloudSection()}
@@ -4385,7 +4399,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.29o';
+const APP_VER='2026.09.29t';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
