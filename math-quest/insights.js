@@ -185,7 +185,7 @@ const maxL=op=>{try{return maxLv(op);}catch(e){return 10;}};
 const levelOf=(p,op)=>{try{return lvl(p,op);}catch(e){return Math.floor((p.skill&&p.skill[op])||1);}};
 const expFor=(p,op)=>Math.min(gExp(p),maxL(op));
 const BASIC=['add','sub','mul','div'];
-function gradeOfLevel(L){const g=L<=10?L-2:Math.floor((L+6)/2);return g;}
+function gradeOfLevel(L){const g=L<=10?L-2:L<=20?Math.floor((L+6)/2):Math.min(12,L-10);return g;}
 function gradeWord(g){if(g<=0)return 'Kindergarten';const s=['th','st','nd','rd'];const v=g%100;return g+(s[(v-20)%10]||s[v]||s[0])+' grade';}
 const descOf=(op,L)=>{try{return (LEVEL_DESC[op]&&LEVEL_DESC[op][L])||(XDESC[op]&&XDESC[op][L])||'';}catch(e){return '';}};
 const opName=op=>{try{return OPNAME[op]||op;}catch(e){return op;}};

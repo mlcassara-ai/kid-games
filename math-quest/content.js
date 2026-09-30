@@ -757,9 +757,209 @@ const WORD_BANK_7 = [
   { w: "weird", s: "That was a weird dream." }
 ];
 
+// Word bank for grades 1-2 (80 short, common words: CVC words, early sight words, blends), shown before the grade 3 bank.
+// Homophones (to/too/two, for/four, no/know...) are left out on purpose so a spoken word has only one spelling.
+const WORD_BANK_1 = [
+  { w: "cat", s: "The cat is on the bed." },
+  { w: "dog", s: "My dog likes to run." },
+  { w: "sun", s: "The sun is hot." },
+  { w: "hat", s: "I have a red hat." },
+  { w: "bed", s: "I go to bed at night." },
+  { w: "pig", s: "The pig is in the mud." },
+  { w: "cup", s: "Fill the cup with milk." },
+  { w: "bus", s: "We ride the bus to school." },
+  { w: "fox", s: "The fox ran fast." },
+  { w: "hen", s: "The hen sat on an egg." },
+  { w: "map", s: "Look at the map." },
+  { w: "pen", s: "I can write with a pen." },
+  { w: "net", s: "I got a fish in my net." },
+  { w: "bag", s: "Put the book in the bag." },
+  { w: "box", s: "The toy is in the box." },
+  { w: "bug", s: "A bug is on the leaf." },
+  { w: "mom", s: "Mom gave me a hug." },
+  { w: "dad", s: "Dad can fix the bike." },
+  { w: "top", s: "Spin the top!" },
+  { w: "leg", s: "I hurt my leg." },
+  { w: "is", s: "It is a sunny day." },
+  { w: "it", s: "I like it a lot." },
+  { w: "in", s: "The frog is in the pond." },
+  { w: "on", s: "The cup is on the table." },
+  { w: "at", s: "Look at me!" },
+  { w: "up", s: "The kite went up." },
+  { w: "go", s: "Let's go to the park." },
+  { w: "me", s: "Can you help me?" },
+  { w: "we", s: "We like to sing." },
+  { w: "he", s: "He is my brother." },
+  { w: "she", s: "She has a blue bike." },
+  { w: "my", s: "This is my dog." },
+  { w: "of", s: "I ate a bowl of soup." },
+  { w: "with", s: "Come with me." },
+  { w: "they", s: "They are my friends." },
+  { w: "this", s: "This is my room." },
+  { w: "that", s: "That is a big tree." },
+  { w: "then", s: "First we eat, then we play." },
+  { w: "when", s: "When is lunch?" },
+  { w: "who", s: "Who is at the door?" },
+  { w: "are", s: "You are my best friend." },
+  { w: "all", s: "We ate all the grapes." },
+  { w: "but", s: "I want to go, but it is late." },
+  { w: "did", s: "I did my homework." },
+  { w: "get", s: "Can I get a snack?" },
+  { w: "has", s: "She has a new pet." },
+  { w: "him", s: "Give the ball to him." },
+  { w: "his", s: "That is his coat." },
+  { w: "her", s: "I like her song." },
+  { w: "how", s: "How old are you?" },
+  { w: "yes", s: "Yes, I can do it!" },
+  { w: "not", s: "I am not sleepy." },
+  { w: "down", s: "Sit down, please." },
+  { w: "good", s: "The soup is good." },
+  { w: "help", s: "I help Dad cook." },
+  { w: "make", s: "Let's make a cake." },
+  { w: "ride", s: "I can ride my bike." },
+  { w: "want", s: "I want an apple." },
+  { w: "will", s: "I will be there." },
+  { w: "from", s: "This card is from Mom." },
+  { w: "fish", s: "The fish can swim." },
+  { w: "ship", s: "The ship is on the sea." },
+  { w: "chin", s: "I have a cut on my chin." },
+  { w: "frog", s: "The frog can hop." },
+  { w: "duck", s: "The duck says quack." },
+  { w: "bell", s: "Ring the bell." },
+  { w: "milk", s: "I drink milk." },
+  { w: "nest", s: "The bird made a nest." },
+  { w: "hand", s: "Raise your hand." },
+  { w: "tent", s: "We slept in a tent." },
+  { w: "stop", s: "Stop at the red light." },
+  { w: "swim", s: "I can swim in the pool." },
+  { w: "clap", s: "Clap your hands!" },
+  { w: "drum", s: "Bang the drum." },
+  { w: "sled", s: "We rode the sled down the hill." },
+  { w: "black", s: "The cat is black." },
+  { w: "green", s: "Grass is green." },
+  { w: "tree", s: "A bird is in the tree." },
+  { w: "sock", s: "I lost a sock." },
+  { w: "shop", s: "We went to the shop." },
+  { w: "much", s: "Thank you so much!" },
+  { w: "king", s: "The king has a crown." },
+  { w: "sing", s: "We sing a song." },
+  { w: "ball", s: "Kick the ball to me." },
+  { w: "jump", s: "Jump over the rock." }
+];
+
+// Word bank for grades 9-12 and adults (commonly misspelled advanced words), shown before the grade 6+ bank.
+const WORD_BANK_10 = [
+  { w: "accommodate", s: "The hotel can accommodate two hundred guests." },
+  { w: "rhythm", s: "The drummer kept a steady rhythm." },
+  { w: "accidentally", s: "I accidentally deleted the whole file." },
+  { w: "accessible", s: "The new ramp makes the library accessible to everyone." },
+  { w: "acquaintance", s: "He is an acquaintance, not a close friend." },
+  { w: "amateur", s: "She is an amateur photographer who shoots on weekends." },
+  { w: "annihilate", s: "The storm threatened to annihilate the small crop." },
+  { w: "anonymous", s: "The donation came from an anonymous giver." },
+  { w: "apparatus", s: "The lab set up an apparatus to measure the gas." },
+  { w: "assassination", s: "The assassination of President Lincoln shocked the nation." },
+  { w: "bureaucracy", s: "Getting a permit meant fighting through layers of bureaucracy." },
+  { w: "camouflage", s: "The lizard's camouflage made it hard to spot on the rock." },
+  { w: "catastrophe", s: "Losing the backup drive would be a catastrophe." },
+  { w: "changeable", s: "Spring weather in the mountains is changeable." },
+  { w: "colleague", s: "My colleague reviewed the report before I sent it." },
+  { w: "commitment", s: "Joining the team is a big commitment of time." },
+  { w: "connoisseur", s: "He is a connoisseur of good coffee." },
+  { w: "consensus", s: "The group reached a consensus after a long talk." },
+  { w: "controversy", s: "The new rule caused a lot of controversy." },
+  { w: "correspondence", s: "She keeps all her business correspondence in one folder." },
+  { w: "curiosity", s: "Curiosity led him to take the radio apart." },
+  { w: "deductible", s: "The insurance deductible is five hundred dollars." },
+  { w: "desperate", s: "The hikers were desperate for water." },
+  { w: "dichotomy", s: "The essay explores the dichotomy between freedom and safety." },
+  { w: "disappear", s: "Watch the magician make the coin disappear." },
+  { w: "disappoint", s: "I don't want to disappoint my coach." },
+  { w: "dissatisfied", s: "The dissatisfied customer asked for a refund." },
+  { w: "entrepreneur", s: "The entrepreneur started her company in a garage." },
+  { w: "exhilarate", s: "Fast roller coasters exhilarate some people and terrify others." },
+  { w: "fluorescent", s: "The fluorescent lights in the office hummed." },
+  { w: "gauge", s: "Check the fuel gauge before the long drive." },
+  { w: "hierarchy", s: "Every wolf pack has a clear hierarchy." },
+  { w: "hygiene", s: "Good hygiene helps stop the spread of germs." },
+  { w: "hypocrisy", s: "Preaching honesty while lying is hypocrisy." },
+  { w: "idiosyncrasy", s: "Humming while he works is his oddest idiosyncrasy." },
+  { w: "illegible", s: "The doctor's note was nearly illegible." },
+  { w: "incidentally", s: "Incidentally, the meeting moved to Tuesday." },
+  { w: "indispensable", s: "A good map is indispensable on a long hike." },
+  { w: "inoculate", s: "Doctors inoculate patients to protect them from disease." },
+  { w: "irresistible", s: "The smell of fresh bread was irresistible." },
+  { w: "lieutenant", s: "The lieutenant gave the order to move out." },
+  { w: "liaison", s: "She acts as the liaison between the two teams." },
+  { w: "medieval", s: "The museum has a room full of medieval armor." },
+  { w: "memento", s: "He kept the ticket stub as a memento of the game." },
+  { w: "minuscule", s: "The error was minuscule, but it broke the program." },
+  { w: "mnemonic", s: "A mnemonic can help you remember the planets in order." },
+  { w: "nuisance", s: "The barking dog next door is a nuisance." },
+  { w: "occurred", s: "The accident occurred just after midnight." },
+  { w: "omission", s: "The omission of one number ruined the calculation." },
+  { w: "pastime", s: "Fishing is his favorite pastime." },
+  { w: "perseverance", s: "Learning an instrument takes perseverance." },
+  { w: "personnel", s: "Only authorized personnel may enter the lab." },
+  { w: "playwright", s: "The playwright rewrote the final scene." },
+  { w: "precede", s: "A short speech will precede the awards." },
+  { w: "perceive", s: "Some animals perceive colors that humans cannot see." },
+  { w: "preferred", s: "She preferred the window seat." },
+  { w: "pneumonia", s: "He stayed in the hospital with pneumonia." },
+  { w: "psychology", s: "She is studying psychology in college." },
+  { w: "reminiscent", s: "The smell was reminiscent of my grandmother's kitchen." },
+  { w: "renaissance", s: "The old downtown is having a renaissance." },
+  { w: "repetition", s: "Repetition is the key to memorizing facts." },
+  { w: "rhyme", s: "\"Cat\" and \"hat\" rhyme." },
+  { w: "sacrilegious", s: "Some fans thought changing the ending was sacrilegious." },
+  { w: "secretary", s: "The secretary took notes at the meeting." },
+  { w: "siege", s: "The castle held out during a long siege." },
+  { w: "sovereign", s: "Each sovereign nation makes its own laws." },
+  { w: "supersede", s: "The new rules supersede the old ones." },
+  { w: "surveillance", s: "Security cameras keep the parking lot under surveillance." },
+  { w: "threshold", s: "He paused at the threshold of the door." },
+  { w: "tyranny", s: "The colonists rebelled against what they saw as tyranny." },
+  { w: "unanimous", s: "The vote was unanimous: everyone agreed." },
+  { w: "unnecessary", s: "Skip the unnecessary steps." },
+  { w: "vacillate", s: "I vacillate between the two options every time." },
+  { w: "vicious", s: "The vicious storm knocked down power lines." },
+  { w: "withhold", s: "The company may withhold part of your paycheck for taxes." },
+  { w: "acquiesce", s: "After a long debate, he chose to acquiesce." },
+  { w: "chauffeur", s: "The chauffeur opened the car door." },
+  { w: "fiery", s: "The dragon let out a fiery breath." },
+  { w: "inadvertent", s: "The mistake was inadvertent, not on purpose." },
+  { w: "onomatopoeia", s: "\"Buzz\" and \"sizzle\" are examples of onomatopoeia." },
+  { w: "phenomenon", s: "The northern lights are a natural phenomenon." },
+  { w: "silhouette", s: "We saw the silhouette of a hawk against the sunset." },
+  { w: "soliloquy", s: "Hamlet's soliloquy begins \"To be, or not to be.\"" },
+  { w: "ecstasy", s: "The fans screamed in ecstasy when the team won." },
+  { w: "deterrent", s: "A barking dog is a good deterrent to burglars." },
+  { w: "dumbbell", s: "She lifted a ten-pound dumbbell." },
+  { w: "handkerchief", s: "He wiped his face with a handkerchief." },
+  { w: "leisure", s: "Read at your leisure over the weekend." },
+  { w: "manageable", s: "Break the project into manageable pieces." },
+  { w: "miscellaneous", s: "The drawer is full of miscellaneous cables." },
+  { w: "paraphernalia", s: "The garage is crowded with camping paraphernalia." },
+  { w: "presumptuous", s: "It was presumptuous to assume we would say yes." },
+  { w: "wholly", s: "I am wholly responsible for the mistake." },
+  { w: "yacht", s: "A white yacht sailed across the bay." },
+  { w: "zealous", s: "The zealous fan waited in line all night." }
+];
+
+// Drop words that already appear earlier in a combined list (so fallback banks never repeat a word).
+const mqUniq = list => { const seen = new Set(); return list.filter(x => { const k = x.w.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); };
+
 window.MQ_CONTENT = {
-  wordBank: { '3': WORD_BANK_3, '5': WORD_BANK_5, '7': WORD_BANK_7.concat(WORD_BANK_5) },
-  updated: '2026-09-26',
+  // Bonus word packs. index.html picks '3' for grades 1-3, '5' for 4-6, '7' for 7+ today;
+  // '1' (grades 1-2) and '10' (grades 9-12 + adults) are used once bankPacks() knows about them.
+  wordBank: {
+    '1': mqUniq(WORD_BANK_1.concat(WORD_BANK_3)),
+    '3': WORD_BANK_3,
+    '5': WORD_BANK_5,
+    '7': WORD_BANK_7.concat(WORD_BANK_5),
+    '10': mqUniq(WORD_BANK_10.concat(WORD_BANK_7))
+  },
+  updated: '2026-09-30',
 
   kids: {
     mika: {
@@ -818,15 +1018,251 @@ window.MQ_CONTENT = {
 
   // Players who aren't named above get a list by grade.
   byGrade: {
-    '1': { spelling: { title: 'Starter 1st grade words', words: GRADE1_WORDS }, homework: [], quizzes: ['ca-missions'] },
-    '2': { spelling: { title: 'Starter 2nd grade words', words: GRADE2_WORDS }, homework: [], quizzes: ['ca-missions'] },
-    '3': { spelling: { title: 'Starter 3rd grade words', words: GRADE3_WORDS }, homework: [], quizzes: ['ca-missions'] },
-    '5': { spelling: { title: 'Starter words (grades 4–6)', words: GRADE5_WORDS }, homework: [], quizzes: ['ca-missions'] },
-    '7': { spelling: { title: 'Middle school words', words: GRADE7_WORDS }, homework: [], quizzes: ['ca-missions'] },
-    '10': { spelling: { title: 'High school vocabulary', words: GRADE10_WORDS }, homework: [], quizzes: ['ca-missions'] }
+    '1': { spelling: { title: 'Starter 1st grade words', words: GRADE1_WORDS }, homework: [], quizzes: ['g12-animals', 'g12-world'] },
+    '2': { spelling: { title: 'Starter 2nd grade words', words: GRADE2_WORDS }, homework: [], quizzes: ['g12-animals', 'g12-world'] },
+    '3': { spelling: { title: 'Starter 3rd grade words', words: GRADE3_WORDS }, homework: [], quizzes: ['g3-space', 'g3-america', 'ca-missions'] },
+    '5': { spelling: { title: 'Starter words (grades 4–6)', words: GRADE5_WORDS }, homework: [], quizzes: ['ca-missions', 'g45-body', 'g45-usa'] },
+    '7': { spelling: { title: 'Middle school words', words: GRADE7_WORDS }, homework: [], quizzes: ['g68-science', 'g68-history'] },
+    '10': { spelling: { title: 'High school vocabulary', words: GRADE10_WORDS }, homework: [], quizzes: ['g912-science', 'g912-civics', 'adult-science', 'adult-world'] }
+  },
+
+  // Knowledge quizzes by grade. Used by quizList() in index.html once it reads this (see patch notes);
+  // until then byGrade[...].quizzes above is what players without personal content get.
+  // Keys: '1'..'12' for grades, 'adult' for grown-ups.
+  quizzesByGrade: {
+    '1': ['g12-animals', 'g12-world'],
+    '2': ['g12-animals', 'g12-world'],
+    '3': ['g3-space', 'g3-america', 'ca-missions'],
+    '4': ['ca-missions', 'g45-body', 'g45-usa'],
+    '5': ['g45-body', 'g45-usa', 'ca-missions'],
+    '6': ['g68-science', 'g68-history'],
+    '7': ['g68-science', 'g68-history'],
+    '8': ['g68-science', 'g68-history'],
+    '9': ['g912-science', 'g912-civics'],
+    '10': ['g912-science', 'g912-civics'],
+    '11': ['g912-science', 'g912-civics'],
+    '12': ['g912-science', 'g912-civics'],
+    'adult': ['adult-science', 'adult-world', 'g912-science', 'g912-civics']
   },
 
   quizzes: {
+    // ---------- Grade-band knowledge quizzes (added Sep 30 2026) ----------
+    // Grades 1-2: very short questions, simple words.
+    'g12-animals': {
+      title: 'Animal Friends',
+      emoji: '🐾',
+      note: 'Grades 1–2 · animals and nature',
+      questions: [
+        { q: 'Which animal says "moo"?', c: ['Dog', 'Cow', 'Cat', 'Duck'], a: 1, why: 'A cow says moo.' },
+        { q: 'What do bees make?', c: ['Milk', 'Eggs', 'Honey', 'Wool'], a: 2, why: 'Bees make honey from flowers.' },
+        { q: 'A baby frog is called a...', c: ['Tadpole', 'Kitten', 'Puppy', 'Calf'], a: 0, why: 'A baby frog is a tadpole. It lives in water and has a tail.' },
+        { q: 'How many legs does a spider have?', c: ['4', '6', '8', '10'], a: 2, why: 'A spider has 8 legs.' },
+        { q: 'How many legs does an ant have?', c: ['4', '6', '8', '10'], a: 1, why: 'An ant is an insect. All insects have 6 legs.' },
+        { q: 'What do plants need to grow?', c: ['Candy', 'Toys', 'Shoes', 'Water and sun'], a: 3, why: 'Plants need water, sun and air to grow.' },
+        { q: 'Which animal has a long trunk?', c: ['Lion', 'Elephant', 'Horse', 'Fish'], a: 1, why: 'An elephant has a long trunk. It uses it like a hand and a nose.' },
+        { q: 'Where does a fish live?', c: ['In a tree', 'In the sky', 'In water', 'In a nest'], a: 2, why: 'Fish live in water. They breathe with gills.' },
+        { q: 'Which one is a bird?', c: ['Owl', 'Bat', 'Dog', 'Frog'], a: 0, why: 'An owl is a bird. It has feathers. A bat can fly, but it is not a bird.' },
+        { q: 'A caterpillar can turn into a...', c: ['Bee', 'Bird', 'Worm', 'Butterfly'], a: 3, why: 'A caterpillar makes a chrysalis and comes out as a butterfly.' }
+      ]
+    },
+    'g12-world': {
+      title: 'Sky, Body & Me',
+      emoji: '☀️',
+      note: 'Grades 1–2 · sky, weather and your body',
+      questions: [
+        { q: 'What big star do we see in the day?', c: ['The Moon', 'The Sun', 'Mars', 'A cloud'], a: 1, why: 'The Sun is a star. It gives us light and heat.' },
+        { q: 'What falls from clouds?', c: ['Rain', 'Sand', 'Rocks', 'Toys'], a: 0, why: 'Rain falls from clouds.' },
+        { q: 'What do you smell with?', c: ['Eyes', 'Ears', 'Nose', 'Hands'], a: 2, why: 'You smell with your nose.' },
+        { q: 'What do you hear with?', c: ['Nose', 'Feet', 'Mouth', 'Ears'], a: 3, why: 'You hear with your ears.' },
+        { q: 'How many days are in a week?', c: ['5', '6', '7', '10'], a: 2, why: 'A week has 7 days.' },
+        { q: 'What season comes after winter?', c: ['Spring', 'Summer', 'Fall'], a: 0, why: 'Winter, then spring, then summer, then fall.' },
+        { q: 'Mix blue and yellow paint. What color do you get?', c: ['Red', 'Green', 'Purple', 'Orange'], a: 1, why: 'Blue and yellow make green.' },
+        { q: 'Which one is the biggest?', c: ['Ant', 'Cat', 'Mouse', 'Whale'], a: 3, why: 'A whale is the biggest. The blue whale is the biggest animal alive today.' },
+        { q: 'What is ice?', c: ['Hot water', 'Frozen water', 'Milk', 'Glass'], a: 1, why: 'Ice is water that got very cold and froze.' },
+        { q: 'What do we breathe?', c: ['Juice', 'Mud', 'Air', 'Sand'], a: 2, why: 'We breathe air. Our lungs take it in.' }
+      ]
+    },
+
+    // Grade 3
+    'g3-space': {
+      title: 'Space & Earth Explorer',
+      emoji: '🪐',
+      note: 'Grade 3 · planets, space and Earth science',
+      questions: [
+        { q: 'Which planet do we live on?', c: ['Mars', 'Earth', 'Venus', 'Jupiter'], a: 1, why: 'We live on Earth, the third planet from the Sun.' },
+        { q: 'Which planet is the biggest in our solar system?', c: ['Earth', 'Mars', 'Mercury', 'Jupiter'], a: 3, why: 'Jupiter is the biggest planet. More than 1,000 Earths could fit inside it.' },
+        { q: 'Which planet is closest to the Sun?', c: ['Mercury', 'Venus', 'Earth', 'Neptune'], a: 0, why: 'Mercury is the closest planet to the Sun.' },
+        { q: 'Which planet is called the Red Planet?', c: ['Saturn', 'Venus', 'Mars', 'Uranus'], a: 2, why: 'Mars looks red because its dirt has rusty iron in it.' },
+        { q: 'Which planet is famous for its big, bright rings?', c: ['Mars', 'Saturn', 'Mercury', 'Earth'], a: 1, why: 'Saturn has the biggest, brightest rings. Jupiter, Uranus and Neptune have thin, faint rings.' },
+        { q: 'How long does it take Earth to go around the Sun once?', c: ['One day', 'One week', 'One month', 'One year'], a: 3, why: 'One trip around the Sun takes about 365 days: one year.' },
+        { q: 'Why do we have day and night?', c: ['Earth spins', 'The Sun turns off', 'The Moon covers the Sun', 'Clouds block the Sun'], a: 0, why: 'Earth spins once every day. The side facing the Sun has day.' },
+        { q: 'What pulls things down to the ground?', c: ['Wind', 'Light', 'Gravity', 'Sound'], a: 2, why: 'Gravity pulls things toward Earth. That is why a dropped ball falls.' },
+        { q: 'When a puddle dries up in the sun, the water...', c: ['Freezes', 'Evaporates', 'Melts', 'Turns to sand'], a: 1, why: 'The water evaporates. It turns into a gas called water vapor.' },
+        { q: 'Who was the first person to walk on the Moon?', c: ['George Washington', 'Abraham Lincoln', 'Neil Armstrong', 'Sally Ride'], a: 2, why: 'Neil Armstrong stepped onto the Moon in 1969.' }
+      ]
+    },
+    'g3-america': {
+      title: 'America & Nature',
+      emoji: '🦅',
+      note: 'Grade 3 · US geography, history and living things',
+      questions: [
+        { q: 'What is the capital of the United States?', c: ['New York City', 'Los Angeles', 'Washington, D.C.', 'Chicago'], a: 2, why: 'Washington, D.C. is the capital. The President lives there in the White House.' },
+        { q: 'How many states are in the United States?', c: ['13', '48', '50', '52'], a: 2, why: 'There are 50 states.' },
+        { q: 'Which ocean is next to California?', c: ['Pacific Ocean', 'Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean'], a: 0, why: 'The Pacific Ocean is on California\'s coast.' },
+        { q: 'What is the national bird of the United States?', c: ['Robin', 'Bald eagle', 'Turkey', 'Owl'], a: 1, why: 'The bald eagle is the national bird.' },
+        { q: 'Who was the first President of the United States?', c: ['Abraham Lincoln', 'Thomas Jefferson', 'John Adams', 'George Washington'], a: 3, why: 'George Washington was the first President.' },
+        { q: 'An animal that eats only plants is called a...', c: ['Carnivore', 'Herbivore', 'Predator', 'Omnivore'], a: 1, why: 'Herbivores eat plants. Cows and rabbits are herbivores.' },
+        { q: 'Which part of a plant drinks water from the soil?', c: ['Roots', 'Flower', 'Leaves', 'Seeds'], a: 0, why: 'Roots grow in the soil and take in water.' },
+        { q: 'Plants take in which gas from the air to make food?', c: ['Oxygen', 'Helium', 'Smoke', 'Carbon dioxide'], a: 3, why: 'Plants take in carbon dioxide and give off oxygen for us to breathe.' },
+        { q: 'Which one is a mammal?', c: ['Shark', 'Salmon', 'Dolphin', 'Octopus'], a: 2, why: 'A dolphin is a mammal. It breathes air and feeds its babies milk.' },
+        { q: 'Which is the largest state by land?', c: ['Texas', 'Alaska', 'California', 'Florida'], a: 1, why: 'Alaska is the largest state. It is more than twice as big as Texas.' }
+      ]
+    },
+
+    // Grades 4-5 (the California Missions quiz is also in this band)
+    'g45-body': {
+      title: 'Human Body Mission',
+      emoji: '🫀',
+      note: 'Grades 4–5 · body systems',
+      questions: [
+        { q: 'Which organ pumps blood through your body?', c: ['Lungs', 'Heart', 'Stomach', 'Brain'], a: 1, why: 'The heart is a muscle that pumps blood all day and night.' },
+        { q: 'About how many bones does an adult have?', c: ['106', '206', '306', '1,000'], a: 1, why: 'Adults have 206 bones. Babies are born with more, and some grow together.' },
+        { q: 'What is the largest organ of the human body?', c: ['Heart', 'Liver', 'Brain', 'Skin'], a: 3, why: 'Your skin is the largest organ. It covers and protects your whole body.' },
+        { q: 'Which organ controls your thinking and movement?', c: ['Brain', 'Heart', 'Kidney', 'Stomach'], a: 0, why: 'The brain sends messages through nerves to control your body.' },
+        { q: 'Which gas do your lungs take in that your body needs?', c: ['Carbon dioxide', 'Helium', 'Oxygen', 'Steam'], a: 2, why: 'You breathe in oxygen and breathe out carbon dioxide.' },
+        { q: 'Which blood cells help fight germs?', c: ['Red blood cells', 'White blood cells', 'Platelets', 'Plasma'], a: 1, why: 'White blood cells fight germs. Red blood cells carry oxygen.' },
+        { q: 'What connects muscles to bones?', c: ['Nerves', 'Veins', 'Ligaments', 'Tendons'], a: 3, why: 'Tendons connect muscles to bones. Ligaments connect bones to other bones.' },
+        { q: 'What is the longest bone in your body?', c: ['Femur (thigh bone)', 'Rib', 'Skull', 'A tiny ear bone'], a: 0, why: 'The femur, in your thigh, is the longest and strongest bone.' },
+        { q: 'Where does your body absorb most of the nutrients from food?', c: ['Mouth', 'Stomach', 'Small intestine', 'Large intestine'], a: 2, why: 'The small intestine is where most nutrients pass into your blood.' },
+        { q: 'How many chambers does the human heart have?', c: ['2', '3', '4', '6'], a: 2, why: 'The heart has 4 chambers: 2 atria on top and 2 ventricles below.' }
+      ]
+    },
+    'g45-usa': {
+      title: 'Across the USA',
+      emoji: '🗺️',
+      note: 'Grades 4–5 · US geography and history',
+      questions: [
+        { q: 'What is the capital of California?', c: ['Los Angeles', 'San Diego', 'San Francisco', 'Sacramento'], a: 3, why: 'Sacramento is the capital of California.' },
+        { q: 'Which mountain range runs through the eastern United States?', c: ['Rocky Mountains', 'Appalachian Mountains', 'Sierra Nevada', 'Andes'], a: 1, why: 'The Appalachians run from Alabama up into Canada.' },
+        { q: 'Which river flows from Minnesota all the way down to Louisiana?', c: ['Mississippi River', 'Colorado River', 'Hudson River', 'Columbia River'], a: 0, why: 'The Mississippi River starts in Minnesota and ends in Louisiana.' },
+        { q: 'Which state is made of islands in the Pacific Ocean?', c: ['Alaska', 'Florida', 'Hawaii', 'Maine'], a: 2, why: 'Hawaii is a chain of volcanic islands in the Pacific.' },
+        { q: 'Which document, adopted in 1776, said the colonies were free from Britain?', c: ['The Constitution', 'The Declaration of Independence', 'The Bill of Rights', 'The Gettysburg Address'], a: 1, why: 'The Declaration of Independence was adopted on July 4, 1776.' },
+        { q: 'Who wrote most of the Declaration of Independence?', c: ['George Washington', 'Benjamin Franklin', 'Thomas Jefferson', 'Abraham Lincoln'], a: 2, why: 'Thomas Jefferson wrote the first draft.' },
+        { q: 'How many original colonies became the first states?', c: ['10', '13', '20', '50'], a: 1, why: 'There were 13 colonies. That is why the flag has 13 stripes.' },
+        { q: 'Which Great Lake is completely inside the United States?', c: ['Lake Superior', 'Lake Erie', 'Lake Ontario', 'Lake Michigan'], a: 3, why: 'Lake Michigan is the only Great Lake that does not touch Canada.' },
+        { q: 'Which famous canyon in Arizona was carved by the Colorado River?', c: ['Grand Canyon', 'Death Valley', 'Yosemite Valley', 'Bryce Canyon'], a: 0, why: 'Over millions of years the Colorado River carved the Grand Canyon.' },
+        { q: 'Badwater Basin in Death Valley, the lowest spot in North America, is in which state?', c: ['Nevada', 'Arizona', 'California', 'Texas'], a: 2, why: 'Badwater Basin is in California, 282 feet below sea level.' }
+      ]
+    },
+
+    // Grades 6-8
+    'g68-science': {
+      title: 'Cells, Rocks & Forces',
+      emoji: '🔬',
+      note: 'Grades 6–8 · life, earth and physical science',
+      questions: [
+        { q: 'Which part of the cell releases energy from food and is called its "powerhouse"?', c: ['Nucleus', 'Mitochondria', 'Cell wall', 'Ribosome'], a: 1, why: 'Mitochondria release energy the cell can use.' },
+        { q: 'In plant and animal cells, where is most of the DNA kept?', c: ['Cell membrane', 'Vacuole', 'Nucleus', 'Cytoplasm'], a: 2, why: 'The nucleus holds most of the cell\'s DNA.' },
+        { q: 'Which part of a plant cell carries out photosynthesis?', c: ['Chloroplast', 'Mitochondria', 'Nucleus', 'Ribosome'], a: 0, why: 'Chloroplasts contain chlorophyll, which captures sunlight to make sugar.' },
+        { q: 'What is the chemical formula for water?', c: ['CO₂', 'O₂', 'NaCl', 'H₂O'], a: 3, why: 'Water is two hydrogen atoms bonded to one oxygen atom: H₂O.' },
+        { q: 'Earth\'s outer shell is broken into huge moving pieces called...', c: ['Glaciers', 'Tectonic plates', 'Asteroids', 'Trenches'], a: 1, why: 'Tectonic plates slowly move, causing earthquakes, volcanoes and mountains.' },
+        { q: 'Rock that forms when magma or lava cools is called...', c: ['Sedimentary', 'Metamorphic', 'Igneous', 'Fossil rock'], a: 2, why: 'Igneous rock (like granite and basalt) forms from cooled melted rock.' },
+        { q: 'Which particle in an atom has a negative charge?', c: ['Electron', 'Proton', 'Neutron', 'Nucleus'], a: 0, why: 'Electrons are negative, protons are positive, neutrons have no charge.' },
+        { q: 'About how fast does light travel?', c: ['About 300 km per second', 'The same as sound', 'About 3,000 km per hour', 'About 300,000 km per second'], a: 3, why: 'Light travels about 300,000 km (186,000 miles) every second.' },
+        { q: 'Newton\'s first law says a moving object will...', c: ['Always slow down on its own', 'Keep moving unless a force acts on it', 'Speed up forever', 'Stop after one second'], a: 1, why: 'This is inertia: objects keep doing what they are doing unless a force changes it.' },
+        { q: 'Which layer of Earth lies directly under the crust?', c: ['Inner core', 'Outer core', 'Mantle', 'Atmosphere'], a: 2, why: 'From the outside in: crust, mantle, outer core, inner core.' }
+      ]
+    },
+    'g68-history': {
+      title: 'History Detectives',
+      emoji: '🏛️',
+      note: 'Grades 6–8 · ancient world and early US',
+      questions: [
+        { q: 'Which ancient people built the Great Pyramids of Giza?', c: ['Romans', 'Egyptians', 'Maya', 'Vikings'], a: 1, why: 'The ancient Egyptians built the pyramids as tombs for their kings (pharaohs).' },
+        { q: 'The Great Wall was built mainly to protect which country?', c: ['China', 'Japan', 'India', 'Egypt'], a: 0, why: 'The Great Wall helped protect China from invaders from the north.' },
+        { q: 'Democracy, "rule by the people," is often traced back to which ancient city?', c: ['Sparta', 'Babylon', 'Rome', 'Athens'], a: 3, why: 'Ancient Athens, in Greece, let its citizens vote on laws.' },
+        { q: 'Which document begins with the words "We the People"?', c: ['Declaration of Independence', 'Gettysburg Address', 'U.S. Constitution', 'Emancipation Proclamation'], a: 2, why: 'The Preamble of the Constitution begins "We the People of the United States."' },
+        { q: 'The first ten amendments to the Constitution are called the...', c: ['Bill of Rights', 'Articles of Confederation', 'Federalist Papers', 'Mayflower Compact'], a: 0, why: 'The Bill of Rights protects freedoms like speech and religion.' },
+        { q: 'Who was President during the Civil War?', c: ['George Washington', 'Andrew Jackson', 'Theodore Roosevelt', 'Abraham Lincoln'], a: 3, why: 'Abraham Lincoln led the Union through the Civil War.' },
+        { q: 'In what year did the Civil War end?', c: ['1776', '1812', '1865', '1918'], a: 2, why: 'The Civil War lasted from 1861 to 1865.' },
+        { q: 'What was the Silk Road?', c: ['A road made of silk', 'Trade routes linking China with the Middle East and Europe', 'A river in Egypt', 'A Roman wall'], a: 1, why: 'Merchants carried silk, spices and ideas along these routes for centuries.' },
+        { q: 'Who built a movable-type printing press in Europe in the mid-1400s?', c: ['Johannes Gutenberg', 'Leonardo da Vinci', 'Galileo Galilei', 'Isaac Newton'], a: 0, why: 'Gutenberg\'s press made books much cheaper and spread reading across Europe.' },
+        { q: 'What are the three branches of the U.S. government?', c: ['Army, Navy, Air Force', 'Federal, state, local', 'Legislative, executive, judicial', 'House, Senate, President'], a: 2, why: 'Congress makes laws, the President carries them out, and courts interpret them.' }
+      ]
+    },
+
+    // Grades 9-12
+    'g912-science': {
+      title: 'Chemistry, Physics & Biology',
+      emoji: '⚗️',
+      note: 'Grades 9–12 · high school science',
+      questions: [
+        { q: 'Which gas makes up most of Earth\'s atmosphere?', c: ['Oxygen', 'Nitrogen', 'Carbon dioxide', 'Argon'], a: 1, why: 'Air is about 78% nitrogen and 21% oxygen.' },
+        { q: 'What is the pH of pure water at 25 °C?', c: ['0', '14', '7', '10'], a: 2, why: 'Pure water is neutral, pH 7. Lower is acidic, higher is basic.' },
+        { q: 'Which element has atomic number 1?', c: ['Hydrogen', 'Helium', 'Carbon', 'Oxygen'], a: 0, why: 'Hydrogen has one proton, so its atomic number is 1.' },
+        { q: 'What is the chemical symbol for gold?', c: ['Go', 'Gd', 'Ag', 'Au'], a: 3, why: 'Au comes from the Latin "aurum." Ag is silver.' },
+        { q: 'Which equation is Newton\'s second law?', c: ['E = mc²', 'F = ma', 'V = IR', 'PV = nRT'], a: 1, why: 'Force equals mass times acceleration.' },
+        { q: 'What is the unit of electrical resistance?', c: ['Volt', 'Ampere', 'Ohm', 'Watt'], a: 2, why: 'Resistance is measured in ohms (Ω).' },
+        { q: 'Near Earth\'s surface, gravity accelerates falling objects at about...', c: ['9.8 m/s²', '1 m/s²', '32 m/s²', '98 m/s²'], a: 0, why: 'About 9.8 meters per second squared (about 32 feet per second squared).' },
+        { q: 'In DNA, adenine (A) pairs with...', c: ['Guanine', 'Cytosine', 'Uracil', 'Thymine'], a: 3, why: 'A pairs with T, and G pairs with C. Uracil replaces thymine in RNA.' },
+        { q: 'A bond in which atoms share electrons is called...', c: ['Ionic', 'Covalent', 'Metallic', 'Magnetic'], a: 1, why: 'Covalent bonds share electrons; ionic bonds transfer them.' },
+        { q: 'Mitosis produces...', c: ['Four sex cells', 'One larger cell', 'Two genetically identical cells', 'Two cells with half the chromosomes'], a: 2, why: 'Mitosis makes two identical cells. Meiosis makes four sex cells with half the chromosomes.' }
+      ]
+    },
+    'g912-civics': {
+      title: 'U.S. History & Civics',
+      emoji: '🗽',
+      note: 'Grades 9–12 · amendments, courts and turning points',
+      questions: [
+        { q: 'Which amendment abolished slavery?', c: ['13th', '14th', '15th', '19th'], a: 0, why: 'The 13th Amendment was ratified in 1865.' },
+        { q: 'Which amendment (1920) guaranteed women the right to vote?', c: ['15th', '18th', '26th', '19th'], a: 3, why: 'The 19th Amendment was ratified in 1920.' },
+        { q: 'Which 1954 Supreme Court case ruled school segregation unconstitutional?', c: ['Plessy v. Ferguson', 'Brown v. Board of Education', 'Marbury v. Madison', 'McCulloch v. Maryland'], a: 1, why: 'Brown v. Board of Education overturned "separate but equal" in public schools.' },
+        { q: 'How many U.S. senators does each state have?', c: ['1', 'It depends on population', '2', '4'], a: 2, why: 'Every state has 2 senators. House seats depend on population.' },
+        { q: 'What is the minimum age to be President?', c: ['30', '35', '40', '25'], a: 1, why: 'The Constitution requires the President to be at least 35.' },
+        { q: 'The United States bought the Louisiana Territory in 1803 from...', c: ['France', 'Spain', 'Britain', 'Mexico'], a: 0, why: 'Jefferson bought it from Napoleon\'s France, roughly doubling the country\'s size.' },
+        { q: 'The stock market crash that began the Great Depression happened in...', c: ['1919', '1939', '1945', '1929'], a: 3, why: 'The crash came in October 1929.' },
+        { q: 'Which President launched the New Deal?', c: ['Herbert Hoover', 'Harry Truman', 'Franklin D. Roosevelt', 'Woodrow Wilson'], a: 2, why: 'Franklin D. Roosevelt started New Deal programs in the 1930s.' },
+        { q: 'Which event brought the United States into World War II?', c: ['Attack on Pearl Harbor', 'Sinking of the Lusitania', 'D-Day', 'Fall of the Berlin Wall'], a: 0, why: 'Japan attacked Pearl Harbor on December 7, 1941.' },
+        { q: 'Marbury v. Madison (1803) established...', c: ['The right to vote at 18', 'Judicial review', 'The income tax', 'Freedom of the press'], a: 1, why: 'Judicial review lets courts strike down laws that violate the Constitution.' }
+      ]
+    },
+
+    // Adults
+    'adult-science': {
+      title: 'Grown-up Science Trivia',
+      emoji: '🔭',
+      note: 'Adults · science, space and the body',
+      questions: [
+        { q: 'What is the hardest natural substance?', c: ['Quartz', 'Titanium', 'Diamond', 'Granite'], a: 2, why: 'Diamond is the hardest naturally occurring material (10 on the Mohs scale).' },
+        { q: 'About how long does sunlight take to reach Earth?', c: ['8 seconds', 'About 8 minutes', '8 hours', 'It arrives instantly'], a: 1, why: 'Light covers the ~93 million miles in about 8 minutes 20 seconds.' },
+        { q: 'Which blood type is the universal red-cell donor?', c: ['AB positive', 'A positive', 'B negative', 'O negative'], a: 3, why: 'O-negative red cells can be given to patients of any blood type.' },
+        { q: 'Which vitamin does your skin make in sunlight?', c: ['Vitamin D', 'Vitamin C', 'Vitamin A', 'Vitamin K'], a: 0, why: 'UVB light lets skin make vitamin D.' },
+        { q: 'What is the only mammal capable of true flight?', c: ['Flying squirrel', 'Bat', 'Sugar glider', 'Flying lemur'], a: 1, why: 'Bats truly fly. The others glide.' },
+        { q: 'Which organ produces insulin?', c: ['Liver', 'Kidneys', 'Pancreas', 'Gallbladder'], a: 2, why: 'Beta cells in the pancreas make insulin.' },
+        { q: 'Which element has the symbol Fe?', c: ['Fluorine', 'Lead', 'Tin', 'Iron'], a: 3, why: 'Fe comes from the Latin "ferrum." Lead is Pb, tin is Sn.' },
+        { q: 'In what year did Apollo 11 land on the Moon?', c: ['1969', '1965', '1972', '1975'], a: 0, why: 'Apollo 11 landed on July 20, 1969.' },
+        { q: 'Which gas makes up most of the Sun?', c: ['Helium', 'Hydrogen', 'Oxygen', 'Carbon'], a: 1, why: 'The Sun is mostly hydrogen, which fuses into helium in its core.' },
+        { q: 'What is the tallest mountain in the lower 48 states?', c: ['Mount Rainier', 'Denali', 'Mount Whitney', 'Mount Shasta'], a: 2, why: 'Mount Whitney in California is 14,505 ft. Denali is taller but is in Alaska.' }
+      ]
+    },
+    'adult-world': {
+      title: 'America & the World',
+      emoji: '🌎',
+      note: 'Adults · geography and history',
+      questions: [
+        { q: 'Which U.S. state has the most people?', c: ['Texas', 'Florida', 'New York', 'California'], a: 3, why: 'California has the largest population of any state.' },
+        { q: 'What is the capital of Canada?', c: ['Toronto', 'Ottawa', 'Montreal', 'Vancouver'], a: 1, why: 'Ottawa, in Ontario, is Canada\'s capital.' },
+        { q: 'What is the longest river in Africa?', c: ['Nile', 'Congo', 'Niger', 'Zambezi'], a: 0, why: 'The Nile flows north about 4,100 miles to the Mediterranean.' },
+        { q: 'How many amendments does the U.S. Constitution have?', c: ['10', '21', '27', '33'], a: 2, why: 'There are 27 amendments; the most recent was ratified in 1992.' },
+        { q: 'Which ocean lies between Africa and Australia?', c: ['Atlantic', 'Indian', 'Pacific', 'Southern'], a: 1, why: 'The Indian Ocean is bounded by Africa, Asia and Australia.' },
+        { q: 'Which was the first U.S. national park (1872)?', c: ['Yosemite', 'Grand Canyon', 'Zion', 'Yellowstone'], a: 3, why: 'Yellowstone was established in 1872 as the world\'s first national park.' },
+        { q: 'Which was the 50th state admitted to the Union?', c: ['Alaska', 'Arizona', 'Hawaii', 'New Mexico'], a: 2, why: 'Hawaii became the 50th state in 1959, a few months after Alaska (49th).' },
+        { q: 'What is the largest hot desert in the world?', c: ['Sahara', 'Gobi', 'Mojave', 'Kalahari'], a: 0, why: 'The Sahara is the largest hot desert. (Antarctica is the largest desert overall.)' },
+        { q: 'The Treaty of Guadalupe Hidalgo (1848), which brought California into the U.S., ended which war?', c: ['War of 1812', 'Mexican–American War', 'Spanish–American War', 'Civil War'], a: 1, why: 'It ended the Mexican–American War; Mexico ceded California and much of the Southwest.' },
+        { q: 'Which city was the first capital of the United States under the Constitution?', c: ['Philadelphia', 'Boston', 'Washington, D.C.', 'New York City'], a: 3, why: 'Washington was inaugurated in New York City in 1789; the capital moved to Philadelphia in 1790.' }
+      ]
+    },
+
     'm-reading': {
       title: 'Reading & Grammar Power-Up',
       emoji: '📖',
