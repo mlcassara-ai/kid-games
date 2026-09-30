@@ -155,7 +155,7 @@ function genWorld(){
   for(let k=0,tries=0;k<=nc&&tries<600;tries++){const x=1+Math.floor(R()*(COLS-1)),y=L.r0+Math.floor(R()*(L.r1-L.r0+1)),i=idx(x,y);
    if(!isRock(i)||items.has(i)||landing(x,y))continue;const ch=k===nc;items.set(i,{t:'$',ch,v:ch?CHESTV[li]:Math.round(COINV[li]*(.7+R()*.6))});k++;}
   // fossils: missing pieces, up to 2 per fossil per day
-  CD.FOSSILS.filter(f=>f.L===L.id).forEach(f=>{const got=S.fos[f.id]||[];const miss=f.parts.map((_,i)=>i).filter(i=>!got[i]);
+  CD.FOSSILS.filter(f=>f.L===L.id).forEach(f=>{const got=S.fos[f.id]||[];const miss=f.parts.map((_,i)=>i).filter(i=>!got[i]&&!campOnly(f,i));
    const half=f.top===undefined?[L.r0,L.r1]:f.top?[L.r0,Math.floor((L.r0+L.r1)/2)]:[Math.ceil((L.r0+L.r1)/2),L.r1];
    shuffle(R,miss).slice(0,2).forEach(pi=>{for(let tries=0;tries<200;tries++){const x=1+Math.floor(R()*(COLS-1)),y=half[0]+Math.floor(R()*(half[1]-half[0]+1)),i=idx(x,y);
     if(isRock(i)&&!items.has(i)&&!landing(x,y)){items.set(i,{t:'f',id:f.id,i:pi});break;}}});});
@@ -202,13 +202,15 @@ function gemSVG(m,size,glow){
  return `<svg class="cv-gem" width="${size}" height="${size}" viewBox="0 0 44 44" style="${glow?`filter:drop-shadow(0 0 6px ${glow})`:''}"><g fill="${col}" stroke="rgba(0,0,0,.45)" stroke-width="1.5">${d}</g><circle cx="17" cy="16" r="3" fill="#fff" opacity=".6"/></svg>`;
 }
 const TRILO='<svg viewBox="0 0 40 40" width="1em" height="1em" style="vertical-align:-.12em"><ellipse cx="20" cy="21" rx="12" ry="16" fill="#9c8468"/><path d="M8 12 Q20 2 32 12 Q20 16 8 12Z" fill="#7a6650"/><g stroke="#5e4c3a" stroke-width="1.6">'+[16,20,24,28,32].map(y=>`<line x1="10" y1="${y}" x2="30" y2="${y}"/>`).join('')+'</g><line x1="20" y1="10" x2="20" y2="36" stroke="#5e4c3a" stroke-width="2"/></svg>';
-const femo=f=>f.e==='trilobite'?TRILO:f.e;
+const femo=f=>(CD.FART&&CD.FART[f.id])||(f.e==='trilobite'?TRILO:f.e);
+/* Adventure Camp fossils: the piece at f.camp is never dug up in the cave, only brought home by a camp crew (cleanup.js) */
+const campOnly=(f,i)=>f.camp!=null&&i===f.camp;
 
 /* ---------------- DOM ---------------- */
 function build(){
  root=document.createElement('div');root.className='cv';root.id='cvRoot';
  root.innerHTML=`<canvas id="cvC"></canvas>
- <div class="cv-top"><div class="cv-row1"><div class="cv-chip" id="cvLayer"></div><div class="cv-res"><span id="cvCoins"></span><span id="cvRP"></span><span id="cvPack"></span></div><button class="cv-x cv-snd" id="cvSnd" aria-label="Sound and music"></button><button class="cv-x" id="cvExit" aria-label="Leave the cave">✕</button></div>
+ <div class="cv-top"><div class="cv-row1"><div class="cv-chip" id="cvLayer"></div><div class="cv-res"><span id="cvCoins"></span><span id="cvRP"></span><span id="cvPack"></span></div><button class="cv-x cv-snd" id="cvSnd" aria-label="Sound and music"></button><button class="cv-x cv-map" id="cvExit" aria-label="Back to the map">🗺️ Map</button></div>
   <div class="cv-row2"><div class="cv-g" id="cvG"></div><div class="cv-bat" title="Battery"><i id="cvBatI"></i><span id="cvBatT"></span></div></div></div>
  <div class="cv-depth" id="cvDepth"></div>
  <div class="cv-msg" id="cvMsg"></div>
@@ -547,11 +549,13 @@ const KHINT={magnet:'Minerals with lots of <b>iron</b> in them are pulled by a m
 const KBTN={magnet:'🧲 Hold the magnet close',acid:'🧪 Add a drop of vinegar',water:'💧 Drop it in water',streak:'⬜ Rub it on the tile',hard:'💅 Try the scratch tools',uv:'🔦 Turn on the UV lamp',look:'🔍 Look closely'};
 const BIN=['magnet','acid','water'];
 function keyTests(){return ['magnet','acid','water','streak','hard'].concat(S.gear.uv?['uv']:[]);}
-function kOpts(t,C){const vals=[...new Set(C.map(c=>JSON.stringify(tval(CD.MIN[c],t))))].map(v=>JSON.parse(v));
- if(BIN.includes(t))return [true,false];
- if(t==='hard')return vals.sort((a,b)=>a-b);
- if(t==='uv')return vals.sort((a,b)=>(a?1:0)-(b?1:0));
- return vals;}
+/* every test always shows ALL its possible answers (not just the ones our suspects could give) */
+function kOpts(t,C){if(BIN.includes(t))return [true,false];
+ if(t==='hard')return [0,1,2,3,4];
+ const all=[...new Set(Object.keys(CD.MIN).map(id=>JSON.stringify(tval(CD.MIN[id],t))))].map(v=>JSON.parse(v));
+ if(t==='uv')return all.sort((a,b)=>(a?1:0)-(b?1:0));
+ if(t==='streak'){const nm=v=>v==='none'?'zzz':(STREAK_NAMES[v]||v);return all.filter((v,i,a)=>a.findIndex(x=>nm(x)===nm(v))===i).sort((a,b)=>nm(a).localeCompare(nm(b)));}
+ return all;}
 function kLabel(t,v){
  if(t==='magnet')return v?'Yes — it sticks!':'No — it doesn\'t stick';
  if(t==='acid')return v?'Yes — it fizzes!':'No fizz';
@@ -565,7 +569,9 @@ function kNext(p,C){const used=(p.path||[]).map(s=>s.t);let best=null;
  keyTests().filter(t=>!used.includes(t)).forEach(t=>{const g={};C.forEach(c=>{const v=JSON.stringify(tval(CD.MIN[c],t));g[v]=(g[v]||0)+1;});const n=Object.keys(g).length;if(n<2)return;
   const sc=Math.max(...Object.values(g))*10-(BIN.includes(t)?1:0)+(t==='uv'?2:0);if(!best||sc<best.sc)best={t,sc};});
  return best?best.t:(used.includes('look')?null:'look');}
-function kAlive(p){const cs=candidates(p);return cs.filter(c=>(p.path||[]).every(st=>JSON.stringify(tval(CD.MIN[c],st.t))===JSON.stringify(st.v)));}
+function kAlive(p){const cs=candidates(p);return cs.filter(c=>(p.path||[]).every(st=>st.t==='look'||JSON.stringify(tval(CD.MIN[c],st.t))===JSON.stringify(st.v)));}
+/* the order a geologist uses: look first, then streak, then hardness, then the special tests */
+function sciOrder(){return ['look','streak','hard','magnet','acid','water'].concat(S.gear.uv?['uv']:[]);}
 /* a plain grey "mystery rock" so the picture never gives the answer away (the real mineral is shown once it's identified) */
 function rockSVG(k,size,tint){size=size||64;const R=rng(hash('rock|'+k));const n=9,pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=14+R()*6;pts.push([22+Math.cos(a)*r,23+Math.sin(a)*r*.82]);}
  const d='M'+pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')+'Z';const f=tint||'#8a8f98';
@@ -593,7 +599,7 @@ function scratchKnown(p){const sc=p.scr||{};for(let i=0;i<4;i++){if(sc[i]===true
 const HB_OPT=['Your fingernail scratches it','Fingernail can\'t, but the copper coin can','Coin can\'t, but the steel nail can','Only the quartz point scratches it','Nothing scratches it'];
 function speak(t){return;try{if(!window.speechSynthesis||!sndOK())return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/<[^>]+>/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]/gu,'').replace(/—/g,','));u.lang='en-US';u.rate=.9;try{u.volume=Math.min(1,Math.max(.25,window.fxLevel?fxLevel():1));}catch(e){}speechSynthesis.speak(u);}catch(e){}}
 function splits(t,C){return new Set(C.map(c=>JSON.stringify(tval(CD.MIN[c],t)))).size>1;}
-const TNAME={magnet:'🧲 Magnet',acid:'🧪 Vinegar drop',water:'💧 Water',streak:'⬜ Streak tile',hard:'💅 Scratch tools',uv:'🔦 UV lamp'};
+const TNAME={look:'🔍 Look closely',magnet:'🧲 Magnet',acid:'🧪 Vinegar drop',water:'💧 Water',streak:'⬜ Streak tile',hard:'💅 Scratch tools',uv:'🔦 UV lamp'};
 function openLab(){
  const list=S.pack.filter(p=>p.t!=='f');
  const cards=list.map(p=>p.t==='g'?`<button class="cv-spec" data-k="g:${S.pack.indexOf(p)}"><span class="cv-big2">🔮</span><b>Geode</b><small>Crack it open!</small></button>`
@@ -606,18 +612,22 @@ function bench(k,st){
  const C=kAlive(p);if(C.length<=1)return kReveal(p);
  const young=TIER()===0,used=p.path.map(s=>s.t);
  // young detectives get the next test chosen for them; older ones pick the tool themselves
- let t=st.t||p.cur||(young?kNext(p,C):null);if(t==='look'&&!young)t='look';
- if(!t&&!keyTests().some(x=>!used.includes(x)&&splits(x,C)))t='look';
+ const nextSci=sciOrder().find(x=>!used.includes(x));
+ let t=st.t||p.cur||(young?nextSci:null); /* young detectives follow the scientist's order automatically; older ones may pick any test */
+ if(!t&&!nextSci)t='look';
  const trail=p.path.map((s,i)=>`<div class="cv-kstep done"><span class="cv-kn">${i+1}</span><div><div class="cv-kq">${KQ[s.t]}</div><div class="cv-ka">✓ ${kLabel(s.t,s.v)}</div></div></div>`).join('');
  const tested=t&&(t==='hard'?scratchKnown(p):!!st.tested);
  const opts=t?kOpts(t,C):[];
  let body,say;
  if(!t){const tools=keyTests().filter(x=>!used.includes(x));
-  body=`<div class="cv-kq">🧰 Which test should we try?</div><div class="cv-tray">${tools.map(x=>`<button class="cv-trayb ${(st.nohelp||[]).includes(x)?'bad':''}" data-pick="${x}" ${(st.nohelp||[]).includes(x)?'disabled':''}>${TNAME[x]}</button>`).join('')}</div>`;
-  say=st.say||'Pick a test that will tell our suspects apart. Think: would they all give the same result?';}
- else if(t==='hard'){body=`<div class="cv-kq">${KQ.hard} </div><div class="cv-kres">${scratchTray(p,m)}</div>${tested?`<div class="cv-kopts">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel('hard',v)}</button>`).join('')}</div>`:''}`;
+  const todo=sciOrder().filter(x=>!used.includes(x));
+  body=`<div class="cv-kq">🧰 Which test next? <small class="cv-korder">Scientists go: 🔍 look → ⬜ streak → 💅 scratch → 🧲 🧪 💧 special tests</small></div><div class="cv-tray">${todo.map(x=>`<button class="cv-trayb ${x===nextSci?'nxt':''}" data-pick="${x}">${TNAME[x]}${x===nextSci?' <em>next step</em>':''}</button>`).join('')}</div>`;
+  say=st.say||'You can try any test you like! Real geologists usually start by looking, then the streak tile, then the scratch tools, then the special tests.';}
+ else if(t==='hard'){body=`<div class="cv-kq">${KQ.hard} </div><div class="cv-kres">${scratchTray(p,m)}</div>${tested?`<div class="cv-kopts ${opts.length>4?'many':''}">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel('hard',v)}</button>`).join('')}</div>`:''}`;
   say=st.say||(tested?'Now we know! Which tool was the FIRST one to make a scratch?':Object.keys(p.scr).length?'Keep going! Try the next tool.':'Let\'s scratch it! Smart scientists start with the softest tool: your fingernail.');}
- else{body=`<div class="cv-kq">${KQ[t]} </div>${tested?`<div class="cv-kres">${kPic(m,t,p)}</div>${['magnet','acid','water'].includes(t)?'<div style="text-align:center"><button class="cv-say cv-replay">↻ Watch again</button></div>':''}<div class="cv-kopts">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel(t,v)}</button>`).join('')}</div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN[t]}</button>`}`;
+ else if(t==='look'){body=`<div class="cv-kq">${KQ.look}</div>${tested?`<div class="cv-kres"><div class="cv-klook">${rockSVG(p.k,90,m.col)}<div><b>${esc(m.look)}</b></div></div></div><div style="text-align:center"><button class="cv-btn" id="cvLookOk">📝 Write it down</button></div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN.look}</button>`}`;
+  say=st.say||(tested?'Color and shape are good clues, but color can fool you! Let\'s write it down and keep testing.':KHINT.look);}
+ else{body=`<div class="cv-kq">${KQ[t]} </div>${tested?`<div class="cv-kres">${kPic(m,t,p)}</div>${['magnet','acid','water'].includes(t)?'<div style="text-align:center"><button class="cv-say cv-replay">↻ Watch again</button></div>':''}<div class="cv-kopts ${opts.length>4?'many':''}">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel(t,v)}</button>`).join('')}</div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN[t]}</button>`}`;
   say=st.say||(tested?'Watch closely! What happened? Pick the answer that matches.':KHINT[t]);}
  modal(`<button class="cv-back" data-back>‹ Lab</button><h2>🗝️ ${p.map?'Your Mystery Rock':'Mystery #'+(S.pack.indexOf(p)+1)}</h2>
   <div class="cv-key"><div class="cv-kleft"><div class="cv-specimen">${rockSVG(p.k,96)}</div><div class="cv-sus2"><b>Could still be:</b>${C.map(c=>`<span>${gemSVG(CD.MIN[c],22)} ${esc(CD.MIN[c].n)}</span>`).join('')}</div></div>
@@ -628,15 +638,15 @@ function bench(k,st){
  root.querySelector('[data-back]').onclick=openLab;
  root.querySelectorAll('.cv-replay').forEach(b=>b.onclick=()=>{sfx(t);bench(k,Object.assign({},st,{t,tested:1,quiet:1}));});
  root.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const x=b.dataset.pick;sfx('tap');
-  if(!splits(x,C)){bench(k,{nohelp:(st.nohelp||[]).concat(x),mood:'think',say:`Hmm, all of our suspects would give the <b>same result</b> for that test, so it can't tell them apart. Try a different one!`});return;}
   p.cur=x;save();bench(k,{t:x});});
+ const lk=root.querySelector('#cvLookOk');if(lk)lk.onclick=()=>{sfx('right');p.path.push({t:'look',v:m.look});p.cur=null;save();bench(k,{say:'Noted! Now let\'s test it.',mood:'happy'});};
  const tb=root.querySelector('#cvKTest');if(tb)tb.onclick=()=>{sfx(t);p.tests[t]=1;save();bench(k,{t,tested:1,quiet:1});};
  root.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{const i=+b.dataset.tool;const yes=i>=hardBand(m.h);p.scr[i]=yes;p.tests['scratch:'+i]=1;sfx(yes?'hard':'bonk');save();
   const skipped=[...Array(i).keys()].some(j=>p.scr[j]==null);
   bench(k,{t:'hard',quiet:1,mood:yes?'happy':'think',say:yes?(i===0?'Your fingernail left a scratch! It\'s very soft.':skipped?`A scratch! But did a <b>softer</b> tool scratch it too? Try one to find out.`:`A scratch! The ${CD.TOOLS[i].n.toLowerCase()} is the first tool that scratches it.`):(i===3?'Not even the quartz point scratches it! Wow!':`No mark. It's harder than the ${CD.TOOLS[i].n.toLowerCase()}. Try a harder tool!`)});});
  root.querySelectorAll('.cv-kopt:not([disabled])').forEach(b=>b.onclick=()=>{const v=opts[+b.dataset.i];const real=tval(m,t);
   if(JSON.stringify(v)===JSON.stringify(real)){sfx('right');p.path.push({t,v:real});p.cur=null;save();ev('keystep',{t,ok:1});
-   const left=kAlive(p);bench(k,{say:left.length>1?pick(Math.random,['Great observing! That rules out some suspects.','Exactly right! Let\'s ask the next question.','Yes! A real scientist reads results just like that.']):'Excellent! I think we\'ve cracked it…',mood:'happy'});}
+   const left=kAlive(p);const same=left.length===C.length;bench(k,{say:left.length<=1?'Excellent! I think we\'ve cracked it…':same?'Good observing! That test didn\'t rule anyone out this time, but it\'s another clue in our notebook. Try another test!':pick(Math.random,['Great observing! That rules out some suspects.','Exactly right! Let\'s try the next test.','Yes! A real scientist reads results just like that.']),mood:'happy'});}
   else{sfx('wrong');p.miss++;save();ev('keystep',{t,ok:0});bench(k,{t,tested:1,quiet:1,bad:(st.bad||[]).concat(+b.dataset.i),mood:'think',say:`Hmm, look again! ${kWhy(m,t)}`});}});
 }
 function kWhy(m,t){if(t==='magnet')return m.m?'Watch the rock: it jumps up and sticks to the magnet!':'Watch the rock: the magnet is close, but the rock just sits there.';
@@ -706,7 +716,7 @@ function openPower(){charge();let Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3),
 function openJournal(tab){tab=tab||'min';const tabs=[['min','💎 Minerals'],['fos','🦴 Fossils'],['cri','🐾 Critters'],['geo','🔮 Geodes'],['rec','🏆 Records']];
  let body='';
  if(tab==='min')body=`<div class="cv-grid">${Object.keys(CD.MIN).map(id=>{const m=CD.MIN[id];return S.idd[id]?`<button class="cv-jc" data-min="${id}">${gemSVG(m,44)}<b>${esc(m.n)}</b><small>${'★'.repeat(starsOf(id))||''}${'☆'.repeat(3-starsOf(id))} ×${S.found[id]||1}</small></button>`:`<div class="cv-jc un"><span>❔</span><b>???</b><small>${CD.RAR[m.r].n}</small></div>`;}).join('')}</div><p class="cv-sub">${Object.keys(S.idd).length} of ${Object.keys(CD.MIN).length} minerals identified · Collect more of each for stars: ★ at 5, ★★ at 15, ★★★ at 40</p>`;
- if(tab==='fos')body=`<div class="cv-grid">${CD.FOSSILS.map(f=>{const n=(S.fos[f.id]||[]).filter(Boolean).length;return `<div class="cv-jc ${n?'':'un'}"><span class="cv-e">${n?femo(f):'❔'}</span><b>${n?esc(f.n):'???'}</b><small>${n}/${f.parts.length} pieces${S.ex[f.id]?' · 🏛️':''}</small></div>`;}).join('')}</div>`;
+ if(tab==='fos')body=`<div class="cv-grid">${CD.FOSSILS.map(f=>{const n=(S.fos[f.id]||[]).filter(Boolean).length;return `<div class="cv-jc ${n?'':'un'}"><span class="cv-e">${n?femo(f):'❔'}</span><b>${n?esc(f.n):'???'}</b><small>${n}/${f.parts.length} pieces${S.ex[f.id]?' · 🏛️':''}</small>${f.camp!=null&&!S.ex[f.id]?`<small class="cv-camp">🏕️ ${(S.fos[f.id]||[])[f.camp]?'Camp piece found!':'Needs a camp piece'}</small>`:''}</div>`;}).join('')}</div>${CD.FOSSILS.some(f=>f.camp!=null)?'<p class="cv-sub">🏕️ Some pieces are only found by your <b>Adventure Camp</b> crew. Send your pets on trips!</p>':''}`;
  if(tab==='cri')body=`<div class="cv-grid">${CD.CRITTERS.map(c=>S.crit[c.id]?`<button class="cv-jc" data-cri="${c.id}"><span class="cv-e">${c.e}</span><b>${esc(c.n)}</b><small>${esc(CD.LAYERS.find(L=>L.id===c.L).n)}</small></button>`:`<div class="cv-jc un"><span>❔</span><b>???</b><small>${S.seen[c.L]?esc(CD.LAYERS.find(L=>L.id===c.L).n):'deeper…'}</small></div>`).join('')}</div>`;
  if(tab==='geo')body=`<div class="cv-grid">${CD.GEODES.map(g=>S.geo[g.id]?`<div class="cv-jc"><div class="cv-geode sm" style="--gc:${g.col}"><i></i></div><b>${esc(g.n)}</b><small>×${S.geo[g.id]}</small></div>`:`<div class="cv-jc un"><span>🔮</span><b>???</b><small>Find the daily ✨ secret pocket</small></div>`).join('')}</div>`;
  if(tab==='rec')body=`<div class="cv-recs"><div><b>${depthStr(Math.max(1,S.maxRow))}</b><span>Deepest dig</span></div><div><b>${fmt(S.stats.dug)}</b><span>Blocks dug</span></div><div><b>${fmt(S.stats.ids||0)}</b><span>Minerals identified</span></div><div><b>${Object.keys(S.ex).length}</b><span>Museum exhibits</span></div><div><b>${S.probe.wins?'★'.repeat(Math.min(5,S.probe.rank))||'✔':'—'}</b><span>Core Probe rank ${S.probe.rank}</span></div><div><b>${S.garden?S.garden.cols||0:0}</b><span>Cave columns grown</span></div></div>`;
@@ -717,12 +727,12 @@ function openJournal(tab){tab=tab||'min';const tabs=[['min','💎 Minerals'],['f
 }
 
 /* ---------------- Museum ---------------- */
-const FPOS={mammoth:[[22,30],[12,60],[50,42],[55,80]],trex:[[16,28],[34,50],[52,45],[55,82],[86,40]],brachio:[[12,12],[28,34],[52,55],[55,85],[88,62]],ammonite:[[50,50],[32,34],[68,62]],trilobite:[[50,18],[50,50],[50,84]],stromatolite:[[50,84],[50,52],[50,20]]};
-const SLOTHINT={Skull:'head',Tusk:'face',Neck:'neck',Arms:'front',Ribs:'chest',Legs:'feet',Tail:'back end',Shell:'outside',Spiral:'middle',Chambers:'inside',Head:'front',Body:'middle',Base:'bottom',Layers:'middle',Top:'top'};
+const FPOS={smilodon:[[82,34],[48,44],[40,80],[12,40]],triceratops:[[82,34],[46,44],[42,82],[11,64]],pteranodon:[[62,18],[20,42],[50,52],[50,82]],stego:[[88,52],[46,18],[46,48],[42,82],[10,60]],mammoth:[[22,30],[12,60],[50,42],[55,80]],trex:[[16,28],[34,50],[52,45],[55,82],[86,40]],brachio:[[12,12],[28,34],[52,55],[55,85],[88,62]],ammonite:[[50,50],[32,34],[68,62]],trilobite:[[50,18],[50,50],[50,84]],stromatolite:[[50,84],[50,52],[50,20]]};
+const SLOTHINT={'Fang Skull':'head','Horned Skull':'head','Crested Skull':'head',Wings:'sides','Back Plates':'back','Spiky Tail':'back end',Skull:'head',Tusk:'face',Neck:'neck',Arms:'front',Ribs:'chest',Legs:'feet',Tail:'back end',Shell:'outside',Spiral:'middle',Chambers:'inside',Head:'front',Body:'middle',Base:'bottom',Layers:'middle',Top:'top'};
 function museumReady(){return CD.FOSSILS.some(f=>!S.ex[f.id]&&f.parts.every((_,i)=>(S.fos[f.id]||[])[i]));}
 function openMuseum(){
  const ex=CD.FOSSILS.map(f=>{const got=S.fos[f.id]||[];const n=got.filter(Boolean).length;const done=S.ex[f.id];const ready=!done&&n===f.parts.length;
-  return `<div class="cv-ex ${done?'done':''}"><div class="cv-exe">${n||done?femo(f):'❔'}</div><div><b>${n||done?esc(f.n):'Unknown fossil'}</b><small>${done?esc(f.age):`${n}/${f.parts.length} pieces${n?'':' · dig in the '+esc(CD.LAYERS.find(L=>L.id===f.L).n)}`}</small></div>${ready?`<button class="cv-btn sm" data-as="${f.id}">🧩 Assemble!</button>`:done?'<span class="cv-ok">🏛️ On display</span>':''}</div>`;}).join('');
+  return `<div class="cv-ex ${done?'done':''}"><div class="cv-exe">${n||done?femo(f):'❔'}</div><div><b>${n||done?esc(f.n):'Unknown fossil'}</b><small>${done?esc(f.age):`${n}/${f.parts.length} pieces${n?'':' · dig in the '+esc(CD.LAYERS.find(L=>L.id===f.L).n)}`}</small>${!done&&f.camp!=null?(got[f.camp]?`<small class="cv-campok">🏕️ ${esc(f.parts[f.camp])}: found by your camp crew!</small>`:`<small class="cv-camp">🏕️ The <b>${esc(f.parts[f.camp])}</b> is only found by your Adventure Camp crew!</small>`):''}</div>${ready?`<button class="cv-btn sm" data-as="${f.id}">🧩 Assemble!</button>`:done?'<span class="cv-ok">🏛️ On display</span>':''}</div>`;}).join('');
  const shown=CD.FOSSILS.filter(f=>S.ex[f.id]).sort((a,b)=>a.ageY-b.ageY);
  const tl=shown.length?`<div class="cv-tl"><h4>🕰️ Time Wall — deeper rock is older rock</h4>${shown.map(f=>`<div class="cv-tli"><span>${femo(f)}</span><b>${esc(f.n)}</b><small>${esc(f.age)} · found in ${esc(CD.LAYERS.find(L=>L.id===f.L).n)}</small></div>`).join('<div class="cv-tla">⬇️ older</div>')}</div>`:'';
  const today=[...new Set([...W.items.values()].filter(it=>it.t==='f').map(it=>CD.FOSSILS.find(f=>f.id===it.id).L))].filter(l=>S.seen[l]).map(l=>CD.LAYERS.find(L=>L.id===l).n);
@@ -963,6 +973,7 @@ const CSS=`
 .cv-chip,.cv-res span,.cv-g span{background:rgba(20,12,30,.78);color:#fff;border-radius:12px;padding:5px 10px;font-weight:600;font-size:14px;white-space:nowrap}
 .cv-res{display:flex;gap:6px;margin-left:auto;flex-wrap:nowrap;justify-content:flex-end;min-width:0}
 .cv-g{display:flex;gap:5px;flex-wrap:wrap}.cv-g span{font-size:13px;font-weight:500}.cv-g .warn{background:#c92a2a}
+.cv-map{width:auto!important;padding:0 12px!important;border-radius:18px!important;font-size:15px!important;white-space:nowrap}
 .cv-x{position:absolute;right:10px;top:calc(6px + env(safe-area-inset-top));pointer-events:auto;background:rgba(255,255,255,.9)!important;width:36px;height:36px;border-radius:50%;font-size:18px;font-weight:700}
 .cv-bat{position:relative;width:130px;height:24px;background:rgba(20,12,30,.78);border-radius:12px;overflow:hidden;margin-left:auto}
 .cv-bat i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#2ecc71,#8ce99a);transition:width .2s}.cv-bat i.low{background:linear-gradient(90deg,#ff5a5f,#ffa94d)}
@@ -1022,6 +1033,7 @@ const CSS=`
 .cv-jc{background:#f6f3ff;border-radius:14px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px}.cv-jc.un{opacity:.55}.cv-jc span,.cv-e{font-size:32px}.cv-jc small{color:#6d6490;font-size:11px;text-align:center}
 .cv-recs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}.cv-recs div{background:#f6f3ff;border-radius:14px;padding:12px;text-align:center}.cv-recs b{display:block;font-size:22px}.cv-recs span{font-size:12px;color:#6d6490}
 .cv-geode{width:90px;height:90px;border-radius:50%;margin:0 auto;background:radial-gradient(circle,var(--gc) 0 38%,#fff 40% 44%,#7d7468 46%);position:relative;box-shadow:0 0 20px var(--gc)}.cv-geode.sm{width:44px;height:44px}
+.cv-ex small.cv-camp,.cv-jc small.cv-camp{display:block;color:#1864ab;font-weight:700;background:#e7f5ff;border-radius:8px;padding:2px 6px;margin-top:3px}.cv-ex small.cv-campok{display:block;color:#2b8a3e;font-weight:700}
 .cv-ex{display:flex;gap:10px;align-items:center;background:#f6f3ff;border-radius:14px;padding:10px;margin:6px 0}.cv-ex.done{background:#e6fcf5}.cv-exe{font-size:36px;width:48px;text-align:center}.cv-ex>div:nth-child(2){flex:1}.cv-ex small{display:block;color:#6d6490}.cv-ok{font-size:13px;font-weight:600;color:#087f5b}
 .cv-tl{margin-top:12px;background:#fff9db;border-radius:14px;padding:10px}.cv-tl h4{margin:2px 0 8px}.cv-tli{display:flex;gap:8px;align-items:center}.cv-tli span{font-size:26px}.cv-tli small{color:#6d6490;margin-left:auto;text-align:right}.cv-tla{text-align:center;font-size:12px;color:#a08a2e}
 .cv-skel{position:relative;height:260px;background:#f4ede0;border-radius:16px;margin:8px 0;overflow:hidden}.cv-ghost{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:190px;opacity:.16}
@@ -1067,7 +1079,9 @@ const CSS=`
 .cv-sit{animation:cvSit .5s 1s ease-in-out 2}@keyframes cvSit{50%{transform:translateX(1px)}}
 .cv-melt{transform-box:fill-box;transform-origin:50% 90%;animation:cvMelt 3s .5s ease-in forwards}@keyframes cvMelt{60%{opacity:.6}to{transform:scale(0);opacity:0}}
 .cv-drop{animation:cvDrop .9s ease-in infinite}@keyframes cvDrop{to{transform:translateY(10px);opacity:.2}}
-.cv-tray{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.cv-trayb{flex:1 1 130px;font-family:inherit;font-size:16px;font-weight:700;padding:12px 10px;border-radius:14px;border:3px solid #fab005;background:#fff9db;color:#1f2340;cursor:pointer}.cv-trayb.bad{opacity:.45;border-color:#fa5252;background:#fff5f5;text-decoration:line-through}
+.cv-tray{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.cv-kopts.many{display:grid!important;grid-template-columns:1fr 1fr;gap:6px}.cv-kopts.many .cv-kopt{padding:8px 6px;font-size:14px;margin:0}
+.cv-trayb.nxt{outline:3px solid #ffd43b}.cv-trayb em{display:block;font-style:normal;font-size:11px;color:#e67700}.cv-korder{display:block;font-weight:500;font-size:12px;opacity:.8;margin-top:2px}
+.cv-trayb{flex:1 1 130px;font-family:inherit;font-size:16px;font-weight:700;padding:12px 10px;border-radius:14px;border:3px solid #fab005;background:#fff9db;color:#1f2340;cursor:pointer}.cv-trayb.bad{opacity:.45;border-color:#fa5252;background:#fff5f5;text-decoration:line-through}
 button.cv-tool{font-family:inherit;background:#fff9f0;border-radius:12px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;gap:2px;border:3px solid #ffe8cc;cursor:pointer;color:#1f2340}button.cv-tool:not([disabled]){border-color:#fab005;box-shadow:0 3px 0 #f59f00}button.cv-tool[disabled]{cursor:default}
 .cv-kh button.cv-tool.y{border-color:#8ce99a}.cv-kh button.cv-tool.y em{color:#2b8a3e}.cv-kh button.cv-tool.n em{color:#c92a2a}.cv-kh button.cv-tool em{color:#e67700}
 .cv-say{background:#edf2ff;border:0;border-radius:10px;padding:2px 8px;font-size:16px;cursor:pointer;vertical-align:middle}
