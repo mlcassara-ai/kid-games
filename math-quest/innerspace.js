@@ -27,7 +27,7 @@ function pickRide(p,rock){const s=S(p);const held=s.tix.map(t=>t.id);const free=
  if(r&&!held.includes(r))return {id:r,rock};
  const low=ORDER.filter(id=>!held.includes(id)).sort((a,b)=>(s.album[a]||0)-(s.album[b]||0))[0];return {id:low||ORDER[0]};}
 /* called by Dr. Quartz at the end of a cave trip → returns the ticket (or null if your pocket is full) */
-function award(p,o){const s=S(p);if(s.tix.length>=TIX_MAX)return null;const t=pickRide(p,o&&o.rock);s.tix.push(t);s.after=(p.battles||0)+WAIT_BATTLES;s.got=(s.got||0)+1;save();return Object.assign({s:sub(t.id)},t);}
+function award(p,o){const s=S(p);if(s.tix.length>=TIX_MAX)return null;const t=Object.assign(pickRide(p,o&&o.rock),{seen:0});s.tix.push(t);s.after=(p.battles||0)+WAIT_BATTLES;s.got=(s.got||0)+1;save();return Object.assign({s:sub(t.id)},t);}
 function ticketLine(p,t,first){const sb=t.s,rk=t.rock&&window.CAVE_DATA&&CAVE_DATA.MIN[t.rock];
  return first?`And here's something special: a <b>🎟️ Shrink Ticket</b>! My friend <b>${NAME}</b> runs the <b>INNER SPACE</b> ride. It shrinks you down until you're as small as an ATOM! After a few more battles he'll drive over and pick you up. Your ride: <b>${sb.e} ${esc(sb.n)}</b>${rk?` — just like your ${esc(rk.n.toLowerCase())}!`:'.'}`
   :`Here's your <b>🎟️ Shrink Ticket</b>! ${NAME} will pick you up after a few battles for the <b>${sb.e} ${esc(sb.n)}</b> ride${rk?` — that's what your ${esc(rk.n.toLowerCase())} is made of`:''}.`;}
@@ -73,32 +73,43 @@ function drawMob(ctx,sx,sy,ts,now){const im=oimg();ctx.fillStyle='rgba(177,151,2
 
 /* ---------- meeting Ozzy ---------- */
 function meet(){if(busy)return;const p=P();if(!p)return;const s=S(p);busy=true;W.path=[];W.mobs=W.mobs.filter(m=>!m.ozzy);
- const first=!s.met;let t=s.tix[0];
+ const first=!s.met;let t=s.tix[0];const again=!!t&&!t.demo&&(t.seen==null||t.seen>=1); /* this ticket was offered before (older tickets have no count) */
  if(DEMO){const want=(location.search.match(/innerdemo=(\w+)/)||[])[1];t={id:D.SUB.some(x=>x.id===want)?want:(ORDER.find(id=>s.album[id]==null)||'water'),demo:true};}
  if(!t){busy=false;return;}const sb=sub(t.id);
  const lines=(first?[`Beep beep! 🚗 Hi, I'm <b>${NAME}</b>! I drive the <b>Atom-Mobile</b> on the <b>INNER SPACE</b> ride.`,
    `Dr. Quartz told me you earned a <b>🎟️ Shrink Ticket</b>! My ride shrinks you smaller than an ant… smaller than a germ… all the way down to the size of an <b>ATOM</b>! ⚛️`,
    `Today we're riding into <b>${sb.e} ${esc(sb.n)}</b>. Hop in, ${esc(p.name)}!`]
+  :resumeAt(t)?[`${['Beep beep!','There you are, '+esc(p.name)+'!','Ticket, please!'][s.rides%3]} 🎢 Last time we rode into <b>${sb.e} ${esc(sb.n)}</b> and got as far as <b>${STAGE[SCENES[t.at]]}</b>, but we didn't finish.`,
+   `Do you want to <b>pick up where we left off</b>${alt(p,t)?`, or try a <b>brand-new ride</b> to <b>${sub(alt(p,t)).e} ${esc(sub(alt(p,t)).n)}</b>`:''}? Your choice!`]
+  :again&&alt(p,t)?[`${['Beep beep!','I\'m back, '+esc(p.name)+'!','Ticket, please!'][s.rides%3]} 🎢 Your ticket is for <b>${sb.e} ${esc(sb.n)}</b>, but we haven't ridden it yet.`,
+   `Want to ride into <b>${sb.e} ${esc(sb.n)}</b> today, or try something new: <b>${sub(alt(p,t)).e} ${esc(sub(alt(p,t)).n)}</b>? Your choice!`]
   :[`${['Ticket, please!','Beep beep!','Back for more, '+esc(p.name)+'?'][s.rides%3]} 🎟️ Today we're shrinking into <b>${sb.e} ${esc(sb.n)}</b>!${s.tix.length>1?` (You have ${s.tix.length} tickets.)`:''} Hop in!`]);
+ const two=!DEMO&&!first&&(resumeAt(t)||again)&&alt(p,t);if(!DEMO){t.seen=(t.seen||0)+1;save();}
  if(DEMO)lines.unshift('This is a preview ride — nothing will be changed.');
  let i=0;
  const show=()=>{const last=i>=lines.length-1;
   modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av oz-av">${OZZY_CAR}</div><div class="qz-bub oz-bub"><b>🎢 ${NAME} · Ride Operator</b><div>${lines[i]}</div></div></div>
-   <div class="row">${last?`<button class="btn ghost dark" id="ozNo">Not now</button><button class="btn green big" id="ozGo">🎢 Hop in!</button>`:`<button class="btn green big" id="ozNext">Next ➜</button>`}</div></div>`);
+   <div class="row">${last?`<button class="btn ghost dark" id="ozNo">Not now</button>${two?`<button class="btn gold big" id="ozNew">🆕 New ride: ${sub(two).e} ${esc(sub(two).n)}</button>`:''}<button class="btn green big" id="ozGo">${resumeAt(t)&&!DEMO?`▶ Finish ${sb.e} ${esc(sb.n)}`:two?`🎢 Ride ${sb.e} ${esc(sb.n)}`:'🎢 Hop in!'}</button>`:`<button class="btn green big" id="ozNext">Next ➜</button>`}</div></div>`);
+  const nw=document.getElementById('ozNew');if(nw)nw.onclick=()=>{closeModal();busy=false;t.id=two;t.at=0;t.seen=1;delete t.rock;save();startRide(t);};
   const nx=document.getElementById('ozNext');if(nx)nx.onclick=()=>{i++;show();};
-  const go1=document.getElementById('ozGo');if(go1)go1.onclick=()=>{closeModal();busy=false;startRide(t);};window.visitorQuiet=Date.now()+90e3;
+  const go1=document.getElementById('ozGo');if(go1)go1.onclick=()=>{closeModal();busy=false;startRide(t,!DEMO&&resumeAt(t));};window.visitorQuiet=Date.now()+90e3;
   const no=document.getElementById('ozNo');if(no)no.onclick=()=>{closeModal();busy=false;if(DEMO===true)DEMO=null;else later(p);toast(`🎢 ${NAME}: "No problem! I'll come back ${S(p).decl>=2?'tomorrow':'after a few more battles'}."`);};};
  try{SFX.level();}catch(e){}show();}
-function startRide(t){const p=P();const s=S(p);
+/* a ride that was left partway keeps its place (t.at), so the kid can finish it or swap to a new molecule */
+const STAGE={inside:'the zoom-in',mol:'the molecule',atom:'inside the atom',alarm:'the shrink-ray alarm',atoms:'the atom workshop',build:'the Molecule Builder',eye:'the giant eye',quiz:'the quiz'};
+const resumeAt=t=>t&&!t.demo&&t.at>=2&&t.at<SCENES.length?t.at:0;
+function alt(p,t){const s=S(p);const held=s.tix.map(x=>x.id);const ok=id=>id!==t.id&&!held.includes(id);
+ return ORDER.find(id=>ok(id)&&s.album[id]==null)||ORDER.filter(ok).sort((a,b)=>(s.album[a]||0)-(s.album[b]||0))[0]||null;}
+function startRide(t,resume){const p=P();const s=S(p);
  if(DEMO===true)DEMO=JSON.stringify({inner:p.inner||null,coins:p.coins,robes:(p.owned.robes||[]).slice()});
  if(!DEMO){s.met=true;}p.wpos={x:W.hx,y:W.hy};save();
- R={t,s:sub(t.id)};go('inner');}
+ R={t,s:sub(t.id),start:resume||0};go('inner');}
 
 /* ---------- the ride screen ---------- */
 function open(p){PL=p;if(!R){const s=S(p);if(!s.tix.length&&!DEMO){go('world');return;}R={t:s.tix[0]||{id:'water'},s:sub((s.tix[0]||{id:'water'}).id)};}
  HERO=new Image();HERO.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{head:true}));
  if(root)root.remove();root=document.createElement('div');root.id='isRoot';document.body.appendChild(root);
- R.i=0;R.pts=0;scene();}
+ R.i=R.start||0;R.pts=0;if(R.i)toast(`🎢 Picking up where you left off!`);scene();}
 function close(){stopAnim();if(root)root.remove();root=null;}
 /* "Not now", leaving the ride, or the ride getting interrupted → Ozzy waits for a few more battles AND at least 20 minutes; the second time in a day he waits until tomorrow */
 function later(p){if(!p||DEMO)return;const s=S(p);const d=typeof dayKey==='function'?dayKey():'';if(s.declDay!==d){s.declDay=d;s.decl=0;}s.decl=(s.decl||0)+1;
@@ -157,11 +168,11 @@ const SCENES=['board','shrink','inside','mol','atom','alarm','atoms','build','ey
 function frame(inner){if(!root)return;const done=R.i;const fade=R.fresh;R.fresh=false;root.innerHTML=`<div class="is-stage${fade?' is-fadein':''}">${inner}<div class="is-top"><span class="is-chip">${R.s.e}<span class="cn"> ${esc(R.s.n)}</span></span>${sizeBar()}<button class="is-x" id="isX" aria-label="Leave the ride">✕</button></div></div>`;
  root.querySelector('#isX').onclick=R.finished?exit:askLeave;}
 function askLeave(){if(!root||root.querySelector('.is-leave'))return;const d=document.createElement('div');d.className='is-leave';
- d.innerHTML=`<div class="is-lbox">${OZZY_HEAD}<div><b>Leave the ride?</b><br>You keep your 🎟️ ticket — ${NAME} will come back for you later.</div><div class="is-lrow"><button class="is-btn green" id="isStay">🎢 Keep riding</button><button class="is-btn" id="isLeave">Leave</button></div></div>`;
+ d.innerHTML=`<div class="is-lbox">${OZZY_HEAD}<div><b>Leave the ride?</b><br>You keep your 🎟️ ticket and your place. Next time ${NAME} comes, you can finish this ride or pick a new one.</div><div class="is-lrow"><button class="is-btn green" id="isStay">🎢 Keep riding</button><button class="is-btn" id="isLeave">Leave</button></div></div>`;
  root.appendChild(d);d.querySelector('#isStay').onclick=()=>d.remove();d.querySelector('#isLeave').onclick=()=>{exit();};}
 function next(){R.i++;scene();}
 function onNext(fn){const b=root&&root.querySelector('#isNext');if(b)b.onclick=fn||next;}
-function scene(){stopAnim();if(!root)return;R.sz={board:0,shrink:0,inside:6,mol:7,atom:9,alarm:9,atoms:9,build:8,eye:8,quiz:8}[SCENES[R.i]];R.fresh=true;({board,shrink,inside,mol,atom,alarm,atoms,build,eye,quiz})[SCENES[R.i]]();}
+function scene(){stopAnim();if(!root)return;try{if(!DEMO&&R.t&&!R.t.demo&&R.i>=2&&R.i<SCENES.length){const tk=S(PL||P()).tix.find(x=>x.id===R.t.id);if(tk&&(tk.at||0)<R.i){tk.at=R.i;save();}}}catch(e){}R.sz={board:0,shrink:0,inside:6,mol:7,atom:9,alarm:9,atoms:9,build:8,eye:8,quiz:8}[SCENES[R.i]];R.fresh=true;({board,shrink,inside,mol,atom,alarm,atoms,build,eye,quiz})[SCENES[R.i]]();}
 const stage=()=>root.querySelector('.is-stage');
 
 /* 1. boarding */
@@ -524,6 +535,7 @@ function driveOff(m){if(m.st==='drive')return;m.st='drive';snd(520,.1,'square',.
 setInterval(()=>{try{
  if(root&&typeof curScreen!=='undefined'&&curScreen!=='inner'){ // time's up (play-time bank) or the screen changed → close the ride; the ticket is kept
   if(R&&!DEMO){if(!R.finished&&R.score!=null)commit(R.score);else if(!R.finished)later(PL||P());}close();R=null;if(DEMO&&DEMO!==true){const p=PL||P();const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();}PL=null;}
+ if(busy&&!root&&!document.querySelector('#modal.show .oz-bub'))busy=false; /* another popup replaced Ozzy's → don't get stuck */
  if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
  {const bye=W.mobs.find(m=>m.byeOzzy);if(bye){if(bye.st==='talk'&&!document.querySelector('#modal.show'))driveOff(bye);return;}}
  if(!wants(p)){if(W.mobs.some(m=>m.ozzy))W.mobs=W.mobs.filter(m=>!m.ozzy);return;}
