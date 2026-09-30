@@ -3257,7 +3257,7 @@ function cafeMoneyQ(p){const g=p.grade||3;
  const items=[...mains,...sides].map(([e,n,lo,hi])=>({e,n,pr:5*rnd(lo/5,hi/5)}));
  if(g<=2){items.forEach((it,i)=>it.pr=(i<2?rnd(3,5):1)*100);const a=items[0],b=items[2];const tot=(a.pr+b.pr)/100;const pay=tot<5?5:10;
   return {kind:'num',money:true,menu:items,q:`You have $${pay}. You buy the ${a.n.toLowerCase()} and the ${b.n.toLowerCase()}. How much money is left?`,pre:'$ ',post:'',a:pay-tot,hint:`$${a.pr/100} + $${b.pr/100} = $${tot}. Then $${pay} − $${tot}.`};}
- if(g>=6&&Math.random()<.5){const it=items.find(x=>!['Milk','Orange','Apple'].includes(x.n))||items[0];const pc=pick([10,20,25,50]);const base=pick([4,5,6,8]);it.pr=base*100;const sale=Math.round(base*(100-pc))/100;
+ if(g>=6&&Math.random()<.5){const it=items.find(x=>!['Milk','Orange','Apple'].includes(x.n))||items[0];const pc=pick([10,20,25,50]);const base=Math.max(2,Math.round(it.pr/100));it.pr=base*100;const sale=Math.round(base*(100-pc))/100;
   return {kind:'num',money:true,menu:items,q:`Today the ${it.n.toLowerCase()} is ${pc}% off! It usually costs $${base}.00. What is the sale price?`,pre:'$ ',post:'',a:sale,hint:`${pc}% of $${base} is $${cents2(base*pc/100)}. Then $${base}.00 − $${cents2(base*pc/100)}.`};}
  if(g<=3){const a=items[0],b=items[2];const tot=a.pr+b.pr;const pay=tot<=500?500:1000;
   return {kind:'num',money:true,menu:items,q:`You have $${pay/100}.00. You buy the ${a.n.toLowerCase()} and the ${b.n.toLowerCase()}. How much change do you get?`,pre:'$ ',post:'',a:(pay-tot)/100,hint:`$${cents2(a.pr/100)} + $${cents2(b.pr/100)} = $${cents2(tot/100)}. Then $${pay/100}.00 − $${cents2(tot/100)}.`};}
@@ -4385,7 +4385,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.29n';
+const APP_VER='2026.09.29o';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;
@@ -4467,7 +4467,7 @@ const cloudPayload=()=>({v:1,live:state.live||{},gifts:state.gifts||{},ownGroups
 const HASH=new Map();
 /* the play-time clock ('tb') ticks on every open device for every kid, so it must NOT count as a change — otherwise a stale device
    (a background tab, a sibling's iPad) marks everyone as 'newest' and overwrites real progress. The device a kid is actively playing on stamps them directly. */
-function stampChanges(init){state.players.forEach(p=>{const h=JSON.stringify(p,(k,v)=>k==='upd'||k==='tb'?undefined:v);if(!init&&HASH.has(p.id)&&HASH.get(p.id)!==h)p.upd=Date.now();if(!init&&!HASH.has(p.id)&&!p.upd)p.upd=Date.now();HASH.set(p.id,h);});}
+function stampChanges(init){state.players.forEach(p=>{const h=JSON.stringify(p,(k,v)=>k==='upd'||k==='tb'||k==='ins'?undefined:v); /* 'ins' (play insights) is bookkeeping: it rides along with real changes but never counts as one */if(!init&&HASH.has(p.id)&&HASH.get(p.id)!==h)p.upd=Date.now();if(!init&&!HASH.has(p.id)&&!p.upd)p.upd=Date.now();HASH.set(p.id,h);});}
 function mergeStates(remote,joining,keepId){
  const del=Object.assign({},remote.deleted||{},state.deleted||{});
  const map=new Map(),order=[];

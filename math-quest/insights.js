@@ -307,7 +307,17 @@ const CSS=`
 #ins-rep .muted{color:#666}#ins-rep .fl{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}#ins-rep .fl div{border:1px solid #ccc;border-radius:6px;padding:6px;font-size:12.5px;font-family:system-ui,sans-serif}
 #ins-rep .fl .m{height:6px;background:#e9ecef;border-radius:3px;margin-top:4px;overflow:hidden}#ins-rep .fl .m i{display:block;height:100%;background:#495057}
 #ins-rep .keep{break-inside:avoid;page-break-inside:avoid}
-@media (max-width:640px){#ins-rep .paper{margin:0;padding:18px 14px;box-shadow:none}#ins-rep .tiles{grid-template-columns:repeat(2,1fr)}#ins-rep .two{grid-template-columns:1fr}#ins-rep .fl{grid-template-columns:repeat(2,1fr)}#ins-rep .hdr{flex-direction:column;align-items:flex-start}#ins-rep .hdr .r{text-align:left}#ins-rep table{font-size:11.5px}#ins-rep .bar button,#ins-rep .bar select{padding:8px 10px;font-size:14px}#ins-rep .bar{flex-wrap:nowrap;gap:6px;padding:8px}#ins-rep .bar button,#ins-rep .bar select{white-space:nowrap}#ins-rep .bar .sp{display:none}#ins-rep .ins-long{display:none}}
+#ins-rep p.about{font-size:12.5px;margin-top:10px;background:#f8f9fa;border-left:3px solid #495057;padding:6px 10px}
+#ins-rep .note{font-size:11px;color:#555;margin:3px 0 5px;font-family:system-ui,sans-serif;text-align:left}
+#ins-rep h3.hh{break-after:avoid;page-break-after:avoid}#ins-rep .paper p{text-align:left}
+#ins-rep table.pr td{padding:3px 6px}#ins-rep .chg{white-space:nowrap}
+#ins-rep .kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin-top:8px;font-size:12.5px;font-family:system-ui,-apple-system,sans-serif}#ins-rep .kv span{color:#555;font-weight:600;white-space:nowrap}
+#ins-rep .why{font-size:11px;color:#a61e1e}#ins-rep .std{font-size:11.5px}#ins-rep .stdn{font-size:10.5px;color:#444}#ins-rep td .muted{font-size:10.5px}
+#ins-rep .stdi{font:600 10px system-ui,sans-serif;color:#495057;border:1px solid #adb5bd;border-radius:3px;padding:0 3px;white-space:nowrap}
+#ins-rep ol.tips{margin:4px 0;padding-left:20px;font-size:13px}#ins-rep ol.tips li{margin:3px 0}
+#ins-rep .two table{align-self:start}
+#ins-rep .words{display:grid;grid-template-columns:repeat(4,1fr);gap:3px 12px;font-size:13px;font-family:system-ui,sans-serif}#ins-rep .words span{border-bottom:1px solid #eee;padding:2px 0}#ins-rep .words small{color:#666}
+@media (max-width:640px){#ins-rep .paper{margin:0;padding:18px 14px;box-shadow:none}#ins-rep .tiles{grid-template-columns:repeat(2,1fr)}#ins-rep .two{grid-template-columns:1fr}#ins-rep .fl{grid-template-columns:repeat(2,1fr)}#ins-rep .words{grid-template-columns:repeat(2,1fr)}#ins-rep .hdr{flex-direction:column;align-items:flex-start}#ins-rep .hdr .r{text-align:left}#ins-rep table{font-size:11.5px}#ins-rep .bar button,#ins-rep .bar select{padding:8px 10px;font-size:14px}#ins-rep .bar{flex-wrap:nowrap;gap:6px;padding:8px}#ins-rep .bar button,#ins-rep .bar select{white-space:nowrap}#ins-rep .bar .sp{display:none}#ins-rep .ins-long{display:none}}
 @page{margin:14mm 13mm}
 @media print{
  html.ins-printing,html.ins-printing body{background:#fff!important;height:auto!important;overflow:visible!important;min-height:0!important}
@@ -317,9 +327,9 @@ const CSS=`
  #ins-rep .bar{display:none!important}
  #ins-rep .paper{box-shadow:none!important;margin:0!important;padding:0!important;max-width:none!important}
  #ins-rep .tw{overflow:visible}
- #ins-rep .tiles{grid-template-columns:repeat(4,1fr)!important}#ins-rep .two{grid-template-columns:1fr 1fr!important}#ins-rep .fl{grid-template-columns:repeat(4,1fr)!important}
+ #ins-rep .tiles{grid-template-columns:repeat(4,1fr)!important}#ins-rep .two{grid-template-columns:1fr 1fr!important}#ins-rep .fl{grid-template-columns:repeat(4,1fr)!important}#ins-rep .words{grid-template-columns:repeat(4,1fr)!important}
  #ins-rep .hdr{flex-direction:row!important;align-items:flex-end!important}#ins-rep .hdr .r{text-align:right!important}
- #ins-rep tr,#ins-rep .tile{break-inside:avoid}
+ #ins-rep tr,#ins-rep .tile,#ins-rep li{break-inside:avoid}
  #ins-rep *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }`;
 function addCSS(){if(document.getElementById('ins-css'))return;const st=document.createElement('style');st.id='ins-css';st.textContent=CSS;(document.head||document.documentElement).appendChild(st);}
@@ -381,66 +391,242 @@ function copy(){const t=summaryText();
 function spellSum(p){const e=Object.entries(p.spellStats||{});if(!e.length)return null;let r=0,w=0,m=0;const tricky=[];
  e.forEach(([k,v])=>{r+=v.r||0;w+=v.w||0;if((v.s||0)>=2)m++;else if((v.w||0)>=1)tricky.push([k,v.w]);});
  return {words:e.length,mastered:m,acc:r+w?Math.round(r/(r+w)*100):null,answers:r+w,tricky:tricky.sort((a,b)=>b[1]-a[1]).slice(0,24).map(x=>x[0]),trickyN:tricky.sort((a,b)=>b[1]-a[1]).slice(0,24)};}
+/* Related US Common Core State Standards per skill level (array index = level). null = no single clear match, so nothing is shown. */
+const STD={
+ add:[null,'1.OA.C.6','2.OA.B.2','2.NBT.B.5','2.NBT.B.5','2.NBT.B.5','3.NBT.A.2','3.NBT.A.2','4.NBT.B.4','4.NBT.B.4',null,'7.NS.A.1','5.OA.A.1','6.EE.B.7','6.EE.A.1',null,'6.EE.A.2','7.EE.A.1','8.EE.C.7','8.EE.C.8',null],
+ sub:[null,'1.OA.C.6','2.OA.B.2','2.NBT.B.5','2.NBT.B.5','2.NBT.B.5','3.NBT.A.2','3.NBT.A.2','4.NBT.B.4','4.NBT.B.4','4.NBT.B.4','7.NS.A.1','7.NS.A.1','6.EE.B.7','7.NS.A.1','6.EE.A.1','7.NS.A.1','7.NS.A.1','6.NS.C.7','8.F.B.4','8.F.A.1'],
+ mul:[null,'3.OA.C.7','3.OA.C.7','3.OA.C.7','3.OA.C.7','3.OA.C.7','3.OA.C.7','4.NBT.B.5','4.NBT.B.5','4.NBT.B.5','4.NBT.B.5','7.NS.A.2','6.RP.A.3','6.EE.A.1','6.RP.A.3','7.EE.B.4','7.NS.A.2','8.EE.A.1','6.EE.A.3',null,null],
+ div:[null,'3.OA.C.7','3.OA.C.7','3.OA.C.7','3.OA.C.7','3.OA.C.7','3.OA.C.7','4.NBT.B.6','4.NBT.B.6','5.NBT.B.6','5.NBT.B.6','7.NS.A.2','6.RP.A.3','8.EE.A.2','6.RP.A.3','7.EE.B.4','7.NS.A.2','8.EE.A.1','7.EE.B.4','7.EE.B.4',null],
+ frac:[null,'3.NF.A.1','3.NF.A.1','4.NF.B.4','4.NF.B.4','4.NF.B.3','4.NF.B.3','4.NF.A.1','4.NF.B.4','4.NF.C.5','4.NF.C.5'],
+ money:[null,'2.MD.C.8','2.MD.C.8','2.MD.C.8','2.MD.C.8','2.MD.C.8','2.MD.C.8','4.MD.A.2','4.MD.A.2','4.MD.A.2','4.MD.A.2'],
+ time:[null,'1.MD.B.3','1.MD.B.3','2.MD.C.7','2.MD.C.7','3.MD.A.1','4.MD.A.1','3.MD.A.1','3.MD.A.1','3.MD.A.1','3.MD.A.1'],
+ vol:[null,'5.MD.C.4','5.MD.C.4','5.MD.C.5','5.MD.C.5','5.MD.C.5','5.MD.C.5','5.MD.C.5','5.MD.C.5','5.MD.C.5','5.MD.C.5'],
+ meas:[null,'4.MD.C.6','4.MD.A.1','4.MD.A.1','4.MD.A.1','4.MD.A.1','3.MD.D.8','3.MD.D.8','4.MD.A.3','4.MD.A.3','4.MD.C.7'],
+ word:[null,'4.OA.A.2','4.OA.A.2','4.OA.A.2','3.OA.A.3',null,'4.OA.A.3','4.NBT.A.1',null,'4.OA.A.3',null],
+ graph:[null,'2.MD.D.10','2.MD.D.10','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3'],
+ grp:[null,'3.OA.A.1','3.OA.A.1','3.OA.A.4',null,'3.OA.A.2','3.OA.A.2','3.OA.A.3','3.OA.A.3','3.OA.C.7','3.OA.D.8'],
+ est:[null,'3.NBT.A.1','3.NBT.A.1','3.NBT.A.1','3.OA.D.8',null,'3.OA.D.8','4.NBT.A.3','4.OA.A.3','4.OA.A.3','4.OA.A.3'],
+ avg:[null,null,null,'6.SP.B.5','6.SP.B.5','6.SP.B.5',null,'6.SP.B.5',null,'6.SP.B.5',null]};
+const STDN={'1.OA.C.6':'Add and subtract within 20','2.OA.B.2':'Fluently add and subtract within 20','2.NBT.B.5':'Fluently add and subtract within 100',
+ '3.NBT.A.2':'Fluently add and subtract within 1000','4.NBT.B.4':'Add and subtract multi-digit numbers (standard algorithm)','3.OA.C.7':'Fluently multiply and divide within 100',
+ '4.NBT.B.5':'Multiply multi-digit by 1-digit and 2-digit by 2-digit','4.NBT.B.6':'Divide up to 4-digit numbers by 1-digit divisors','5.NBT.B.6':'Divide by 2-digit divisors',
+ '5.OA.A.1':'Parentheses and order of operations','6.EE.B.7':'Solve one-step equations','6.EE.A.1':'Expressions with whole-number exponents','6.EE.A.2':'Evaluate expressions with variables',
+ '6.EE.A.3':'Distributive property / equivalent expressions','7.EE.A.1':'Combine like terms','8.EE.C.7':'Solve linear equations in one variable','8.EE.C.8':'Systems of two linear equations',
+ '7.NS.A.1':'Add and subtract integers','7.NS.A.2':'Multiply and divide integers','6.NS.C.7':'Absolute value','8.F.B.4':'Rate of change (slope)','8.F.A.1':'Functions: inputs and outputs',
+ '6.RP.A.3':'Ratio, rate and percent problems','7.EE.B.4':'Solve two-step equations','8.EE.A.1':'Properties of integer exponents','8.EE.A.2':'Square roots and cube roots',
+ '3.NF.A.1':'Understand fractions as parts of a whole','4.NF.B.4':'Multiply a fraction by a whole number','4.NF.B.3':'Add and subtract fractions with like denominators',
+ '4.NF.A.1':'Equivalent fractions','4.NF.C.5':'Tenths and hundredths','5.NF.A.1':'Add and subtract fractions with unlike denominators',
+ '2.MD.C.8':'Money: coins and dollars','4.MD.A.2':'Word problems with money, time and measures','1.MD.B.3':'Tell time to the hour and half hour','2.MD.C.7':'Tell time to the nearest 5 minutes',
+ '3.MD.A.1':'Time to the minute; elapsed time','4.MD.A.1':'Convert measurement units','5.MD.C.4':'Volume by counting unit cubes','5.MD.C.5':'Volume: l × w × h, composite figures',
+ '4.MD.C.6':'Measure angles with a protractor','4.MD.C.7':'Find unknown angles','3.MD.D.8':'Perimeter problems','4.MD.A.3':'Area and perimeter formulas',
+ '4.OA.A.2':'Multiplicative comparison problems','3.OA.A.3':'Multiplication and division word problems','4.OA.A.3':'Multistep word problems, remainders, estimation',
+ '4.NBT.A.1':'Place value (each place is 10 times the next)','2.MD.D.10':'Picture and bar graphs','3.MD.B.3':'Scaled picture and bar graphs','3.OA.A.1':'Multiplication as equal groups',
+ '3.OA.A.2':'Division as equal sharing','3.OA.A.4':'Unknown factor in × and ÷ equations','3.OA.D.8':'Two-step problems; estimating to check','3.NBT.A.1':'Round to the nearest 10 or 100',
+ '4.NBT.A.3':'Round multi-digit numbers','6.SP.B.5':'Summarize data (mean, median)'};
+const stdOf=(op,L)=>{const a=STD[op];const c=a&&a[L];return c?{c,n:STDN[c]||''}:null;};
+const stdCode=c=>c?{c,n:STDN[c]||''}:null;
+const stdHTML=s=>s?`<b class="std">${E(s.c)}</b><br><span class="stdn">${E(s.n)}</span>`:'<span class="muted">—</span>';
+/* ---- missed-problem classification (for error patterns) ---- */
+function carries(a,b){let c=0;while(a||b){const s=a%10+b%10+c;if(s>=10)return true;c=0;a=Math.floor(a/10);b=Math.floor(b/10);}return false;}
+function borrows(a,b){const A=String(a).split('').reverse().map(Number),Bd=String(b).split('').reverse().map(Number);let br=0,need=false,zero=false;
+ for(let i=0;i<A.length;i++){if(A[i]===0&&br)zero=true;const t=A[i]-br,u=Bd[i]||0;if(t<u){need=true;br=1;}else br=0;}return {need,zero};}
+function classify(t,m){const q=m.q||{};const op=m.op||q.op;const L=q.L||0;const o={op,L,t:t.replace(/\s*=\s*\?\s*$/,''),n:m.n||1};
+ const bm=o.t.match(/^\s*(\d+)\s*([+−×÷])\s*(\d+)\s*$/);
+ if(BASIC.includes(op)&&(!L||L<=10)&&bm){const a=+bm[1],b=+bm[3];
+  if(op==='mul')return Object.assign(o,a<=12&&b<=12?{k:'mulfact',a,b}:{k:'mulmulti'});
+  if(op==='div')return Object.assign(o,b<=12&&a/b<=12&&a%b===0?{k:'divfact',a,b}:{k:'divmulti'});
+  if(op==='add')return Object.assign(o,a<=10&&b<=10?{k:'addfact',cross:a+b>10}:{k:carries(a,b)?'addcarry':'addplain'});
+  if(op==='sub'){if(a<=20&&b<=10)return Object.assign(o,{k:'subfact',cross:a>10&&a%10<b});const r=borrows(a,b);return Object.assign(o,{k:r.need?'subregroup':'subplain',zero:r.zero});}}
+ if(op==='frac'){
+  if(/Grid|\/10\b.*\/100/.test(o.t))return Object.assign(o,{k:'fracdec'});
+  const f=o.t.match(/^(\d+)\/(\d+)\s*[+−-]\s*(\d+)\/(\d+)$/);if(f)return Object.assign(o,{k:+f[2]===+f[4]?'fraclike':'fracunlike'});
+  if(/=\s*\?\//.test(o.t))return Object.assign(o,{k:'fracequiv'});
+  if(/ of \d/.test(o.t))return Object.assign(o,{k:'fracof'});
+  if(/mixed|wholes/.test(o.t))return Object.assign(o,{k:'fracmixed'});
+  if(/shaded/i.test(o.t))return Object.assign(o,{k:'fracpic'});}
+ if(op==='time'){
+  if(/^Clock/.test(o.t))return Object.assign(o,{k:'timeread'});
+  if(/^Minutes in/.test(o.t))return Object.assign(o,{k:'timeconv'});
+  const tm=o.t.match(/(\d+):(\d\d)\s*([+−-])\s*(?:(\d+)h\s*)?(\d+)\s*m/),tt=o.t.match(/(\d+):(\d\d)\s+to\s+(\d+):(\d\d)/);
+  if(tm){const mm=+tm[2],d=+tm[5];return Object.assign(o,{k:'timeelapsed',cross:tm[3]==='+'?mm+d>=60:mm-d<0});}
+  if(tt)return Object.assign(o,{k:'timeelapsed',cross:+tt[4]<+tt[2]||+tt[3]!==+tt[1]});}
+ if(op==='money'){if(/^Coins/.test(o.t))return Object.assign(o,{k:'moneycount'});if(/^Change from/.test(o.t))return Object.assign(o,{k:'moneychange'});}
+ return Object.assign(o,{k:'lvl:'+op+':'+L});}
+const listW=a=>a.length<=1?a.join(''):a.length===2?a.join(' and '):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+const exs=(items,n)=>items.slice(0,n||2).map(x=>x.t).join(', ');
+function patterns(missedUnfixed,F,weakMulFacts){
+ const G={};missedUnfixed.forEach(x=>{(G[x.k]=G[x.k]||[]).push(x);});const out=[];
+ const add=(k,n,t,std,tip)=>out.push({k,n,t,std,tip});
+ const facts=(k,sym,items)=>{const c={};items.forEach(x=>{const fs=k==='divfact'?[x.b]:x.a===x.b?[x.a]:[x.a,x.b];fs.forEach(f=>{if(f>=3&&f!==10)c[f]=(c[f]||0)+1;});});
+  let top=Object.entries(c).filter(([,v])=>v>=2).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([f])=>+f);
+  const covered=items.filter(x=>top.some(f=>(k==='divfact'?[x.b]:[x.a,x.b]).includes(f))).length;
+  return {top,mostly:top.length&&covered/items.length>=.5,tables:listW(top.map(f=>sym+f))};};
+ if(G.mulfact&&G.mulfact.length>=2){const f=facts('mulfact','×',G.mulfact);add('mulfact',G.mulfact.length,`Multiplication facts: ${G.mulfact.length} different facts missed${f.mostly?`, mostly in the ${f.tables} tables`:', spread across several tables'} (e.g., ${exs(G.mulfact,3)}).`,stdCode('3.OA.C.7'),
+  `Short, frequent practice on the ${f.mostly?f.tables:'harder multiplication'} facts, building hard facts from known ones (e.g., ×8 = double ×4; ×6 = ×5 plus one more group).`);}
+ if(G.divfact&&G.divfact.length>=2){const f=facts('divfact','÷',G.divfact);add('divfact',G.divfact.length,`Division facts: ${G.divfact.length} different facts missed${f.mostly?`, mostly dividing by ${listW(f.top.map(String))}`:''} (e.g., ${exs(G.divfact,3)}).`,stdCode('3.OA.C.7'),
+  `Connect each division fact to its multiplication fact family (56 ÷ 8 = 7 because 8 × 7 = 56).`);}
+ ['add','sub'].forEach(op=>{const it=G[op+'fact'];if(!it||it.length<2)return;const c=it.filter(x=>x.cross).length;
+  add(op+'fact',it.length,`${op==='add'?'Addition':'Subtraction'} facts within 20: ${it.length} missed${c/it.length>=.6?`, most of them ${op==='add'?'crossing ten':'subtracting across ten'}`:''} (e.g., ${exs(it,3)}).`,stdCode('2.OA.B.2'),
+   op==='add'?'Practice the make-ten strategy for facts that cross ten (8 + 7 = 8 + 2 + 5).':'Practice "think addition" for subtraction across ten (15 − 8: 8 + ? = 15).');});
+ {const r=G.subregroup||[],pl=G.subplain||[];if(r.length>=2){const z=r.filter(x=>x.zero);
+  add('subregroup',r.length,`Multi-digit subtraction: ${r.length} of ${r.length+pl.length} missed problems need regrouping (borrowing)${z.length>=2?`, ${z.length} of them across a zero (e.g., ${exs(z,1)})`:` (e.g., ${exs(r,2)})`}.`,stdOf('sub',r[0].L||7)||stdCode('3.NBT.A.2'),
+   `Model regrouping with base-ten blocks or a place-value chart${z.length>=2?', especially regrouping across zeros':''}, and estimate first to check whether an answer is reasonable.`);}}
+ {const r=G.addcarry||[],pl=G.addplain||[];if(r.length>=2)add('addcarry',r.length,`Multi-digit addition: ${r.length} of ${r.length+pl.length} missed problems need regrouping (carrying) (e.g., ${exs(r,2)}).`,stdOf('add',r[0].L||7)||stdCode('3.NBT.A.2'),
+   'Review regrouping in addition with place-value models, keeping digits lined up by place.');}
+ ['mul','div'].forEach(op=>{const it=G[op+'multi'];if(!it||it.length<2)return;
+  add(op+'multi',it.length,`Multi-digit ${op==='mul'?'multiplication':'division'}: ${it.length} problems missed (e.g., ${exs(it,2)})${weakMulFacts?' — some errors may come from the multiplication facts listed below':''}.`,stdOf(op,it[0].L||8),
+   op==='mul'?'Use an area model or partial products alongside the standard algorithm.':'Use partial quotients (repeated subtraction of easy multiples) alongside long division.');});
+ const FR={fracunlike:['Adding or subtracting fractions with unlike denominators','5.NF.A.1','Use fraction strips or area models to find a common denominator before adding or subtracting.'],
+  fraclike:['Adding or subtracting fractions with like denominators','4.NF.B.3','Use fraction strips or a number line to add and subtract parts of the same whole.'],
+  fracequiv:['Equivalent fractions','4.NF.A.1','Use fraction strips to show that multiplying the top and bottom by the same number names the same amount.'],
+  fracof:['Finding a fraction of a number or group','4.NF.B.4','Draw equal groups to find a fraction of a number (1/4 of 12: split 12 into 4 equal groups).'],
+  fracdec:['Tenths and hundredths','4.NF.C.5','Use a 10 × 10 grid to connect tenths and hundredths.'],
+  fracmixed:['Mixed numbers and wholes','4.NF.B.3','Use fraction strips to regroup wholes and parts in mixed numbers.'],
+  fracpic:['Naming fractions from pictures','3.NF.A.1','Practice naming fractions from pictures, counting equal parts first.'],
+  timeread:['Reading an analog clock',null,'Practice reading analog clocks, counting minutes by fives.'],
+  timeconv:['Converting hours and minutes','4.MD.A.1',null],
+  moneycount:['Counting mixed coins','2.MD.C.8','Practice counting mixed coins, starting with the coin worth the most.'],
+  moneychange:['Making change',null,'Practice making change by counting up from the price to the amount paid.']};
+ Object.keys(FR).forEach(k=>{const it=G[k];if(!it||it.length<2)return;const [lbl,sc,tip]=FR[k];
+  add(k,it.length,`${lbl}: ${it.length} problems missed (e.g., ${exs(it,2)}).`,sc?stdCode(sc):stdOf(it[0].op,it[0].L),tip);});
+ if(G.timeelapsed&&G.timeelapsed.length>=2){const it=G.timeelapsed,c=it.filter(x=>x.cross).length;
+  add('timeelapsed',it.length,`Elapsed time: ${it.length} problems missed${c>=2&&c/it.length>=.6?`, most of them crossing the hour`:''} (e.g., ${exs(it,2)}).`,stdCode('3.MD.A.1'),
+   'Solve elapsed-time problems on an open number line: jump to the next hour first, then add the remaining minutes.');}
+ Object.keys(G).filter(k=>k.startsWith('lvl:')).forEach(k=>{const it=G[k];if(it.length<3)return;const [,op,L]=k.split(':');const d=descOf(op,+L);if(!d)return;
+  add(k,it.length,`${opName(op)} — ${d.toLowerCase()}: ${it.length} problems missed (e.g., ${exs(it,2)}).`,stdOf(op,+L),null);});
+ out.sort((a,b)=>b.n-a.n);
+ const rep=missedUnfixed.filter(x=>x.n>=3).length;
+ return {list:out.slice(0,5),repeat:rep};}
+/* fact fluency by fact family, decoded from the Mastery Map grid (p.mastery; see mastery.js) */
+const MG={add:{n:11,lo:0,sym:'+',name:'Addition facts (0–10)'},sub:{n:11,lo:0,sym:'−',name:'Subtraction facts (0–10)'},mul:{n:12,lo:1,sym:'×',name:'Multiplication facts (1–12)'},div:{n:12,lo:1,sym:'÷',name:'Division facts (1–12)'}};
+function fluency(p){const m=p.mastery;if(!m||typeof m!=='object')return [];const out=[];
+ ['mul','div','add','sub'].forEach(op=>{const str=m[op];const g=MG[op];if(typeof str!=='string')return;
+  const st=i=>{const v=(str.charCodeAt(i)||97)-97;return v>=0&&v<16?v>>2:0;};
+  let tot=g.n*g.n,mast=0,prac=0;for(let i=0;i<tot;i++){const s=st(i);if(s)prac++;if(s===3)mast++;}if(prac<8)return;
+  const fam={};const txt=(r,c)=>op==='add'?`${Math.min(r,c)} + ${Math.max(r,c)}`:op==='sub'?`${r+c} − ${r}`:op==='mul'?`${Math.min(r,c)} × ${Math.max(r,c)}`:`${r*c} ÷ ${r}`;
+  const miss=new Map();
+  for(let i=0;i<tot;i++){const r=Math.floor(i/g.n)+g.lo,c=i%g.n+g.lo,s=st(i);if(!s)continue;
+   const ks=(op==='add'||op==='mul')?(r===c?[r]:[r,c]):[r];ks.forEach(k=>{const f=fam[k]||(fam[k]={p:0,m:0});f.p++;if(s===3)f.m++;});
+   if(s===1){const t=txt(r,c);if(!miss.has(t))miss.set(t,(op==='mul'||op==='div'?Math.max(r,c):r+c));}}
+  const trivial=op==='mul'||op==='div'?[1,10]:[0,1];
+  const weak=Object.entries(fam).filter(([k,f])=>!trivial.includes(+k)&&f.p>=4&&f.m/f.p<.5).sort((a,b)=>a[1].m/a[1].p-b[1].m/b[1].p).map(([k,f])=>({k:+k,m:f.m,p:f.p}));
+  if(!weak.length&&!miss.size)return;
+  const lbl=op==='mul'?k=>`×${k}`:op==='div'?k=>`÷${k}`:op==='add'?k=>`+${k}`:k=>`−${k}`;
+  out.push({op,name:g.name,total:tot,mastered:mast,practiced:prac,weak:weak.slice(0,5).sort((a,b)=>a.k-b.k).map(w=>({l:lbl(w.k),m:w.m,p:w.p})),
+   miss:[...miss.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(x=>x[0]),std:op==='mul'||op==='div'?stdCode('3.OA.C.7'):stdCode('2.OA.B.2')});});
+ return out;}
 let REP={pid:null,range:28};
 function report(pid){REP.pid=pid;renderReport();}
 function closeReport(){const el=document.getElementById('ins-rep');if(el)el.remove();document.documentElement.classList.remove('ins-printing');}
 function renderReport(){
- const p=byId(REP.pid);if(!p)return;const s=I(p);const now=new Date();
+ const p=byId(REP.pid);if(!p)return;const s=I(p);const now=new Date();const today0=new Date(now.toDateString());
  const allKeys=Object.keys(p.daily||{}).sort();
- const firstEver=allKeys[0]?new Date(allKeys[0]+'T00:00'):now;
- let start=REP.range?addDays(new Date(now.toDateString()),-(REP.range-1)):firstEver;if(start<firstEver)start=firstEver;
+ const firstEver=allKeys[0]?new Date(allKeys[0]+'T00:00'):today0;
+ let start=REP.range?addDays(today0,-(REP.range-1)):firstEver;if(start<firstEver)start=firstEver;
  const sk=k6(start),sDash=dayKey(start);
+ const F=String(p.name||'').trim().split(/\s+/)[0]||'This student';
  // practice summary: answers from p.daily (all math answers), minutes from tracked active time
- let days=new Set(),ans=0,right=0,secs=0;
- for(const k in (p.daily||{})){if(k>=sDash){const d=p.daily[k];const n=(d.r||0)+(d.w||0);if(n){days.add(k.replace(/-/g,'').slice(2));ans+=n;right+=d.r||0;}}}
- for(const k in s.d){if(k>=sk){secs+=s.d[k][0];if(s.d[k][0]>=120||s.d[k][1])days.add(k);}}
+ let days=new Set(),ans=0,right=0,secs=0;const dayAns=[];
+ for(const k in (p.daily||{})){if(k>=sDash){const d=p.daily[k];const n=(d.r||0)+(d.w||0);if(n){days.add(k.replace(/-/g,'').slice(2));ans+=n;right+=d.r||0;dayAns.push([k,d.r||0,n]);}}}
+ let sesN=0,sesAns=0;
+ for(const k in s.d){if(k>=sk){const r=s.d[k];secs+=r[0];if(r[0]>=120||r[1])days.add(k);if(r[4]){sesN+=r[4];sesAns+=r[1];}}}
  const tracked=s.since&&s.since>sk;
  const mins=Math.round(secs/60);
- const mon=monday(now),recentK=k6(addDays(mon,-7));
  const periodWkK=k6(monday(start));
- const rows=[];const strengths=[],areas=[];
- (typeof OPS!=='undefined'?OPS:[]).forEach(op=>{const st=(p.stats&&p.stats[op])||{r:0,w:0};const nAll=st.r+st.w;const per=weekAcc(s,op,periodWkK);if(!nAll)return;
+ /* ---- practice habits ---- */
+ const spanDays=Math.max(1,Math.round((today0-start)/864e5)+1);const perWk=spanDays/7;
+ let wdD=0,weD=0;days.forEach(k=>{const dw=fromK6(k).getDay();if(dw===0||dw===6)weD++;else wdD++;});
+ const trackDays=tracked?Math.max(1,Math.round((today0-fromK6(s.since))/864e5)+1):spanDays;
+ let trend=null;if(dayAns.length>=4){dayAns.sort((a,b)=>a[0]<b[0]?-1:1);const mid=dayKey(addDays(start,Math.floor(spanDays/2)));let a1=0,n1=0,a2=0,n2=0;dayAns.forEach(([k,r,n])=>{if(k<mid){a1+=r;n1+=n;}else{a2+=r;n2+=n;}});
+  if(n1>=30&&n2>=30){const x=Math.round(a1/n1*100),y=Math.round(a2/n2*100);trend={x,y,w:y-x>=5?'improving':x-y>=5?'lower in the second half':'steady'};}}
+ const kv=(p.kindVisits||[]).filter(v=>v.d>=sDash&&(v.kind==='math'||v.kind==='spell'));const kvM=kv.filter(v=>v.kind==='math').length,kvS=kv.length-kvM;
+ const lastK=[...days].sort().pop();
+ const habits=[];
+ if(days.size){habits.push(['Practice days',`${days.size} of ${spanDays} days (about ${Math.round(days.size/perWk*10)/10} per week) · ${pl(wdD,'school day')}, ${pl(weD,'weekend day')}`]);
+  if(mins)habits.push(['Practice time',`about ${fmtMin(Math.round(mins/(Math.min(spanDays,trackDays)/7)))} per week · ${fmtMin(Math.round(mins/Math.max(1,days.size)))} per practice day`]);
+  if(sesN>=2&&sesAns)habits.push(['Session length',`about ${Math.round(sesAns/sesN)} math questions per session (${pl(sesN,'session')})`]);
+  if(trend)habits.push(['Accuracy trend',`${trend.x}% in the first half of the period → ${trend.y}% in the second half (${trend.w})`]);
+  if(kv.length)habits.push(['Needed guided help',`${pl(kv.length,'time')} (${[kvM?kvM+' math':'',kvS?kvS+' spelling':''].filter(Boolean).join(', ')}) — a step-by-step walkthrough appears after repeated misses on the same item, at most once a day`]);
+  if(lastK&&daysAgo(lastK)>=4)habits.push(['Most recent practice',fromK6(lastK).toLocaleDateString('en-US',{month:'short',day:'numeric'})+` (${daysAgo(lastK)} days ago)`]);}
+ /* ---- skills that need help ---- */
+ const areas=[];const fmtS=k=>new Date(k+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+ (typeof OPS!=='undefined'?OPS:[]).forEach(op=>{if(p.adult)return;const st=(p.stats&&p.stats[op])||{r:0,w:0};const nAll=st.r+st.w;const per=weekAcc(s,op,periodWkK);if(!nAll)return;
   const useP=per.n>=5;const acc=useP?per.acc:st.r/nAll;const n=useP?per.n:nAll;
   const wks=Object.keys(s.wk).filter(k=>k>=periodWkK&&s.wk[k][op]).sort();let rec={n:0},bef={n:0};
   if(wks.length>=2){const mid=wks[Math.ceil(wks.length/2)];rec=weekAcc(s,op,mid);bef=weekAcc(s,op,periodWkK,mid);}
-  let trend='—';if(rec.n>=10&&bef.n>=10){const dd=rec.acc-bef.acc;trend=dd>=.05?`Improving (${Math.round(bef.acc*100)}% → ${Math.round(rec.acc*100)}%)`:dd<=-.05?`Dipping (${Math.round(bef.acc*100)}% → ${Math.round(rec.acc*100)}%)`:'Steady';}
   const Lv=levelOf(p,op),ex=expFor(p,op),basic=BASIC.includes(op);
-  const at=`Level ${Lv} of ${maxL(op)}`; /* level→grade mapping differs per skill, so we show the level + its description instead */
-  rows.push({op,name:opName(op),desc:descOf(op,Lv),at,acc,n,trend,Lv,ex,basic});
-  if(!p.adult){const g=basic?gradeOfLevel(Lv):null;
-   if(n>=20&&acc>=.85&&(!basic||Lv>=ex))strengths.push(`${opName(op)}: ${Math.round(acc*100)}% accurate (${descOf(op,Lv).toLowerCase()}).`);
-   else if(n>=15&&acc<.75)areas.push(`${opName(op)}: ${Math.round(acc*100)}% accurate on ${descOf(op,Lv).toLowerCase()}.`);
-   else if(basic&&n>=15&&Lv<ex-1)areas.push(`${opName(op)}: currently on ${descOf(op,Lv).toLowerCase()} — a little below the typical grade ${p.grade} level.`);
-   else if(rec.n>=10&&bef.n>=10&&bef.acc-rec.acc>=.08)areas.push(`${opName(op)}: accuracy has dipped recently (${Math.round(bef.acc*100)}% → ${Math.round(rec.acc*100)}%).`);
-   const lpk=s.lp[op];if(nAll>=30&&lpk&&daysAgo(lpk)>=14&&s.since&&daysAgo(s.since)>=14)areas.push(`${opName(op)}: not practiced since ${fromK6(lpk).toLocaleDateString('en-US',{month:'short',day:'numeric'})} — worth a short review.`);}});
- const probs=Object.entries(p.missed||{}).filter(([t,m])=>(m.fixed||0)<2&&t.length<70).sort((a,b)=>b[1].n-a[1].n||String(b[1].last||'').localeCompare(String(a[1].last||''))).slice(0,16).map(([t,m])=>({t:t.replace(/\s*=\s*\?\s*$/,''),a:m.a,n:m.n,op:m.op}));
- const facts=Object.entries(p.missed||{}).filter(([t,m])=>(m.fixed||0)<2&&m.n>=2&&/^[\d\s+\-−×÷*/=?]+$/.test(t)&&t.length<16).sort((a,b)=>b[1].n-a[1].n).slice(0,8).map(([t,m])=>`${t.replace(/\s*=\s*\?\s*$/,'')} = ${m.a}`);
- 
- let fluency='';
- if(window.Mastery&&typeof Mastery.summary==='function'){try{const ms=Mastery.summary(p)||{};const ops=Object.keys(ms).filter(k=>ms[k]&&ms[k].total&&(ms[k].seen||ms[k].mastered));
-  if(ops.length)fluency=`<div class="keep"><h2>Math fact fluency</h2><p class="muted">Facts answered correctly and quickly several times count as mastered.</p><div class="fl">${ops.map(k=>{const m=ms[k];const pc=Math.round((m.mastered||0)/m.total*100);return `<div><b>${E(opName(k))} facts</b><br>${m.mastered||0} of ${m.total} mastered<br><span class="muted">${m.seen||0} practiced</span><div class="m"><i style="width:${pc}%"></i></div></div>`;}).join('')}</div></div>`;}catch(e){console.warn(e);}}
- const rl=(p.readLog||[]).filter(r=>r.d>=sDash);const rlAll=p.readLog||[];
- const readList=(rl.length?rl:rlAll).slice(-10).reverse();
- const readLv=p.lib&&p.lib.rl?Math.floor(p.lib.rl):null;
+  const why=[];
+  if(n>=15&&acc<.75)why.push('accuracy below the 80% the program aims for');
+  if(basic&&n>=15&&Lv<ex-1&&(acc<.85||(p.log||[]).some(l=>l.op===op&&l.d>=sDash&&l.to<l.from)))why.push(`working below the typical grade ${p.grade} level`);
+  if(rec.n>=10&&bef.n>=10&&bef.acc-rec.acc>=.08)why.push(`accuracy dipped recently (${Math.round(bef.acc*100)}% → ${Math.round(rec.acc*100)}%)`);
+  const lpk=s.lp[op];if(nAll>=30&&lpk&&daysAgo(lpk)>=14&&s.since&&daysAgo(s.since)>=14)why.push(`not practiced since ${fromK6(lpk).toLocaleDateString('en-US',{month:'short',day:'numeric'})}`);
+  if(!why.length)return;
+  const lg=(p.log||[]).filter(l=>l.op===op&&l.d>=sDash).sort((a,b)=>a.d<b.d?-1:1);
+  const dn=lg.filter(l=>l.to<l.from).length,up=lg.length-dn;
+  const chg=lg.length?`${lg.slice(-4).map(l=>`<span class="chg">${l.to<l.from?'↓':'↑'} ${fmtS(l.d)}</span>`).join(', ')}${lg.length>4?' …':''}<br><span class="muted">${[dn?`eased ${dn}×`:'',up?`raised ${up}×`:''].filter(Boolean).join(', ')}</span>`:'<span class="muted">no change</span>';
+  const tr=rec.n>=10&&bef.n>=10?(rec.acc-bef.acc>=.05?' <span class="muted">(rising)</span>':bef.acc-rec.acc>=.05?' <span class="muted">(falling)</span>':''):'';
+  areas.push({op,name:opName(op),desc:descOf(op,Lv),why,acc,n,useP,chg,tr,std:stdOf(op,Lv),sev:(acc<.75?2:0)+(Lv<ex-1?1:0)+why.length*.1});});
+ areas.sort((a,b)=>b.sev-a.sev);
+ /* ---- missed problems ---- */
+ const unf=Object.entries(p.missed||{}).filter(([t,m])=>(m.fixed||0)<2&&t.length<70);
+ const cls=unf.map(([t,m])=>classify(t,m));
+ const flu=fluency(p);const weakMul=flu.some(f=>f.op==='mul'&&f.weak.length);
+ const pat=patterns(cls,F,weakMul);
+ const ansTxt=m=>{try{if(m.q&&m.q.kind==='clock'){const a=m.a;return Math.floor(a/100)+':'+String(a%100).padStart(2,'0');}if(m.q&&m.q.tpl&&m.q.tpl!=='{A}'){const a=m.a<0?'−'+(-m.a):String(m.a);
+   const f=String(m.q.tpl).replace(/<span class="fr"><span>([^<]*)<\/span><span>([^<]*)<\/span><\/span>/g,'$1/$2').replace(/&nbsp;|→/g,' ').replace(/<[^>]+>/g,'').replace(/&[a-z]+;/g,' ');
+   const seg=f.split('=').find(x=>x.includes('{A}'));if(seg){const t=seg.replace('{A}',a).replace(/\s+/g,' ').trim();if(t&&t.length<=24)return t;}}
+  if(m.q&&m.q.tpl&&typeof xAnsStr==='function')return xAnsStr(m.q,true);}catch(e){}return String(m.a);};
+ const probT=t=>t.replace(/\s*=\s*\?\s*$/,'').replace(/^Clock (\d+:\d\d)$/,'Read a clock showing $1').replace(/^Cube count /,'Count unit cubes ');
+ const probs=unf.sort((a,b)=>b[1].n-a[1].n||String(b[1].last||'').localeCompare(String(a[1].last||''))).slice(0,12).map(([t,m])=>({t:probT(t),a:ansTxt(m),n:m.n,sk:opName(m.op||(m.q&&m.q.op)||'')}));
+ /* ---- reading, school practice sets ---- */
+ const rl=(p.readLog||[]).filter(r=>r.d>=sDash&&r.n);let readW=null;
+ if(rl.length>=3){const sc=rl.reduce((a,r)=>a+(r.s||0),0),nq=rl.reduce((a,r)=>a+(r.n||3),0);if(nq&&sc/nq<.7){const lv=rl.map(r=>r.lv).filter(Boolean);readW={pct:Math.round(sc/nq*100),n:rl.length,lv:lv.length?Math.round(lv.reduce((a,b)=>a+b,0)/lv.length):null};}}
+ const school=[];try{if(typeof quizList==='function')quizList(p).forEach(x=>{const st=p.quizStats&&p.quizStats[x.id];if(st&&st.tries&&st.best<70)school.push([x.title||'Quiz',st.best,st.tries]);});
+  if(typeof hwList==='function')hwList(p).forEach(x=>{const st=p.hwStats&&p.hwStats[x.id];if(st&&st.tries&&st.best<70)school.push([x.title||'Homework set',st.best,st.tries]);});}catch(e){}
  const sp=spellSum(p);
+ /* ---- suggestions ---- */
+ const tips=[];pat.list.forEach(x=>{if(x.tip&&!tips.includes(x.tip)&&tips.length<3)tips.push(x.tip);});
+ if(flu.length&&!pat.list.some(x=>/fact/.test(x.k))&&tips.length<3){const f=flu[0];if(f.weak.length)tips.push(`Short, frequent fact practice on the ${listW(f.weak.slice(0,3).map(w=>w.l))} facts, aiming for quick recall rather than counting.`);}
+ areas.forEach(a=>{if(tips.length>=3)return;if(pat.list.some(x=>x.k.includes(a.op)||(x.std&&a.std&&x.std.c===a.std.c)))return;if(a.why.some(w=>/not practiced/.test(w)))tips.push(`A quick review of ${a.name.toLowerCase()} (${a.desc.toLowerCase()}) — it has not come up in home practice lately.`);
+  else if(a.desc)tips.push(`Extra practice with ${a.name.toLowerCase()}: ${a.desc.toLowerCase()}.`);});
+ if(sp&&sp.trickyN.length>=4&&tips.length<3)tips.push(`Review the spelling words listed below — each has been misspelled at least once and not yet spelled correctly twice in a row.`);
+ if(readW&&tips.length<3)tips.push('Ask a few who / what / why questions after short reading passages to build comprehension.');
+ if(tips.length)tips.push(`Home practice can be focused on whatever you are teaching in class — please let us know what would help most.`);
  const fmtD=d=>d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
- const first=String(p.name||'').trim().split(/\s+/)[0];
  const grade=p.adult?'Adult':gradeWord(p.grade);
  const tile=(v,l)=>`<div class="tile"><b>${v}</b><span>${l}</span></div>`;
+ const pct=a=>Math.round(a*100)+'%';
+ const skillTable=areas.length?`<div class="tw"><table class="sk"><tr><th style="width:21%">Skill</th><th>Currently working on · why listed</th><th class="n" style="width:12%">Accuracy</th><th style="width:16%">Level changes</th><th style="width:23%">Related standard</th></tr>
+  ${areas.slice(0,6).map(a=>`<tr><td><b>${E(a.name)}</b></td><td>${E(a.desc||'—')}<br><span class="why">${E(a.why.join('; '))}</span></td><td class="n">${pct(a.acc)}${a.tr}<br><span class="muted">of ${a.n}${a.useP?'':' (all time)'}</span></td><td>${a.chg}</td><td>${stdHTML(a.std)}</td></tr>`).join('')}</table></div>
+  <p class="note">Level changes: ↓ = the program eased the difficulty after repeated misses; ↑ = moved up after 6 correct answers in a row.</p>`
+  :'<p class="muted">No math skill stands out as needing extra help in this period.</p>';
+ const patHTML=pat.list.length||pat.repeat>=2?`<ul>${pat.list.map(x=>`<li>${E(x.t)}${x.std?` <span class="stdi">${E(x.std.c)}</span>`:''}</li>`).join('')}${pat.repeat>=2?`<li>${pat.repeat} problems have been missed three or more times, so these are persistent rather than one-off slips.</li>`:''}</ul>`:'';
+ const fluHTML=flu.length?`<div class="keep"><h3 class="hh">Math facts not yet automatic</h3><p class="note">A fact counts as mastered once it has been answered correctly and quickly on three different days. Only fact families that have been practiced are judged.</p>
+  <div class="tw"><table><tr><th style="width:24%">Facts</th><th class="n" style="width:14%">Mastered</th><th style="width:30%">Families under 50% mastered</th><th>Not yet answered correctly</th></tr>
+  ${flu.map(f=>`<tr><td><b>${E(f.name)}</b><br><span class="muted">${E(f.std.c)}</span></td><td class="n">${f.mastered} of ${f.total}<br><span class="muted">${f.practiced} practiced</span></td><td>${f.weak.length?f.weak.map(w=>`${E(w.l)} <span class="muted">(${w.m}/${w.p})</span>`).join(', '):'—'}</td><td>${f.miss.length?E(f.miss.join(', ')):'—'}</td></tr>`).join('')}</table></div></div>`:'';
+ const half=Math.ceil(probs.length/2);const pt=rows=>`<table class="pr"><tr><th>Problem</th><th class="n" style="width:22%">Answer</th><th class="n" style="width:14%">Missed</th></tr>${rows.map(x=>`<tr><td>${E(x.t)} <span class="muted">· ${E(x.sk)}</span></td><td class="n">${E(String(x.a))}</td><td class="n">${x.n}×</td></tr>`).join('')}</table>`;
+ const probHTML=probs.length?(probs.length>6?`<div class="two">${pt(probs.slice(0,half))}${pt(probs.slice(half))}</div>`:pt(probs)):'<p class="muted">None right now. Missed problems drop off this list once answered correctly twice.</p>';
+ const spHTML=sp&&sp.trickyN.length?`<div class="words">${sp.trickyN.map(([w,n])=>`<span><b>${E(w)}</b> <small>${n}×</small></span>`).join('')}</div><p class="note">${sp.mastered} of ${sp.words} practiced words are mastered (spelled correctly on two separate occasions). Number = times misspelled.</p>`:'';
  const html=`<div class="bar"><button onclick="Insights.closeReport()">✕ Close</button><select onchange="Insights._range(this.value)"><option value="28" ${REP.range===28?'selected':''}>Last 4 weeks</option><option value="56" ${REP.range===56?'selected':''}>Last 8 weeks</option><option value="0" ${!REP.range?'selected':''}>All time</option></select><span class="sp"></span><button class="go" onclick="window.print()">🖨️ Save as PDF<span class="ins-long"> / Print</span></button></div>
  <div class="paper">
-  <div class="hdr"><div><h1>Home Learning Practice Report</h1><div class="sub"><b style="font-size:17px;color:#111">${E(first)}</b> &nbsp;·&nbsp; ${E(grade)}</div></div>
+  <div class="hdr"><div><h1>Home Math Practice Report</h1><div class="sub"><b style="font-size:17px;color:#111">${E(F)}</b> &nbsp;·&nbsp; ${E(grade)}</div></div>
    <div class="r">${fmtD(start)} – ${fmtD(now)}<br>Prepared ${fmtD(now)}</div></div>
-  <p style="margin-top:10px">${E(first)} practices at home with an adaptive math program. Each skill has its own difficulty level that rises after a run of correct answers and eases off after mistakes, so the list below shows only the specific skills, problems and spelling words ${E(first)} is still working on.</p>
-  <h2>Practice summary</h2>
-  <div class="tiles">${tile(days.size,'days practiced')}${tile(mins?fmtMin(mins):'—','active practice time'+(tracked?'*':''))}${tile(ans.toLocaleString(),'questions answered')}${tile(ans?Math.round(right/ans*100)+'%':'—','answered correctly')}</div>
-  ${tracked?`<p class="muted" style="font-size:11.5px">* Practice time has been recorded since ${fmtD(fromK6(s.since))}.</p>`:''}
-  <h2>Where ${E(first)} needs help</h2>
-  <p class="muted" style="font-size:12.5px">Only skills and items that still need work are listed. Skills going well are left out on purpose.</p>
-  ${p.adult?'':`<div class="keep"><h3 class="hh">Math skills</h3>${areas.length?`<ul>${areas.slice(0,6).map(t=>`<li>${E(t)}</li>`).join('')}</ul>`:'<p class="muted">No math skill needs extra help right now.</p>'}</div>`}
-  <div class="keep"><h3 class="hh">Math problems answered wrong and not yet corrected</h3>${probs.length?`<div class="tw"><table><tr><th>Problem</th><th class="n" style="width:90px">Answer</th><th class="n" style="width:90px">Times missed</th></tr>${probs.map(x=>`<tr><td>${E(x.t)}</td><td class="n">${E(String(x.a))}</td><td class="n">${x.n}</td></tr>`).join('')}</table></div>`:'<p class="muted">None right now. Missed problems are removed once answered correctly twice.</p>'}</div>
-  <div class="keep"><h3 class="hh">Spelling words still being learned</h3>${sp&&sp.trickyN.length?`<div class="tw"><table><tr><th>Word</th><th class="n" style="width:110px">Times misspelled</th></tr>${sp.trickyN.map(([w,n])=>`<tr><td><b>${E(w)}</b></td><td class="n">${n}</td></tr>`).join('')}</table></div>`:`<p class="muted">${sp?'No spelling words need extra help right now.':'No spelling practice recorded yet.'}</p>`}</div>
-  <div class="fine">Generated from ${E(first)}'s home practice records. Questions are answered without a time limit; difficulty adjusts automatically for each skill. Shared by ${E(first)}'s family.</div>
+  <p class="about"><b>About this report.</b> ${E(F)} practices at home with an adaptive program. Each skill has its own difficulty level that moves up after 6 correct answers in a row and eases off after 2 misses out of 4, so children settle where they get <b>about 80% right</b>. Accuracy near 80% means the work is at the right challenge; well below 75% points to a real sticking point. Only skills and items that still need work are listed — skills going well are left out on purpose. Questions have no time limit.</p>
+  <h2>Practice at a glance</h2>
+  <div class="tiles">${tile(days.size,'days practiced')}${tile(mins?fmtMin(mins):'—','active practice time'+(tracked?'*':''))}${tile(ans.toLocaleString(),'math questions answered')}${tile(ans?Math.round(right/ans*100)+'%':'—','answered correctly')}</div>
+  ${habits.length?`<div class="kv">${habits.map(([k,v])=>`<span>${E(k)}</span><div>${E(v)}</div>`).join('')}</div>`:''}
+  ${tracked?`<p class="note">* Practice time has been recorded since ${fmtD(fromK6(s.since))}.</p>`:''}
+  ${!days.size&&!ans?`<p class="muted">No practice has been recorded in this period yet, so there is nothing to report. Try a longer period above.</p>`:''}
+  ${!days.size&&!ans&&!unf.length&&!(sp&&sp.trickyN.length)?'':`${p.adult?'':`<h2>Where ${E(F)} needs help</h2>
+  <div class="keep"><h3 class="hh">Math skills to watch</h3>${skillTable}</div>`}
+  ${patHTML?`<div><h3 class="hh">Patterns in the mistakes</h3><p class="note">Based on problems answered wrong and not yet corrected. Codes are related Common Core standards.</p>${patHTML}</div>`:''}
+  ${tips.length?`<div><h3 class="hh">Suggested next steps</h3><ol class="tips">${tips.map(t=>`<li>${E(t)}</li>`).join('')}</ol></div>`:''}
+  ${fluHTML}
+  <div><h3 class="hh">Math problems answered wrong and not yet corrected</h3>${probHTML}</div>
+  ${readW?`<div class="keep"><h3 class="hh">Reading comprehension</h3><p>Answered ${readW.pct}% of story questions correctly on the first try across ${readW.n} stories${readW.lv?` (about grade ${readW.lv} level)`:''} in this period.</p></div>`:''}
+  ${school.length?`<div class="keep"><h3 class="hh">School practice sets with low scores</h3><ul>${school.slice(0,6).map(([t,b,n])=>`<li>${E(t)}: best score ${b}% (${pl(n,'try','tries')})</li>`).join('')}</ul></div>`:''}
+  <div class="keep"><h3 class="hh">Spelling words still being learned</h3>${spHTML||`<p class="muted">${sp?'No spelling words need extra help right now.':'No spelling practice recorded yet.'}</p>`}</div>`}
+  <div class="fine">Generated from ${E(F)}'s home practice records. Standards are listed as related Common Core State Standards for reference only; they are matched from the skill being practiced, not from a formal assessment. Shared by ${E(F)}'s family.</div>
  </div>`;
  let el=document.getElementById('ins-rep');if(!el){el=document.createElement('div');el.id='ins-rep';document.body.appendChild(el);}
  el.innerHTML=html;el.scrollTop=0;document.documentElement.classList.add('ins-printing');}

@@ -96,7 +96,7 @@ function startTrip(first){const p=P();const s=Q(p);
  if(!first&&!DEMO)s.rocks--;s.met=true;s.trips++;s.last=dayKey();p.wpos={x:W.hx,y:W.hy};p.cave=p.cave||{};save();
  HOST={first,rock:rockMineral(p)};go('cave');}
 function host(p){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{spell:p.spell}));
- const tk=dayKey()+'#t'+(Q(p).trips||0); // every trip = a freshly shifted cave (new minerals, coins & fossils)
+ const tk='cave#'+Math.floor(((Q(p).trips||1)-1)/5); // Sep 2026: the cave keeps your tunnels between trips (kids read a reset as 'progress lost'); a fresh cave every 5 trips
  return {player:{id:p.id,name:p.name,grade:p.grade||3,emoji:'🧑‍🚀',img:hi},state:p.cave,today:()=>tk,
   coins:()=>p.coins,addCoins:(n)=>{p.coins+=n;save();},spend:(n)=>{if(p.coins<n)return false;p.coins-=n;save();return true;},
   save:()=>save(),trip:true,noRecharge:true,tripRock:HOST&&HOST.rock,medals:()=>medals(p),gateNeed:id=>GATE_NEED[id]||0,
