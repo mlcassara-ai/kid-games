@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Language Quest – Letter Dunes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#1E5AA8; --deep:#153F78; --saffron:#F2B134; --mint:#2FA894; --rose:#E0607E;
+  --sand1:#F7DFA8; --sand2:#EBC47C; --card:#FFFFFF; --ink:#12233D; --muted:#5A6B82; --line:#E3D2A8;
+  --font:"Baloo Bhaijaan 2","Geeza Pro","Noto Sans Arabic",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --sand1:#5A4526; --sand2:#43331B; --card:#1D2B45; --ink:#EEF3FA; --muted:#A9B8CC; --line:#3A4B68; } }
+:root[data-theme="dark"]{ --sand1:#5A4526; --sand2:#43331B; --card:#1D2B45; --ink:#EEF3FA; --muted:#A9B8CC; --line:#3A4B68; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%}
+body{margin:0; min-height:100%; background:linear-gradient(180deg,#8FC6F0 0,#CFE6F7 140px,var(--sand1) 141px,var(--sand2) 100%); background-attachment:fixed; color:var(--ink); font-family:var(--font); -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none}
+.wrap{max-width:760px; margin:0 auto; padding:10px 14px 28px}
+.top{display:flex; align-items:center; gap:8px; justify-content:space-between}
+.top h1{font-size:1.3rem; margin:0; font-weight:800; color:#12233D}
+.pill{background:var(--card); color:var(--ink); border:0; border-radius:999px; padding:6px 14px; font:inherit; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,.15); cursor:pointer; min-height:40px}
+.coins{background:var(--saffron); color:#12233D}
+button:focus-visible{outline:3px solid var(--saffron); outline-offset:3px}
+.panel{background:var(--card); border-radius:24px; padding:14px; margin-top:12px; box-shadow:0 4px 16px rgba(70,50,10,.15)}
+h2{margin:4px 0 8px; font-size:1.3rem}
+.muted{color:var(--muted)}
+.camps{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-top:12px}
+.camp{background:var(--card); border:0; border-radius:22px; padding:12px 10px; cursor:pointer; font:inherit; color:var(--ink); text-align:center; box-shadow:0 4px 14px rgba(70,50,10,.15); position:relative}
+.camp .tent{font-size:2.4rem}
+.camp .ls{font-size:1.6rem; direction:rtl; word-spacing:.15rem; line-height:1.5; white-space:nowrap}
+.camp .nm{font-weight:800}
+.camp .st{color:var(--saffron); font-size:1.1rem; min-height:1.4rem}
+.camp.locked{opacity:.55; cursor:not-allowed}
+.camp.locked::after{content:"🔒"; position:absolute; top:8px; right:10px; font-size:1.3rem}
+.crew{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:10px}
+@media (min-width:560px){ .crew{grid-template-columns:repeat(4,1fr)} }
+.mem{background:var(--card); border:3px solid transparent; border-radius:20px; padding:8px; cursor:pointer; font:inherit; color:var(--ink); text-align:center; box-shadow:0 3px 10px rgba(70,50,10,.12)}
+.mem svg{width:84px; height:84px}
+.mem .nm{font-weight:800}
+.mem.done{border-color:var(--mint)}
+.mem.done .nm::after{content:" ✓"; color:var(--mint)}
+.actions{display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+.btn{font:inherit; font-weight:800; font-size:1.05rem; border:0; border-radius:14px; padding:10px 18px; min-height:48px; cursor:pointer; background:var(--sky); color:#fff}
+.btn.ghost{background:var(--line); color:var(--ink)}
+.btn.go{background:var(--mint)}
+.btn.boss{background:var(--rose)}
+.btn[disabled]{opacity:.45; cursor:not-allowed}
+.hero{display:flex; align-items:center; gap:12px}
+.hero svg{width:104px; height:104px; flex:none; cursor:pointer}
+.talk{background:#FFF8E6; color:#12233D; border-radius:18px; padding:10px 14px; font-size:1.05rem; line-height:1.35; position:relative; flex:1}
+.talk::before{content:""; position:absolute; left:-8px; top:26px; border:8px solid transparent; border-right-color:#FFF8E6; border-left:0}
+.talk .ar{font-size:1.5rem}
+.slots{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; direction:rtl; margin:12px 0}
+.slot{background:#FFF8E6; color:#12233D; border-radius:16px; text-align:center; padding:6px 2px; border:2px dashed #D9BF85}
+.slot b{display:block; font-size:2.4rem; font-weight:500; line-height:1.4; min-height:3.3rem; color:var(--sky)}
+.slot span{font-size:.8rem; color:#7A6B45}
+.slot.got{border-style:solid; border-color:var(--mint)}
+.field{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:4px}
+.orb{aspect-ratio:1; border-radius:50%; border:0; cursor:pointer; font-family:var(--font); font-size:2.5rem; line-height:1; color:#12233D;
+  background:radial-gradient(circle at 32% 28%, #fff 0 12%, rgba(255,255,255,.9) 13% 40%, rgba(255,255,255,.62) 70%);
+  box-shadow:inset 0 -6px 12px rgba(160,110,20,.2), 0 4px 10px rgba(120,80,10,.18)}
+.orb.pop{visibility:hidden}
+.orb.nope{background:radial-gradient(circle,#FFD6DE,#F7A8B8)}
+.orb.glow{box-shadow:0 0 0 5px var(--saffron), 0 0 22px var(--saffron)}
+.words{display:grid; gap:10px; margin-top:8px}
+.word{display:flex; align-items:center; gap:12px; background:#FFF8E6; color:#12233D; border-radius:18px; padding:10px 14px; border:3px solid transparent; cursor:pointer; font:inherit; text-align:start}
+.word .em{font-size:2.2rem}
+.word .ar{font-size:2rem; line-height:1.5; direction:rtl}
+.word .info{flex:1}
+.word .where{font-size:.9rem; color:#7A6B45}
+.word .form{font-size:2.1rem; color:var(--sky); min-width:52px; text-align:center}
+.word.heard{border-color:var(--mint)}
+.bossbar{display:flex; align-items:center; gap:10px; margin:8px 0}
+.hp{flex:1; height:16px; background:#F3D6DD; border-radius:999px; overflow:hidden}
+.hp i{display:block; height:100%; background:var(--rose); transition:width .3s}
+.hearts{font-size:1.3rem; min-width:80px; text-align:right}
+.q{font-size:1.2rem; text-align:center; margin:10px 0}
+.q .big{font-size:2.8rem; display:block; line-height:1.4}
+.opts{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+.opt{font-family:var(--font); font-size:2.6rem; min-height:92px; border-radius:20px; border:0; background:#FFF8E6; color:#12233D; cursor:pointer; box-shadow:0 4px 0 #D9BF85}
+.opt.right{background:#C9F0E3; box-shadow:0 4px 0 var(--mint)}
+.opt.wrong{background:#FFD6DE; box-shadow:0 4px 0 var(--rose)}
+.center{text-align:center}
+#start{position:fixed; inset:0; background:rgba(18,35,61,.55); display:flex; align-items:center; justify-content:center; z-index:10}
+#start .box{background:var(--card); color:var(--ink); border-radius:26px; padding:24px; text-align:center; width:min(88vw,360px)}
+@media (prefers-reduced-motion:no-preference){
+  .orb{animation:bob 3s ease-in-out infinite}
+  .orb:nth-child(2n){animation-delay:-1.2s}.orb:nth-child(3n){animation-delay:-2.1s}
+  .orb.nope,.opt.wrong{animation:shake .35s}
+  .hero svg.happy{animation:hop .5s}
+  .slot.got b{animation:land .4s}
+}
+@keyframes bob{50%{transform:translateY(-6px)}}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes hop{40%{transform:translateY(-14px) rotate(-5deg)}}
+@keyframes land{0%{transform:scale(1.8)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <button class="pill" id="back">← Map</button>
+    <h1>Letter Dunes</h1>
+    <div style="display:flex;gap:6px"><button class="pill" id="snd" aria-label="Sound on or off">🔊</button><div class="pill coins">🪙 <span id="coins">0</span></div></div>
+  </div>
+  <main id="app"></main>
+</div>
+<div id="start"><div class="box"><div style="font-size:3rem">⛺</div><h2>Letter Dunes</h2><p class="muted">كُثْبَانُ الحُرُوف — catch the letter shapeshifters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
+
+<script>
+/* ============ letters data ============
+   [letter, name(with harakat), English name, joins-left?, look-alikes, words: [emoji, word, English, position 1=start 2=middle 3=end] ] */
+const L=[
+ ["ا","أَلِف","Alif",0,["ل","ك","د"],[["🦁","أَسَد","lion",1],["🚪","بَاب","door",2],["👋","مَرْحَبًا","hello",3]]],
+ ["ب","بَاء","Baa",1,["ت","ث","ن","ي"],[["🦆","بَطَّة","duck",1],["🕷️","عَنْكَبُوت","spider",2],["🐶","كَلْب","dog",3]]],
+ ["ت","تَاء","Taa",1,["ب","ث","ن"],[["🍎","تُفَّاحَة","apple",1],["📖","كِتَاب","book",2],["🏠","بَيْت","house",3]]],
+ ["ث","ثَاء","Thaa",1,["ت","ب","ن"],[["🦊","ثَعْلَب","fox",1],["🍐","كُمَّثْرَى","pear",2],["🔺","مُثَلَّث","triangle",3]]],
+ ["ج","جِيم","Jeem",1,["ح","خ"],[["🐪","جَمَل","camel",1],["⭐","نَجْمَة","star",2],["❄️","ثَلْج","snow",3]]],
+ ["ح","حَاء","Haa",1,["ج","خ"],[["🐴","حِصَان","horse",1],["🌊","بَحْر","sea",2],["🧂","مِلْح","salt",3]]],
+ ["خ","خَاء","Khaa",1,["ح","ج"],[["🍞","خُبْز","bread",1],["🌴","نَخْلَة","palm tree",2],["🍉","بِطِّيخ","watermelon",3]]],
+ ["د","دَال","Daal",0,["ذ","ر"],[["🐻","دُبّ","bear",1],["🏫","مَدْرَسَة","school",2],["🦁","أَسَد","lion",3]]],
+ ["ذ","ذَال","Dhaal",0,["د","ز"],[["🐺","ذِئْب","wolf",1],["🪟","نَافِذَة","window",2],["🧑‍🎓","تِلْمِيذ","student",3]]],
+ ["ر","رَاء","Raa",0,["ز","و","د"],[["🪶","رِيشَة","feather",1],["🍊","بُرْتُقَال","orange",2],["🌙","قَمَر","moon",3]]],
+ ["ز","زَاي","Zaay",0,["ر","ذ"],[["🦒","زَرَافَة","giraffe",1],["🥕","جَزَرَة","carrot",2],["🍞","خُبْز","bread",3]]],
+ ["س","سِين","Seen",1,["ش","ص"],[["🐟","سَمَكَة","fish",1],["🧹","مِكْنَسَة","broom",2],["☀️","شَمْس","sun",3]]],
+ ["ش","شِين","Sheen",1,["س","ث"],[["☀️","شَمْس","sun",1],["🍑","مِشْمِش","apricot",2],["🪺","عُشّ","nest",3]]],
+ ["ص","صَاد","Saad",1,["ض","س"],[["🦅","صَقْر","falcon",1],["🐦","عُصْفُور","sparrow",2],["👕","قَمِيص","shirt",3]]],
+ ["ض","ضَاد","Daad",1,["ص","ظ"],[["🐸","ضِفْدَع","frog",1],["🥚","بَيْضَة","egg",2],["🤒","مَرِيض","sick",3]]],
+ ["ط","طَاء","Taa (heavy)",1,["ظ","ك"],[["✈️","طَائِرَة","airplane",1],["🦆","بَطَّة","duck",2],["🐈","قِطّ","cat",3]]],
+ ["ظ","ظَاء","Dhaa (heavy)",1,["ط","ض"],[["✉️","ظَرْف","envelope",1],["👓","نَظَّارَة","glasses",2],["🍀","حَظّ","luck",3]]],
+ ["ع","عَيْن","Ayn",1,["غ","ح"],[["👁️","عَيْن","eye",1],["🕯️","شَمْعَة","candle",2],["☝️","إِصْبَع","finger",3]]],
+ ["غ","غَيْن","Ghayn",1,["ع","ف"],[["☁️","غَيْمَة","cloud",1],["🦜","بَبَّغَاء","parrot",2],["🧴","صَمْغ","glue",3]]],
+ ["ف","فَاء","Faa",1,["ق","غ"],[["🐘","فِيل","elephant",1],["🐢","سُلَحْفَاة","turtle",2],["🗡️","سَيْف","sword",3]]],
+ ["ق","قَاف","Qaaf",1,["ف","و"],[["🌙","قَمَر","moon",1],["🐄","بَقَرَة","cow",2],["🍽️","طَبَق","plate",3]]],
+ ["ك","كَاف","Kaaf",1,["ل","ط"],[["🐶","كَلْب","dog",1],["🐟","سَمَكَة","fish",2],["🐓","دِيك","rooster",3]]],
+ ["ل","لَام","Laam",1,["ك","ا"],[["🍋","لَيْمُون","lemon",1],["🐝","نَحْلَة","bee",2],["🐘","فِيل","elephant",3]]],
+ ["م","مِيم","Meem",1,["ه","ف"],[["🍌","مَوْز","banana",1],["🐟","سَمَكَة","fish",2],["✏️","قَلَم","pen",3]]],
+ ["ن","نُون","Noon",1,["ب","ت","ي"],[["🐅","نَمِر","tiger",1],["🍇","عِنَب","grapes",2],["🧀","جُبْن","cheese",3]]],
+ ["ه","هَاء","Haa (soft)",1,["م","ع"],[["🌙","هِلَال","crescent",1],["🐆","فَهْد","cheetah",2],["🙂","وَجْه","face",3]]],
+ ["و","وَاو","Waaw",0,["ر","ق"],[["🌹","وَرْدَة","rose",1],["🐋","حُوت","whale",2],["🪣","دَلْو","bucket",3]]],
+ ["ي","يَاء","Yaa",1,["ب","ن","ت"],[["✋","يَد","hand",1],["🐘","فِيل","elephant",2],["🪑","كُرْسِيّ","chair",3]]]
+];
+const INFO={}; L.forEach((l,i)=>INFO[l[0]]={i,ch:l[0],nm:l[1],en:l[2],joins:l[3],dec:l[4],words:l[5]});
+const CAMPS=[0,1,2,3,4,5,6].map(c=>L.slice(c*4,c*4+4).map(l=>l[0]));
+const CAMP_NAMES=["Camp One","Camp Two","Camp Three","Camp Four","Camp Five","Camp Six","Camp Seven"];
+const COLORS=["#E0607E","#2FA894","#7A5CD6","#E58A2B","#1E5AA8","#C2476A","#2E8FA8","#8A6B2E"];
+const TAT="\u0640", SLOT=["Alone","Start","Middle","End"], WHERE=["","at the start","in the middle","at the end"];
+function forms(ch){ return INFO[ch]&&!INFO[ch].joins ? [ch,ch,TAT+ch,TAT+ch] : [ch,ch+TAT,TAT+ch+TAT,TAT+ch]; }
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ============ save (this device for now; class accounts come later) ============ */
+const KEY="languagequest.letters.v1";
+let save={coins:0, letters:{}, camps:{}};
+try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) save=Object.assign(save,s); }catch(e){}
+function persist(){ try{ localStorage.setItem(KEY,JSON.stringify(save)); }catch(e){} $("coins").textContent=save.coins; }
+function addCoins(n){ save.coins+=n; persist(); }
+const $=id=>document.getElementById(id);
+
+/* ============ voice: generated Google voice (Puck) with device fallback ============ */
+const AUDIO_BASE="https://storage.googleapis.com/kid-games-dc068-voices/lq/ar-XA-Chirp3-HD-Puck/";
+function audioKey(t){ let h=0x811c9dc5; for(const b of new TextEncoder().encode(t)){ h^=b; h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,"0"); }
+const audio=new Audio(); audio.preload="auto"; let soundOn=true, sid=0;
+function deviceSay(t){ if(!("speechSynthesis" in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang="ar-SA"; u.rate=0.75;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith("ar")); if(v)u.voice=v; speechSynthesis.speak(u); }
+function say(t){ if(!soundOn)return; const id=++sid; audio.pause(); audio.src=AUDIO_BASE+audioKey(t)+".mp3";
+  audio.onerror=()=>{ if(id===sid) deviceSay(t); }; const p=audio.play(); if(p&&p.catch) p.catch(()=>{ if(id===sid) deviceSay(t); }); }
+$("snd").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
+$("back").onclick=()=>{ location.href="../"; };
+$("go").onclick=()=>{ say("كُثْبَانُ الحُرُوف"); $("start").remove(); };
+
+/* ============ creature art ============ */
+function creature(ch,id=""){
+  const color=COLORS[INFO[ch].i%COLORS.length];
+  return `<svg ${id?`id="${id}"`:""} viewBox="0 0 120 120" role="img" aria-label="${INFO[ch].en} creature">
+    <path d="M60 10c28 0 46 20 46 50 0 30-14 50-46 50S14 90 14 60 32 10 60 10z" fill="${color}"/>
+    <circle cx="44" cy="42" r="11" fill="#fff"/><circle cx="76" cy="42" r="11" fill="#fff"/>
+    <circle cx="46" cy="44" r="5" fill="#12233D"/><circle cx="78" cy="44" r="5" fill="#12233D"/>
+    <path d="M50 58q10 8 20 0" fill="none" stroke="#12233D" stroke-width="3" stroke-linecap="round"/>
+    <text x="60" y="100" text-anchor="middle" font-family="Baloo Bhaijaan 2, Geeza Pro, sans-serif" font-size="36" fill="#fff">${ch}</text></svg>`;
+}
+function hop(){ const h=$("hero"); if(!h)return; h.classList.remove("happy"); void h.getBoundingClientRect(); h.classList.add("happy"); }
+function talk(h){ const t=$("talk"); if(t) t.innerHTML=h; }
+
+/* ============ screens ============ */
+function campUnlocked(c){ return c===0 || !!save.camps[c-1]; }
+function home(){
+  const html=CAMPS.map((ls,c)=>{ const open=campUnlocked(c), done=ls.filter(ch=>save.letters[ch]).length, stars=save.camps[c]||0;
+    return `<button class="camp ${open?"":"locked"}" data-c="${c}" ${open?"":"aria-disabled=\"true\""}>
+      <div class="tent">⛺</div><div class="nm">${CAMP_NAMES[c]}</div><div class="ls" lang="ar">${ls.join(" ")}</div>
+      <div class="st">${stars?"★".repeat(stars)+"☆".repeat(3-stars):`<span class="muted" style="font-size:.95rem">${done}/4 letters</span>`}</div></button>`; }).join("");
+  $("app").innerHTML=`<div class="panel"><h2>Welcome to the Letter Dunes!</h2>
+    <p class="muted" style="margin:0">Each camp has four letter shapeshifters. Catch every one, then beat the camp's sand monster to open the next camp.</p></div>
+    <div class="camps">${html}</div>`;
+  document.querySelectorAll(".camp").forEach(b=>b.onclick=()=>{ const c=+b.dataset.c; if(campUnlocked(c)) camp(c); else { b.animate([{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"none"}],{duration:300}); } });
+}
+let curCamp=0;
+function camp(c){
+  curCamp=c; const ls=CAMPS[c], all=ls.every(ch=>save.letters[ch]);
+  $("app").innerHTML=`<div class="panel"><h2>${CAMP_NAMES[c]}</h2><p class="muted" style="margin:0">Tap a shapeshifter to find its four disguises.</p>
+    <div class="crew">${ls.map(ch=>`<button class="mem ${save.letters[ch]?"done":""}" data-ch="${ch}">${creature(ch)}<div class="nm">${INFO[ch].en}</div></button>`).join("")}</div>
+    <div class="actions"><button class="btn ghost" id="toHome">All camps</button>
+    <button class="btn boss" id="toBoss" ${all?"":"disabled"}>🦂 Sand monster ${all?"":"(catch all 4 first)"}</button></div></div>`;
+  document.querySelectorAll(".mem").forEach(b=>b.onclick=()=>catchGame(b.dataset.ch));
+  $("toHome").onclick=home; $("toBoss").onclick=()=>{ if(all) boss(c); };
+}
+
+/* ---- catching the four disguises ---- */
+let caught;
+function catchGame(ch){
+  caught=new Set(); const I=INFO[ch], f=forms(ch);
+  $("app").innerHTML=`<div class="panel">
+    <div class="hero">${creature(ch,"hero")}<div class="talk" id="talk"></div></div>
+    <div class="slots">${f.map((x,i)=>`<div class="slot"><b></b><span>${SLOT[i]}</span></div>`).join("")}</div>
+    <div class="field" id="field"></div>
+    <div class="actions"><button class="btn ghost" id="bk">Back</button><button class="btn ghost" id="hint">Hint</button><button class="btn ghost" id="hear">🔊 My name</button></div></div>`;
+  talk(`I'm <b>${I.en}</b> <span class="ar" lang="ar">${I.nm}</span>! I change shape to hide. Catch all 4 of my disguises!`);
+  if(!I.joins) talk(`I'm <b>${I.en}</b> <span class="ar" lang="ar">${I.nm}</span>! I never hold hands with the letter after me, so my start shape looks like my alone shape. Catch my disguises!`);
+  say(I.nm);
+  $("hero").onclick=$("hear").onclick=()=>{ say(I.nm); hop(); };
+  $("bk").onclick=()=>camp(curCamp);
+  $("hint").onclick=()=>{ const o=[...document.querySelectorAll(".orb.real:not(.pop)")][0]; if(o){ o.classList.add("glow"); setTimeout(()=>o.classList.remove("glow"),1200); } };
+  // For non-joiners, alone/start are the same shape and middle/end are the same shape: one bubble fills both slots.
+  const uniq=[]; f.forEach((x,i)=>{ const u=uniq.find(v=>v.t===x); if(u) u.idx.push(i); else uniq.push({t:x,idx:[i]}); });
+  const items=uniq.map(u=>({t:u.t,real:true,idx:u.idx}));
+  const pool=shuffle([...I.dec]); let k=0;
+  while(items.length<8){ const d=pool[k++%pool.length], df=forms(d), t=df[Math.random()*4|0]; if(items.some(x=>x.t===t)) continue; items.push({t,real:false,d}); }
+  $("field").innerHTML=shuffle(items).map(o=>`<button class="orb ${o.real?"real":""}" lang="ar" data-real="${o.real}" data-idx="${o.real?o.idx.join(","):""}" data-d="${o.d||""}">${o.t}</button>`).join("");
+  document.querySelectorAll(".orb").forEach(b=>b.onclick=()=>tapOrb(b,ch));
+}
+function tapOrb(b,ch){
+  const I=INFO[ch], f=forms(ch);
+  if(b.dataset.real==="true"){
+    const idx=b.dataset.idx.split(",").map(Number); b.classList.add("pop"); say(I.nm); hop(); addCoins(5);
+    idx.forEach(i=>{ caught.add(i); const s=document.querySelectorAll(".slot")[i]; s.classList.add("got"); s.querySelector("b").textContent=f[i]; });
+    const left=4-caught.size;
+    if(left<=0){ talk("You found all my disguises! 🎉 Now find me hiding inside real words."); setTimeout(()=>wordsStep(ch),1300); }
+    else talk(`Got me! That's my <b>${idx.map(i=>SLOT[i].toLowerCase()).join(" and ")}</b> shape. ${left} more to go.`);
+  } else {
+    const D=INFO[b.dataset.d]; b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); if(D) say(D.nm);
+    talk(`Nope, that's <b>${D?D.en:"another letter"}</b> <span class="ar" lang="ar">${D?D.nm:""}</span>, not me! Look closely at the dots and the shape.`);
+  }
+}
+function wordsStep(ch){
+  const I=INFO[ch], f=forms(ch), heard=new Set();
+  $("app").innerHTML=`<div class="panel">
+    <div class="hero">${creature(ch,"hero")}<div class="talk" id="talk">Tap each word to hear it. Can you spot me inside?</div></div>
+    <div class="words">${I.words.map((w,j)=>`<button class="word" data-j="${j}"><span class="em" aria-hidden="true">${w[0]}</span>
+      <span class="info"><span class="ar" lang="ar">${w[1]}</span><br><span class="where">${w[2]} · ${I.en} ${WHERE[w[3]]}</span></span>
+      <span class="form" lang="ar">${f[w[3]]}</span></button>`).join("")}</div>
+    <div class="actions"><button class="btn go" id="done" disabled>Done ✓</button></div></div>`;
+  document.querySelectorAll(".word").forEach(b=>b.onclick=()=>{ const j=+b.dataset.j; say(I.words[j][1]); b.classList.add("heard");
+    if(!heard.has(j)){ heard.add(j); addCoins(3); }
+    if(heard.size===3){ $("done").disabled=false; talk("You found me everywhere! Tap Done to go back to camp."); } });
+  $("done").onclick=()=>{ if(!save.letters[ch]){ save.letters[ch]=1; addCoins(10); } persist(); camp(curCamp); };
+}
+
+/* ---- sand monster (camp boss) ---- */
+function boss(c){
+  const ls=CAMPS[c]; let hp=6, hearts=3, qn=0, busy=false;
+  const qs=[]; // mix of three question types, two per camp letter pair
+  shuffle([...ls,...shuffle([...ls]).slice(0,2)]).forEach((ch,i)=>{ qs.push({type:["hear","shape","word"][i%3],ch}); });
+  function draw(){
+    if(hp<=0) return win(); if(hearts<=0) return lose();
+    const q=qs[qn%qs.length], I=INFO[q.ch]; let prompt="", opts=[], speak="";
+    if(q.type==="hear"){ prompt=`Listen! Which letter is this?<span class="big">🔊</span>`; speak=I.nm;
+      opts=shuffle([q.ch,...shuffle([...I.dec,...ls.filter(x=>x!==q.ch)]).filter((x,i,a)=>a.indexOf(x)===i).slice(0,3)]).map(x=>({t:x,ok:x===q.ch})); }
+    if(q.type==="shape"){ const pos=1+(Math.random()*3|0); prompt=`Which is <b>${I.en}</b>'s <b>${SLOT[pos].toLowerCase()}</b> shape?<span class="big" lang="ar">${q.ch}</span>`;
+      const right=forms(q.ch)[pos]; const others=shuffle([...I.dec,...ls.filter(x=>x!==q.ch)]).map(d=>forms(d)[pos]).filter(t=>t!==right);
+      opts=shuffle([right,...[...new Set(others)].slice(0,3)]).map(t=>({t,ok:t===right})); speak=I.nm; }
+    if(q.type==="word"){ const w=I.words[Math.random()*3|0]; prompt=`Which letter do you hear ${WHERE[w[3]]} of this word?<span class="big">${w[0]} <span lang="ar">${w[1]}</span></span>`; speak=w[1];
+      opts=shuffle([q.ch,...shuffle([...I.dec,...ls.filter(x=>x!==q.ch)]).filter((x,i,a)=>a.indexOf(x)===i).slice(0,3)]).map(x=>({t:x,ok:x===q.ch})); }
+    $("app").innerHTML=`<div class="panel">
+      <div class="bossbar"><span style="font-size:2.4rem">🦂</span><div class="hp"><i style="width:${hp/6*100}%"></i></div><div class="hearts">${"❤️".repeat(hearts)}${"🤍".repeat(3-hearts)}</div></div>
+      <div class="q" id="qq">${prompt}</div>
+      <div class="opts">${opts.map((o,i)=>`<button class="opt" lang="ar" data-ok="${o.ok}">${o.t}</button>`).join("")}</div>
+      <div class="actions"><button class="btn ghost" id="again">🔊 Hear again</button><button class="btn ghost" id="run">Run away</button></div></div>`;
+    say(speak); $("again").onclick=()=>say(speak); $("run").onclick=()=>camp(c);
+    document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy)return; busy=true;
+      if(b.dataset.ok==="true"){ b.classList.add("right"); hp--; qn++; addCoins(4); }
+      else { b.classList.add("wrong"); hearts--; document.querySelector('.opt[data-ok="true"]').classList.add("right"); qn++; }
+      setTimeout(()=>{ busy=false; draw(); },900); });
+  }
+  function win(){ const stars=hearts===3?3:hearts===2?2:1; const first=!save.camps[c]; save.camps[c]=Math.max(save.camps[c]||0,stars); addCoins(first?30:10); persist();
+    say("أَحْسَنْتَ");
+    $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You beat the sand monster!</h2>
+      <p style="font-size:2rem;color:var(--saffron);margin:0">${"★".repeat(stars)}${"☆".repeat(3-stars)}</p>
+      <p class="muted">${c<6?`${CAMP_NAMES[c+1]} is now open!`:"You've caught all 28 letters. Amazing!"}</p>
+      <div class="actions"><button class="btn go" id="next">${c<6?"Go to next camp":"All camps"}</button><button class="btn ghost" id="stay">Stay here</button></div></div>`;
+    $("next").onclick=()=> c<6 ? camp(c+1) : home(); $("stay").onclick=()=>camp(c); }
+  function lose(){ $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🦂</div><h2>The sand monster got away!</h2>
+      <p class="muted">Practice the letters again, then try once more.</p>
+      <div class="actions"><button class="btn boss" id="retry">Try again</button><button class="btn ghost" id="bk">Back to camp</button></div></div>`;
+    $("retry").onclick=()=>boss(c); $("bk").onclick=()=>camp(c); }
+  draw();
+}
+persist(); home();
+</script>
+</body>
+</html>
