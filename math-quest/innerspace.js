@@ -28,10 +28,15 @@ function pickRide(p,rock){const s=S(p);const held=s.tix.map(t=>t.id);const free=
  const low=ORDER.filter(id=>!held.includes(id)).sort((a,b)=>(s.album[a]||0)-(s.album[b]||0))[0];return {id:low||ORDER[0]};}
 /* called by Dr. Quartz at the end of a cave trip → returns the ticket (or null if your pocket is full) */
 function award(p,o){const s=S(p);if(s.tix.length>=TIX_MAX)return null;const t=Object.assign(pickRide(p,o&&o.rock),{seen:0});s.tix.push(t);s.after=(p.battles||0)+WAIT_BATTLES;s.got=(s.got||0)+1;save();return Object.assign({s:sub(t.id)},t);}
-function ticketLine(p,t,first){const sb=t.s,rk=t.rock&&window.CAVE_DATA&&CAVE_DATA.MIN[t.rock];
+function ticketLine(p,t,first){const sb=t.s,rk=t.rock&&window.CAVE_DATA&&CAVE_DATA.MIN[t.rock];const st=S(p);
+ /* the long "who is Ozzy" intro is told once — after that Dr. Quartz just hands over the ticket */
+ if(first&&(st.qIntro||st.met||st.hi))first=false;if(first&&!DEMO){st.qIntro=1;save();}
  return first?`And here's something special: a <b>🎟️ Shrink Ticket</b>! My friend <b>${NAME}</b> runs the <b>INNER SPACE</b> ride. It shrinks you down until you're as small as an ATOM! After a few more battles he'll drive over and pick you up. Your ride: <b>${sb.e} ${esc(sb.n)}</b>${rk?` — just like your ${esc(rk.n.toLowerCase())}!`:'.'}`
   :`Here's your <b>🎟️ Shrink Ticket</b>! ${NAME} will pick you up after a few battles for the <b>${sb.e} ${esc(sb.n)}</b> ride${rk?` — that's what your ${esc(rk.n.toLowerCase())} is made of`:''}.`;}
-function wants(p){if(!p||!p.setup)return false;if(DEMO)return true;if(Date.now()<(window.visitorQuiet||0))return false;const s=S(p);return s.tix.length>0&&(p.battles||0)>=(s.after||0)&&Date.now()>(s.snooze||0);}
+/* ticket pocket full → Dr. Quartz says so instead of silently giving nothing */
+function fullLine(p){const n=S(p).tix.length;return `Your 🎟️ ticket pocket is <b>full</b> (${n} of ${TIX_MAX}), so I can't give you a new Shrink Ticket this time. Ride with <b>${NAME}</b> to use one — he'll come and pick you up after a few battles!`;}
+function isFull(p){return S(p).tix.length>=TIX_MAX;}
+function wants(p,ignoreQuiet){if(!p||!p.setup)return false;if(DEMO)return true;if(!ignoreQuiet&&Date.now()<(window.visitorQuiet||0))return false;const s=S(p);return s.tix.length>0&&(p.battles||0)>=(s.after||0)&&Date.now()>(s.snooze||0);}
 
 /* ---------- sound (uses the game's sound switch) ---------- */
 function snd(f,d,type,v,delay){try{tone(f,d,type,(v||.05)*1.6,delay);}catch(e){}}
@@ -53,12 +58,16 @@ window.OZZY_SVG=OZZY_CAR;
 
 /* ---------- Ozzy drives over to you on the map ---------- */
 const MOD={draw:drawMob,meet};
-function spawn(){if(typeof W==='undefined'||!W||!W.T)return;if(W.mobs.some(m=>m.ozzy||m.quartz))return;const p=P();
+/* he only announces himself once per visit, and only from a spot he can really drive from — no "Ozzy is coming" toasts for an Ozzy who never shows up */
+let annAt=0;const ANN_MS=10*60e3;
+function spawn(){if(typeof W==='undefined'||!W||!W.T)return;if(W.mobs.some(m=>m.ozzy||m.quartz))return;if(document.querySelector('#modal.show'))return;const p=P();
  for(let tries=0;tries<200;tries++){const a=Math.random()*Math.PI*2,d=7+Math.random()*3;const x=Math.round(W.hx+Math.cos(a)*d),y=Math.round(W.hy+Math.sin(a)*d);
   const t=W.T[y]&&W.T[y][x];if(!t||t.block||t.water||t.npc||t.gate||t.chest)continue;if(W.mobs.some(m=>m.x===x&&m.y===y))continue;
+  const path=pathTo(x,y,W.hx,W.hy);if(!path||!path.length)continue;
   W.mobs.push({id:'ozzy',ozzy:true,mod:MOD,x,y,fx:x,fy:y,e:'🚗',n:NAME,b:t.b});
-  snd(660,.12,'square',.04);snd(660,.12,'square',.04,.2);
-  toast(S(p).met?`🎢 Beep beep! ${NAME} is driving over — you have a Shrink Ticket!`:'🎢 Beep beep! A funny little car is driving toward you…');return;}}
+  if(Date.now()-annAt>ANN_MS){annAt=Date.now();snd(660,.12,'square',.04);snd(660,.12,'square',.04,.2);
+   toast(S(p).met||S(p).hi?`🎢 Beep beep! ${NAME} is driving over — you have a Shrink Ticket!`:'🎢 Beep beep! A funny little car is driving toward you…');}
+  return;}}
 function pathTo(sx,sy,tx,ty){const key=(x,y)=>x+','+y;const prev={};prev[key(sx,sy)]=null;const q=[[sx,sy]];
  while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty)break;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=key(nx,ny);if(k in prev)continue;
   const t=W.T[ny]&&W.T[ny][nx];if(!(nx===tx&&ny===ty)&&(!t||t.block||t.water||t.npc||t.gate||t.chest))continue;prev[k]=[x,y];q.push([nx,ny]);}if(q.length>3000)break;}
@@ -73,18 +82,18 @@ function drawMob(ctx,sx,sy,ts,now){const im=oimg();ctx.fillStyle='rgba(177,151,2
 
 /* ---------- meeting Ozzy ---------- */
 function meet(){if(busy)return;const p=P();if(!p)return;const s=S(p);busy=true;W.path=[];W.mobs=W.mobs.filter(m=>!m.ozzy);
- const first=!s.met;let t=s.tix[0];const again=!!t&&!t.demo&&(t.seen==null||t.seen>=1); /* this ticket was offered before (older tickets have no count) */
+ const first=!s.met&&!s.hi;let t=s.tix[0];const again=!!t&&!t.demo&&(t.seen==null||t.seen>=1); /* this ticket was offered before (older tickets have no count) */
  if(DEMO){const want=(location.search.match(/innerdemo=(\w+)/)||[])[1];t={id:D.SUB.some(x=>x.id===want)?want:(ORDER.find(id=>s.album[id]==null)||'water'),demo:true};}
  if(!t){busy=false;return;}const sb=sub(t.id);
  const lines=(first?[`Beep beep! 🚗 Hi, I'm <b>${NAME}</b>! I drive the <b>Atom-Mobile</b> on the <b>INNER SPACE</b> ride.`,
    `Dr. Quartz told me you earned a <b>🎟️ Shrink Ticket</b>! My ride shrinks you smaller than an ant… smaller than a germ… all the way down to the size of an <b>ATOM</b>! ⚛️`,
    `Today we're riding into <b>${sb.e} ${esc(sb.n)}</b>. Hop in, ${esc(p.name)}!`]
-  :resumeAt(t)?[`${['Beep beep!','There you are, '+esc(p.name)+'!','Ticket, please!'][s.rides%3]} 🎢 Last time we rode into <b>${sb.e} ${esc(sb.n)}</b> and got as far as <b>${STAGE[SCENES[t.at]]}</b>, but we didn't finish.`,
+  :resumeAt(t)?[`${hiAgain(p,s)} 🎢 Last time we rode into <b>${sb.e} ${esc(sb.n)}</b> and got as far as <b>${STAGE[SCENES[t.at]]}</b>, but we didn't finish.`,
    `Do you want to <b>pick up where we left off</b>${alt(p,t)?`, or try a <b>brand-new ride</b> to <b>${sub(alt(p,t)).e} ${esc(sub(alt(p,t)).n)}</b>`:''}? Your choice!`]
-  :again&&alt(p,t)?[`${['Beep beep!','I\'m back, '+esc(p.name)+'!','Ticket, please!'][s.rides%3]} 🎢 Your ticket is for <b>${sb.e} ${esc(sb.n)}</b>, but we haven't ridden it yet.`,
+  :again&&alt(p,t)?[`${hiAgain(p,s)} 🎢 Your ticket is for <b>${sb.e} ${esc(sb.n)}</b>, but we haven't ridden it yet.`,
    `Want to ride into <b>${sb.e} ${esc(sb.n)}</b> today, or try something new: <b>${sub(alt(p,t)).e} ${esc(sub(alt(p,t)).n)}</b>? Your choice!`]
-  :[`${['Ticket, please!','Beep beep!','Back for more, '+esc(p.name)+'?'][s.rides%3]} 🎟️ Today we're shrinking into <b>${sb.e} ${esc(sb.n)}</b>!${s.tix.length>1?` (You have ${s.tix.length} tickets.)`:''} Hop in!`]);
- const two=!DEMO&&!first&&(resumeAt(t)||again)&&alt(p,t);if(!DEMO){t.seen=(t.seen||0)+1;save();}
+  :[`${hiAgain(p,s)} 🎟️ Today we're shrinking into <b>${sb.e} ${esc(sb.n)}</b>!${s.tix.length>1?` (You have ${s.tix.length} tickets.)`:''} Hop in!`]);
+ const two=!DEMO&&!first&&(resumeAt(t)||again)&&alt(p,t);if(!DEMO){t.seen=(t.seen||0)+1;if(first)s.hi=1;save();}
  if(DEMO)lines.unshift('This is a preview ride — nothing will be changed.');
  let i=0;
  const show=()=>{const last=i>=lines.length-1;
@@ -95,6 +104,8 @@ function meet(){if(busy)return;const p=P();if(!p)return;const s=S(p);busy=true;W
   const go1=document.getElementById('ozGo');if(go1)go1.onclick=()=>{closeModal();busy=false;startRide(t,!DEMO&&resumeAt(t));};window.visitorQuiet=Date.now()+90e3;
   const no=document.getElementById('ozNo');if(no)no.onclick=()=>{closeModal();busy=false;if(DEMO===true)DEMO=null;else later(p);toast(`🎢 ${NAME}: "No problem! I'll come back ${S(p).decl>=2?'tomorrow':'after a few more battles'}."`);};};
  try{SFX.level();}catch(e){}show();}
+/* the hello always comes first, then the ticket talk */
+function hiAgain(p,s){return [`Beep beep! Hi again, ${esc(p.name)}!`,`There you are, ${esc(p.name)}!`,`Hello again, ${esc(p.name)}!`][(s.rides||0)%3];}
 /* a ride that was left partway keeps its place (t.at), so the kid can finish it or swap to a new molecule */
 const STAGE={inside:'the zoom-in',mol:'the molecule',atom:'inside the atom',alarm:'the shrink-ray alarm',atoms:'the atom workshop',build:'the Molecule Builder',eye:'the giant eye',quiz:'the quiz'};
 const resumeAt=t=>t&&!t.demo&&t.at>=2&&t.at<SCENES.length?t.at:0;
@@ -355,7 +366,7 @@ function atomSVG(p,n,el){const N=p+n;const u=Math.max(3.2,11-Math.sqrt(N)*.9);le
 function atoms(){const s=R.s,t=tier();const els=Object.keys(s.atoms).sort((a,b)=>EL[b].p-EL[a].p);R.made=R.made||{};
  const cur=els.find(e=>!R.made[e]);if(!cur){next();return;}const E=EL[cur];if(!R.cnt||R.cnt.e!==cur)R.cnt={e:cur,p:0,n:0,el:0};const c=R.cnt;
  const need={p:E.p,n:E.nu,el:E.p},ok=c.p===need.p&&c.n===need.n&&c.el===need.el;const an=/^[AEIOU]/.test(E.n)?'an':'a';
- const row=(k,lab,ico,col,lock)=>`<div class="is-crow ${lock?'lock':''}"><span class="is-cball" style="background:${col}">${ico}</span><b>${lab}</b><span class="is-cnum ${c[k]===need[k]?'good':c[k]>need[k]?'over':''}">${c[k]} / ${need[k]}</span>${lock?'<small>Ozzy did these ✓</small>':`<span class="is-cbs"><button class="is-cb" data-k="${k}" data-d="-1" aria-label="remove one">−</button><button class="is-cb" data-k="${k}" data-d="1" aria-label="add one">+</button>${need[k]>=10?`<button class="is-cb wide" data-k="${k}" data-d="10">+10</button>`:''}</span>`}</div>`;
+ const row=(k,lab,ico,col,lock)=>`<div class="is-crow ${lock?'lock':''}"><span class="is-cball" style="background:${col}">${ico}</span><b>${lab}</b><span class="is-cnum ${c[k]===need[k]?'good':c[k]>need[k]?'over':''}">${c[k]} / ${need[k]}</span>${lock?'<small>Ozzy did these ✓</small>':`<span class="is-cbs"><button class="is-cb" data-k="${k}" data-d="-1" aria-label="remove one">−</button><button class="is-cb" data-k="${k}" data-d="1" aria-label="add one">+</button>${need[k]>=10?`<button class="is-cb wide" data-k="${k}" data-d="10">+10</button>`:''}${need[k]>=10&&c[k]>=10&&c[k]<need[k]?`<button class="is-cb wide fill" data-k="${k}" data-fill="1" aria-label="fill the rest">⚡ Fill to ${need[k]}</button>`:''}</span>`}</div>`;
  const tips=[`${an[0].toUpperCase()+an.slice(1)} <b>${E.n.toLowerCase()}</b> atom needs <b>${E.p} proton${E.p>1?'s':''}</b>, <b>${E.nu} neutron${E.nu===1?'':'s'}</b> and <b>${E.p} electron${E.p>1?'s':''}</b>. The number of protons is what makes it ${E.n.toLowerCase()}! Tap <b>+</b> to add them.`,
   `Build ${an} <b>${E.n.toLowerCase()}</b> atom: <b>${E.p} proton${E.p>1?'s':''}</b> and <b>${E.nu} neutron${E.nu===1?'':'s'}</b> in the middle, and the same number of <b>electrons</b> as protons zooming around the outside.`,
   `Build ${an} <b>${E.n.toLowerCase()}</b> atom: ${E.p} protons, ${E.nu} neutrons and ${E.p} electrons. Protons (+) and electrons (−) balance, so the whole atom has no charge.`][t];
@@ -365,7 +376,8 @@ function atoms(){const s=R.s,t=tier();const els=Object.keys(s.atoms).sort((a,b)=
   <div class="is-brow is-arow"><div class="is-abox">${atomSVG(c.p,c.n,c.el)}</div><div class="is-cbox">${row('p','Protons','+','#fa5252',false)}${row('n','Neutrons','n','#339af0',false)}${row('el','Electrons','−','#fcc419',false)}
    ${ok?`<div class="is-okmsg">✅ That's ${an} ${E.n.toLowerCase()} atom!</div>`:over?`<div class="is-okmsg bad">Too many! Tap − to take some away.</div>`:''}</div></div></div>
   ${nar(ok?`Perfect! ${E.fact?E.fact[t]:''}`:tips,ok?(els.some(e=>!R.made[e]&&e!==cur)?'Next atom ➜':'Now build the molecule ➜'):null,{cls:ok?'green':''})}`);
- root.querySelectorAll('.is-cb').forEach(b=>b.onclick=()=>{const k=b.dataset.k,d=+b.dataset.d;c[k]=Math.max(0,Math.min(need[k]+10,c[k]+d));snd(d>0?Math.min(1200,480+c[k]*8):300,.08,'triangle',.05);atoms();});
+ /* big atoms (gold has 79 protons + 118 neutrons!) → after the first +10, Ozzy's turbo button fills the rest so it isn't ~50 taps */
+ root.querySelectorAll('.is-cb').forEach(b=>b.onclick=()=>{const k=b.dataset.k,d=b.dataset.fill?need[k]-c[k]:+b.dataset.d;c[k]=Math.max(0,Math.min(need[k]+10,c[k]+d));snd(d>0?Math.min(1200,480+c[k]*8):300,.08,'triangle',.05);atoms();});
  if(ok){snd(880,.2,'triangle',.07);onNext(()=>{R.made[cur]=true;R.cnt=null;atoms();});}}
 
 /* 6c. after the molecule is built: the replicator copies it billions of times and the shrinking stops */
@@ -449,7 +461,7 @@ function eye(){const s=R.s,t=tier();const EYE_SVG=`<div class="is-eyewrap" id="i
 
 /* 8. quiz → coins + album card */
 const riseShip=()=>`<div class="is-riseship"><svg viewBox="-80 -84 160 132"><path d="M-58 40 l-10 18 M0 40 v22 M58 40 l10 18" stroke="#ffd43b" stroke-width="5" stroke-linecap="round" opacity=".5"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-48" cy="2" r="7" fill="#ffd43b"/><circle cx="48" cy="2" r="7" fill="#ffd43b"/></svg></div>`;
-function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];let qi=0,score=0,tries=0,answered=false;R.firstTry=0;R.qT0=performance.now();
+function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];R.qMax=Q.reduce((a,_,i)=>a+10*(i+1),0);let qi=0,score=0,tries=0,answered=false;R.firstTry=0;R.qT0=performance.now();
  const draw=(why,okIdx,bad)=>{const q=Q[qi];R.sz=Math.max(0,Math.round(8*(1-(qi+(answered?1:0))/Q.length)));
   const el=(performance.now()-R.qT0)/1000;const rings=Array.from({length:6},(_,i)=>`<i class="is-rring" style="animation-delay:-${((el+i)%6).toFixed(2)}s"></i>`).join('');
   frame(`<div class="is-quiz is-rise">${rings}${riseShip()}<div class="is-risetxt">⬆️ Growing back to normal size…</div><div class="is-q"><div class="h">🧪 RIDE QUIZ · Question ${qi+1} of ${Q.length} · ⭐ ${score} points</div><div class="qq">${esc(q[0])}</div>
@@ -463,6 +475,9 @@ function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];let qi=0,score=0,tries=0,
  frame(`<div class="is-quiz is-rise">${rings}${riseShip()}<div class="is-risetxt">⬆️ Growing back to normal size…</div></div>${nar(`Here we go, ${NM()}, we're <b>growing back</b>! 🚀 It's a long way up to normal size, so now is the perfect time to <b>test your knowledge</b>. Ready for the ride quiz?`,'🧪 Start the quiz ➜')}`);
  onNext(()=>draw());}
 
+/* Ozzy's words match how the quiz really went */
+function quizLine(score){const mx=R.qMax||60,f=score/mx;
+ return f>=1?'and <b>aced the quiz</b>. What a scientist! 🎉':f>=.6?'and did <b>great on the quiz</b>. What a scientist! 🎉':score>0?'and finished the quiz. Some questions were tricky, but every one teaches you something! 🎉':'and finished the quiz. Those questions were tough! Now you know the answers for next time. 🎉';}
 /* back at the start line, normal size again */
 function home(score){R.score=score;const k=document.createElement('div');k.className='is-black on';k.style.transition='opacity 1.2s';k.style.opacity='0';root.appendChild(k);requestAnimationFrame(()=>{k.style.opacity='1';});snd(440,.3,'triangle',.05);snd(660,.4,'triangle',.05,.3);
  setTimeout(()=>{if(!root)return;R.sz=0;R.fresh=true;
@@ -472,7 +487,7 @@ function home(score){R.score=score;const k=document.createElement('div');k.class
    <g transform="translate(480 150)"><rect x="-190" y="-44" width="380" height="84" rx="16" fill="#fff4e6" stroke="#8d5a2b" stroke-width="6"/><text x="0" y="12" font-size="40" font-weight="800" fill="#5f3dc4" text-anchor="middle">🎉 WELCOME BACK!</text></g>
    <g transform="translate(330 452) scale(.9)">${OZ_BODY}<path d="M-24 -18 L-22 30 L22 30 L24 -18Z" fill="#ae3ec9"/><path d="M-10 30 V52 M10 30 V52" stroke="#343a40" stroke-width="8" stroke-linecap="round"/><path d="M22 -12 Q40 -30 46 -46" stroke="#ae3ec9" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="46" cy="-48" r="6" fill="#f1c8a0"/></g>
    <g transform="translate(520 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-48" cy="2" r="7" fill="#ffd43b"/><circle cx="48" cy="2" r="7" fill="#ffd43b"/></g></svg>
-   ${nar(`We made it! You're back to <b>normal size</b>, ${NM()}! You fixed the Molecule Builder, stopped the shrink ray, and aced the quiz. What a scientist! 🎉`,'🃏 See my card ➜',{cls:'gold'})}`);
+   ${nar(`We made it! You're back to <b>normal size</b>, ${NM()}! You fixed the Molecule Builder, stopped the shrink ray, ${quizLine(score)}`,'🃏 See my card ➜',{cls:'gold'})}`);
   onNext(()=>card(score));},1300);}
 /* the ride counts as soon as the quiz is done — even if the app is closed before the card screen — so the ticket is used up and Ozzy doesn't repeat the same ride */
 function commit(score){if(R.committed)return R.committed;const s=R.s,p=PL||P();const st=S(p);const first=st.album[s.id]==null;const best=Math.max(st.album[s.id]||0,score);st.album[s.id]=best;
@@ -538,7 +553,7 @@ setInterval(()=>{try{
  if(busy&&!root&&!document.querySelector('#modal.show .oz-bub'))busy=false; /* another popup replaced Ozzy's → don't get stuck */
  if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
  {const bye=W.mobs.find(m=>m.byeOzzy);if(bye){if(bye.st==='talk'&&!document.querySelector('#modal.show'))driveOff(bye);return;}}
- if(!wants(p)){if(W.mobs.some(m=>m.ozzy))W.mobs=W.mobs.filter(m=>!m.ozzy);return;}
+ if(!wants(p)){if(W.mobs.some(m=>m.ozzy)&&!wants(p,true))W.mobs=W.mobs.filter(m=>!m.ozzy);return;} /* quiet time → he waits where he is */
  if(W.mobs.some(m=>m.quartz))return; // Dr. Quartz goes first
  if(!W.mobs.some(m=>m.ozzy))spawn();else walk(performance.now());}catch(e){}},330);
 if(/innerdemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&curScreen==='world'){clearInterval(iv);DEMO=true;toast(`🎢 Inner Space preview: ${NAME} is on his way…`);}}catch(e){}},500);}
@@ -613,7 +628,7 @@ const st=document.createElement('style');st.textContent=`
 #isRoot .is-crow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}#isRoot .is-crow b{min-width:84px;font-size:17px}#isRoot .is-crow small{color:#2b8a3e;font-weight:700}#isRoot .is-crow.lock{opacity:.75}
 #isRoot .is-cball{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
 #isRoot .is-cnum{font-weight:800;font-size:19px;min-width:62px;text-align:center;color:#495057}#isRoot .is-cnum.good{color:#2b8a3e}#isRoot .is-cnum.over{color:#c92a2a}
-#isRoot .is-cbs{display:inline-flex;gap:6px}#isRoot .is-cb{width:46px;height:46px;border-radius:14px;border:0;background:#7048e8;color:#fff;font-size:24px;font-weight:800;box-shadow:0 3px 0 #3b1f9e}#isRoot .is-cb.wide{width:58px;font-size:17px}
+#isRoot .is-cbs{display:inline-flex;gap:6px}#isRoot .is-cb{width:46px;height:46px;border-radius:14px;border:0;background:#7048e8;color:#fff;font-size:24px;font-weight:800;box-shadow:0 3px 0 #3b1f9e}#isRoot .is-cb.wide{width:58px;font-size:17px}#isRoot .is-cb.fill{width:auto;padding:0 10px;font-size:14px;background:#f08c00;box-shadow:0 3px 0 #a35200;white-space:nowrap}#isRoot .is-cbs{flex-wrap:wrap;justify-content:flex-end}
 #isRoot .is-okmsg{font-weight:800;color:#2b8a3e;font-size:18px;text-align:center}#isRoot .is-okmsg.bad{color:#c92a2a}
 #isRoot .is-repl{position:absolute;inset:0;background:rgba(10,6,24,.93);z-index:4}#isRoot .is-repl canvas{position:absolute;inset:0;width:100%;height:100%}
 #isRoot .is-rtxt{position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);text-align:center;color:#fff;background:rgba(20,10,46,.8);border:3px solid #ffd43b;border-radius:18px;padding:10px 22px;font-weight:800}#isRoot .is-rtxt b{display:block;font-size:40px;color:#ffd43b;font-variant-numeric:tabular-nums}#isRoot .is-rtxt small{color:#d0bfff}
@@ -635,5 +650,5 @@ const st=document.createElement('style');st.textContent=`
 @media(max-width:600px){#isRoot .is-brow{display:grid;grid-template-columns:1fr 1fr;gap:8px}#isRoot .is-brow .is-tray,#isRoot .is-brow .is-recipe{min-width:0;padding:8px}#isRoot .is-brow .is-area{grid-column:1/3;order:3;justify-self:center}#isRoot .is-recipe .f{font-size:26px}#isRoot .is-recipe li{font-size:14px}#isRoot .is-tray .atoms{grid-template-columns:repeat(2,54px);gap:6px}#isRoot .is-atom{width:54px;height:54px;font-size:19px}#isRoot .is-nar{flex-wrap:wrap}#isRoot .is-nar .who,#isRoot .is-nar .who svg{width:40px;height:40px}#isRoot .is-nar .is-btn{width:100%}#isRoot .is-meter{min-width:0;font-size:14px;top:56px}#isRoot .is-meter div{font-size:14px}.is-agrid{grid-template-columns:1fr 1fr}}`;
 document.head.appendChild(st);
 
-window.Inner={open,award,ticketLine,bagHTML,album:albumModal,meet,draw:drawMob,S,pickRide,ORDER,TIX_MAX,WAIT_BATTLES,_demo:()=>{DEMO=true;},_state:()=>({R,DEMO,busy,root:!!root}),_next:next,_spawn:spawn,_fit:fitMol};
+window.Inner={open,award,ticketLine,fullLine,isFull,bagHTML,album:albumModal,meet,draw:drawMob,S,pickRide,ORDER,TIX_MAX,WAIT_BATTLES,_demo:()=>{DEMO=true;},_state:()=>({R,DEMO,busy,root:!!root}),_next:next,_spawn:spawn,_fit:fitMol};
 })();

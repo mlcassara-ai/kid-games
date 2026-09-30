@@ -48,10 +48,13 @@ function drop(kind){try{const p=P();if(!p)return false;const s=Q(p);if(!s.met)re
 const DROP_HTML='<div>🪨 +1 Mystery Rock!</div>';
 
 /* ---------- Dr. Quartz walks over to you ---------- */
-function spawn(){if(typeof W==='undefined'||!W||!W.T)return;if(W.mobs.some(m=>m.quartz))return;const p=P();
+let annAt=0;const ANN_MS=10*60e3; /* announce once per visit, never for a Dr. Quartz who can't reach you */
+function spawn(){if(typeof W==='undefined'||!W||!W.T)return;if(W.mobs.some(m=>m.quartz))return;if(document.querySelector('#modal.show'))return;const p=P();
  for(let tries=0;tries<200;tries++){const a=Math.random()*Math.PI*2,d=6+Math.random()*3;const x=Math.round(W.hx+Math.cos(a)*d),y=Math.round(W.hy+Math.sin(a)*d);
   const t=W.T[y]&&W.T[y][x];if(!t||t.block||t.water||t.npc||t.gate||t.chest)continue;if(W.mobs.some(m=>m.x===x&&m.y===y))continue;
+  const pth=pathTo(x,y,W.hx,W.hy);if(!pth||!pth.length)continue;
   W.mobs.push({id:'quartz',quartz:true,x,y,fx:x,fy:y,e:'👨‍🔬',n:NAME,b:t.b});
+  if(Date.now()-annAt<ANN_MS)return;annAt=Date.now();
   try{SFX.level();}catch(e){}toast(Q(p).met?'🔬 Dr. Quartz is coming to find you — you have a mystery rock!':'🔬 Someone is hurrying over to you… it\'s the science teacher!');return;}}
 function pathTo(sx,sy,tx,ty){const key=(x,y)=>x+','+y;const prev={};prev[key(sx,sy)]=null;const q=[[sx,sy]];
  while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty)break;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=key(nx,ny);if(k in prev)continue;
@@ -78,9 +81,13 @@ function meet(){if(busy)return;const p=P();if(!p)return;const s=Q(p);busy=true;W
    <div class="row">${last?`<button class="btn ghost dark" id="qzNo">${first?'Maybe later':'Not now'}</button><button class="btn green big" id="qzGo">⛏️ Let's go!</button>`:`<button class="btn green big" id="qzNext">Next ➜</button>`}</div></div>`);
   const nx=document.getElementById('qzNext');if(nx)nx.onclick=()=>{i++;show();};
   const go1=document.getElementById('qzGo');if(go1)go1.onclick=()=>{closeModal();busy=false;startTrip(first);};window.visitorQuiet=Date.now()+90e3;
-  const no=document.getElementById('qzNo');if(no)no.onclick=()=>{closeModal();busy=false;s.snooze=Date.now()+SNOOZE_MS;if(first)s.firstNo=(s.firstNo||0)+1;save();toast(first?'🔬 Dr. Quartz: "No problem! I\'ll come find you again a little later."':'🔬 Dr. Quartz: "Okay! I\'ll come back for you in a bit."');};};
+  const no=document.getElementById('qzNo');if(no)no.onclick=()=>{closeModal();busy=false;const tmr=snooze(s);if(first)s.firstNo=(s.firstNo||0)+1;save();
+   toast(tmr?'🔬 Dr. Quartz: "No problem! I\'ll come find you tomorrow."'+(s.key?' (Your 🔑 lab elevator works any time.)':''):first?'🔬 Dr. Quartz: "No problem! I\'ll come find you again a little later."':'🔬 Dr. Quartz: "Okay! I\'ll come back for you in a bit."');};};
  try{SFX.level();}catch(e){}show();}
 
+/* "Not now": the first time in a day he comes back in 8 minutes; the second time he waits until tomorrow (no endless re-asking) */
+function snooze(s){const d=dayKey();if(s.snzDay!==d){s.snzDay=d;s.snzN=0;}s.snzN=(s.snzN||0)+1;
+ if(s.snzN>=2){const t=new Date();t.setHours(24,0,0,0);s.snooze=t.getTime();return true;}s.snooze=Date.now()+SNOOZE_MS;return false;}
 /* which mineral is the rock? something from a layer the kid can reach */
 function rockMineral(p){const CD=window.CAVE_DATA;if(!CD)return 'quartz';const m=medals(p);
  const open=['soil'];if(m>=1)open.push('sed');if(m>=3)open.push('cave');if(m>=6)open.push('river');if(m>=10)open.push('crystal');if(m>=15)open.push('granite');if(m>=21)open.push('magma');if(m>=28)open.push('mantle');
@@ -107,7 +114,7 @@ function host(p){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'
 function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&HOST.rock;HOST=null;
  if(DEMO&&DEMO!==true){const d=JSON.parse(DEMO);DEMO=null;p.sci=d.sci||undefined;if(!d.sci)delete p.sci;p.cave=d.cave||undefined;if(!d.cave)delete p.cave;p.coins=d.coins;p.daily=d.daily;if(d.wkHist)p.wkHist=d.wkHist;save();go('world');toast('🔬 That was a preview — nothing was changed.');return;}
  /* every trip ends with a 🎟️ Shrink Ticket for the Inner Space ride (Ozzy picks you up a few battles later) */
- let tix=null;try{if(window.Inner)tix=Inner.award(p,{rock});}catch(e){}
+ let tix=null,full=false;try{if(window.Inner){tix=Inner.award(p,{rock});full=!tix&&!!(Inner.isFull&&Inner.isFull(p));}}catch(e){}
  const inMet=!!(p.inner&&p.inner.met);
  /* 🔑 Lab Key after the 5th trip (given once; kids who already have it are never offered it again) */
  const keyNow=!first&&window.Lab&&Lab.keyDue(p);
@@ -120,11 +127,11 @@ function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&
  if(first||s.trips===1)setTimeout(()=>{if(curScreen!=='world')return;
   const pages=[`Thank you for helping, ${esc(p.name)}! Want to do more science? <b>Bring me a 🪨 mystery rock!</b> You find them in 🎁 treasure chests and from monsters. When you have one, I'll come and find you.`,
    `Every <b>🏅 Boss Medal</b> you win makes my drill stronger, so we can open the deeper gates!`];
-  if(tix)pages.push(Inner.ticketLine(p,tix,!inMet));
+  if(tix)pages.push(Inner.ticketLine(p,tix,!inMet));else if(full)pages.push(Inner.fullLine(p));
   let i=0;const show=()=>{const last=i>=pages.length-1;modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${pages[i]}</div></div></div>
    <div class="row"><button class="btn green big" id="qzPg">${last?'Deal! 🤝':'Next ➜'}</button></div></div>`);document.getElementById('qzPg').onclick=()=>{if(last){closeModal();window.visitorQuiet=Date.now()+90e3;}else{i++;show();}};};show();},700);
- else if(tix)setTimeout(()=>{if(curScreen!=='world')return;
-  card(`Great work today, ${esc(p.name)}! ${Inner.ticketLine(p,tix,!inMet)}${s.rocks?`<br><br>You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:''}`,'Thanks! 🎟️');},700);
+ else if(tix||full)setTimeout(()=>{if(curScreen!=='world')return;
+  card(`Great work today, ${esc(p.name)}! ${tix?Inner.ticketLine(p,tix,!inMet):Inner.fullLine(p)}${s.rocks?`<br><br>You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:''}`,tix?'Thanks! 🎟️':'Okay! 👍');},700);
  else toast(`🔬 Dr. Quartz: "Great work today!" ${s.rocks?`You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:'Bring me another 🪨 mystery rock to come back!'}`);}}
 
 /* ---------- backpack panel ---------- */

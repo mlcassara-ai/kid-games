@@ -697,6 +697,35 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
  .tb-name .lv{display:none}.xprow .lv2{display:inline-block}
  .tb-info{min-width:0;flex:1}.tb-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
+.prchip{position:absolute;top:58px;left:50%;transform:translateX(-50%);z-index:3;border:0;border-radius:999px;padding:8px 16px;font:inherit;font-size:16px;background:#ffd43b;color:#3d2a00;box-shadow:0 4px 0 #b08900,0 6px 14px rgba(0,0,0,.25);cursor:pointer;white-space:nowrap;max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis;animation:prchip 2.4s ease-in-out infinite}
+@keyframes prchip{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.05)}}
+@media(max-width:420px){.prchip{font-size:14px;padding:7px 12px;top:54px}}
+/* ===== QA Sep 30: phone UX, contrast, reduced motion ===== */
+.btn.green,.cafe-mc .btn.green{background:#1a8049;color:#fff;box-shadow:0 4px 0 #0f5c33} /* white text 5:1 (was 2.1:1) */
+.pad .go,.krow .go{background:#1a8049;color:#fff;box-shadow:0 3px 0 #0f5c33}
+.krow button{min-height:42px}
+.qbsec>summary{list-style:none;cursor:pointer;display:block}.qbsec>summary::-webkit-details-marker{display:none}
+.qbsec>summary .title{display:flex;align-items:center;justify-content:center;gap:8px}.qbsec>summary .title::after{content:'▾';font-size:.8em;opacity:.7;transition:transform .2s}
+.qbsec:not([open])>summary .title::after{transform:rotate(-90deg)}
+.qboard{overflow-x:hidden}
+@media(max-width:600px){
+ .qboard .zones{grid-template-columns:1fr 1fr;gap:10px}
+ .qboard .zone-card{min-height:118px;padding:10px 10px 12px;font-size:13px;border-radius:16px;box-shadow:0 4px 0 rgba(0,0,0,.3)}
+ .qboard .zone-card h3{font-size:17px;max-width:100%;line-height:1.15}
+ .qboard .zone-card .op{width:32px;height:32px;font-size:19px;margin-bottom:4px}
+ .qboard .zone-card .zart{font-size:48px;right:4px;bottom:-4px;opacity:.55}
+ .qboard .zone-card .zlv{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+ .qboard .zone-card .g5tag,.qboard .zone-card .crowned{font-size:11px}
+ .qboard .zhead{gap:6px}.qboard .zhead .title{font-size:21px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+ .qboard .zhead .btn.small{padding-left:10px;padding-right:10px}
+}
+@media(max-width:520px){ /* sound button back in the phone top bar (it was hidden); the icons shrink a little to fit */
+ .topbar .iconbtn.tbi[aria-label="Sound on or off"]{display:inline-block}
+ .topbar .iconbtn.tbi{width:36px;height:36px}.topbar{gap:3px!important}
+}
+@media(max-width:374px){.topbar .iconbtn.tbi{width:33px;height:33px}.topbar .coins{padding:3px 4px;font-size:12px}.iconbtn.tbi .tbl{font-size:9px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+ .wtimer i{animation-duration:20s!important} /* the spelling timer bar is information, not decoration */}
 #updSplash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;text-align:center;background:linear-gradient(160deg,#3b2a86,#140d2e);color:#fff}
 .upd-dots{margin-top:14px}.upd-dots span{display:inline-block;width:12px;height:12px;margin:0 5px;border-radius:50%;background:#ffd43b;animation:updb 1s infinite}.upd-dots span:nth-child(2){animation-delay:.15s}.upd-dots span:nth-child(3){animation-delay:.3s}
 @keyframes updb{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-8px);opacity:1}}
@@ -720,7 +749,9 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="tales.js?t='+Date.now()+'"><\/script>');document.write('<script src="adv.js?t='+Date.now()+'"><\/script>');document.write('<script src="cleanup.js?t='+Date.now()+'"><\/script>');document.write('<script src="lunch.js?t='+Date.now()+'"><\/script>');document.write('<script src="petcare.js?t='+Date.now()+'"><\/script>');document.write('<script src="mastery.js?t='+Date.now()+'"><\/script>');document.write('<script src="insights.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="lab.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
+<script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
+   flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
+const APP_VER='2026.09.30o';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1421,9 +1452,13 @@ const ZONES=[
  {id:'haunt',name:'Haunted Hollow',op:'mix',sym:'🎃',cls:'z-haunt',art:'🎃',scene:'haunt',event:true,decor:['🎃','👻','🕸️','🍬'],
   mons:[['Pumpkin Pal','🎃'],['Giggle Ghost','👻'],['Candy Corn Creep','🍬'],['Shuffle Zombie','🧟‍♂️'],['Howly Werewolf','🐺︎'],['The Pumpkin King','👑']]}];
 Object.defineProperty(ZONES.find(z=>z.id==='haunt'),'lockMsg',{get(){return eventSoon()?'🎃 Opens October 18!':'🎃 Closed until next Halloween!';}});
-const EVENT_START='2026-10-18',EVENT_END='2026-11-01';
-const eventOpen=()=>{const d=dayKey();return d>=EVENT_START&&d<=EVENT_END;};
-const eventSoon=()=>{const d=dayKey();return d<EVENT_START;};
+/* Haunted Hollow runs Oct 18 – Nov 1 EVERY year. After Nov 1 the "next" event is next year's. */
+const EVENT_MD=['10-18','11-01'];
+function evYear(){const d=dayKey(),y=+d.slice(0,4);return d>y+'-'+EVENT_MD[1]?y+1:y;}
+function evStart(){return evYear()+'-'+EVENT_MD[0];}function evEnd(){return evYear()+'-'+EVENT_MD[1];}
+const eventOpen=()=>{const d=dayKey();return d>=evStart()&&d<=evEnd();};
+const eventDaysTo=()=>Math.ceil((new Date(evStart()+'T00:00:00')-new Date())/864e5);
+const eventSoon=()=>{const d=dayKey();return d<evStart()&&eventDaysTo()<=45;}; /* "opens soon" only in the weeks before; otherwise it's "closed until next Halloween" */
 const NODE_POS=[[15,80],[34,54],[18,26],[48,32],[66,64],[82,28]];
 
 /* ================= save / state ================= */
@@ -1436,7 +1471,9 @@ const IDB={db:null,
  getK(k){return new Promise(res=>{if(!IDB.db)return res(null);try{const t=IDB.db.transaction('kv').objectStore('kv').get(k);t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);}catch(e){res(null);}});},
  putK(k,v){try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').put(v,k);}catch(e){}}};
 function saveLocal(){const j=JSON.stringify(state);try{localStorage.setItem(SAVE_KEY,j);}catch(e){try{localStorage.removeItem(SAVE_KEY);}catch(e2){}} /* full storage: drop the stale copy so the next launch reads the fresh one from IndexedDB instead of rolling back */IDB.put(j);}
-function save(){stampChanges(false);saveLocal();scheduleSync();}
+function save(){stampChanges(false);saveLocal();scheduleSync();hudSync();}
+/* the top-bar coin counter follows every save, so purchases made inside popups (fountain, village, gifts, add-ons) never leave it stale */
+function hudSync(){try{const p=state.cur&&P();const el=document.querySelector('.topbar .coins:not(.tbchip)');if(!p||!el)return;const t='🪙 '+p.coins;if(el.textContent!==t)el.textContent=t;}catch(e){}}
 function newPlayer(name,grade){
  const g=GRADE_START[grade]||GRADE_START[3];
  return {id:'p'+Math.random().toString(36).slice(2,10),name,grade,setup:false,
@@ -1449,7 +1486,20 @@ function newPlayer(name,grade){
   recent:Object.fromEntries(OPS.map(o=>[o,[]])),log:[],lock:null,battle:null,maxL:Object.fromEntries(OPS.map(o=>[o,Math.floor(g[o])])),champ:{},pb:{},days:[],quest:null,pantry:{},toys:[],petGear:[],spinDay:null};
 }
 let state=load();
-function migrate(){state.deleted=state.deleted||{};state.players=state.players.filter(p=>p&&typeof p==='object'&&p.id);state.players.forEach(p=>{ /* an old or half-synced save can be missing whole sections: fill them in so a hero never crashes the game to a blank screen */p.look=Object.assign({skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:'purple'},p.look||{});p.skill=p.skill||Object.fromEntries(OPS.map(o=>[o,1]));p.stats=p.stats||{};p.maxL=p.maxL||{};p.recent=p.recent||{};p.missed=p.missed||{};p.daily=p.daily||{};p.progress=p.progress||{};p.owned=p.owned||{};['hats','robes','spells'].forEach(k=>{if(!Array.isArray(p.owned[k]))p.owned[k]=k==='spells'?['spark']:k==='hats'?HATS.filter(h=>!h.price).map(h=>h.id):ROBES.filter(r=>!r.price).map(r=>r.id);});if(!Array.isArray(p.pets))p.pets=[];if(!p.level)p.level=1;if(p.coins==null||isNaN(p.coins))p.coins=0;try{if(!p.xplace&&p.skill&&typeof XOPS!=='undefined'){if(XOPS.every(op=>lvl(p,op)<=1)&&gradeExp(p)>=6)xPlace(p);else p.xplace=1;}}catch(e){} /* Sep 30: older players whose 10 other worlds were never placed start near their grade */if(/^ethan$/i.test((p.name||'').trim())&&p.grade===3&&!p.gradeFix11){p.grade=11;p.gradeFix11=1;if(p.spellSig!==undefined)try{p.spellSig=spellSchool(p).map(x=>x.w).join('|');}catch(e){}}if(p.setup&&!(p.wkHist&&p.wkHist[weekKey()])&&typeof wkOf==='function'){const w=wkOf(p);weekDays(weekKey()).forEach(k=>{const d=p.daily&&p.daily[k];if(d&&d.r){const n=Math.min(DAY_CAP,d.r);w.dc[k]=n;w.pts+=n*8;}});(p.log||[]).forEach(l=>{if(l.to>l.from&&weekDays(weekKey()).includes(l.d))w.lv++;});}p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel|mika/i.test(p.name))p.look.kind='boy';}if(!p.mikaBoy&&/mika/i.test(p.name)){p.look.kind='boy';p.mikaBoy=true;}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(!p.dial&&p.skill){p.dial=1;Object.keys(p.skill).forEach(o=>{p.skill[o]=Math.max(1,Math.floor(p.skill[o]));});} /* Oct 2026 difficulty dial */if(!p.hsLv&&(p.grade||0)>=9&&p.setup&&p.skill){p.hsLv=1;['add','sub','mul','div'].forEach(o=>{if(Math.floor(p.skill[o]||1)<10){p.skill[o]=Math.min(maxLv(o),13);p.recent[o]=[];p.log.unshift({d:dayKey(),op:o,from:'-',to:13});}});} /* Sep 2026: high schoolers start on high-school levels */if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+function migrate(){state.deleted=state.deleted||{};state.players=state.players.filter(p=>p&&typeof p==='object'&&p.id);state.players.forEach(p=>{ /* an old or half-synced save can be missing whole sections: fill them in so a hero never crashes the game to a blank screen */p.look=Object.assign({skin:SKINS[0],hair:HAIRS[0],hat:'wizard',robe:'purple'},p.look||{});p.skill=p.skill||Object.fromEntries(OPS.map(o=>[o,1]));p.stats=p.stats||{};p.maxL=p.maxL||{};p.recent=p.recent||{};p.missed=p.missed||{};slimMissed(p);p.daily=p.daily||{};p.progress=p.progress||{};p.owned=p.owned||{};['hats','robes','spells'].forEach(k=>{if(!Array.isArray(p.owned[k]))p.owned[k]=k==='spells'?['spark']:k==='hats'?HATS.filter(h=>!h.price).map(h=>h.id):ROBES.filter(r=>!r.price).map(r=>r.id);});if(!Array.isArray(p.pets))p.pets=[];if(!p.level)p.level=1;if(p.coins==null||isNaN(p.coins))p.coins=0;try{if(!p.xplace&&p.skill&&typeof XOPS!=='undefined'){if(XOPS.every(op=>lvl(p,op)<=1)&&gradeExp(p)>=6)xPlace(p);else p.xplace=1;}}catch(e){} /* Sep 30: older players whose 10 other worlds were never placed start near their grade */if(/^ethan$/i.test((p.name||'').trim())&&p.grade===3&&!p.gradeFix11){p.grade=11;p.gradeFix11=1;if(p.spellSig!==undefined)try{p.spellSig=spellSchool(p).map(x=>x.w).join('|');}catch(e){}}if(p.setup&&!(p.wkHist&&p.wkHist[weekKey()])&&typeof wkOf==='function'){const w=wkOf(p);weekDays(weekKey()).forEach(k=>{const d=p.daily&&p.daily[k];if(d&&d.r){const n=Math.min(DAY_CAP,d.r);w.dc[k]=n;w.pts+=n*8;}});(p.log||[]).forEach(l=>{if(l.to>l.from&&weekDays(weekKey()).includes(l.d))w.lv++;});}p.skill=p.skill||{};p.stats=p.stats||{};p.recent=p.recent||{};p.maxL=p.maxL||{};OPS.forEach(o=>{if(p.skill[o]===undefined)p.skill[o]=1;if(!p.stats[o])p.stats[o]={r:0,w:0};if(!p.recent[o])p.recent[o]=[];if(p.maxL[o]===undefined)p.maxL[o]=1;});if(!p.startL1){OPS.forEach(o=>{p.skill[o]=1;p.recent&&(p.recent[o]=[]);});p.maxL=Object.fromEntries(OPS.map(o=>[o,1]));p.startL1=true;}p.petData=p.petData||{};p.petMs=p.petMs||[];p.pantry=p.pantry||{};p.rounds=p.rounds||{};p.roundSel=p.roundSel||{};if(p.champ&&Object.keys(p.champ).length&&!p.champMoved){for(const zid in p.champ){p.rounds[zid]=p.rounds[zid]||{};if(!p.rounds[zid][2])p.rounds[zid][2]=p.champ[zid];}p.champMoved=true;}p.toys=p.toys||[];p.petGear=p.petGear||[];if(p.spinDay===undefined)p.spinDay=null;p.spellStats=p.spellStats||{};p.quizStats=p.quizStats||{};p.hwStats=p.hwStats||{};if(p.customWords===undefined)p.customWords=null;if(p.welcomed===undefined)p.welcomed=!!p.setup;if(!p.look.kind){if(/jibreel|mika/i.test(p.name))p.look.kind='boy';}if(!p.mikaBoy&&/mika/i.test(p.name)){p.look.kind='boy';p.mikaBoy=true;}p.recent=p.recent||{add:[],sub:[],mul:[],div:[]};p.log=p.log||[];if(!p.dial&&p.skill){p.dial=1;Object.keys(p.skill).forEach(o=>{p.skill[o]=Math.max(1,Math.floor(p.skill[o]));});} /* Oct 2026 difficulty dial */if(!p.hsLv&&(p.grade||0)>=9&&p.setup&&p.skill){p.hsLv=1;['add','sub','mul','div'].forEach(o=>{if(Math.floor(p.skill[o]||1)<10){p.skill[o]=Math.min(maxLv(o),13);p.recent[o]=[];p.log.unshift({d:dayKey(),op:o,from:'-',to:13});}});} /* Sep 2026: high schoolers start on high-school levels */if(p.lock===undefined)p.lock=null;if(typeof p.lock==='string')p.lock=[p.lock];if(p.battle===undefined)p.battle=null;p.maxL=p.maxL||Object.fromEntries(OPS.map(o=>[o,lvl(p,o)]));p.champ=p.champ||{};p.pb=p.pb||{};p.days=p.days||[];p.quest=p.quest||null;});}
+/* p.missed (the missed-question memory) must stay small: the WHOLE family save has to fit in one Firestore document (1 MiB).
+   Keep at most MISSED_CAP; drop fixed ones first, then the least-missed / oldest. Stored questions keep only what's needed
+   to ask them again (long story text, flags and oversized explanations are dropped; the game has fallbacks for those). */
+const MISSED_CAP=120;
+function slimQ(q){const o={};for(const k in q){const v=q[k];if(v===undefined||v===null||typeof v==='function')continue;
+  if(['again','practice','hinted','mastered','story','fast','t0','tries','rp','hidden'].includes(k))continue;
+  if((k==='explain'||k==='nudge')&&typeof v==='string'&&v.length>500)continue;
+  if(typeof v==='string'&&v.length>1500)continue;o[k]=v;}return o;}
+function pruneMissed(p){try{if(!p||!p.missed||typeof p.missed!=='object')return;let keys=Object.keys(p.missed);if(keys.length<=MISSED_CAP)return;
+  const M=p.missed,rank=k=>{const m=M[k]||{};return [((m.fixed||0)>=2)?0:1,m.n||0,m.last||''];};
+  keys.sort((x,y)=>{const a=rank(x),b=rank(y);return a[0]-b[0]||a[1]-b[1]||(a[2]<b[2]?-1:a[2]>b[2]?1:0);});
+  keys.slice(0,keys.length-MISSED_CAP).forEach(k=>delete M[k]);}catch(e){}}
+function slimMissed(p){try{if(!p||!p.missed)return;for(const k in p.missed){const m=p.missed[k];if(!m||typeof m!=='object'){delete p.missed[k];continue;}if(m.q&&typeof m.q==='object'&&m.q.tpl)m.q=slimQ(m.q);}pruneMissed(p);}catch(e){}}
 function P(){return state.players.find(p=>p.id===state.cur);}
 const lvl=(p,op)=>Math.floor(p.skill[op]);
 const heroMax=p=>100+(p.level-1)*8;
@@ -1644,11 +1694,21 @@ SCREENS.profiles=()=>{
  <div class="logo"><div class="logo-top">MATH</div><div class="logo-main">QUEST</div><div class="logo-sub"><span class="floaty">➕</span> The Quest Realms <span class="floaty">✖️</span></div></div>
  <h2 class="title">Who's playing?</h2>
  <div class="profiles">${state.players.map(p=>`<button class="pcard" onclick="choose('${p.id}')">${heroSVG(p.look,{spell:p.spell})}<div class="pname">${esc(p.name)}</div><div class="plv">${p.setup?(tbOn(p)&&tbTick(p,false).locked?(w=>`😴 On a break<br><span class="plwait">Back at <b>${w.hm}</b><br>in ${w.dur}</span>`)(tbWait(p)):(liveNow(p)&&p.id!==state.cur?'<span class="plive">🎮 Playing now</span>':(petOf(p)?petOf(p).e+' ':'')+'Tap to play'+(p.lock?' 🔒':''))):'New hero!'}</div></button>`).join('')}
- <button class="pcard add" onclick="go('create')"><div class="plus">＋</div><div class="pname">New Hero</div><div class="plv">Add a player</div></button></div>
+ <button class="pcard add" onclick="newHeroTap()"><div class="plus">＋</div><div class="pname">New Hero</div><div class="plv">Add a player</div></button></div>
  ${!state.players.length&&!cloud.code?`<div class="joinbox"><div class="jb-h">☁️ Already play on another device?</div><p>Type your family code to bring your heroes here. (It's in the Parent Corner on your other device, under Online save.)</p><div class="row"><input id="joinCode0" class="inp" placeholder="TIGER-PLUM-ROCKET-KITE-42" autocapitalize="characters" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')joinFamily(this.value,true)"><button class="btn green" onclick="joinFamily($('#joinCode0').value,true)">Join</button></div><p class="muted">New here? Just tap <b>New Hero</b> above.</p></div>`:''}
  <div class="center"><button class="btn ghost small" onclick="parentGate()">👪 Parent Corner</button> <button class="btn ghost small" onclick="window.Music?Music.menu():toggleSound()">${state.sound?'🔊 Sound':'🔇 Sound off'}</button><div class="note" id="cloudBadge" style="margin-top:8px">${cloudBadgeText()}</div></div></div>`;
  LIVE_SIG=liveSig();
 };
+/* play-time limit can't be dodged by making a brand-new hero: while any hero with a play limit is on a break,
+   adding a hero needs a grown-up (the Parent PIN, or the grown-up check if no PIN is set yet) */
+function newHeroTap(){let rest=[];try{rest=state.players.filter(o=>o.setup&&tbOn(o)&&tbTick(o,false).locked);}catch(e){}
+ if(!rest.length){go('create');return;}
+ const nm=rest.map(o=>esc(o.name));const who=nm.length>1?nm.slice(0,-1).join(', ')+' and '+nm[nm.length-1]:nm[0];
+ modal(`<div class="mcard"><div class="big-emoji">🌙</div><h2>Ask a grown-up</h2><p><b>${who}</b> ${rest.length>1?'are':'is'} taking a play break right now, so a grown-up needs to add new heroes.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">OK</button><button class="btn green" onclick="closeModal();grownGate(()=>go('create'))">👪 I'm a grown-up</button></div></div>`);}
+function grownGate(then){if(!state.pin){grownCheck(then);return;}GROWN_Q={then};
+ modal(`<div class="mcard"><h2>👪 Grown-ups only</h2><p>Enter the Parent PIN.</p><input id="ggPin" class="inp" type="password" inputmode="numeric" maxlength="4" style="max-width:200px;text-align:center" onkeydown="if(event.key==='Enter')grownGateOk()"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="grownGateOk()">OK</button></div></div>`);
+ setTimeout(()=>{const i=$('#ggPin');if(i)i.focus();},50);}
+function grownGateOk(){const i=$('#ggPin');if(!i||!GROWN_Q)return;if(i.value.trim()===state.pin){const t=GROWN_Q.then;GROWN_Q=null;closeModal();t();}else{i.value='';i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');}}
 const PICS=['🐶','🐱','🦊','🐸','🦄','🐙','🚀','🍕','⚽'];
 /* ===== who's playing right now (shared through the online save; no play-time is shown) ===== */
 const LIVE_MS=150000; // a heartbeat every ~45s; if we haven't heard from a device for 2.5 min, it isn't playing
@@ -1807,13 +1867,13 @@ SCREENS.map=()=>{
  const p=P();
  const hide=z=>zoneLocked(z,p)&&((z.g5&&(p.grade||0)<4)||(z.event&&!eventOpen()));const shown=ZONES.filter(z=>!hide(z)).sort((a,b)=>zoneLocked(a,p)-zoneLocked(b,p));const nHid=ZONES.length-shown.length;
  app.innerHTML=topbar()+`<div class="page qboard"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">📜 Quest Board</h2><button class="btn ghost small qb-lead" onclick="go('leaders')">🏆 <span>Leaderboard</span></button></div>${bigContinue(p)}${raidCard(P())}${bonusCard(P())}${window.Mastery?Mastery.cardHTML(P()):''}${eventBanner(p)}${questPanel(p,true)}${homeCards(p)}${schoolCards(p)}
- <h2 class="title" style="margin-top:26px">🔢 Math Worlds</h2><div class="zones">${shown.map(z=>{
+ ${qbSec('worlds','<h2 class="title" style="margin-top:26px">🔢 Math Worlds</h2>',`<div class="zones">${shown.map(z=>{
   const locked=zoneLocked(z,p);const pr=p.progress[z.id]||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
   return `<button class="zone-card ${z.cls} ${locked?'locked':''}" onclick="${locked?`toast('${z.lockMsg}')`:`go('zone','${z.id}')`}">
   <div class="op">${z.sym}</div><h3>${z.name}</h3>
   <div class="zsub">${locked?'🔒 '+z.lockMsg:`⭐ ${stars} / 18`}</div>
   <div class="zlv">${locked?'':(z.op==='mix'?'Add, subtract, times and divide!':KID_DESC[z.op][lvl(p,z.op)])}</div>
-  <div class="zart">${z.art}</div>${z.g5&&!medal(p,z.id)?'<div class="g5tag">5th grade</div>':''}${z.g3&&!medal(p,z.id)?'<div class="g5tag g3tag">📚 From class</div>':''}${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div>${nHid?`<div class="lockmore">🔒 ${nHid} more world${nHid>1?'s':''} unlock${nHid>1?'':'s'} as you grow!</div>`:''}</div>`;
+  <div class="zart">${z.art}</div>${z.g5&&!medal(p,z.id)?'<div class="g5tag">5th grade</div>':''}${z.g3&&!medal(p,z.id)?'<div class="g5tag g3tag">📚 From class</div>':''}${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div>${nHid?`<div class="lockmore">🔒 ${nHid} more world${nHid>1?'s':''} unlock${nHid>1?'':'s'} as you grow!</div>`:''}`)}</div>`;
  autoPopups('map');
 };
 function homeCards(p){const pet=petOf(p);let petLine='';const awayP=!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)?PETS.find(x=>x.id===p.pet):null;
@@ -2096,6 +2156,7 @@ function pickOpFair(p){const g=p.grade||3;const ok=BASIC_OPS.filter(o=>o==='add'
 function pickOp(p,zop){
  if(typeof B!=='undefined'&&B&&B.raidOps&&B.raidOps.length)return pick(B.raidOps);
  if(zop!=='mix')return zop;
+ return pickOpFair(p); /* Chaos Tower / Haunted Hollow: only ops this kid has learned (grades 1-2 get + and − until they've practiced × ÷) */
  const w=BASIC_OPS.map(o=>{const s=p.stats[o];return 1+3*(s.w/(s.r+s.w+2));});
  let r=Math.random()*w.reduce((x,y)=>x+y,0);
  for(let i=0;i<4;i++){r-=w[i];if(r<=0)return BASIC_OPS[i];}
@@ -2121,8 +2182,13 @@ function adjustSkill(p,op,ok,slip){
  if(slip)return null;
  const w=p.recent[op];w.push(ok?1:0);if(w.length>8)w.shift();
  const L0=lvl(p,op);let v=p.skill[op]||1;
- if(ok){const r=p.rs[op]=(p.rs[op]||0)+1;if(r%10===0)v+=DIAL_FAST;else if(r%4===0)v+=DIAL;}
- else{p.rs[op]=0;v-=DIAL;}
+ /* Early boost (QA Sep 30): levels 1-3 are the very first steps (counting-on, single digits). The normal dial needed
+    ~90+ right answers to leave Level 1, far too slow for 6-7 year olds. Down here: +10% after every 2 right in a row,
+    +20% every 5th in a row, −10% per miss. Simulated: ~20-25 right answers per level at 80% right, while a kid at
+    60% right still stays put. Level 4+ (where older kids live) keeps the tuned dial below. */
+ const early=v<4;
+ if(ok){const r=p.rs[op]=(p.rs[op]||0)+1;if(early){if(r%5===0)v+=DIAL_FAST;else if(r%2===0)v+=DIAL*2;}else if(r%10===0)v+=DIAL_FAST;else if(r%4===0)v+=DIAL;}
+ else{p.rs[op]=0;v-=early?DIAL*2:DIAL;}
  v=Math.round(Math.min(maxLv(op),Math.max(1,v))*100)/100;p.skill[op]=v;
  const L1=lvl(p,op),best=(p.maxL&&p.maxL[op])||1;p.dn=p.dn||{};
  /* announce only real changes, so kids hovering around a level boundary aren't spammed: a brand-new level going up,
@@ -2430,8 +2496,8 @@ function renderBattle(){
 /* keep the question card the same height all battle, so the scene doesn't jump when a tall picture question appears.
    Before the first question we quietly measure a few sample questions for this world (nothing is painted in between). */
 function qPrime(){try{if(!B||B.mode!=='math'||B.wild)return;const qc=$('#qcard'),qt=$('#qtext'),ql=$('#qlabel');if(!qc||!qt)return;
- const p=P(),keep=qt.innerHTML,kl=ql?ql.textContent:'',q0=B.q,i0=B.input;let h=0;
- for(let i=0;i<6;i++){const op=B.z.op==='mix'?pickOp(p,'mix'):B.z.op;const q=genQ(op,lvl(p,op));if(!q)continue;B.q=q;B.input='';if(ql)ql.textContent='Level 1';showQ();h=Math.max(h,qc.getBoundingClientRect().height);}
+ const p=P(),keep=qt.innerHTML,kl=ql?ql.textContent:'',q0=B.q,i0=B.input;let h=0;QPRIMING=true;
+ try{for(let i=0;i<6;i++){const op=B.z.op==='mix'?pickOp(p,'mix'):B.z.op;const q=genQ(op,lvl(p,op));if(!q)continue;B.q=q;B.input='';if(ql)ql.textContent='Level 1';showQ();h=Math.max(h,qc.getBoundingClientRect().height);}}finally{QPRIMING=false;}
  B.q=q0;B.input=i0;qt.innerHTML=keep;if(ql)ql.textContent=kl;updateHintBtn();
  B.qmin=Math.max(B.qmin||0,Math.min(h,window.innerHeight*.42));if(B.qmin)qc.style.minHeight=B.qmin+'px';}catch(e){console.warn('qPrime',e);}}
 function qRatchet(){try{const qc=$('#qcard');if(!B||!qc)return;const h=qc.getBoundingClientRect().height;if(h>(B.qmin||0)&&h<window.innerHeight*.42){B.qmin=h;qc.style.minHeight=h+'px';}}catch(e){}}
@@ -2539,7 +2605,7 @@ function nextQ(){
    let op2=op;if(B.isBoss&&!B.wild&&(p.grade||3)>=4&&B.z.op!=='word'&&XOPS.includes('word')&&Math.random()<.3){op2='word';label='📖 Boss word problem!';}
    const L0=dialLevel(p,op2),mast=B.round>=4&&!B.wild&&!B.asc&&L0>1;const L=mast?Math.max(1,L0-(B.round>=5?2:1)):L0;
    let t=0;do{q=genQ(op2,L);}while(B.recent.includes(q.text)&&t++<12);if(mast)q.mastered=true;
-   if(!mast&&!B.wild&&Math.random()<.2){const rq=makeRev(op,L);if(rq&&!B.recent.includes(rq.text)){q=rq;label='🔄 Flip it! You pick both numbers';}}
+   if(!mast&&!B.wild&&!youngReader(p)/* no 'Flip it' for grade 1-2 */&&Math.random()<.2){const rq=makeRev(op,L);if(rq&&!B.recent.includes(rq.text)){q=rq;label='🔄 Flip it! You pick both numbers';}}
    if(B.z.id==='haunt'&&!q.rev&&!q.tpl&&!q.mastered){const st=trickStory(q);if(st&&Math.random()<.35){q=Object.assign({},q,{story:st});label='🎃 Trick-or-treat problem!';}}
   }
  }
@@ -2555,7 +2621,7 @@ function trickStory(q){if(q.c!==undefined||q.neg||q.answer<0||!Number.isInteger(
  if(q.op==='add')return pick([`You got <b>${A}</b> candies on ${st} and <b>${Bn}</b> more at ${st2}. How many candies in all?`,`Your bag has <b>${A}</b> chocolates. A friendly ghost drops in <b>${Bn}</b> more. How many now?`]);
  if(q.op==='sub')return pick([`You had <b>${A}</b> candies and gave <b>${Bn}</b> to your little brother. How many are left?`,`You had <b>${A}</b> candies. A sneaky bat grabbed <b>${Bn}</b>! How many are left?`,`You got <b>${A}</b> candy corns and threw <b>${Bn}</b> away (yuck!). How many are left?`]);
  if(q.op==='mul')return pick([`You got <b>${A}</b> candies at each of <b>${Bn}</b> houses. How many candies?`,`There are <b>${A}</b> jack-o'-lanterns on each of <b>${Bn}</b> porches. How many jack-o'-lanterns?`]);
- if(q.op==='div'&&Bn>0&&A%Bn===0)return pick([`You have <b>${A}</b> candies to share equally with <b>${Bn}</b> friends. How many does each friend get?`,`<b>${A}</b> trick-or-treaters walk in groups of <b>${Bn}</b>. How many groups?`]);
+ if(q.op==='div'&&Bn>0&&A%Bn===0)return pick([`You have <b>${A}</b> candies to share equally among <b>${Bn}</b> friends. How many does each friend get?`,`<b>${A}</b> trick-or-treaters walk in groups of <b>${Bn}</b>. How many groups?`]);
  return null;}
 function snapBattle(p){if(!B||B.over||!B.z)return;
  p.battle={zid:B.z.id,i:B.i,mhp:B.mhp,hhp:B.hhp,streak:B.streak,best:B.best,right:B.right,wrong:B.wrong,coins:B.coins,xp:B.xp,shield:B.shield,review:B.review,grace:B.grace,champ:B.champ,pendingDown:B.pendingDown,charge:B.charge,shieldUp:B.shieldUp,petUses:B.petUses,foes:B.foes,ti:B.ti,wild:B.wild,round:B.round,spellFrozen:B.spellFrozen,petFrozen:B.petFrozen,monShield:B.monShield,pwUsed:B.pwUsed,pwTick:B.pwTick,petSince:B.petSince,bufN:B.bufN||0,asc:B.asc||0};save();}
@@ -2636,8 +2702,8 @@ const v=parseInt(B.input,10);const ok=q.rev?revCheck(q,v,parseInt(B.input2,10)):
   });
  }else{
   B.wrong++;B.streak=0;B.missRow=(B.missRow||0)+1;if(!B.wild&&(B.charge||0)>0){B.charge=0;setTimeout(()=>floatText('#mana','💔 Streak broken! Spell power lost','#ff8a8a'),150);updateMana();}
-  const m=p.missed[q.text]||{n:0,a:q.answer,op:q.op};m.n++;m.last=dayKey();m.fixed=0;m.q=q.tpl?Object.assign({},q,{again:undefined,practice:undefined,hinted:undefined}):{op:q.op,L:q.L,a:q.a,b:q.b,c:q.c,answer:q.answer,text:q.text};p.missed[q.text]=m;
-  const keys=Object.keys(p.missed);if(keys.length>250){keys.sort((x,y)=>p.missed[x].n-p.missed[y].n).slice(0,50).forEach(k=>delete p.missed[k]);}
+  const m=p.missed[q.text]||{n:0,a:q.answer,op:q.op};m.n++;m.last=dayKey();m.fixed=0;m.q=q.tpl?slimQ(q):{op:q.op,L:q.L,a:q.a,b:q.b,c:q.c,answer:q.answer,text:q.text};p.missed[q.text]=m;
+  pruneMissed(p);
   if(!q.again)B.review.push({q:Object.assign({},q),wait:3});
   bufferMiss(p);snapBattle(p);SFX.wrong();
   const qc=$('#qcard');qc.classList.remove('shake-x');void qc.offsetWidth;qc.classList.add('shake-x');
@@ -3118,6 +3184,7 @@ SCREENS.world=()=>{
  if(!W.mobs.some(m=>m.principal)||W.prFor!==p.id){W.prFor=p.id;principalSpawn();}
  app.innerHTML=topbar()+`<div class="world" id="world"><canvas id="wcv"></canvas>
  <div class="wtop"><div class="warea" id="warea"></div><button class="btn small" onclick="go('map')">📜 Quest Board${(()=>{const n=qState(p).active.filter(a=>a.done).length;return n?` <b class="qdot">${n}</b>`:'';})()}</button></div>
+ ${W.mobs.some(m=>m.principal)?'<button class="prchip" id="prChip" type="button" onclick="principalGo()">🎓 <b>Principal Wise</b> is visiting! <u>Walk to him</u></button>':''}
  ${(p.wHelp||0)<4?'<div class="whelp" id="whelp">Tap anywhere to walk · Bump into monsters to battle · Find the 🎁 treasure!</div>':''}
  <div class="dpad"><button data-d="0,-1" style="grid-area:u">▲</button><button data-d="-1,0" style="grid-area:l">◀</button><button data-d="1,0" style="grid-area:r">▶</button><button data-d="0,1" style="grid-area:d">▼</button></div></div>`;
  if((p.wHelp||0)<4){p.wHelp=(p.wHelp||0)+1;saveLocal();}
@@ -3125,7 +3192,7 @@ SCREENS.world=()=>{
  const cv=$('#wcv');wResize();
  cv.addEventListener('pointerdown',wTap);
  document.querySelectorAll('.dpad button').forEach(b=>{const [dx,dy]=b.dataset.d.split(',').map(Number);let iv=null;
-  const start=e=>{e.preventDefault();wHintDone();const dp=b.parentNode;dp.classList.add('used');clearTimeout(dp._t);W.path=[];W.viaPad=true;wStep(dx,dy);clearInterval(iv);iv=setInterval(()=>{if(curScreen!=='world'){clearInterval(iv);return;}if(!W.moving)wStep(dx,dy);},60);};
+  const start=e=>{e.preventDefault();wHintDone();const dp=b.parentNode;dp.classList.add('used');clearTimeout(dp._t);W.path=[];W.viaPad=true;wStep(dx,dy);clearInterval(iv);iv=setInterval(()=>{if(curScreen!=='world'){clearInterval(iv);return;}if(!W.moving)wStep(dx,dy,true);},60);};
   const stop=()=>{clearInterval(iv);iv=null;const dp=b.parentNode;clearTimeout(dp._t);dp._t=setTimeout(()=>dp.classList.remove('used'),1500);};b.addEventListener('pointerdown',start);b.addEventListener('pointerup',stop);b.addEventListener('pointerleave',stop);b.addEventListener('pointercancel',stop);});
  setTimeout(()=>{const h=$('#whelp');if(h)h.classList.add('fade');},5000);
  cancelAnimationFrame(W.raf);W.raf=requestAnimationFrame(wFrame);
@@ -3163,10 +3230,14 @@ function footstep(t){if(!state.sound)return;try{AC=AC||new(window.AudioContext||
  src.connect(bp);bp.connect(gn);gn.connect(fxOut(AC));src.start(now,Math.random()*.1);src.stop(now+S[2]+.02);
  if(g==='stone'||g==='wood'||g==='path'){const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.value=(g==='wood'?180:g==='path'?140:260)*side;og.gain.setValueAtTime(.05,now);og.gain.exponentialRampToValueAtTime(.0005,now+.05);o.connect(og);og.connect(fxOut(AC));o.start(now);o.stop(now+.06);}
 }catch(e){}}
-function wStep(dx,dy){
+/* held = the step came from a held-down arrow key / d-pad button. Holding walks, but it stops at doors, people and
+   treasure: going IN needs a fresh press (or a tap), so kids don't get pulled into buildings while walking past. */
+let wDoorTip=0;
+function wStep(dx,dy,held){
  if(!W||W.moving||curScreen!=='world'||$('#modal.show')||window.trollBusy)return;
  const nx=W.hx+dx,ny=W.hy+dy;const t=W.T[ny]&&W.T[ny][nx];if(!t)return;
  if(dx)W.dir=dx;
+ if(held&&(t.npc||t.gate||t.chest)){W.path=[];if(Date.now()-wDoorTip>6000){wDoorTip=Date.now();toast(t.chest?'🎁 Press again to open the treasure!':t.npc?'👋 Press again to say hi!':'🚪 Press again to go in!');}return;}
  const mob=W.mobs.find(m=>m.x===nx&&m.y===ny);if(mob){wFight(mob);return;}
  if(t.npc){W.path=[];wNpc(t.npc);return;}
  if(t.gate){W.path=[];wGate(t.gate);return;}
@@ -3215,12 +3286,13 @@ function wFrame(now){
   const h=ts*1.35,w=h*0.77;const bob=W.moving?Math.abs(Math.sin(now/60))*3:Math.sin(now/400)*1.5;
   if(W.heroImg&&W.heroImg.complete){ctx.save();ctx.translate(sx+ts/2,0);ctx.scale(W.dir<0?-1:1,1);ctx.drawImage(W.heroImg,-w/2,sy+ts*.95-h-bob,w,h);ctx.restore();}}});}
  items.sort((a,b)=>a.y-b.y).forEach(it=>it.draw());
+ prMarker(ctx,now,cx,cy,ts);
  if(W.mark&&now-W.mark.t<600){const a=1-(now-W.mark.t)/600;ctx.strokeStyle=`rgba(255,255,255,${a})`;ctx.lineWidth=3;ctx.beginPath();ctx.arc(W.mark.x*ts-cx+ts/2,W.mark.y*ts-cy+ts/2,ts*.3+(1-a)*ts*.2,0,7);ctx.stroke();}
  // area name
  const bn=W.T[W.hy][W.hx].b;if(bn!==W.lastBiome){W.lastBiome=bn;const B=BIOMES[bn];const z=B.zone&&ZONES.find(zz=>zz.id===B.zone);const el=$('#warea');if(el){el.textContent=B.name||`${z.art} ${z.name}`;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}}
 }
 function wLabel(ctx,txt,x,y,fg,bg){ctx.font=`700 ${Math.round(W.ts*.26)}px Fredoka, system-ui, sans-serif`;const w=ctx.measureText(txt).width+12,h=W.ts*.36;if(W.vw){x=clamp(x,w/2+4,Math.max(w/2+4,W.vw-w/2-4));y=clamp(y,h/2+3,Math.max(h/2+3,W.vh-h/2-3));} /* keep labels fully on screen */ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect?ctx.roundRect(x-w/2,y-h/2,w,h,h/2):ctx.rect(x-w/2,y-h/2,w,h);ctx.fill();ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,x,y+1);}
-document.addEventListener('keydown',e=>{if(curScreen!=='world'||!W||$('#modal.show'))return;const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[e.key];if(!d)return;e.preventDefault();W.path=[];wStep(d[0],d[1]);});
+document.addEventListener('keydown',e=>{if(curScreen!=='world'||!W||$('#modal.show'))return;const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[e.key];if(!d)return;e.preventDefault();W.path=[];wStep(d[0],d[1],e.repeat);});
 
 /* ================= Principal Wise: visits the map about every 3 days, invites you to his office ================= */
 const PRINCIPAL_EVERY=3;
@@ -3237,6 +3309,19 @@ function principalSpawn(){if(!W)return;const p=P();W.mobs=W.mobs.filter(m=>!m.pr
  for(let t=0;t<400;t++){const x=1+Math.floor(Math.random()*(WCOLS-2)),y=1+Math.floor(Math.random()*(WROWS-2));const tile=W.T[y][x];const d=Math.hypot(x-W.hx,y-W.hy);
   if(tile.block||tile.water||tile.plaza||d<5||d>11)continue;W.mobs.push({id:'principal',principal:true,x,y,dx:x,dy:y,e:'👨‍💼',n:'Principal Wise',b:tile.b});break;}
  setTimeout(()=>{if(curScreen==='world'){SFX.level();toast('🔔 Principal Wise is visiting today! Find him on the map. He wants to talk to you!');}},900);}
+/* make the visit hard to miss (QA): a chip at the top of the map that walks you to him, a pulsing ring around him,
+   and an arrow at the edge of the screen pointing the way when he's off-screen */
+function prMob(){return W&&W.mobs?W.mobs.find(m=>m.principal):null;}
+function principalGo(){const m=prMob();if(!m){const c=$('#prChip');if(c)c.remove();return;}wHintDone();W.viaPad=false;
+ const path=wPathTo(m.x,m.y);if(!path.length){toast('🎓 Follow the gold arrow to find Principal Wise!');return;}W.path=path;wMark(m.x,m.y);if(!W.moving){const [nx,ny]=W.path.shift();wStep(nx-W.hx,ny-W.hy);}}
+function prMarker(ctx,now,cx,cy,ts){try{const m=prMob();const chip=$('#prChip');if(!m){if(chip)chip.remove();return;}
+ const px=m.x*ts-cx+ts/2,py=m.y*ts-cy+ts/2,vw=W.vw,vh=W.vh;const pulse=(now%1400)/1400;
+ if(px>-ts*.3&&px<vw+ts*.3&&py>-ts*.3&&py<vh+ts*.3){ctx.strokeStyle=`rgba(255,212,59,${1-pulse})`;ctx.lineWidth=Math.max(3,ts*.08);ctx.beginPath();ctx.arc(px,py+ts*.1,ts*(.6+pulse*.7),0,7);ctx.stroke();return;}
+ const hx=vw/2,hy=vh/2,dx=px-hx,dy=py-hy,pad=Math.max(30,ts*.7);const k=Math.min((vw/2-pad)/Math.max(1e-6,Math.abs(dx)),(vh/2-pad)/Math.max(1e-6,Math.abs(dy)));
+ const ax=hx+dx*k,ay=hy+dy*k,ang=Math.atan2(dy,dx),r=Math.max(18,ts*.42)*(1+.08*Math.sin(now/200));
+ ctx.save();ctx.translate(ax,ay);ctx.rotate(ang);ctx.fillStyle='#ffd43b';ctx.strokeStyle='#3d2a00';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(r*1.55,0);ctx.lineTo(r*.6,-r*.62);ctx.lineTo(r*.6,r*.62);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+ ctx.beginPath();ctx.arc(ax,ay,r,0,7);ctx.fillStyle='#ffd43b';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.stroke();
+ const s=Math.round(r*1.3);ctx.drawImage(wSprite('🎓',s),ax-s/2,ay-s/2,s,s);}catch(e){}}
 function voicePrincipal(){try{const vs=speechSynthesis.getVoices()||[];return vs.find(v=>/en/i.test(v.lang)&&/Daniel|Alex|Fred|Guy|David|Mark|Google UK English Male|Arthur|Aaron|Tom/i.test(v.name))||null;}catch(e){return null;}}
 function sayPrincipal(t){try{if(!window.speechSynthesis||!voiceOn())return;const u=new SpeechSynthesisUtterance(t.replace(/<[^>]+>/g,''));u.lang='en-US';try{u.volume=Math.min(1,Math.max(.25,fxLevel()));}catch(e){}u.rate=.92;u.pitch=.8;const v=voicePrincipal();if(v)u.voice=v;ttsSpeak(u);}catch(e){}}
 function principalLines(p){
@@ -3471,7 +3556,7 @@ function fountainJoke(){const p=P();const f=fnt(p);
  [523,659,784].forEach((x,k)=>tone(x,.18,'triangle',.07,k*.1));
  modal(`<div class="mcard fountain"><div class="fnt-pool splash"><span class="fnt-e big">⛲</span><span class="fnt-face">😜</span></div><h2>💦 SPLOOSH! The fountain has a joke for you!</h2>
  <div class="fnt-joke">${esc(q)}</div><div class="fnt-punch" id="fntPunch">${esc(a)}</div>
- <div class="row">${voiceOn()?`<button class="btn ghost dark" id="fntHear" onclick="say(DAD_JOKES[${i}][0],.9)">🔊 Hear it</button>`:''}<button class="btn green big" id="fntTell" onclick="fountainPunch()">Tell me! 🤔</button></div>
+ <div class="row">${voiceOn()?`<button class="btn ghost dark" id="fntHear" onclick="speakToggle(()=>say(DAD_JOKES[${i}][0],.9))">🔊 Hear it</button>`:''}<button class="btn green big" id="fntTell" onclick="fountainPunch()">Tell me! 🤔</button></div>
  <p class="muted">🤣 Joke ${f.seen.length} of ${DAD_JOKES.length} found</p></div>`);
  sayV(q,.9);}
 function fountainPunch(){const el=$('#fntPunch');if(!el)return;el.classList.add('show');const b=$('#fntTell');if(b){b.textContent='😂 Ha! Again!';b.onclick=()=>fountainOpen();}
@@ -3674,7 +3759,7 @@ const STORIES=[
  q:[['What is the theme of the story?',['Robots are dangerous','Mistakes can be solved by staying calm and testing ideas','Science fairs are unfair because only the biggest robots can win','If something goes wrong, it is best to hide and give up'],1,'Maria stayed calm, found the problem and fixed it.'],
   ['What was causing the robot to fail?',['A dead battery','The bright gym lights confused the color sensor','The blocks were too heavy for the robot\'s small arm to lift','A broken wheel'],1,'"The bright gym lights were confusing the robot\'s color sensor."'],
   ['Why did the judge say Maria acted like a real engineer?',['She won first place','She found the problem and fixed it','She built the biggest robot','She used cardboard'],1,'"They find the problem and fix it."']]},
-{id:'b3',lv:'B',e:'🦋',t:'The Great Monarch Journey',p:['Every fall, millions of monarch butterflies fly from Canada and the United States all the way to the mountains of Mexico. Some travel nearly 3,000 miles, farther than any other butterfly.','Amazingly, the butterflies that make the trip south have never been there before. The monarchs that return north in spring are their children and grandchildren. Scientists believe monarchs use the sun and Earth\'s magnetic field to find their way.','Monarchs need a plant called milkweed. It is the only plant their caterpillars eat. As milkweed disappears from fields and roadsides, people are planting it in gardens and schoolyards to help the monarchs survive.'],
+{id:'b3',lv:'B',e:'🦋',t:'The Great Monarch Journey',p:['Every fall, millions of monarch butterflies from eastern Canada and the eastern United States fly all the way to the mountains of central Mexico. Some travel nearly 3,000 miles, one of the longest trips of any insect. All winter they cling together in huge clusters on tall oyamel fir trees.','Amazingly, the butterflies that make the trip south have never been there before. In spring, those same butterflies start back north. They lay eggs on milkweed along the way, and their children and grandchildren finish the trip. Scientists believe monarchs use the sun, and maybe Earth\'s magnetic field, to find their way.','Monarchs need a plant called milkweed. It is the only plant their caterpillars eat. As milkweed disappears from fields and roadsides, people are planting it in gardens and schoolyards to help the monarchs survive.'],
  q:[['What is this passage mostly about?',['How to raise caterpillars in a jar at home and keep them fed all summer','The monarch butterfly\'s long migration and how people help','Mountains in Mexico and the animals that live high up in them','Why butterflies are orange and how they use their color to hide'],1,'It describes the journey and why milkweed matters.'],
   ['Why is milkweed important to monarchs?',['It is the only plant their caterpillars eat','It shows them the way south to Mexico each fall','It keeps them warm','It is their home in the mountains of Mexico'],0,'"It is the only plant their caterpillars eat."'],
   ['What is surprising about the butterflies that fly south?',['They are the biggest butterflies in the whole world','They have never been to Mexico before','They fly only at night','They travel in cars'],1,'"The butterflies that make the trip south have never been there before."']]},
@@ -3773,12 +3858,12 @@ SCREENS.library=()=>{const p=P();const back=`<div class="zhead"><button class="b
   wrap(`${libHead(say,1)}${libMeter(p)}<div class="shelf">${band.length?`<div class="shelf-lab">📕 Stories waiting for you</div><div class="shelf-row">${band.map(book).join('')}</div>`:''}${readOther.length?`<div class="shelf-lab">📗 Books you've read (${readOther.length})</div><div class="shelf-row">${readOther.map((s,i)=>book(s,i+3)).join('')}</div>`:''}</div>`);return;}
  const S=LIB.s,C=LIB,NQ=C.qs.length;
  if(C.stage==='read'){wrap(`${libHead(C.practice?'Practice reading! Take your time.':`Read carefully. This is a <b>Level ${S.lv}</b> story with <b>${NQ} questions</b>. Then tap <b>I'm ready for the questions!</b>`)}
-  <div class="story"><div class="story-top"><span class="story-e">${S.e}</span><h2>${esc(S.t)}</h2><button class="btn small" onclick="libRead()">🔊 Read it to me</button></div>${S.p.map(x=>`<p>${esc(x)}</p>`).join('')}
+  <div class="story"><div class="story-top"><span class="story-e">${S.e}</span><h2>${esc(S.t)}</h2><button class="btn small" onclick="speakToggle(libRead)" title="Tap again to stop">🔊 Read it to me</button></div>${S.p.map(x=>`<p>${esc(x)}</p>`).join('')}
   <div class="row"><button class="btn green big" onclick="LIB.stage='q';LIB.i=0;LIB.tries=0;go('library')">I'm ready for the questions! ➜</button></div></div>`);return;}
  if(C.stage==='q'){const qq=C.qs[C.i];
   wrap(`${libHead(C.msg||`Question ${C.i+1} of ${NQ}. You can look back at the story any time!`)}
   <div class="story q"><details ${C.look?'open':''} ontoggle="LIB.look=this.open"><summary>📖 Look back at the story: ${esc(S.t)}</summary>${S.p.map(x=>`<p>${esc(x)}</p>`).join('')}</details>
-  <div class="lib-qn">Question ${C.i+1} of ${NQ}</div><div class="lib-q">${esc(qq.q)} <button class="qspk inl" type="button" title="Read it to me" aria-label="Read the question and answers out loud" onclick="libSpeakQ()">🔊</button></div>${(()=>{if(youngReader(p)&&voiceOn()&&LIB.spoke!==C.i){LIB.spoke=C.i;setTimeout(libSpeakQ,400);}return '';})()}
+  <div class="lib-qn">Question ${C.i+1} of ${NQ}</div><div class="lib-q">${esc(qq.q)} <button class="qspk inl" type="button" title="Read it to me" aria-label="Read the question and answers out loud" onclick="speakToggle(libSpeakQ)">🔊</button></div>${(()=>{if(youngReader(p)&&voiceOn()&&LIB.spoke!==C.i){LIB.spoke=C.i;setTimeout(libSpeakQ,400);}return '';})()}
   <div class="lib-choices">${qq.c.map((c,k)=>`<button class="lchoice ${C.picked===k?(k===qq.a?'right':'wrong'):''} ${C.reveal&&k===qq.a?'right':''}" onclick="libPick(${k})"><span class="ll">${'ABCD'[k]}</span>${esc(c)}</button>`).join('')}</div>
   ${C.why?`<div class="lib-why">${C.why}</div>`:''}${C.nextBtn?`<div class="row"><button class="btn green big" onclick="libNext()">${C.i<NQ-1?'Next question ➜':'See my stars! ⭐'}</button></div>`:''}</div>`);return;}
  const st=C.stars,sc=st/NQ;wrap(`${libHead(sc>=1?`Hoo-ray! A perfect score, ${esc(p.name)}! You really understood that story!`:sc>=.66?`Great reading, ${esc(p.name)}! You understood the story well.`:`Good effort, ${esc(p.name)}! Every story makes you a stronger reader.`)}
@@ -3790,14 +3875,44 @@ function libOpen(id,isNew){const s=STORIES.find(x=>x.id===id);const shuf=q=>{con
 function libRead(){if(!LIB)return;say(LIB.s.t+'. '+LIB.s.p.join(' '),.9);}
 /* ---------- read-aloud for young readers: a 🔊 button on math questions and Library questions; grade 2 and under hear new questions automatically ---------- */
 const youngReader=p=>!!p&&!p.adult&&(+p.grade||3)<=2;
-function speakable(t){return String(t).replace(/<[^>]+>/g,' ').replace(/×/g,' times ').replace(/÷/g,' divided by ').replace(/−/g,' minus ').replace(/\+/g,' plus ').replace(/=\s*\?/g,' equals what?').replace(/=/g,' equals ').replace(/_+/g,' blank ').replace(/\?{2,}/g,'?').replace(/\s+/g,' ').trim();}
-function qSpeakText(){const el=document.getElementById('qtext');if(!el)return '';const c=el.cloneNode(true);c.querySelectorAll('.ansbox,.tqa,.qspk').forEach(x=>x.remove());return speakable(c.innerText||c.textContent||'');}
-function qSpeak(){try{speechSynthesis.cancel();}catch(e){}const t=qSpeakText();if(t)say(t,.85);}
+/* turn what's on screen into something a speech voice reads naturally: fractions ("3 fourths"), blanks ("what number"),
+   signs ("minus", "negative"), squares, degrees, percents */
+const FR_ORD={2:['half','halves'],3:['third','thirds'],4:['fourth','fourths'],5:['fifth','fifths'],6:['sixth','sixths'],7:['seventh','sevenths'],8:['eighth','eighths'],9:['ninth','ninths'],10:['tenth','tenths'],11:['eleventh','elevenths'],12:['twelfth','twelfths'],15:['fifteenth','fifteenths'],16:['sixteenth','sixteenths'],20:['twentieth','twentieths'],25:['twenty-fifth','twenty-fifths'],50:['fiftieth','fiftieths'],100:['hundredth','hundredths'],1000:['thousandth','thousandths']};
+function frWords(n,d){const w=FR_ORD[+d];if(w)return ` ${n} ${+n===1?w[0]:w[1]} `;return ` ${n} over ${d} `;}
+function speakable(t){let s=String(t).replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,' and ');
+ s=s.replace(/½/g,' 1 half ').replace(/¼/g,' 1 fourth ').replace(/¾/g,' 3 fourths ').replace(/⅓/g,' 1 third ').replace(/⅔/g,' 2 thirds ').replace(/⅛/g,' 1 eighth ');
+ s=s.replace(/_{2,}|＿+|☐|□/g,' ? ');                                   // blanks
+ s=s.replace(/(^|[^\d.\/])(\d+)\s*\/\s*(\d+)(?![\d.\/])/g,(m,pre,n,d)=>pre+frWords(n,d)); // 3/4 -> 3 fourths
+ s=s.replace(/\?\s*\/\s*(\d+)/g,' what number over $1 ').replace(/(\d+)\s*\/\s*\?/g,' $1 over what number ');
+ s=s.replace(/(^|[(=×÷+<>]|\s[−-]\s)\s*[−-](?=\d)/g,'$1 negative ');     // (−3), = −4
+ s=s.replace(/=\s*\?\s*$/,' equals what number?');
+ s=s.replace(/(\d)\s*\?\s*(?=\d)/g,'$1 blank ');                              // 5 ☐ 7 (compare)
+ s=s.replace(/(^\s*|[+\-−×÷=<>(]\s*)\?(?=\s*(?:$|[+\-−×÷=<>)]))/g,'$1 what number ');
+ s=s.replace(/×/g,' times ').replace(/÷/g,' divided by ').replace(/−/g,' minus ').replace(/\s-\s/g,' minus ').replace(/\+/g,' plus ').replace(/=\s*\?/g,' equals what?').replace(/=/g,' equals ')
+  .replace(/\s<\s/g,' is less than ').replace(/\s>\s/g,' is greater than ').replace(/²/g,' squared ').replace(/³/g,' cubed ').replace(/°/g,' degrees ').replace(/%/g,' percent ').replace(/¢/g,' cents ')
+  .replace(/\?{2,}/g,'?').replace(/\s+([?.!,])/g,'$1').replace(/\s+/g,' ').trim();
+ return s;}
+function qSpeakText(){const el=document.getElementById('qtext');if(!el)return '';const c=el.cloneNode(true);
+ c.querySelectorAll('.qspk,.tqa,button,.lboxes,.wtimer').forEach(x=>x.remove());
+ c.querySelectorAll('.fr').forEach(f=>{const k=f.children;const part=x=>x?(x.querySelector('.ansbox')?'?':x.textContent.trim()):'';f.replaceWith(document.createTextNode(k.length>=2?` ${part(k[0])}/${part(k[1])} `:f.textContent));});
+ c.querySelectorAll('.ansbox').forEach(x=>x.replaceWith(document.createTextNode(' ? ')));
+ return speakable(c.innerText||c.textContent||'');}
+/* the words to read for the current battle question: spelling reads only the word (and its sentence); quizzes read the choices too */
+function qSpeakFor(q){if(q&&q.type==='word')return {t:q.sentence?`${q.word}. ${q.sentence}`:q.word,r:.75};
+ let t=qSpeakText();if(!t||/^get ready/i.test(t))return null;
+ if(q&&Array.isArray(q.choices)&&q.choices.length)t+=' '+q.choices.map((c,k)=>q.hidden&&q.hidden.includes(k)?'':'ABCD'[k]+'. '+speakable(c)+'.').filter(Boolean).join(' ');
+ return {t,r:.85};}
+function qSpeak(){try{speechSynthesis.cancel();}catch(e){}const q=typeof B!=='undefined'&&B?B.q:null;const s=qSpeakFor(q);if(s&&s.t)say(s.t,s.r);}
+/* every 🔊 button: tap once to read, tap again (while it's talking) to stop */
+function ttsBusy(){try{return !!(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending));}catch(e){return false;}}
+function ttsStop(){try{TTS_KEEP=null;speechSynthesis.cancel();}catch(e){}}
+function speakToggle(fn){if(ttsBusy()){ttsStop();return;}fn();}
+let QPRIMING=false;
 let SPOKE_Q=null;
-const _showQ=showQ;showQ=function(){_showQ.apply(this,arguments);try{const el=document.getElementById('qtext');if(!el||typeof B==='undefined'||!B)return;
- if(!el.querySelector('.qspk')){const b=document.createElement('button');b.className='qspk';b.type='button';b.title='Read it to me';b.setAttribute('aria-label','Read the question out loud');b.textContent='🔊';b.onclick=e=>{e.stopPropagation();try{if(speechSynthesis.speaking){speechSynthesis.cancel();return;}}catch(x){}qSpeak();};el.appendChild(b);}el.classList.add('hasspk');
- const q=B.mode==='math'?B.q:B.qq||B.q;if(q&&q!==SPOKE_Q){SPOKE_Q=q;const p=P();if(youngReader(p)&&voiceOn())setTimeout(qSpeak,350);}}catch(e){}};
-function libSpeakQ(){if(!LIB||!LIB.qs)return;const qq=LIB.qs[LIB.i];if(!qq)return;try{speechSynthesis.cancel();}catch(e){}say(qq.q+' '+qq.c.map((c,k)=>'ABCD'[k]+'. '+c+'.').join(' '),.85);}
+const _showQ=showQ;showQ=function(){_showQ.apply(this,arguments);try{const el=document.getElementById('qtext');if(!el||typeof B==='undefined'||!B||QPRIMING)return; /* qPrime's silent measuring pass must not talk ("Get ready…" ×6) */
+ if(!el.querySelector('.qspk')){const b=document.createElement('button');b.className='qspk';b.type='button';b.title='Read it to me';b.setAttribute('aria-label','Read the question out loud');b.textContent='🔊';b.onclick=e=>{e.stopPropagation();speakToggle(qSpeak);};el.appendChild(b);}el.classList.add('hasspk');
+ const q=B.mode==='math'?B.q:B.qq||B.q;if(q&&q!==SPOKE_Q){SPOKE_Q=q;const p=P();if(youngReader(p)&&voiceOn()&&!(q.type==='word'&&state.sound))setTimeout(()=>{if(B&&B.q===q&&!QPRIMING)qSpeak();},350);}}catch(e){}}; /* spelling already says the word itself when sound is on */
+function libSpeakQ(){if(!LIB||!LIB.qs)return;const qq=LIB.qs[LIB.i];if(!qq)return;try{speechSynthesis.cancel();}catch(e){}say(speakable(qq.q)+' '+qq.c.map((c,k)=>'ABCD'[k]+'. '+speakable(c)+'.').join(' '),.85);}
 function libPick(k){const C=LIB,qq=C.qs[C.i];if(C.nextBtn)return;C.picked=k;const p=P();
  if(k===qq.a){SFX.correct();if(C.tries===0)C.stars++;C.msg=pick(['Hoo-hoo! Correct!','Wise answer!','Yes! You found it!','Excellent reading!']);C.why='✅ '+esc(qq.why);C.nextBtn=true;save();}
  else{SFX.wrong();C.tries++;save();if(C.tries>=2){C.reveal=true;C.msg='Let\'s look at the right answer together.';C.why='💡 '+esc(qq.why);C.nextBtn=true;}else{C.msg='Hmm, not quite. Tap <b>📖 Look back at the story</b> and try again!';}}
@@ -4034,12 +4149,14 @@ function giftSend(toId,kind,item,qty){
  const p=P();const to=state.players.find(x=>x.id===toId);if(!to||!giftsLeft(p))return closeModal();
  if(kind==='coins'){if(p.coins<qty)return giftPick(toId);p.coins-=qty;}
  else if(kind==='food'){if(!(p.pantry[item]>0))return giftPick(toId);p.pantry[item]--;}
- else if(kind==='egg'){if(p.eggs<1)return giftPick(toId);p.eggs--;}
+ else if(kind==='egg'){if(p.eggs<1)return giftPick(toId); /* keep p.eggB (shop eggs, which always hatch a pet) in step: give a found mystery egg first; if only shop eggs are left, a shop egg travels as one */
+  if(p.eggB==null)p.eggB=p.eggs; /* older saves: eggs held before shop tracking count as shop eggs */
+  p.eggB=Math.max(0,Math.min(p.eggB,p.eggs));var shopG=p.eggB>=p.eggs;p.eggs--;if(shopG)p.eggB--;}
  else return;
  p.giftsSent=p.giftsSent&&p.giftsSent.d===dayKey()?{d:dayKey(),n:p.giftsSent.n+1}:{d:dayKey(),n:1};
  p.giftsGiven=(p.giftsGiven||0)+1;questEvent(p,'gift',1);
  state.gifts=state.gifts||{};const id='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
- state.gifts[id]={id,from:p.id,fromName:p.name,to:toId,kind,item:item||null,qty,t:Date.now(),claimed:false};
+ state.gifts[id]={id,from:p.id,fromName:p.name,to:toId,kind,item:item||null,qty,t:Date.now(),claimed:false};if(kind==='egg'&&shopG)state.gifts[id].shop=1;
  save();SFX.win();
  modal(`<div class="mcard"><div class="big-emoji giftfly">🎁</div><h2>Gift sent!</h2><p>${esc(to.name)} will find ${giftLabel({kind,item,qty})} waiting next time they play. That was really kind! 💖</p><p class="muted">Gifts left today: ${giftsLeft(p)}</p><button class="btn green big" onclick="closeModal();go(curScreen,curArg)">Yay!</button></div>`);
 }
@@ -4055,7 +4172,7 @@ function showGift(){
 function giftOpen(id){
  const p=P();const g=state.gifts&&state.gifts[id];if(!g||g.claimed||g.to!==p.id)return;
  g.claimed=true;g.ct=Date.now();
- if(g.kind==='coins')p.coins+=g.qty;else if(g.kind==='egg')p.eggs++;else if(g.kind==='food')p.pantry[g.item]=(p.pantry[g.item]||0)+1;
+ if(g.kind==='coins')p.coins+=g.qty;else if(g.kind==='egg'){if(p.eggB==null)p.eggB=p.eggs||0;p.eggs++;if(g.shop)p.eggB++;}else if(g.kind==='food')p.pantry[g.item]=(p.pantry[g.item]||0)+1;
  p.giftsGot=(p.giftsGot||0)+1;save();SFX.win();
  const icon=g.kind==='coins'?'🪙':g.kind==='egg'?'🥚':(PET_FOODS.find(x=>x.id===g.item)||{e:'🎁'}).e;
  const b=$('#giftBox');if(b){b.textContent=icon;b.classList.add('opened');}
@@ -4141,8 +4258,10 @@ function spellRound(){return B&&B.mode==='spell'?(B.round||1):0;}
 /* ================= parent corner ================= */
 /* fresh device: a grown-up check BEFORE anyone can pick the Parent PIN (so a kid can't set it) */
 let GROWN_OK=false,GROWN_Q=null;
-function grownCheck(then){const a=13+Math.floor(Math.random()*7),b=6+Math.floor(Math.random()*4);GROWN_Q={ans:a*b,then};
- modal(`<div class="mcard"><h2>👪 Grown-ups only</h2><p>Before setting a Parent PIN, please answer:</p><div style="font-size:34px;font-weight:800;margin:6px 0 10px">${a} × ${b} = ?</div><input id="grownIn" class="inp" type="text" inputmode="numeric" autocomplete="off" maxlength="4" style="max-width:160px;text-align:center" onkeydown="if(event.key==='Enter')grownAnswer()"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="grownAnswer()">OK</button></div></div>`);
+/* QA Sep 30: a teen × one-digit problem was easy for our 4th graders, so the check is now a 2-digit × 2-digit problem
+   (no easy tens, e.g. 67 × 38). It only guards picking the FIRST PIN; once a PIN exists, only the PIN opens the corner. */
+function grownCheck(then){const r=(lo,hi)=>{let n;do{n=lo+Math.floor(Math.random()*(hi-lo+1));}while(n%10===0||n%11===0);return n;};const a=r(34,97),b=r(23,89);GROWN_Q={ans:a*b,then};
+ modal(`<div class="mcard"><h2>👪 Grown-ups only</h2><p>Before setting a Parent PIN, please answer (paper is fine):</p><div style="font-size:34px;font-weight:800;margin:6px 0 10px">${a} × ${b} = ?</div><input id="grownIn" class="inp" type="text" inputmode="numeric" autocomplete="off" maxlength="5" style="max-width:160px;text-align:center" onkeydown="if(event.key==='Enter')grownAnswer()"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="grownAnswer()">OK</button></div></div>`);
  setTimeout(()=>{const i=$('#grownIn');if(i)i.focus();},50);}
 function grownAnswer(){const i=$('#grownIn');if(!i||!GROWN_Q)return;if(parseInt(i.value,10)===GROWN_Q.ans){const t=GROWN_Q.then;GROWN_Q=null;closeModal();t();}else{closeModal();toast('That is not right. Please ask a grown-up to set the Parent PIN.');}}
 function parentGate(){
@@ -4154,7 +4273,7 @@ function parentGate(){
 const PIN_KEY='mathquest.pin';let PIN_CHANGE=false;
 function keepPin(){if(state.pin){try{localStorage.setItem(PIN_KEY,state.pin);}catch(e){}try{if(IDB.db)IDB.db.transaction('kv','readwrite').objectStore('kv').put(state.pin,'pin');}catch(e){}}}
 async function recallPin(){if(state.pin)return;let p=null;try{p=localStorage.getItem(PIN_KEY);}catch(e){}if(!p&&IDB.db){p=await new Promise(res=>{try{const t=IDB.db.transaction('kv').objectStore('kv').get('pin');t.onsuccess=()=>res(t.result||null);t.onerror=()=>res(null);}catch(e){res(null);}});}if(p&&/^\d{4}$/.test(p))state.pin=p;}
-function setPin(){const a=$('#pin1').value.trim(),b=$('#pin2').value.trim();if(!/^\d{4}$/.test(a)){toast('The PIN needs 4 digits.');return;}if(a!==b){toast("Those don't match. Try again.");return;}state.pin=a;state.pinUpd=Date.now();save();keepPin();closeModal();go('parent');}
+function setPin(){const a=$('#pin1').value.trim(),b=$('#pin2').value.trim();if(!/^\d{4}$/.test(a)){toast('The PIN needs 4 digits.');return;}if(a!==b){toast("Those don't match. Try again.");return;}GROWN_OK=false;state.pin=a;state.pinUpd=Date.now();save();keepPin();closeModal();go('parent');}
 function checkPin(){const i=$('#pinIn');if(i.value.trim()===state.pin){closeModal();go('parent');}else{i.value='';i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');}}
 function oldHoldGate(){
  modal(`<div class="mcard"><h2>👪 Grown-ups only</h2><p>Press and hold the button for 3 seconds.</p>
@@ -4223,7 +4342,11 @@ SCREENS.parent=()=>{
  <p class="note" style="margin-top:10px">Game version: <b>${APP_VER}</b> <button class="btn small ghost dark" onclick="Upd.checkNow(true)">🔄 Check for update</button></p></div></div>`;
  setTimeout(()=>{try{window.Groups&&Groups.fillSection();}catch(e){}},0);
 };
-function changePin(){PIN_CHANGE=true;parentGate();} // the old PIN stays until a new one is confirmed (Cancel keeps it)
+function changePin(){ /* changing the PIN needs the CURRENT PIN (so a kid who finds the Parent Corner open can't take it over) */
+ if(!state.pin){PIN_CHANGE=true;parentGate();return;}
+ modal(`<div class="mcard"><h2>👪 Change the Parent PIN</h2><p>First, type the <b>current</b> PIN.</p><input id="pinOld" class="inp" type="password" inputmode="numeric" maxlength="4" style="max-width:200px;text-align:center" onkeydown="if(event.key==='Enter')changePinOk()"><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn green" onclick="changePinOk()">Next</button></div></div>`);
+ setTimeout(()=>{const i=$('#pinOld');if(i)i.focus();},50);}
+function changePinOk(){const i=$('#pinOld');if(!i)return;if(i.value.trim()===state.pin){closeModal();PIN_CHANGE=true;parentGate();}else{i.value='';i.classList.remove('shake-x');void i.offsetWidth;i.classList.add('shake-x');toast("That's not the current PIN.");}} // the old PIN stays until a new one is confirmed (Cancel keeps it)
 function clearLock(id){const p=state.players.find(x=>x.id===id);p.lock=null;save();refreshParent(`pp-${id}`,true);}
 function downloadBackup(){const b=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='math-quest-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();toast('Backup downloaded.');}
 function restoreBackup(inp){const f=inp.files&&inp.files[0];if(!f)return;f.text().then(t=>{try{const s=JSON.parse(t);if(!Array.isArray(s.players))throw 0;const keep=state.pin;state=s;if(!state.pin)state.pin=keep;state.family=cloud.code;state.players.forEach(p=>p.upd=Date.now());migrate();save();toast('Backup restored!');go('parent');}catch(e){toast("That file isn't a Math Quest backup.");}});}
@@ -4327,7 +4450,7 @@ function bigContinue(p){const n=nextBattleFor(p);if(!n)return '';const {z,i,cr,d
  return `<button class="bigcont" onclick="startBattle('${z.id}',${i})"><span class="bc-art">${m[1]}</span><span class="bc-txt"><b>▶ ${p.last?'Continue':'Start'}: ${esc(z.name)} ⚔️</b><small>${done?'Rematch':'Next battle'}: ${esc(m[0])}${i===5?' (BOSS)':''}${cr>1?' · '+ROUNDS[cr].m+' '+ROUNDS[cr].n:''}</small></span><span class="bc-go">GO!</span></button>`;}
 
 function eventBanner(p){const z=ZONES.find(z=>z.id==='haunt');if(eventOpen())return `<button class="evbanner" onclick="go('zone','haunt')">🎃 <b>Haunted Hollow is open!</b> Beat the Pumpkin King for <b>Boo the Ghost</b>, a pet you can only get until Nov 1. 👻</button>`;
- if(eventSoon()){const days=Math.ceil((new Date(EVENT_START+'T00:00:00')-new Date())/864e5);if(days<=30)return `<div class="evbanner soon">🎃 <b>Haunted Hollow</b> opens in ${days} day${days===1?'':'s'} (Oct 18)! A spooky event world with a ghost pet and a pumpkin hat you can only get then.</div>`;}return '';}
+ if(eventSoon()){const days=eventDaysTo();if(days<=30)return `<div class="evbanner soon">🎃 <b>Haunted Hollow</b> opens in ${days} day${days===1?'':'s'} (Oct 18)! A spooky event world with a ghost pet and a pumpkin hat you can only get then.</div>`;}return '';}
 function questBar(p){const q=(p.quest&&p.quest.d===dayKey())?p.quest:{wins:0,done:false};const st=dayStreak(p);
  return `<div class="questbar"><div>🎯 <b>Today's quest:</b> win 3 battles ${q.done?'✅ Done!':`(${Math.min(q.wins,3)}/3) → ${dailyEggDay(P())&&regHave(P())<REG_PETS.length?'🥚':'🪙 150'}`}</div>${streakBadge(p)?`<div>${streakBadge(p)}</div>`:''}</div>`;}
 function continueCard(p){
@@ -4349,8 +4472,15 @@ function tbSet(id,k,v){const p=state.players.find(x=>x.id===id);const T=tbState(
  save();refreshParent(`pp-${id}`,true);toast(k==='add'?`Added 15 minutes for ${p.name}.`:'Saved.');}
 function setGrade(id,g){const p=state.players.find(x=>x.id===id);p.adult=g==='A';g=g==='A'?12:+g;p.grade=g;if(p.spellSig!==undefined)p.spellSig=spellSchool(p).map(x=>x.w).join('|');save();refreshParent(`pp-${id}`,true);toast(`Grade set to ${g}.`);}
 function addPlayer(){const n=$('#npName').value.trim();if(!n){toast('Type a name first');return;}if(window.nameProblem){const pr=nameProblem(n,state.players.map(x=>x.name));if(pr){toast(pr);return;}}const gv=$('#npGrade').value;if(!gv){toast('Pick a grade (or Adult) first');return;}const np=newPlayer(n,gv==='A'?12:+gv);if(gv==='A')np.adult=true;np.gradeSet=true;state.players.push(np);save();refreshParent(null);const c=document.getElementById('pp-'+np.id);if(c){c.scrollIntoView({block:'center',behavior:'smooth'});c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),900);}}
-function confirmReset(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Reset ${esc(p.name)}?</h2><p>This clears coins, pets, items, map progress and stats. It can't be undone.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doReset('${id}')">Reset</button></div></div>`);}
-function doReset(id){const i=state.players.findIndex(x=>x.id===id);const o=state.players[i];const n=newPlayer(o.name,o.grade);n.id=o.id;state.players[i]=n;save();closeModal();refreshParent(`pp-${id}`,true);}
+function confirmReset(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Reset ${esc(p.name)}?</h2><p>This clears coins, pets, items, map progress and stats. It can't be undone.</p><p class="muted">Settings stay: name, grade, hero look, secret pictures, play-time limit, sound and spelling words.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doReset('${id}')">Reset</button></div></div>`);}
+/* Reset clears PROGRESS only. Settings a parent or kid chose stay: name, grade, look, secret pictures, play-time limit
+   (and any break in progress, so a reset is never a way around the limit), sound/voice/music, custom spelling words. */
+const RESET_KEEP=['name','grade','adult','gradeSet','look','lock','setup','tbOn','tbMin','tb','snd','voice','music','caveMusic','customWords','spellSig','gradeFix11','mikaBoy'];
+function doReset(id){const i=state.players.findIndex(x=>x.id===id);const o=state.players[i];if(!o)return;const n=newPlayer(o.name,o.grade);n.id=o.id;
+ RESET_KEEP.forEach(k=>{if(o[k]!==undefined)n[k]=JSON.parse(JSON.stringify(o[k]));});
+ n.look=Object.assign({},n.look);if(!n.owned.hats.includes(n.look.hat))n.look.hat='wizard';if(!n.owned.robes.includes(n.look.robe))n.look.robe='purple';
+ n.welcomed=false;n.upd=Date.now(); /* they get the welcome, a fresh egg and the skill check again */
+ state.players[i]=n;save();closeModal();refreshParent(`pp-${id}`,true);}
 function confirmDelete(id){const p=state.players.find(x=>x.id===id);modal(`<div class="mcard"><h2>Delete ${esc(p.name)}?</h2><p>This removes the player and all their progress.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="doDelete('${id}')">Delete</button></div></div>`);}
 function doDelete(id){state.deleted=state.deleted||{};state.deleted[id]=Date.now();state.players=state.players.filter(x=>x.id!==id);if(state.cur===id)state.cur=null;save();closeModal();refreshParent(null);}
 
@@ -4420,7 +4550,9 @@ function startSpell(i){
 function startQuest(kind,id){
  const p=P();
  if(kind==='quiz'){const qz=quizList(p).find(x=>x.id===id);if(!qz)return;
-  const items=qz.questions.map((x,k)=>({type:'choice',text:x.q,choices:x.c,answer:x.a,why:x.why||'',key:k})).sort(()=>Math.random()-.5);
+  const items=qz.questions.map((x,k)=>{let c=(x.c||[]).slice(),a=x.a; /* shuffle the answer choices too (so the right one isn't always in the same spot); the answer index follows its choice. "All/none of the above" lists and all-number lists (4, 6, 8, 10) keep their order. */
+   if(c.length>1&&!c.every(t=>/^\s*[-−$]?[\d.,\/]+\s*$/.test(String(t)))&&!c.some(t=>/\b(all|none|both|neither) of (the|these)\b|above|below/i.test(String(t)))){const idx=c.map((_,i)=>i).sort(()=>Math.random()-.5);a=idx.indexOf(x.a);c=idx.map(i=>x.c[i]);}
+   return {type:'choice',text:x.q,choices:c,answer:a,why:x.why||'',key:k};}).sort(()=>Math.random()-.5);
   questBattle({mode:'quiz',z:{id:'quiz',name:qz.title,cls:'z-quiz'},name:'Riddle Genie',emoji:'🧞',items,qid:id,backTo:'quests',backArg:'quiz'});}
  else{const hw=hwList(p).find(x=>x.id===id);if(!hw)return;
   const items=hw.problems.map((x,k)=>({type:'hw',text:String(x.q),answer:String(x.a),hint:x.hint||'',key:k}));
@@ -4536,11 +4668,15 @@ function questWin(){
 function schoolCards(p){
  const words=spellList(p),lw=words.filter(x=>learned(p,x.w)).length,qz=quizList(p),hw=hwList(p);
  const pr=p.progress.spell||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
- return `<h2 class="title" style="margin-top:10px">🏫 School Quests</h2><p class="lockmore" style="margin:-4px 0 10px">Spelling words, quizzes and homework from your teacher</p><div class="zones">
+ return qbSec('school','<h2 class="title" style="margin-top:10px">🏫 School Quests</h2>',`<p class="lockmore" style="margin:-4px 0 10px">Spelling words, quizzes and homework from your teacher</p><div class="zones">
  <button class="zone-card z-spell" onclick="go('zone','spell')"><div class="op">Aa</div><h3>Spelling Grove</h3><div class="zsub">${words.length?`${lw} of ${words.length} words learned`:'No words yet'}</div><div class="zlv">⭐ ${stars} / 18 · ${esc(spellTitle(p))}</div><div class="zart">📜</div></button>
  <button class="zone-card z-quiz" onclick="go('quests','quiz')"><div class="op">?</div><h3>Knowledge Quests</h3><div class="zsub">${qz.length?`${qz.length} quiz${qz.length>1?'zes':''}`:'No quizzes yet'}</div><div class="zlv">${qz.map(x=>esc(x.title)).join(', ')}</div><div class="zart">🧞</div></button>
- <button class="zone-card z-hw" onclick="go('quests','hw')"><div class="op">📝</div><h3>Homework Quest</h3><div class="zsub">${hw.length?`${hw.length} assignment${hw.length>1?'s':''}`:'No homework yet'}</div><div class="zlv">${hw.length?esc(hw[hw.length-1].title):'Coming soon!'}</div><div class="zart">🦖</div></button></div>`;
+ <button class="zone-card z-hw" onclick="go('quests','hw')"><div class="op">📝</div><h3>Homework Quest</h3><div class="zsub">${hw.length?`${hw.length} assignment${hw.length>1?'s':''}`:'No homework yet'}</div><div class="zlv">${hw.length?esc(hw[hw.length-1].title):'Coming soon!'}</div><div class="zart">🦖</div></button></div>`);
 }
+/* Quest Board sections fold up (tap the heading); each device remembers which ones a kid closed */
+function qbOpen(k){try{return localStorage.getItem('mq.qb.'+k)!=='0';}catch(e){return true;}}
+function qbSet(k,v){try{localStorage.setItem('mq.qb.'+k,v?'1':'0');}catch(e){}}
+function qbSec(k,head,body){return `<details class="qbsec" ${qbOpen(k)?'open':''} ontoggle="qbSet('${k}',this.open)"><summary>${head}</summary>${body}</details>`;}
 SCREENS.quests=kind=>{
  const p=P();const list=kind==='quiz'?quizList(p):hwList(p);const store=kind==='quiz'?p.quizStats:p.hwStats;
  const title=kind==='quiz'?'🧞 Knowledge Quests':'🦖 Homework Quest';
@@ -4567,7 +4703,7 @@ function parentSchool(p){
 }
 function saveWords(id){
  const p=state.players.find(x=>x.id===id);const t=$('#words-'+id).value;
- const list=t.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.split(/\s+[-–—]\s+/);return {w:m[0].replace(/[^A-Za-z'\-]/g,''),s:(m[1]||'').trim()};}).filter(x=>x.w);
+ const list=t.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.split(/\s+[-–—]\s+/);return {w:/-/.test(m[0])?'':m[0].replace(/[^A-Za-z']/g,''), /* hyphenated words can't be typed on the keyboard: skip them */s:(m[1]||'').trim()};}).filter(x=>x.w);
  p.customWords=list.length?list:null;p.progress.spell=[0,0,0,0,0,0];save();refreshParent(`pp-${id}`,true);toast(list.length?`Saved ${list.length} words for ${p.name}.`:'Cleared.');
 }
 function clearWords(id){const p=state.players.find(x=>x.id===id);p.customWords=null;save();refreshParent(`pp-${id}`,true);}
@@ -4684,7 +4820,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.30n';
+/* APP_VER is defined in the first <script> in <body> (it also versions the add-on file URLs) */
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;

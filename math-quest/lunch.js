@@ -29,7 +29,7 @@ const DB={
   ['wrap','🌯','Whole-wheat wrap','whole',40,'wraps'],['pizza','🍕','Pizza','treat dairy salty',60,'pizza slices'],['donut','🍩','Donut','treat sugary',40,'donuts'],['cake','🍰','Cake','treat sugary dairy',55,'slices of cake']],
  prot:[['chicken','🍗','Roast chicken','meat',110,'pieces of chicken'],['fish','🐟','Baked fish','fish',140,'fish fillets'],['eggs','🥚','Scrambled eggs','',60,'scoops of eggs'],
   ['chili','🥘','Bean chili','',70,'bowls of chili'],['falafel','🧆','Falafel','hard',80,'falafel balls'],['turkey','🦃','Turkey slices','meat salty',100,'turkey slices'],
-  ['shrimp','🍤','Shrimp','fish',150,'shrimp'],['pb','🥜','Peanut butter','nuts',50,'spoonfuls of peanut butter'],['cheese','🧀','Cheese cubes','dairy',70,'cheese cubes'],
+  ['shrimp','🍤','Shrimp','fish',150,'shrimp'],['pb','🥜','Peanut butter','nuts',50,'spoonfuls of peanut butter'],
   ['meatball','🍖','Meatballs','meat',100,'meatballs'],['beef','🥩','Beef strips','meat hard',130,'beef strips'],['salmon','🍣','Salmon','fish',160,'salmon pieces'],
   ['lentil','🍛','Lentil curry','',65,'bowls of curry'],['tofu','🥢','Tofu stir-fry','',75,'bowls of stir-fry'],['nuts','🌰','Nut mix','nuts hard',80,'handfuls of nuts'],
   ['hotdog','🌭','Hot dog','treat meat salty',60,'hot dogs'],['burger','🍔','Cheeseburger','treat meat dairy salty',90,'burgers']],
@@ -38,6 +38,8 @@ const GROUPS=['fruit','veg','grain','prot','drink'];
 const GN={fruit:'Fruit',veg:'Veggie',grain:'Grain',prot:'Protein',drink:'Drink'};
 const GI={fruit:'🍎',veg:'🥦',grain:'🍞',prot:'🍗',drink:'🥛'};
 const ITEM={};for(const g in DB)DB[g].forEach(([id,e,n,t,pr,pc])=>{ITEM[id]={id,g,e,n,t:t?t.split(' '):[],pr,pc};});
+/* Cheese is DAIRY on USDA MyPlate, not protein, so it's no longer offered as a protein. Kept only so older saved plates/plans still show it. */
+ITEM.cheese={id:'cheese',g:'prot',e:'🧀',n:'Cheese cubes',t:['dairy'],pr:70,pc:'cheese cubes',old:1};
 const TAGI={nuts:'🥜',salty:'🧂',meat:'🥩',fish:'🐟',dairy:'🥛',sugary:'🍭',hard:'🪥',whole:'🌾'};
 const TAGN={nuts:'nuts',salty:'salty',meat:'meat',fish:'fish',dairy:'dairy',sugary:'sugary',hard:'crunchy',whole:'whole grain'};
 const has=(x,t)=>!!x&&x.t.includes(t);
@@ -105,7 +107,8 @@ function evalPlate(plate,needs){plate=plate||{};const it=['fruit','veg','grain',
  const bal=full&&drinkOK&&treats.length<=1;
  const st=(needs||[]).map(n=>{const N=NEEDS[n];if(N.req){const ok=N.req(all);return {id:n,ok,pend:!ok&&!full,bad:[]};}const bad=all.filter(N.bad);return {id:n,ok:!bad.length,bad};});
  const needsOK=full&&st.every(s=>s.ok);
- let health=0;it.forEach(x=>{health+=isTreat(x)?6:18;});if(dr)health+=drinkOK?28:dr.id==='juice'?16:2;
+ /* health meter = the "Balanced plate" star: it reaches the green zone (85+) exactly when the plate earns that star */
+ let health=0,tn=0;it.forEach(x=>{if(isTreat(x)){tn++;health+=tn===1?12:4;}else health+=18;});if(dr)health+=drinkOK?28:dr.id==='juice'?10:0;
  return {full,bal,needsOK,st,treats,drinkOK,health,dr,it,all};}
 
 /* ---------- saved in-progress lunch ---------- */
@@ -113,6 +116,8 @@ function plannedToday(p){const lw=p.lunchWeek,i=wdIdx();if(!lw||i<0||lw.wk!==mon
 function draft(p){let d=p.lunchDraft;if(!d||d.d!==today()){d=p.lunchDraft={d:today(),st:'intro',plate:{},qs:[],qi:0,tries:0,res:[],fb:null};}
  if((d.st==='intro'||d.st==='plate')&&!d.planned){const pl=plannedToday(p);if(pl){d.plate=Object.assign({},pl.menu);d.planned=true;d.pi=pl.i;}}
  return d;}
+/* a planned plate is locked — unless it breaks a guest's need today (the guest list changes every day), then the kid can fix it */
+function planLocked(p,d){if(!d||!d.planned)return false;if(d.edit)return false;const ev=evalPlate(d.plate,dayPlan(p).needs);if(ev.st.some(x=>!x.ok&&!x.pend)){d.edit=1;const bi=ev.st.reduce((a,x)=>a.concat(x.bad||[]),[])[0];if(bi&&UI)UI.grp=bi.g;return false;}return true;}
 function doneToday(p){return !!(p.cafe&&p.cafe.d===today()&&p.cafe.done);}
 
 /* ---------- Ms. Rosa's order sheet: quantity questions from the menu + diner count ---------- */
@@ -192,13 +197,14 @@ function weekLink(p){if(weekUnlocked(p)){const lw=p.lunchWeek,has=lw&&lw.wk===pl
  const t=stats(p).three||0;return `<div class="ln-wklink"><small>🔒 Week Planner: earn ⭐⭐⭐ on <b>${10-t}</b> more lunch${10-t===1?'':'es'} to unlock it (${t}/10).</small></div>`;}
 
 /* ---------- screen: build the plate ---------- */
-function plateView(p,d){const dp=dayPlan(p),ev=evalPlate(d.plate,dp.needs),Y=young(p);const lock=!!d.planned;
+function plateView(p,d){const dp=dayPlan(p),ev=evalPlate(d.plate,dp.needs),Y=young(p);const lock=planLocked(p,d);const fix=!!(d.planned&&d.edit);
  if(!UI.grp)UI.grp=GROUPS.find(g=>!d.plate[g])||'fruit';
- const say=UI.msg||(lock?'This is your planned menu for today. Check the guests, then send it to me!':ev.full?(Y?'All done! Send it to me! 🧾':'Looks delicious! Send the menu to me when you are ready. 🧾'):(Y?`Pick a <b>${GN[UI.grp].toLowerCase()}</b> for the plate!`:`Tap a food for each part of the plate: fruit, veggie, grain, protein, and a drink.`));
+ const brk=ev.st.filter(x=>!x.ok&&!x.pend).map(x=>NEEDS[x.id]);const bads=[...new Set(ev.st.reduce((a,x)=>a.concat(x.bad||[]),[]))];
+ const say=UI.msg||(fix&&brk.length?`Uh-oh! Your planned menu doesn't work for today's guests: <b>${brk.map(N=>N.warn).join(' ')}</b> ${bads.length?`Swap the <b>${bads.map(x=>x.e+' '+x.n).join('</b> and <b>')}</b> for something else!`:'Change the plate to fix it!'}`:fix?'Nice fix! Your planned menu works for every guest now. Send it to me when you are ready. 🧾':lock?'This is your planned menu for today. Check the guests, then send it to me!':ev.full?(Y?'All done! Send it to me! 🧾':'Looks delicious! Send the menu to me when you are ready. 🧾'):(Y?`Pick a <b>${GN[UI.grp].toLowerCase()}</b> for the plate!`:`Tap a food for each part of the plate: fruit, veggie, grain, protein, and a drink.`));
  autoRead(p,'plate'+(UI.msg||UI.grp),say.replace(/<[^>]+>/g,''));
  const slot=g=>{const x=ITEM[d.plate[g]];return `<button class="ln-slot ln-s-${g} ${UI.grp===g&&!lock?'on':''} ${x?'full':''}" onclick="Lunch.grp('${g}')"><span>${x?x.e:GI[g]}</span><small>${x?x.n:GN[g]}</small></button>`;};
- const hcol=ev.health>=85?'#2f9e44':ev.health>=60?'#94d82d':ev.health>=35?'#fcc419':'#ff6b6b';
- const hl=!ev.full?'Fill every part of the plate!':ev.health>=85?'💪 Super healthy!':ev.health>=60?'🙂 Pretty good!':ev.health>=35?'🤔 Needs more balance':'🍭 Too many treats!';
+ const hcol=ev.bal?'#2f9e44':ev.health>=60?'#94d82d':ev.health>=35?'#fcc419':'#ff6b6b';
+ const hl=!ev.full?'Fill every part of the plate!':ev.bal?'💪 Balanced plate! That earns a ⭐':ev.treats.length>1?'🍭 Too many treats — one treat at most for the ⭐':!ev.drinkOK?'🥛 Pick milk or 💧 water for the ⭐':'🤔 Needs more balance';
  const goal=(ok,t)=>`<div class="ln-goal ${ok?'ok':''}"><span class="ck">${ok?'✓':''}</span>${t}</div>`;
  const gs=ev.st.map(s=>{const N=NEEDS[s.id];return `<div class="ln-gchip ${s.ok?'ok':s.pend?'':'bad'}">${CH[N.who].e} ${N.s} ${s.ok?'✅':s.pend?'⏳':'⚠️'}</div>`;}).join('');
  const warn=UI.warn.length?`<div class="ln-warn">${UI.warn.map(w=>`⚠️ ${w}`).join('<br>')}<small>You can keep it, or pick something else.</small></div>`:'';
@@ -211,7 +217,7 @@ function plateView(p,d){const dp=dayPlan(p),ev=evalPlate(d.plate,dp.needs),Y=you
   <div class="ln-meter"><b>❤️ Health meter</b><div class="bar"><i style="width:${Math.min(100,ev.health)}%;background:${hcol}"></i></div><small>${hl}</small></div></div>
   <div class="ln-panel ln-pb"><div class="ln-goals" style="margin-top:0">${goal(ev.it.length===4,'🍽️ All 4 food groups')}${goal(ev.drinkOK,'🥛 Milk or 💧 water')}${goal(ev.full&&ev.treats.length<=1,'🎉 One treat at most')}</div>
   <div class="ln-gchips">${gs}</div>
-  <div class="row" style="margin-top:8px"><button class="btn ${ev.full?'green':'ghost dark'} big" ${ev.full?'':'disabled'} onclick="Lunch.send()">🧾 Send my menu to Ms. Rosa</button>${!lock&&Object.keys(d.plate).length?'<button class="btn ghost dark small" onclick="Lunch.clear()">↺ Start over</button>':''}</div></div>
+  <div class="row" style="margin-top:8px"><button class="btn ${ev.full?'green':'ghost dark'} big" ${ev.full?'':'disabled'} onclick="Lunch.send()">🧾 Send my menu to Ms. Rosa</button>${!lock&&!d.planned&&Object.keys(d.plate).length?'<button class="btn ghost dark small" onclick="Lunch.clear()">↺ Start over</button>':''}</div></div>
   <div class="ln-panel ln-tray">${cards}</div></div>`;}
 
 /* ---------- screen: order sheet math ---------- */
@@ -261,28 +267,38 @@ function nextPlanNote(p){const lw=p.lunchWeek;if(!lw||lw.wk!==monKey())return ''
  return `<div class="ln-note">🗓️ This week's plan: <b>${n}</b> planned lunch${n===1?'':'es'} served.${lw.bonus?' Bonus earned! 🎉':lw.ok&&need?` Serve ${Math.max(0,need-n)} more for the 🪙 ${WEEK_BONUS} bonus.`:''}</div>`;}
 
 /* ---------- week planner ---------- */
-function weekGoals(days){const full=days.every(m=>m&&GROUPS.every(g=>m[g]));const it=g=>days.map(m=>m&&ITEM[m[g]]).filter(Boolean);
- const mains=it('prot').map(x=>x.id);const vegs=new Set(it('veg').map(x=>x.id));
- const tot=days.reduce((s,m)=>s+(m?GROUPS.reduce((a,g)=>a+(ITEM[m[g]]?ITEM[m[g]].pr:0),0):0),0);
- const treatEarly=days.slice(0,4).some(m=>m&&GROUPS.some(g=>isTreat(ITEM[m[g]])));
- const g={full,mains:mains.length===5&&new Set(mains).size===5,veg:vegs.size>=5,fish:it('prot').some(x=>has(x,'fish')),treat:!treatEarly,budget:tot<=WEEK_BUDGET,tot};
+/* act = the days that still count (days already over this week, and not served from the plan, don't need planning); goals scale to that many days */
+function weekGoals(days,act){act=act||[0,1,2,3,4];const D=act.map(i=>days[i]);const n=D.length;const full=n>0&&D.every(m=>m&&GROUPS.every(g=>m[g]));const it=g=>D.map(m=>m&&ITEM[m[g]]).filter(Boolean);
+ const mains=it('prot').map(x=>x.id);const vegs=new Set(it('veg').map(x=>x.id));const vegN=Math.min(5,n),budget=Math.round(WEEK_BUDGET*n/5);
+ const tot=D.reduce((s,m)=>s+(m?GROUPS.reduce((a,g)=>a+(ITEM[m[g]]?ITEM[m[g]].pr:0),0):0),0);
+ const treatEarly=act.filter(i=>i<4).some(i=>{const m=days[i];return m&&GROUPS.some(g=>isTreat(ITEM[m[g]]));});
+ const g={full,n,vegN,bud:budget,mains:mains.length===n&&new Set(mains).size===n,veg:vegs.size>=vegN,fish:it('prot').some(x=>has(x,'fish')),treat:!treatEarly,budget:tot<=budget,tot};
  g.all=g.full&&g.mains&&g.veg&&g.fish&&g.treat&&g.budget;return g;}
-function wkDraft(p){const wk=planWk();if(!UI.wd||UI.wd.wk!==wk){const lw=p.lunchWeek&&p.lunchWeek.wk===wk?p.lunchWeek:null;UI.wd={wk,days:lw?lw.days.map(m=>Object.assign({},m)):[{},{},{},{},{}],served:lw?Object.assign({},lw.served||{}):{}};UI.wday=Math.max(0,wdIdx()<0||wk!==monKey()?0:wdIdx());UI.wgrp='fruit';}return UI.wd;}
-function weekView(p){const W=wkDraft(p);const g=weekGoals(W.days);const di=UI.wday,dm=W.days[di];const locked=W.served[di]!=null;
+/* which weekdays still need a plan: this week, days before today are over (today too, once today's lunch is already done without the plan) */
+function wkActive(p,W){if(W.wk!==monKey())return [0,1,2,3,4];const t=wdIdx();if(t<0)return [0,1,2,3,4];const cut=t+(doneToday(p)&&W.served[t]==null?1:0);
+ return [0,1,2,3,4].filter(i=>i>=cut||W.served[i]!=null);}
+/* the unsaved week plan lives in the player's save (p.lunchWkDraft) so leaving the planner never loses it; saving the plan clears it */
+function wkDraft(p){const wk=planWk();if(!UI.wd||UI.wd.wk!==wk){const lw=p.lunchWeek&&p.lunchWeek.wk===wk?p.lunchWeek:null;const dr=p.lunchWkDraft&&p.lunchWkDraft.wk===wk?p.lunchWkDraft:null;
+  const served=lw?Object.assign({},lw.served||{}):{};
+  const days=[0,1,2,3,4].map(i=>Object.assign({},served[i]!=null&&lw?lw.days[i]:dr?dr.days[i]:lw?lw.days[i]:{}));
+  UI.wd={wk,days,served};const act=wkActive(p,UI.wd);UI.wday=act.length?act[0]:0;UI.wgrp='fruit';}return UI.wd;}
+function wkKeep(p){try{const W=UI.wd;if(!W)return;p.lunchWkDraft={wk:W.wk,days:W.days.map(m=>Object.assign({},m||{})),at:Date.now()};save();}catch(e){}}
+function weekView(p){const W=wkDraft(p);const act=wkActive(p,W);const g=weekGoals(W.days,act);const di=UI.wday,dm=W.days[di];const locked=W.served[di]!=null;const past=!locked&&!act.includes(di);
  const thisWk=W.wk===monKey();const mon=new Date(W.wk+'T12:00:00');
- const say=`Plan <b>Monday to Friday</b>${thisWk?' for this week':' for next week'}! Meet every goal and I'll give you a <b>🪙 ${WEEK_BONUS} bonus</b> when you serve the week.`;
+ const say=`Plan <b>${act.length&&act.length<5?`${DAYF[act[0]]} to Friday`:'Monday to Friday'}</b>${thisWk?' for this week':' for next week'}! Meet every goal and I'll give you a <b>🪙 ${WEEK_BONUS} bonus</b> when you serve the week.`;
  const goal=(ok,t)=>`<div class="ln-goal ${ok?'ok':''}"><span class="ck">${ok?'✓':''}</span>${t}</div>`;
- const pct=Math.min(100,g.tot/WEEK_BUDGET*100);
- const tabs=DAYN.map((n,i)=>{const m=W.days[i];const dd=new Date(mon);dd.setDate(mon.getDate()+i);return `<button class="${i===di?'on':''} ${W.served[i]!=null?'served':''}" onclick="Lunch.wday(${i})"><b>${n}</b><small>${dd.getMonth()+1}/${dd.getDate()}</small><span>${GROUPS.map(gg=>m&&ITEM[m[gg]]?ITEM[m[gg]].e:'·').join('')}</span>${W.served[i]!=null?'<em>served</em>':''}</button>`;}).join('');
+ const pct=Math.min(100,g.bud?g.tot/g.bud*100:0);
+ const tabs=DAYN.map((n,i)=>{const m=W.days[i];const dd=new Date(mon);dd.setDate(mon.getDate()+i);const isPast=W.served[i]==null&&!act.includes(i);return `<button class="${i===di?'on':''} ${W.served[i]!=null?'served':''} ${isPast?'past':''}" onclick="Lunch.wday(${i})"><b>${n}</b><small>${dd.getMonth()+1}/${dd.getDate()}</small><span>${GROUPS.map(gg=>m&&ITEM[m[gg]]?ITEM[m[gg]].e:'·').join('')}</span>${W.served[i]!=null?'<em>served</em>':isPast?'<em>over</em>':''}</button>`;}).join('');
  const slots=GROUPS.map(gg=>{const x=dm&&ITEM[dm[gg]];return `<button class="ln-wslot ${UI.wgrp===gg?'on':''}" onclick="Lunch.wgrp('${gg}')" ${locked?'disabled':''}><span>${x?x.e:GI[gg]}</span><small>${x?x.n:GN[gg]}</small>${x?`<em>${money(x.pr)}</em>`:''}</button>`;}).join('');
  const pool=DB[UI.wgrp].map(r=>ITEM[r[0]]);
  const dayCost=dm?GROUPS.reduce((a,gg)=>a+(ITEM[dm[gg]]?ITEM[dm[gg]].pr:0),0):0;
  return `${head(p,say,'bubw')}<div class="ln-two week"><div class="ln-panel"><h3 class="ln-h">🗓️ Weekly goals</h3><div class="ln-goals">
-  ${goal(g.full,'🍽️ All 5 days planned')}${goal(g.mains,'🍗 A different main (protein) every day')}${goal(g.veg,'🥦 At least 5 different veggies')}${goal(g.fish,'🐟 Fish at least once')}${goal(g.treat,'🎉 Treats only on Friday')}${goal(g.budget,`💵 Stay within ${money(WEEK_BUDGET)}`)}</div>
-  <div class="ln-meter"><b>💵 Budget (one plate each day)</b><div class="bar"><i style="width:${pct}%;background:${g.budget?'#40c057':'#fa5252'}"></i></div><small>${money(g.tot)} of ${money(WEEK_BUDGET)} ${g.budget?'':' · over budget!'}</small></div>
+  ${goal(g.full,g.n===5?'🍽️ All 5 days planned':`🍽️ All ${g.n} days left this week planned`)}${goal(g.mains,'🍗 A different main (protein) every day')}${goal(g.veg,`🥦 At least ${g.vegN} different veggie${g.vegN===1?'':'s'}`)}${goal(g.fish,'🐟 Fish at least once')}${goal(g.treat,'🎉 Treats only on Friday')}${goal(g.budget,`💵 Stay within ${money(g.bud)}`)}</div>
+  ${g.n<5?`<p class="muted" style="margin:6px 0 0;font-size:14px">Days that are already over this week don't need a plan.</p>`:''}
+  <div class="ln-meter"><b>💵 Budget (one plate each day)</b><div class="bar"><i style="width:${pct}%;background:${g.budget?'#40c057':'#fa5252'}"></i></div><small>${money(g.tot)} of ${money(g.bud)} ${g.budget?'':' · over budget!'}</small></div>
   <div class="row" style="margin-top:10px"><button class="btn ${g.full?'green':'ghost dark'} big" ${g.full?'':'disabled'} onclick="Lunch.wsave()">💾 Save my week plan</button><button class="btn ghost dark small" onclick="Lunch.wback()">← Kitchen</button></div></div>
-  <div class="ln-panel"><div class="ln-gstrip">${[[g.full,'🍽️'],[g.mains,'🍗'],[g.veg,'🥦'],[g.fish,'🐟'],[g.treat,'🎉'],[g.budget,'💵']].map(([o,e])=>`<span class="${o?'ok':''}">${e}${o?'✓':'…'}</span>`).join('')}<b>${money(g.tot)}</b></div><div class="ln-days">${tabs}</div><h3 class="ln-h">${DAYF[di]} ${locked?'🔒 already served':''} <small class="muted">${money(dayCost)}</small></h3><div class="ln-wslots">${slots}</div>
-  ${locked?'<div class="ln-lockmsg">This day was already served, so it can\'t change.</div>':`<div class="ln-cards">${pool.map(x=>`<button class="ln-card ${dm&&dm[x.g]===x.id?'on':''} ${isTreat(x)?'treat':''}" onclick="Lunch.wpick('${x.id}')">${card(x,false,true)}</button>`).join('')}</div>${legend}`}</div></div>`;}
+  <div class="ln-panel"><div class="ln-gstrip">${[[g.full,'🍽️'],[g.mains,'🍗'],[g.veg,'🥦'],[g.fish,'🐟'],[g.treat,'🎉'],[g.budget,'💵']].map(([o,e])=>`<span class="${o?'ok':''}">${e}${o?'✓':'…'}</span>`).join('')}<b>${money(g.tot)}</b></div><div class="ln-days">${tabs}</div><h3 class="ln-h">${DAYF[di]} ${locked?'🔒 already served':past?'· already over':''} <small class="muted">${money(dayCost)}</small></h3><div class="ln-wslots">${slots}</div>
+  ${locked?'<div class="ln-lockmsg">This day was already served, so it can\'t change.</div>':past?'<div class="ln-lockmsg">This day is already over, so you don\'t need to plan it. Pick a day that\'s still coming up!</div>':`<div class="ln-cards">${pool.map(x=>`<button class="ln-card ${dm&&dm[x.g]===x.id?'on':''} ${isTreat(x)?'treat':''}" onclick="Lunch.wpick('${x.id}')">${card(x,false,true)}</button>`).join('')}</div>${legend}`}</div></div>`;}
 
 /* ---------- compliments around town ---------- */
 function queueFb(p,S){const good=S.stars===3,nudge=S.stars<=1;if(!good&&!nudge&&Math.random()>=1/3)return;
@@ -298,8 +314,10 @@ function queueFb(p,S){const good=S.stars===3,nudge=S.stars<=1;if(!good&&!nudge&&
  p.lunchFb={d:today(),at:Date.now()+10*60e3,who,text,tip,kind};}
 function fbReady(p){const f=p&&p.lunchFb;if(!f)return false;return Date.now()>=f.at||f.d!==today();}
 let fbShowing=false;
+/* wait while any popup or full-screen scene (Troll, Eagle, Inner Space ride, Science Cave, …) is up — the card must never open underneath one */
+function sceneUp(){try{return !!(window.trollBusy||document.querySelector('#modal.show,#kindOv,.tr-root,.eg-root,.eg-flyover,#isRoot,#cvRoot,.adv-walker'));}catch(e){return false;}}
 function fbCheck(){try{if(fbShowing||typeof curScreen==='undefined'||curScreen!=='world')return;const p=P();if(!p||!p.setup||!fbReady(p))return;
- if(document.querySelector('#modal.show'))return;if((window.visitorQuiet||0)>Date.now())return;if(typeof B!=='undefined'&&B&&!B.over&&curScreen==='battle')return;
+ if(sceneUp())return;if((window.visitorQuiet||0)>Date.now())return;if(typeof B!=='undefined'&&B&&!B.over&&curScreen==='battle')return;
  const f=p.lunchFb;p.lunchFb=null;let got='';
  if(f.tip&&f.tip.coins){p.coins=(p.coins||0)+f.tip.coins;got=`<div class="ln-tip">🎁 A thank-you tip: <b>🪙 ${f.tip.coins}</b></div>`;}
  else if(f.tip&&f.tip.food){const fd=PET_FOODS.filter(x=>x.price<=25);const x=pk(Math.random,fd.length?fd:PET_FOODS);p.pantry=p.pantry||{};p.pantry[x.id]=(p.pantry[x.id]||0)+1;got=`<div class="ln-tip">🎁 A thank-you gift for your pet: <b>${x.e} ${x.name}</b></div>`;}
@@ -314,7 +332,7 @@ function fbCheck(){try{if(fbShowing||typeof curScreen==='undefined'||curScreen!=
 /* ---------- actions ---------- */
 function start(){const p=P(),d=draft(p);d.st='plate';UI.grp=null;UI.msg='';UI.warn=[];save();try{SFX.tap();}catch(e){}go('cafe');}
 function grp(g){UI.grp=g;UI.msg='';try{SFX.tap();}catch(e){}stay();}
-function pickItem(id){const p=P(),d=draft(p),x=ITEM[id];if(!x||d.planned)return;const dp=dayPlan(p);
+function pickItem(id){const p=P(),d=draft(p),x=ITEM[id];if(!x||planLocked(p,d))return;const dp=dayPlan(p);
  if(d.plate[x.g]===id){delete d.plate[x.g];UI.warn=[];UI.msg='';save();stay();return;}
  d.plate[x.g]=id;try{if(typeof tone==='function')tone(700+Math.random()*300,.08,'sine',.05);else SFX.tap();}catch(e){}
  const broke=dp.needs.filter(n=>NEEDS[n].bad&&NEEDS[n].bad(x));UI.warn=broke.map(n=>NEEDS[n].warn);
@@ -348,14 +366,14 @@ function week(){UI.view='week';UI.wd=null;UI.serve=null;try{SFX.tap();}catch(e){
 function wback(){UI.view=null;go('cafe');}
 function wday(i){UI.wday=i;stay();}
 function wgrp(g){UI.wgrp=g;stay();}
-function wpick(id){const W=UI.wd,x=ITEM[id];if(!W||!x||W.served[UI.wday]!=null)return;const m=W.days[UI.wday]=W.days[UI.wday]||{};
- if(m[x.g]===id){delete m[x.g];stay();return;}const wasFull=GROUPS.every(g=>m[g]);m[x.g]=id;try{SFX.tap();}catch(e){}
- const nx=GROUPS.find(g=>!m[g]);if(nx)UI.wgrp=nx;else if(!wasFull){const nd=[0,1,2,3,4].find(i=>i>UI.wday&&W.served[i]==null&&!GROUPS.every(g=>(W.days[i]||{})[g]));if(nd!=null){UI.wday=nd;UI.wgrp='fruit';}}stay();}
-function wsave(){const p=P(),W=UI.wd;if(!W)return;const g=weekGoals(W.days);if(!g.full)return;
+function wpick(id){const p=P(),W=UI.wd,x=ITEM[id];if(!W||!x||W.served[UI.wday]!=null)return;const act=wkActive(p,W);if(!act.includes(UI.wday))return;const m=W.days[UI.wday]=W.days[UI.wday]||{};
+ if(m[x.g]===id){delete m[x.g];wkKeep(p);stay();return;}const wasFull=GROUPS.every(g=>m[g]);m[x.g]=id;try{SFX.tap();}catch(e){}
+ const nx=GROUPS.find(g=>!m[g]);if(nx)UI.wgrp=nx;else if(!wasFull){const nd=act.find(i=>i>UI.wday&&W.served[i]==null&&!GROUPS.every(g=>(W.days[i]||{})[g]));if(nd!=null){UI.wday=nd;UI.wgrp='fruit';}}wkKeep(p);stay();}
+function wsave(){const p=P(),W=UI.wd;if(!W)return;const g=weekGoals(W.days,wkActive(p,W));if(!g.full)return;
  const old=p.lunchWeek&&p.lunchWeek.wk===W.wk?p.lunchWeek:null;const thisWk=W.wk===monKey();
  let left=5;if(thisWk){const i=wdIdx();left=Math.max(0,5-i-(doneToday(p)&&!(old&&old.served&&old.served[i]!=null)?1:0));/* days still to serve, counting today unless today's lunch is already done */}
  if(old&&old.left!=null)left=Math.max(left,old.left);
- p.lunchWeek={wk:W.wk,days:W.days.map(m=>Object.assign({},m)),ok:g.all,goals:{mains:g.mains,veg:g.veg,fish:g.fish,treat:g.treat,budget:g.budget,tot:g.tot},served:old?old.served||{}:{},left,bonus:old?!!old.bonus:false,saved:Date.now()};
+ p.lunchWeek={wk:W.wk,days:W.days.map(m=>Object.assign({},m)),ok:g.all,goals:{mains:g.mains,veg:g.veg,fish:g.fish,treat:g.treat,budget:g.budget,tot:g.tot},served:old?old.served||{}:{},left,bonus:old?!!old.bonus:false,saved:Date.now()};p.lunchWkDraft=null;
  /* today's lunch not started yet? it now follows the plan */
  const d=p.lunchDraft;if(d&&d.d===today()&&(d.st==='intro'||d.st==='plate')&&!d.planned){p.lunchDraft=null;}
  save();try{SFX.win();}catch(e){}
@@ -437,7 +455,7 @@ let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElem
 .ln-note{background:#fff9db;border-radius:14px;padding:10px 12px;margin-bottom:8px}.ln-donestars{text-align:center;font-size:34px;margin-top:8px}
 .ln-days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-bottom:8px}
 .ln-days button{font:inherit;border:2px solid #ffd8a8;background:#fff9f0;border-radius:12px;padding:5px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;color:var(--ink);min-width:0;overflow:hidden}
-.ln-days button.on{background:#ffd43b;border-color:#e8590c}.ln-days button.served{background:#d3f9d8}.ln-days b{font-size:14px}.ln-days small{font-size:11px;color:#8a7b5a}.ln-days span{font-size:11px;letter-spacing:-2px;white-space:nowrap;max-width:100%;overflow:hidden}.ln-days em{font-size:10px;font-style:normal;color:#2b8a3e;font-weight:800}
+.ln-days button.on{background:#ffd43b;border-color:#e8590c}.ln-days button.served{background:#d3f9d8}.ln-days button.past{background:#f1f3f5;border-color:#dee2e6;opacity:.6}.ln-days b{font-size:14px}.ln-days small{font-size:11px;color:#8a7b5a}.ln-days span{font-size:11px;letter-spacing:-2px;white-space:nowrap;max-width:100%;overflow:hidden}.ln-days em{font-size:10px;font-style:normal;color:#2b8a3e;font-weight:800}
 .ln-gstrip{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:8px}.ln-gstrip span{background:#f1f3f5;border-radius:10px;padding:2px 7px;font-size:14px;font-weight:800;color:#868e96}.ln-gstrip span.ok{background:#d3f9d8;color:#2b8a3e}.ln-gstrip b{margin-left:auto;font-size:14px;color:#2b8a3e}
 .ln-wslots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-bottom:8px}.ln-wslot{font:inherit;border:0;border-radius:12px;background:#f8f9fa;padding:5px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;color:var(--ink);min-width:0;box-shadow:0 2px 0 rgba(0,0,0,.12)}
 .ln-wslot.on{box-shadow:inset 0 0 0 3px #e8590c;background:#fff4e6}.ln-wslot span{font-size:26px}.ln-wslot small{font-size:10.5px;font-weight:800;text-align:center;line-height:1.1;overflow:hidden;max-width:100%}.ln-wslot em{font-style:normal;font-size:11px;color:#2b8a3e;font-weight:800}

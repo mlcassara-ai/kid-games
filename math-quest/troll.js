@@ -47,9 +47,14 @@ const DEMO_AGAIN=/trolldemo=again/.test(location.search);
 if(/trolldemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&typeof curScreen!=='undefined'&&curScreen==='world'){clearInterval(iv);ARM='troll';if(typeof toast==='function')toast('🧌 Troll preview'+(DEMO_AGAIN?' (return visit)':'')+': walk onto an empty square outside the village…');}}catch(e){}},500);}
 
 /* ---------- things the troll can take / give back ---------- */
+/* special pets (mythic like Nova, event, prize, Clean-Up's Sorty) are never taken */
+function specialPet(id){if(id==='sorty')return true;const x=(typeof PETS!=='undefined'?PETS:[]).find(q=>q.id===id);return !x /* not registered (an add-on pet): leave it alone */||x.tier==='mythic'||x.tier==='event'||x.tier==='scout'||!!x.prize||!!x.cleanup||!!x.fade;}
+/* young players (grade 2 and under): fewer, easier questions with more time */
+const youngK=p=>{try{return typeof youngReader==='function'?youngReader(p):(!!p&&!p.adult&&(+p.grade||3)<=2);}catch(e){return false;}};
+const nQ=p=>youngK(p)?2:3;
 function takeable(p){const out=[];
  if((p.coins||0)>=5)out.push({k:'coins',v:Math.min(p.coins,Math.max(5,Math.min(400,Math.round(p.coins*.2))))});
- (p.pets||[]).filter(id=>id!==p.pet&&!(window.Adv&&Adv.away(p,id))&&!(window.PetCare&&PetCare.rescued(p,id))&&!((typeof PETS!=='undefined'?PETS:[]).find(x=>x.id===id&&(x.tier==='event'||x.prize)))).forEach /* earned prize/event pets are never stolen */(id=>out.push({k:'pet',id}));
+ (p.pets||[]).filter(id=>id!==p.pet&&!(window.Adv&&Adv.away(p,id))&&!(window.PetCare&&PetCare.rescued(p,id))&&!specialPet(id)).forEach /* earned prize/event/mythic pets and Sorty are never stolen */(id=>out.push({k:'pet',id}));
  const ow=p.owned||{};
  (ow.hats||[]).filter(id=>id!==(p.look&&p.look.hat)&&(HATS.find(h=>h.id===id)||{}).price>0&&!(HATS.find(h=>h.id===id)||{}).event).forEach(id=>out.push({k:'hat',id}));
  (ow.robes||[]).filter(id=>id!==(p.look&&p.look.robe)&&(ROBES.find(h=>h.id===id)||{}).price>0&&!(ROBES.find(h=>h.id===id)||{}).event).forEach(id=>out.push({k:'robe',id}));
@@ -74,7 +79,8 @@ function take(p,holder,kinds){holder=holder||T(p);const opts=takeable(p).filter(
  holder.hoard.push(it);return it;}
 /* things you got back on your own (hatched the same pet again, etc.) leave the hoard — nothing to give back */
 function ownsAgain(p,it){if(it.k==='pet')return (p.pets||[]).includes(it.id);if(it.k==='coins'||it.k==='toy')return false;return ((p.owned||{})[it.k+'s']||[]).includes(it.id);}
-function reclaimed(p,holder){const h=holder.hoard||[];const got=h.filter(it=>ownsAgain(p,it));if(got.length)holder.hoard=h.filter(it=>!ownsAgain(p,it));return got;}
+function reclaimed(p,holder){specialHome(p,holder);const h=holder.hoard||[];const got=h.filter(it=>ownsAgain(p,it));if(got.length)holder.hoard=h.filter(it=>!ownsAgain(p,it));return got;}
+function specialHome(p,holder){try{const h=holder&&holder.hoard;if(!h||!h.length)return;const sp=h.filter(it=>it&&it.k==='pet'&&specialPet(it.id));if(!sp.length)return;p.pets=p.pets||[];sp.forEach(it=>{if(!p.pets.includes(it.id))p.pets.push(it.id);});holder.hoard=h.filter(it=>!sp.includes(it));}catch(e){}}
 function giveBack(p,holder){const t=holder||T(p);reclaimed(p,t);const it=t.hoard.pop();if(!it)return null;
  if(it.k==='coins')p.coins=(p.coins||0)+it.v;
  else if(it.k==='pet'){if(!p.pets.includes(it.id))p.pets.push(it.id);}
@@ -241,6 +247,7 @@ async function start(){
  root=el('<div class="tr-root"><div class="tr-fade on"></div></div>');document.body.appendChild(root);
  if(DEMO&&DEMO_AGAIN&&!t.visits)t.visits=1;
  const first=!t.visits||(!!DEMO&&!DEMO_AGAIN);
+ const YK=youngK(p),NQ=nQ(p);specialHome(p,t);
  const young=first&&(p.grade||3)<=2; // grades 1–2 get a gentler, sillier first meeting (no scary roar, no fainting)
  if(!first){const sk=el('<button class="tr-skip">Skip ▸▸</button>');sk.onclick=()=>{skip=true;sk.remove();};root.appendChild(sk);}
  const fade=root.querySelector('.tr-fade');
@@ -274,7 +281,7 @@ async function start(){
   await tapWait('🙃','<p><b>Clink!</b> A little gate closes around you. It\'s the troll\'s play-cage!</p>');
   bub.style.display='';
   await say(bub,`HAR HAR! I am ${TNAME}, and this is MY cave! You can't go home yet…`,900);
-  await say(bub,'…not until you answer my THREE QUESTIONS! Just you — no help!',600);
+  await say(bub,`…not until you answer my ${NQ===2?'TWO':'THREE'} QUESTIONS! Just you — no help!`,600);
  }else if(first){
   // 3. dark & blinking
   const bl=el('<div class="tr-scene"><div class="tr-blink"><i></i><i></i></div></div>');root.appendChild(bl);fade.classList.remove('on');
@@ -296,7 +303,7 @@ async function start(){
   await tapWait('…','<p>You faint! 💫</p><p>When you wake up… you\'re locked in a <b>cage</b>!</p>');
   bub.style.display='';
   await say(bub,`HAR HAR! I am ${TNAME}, and you fell into MY cave! You're trapped, never to escape! You will never see the sky again…`,900);
-  await say(bub,'…unless you can answer my THREE QUESTIONS! No spells, no help. Just YOU!',600);
+  await say(bub,`…unless you can answer my ${NQ===2?'TWO':'THREE'} QUESTIONS! No spells, no help. Just YOU!`,600);
  }else{
   // RETURN VISIT — you both remember each other!
   const n=t.visits,pick=a=>a[n%a.length],me=`🙂 ${(p.name||'You')}`;
@@ -317,17 +324,17 @@ async function start(){
   stage.classList.remove('tr-kind');
   const back=reclaimed(p,t);if(back.length)await say(bub,`Hmph! I see you got back your ${back.map(x=>label(x).replace(' your ',' ')).join(' and ')} all on your own! Clever… so I don't have to give ${back.length===1?'it':'them'} back.`,600);
   if(t.hoard.length)await say(bub,`And I'm still keeping ${t.hoard.length===1?'something':'some things'} of yours in my hoard… answer right and you can win ${t.hoard.length===1?'it':'them'} back!`,600);
-  await say(bub,pick([`Are you ready for my test? THREE questions! And remember… this time I'm NOT so generous! HAR!`,`Now… are you ready for my THREE questions? Wrong answers go in my hoard! HAR HAR!`,`Ready for my test, friend? Three questions — and they're HARD ones!`]),600);
+  await say(bub,pick(NQ===2?[`Are you ready for my test? TWO questions! HAR!`,`Now… are you ready for my TWO questions? HAR HAR!`,`Ready for my test, friend? Just two questions!`]:[`Are you ready for my test? THREE questions! And remember… this time I'm NOT so generous! HAR!`,`Now… are you ready for my THREE questions? Wrong answers go in my hoard! HAR HAR!`,`Ready for my test, friend? Three questions — and they're HARD ones!`]),600);
  }
  // 7. three questions
  const res=[];const took=[],gave=[];
- for(let i=0;i<3;i++){
+ for(let i=0;i<NQ;i++){
   let q=makeQ(p,i);
-  const ans=await ask(stage,bub,q,i,res,{easier:()=>makeQ(p,i,0)});const ok=ans.ok;q=ans.q;res.push(ok);
+  const ans=await ask(stage,bub,q,i,res,{n:NQ,secs:YK?150:0,intro:NQ===2?['Question ONE!','Last question… TWO!']:null,easier:()=>makeQ(p,i,YK?-2:0)});const ok=ans.ok;q=ans.q;res.push(ok);
   const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
   if(ok){snd(660,.12,'triangle',.12);snd(990,.2,'triangle',.12,.08);
    let g=null;if(!first)g=giveBack(p);if(g){gave.push(g);stage.appendChild(el(`<div class="tr-given">${esc(label(g))} ↩</div>`));}
-   await say(bub,g?`Hmph! Correct. Fine… here's ${label(g)} back.`:['Grrr… that is… CORRECT!','Right again?! Hmph.','Correct! How are you so SMART?'][i],900);}
+   await say(bub,g?`Hmph! Correct. Fine… here's ${label(g)} back.`:['Grrr… that is… CORRECT!','Right again?! Hmph.','Correct! How are you so SMART?'][NQ===2&&i===1?2:i],900);}
   else{snd(240,.18,'sine',.1);snd(190,.25,'sine',.1,.12);
    let tk=null;if(!first)tk=take(p);if(tk){took.push(tk);stage.appendChild(el(`<div class="tr-stolen">${esc(label(tk))} ➜ 🧌</div>`));}
    await say(bub,`${ans.timeout?'⏰ TIME\'S UP!':'WRONG!'} It was ${q.tpl&&typeof xAnsStr==='function'?xAnsStr(q):q.answer}. ${tk?`I'll keep ${label(tk)}! HAR HAR!`:'…but I\'ll give you credit for trying.'}`,1100);}
@@ -336,13 +343,13 @@ async function start(){
  // 8. release
  const right=res.filter(Boolean).length;
  if(first){
-  await say(bub,right===3?'ALL THREE?! Nobody has ever done that! You are a very clever visitor.':right===0?'Hmm… none right. But you tried your best!':`${right} out of 3. You tried hard!`,700);
+  await say(bub,right===NQ?(NQ===2?'BOTH of them?! ':'ALL THREE?! ')+'Nobody has ever done that! You are a very clever visitor.':right===0?'Hmm… none right. But you tried your best!':`${right} out of ${NQ}. You tried hard!`,700);
   stage.classList.add('tr-kind');
   await say(bub,'Oh, all right… I was only pretending to be scary. The truth is, nobody ever visits me down here. I was just glad to have a friend visit! 🥹',900);
   stage.classList.remove('tr-kind');
   await say(bub,'But next time, I WON\'T be so generous! I might take your GOLD… or some of your PETS… or your ITEMS or SPELLS! HAR!',900);
  }else{
-  await say(bub,right===3?`All three right! You win! Off you go, clever one.`:took.length?`Remember — answer right next time and you can win your things back!`:`Off you go. Come visit again… I mean, WATCH YOUR STEP!`,800);
+  await say(bub,right===NQ?`All ${NQ===2?'of them':'three'} right! You win! Off you go, clever one.`:took.length?`Remember — answer right next time and you can win your things back!`:`Off you go. Come visit again… I mean, WATCH YOUR STEP!`,800);
  }
  t.visits++;t.last=Date.now();t.best=Math.max(t.best||0,right);save();
  // the troll stomps over, grabs you and TOSSES you back up the hole
@@ -363,14 +370,15 @@ async function start(){
  root.remove();root=null;busy=false;window.trollBusy=false;window.visitorQuiet=Date.now()+120e3;skip=false;
  if(DEMO){const s=JSON.parse(DEMO);DEMO=null;Object.assign(p,{coins:s.coins,pets:s.pets,owned:s.owned,toys:s.toys,daily:s.daily,feathers:s.feathers});if(s.wkHist)p.wkHist=s.wkHist;if(s.troll)p.troll=s.troll;else delete p.troll;save();try{toast('🧌 That was a preview — nothing was changed.');go('world');}catch(e){}return;}
  const summary=[took.length?`🧌 The troll kept: ${took.map(label).join(', ')}`:'',gave.length?`↩ You won back: ${gave.map(label).join(', ')}`:''].filter(Boolean).join(' · ');
- try{if(typeof toast==='function')toast(`🧌 You escaped ${TNAME}'s cave! ${right}/3 right.${summary?' '+summary:''}`);}catch(e){}
+ try{if(typeof toast==='function')toast(`🧌 You escaped ${TNAME}'s cave! ${right}/${NQ} right.${summary?' '+summary:''}`);}catch(e){}
  try{if(typeof go==='function'&&curScreen==='world')go('world');}catch(e){}
 }
 /* troll questions are HARD: one level above the kid's current level (two above for the last question) */
-function makeQ(p,i,up){let q=null;for(let k=0;k<12;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+(up!=null?up:(i===2?2:1))));q=genQ(op,L);if(q){q.trollL=L;break;}}return q;}
+/* young players (grade 2 and under): one level BELOW their level, then their own level for the last one */
+function makeQ(p,i,up){let q=null;const y=youngK(p);if(up==null)up=y?(i>=nQ(p)-1?0:-1):(i===2?2:1);for(let k=0;k<12;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+up));q=genQ(op,L);if(q){q.trollL=L;break;}}return q;}
 function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  await say(bub,(o.intro||['Question ONE!','Question TWO!','Last question… THREE!'])[i],200,true,o.who);const p=P();
- let inp='';const box=el(`<div class="tr-q">${o.story?'<div class="tr-story"></div>':''}<div class="tr-dots">${[0,1,2].map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-timer"><i></i><b></b></div><div class="tr-qt"></div>
+ let inp='';const box=el(`<div class="tr-q">${o.story?'<div class="tr-story"></div>':''}<div class="tr-dots">${Array.from({length:o.n||3},(_,k)=>k).map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-timer"><i></i><b></b></div><div class="tr-qt"></div>
   <div class="tr-pad ${q.neg?'negon':''}">${['7','8','9','4','5','6','1','2','3','neg','0','del','go'].map(k=>`<button data-k="${k}" class="${k==='go'?'go':k==='neg'?'neg':''}">${k==='del'?'⌫':k==='go'?'✓ Answer':k==='neg'?'±':k}</button>`).join('')}</div></div>`);
  stage.appendChild(box);const qt=box.querySelector('.tr-qt');const st=box.querySelector('.tr-story');
  /* 🔊 read the story problem out loud (automatic for grade 2 and under) */

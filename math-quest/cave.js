@@ -270,7 +270,7 @@ function step(dx,dy){
  if(t===T_AIR){S.x=nx;S.y=ny;sfx('step',ny>0);after();return;}
  if(t===T_SHAFT)return;
  if(t===T_WATER){if(S.gates.raft){S.x=nx;S.y=ny;after();}else openPuzzle('raft');return;}
- if(t===T_LAVA){if(suit().t>=1200){S.x=nx;S.y=ny;after();say('🔥 Walking over lava in Magma Armor! Lava is about 1,100 °C.');}else say('🌋 Lava! It\'s about 1,100 °C — hot enough to melt rock. Go around it.');return;}
+ if(t===T_LAVA){if(suit().t>=1200){S.x=nx;S.y=ny;after();say('🔥 Walking over lava in Magma Armor! Lava is about 700–1,300 °C.');}else say('🌋 Lava! Melted rock is about 700–1,300 °C. Go around it.');return;}
  if(t===T_BAR){const g=GATES[ny];sfx('bonk');
   if(ny===CORE_ROW)say('🧱 Super-dense mantle rock. Look for the 💠 Core Door in this band.');
   else if(g&&g.id==='glow'&&!S.gear.uv)say('✨ Something on this wall glows very faintly… A 🔦 UV lamp would show it. (Gear shop)');
@@ -506,7 +506,7 @@ function card(html){if(modalOpen())cardQ.push(html);else modal(html);}
 
 /* ---------------- Field Lab ---------------- */
 const STREAK_NAMES={'#2f3a2a':'greenish-black','#5a5f66':'lead grey','#ffffff':'white','#2f4f2a':'greenish-black','#8fe3a9':'light green','#8ec5ff':'light blue','#1b1b1b':'black','#8b2a1e':'red-brown','#e8b923':'golden yellow','#7d848c':'lead grey','#fff59a':'pale yellow'};
-const UV_NAMES={'#ff5a3d':'orange-red','#5cc8ff':'bright blue','#39ff6a':'neon green','#ff2a2a':'red','#7fb6ff':'pale blue'};
+const UV_NAMES={'#ff5a3d':'orange-red','#5cc8ff':'bright blue','#39ff6a':'bright green','#ff2a2a':'red','#7fb6ff':'pale blue'};
 const LTESTS=[{id:'hard',e:'💅',n:'Scratch test',q:'How hard is it?'},{id:'streak',e:'⬜',n:'Streak test',q:'What color is its powder?'},{id:'acid',e:'🧪',n:'Vinegar drop',q:'Does it fizz?'},{id:'magnet',e:'🧲',n:'Magnet',q:'Does it stick?'},{id:'water',e:'💧',n:'Water drop',q:'Does it dissolve?'},{id:'uv',e:'🔦',n:'UV lamp',q:'Does it glow?',uv:1},{id:'look',e:'🔍',n:'Look closely',q:'What shape? How shiny?'}];
 const hardBand=h=>{const i=CD.TOOLS.findIndex(t=>h<=t.h);return i<0?4:i;};
 const HB_WORD=['very soft','soft','medium','hard','super hard'],HB_NUM=['2.5 or less','2.5 – 3.5','3.5 – 5.5','5.5 – 7','more than 7'];
@@ -626,11 +626,11 @@ function bench(k,st){
   const todo=sciOrder().filter(x=>!used.includes(x));
   body=`<div class="cv-kq">🧰 Which test next? <small class="cv-korder">Scientists go: 🔍 look → ⬜ streak → 💅 scratch → 🧲 🧪 💧 special tests</small></div><div class="cv-tray">${todo.map(x=>`<button class="cv-trayb ${x===nextSci?'nxt':''}" data-pick="${x}">${TNAME[x]}${x===nextSci?' <em>next step</em>':''}</button>`).join('')}</div>`;
   say=st.say||'You can try any test you like! Real geologists usually start by looking, then the streak tile, then the scratch tools, then the special tests.';}
- else if(t==='hard'){body=`<div class="cv-kq">${KQ.hard} </div><div class="cv-kres">${scratchTray(p,m)}</div>${tested?`<div class="cv-kopts ${opts.length>4?'many':''}">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel('hard',v)}</button>`).join('')}</div>`:''}`;
+ else if(t==='hard'){body=`<div class="cv-kq">${KQ.hard} </div><div class="cv-kres">${scratchTray(p,m)}</div>${tested?`${kFb(st,m,t)}<div class="cv-kopts ${opts.length>4?'many':''}">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel('hard',v)}</button>`).join('')}</div>`:''}`;
   say=st.say||(tested?'Now we know! Which tool was the FIRST one to make a scratch?':Object.keys(p.scr).length?'Keep going! Try the next tool.':'Let\'s scratch it! Smart scientists start with the softest tool: your fingernail.');}
  else if(t==='look'){body=`<div class="cv-kq">${KQ.look}</div>${tested?`<div class="cv-kres"><div class="cv-klook">${rockSVG(p.k,90,m.col)}<div><b>${esc(m.look)}</b></div></div></div><div style="text-align:center"><button class="cv-btn" id="cvLookOk">📝 Write it down</button></div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN.look}</button>`}`;
   say=st.say||(tested?'Color and shape are good clues, but color can fool you! Let\'s write it down and keep testing.':KHINT.look);}
- else{body=`<div class="cv-kq">${KQ[t]} </div>${tested?`<div class="cv-kres">${kPic(m,t,p)}</div>${['magnet','acid','water'].includes(t)?'<div style="text-align:center"><button class="cv-say cv-replay">↻ Watch again</button></div>':''}<div class="cv-kopts ${opts.length>4?'many':''}">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel(t,v)}</button>`).join('')}</div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN[t]}</button>`}`;
+ else{body=`<div class="cv-kq">${KQ[t]} </div>${tested?`<div class="cv-kres">${kPic(m,t,p)}</div>${['magnet','acid','water'].includes(t)?'<div style="text-align:center"><button class="cv-say cv-replay">↻ Watch again</button></div>':''}${kFb(st,m,t)}<div class="cv-kopts ${opts.length>4?'many':''}">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel(t,v)}</button>`).join('')}</div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN[t]}</button>`}`;
   say=st.say||(tested?'Watch closely! What happened? Pick the answer that matches.':KHINT[t]);}
  modal(`<button class="cv-back" data-back>‹ Lab</button><h2>🗝️ ${p.map?'Your Mystery Rock':'Mystery #'+(S.pack.indexOf(p)+1)}</h2>
   <div class="cv-key"><div class="cv-kleft"><div class="cv-specimen">${rockSVG(p.k,96)}</div><div class="cv-sus2"><b>Could still be:</b>${C.map(c=>`<span>${gemSVG(CD.MIN[c],22)} ${esc(CD.MIN[c].n)}</span>`).join('')}</div></div>
@@ -639,6 +639,8 @@ function bench(k,st){
   ${guide(say,st.mood)}`,{wide:1});
  const qText=t?(t==='hard'?'How hard is it? Try the scratch tools, softest first.':KQ[t]):'Which test should we try?';
  root.querySelector('[data-back]').onclick=openLab;
+ /* phones: a wrong answer re-draws the sheet — keep the "look again" note and the answer buttons on screen */
+ const fbEl=root.querySelector('#cvMod .cv-kfb');if(fbEl){try{fbEl.scrollIntoView({block:'center'});}catch(e){}}
  root.querySelectorAll('.cv-replay').forEach(b=>b.onclick=()=>{sfx(t);bench(k,Object.assign({},st,{t,tested:1,quiet:1}));});
  root.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const x=b.dataset.pick;sfx('tap');
   p.cur=x;save();bench(k,{t:x});});
@@ -650,8 +652,9 @@ function bench(k,st){
  root.querySelectorAll('.cv-kopt:not([disabled])').forEach(b=>b.onclick=()=>{const v=opts[+b.dataset.i];const real=tval(m,t);
   if(JSON.stringify(v)===JSON.stringify(real)){sfx('right');p.path.push({t,v:real});p.cur=null;save();ev('keystep',{t,ok:1});
    const left=kAlive(p);const same=left.length===C.length;bench(k,{say:left.length<=1?'Excellent! I think we\'ve cracked it…':same?'Good observing! That test didn\'t rule anyone out this time, but it\'s another clue in our notebook. Try another test!':pick(Math.random,['Great observing! That rules out some suspects.','Exactly right! Let\'s try the next test.','Yes! A real scientist reads results just like that.']),mood:'happy'});}
-  else{sfx('wrong');p.miss++;save();ev('keystep',{t,ok:0});bench(k,{t,tested:1,quiet:1,bad:(st.bad||[]).concat(+b.dataset.i),mood:'think',say:`Hmm, look again! ${kWhy(m,t)}`});}});
+  else{sfx('wrong');p.miss++;save();ev('keystep',{t,ok:0});bench(k,{t,tested:1,quiet:1,bad:(st.bad||[]).concat(+b.dataset.i),mood:'think',say:'Scientists re-check their results all the time. Look at the picture again and try another answer!'});}});
 }
+function kFb(st,m,t){return (st.bad&&st.bad.length)?`<div class="cv-kfb" role="status">🤔 Not quite! ${kWhy(m,t)}</div>`:'';}
 function kWhy(m,t){if(t==='magnet')return m.m?'Watch the rock: it jumps up and sticks to the magnet!':'Watch the rock: the magnet is close, but the rock just sits there.';
  if(t==='acid')return m.f?'See all those bubbles? That\'s fizzing!':'No bubbles at all — so it doesn\'t fizz.';
  if(t==='water')return m.w?'It got smaller and smaller until it was gone — it dissolved!':'It\'s still sitting in the water — it didn\'t dissolve.';
@@ -1057,6 +1060,7 @@ const CSS=`
 .cv-sus.out{opacity:.45;border-color:#ddd!important;box-shadow:none;background:#f8f8f8}.cv-sus em{display:block;font-style:normal;font-size:11px;font-weight:700;color:#c92a2a;margin-top:2px}.cv-sus small{display:block;font-size:11px}
 .cv-t2s{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.cv-t2{background:#f3f0ff;border-radius:12px;padding:8px;text-align:left;display:grid;grid-template-columns:32px 1fr;column-gap:6px;align-items:center}.cv-te{font-size:24px;grid-row:span 2}.cv-t2 b{font-size:14px}.cv-t2 small{font-size:11px;color:#6d6490}.cv-t2.did{background:#e6fcf5}.cv-t2:disabled{cursor:default}.cv-t2:not(.did):disabled{opacity:.5}
 .cv-guide{display:flex;gap:10px;align-items:flex-start;background:#eef7ff;border:3px solid #74c0fc;border-radius:18px;padding:10px 12px;margin:10px 0;text-align:left}
+.cv-kfb{background:#fff9db;border:2px solid #fcc419;border-radius:12px;padding:8px 10px;margin:8px 0;font-size:15px;line-height:1.35;color:#5c3c00}
 .cv-guide.happy{background:#ebfbee;border-color:#51cf66}.cv-guide.think{background:#fff9db;border-color:#fcc419}
 .cv-gav{flex:0 0 64px;width:64px;height:78px;display:flex;align-items:flex-end;justify-content:center}.cv-gav svg{width:64px;height:78px}.cv-gav span{font-size:44px}
 .cv-gsay{flex:1;font-size:16px;line-height:1.4;color:#1f2340}.cv-gsay>b{display:block;color:#1971c2;font-size:13px;letter-spacing:.5px;text-transform:uppercase}

@@ -18,7 +18,7 @@ const tier=p=>{const g=+p.grade||3;return g<=4?0:g<=8?1:2;};
 const cv=p=>{const c=p.cave||{};return {idd:c.idd||{},found:c.found||{},fos:c.fos||{},ex:c.ex||{},crit:c.crit||{},geo:c.geo||{},seen:c.seen||{},maxRow:c.maxRow||0,gear:c.gear||{}};};
 function seeded(n){let x=(n>>>0)||1;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return ((x>>>0)%100000)/100000;};}
 const hash=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;};
-let TAB='min',MM=null;
+let TAB='min',MM=null,FB='';
 
 /* ---------- the key: called by Dr. Quartz at the end of a cave trip ---------- */
 function keyDue(p){const s=Q(p);return !s.key&&s.trips>=KEY_TRIPS;}
@@ -53,16 +53,23 @@ function nextGate(p,m){const D=CD();if(!D||typeof Quartz==='undefined')return nu
 const STREAK={'#ffffff':'white','#2f3a2a':'greenish-black','#2f4f2a':'greenish-black','#8fe3a9':'light green','#8ec5ff':'light blue','#1b1b1b':'black','#8b2a1e':'red-brown','#e8b923':'golden yellow','#5a5f66':'lead grey','#7d848c':'lead grey','#fff59a':'pale yellow'};
 const HB=['very soft','soft','medium','hard','super hard'];
 const hardBand=h=>{const T=CD().TOOLS;const i=T.findIndex(t=>h<=t.h);return i<0?4:i;};
-const TESTS=[{id:'hard',e:'💅',n:'Scratch'},{id:'streak',e:'⬜',n:'Streak'},{id:'acid',e:'🧪',n:'Vinegar'},{id:'magnet',e:'🧲',n:'Magnet'},{id:'water',e:'💧',n:'Water'},{id:'uv',e:'🔦',n:'UV lamp'}];
-function tval(m,t){return t==='hard'?hardBand(m.h):t==='streak'?(m.s||'none'):t==='acid'?!!m.f:t==='magnet'?!!m.m:t==='water'?!!m.w:t==='uv'?(m.u||''):'';}
+/* same order as the cave's Field Lab bench: look → streak → scratch → the special tests (any order, every test always offered) */
+const TESTS=[{id:'look',e:'🔍',n:'Look closely'},{id:'streak',e:'⬜',n:'Streak'},{id:'hard',e:'💅',n:'Scratch'},{id:'magnet',e:'🧲',n:'Magnet'},{id:'acid',e:'🧪',n:'Vinegar'},{id:'water',e:'💧',n:'Water'},{id:'uv',e:'🔦',n:'UV lamp'}];
+const UV_NAMES={'#ff5a3d':'orange-red','#5cc8ff':'bright blue','#39ff6a':'bright green','#ff2a2a':'red','#7fb6ff':'pale blue'};
+function tval(m,t){return t==='hard'?hardBand(m.h):t==='streak'?(m.s||'none'):t==='acid'?!!m.f:t==='magnet'?!!m.m:t==='water'?!!m.w:t==='uv'?(m.u||''):t==='look'?m.look:'';}
 const sw=c=>`<i class="lb-sw" style="background:${c}"></i>`;
+/* a plain grey "mystery rock" so the picture never gives the answer away (the real color shows once it's solved) */
+function rockSVG(k,size){const R=seeded(hash('rock|'+k));const n=9,pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=14+R()*6;pts.push([22+Math.cos(a)*r,23+Math.sin(a)*r*.82]);}
+ const d='M'+pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')+'Z';
+ return `<svg class="lb-rock" width="${size}" height="${size}" viewBox="0 0 44 44" aria-label="mystery rock"><path d="${d}" fill="#8a8f98" stroke="#495057" stroke-width="1.6" stroke-linejoin="round"/>${[0,1,2,3].map(()=>`<circle cx="${(12+R()*20).toFixed(1)}" cy="${(14+R()*16).toFixed(1)}" r="${(1+R()*1.4).toFixed(1)}" fill="#fff" opacity=".35"/>`).join('')}<path d="M14 16 q4 -4 10 -3" stroke="#fff" stroke-width="2" opacity=".45" fill="none" stroke-linecap="round"/><text x="22" y="28" font-size="13" font-weight="800" text-anchor="middle" fill="#fff" opacity=".85">?</text></svg>`;}
 function result(m,t,p){const n=tier(p);
  if(t==='hard'){const b=hardBand(m.h);const T=CD().TOOLS;return b===0?`Your ${T[0].e} fingernail scratches it. It's <b>very soft</b>.`:b===4?`Nothing scratches it, not even the 🔺 quartz point! It's <b>super hard</b>.`:`The ${T[b].e} ${T[b].n.toLowerCase()} scratches it, but the ${T[b-1].e} ${T[b-1].n.toLowerCase()} doesn't. It's <b>${HB[b]}</b>${n?` (about ${m.h})`:''}.`;}
  if(t==='streak')return m.s?`On the white tile it leaves a ${sw(m.s)} <b>${STREAK[m.s]||'colored'}</b> streak.`:`<b>No streak.</b> It's so hard it scratched the tile instead!`;
  if(t==='acid')return m.f?`<b>Fizz!</b> 🫧 Bubbles of carbon dioxide.`:`A drop of vinegar… <b>nothing happens.</b>`;
  if(t==='magnet')return m.m?`<b>SNAP!</b> 🧲 It sticks to the magnet.`:`The magnet <b>doesn't pull</b> on it.`;
  if(t==='water')return m.w?`<b>It dissolved!</b> 💧`:`In water it <b>stays the same.</b>`;
- if(t==='uv')return m.u?`Under UV light it <b>glows</b> ${sw(m.u)}!`:`Under UV light: <b>no glow.</b>`;return '';}
+ if(t==='uv')return m.u?`Under UV light it <b>glows</b> ${sw(m.u)} <b>${UV_NAMES[m.u]||'brightly'}</b>!`:`Under UV light: <b>no glow.</b>`;
+ if(t==='look')return `Up close it looks: <b>${esc(m.look)}</b>.`;return '';}
 /* today's sample: a mineral the kid has already identified, plus suspects a real test can tell apart */
 function mmState(p){const D=CD();if(!D)return null;const s=Q(p),L=s.lab,day=dayKey();const known=Object.keys(cv(p).idd).filter(id=>D.MIN[id]);
  if(known.length<3)return null;
@@ -75,23 +82,29 @@ function mmState(p){const D=CD();if(!D)return null;const s=Q(p),L=s.lab,day=dayK
  L.mm={d:day,id,opts,tests:[],tries:0,done:false};save();return L.mm;}
 function mmHTML(p){const D=CD(),mm=MM||mmState(p);if(!mm)return `<p class="muted">Identify <b>3 minerals</b> in the Science Cave and Dr. Quartz will start leaving you a sample here every day.</p>`;MM=mm;
  const m=D.MIN[mm.id],uv=!!cv(p).gear.uv;
- const gem=`<div class="lb-sample" style="--gc:${m.col}"><i></i></div>`;
- if(mm.done)return `<div class="lb-mm">${gem}<div><b>${mm.ok?'✅ Solved!':'Today\'s sample'}: ${esc(m.n)}</b><p class="muted" style="margin:4px 0 0">${esc(tier(p)?m.o:m.y)}</p><p style="margin:6px 0 0">${mm.ok?`🪙 +${MM_COINS} and a 🔬 lab check on your ${esc(m.n)} card.`:'Nice try! A new sample comes tomorrow.'}</p></div></div>`;
- const tests=TESTS.filter(t=>t.id!=='uv'||uv);
+ const gem=mm.done?`<div class="lb-sample" style="--gc:${m.col}"><i></i></div>`:`<div class="lb-sample lb-unk">${rockSVG(mm.d+mm.id,76)}</div>`;
+ if(mm.done)return `<div class="lb-mm">${gem}<div><b>${mm.ok?'✅ Solved!':'Today\'s sample'}: ${esc(m.n)}</b><p class="muted" style="margin:4px 0 0">${esc(tier(p)?m.o:m.y)}</p><p style="margin:6px 0 0">${mm.ok?`🪙 +${MM_COINS} and a 🔬 lab check on your ${esc(m.n)} card.`:'Nice try! A new sample comes tomorrow.'}</p>${FB&&!mm.ok?`<div class="lb-fb" id="lbFb" role="status">${FB}</div>`:''}</div></div>`;
+ const tests=TESTS.filter(t=>t.id!=='uv'||uv);const nxt=(tests.find(t=>!mm.tests.includes(t.id))||{}).id;
+ const done=TESTS.filter(t=>mm.tests.includes(t.id)); /* clues always listed in the scientist's order */
  return `<div class="lb-mm">${gem}<div style="min-width:0"><p style="margin:0 0 6px">Run tests to collect clues, then pick which mineral it is.${mm.tries?` <b>One more try!</b>`:''}</p>
-  <div class="lb-tests">${tests.map(t=>`<button class="btn small ${mm.tests.includes(t.id)?'ghost dark':''}" onclick="Lab.test('${t.id}')">${t.e} ${t.n}</button>`).join('')}</div>
-  ${mm.tests.length?`<ul class="lb-clues">${mm.tests.map(t=>`<li>${result(m,t,p)}</li>`).join('')}</ul>`:''}
+  <p class="muted lb-order">Scientists go: 🔍 look → ⬜ streak → 💅 scratch → 🧲 🧪 💧${uv?' 🔦':''} special tests. You can pick any test!</p>
+  <div class="lb-tests">${tests.map(t=>{const did=mm.tests.includes(t.id);return `<button class="btn small ${did?'ghost dark':''}${t.id===nxt?' lb-nxt':''}" ${did?'disabled aria-pressed="true"':''} onclick="Lab.test('${t.id}')">${did?'✓ ':''}${t.e} ${t.n}${t.id===nxt?' <em>next step</em>':''}</button>`;}).join('')}</div>
+  ${done.length?`<ul class="lb-clues">${done.map(t=>`<li>${result(m,t.id,p)}</li>`).join('')}</ul>`:''}
+  <p class="lb-pick"><b>Which mineral is it?</b></p>
   <div class="lb-opts">${mm.opts.map(k=>`<button class="btn gold small" ${mm.tests.length?'':'disabled'} onclick="Lab.guess('${k}')">${esc(D.MIN[k].n)}</button>`).join('')}</div>
+  ${FB?`<div class="lb-fb" id="lbFb" role="status">${FB}</div>`:''}
   ${mm.tests.length?'':'<p class="muted" style="margin:6px 0 0;font-size:14px">Run at least one test first.</p>'}</div></div>`;}
-function test(t){const p=P();const mm=MM||mmState(p);if(!mm||mm.done)return;if(!mm.tests.includes(t)){mm.tests.push(t);if(!DEMO)save();}try{SFX.tap();}catch(e){}draw();}
+function test(t){const p=P();const mm=MM||mmState(p);if(!mm||mm.done)return;FB='';if(!mm.tests.includes(t)){mm.tests.push(t);if(!DEMO)save();}try{SFX.tap();}catch(e){}draw();}
+/* phones: keep the answer feedback on screen (it sits right under the answer buttons) */
+function showFb(){const e=document.getElementById('lbFb');if(!e)return;try{const r=e.getBoundingClientRect();if(r.top<60||r.bottom>innerHeight-10)e.scrollIntoView({block:'center'});}catch(x){}}
 function guess(k){const p=P(),s=Q(p);const mm=MM||mmState(p);if(!mm||mm.done||!mm.tests.length)return;const D=CD();
  if(k===mm.id){mm.done=true;mm.ok=true;try{SFX.win();}catch(e){}
   if(!DEMO){p.coins=(p.coins||0)+MM_COINS;s.lab.ok[k]=(s.lab.ok[k]||0)+1;s.lab.solved=(s.lab.solved||0)+1;save();}
-  toast(`🔬 Yes! It's ${D.MIN[k].n}! 🪙 +${MM_COINS}${DEMO?' (preview)':''}`);}
+  FB=`✅ Yes! It's <b>${esc(D.MIN[k].n)}</b>! 🪙 +${MM_COINS}`;toast(`🔬 Yes! It's ${D.MIN[k].n}! 🪙 +${MM_COINS}${DEMO?' (preview)':''}`);}
  else{mm.tries=(mm.tries||0)+1;try{SFX.wrong();}catch(e){}
-  if(mm.tries>=2){mm.done=true;mm.ok=false;toast(`🔬 It was ${D.MIN[mm.id].n}. Look at the clues again!`);}else toast(`🔬 Not ${D.MIN[k].n}. Check your clues and try once more!`);
+  if(mm.tries>=2){mm.done=true;mm.ok=false;FB=`It was <b>${esc(D.MIN[mm.id].n)}</b>. Look at the clues again!`;toast(`🔬 It was ${D.MIN[mm.id].n}. Look at the clues again!`);}else{FB=`🤔 It's <b>not ${esc(D.MIN[k].n)}</b>. Check your clues (or run another test) and try once more!`;toast(`🔬 Not ${D.MIN[k].n}. Check your clues and try once more!`);}
   if(!DEMO)save();}
- draw();}
+ draw();showFb();}
 
 /* ---------- Collection cabinet ---------- */
 function gem(m,big){return `<span class="lb-gem${big?' big':''}" style="--gc:${m.col}"></span>`;}
@@ -151,7 +164,7 @@ function draw(){css();const p=P();if(!p||!hasKey(p)){go('world');return;}const s
   <div class="panel lb-st"><h3>🗺️ Dig Map</h3>${mapHTML(p)}</div>
  </div>`;}
 let GREET='';
-function open(){const p=P();if(!p||!hasKey(p)){go('world');return;}const s=Q(p);MM=null;GREET=greet(p);if(!DEMO){s.lab.visits=(s.lab.visits||0)+1;s.lab.last=dayKey();save();}
+function open(){const p=P();if(!p||!hasKey(p)){go('world');return;}const s=Q(p);MM=null;FB='';GREET=greet(p);if(!DEMO){s.lab.visits=(s.lab.visits||0)+1;s.lab.last=dayKey();save();}
  try{if(typeof W!=='undefined'&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}draw();}
 
 /* ---------- styles ---------- */
@@ -164,6 +177,11 @@ let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElem
 .lb-tests,.lb-opts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
 .lb-page .btn[disabled]{opacity:.45;cursor:default;transform:none}
 .lb-clues{margin:6px 0;padding-left:18px;line-height:1.5}
+.lb-order{margin:0 0 4px;font-size:13px}.lb-pick{margin:8px 0 0}
+.lb-tests .btn em{font-style:normal;font-size:11px;background:#ffe066;color:#23364a;border-radius:8px;padding:1px 6px;margin-left:4px}
+.lb-tests .lb-nxt{box-shadow:0 0 0 3px #ffe066}
+.lb-fb{background:#fff9db;border:2px solid #fcc419;border-radius:12px;padding:8px 10px;margin:8px 0 0;line-height:1.35}
+.lb-sample.lb-unk{background:none;box-shadow:none;border:0;border-radius:0;display:grid;place-items:center}.lb-sample.lb-unk i{display:none}
 .lb-sw{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid #0003;vertical-align:-2px}
 .lb-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .lb-tab{border:0;border-radius:12px;padding:8px 12px;font:inherit;font-weight:600;background:#eee9ff;color:var(--ink);cursor:pointer}
@@ -189,7 +207,7 @@ let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElem
 .lb-key{font-size:64px;text-align:center;animation:lbKey 1.2s ease-out}
 @keyframes lbKey{0%{transform:scale(.2) rotate(-40deg);opacity:0}60%{transform:scale(1.2) rotate(8deg);opacity:1}100%{transform:none}}
 @media (prefers-reduced-motion:reduce){.lb-key{animation:none}}
-@media(max-width:560px){.lb-mm{flex-direction:column}.lb-sample{flex-basis:auto;width:64px;height:64px}}`;document.head.appendChild(st);}
+@media(max-width:560px){.lb-mm{flex-direction:column}.lb-sample{flex-basis:auto;width:64px;height:64px}.lb-sample.lb-unk svg{width:64px;height:64px}}`;document.head.appendChild(st);}
 
 /* ---------- wiring ---------- */
 setInterval(syncTile,500);

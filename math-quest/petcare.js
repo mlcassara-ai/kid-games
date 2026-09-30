@@ -53,7 +53,10 @@ function sweep(p,quiet){if(!p||!p.setup||!p.pets||!p.pets.length)return;const c=
  /* pets at home that Nana isn't watching while she's hired (back from camp, just hatched): she offers, once per booking */
  if(su&&!c.news.some(n=>n.k==='offer')&&uncovered(p).length){c.news.push({k:'offer',t:now});ch=true;}
  // sitter report after an absence she covered
- if(c.lastSeen&&now-c.lastSeen>12*3600e3&&c.sit&&c.sit>c.lastSeen&&c.reported!==c.sit&&owned(p).length){c.news.push({k:'report',t:now});c.reported=c.sit;ch=true;}
+ if(c.lastSeen&&now-c.lastSeen>12*3600e3&&c.sit&&c.sit>c.lastSeen&&c.reported!==c.sit&&owned(p).length){
+  /* only the pets she was really watching while the kid was away (not the buddy, special pets, or pets at camp) */
+  const cov=owned(p).filter(id=>!rescued(p,id)&&!atCamp(p,id)&&(pdOf(p,id).sit||0)>c.lastSeen);
+  if(cov.length){c.news.push({k:'report',t:now,ids:cov,until:c.sit});ch=true;}c.reported=c.sit;}
  c.lastSeen=now;
  if(ch){try{save();}catch(e){}}
  if(!quiet)showNews(p);}
@@ -62,9 +65,14 @@ function offerCost(p,ids){const c=C(p),su=sitUntil(p);return Math.max(1,Math.cei
 function counts(p){const o={lonely:[],packing:[],resc:owned(p).filter(id=>rescued(p,id))};homePets(p).forEach(id=>{const s=stageOf(p,id);if(s===1)o.lonely.push(id);if(s===2)o.packing.push(id);});return o;}
 
 /* ---------- news popups (a pet left, the sitter's report, the intro) ---------- */
-let showing=false;
-function showNews(p){if(showing||document.querySelector('#modal.show')||typeof curScreen==='undefined'||!['world','map','pethome','backpack','camp'].includes(curScreen))return;const c=C(p);
- if(c.intro===1){c.intro=2;save();showing=true;return nanaCard(ruleOn(p)?[`Hello, dear! I'm <b>Nana Paws</b>, the village pet sitter. 🐾`,`Pets need love every few days: a pat, a snack or a game. If a pet goes too long with <b>no food and no fun</b>, it gets lonely, and after a few days it goes to stay at the <b>🏡 Pet Rescue</b>.`,`Busy week coming up? <b>Hire me in the Pet Home</b> and I'll keep everyone fed and happy while you're away. Pets on camp adventures and your battle buddy are always fine!`]:[`Hello, dear! I'm <b>Nana Paws</b>, the village pet sitter. 🐾`,`If you're going to be away for a while, <b>hire me in the Pet Home</b> and I'll keep your pets fed and happy until you're back!`],'Nice to meet you! 👋',()=>{showing=false;});}
+let showing=false,retryT=0;
+function busy(){try{return !!(document.querySelector('#modal.show')||window.trollBusy||document.querySelector('.tr-root')||document.querySelector('.adv-walker')||(window.Adv&&typeof Adv.busy==='function'&&Adv.busy()));}catch(e){return false;}}
+/* something else is on screen: try again in a moment, once it's gone */
+function later(p){if(retryT)return;retryT=setTimeout(()=>{retryT=0;try{const q=typeof P==='function'?P():null;if(q&&q.id===p.id)showNews(q);}catch(e){}},1000);}
+function showNews(p){if(showing&&!document.querySelector('#modal.show'))showing=false; /* its card was closed some other way */
+ if(showing||typeof curScreen==='undefined'||!['world','map','pethome','backpack','camp'].includes(curScreen))return;const c=C(p);
+ if(busy()){if(c.news.length||c.intro===1)later(p);return;}
+ if(c.intro===1){c.intro=2;save();showing=true;return nanaCard(ruleOn(p)?[`Hello, dear! I'm <b>Nana Paws</b>, the village pet sitter. 🐾`,`Pets need love every few days: a pat, a snack or a game. If a pet goes too long with <b>no food and no fun</b>, it gets lonely, and after a few days it goes to stay at the <b>🏡 Pet Rescue</b>.`,`Busy week coming up? <b>Hire me in the Pet Home</b> (tap my picture at the bottom) and I'll keep everyone fed and happy while you're away. Pets on camp adventures and your battle buddy are always fine!`]:[`Hello, dear! I'm <b>Nana Paws</b>, the village pet sitter. 🐾`,`If you're going to be away for a while, <b>hire me in the Pet Home</b> and I'll keep your pets fed and happy until you're back!`],'Nice to meet you! 👋',()=>{showing=false;});}
  const n=c.news.shift();if(!n)return;save();showing=true;
  if(n.k==='left')return nanaCard([`<div style="font-size:54px;text-align:center">${pe(n.id)}🧳</div><b>${nm(n.id)}</b> felt lonely and went to stay at the <b>🏡 Pet Rescue</b> for a while.`,`Don't worry: ${nm(n.id)} is safe, warm and fed there. Ranger Juniper is taking good care of ${nm(n.id)}. You can bring ${nm(n.id)} home from the <b>Pet Home</b> any time!`],'Go to the Pet Home 🏠',()=>{showing=false;go('pethome');},'rescue');
  if(n.k==='credit'){const tot=n.list.reduce((a,x)=>a+x[1],0);const names=n.list.map(x=>`${pe(x[0])} <b>${nm(x[0])}</b>`).join(', ');
@@ -74,11 +82,21 @@ function showNews(p){if(showing||document.querySelector('#modal.show')||typeof c
    <div class="row"><button class="btn ghost dark" id="pcNo">No thanks, I'll care for ${ids.length>1?'them':'it'}</button><button class="btn gold big" id="pcYes">Yes, please · 🪙 ${cost}</button></div></div>`);
   document.getElementById('pcNo').onclick=()=>{ids.forEach(id=>{pdOf(p,id).sitNo=su;});save();closeModal();showing=false;toast('🐾 Nana Paws: "Okay, dear! Give them lots of pats."');};
   document.getElementById('pcYes').onclick=()=>{if(!cover(p,ids,cost)){toast(`🪙 You need ${cost-(p.coins||0)} more coins.`);return;}closeModal();showing=false;toast(`🧶 Nana Paws is watching ${ids.length} more pet${ids.length>1?'s':''} until ${when(su)}!`);if(typeof curScreen!=='undefined'&&curScreen==='pethome')redraw();};return;}
- if(n.k==='report'){const ids=owned(p).filter(id=>!rescued(p,id)).sort(()=>Math.random()-.5).slice(0,3);
-  const lines=REPORT.slice().sort(()=>Math.random()-.5);
-  return nanaCard([`<b>📋 Nana Paws' report</b><ul class="pc-rep">${ids.map((id,i)=>`<li>${pe(id)} ${lines[i].replace(/\{N\}/g,`<b>${nm(id)}</b>`)}</li>`).join('')}</ul>Everyone was fed and happy. Welcome home, dear!`],'Thanks, Nana! 💛',()=>{showing=false;});}
+ if(n.k==='report')return report(p,n);
  showing=false;}
-const REPORT=['{N} ate 4 carrots and barked at a leaf all Tuesday.','{N} napped in the sock drawer. Twice.','{N} learned to jump over a broom. Very proud.','{N} tried to eat the mail. We had a talk.','{N} chased a butterfly for an hour and never caught it. Still had a great time.','{N} sat by the window waiting for you every afternoon.','{N} and I did a puzzle. {N} ate one piece.','{N} found a sunny spot and did not move for a whole day.','{N} sang along to my radio. Loudly.','{N} made friends with a very polite snail.','{N} hid my knitting. I still can\'t find it.','{N} did 10 zoomies around the garden and then slept like a log.'];
+/* the report tells the truth: stories only about the pets she watched, then how everyone is doing RIGHT NOW */
+function report(p,n){const now=Date.now();
+ const cov=(n.ids||sitPets(p).filter(id=>(pdOf(p,id).sit||0)>(n.t-DAY))).filter(id=>owned(p).includes(id)&&!rescued(p,id)&&!atCamp(p,id));
+ if(!cov.length){showing=false;return;}
+ const pick=cov.slice().sort(()=>Math.random()-.5).slice(0,3),lines=REPORT.slice().sort(()=>Math.random()-.5);
+ const low=id=>{const pd=petMood(pdOf(p,id));return stageOf(p,id)>0||(pd.food<=1&&pd.joy<=1);};
+ const list=a=>{const b=a.map(id=>`${pe(id)} <b>${nm(id)}</b>`);return b.length>1?b.slice(0,-1).join(', ')+' and '+b[b.length-1]:b[0];};
+ const sad=cov.filter(low),other=homePets(p).filter(id=>!cov.includes(id)&&stageOf(p,id)>0);
+ const more=cov.length-pick.length;
+ let end=sad.length?`${list(sad)} ${sad.length>1?'are':'is'} missing you already. A pat or a snack would help! 💛`:`Everyone I watched was fed and happy.${sitUntil(p)?` I'm still here until ${when(sitUntil(p))}.`:''}`;
+ if(other.length)end+=`<br>I wasn't watching ${list(other)}, and ${other.length>1?'they are':'that one is'} feeling lonely. Some love, please!`;
+ return nanaCard([`<b>📋 Nana Paws' report</b><ul class="pc-rep">${pick.map((id,i)=>`<li>${pe(id)} ${lines[i].replace(/\{N\}/g,`<b>${nm(id)}</b>`)}</li>`).join('')}${more?`<li>🐾 …and ${more} more ${more>1?'were':'was'} good as gold.</li>`:''}</ul>${end}<br>Welcome home, dear!`],'Thanks, Nana! 💛',()=>{showing=false;if(typeof curScreen!=='undefined'&&curScreen==='pethome')redraw();});}
+const REPORT=['{N} ate 4 carrots and chased a leaf all afternoon.','{N} napped in the sock drawer. Twice.','{N} learned to jump over a broom. Very proud.','{N} tried to eat the mail. We had a talk.','{N} chased a butterfly for an hour and never caught it. Still had a great time.','{N} sat by the window waiting for you.','{N} and I did a puzzle. {N} ate one piece.','{N} found a sunny spot and did not move for hours.','{N} sang along to my radio. Loudly.','{N} made friends with a very polite snail.','{N} hid my knitting. I still can\'t find it.','{N} did 10 zoomies around the garden and then slept like a log.'];
 const NANA=`<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="116" rx="26" ry="4" fill="rgba(0,0,0,.2)"/><path d="M26 60 Q50 50 74 60 L80 112 L20 112Z" fill="#e2567a"/><rect x="38" y="72" width="24" height="20" rx="4" fill="#fff" opacity=".85"/><text x="50" y="87" font-size="12" text-anchor="middle">🐾</text><circle cx="50" cy="36" r="18" fill="#f5d0a9"/><path d="M30 34 Q30 12 50 12 Q70 12 70 34 Q62 22 50 22 Q38 22 30 34Z" fill="#e9ecef"/><circle cx="50" cy="12" r="8" fill="#e9ecef"/><circle cx="43" cy="37" r="5" fill="none" stroke="#6b4f3f" stroke-width="2"/><circle cx="57" cy="37" r="5" fill="none" stroke="#6b4f3f" stroke-width="2"/><path d="M44 46 Q50 50 56 46" stroke="#a0522d" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="38" cy="44" r="3" fill="#ffc9c9"/><circle cx="62" cy="44" r="3" fill="#ffc9c9"/></svg>`;
 const RANGER=`<svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="116" rx="26" ry="4" fill="rgba(0,0,0,.2)"/><path d="M26 60 Q50 50 74 60 L78 112 L22 112Z" fill="#40c057"/><circle cx="50" cy="36" r="18" fill="#c68c5a"/><path d="M24 26 H76 L70 20 H30Z" fill="#2b8a3e"/><rect x="36" y="8" width="28" height="14" rx="4" fill="#2b8a3e"/><circle cx="44" cy="37" r="2.6" fill="#2f241d"/><circle cx="56" cy="37" r="2.6" fill="#2f241d"/><path d="M44 45 Q50 49 56 45" stroke="#2f241d" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
 function nanaCard(pages,lastBtn,done,who){let i=0;const show=()=>{const last=i>=pages.length-1;
@@ -100,11 +118,14 @@ function listHTML(p){const ids=owned(p).filter(id=>!rescued(p,id));if(!ids.lengt
    ${camp?'':`<div class="pc-act"><button class="btn small ${patOk?'':'ghost dark'}" onclick="PetCare.pat('${id}')" aria-label="Pat">🤗<span class="pc-l"> Pat</span></button><button class="btn small ${!food||pd.food>=MOOD_MAX?'pc-empty':'green'}" onclick="PetCare.snack('${id}')" title="${pd.food>=MOOD_MAX?'Full!':food?food.name:'No snacks left'}" aria-label="Snack">${food?food.e:'🍽️'}<span class="pc-l"> Snack</span></button></div>`}</div>`;}).join('')}</div>
  ${food?'':'<p class="muted" style="margin:8px 0 0;font-size:14px">Out of snacks? Buy some in the Pet Shop below.</p>'}</div>`;}
 function planPrice(p,pl){const n=Math.max(1,sitPets(p).length);return Math.round(n*PRICE*pl.id*(1-pl.off));}
+let sitOpen=false;
 function sitterHTML(p){const c=C(p),su=sitUntil(p),n=sitPets(p).length,camp=owned(p).filter(id=>atCamp(p,id)).length;
- return `<div class="panel pc-panel pc-sit"><div class="pc-sithead"><div class="pc-nana">${NANA}</div><div><h3 style="margin:0">🧶 Nana Paws, Pet Sitter</h3>
-  <p class="muted" style="margin:2px 0 0">${su?`<b style="color:#1e9a53">Hired until ${when(su)}.</b> Everyone stays at 2+ hearts.`:`"Off to school all week? I'll make sure everyone gets breakfast and a good scratch behind the ears."`}</p></div></div>
+ const ask=su&&sitPets(p).some(id=>(pdOf(p,id).sit||0)<su); /* open by itself when there's a pet she could still watch */
+ return `<details class="panel pc-panel pc-sit"${sitOpen||ask?' open':''} ontoggle="PetCare._sit(this.open)"><summary class="pc-sithead"><div class="pc-nana">${NANA}</div><div class="pc-sitt"><h3 style="margin:0">🧶 Nana Paws, Pet Sitter</h3>
+  <p class="muted" style="margin:2px 0 0">${su?`<b style="color:#1e9a53">Hired until ${when(su)}.</b> Everyone stays at 2+ hearts.`:`Going away for a while? Tap to hire Nana to watch your pets.`}</p></div><span class="pc-caret" aria-hidden="true">▾</span></summary>
+  ${su?'':`<p class="muted" style="margin:0 0 8px">"Off to school all week? I'll make sure everyone gets breakfast and a good scratch behind the ears."</p>`}
   <div class="pc-plans" id="pcPlans">${PLANS.map(pl=>{const pr=planPrice(p,pl);return `<button class="pc-plan" onclick="PetCare.hire(${pl.id})"><span>${pl.e} ${pl.n}${pl.off?` <em>${Math.round(pl.off*100)}% off</em>`:''}</span><b>🪙 ${pr}</b></button>`;}).join('')}</div>
-  <p class="muted" style="margin:6px 0 0;font-size:14px">🪙 ${PRICE} per pet per day · ${n} pet${n===1?'':'s'} to watch (your battle buddy and special pets are always fine)${camp?` · ${camp} at camp (free)`:''}${su?' · Hiring again adds more days.':''} · You have 🪙 ${p.coins||0}</p><p class="muted" style="margin:4px 0 0;font-size:14px">🏕️ Sending a pet she's watching to camp? Nana gives back the unused days. When it gets home, she'll ask if you want her to watch it again.</p>${(()=>{const nc=su?sitPets(p).filter(id=>(pdOf(p,id).sit||0)<su).length:0;return nc?`<button class="btn small gold" style="margin-top:6px" onclick="PetCare.offer()">🧶 Ask Nana to watch ${nc} more pet${nc>1?'s':''}</button>`:'';})()}</div>`;}
+  <p class="muted" style="margin:6px 0 0;font-size:14px">🪙 ${PRICE} per pet per day · ${n} pet${n===1?'':'s'} to watch (your battle buddy and special pets are always fine)${camp?` · ${camp} at camp (free)`:''}${su?' · Hiring again adds more days.':''} · You have 🪙 ${p.coins||0}</p><p class="muted" style="margin:4px 0 0;font-size:14px">🏕️ Sending a pet she's watching to camp? Nana gives back the unused days. When it gets home, she'll ask if you want her to watch it again.</p>${(()=>{const nc=su?sitPets(p).filter(id=>(pdOf(p,id).sit||0)<su).length:0;return nc?`<button class="btn small gold" style="margin-top:6px" onclick="PetCare.offer()">🧶 Ask Nana to watch ${nc} more pet${nc>1?'s':''}</button>`:'';})()}</details>`;}
 function rescueHTML(p){const ids=owned(p).filter(id=>rescued(p,id));if(!ids.length)return '';
  const food=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0&&f.food>0).sort((a,b)=>a.price-b.price)[0];
  return `<div class="panel pc-panel pc-resc"><div class="pc-sithead"><div class="pc-nana">${RANGER}</div><div><h3 style="margin:0">🏡 Pet Rescue</h3><p class="muted" style="margin:2px 0 0">"${ids.length>1?'These pets are':nm(ids[0])+' is'} safe with me. Come bring ${ids.length>1?'them':'them'} home!" — Ranger Juniper</p></div></div>
@@ -112,7 +133,12 @@ function rescueHTML(p){const ids=owned(p).filter(id=>rescued(p,id));if(!ids.leng
    <div class="pc-act">${rs.fed?'':food?`<button class="btn small green" onclick="PetCare.rfeed('${id}')">${food.e} Snack</button>`:`<button class="btn small gold" onclick="PetCare.rbuy('${id}')">🍎 Buy a snack · 🪙 10</button>`}${rs.played?'':`<button class="btn small" onclick="PetCare.rplay('${id}')">🎾 Play fetch</button>`}${ready?`<button class="btn small gold" onclick="PetCare.home('${id}')">🏠 Bring home · 🪙 ${RESCUE_FEE}</button>`:''}</div></div>`;}).join('')}</div>`;}
 function inject(){try{if(typeof curScreen==='undefined'||curScreen!=='pethome')return;const p=P();if(!p)return;sweep(p,true);css();
  const page=document.querySelector('#app .page');if(!page||page.querySelector('.pc-wrap'))return;const w=document.createElement('div');w.className='pc-wrap';
- w.innerHTML=rescueHTML(p)+listHTML(p)+sitterHTML(p);const zh=page.querySelector('.zhead');if(zh)zh.after(w);else page.prepend(w);}catch(e){console.warn('petcare',e);}}
+ w.innerHTML=listHTML(p)+rescueHTML(p);const s=document.createElement('div');s.className='pc-wrap pc-wrap2';s.innerHTML=sitterHTML(p);
+ /* the page leads with the battle buddy, then all your pets (top of the right-hand column; on phones, right under the buddy).
+    Nana Paws and her prices sit at the very bottom, folded up until you tap her. */
+ const ph=page.querySelector('.pethome'),col=ph&&ph.children[1];
+ if(col)col.prepend(w);else if(ph)ph.after(w);else page.appendChild(w);
+ page.appendChild(s);}catch(e){console.warn('petcare',e);}}
 function redraw(){const y=window.scrollY;go('pethome');window.scrollTo(0,y);}
 /* update just the pet list (no page redraw, no jump) unless the battle buddy's big card also needs to change */
 function refresh(id){const p=P();const el=document.querySelector('.pc-pets');if(!el||id===p.pet){redraw();return;}const y=window.scrollY;const t=document.createElement('div');t.innerHTML=listHTML(p);if(t.firstElementChild)el.replaceWith(t.firstElementChild);window.scrollTo(0,y);}
@@ -177,6 +203,9 @@ let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElem
 .pc-chip{display:inline-block;font-size:12px;font-weight:700;border-radius:10px;padding:2px 8px;background:#eee9ff;color:#5f3dc4;vertical-align:2px}
 .pc-chip.yel{background:#fff3bf;color:#8a6100}.pc-chip.red{background:#ffe3e3;color:#c92a2a}.pc-chip.camp{background:#e7f5ff;color:#1971c2}.pc-chip.nana{background:#fff0e0;color:#d9480f}.pc-chip.buddy{background:#fff0f6;color:#c2255c}
 .pc-sithead{display:flex;gap:12px;align-items:center;margin-bottom:10px}.pc-nana svg{width:64px;height:78px}
+details.pc-sit>summary{list-style:none;cursor:pointer;min-height:48px;margin-bottom:0}details.pc-sit>summary::-webkit-details-marker{display:none}details.pc-sit[open]>summary{margin-bottom:10px}
+.pc-sitt{flex:1;min-width:0}.pc-caret{font-size:22px;color:var(--muted);transition:transform .2s;flex:none;padding:0 4px}details.pc-sit[open] .pc-caret{transform:rotate(180deg)}
+details.pc-sit:not([open]) .pc-nana svg{width:48px;height:58px}
 .pc-plans{display:grid;gap:6px}
 .pc-plan{display:flex;justify-content:space-between;align-items:center;gap:10px;border:2px solid #ffd8a8;background:#fff9f0;border-radius:14px;padding:10px 12px;font:inherit;font-size:16px;color:var(--ink);cursor:pointer;text-align:left}
 .pc-plan:hover{background:#fff4e6}.pc-plan b{white-space:nowrap}.pc-plan em{white-space:nowrap;font-style:normal;font-size:12px;font-weight:700;color:#1e9a53;background:#d3f9d8;border-radius:8px;padding:1px 6px;margin-left:4px}
@@ -192,5 +221,5 @@ window.MQ_HOOKS.push({screen:s=>{try{const p=typeof P==='function'?P():null;if(!
 setInterval(()=>{try{const p=typeof P==='function'&&typeof state!=='undefined'&&state&&state.cur?P():null;if(p)sweep(p);}catch(e){}},60e3);
 window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 function offerNow(){const p=P(),su=sitUntil(p);if(!su)return;homePets(p).forEach(id=>{const pd=pdOf(p,id);if(pd.sitNo===su)delete pd.sitNo;});const c=C(p);c.news=c.news.filter(n=>n.k!=='offer');c.news.unshift({k:'offer',t:Date.now()});showing=false;showNews(p);}
-window.PetCare={offer:offerNow,uncovered,sweep,counts,dot,homeCard,rescued,pat,snack,hire,rfeed,rbuy,rplay,home,setRule,vacation,redraw,ruleOn,canLeave,PRICE,RESCUE_FEE,_C:C};
+window.PetCare={_sit:v=>{sitOpen=!!v;},_busy:busy,offer:offerNow,uncovered,sweep,counts,dot,homeCard,rescued,pat,snack,hire,rfeed,rbuy,rplay,home,setRule,vacation,redraw,ruleOn,canLeave,PRICE,RESCUE_FEE,_C:C};
 })();

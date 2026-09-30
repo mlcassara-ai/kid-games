@@ -33,19 +33,28 @@ const ART={
  plbag:sv('<path d="M8 15 L32 15 L30 37 L10 37 Z" fill="#f8f9fa" stroke="#adb5bd" stroke-width="2" stroke-linejoin="round"/><path d="M13 15 Q12 4 18 9 M27 15 Q28 4 22 9" stroke="#adb5bd" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M14 22 Q20 26 26 21" stroke="#dee2e6" stroke-width="1.6" fill="none"/>'),
  shell:sv('<path d="M3 24 Q3 13 12 13 Q16 13 18 16 L15 18 L18 21 L15 24 L18 27 Q16 35 11 35 Q3 35 3 24Z" fill="#fff4e6" stroke="#c9a27a" stroke-width="2" stroke-linejoin="round"/><path d="M37 22 Q37 11 28 11 Q24 11 22 14 L25 16 L22 19 L25 22 L22 25 Q24 33 29 33 Q37 33 37 22Z" fill="#fff4e6" stroke="#c9a27a" stroke-width="2" stroke-linejoin="round"/>'),
  pstick:sv('<rect x="16" y="3" width="9" height="34" rx="4.5" fill="#e9c38a" stroke="#b08447" stroke-width="2" transform="rotate(28 20 20)"/>'),
+ pbottle:sv('<g transform="rotate(-12 20 20)"><rect x="16" y="2" width="8" height="5" rx="1.5" fill="#1c7ed6"/><path d="M15.5 7 h9 l3 6 v21 q0 3 -3 3 h-9 q-3 0 -3 -3 v-21z" fill="#d0ebff" stroke="#4dabf7" stroke-width="2" stroke-linejoin="round"/><rect x="12.8" y="19" width="14.4" height="7" fill="#74c0fc"/><path d="M16 12 v18" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".8"/></g>'),
+ tube:sv('<g transform="rotate(-18 20 20)"><rect x="7" y="13" width="24" height="14" fill="#c8a165" stroke="#8b6b3d" stroke-width="2"/><path d="M11 13 L17 27 M17 13 L23 27 M23 13 L29 27" stroke="#b08447" stroke-width="1.2"/><ellipse cx="31" cy="20" rx="4" ry="7" fill="#b08447" stroke="#8b6b3d" stroke-width="2"/><ellipse cx="31" cy="20" rx="2" ry="4.6" fill="#5c4424"/></g>'),
+ pbag:sv('<path d="M9 12 L31 12 L33 37 L7 37Z" fill="#d4a373" stroke="#8b5e34" stroke-width="2" stroke-linejoin="round"/><path d="M9 12 L11 5 L29 5 L31 12Z" fill="#e9c38a" stroke="#8b5e34" stroke-width="2" stroke-linejoin="round"/><path d="M13 5 L14.5 12 M27 5 L25.5 12 M11 24 h18" stroke="#8b5e34" stroke-width="1.4" opacity=".7"/>'),
+ fork:sv('<path d="M13 3 L13 13 Q13 19 18 19 L18 36 Q20 39 22 36 L22 19 Q27 19 27 13 L27 3 L25.2 3 L25.2 12 L23.4 12 L23.4 3 L21 3 L21 12 L19 12 L19 3 L16.6 3 L16.6 12 L14.8 12 L14.8 3Z" fill="#f8f9fa" stroke="#868e96" stroke-width="1.5" stroke-linejoin="round" transform="rotate(28 20 20)"/>'),
+ core:sv('<path d="M12 9 Q17 12 17 20 Q17 28 12 32 L28 32 Q23 28 23 20 Q23 12 28 9Z" fill="#fff3bf" stroke="#f59f00" stroke-width="1.2" stroke-linejoin="round"/><ellipse cx="20" cy="9" rx="9" ry="3.8" fill="#e03131"/><ellipse cx="20" cy="32.5" rx="9" ry="3.8" fill="#e03131"/><ellipse cx="20" cy="18" rx="1.3" ry="2.2" fill="#5c3d1e"/><ellipse cx="20" cy="23.5" rx="1.3" ry="2.2" fill="#5c3d1e"/><path d="M20 6 Q20.5 2 24 1.5" stroke="#6b4f2a" stroke-width="2" fill="none" stroke-linecap="round"/>'),
+ peel:sv('<path d="M20 14 Q10 17 5 31 Q11 27 16 27 Q13.5 33 15 38 Q20 31 22 27 Q27 31 34 33 Q31 21 22 14Z" fill="#ffd43b" stroke="#e67700" stroke-width="2" stroke-linejoin="round"/><path d="M18.5 5 L22 5 L22.5 15 L18.5 15Z" fill="#8a6b2e"/><path d="M20 16 Q18 22 17 26 M21 16 Q23 22 25 27" stroke="#fab005" stroke-width="1.4" fill="none"/>'),
+ orange:sv('<path d="M4 25 Q6 10 21 9 Q18 13 18.5 17 Q10 17 9 27Z" fill="#fd7e14" stroke="#d9480f" stroke-width="1.8" stroke-linejoin="round"/><path d="M15 35 Q30 37 36 22 Q32 22.5 30 20 Q27 30 15 31Z" fill="#fd7e14" stroke="#d9480f" stroke-width="1.8" stroke-linejoin="round"/><path d="M19 24 Q23 16 31 15 Q29 20 24 24Z" fill="#ffc078" stroke="#d9480f" stroke-width="1.5" stroke-linejoin="round"/>'),
+ berry:sv('<g transform="translate(12 14)"><path d="M-4 3 Q0 11 4 3Z" fill="#fa5252"/><path d="M0 0 L-8 -3 L-3 2 L-8 6 L-1 4 L0 9 L2 4 L8 6 L3 1 L7 -4Z" fill="#40c057" stroke="#2b8a3e" stroke-width="1.2" stroke-linejoin="round"/></g><g transform="translate(27 27) rotate(40)"><path d="M-4 3 Q0 11 4 3Z" fill="#fa5252"/><path d="M0 0 L-8 -3 L-3 2 L-8 6 L-1 4 L0 9 L2 4 L8 6 L3 1 L7 -4Z" fill="#40c057" stroke="#2b8a3e" stroke-width="1.2" stroke-linejoin="round"/></g>'),
+ balloon:sv('<path d="M11 11 L17 6 L20 12 L26 7 L25.5 14 L31 16 L23 20 L20 17.5 L16 21.5 L9 17Z" fill="#fa5252" stroke="#c92a2a" stroke-width="1.6" stroke-linejoin="round"/><circle cx="19.5" cy="20" r="1.8" fill="#c92a2a"/><path d="M19.5 21.5 Q15 28 22 31 Q27 34 22 39" stroke="#495057" stroke-width="1.6" fill="none" stroke-linecap="round"/>'),
  napkin:sv('<path d="M6 10 L30 6 L34 30 L10 34 Z" fill="#fff" stroke="#adb5bd" stroke-width="2" stroke-linejoin="round"/><path d="M8 20 L32 17 M18 8 L22 32" stroke="#dee2e6" stroke-width="1.6"/><circle cx="25" cy="25" r="2.5" fill="#ffa8a8" opacity=".7"/>')};
 /* [id, emoji or ART key, name, correct bin, fact, also-OK bin]. Facts stay general; where town rules differ we say so. */
 const LITTER=[
  ['can','🥫','Empty Can','rec','Metal cans can be recycled again and again, forever!'],
- ['pbottle','🧴','Plastic Bottle','rec','Empty it first! Old plastic bottles can become new bottles, or even cozy fleece jackets.'],
- ['cap','@cap','Bottle Cap','rec','Many towns want caps screwed back on the empty bottle, then recycled. Towns have different rules, so ask a grown-up!'],
+ ['pbottle','@pbottle','Plastic Bottle','rec','Empty it first! Old plastic bottles can become new bottles, or even cozy fleece jackets.'],
+ ['cap','@cap','Bottle Cap','rec','Many towns want caps screwed back on the empty bottle, then recycled. If your town doesn\'t take caps, the trash is OK. Ask a grown-up!','tra'],
  ['news','📰','Old Newspaper','rec','Old newspapers get made into new paper, egg cartons and more.'],
  ['box','📦','Cardboard Scrap','rec','Cardboard is one of the most recycled things there is. Flatten boxes so they fit!'],
  ['jar','@jar','Glass Jar','rec','Rinse it out! Glass can be melted and made into new jars again and again. (A few towns collect glass in its own bin.)'],
- ['juice','🧃','Juice Box','rec','Juice boxes are cartons. Lots of towns recycle cartons, so push the straw inside! Some towns don\'t, so ask.'],
+ ['juice','🧃','Juice Box','rec','Juice boxes are cartons, and lots of towns recycle cartons (push the straw inside!). Some towns don\'t, and then it goes in the trash.','tra'],
  ['homework','📝','Old Homework','rec','Clean paper is great for recycling. (Just don\'t recycle your homework before you turn it in!)'],
- ['tube','🧻','Toilet Paper Tube','rec','Cardboard tubes go in recycling with paper. They can go in compost too!','com'],
- ['pbag','🛍️','Paper Bag','rec','Paper bags go in recycling with other paper. Or use them again first!'],
+ ['tube','@tube','Toilet Paper Tube','rec','Cardboard tubes go in recycling with paper. They can go in compost too!','com'],
+ ['pbag','@pbag','Paper Bag','rec','Paper bags go in recycling with other paper. Or use them again first! A plain paper bag can go in compost too.','com'],
  ['gum','@gum','Gum Wrapper','tra','Gum wrappers have a thin shiny layer stuck to paper. That mix goes in the trash.'],
  ['candy','@candy','Candy Wrapper','tra','Candy wrappers are made of mixed layers that recycling machines can\'t pull apart. Trash!'],
  ['chips','@chips','Chip Bag','tra','Chip bags are shiny inside and made of mixed layers, so they go in the trash.'],
@@ -53,20 +62,20 @@ const LITTER=[
  ['brush','🪥','Old Toothbrush','tra','In most towns an old toothbrush goes in the trash. A few special programs recycle them!'],
  ['crayon','🖍️','Broken Crayon','tra','Broken crayons go in the trash, but some groups collect old crayons and melt them into new ones!'],
  ['plbag','@plbag','Plastic Bag','tra','Plastic bags tangle up recycling machines! Keep them out of the recycle bin. Many stores collect them instead.'],
- ['fork','🍴','Plastic Fork','tra','Most towns can\'t recycle plastic forks and spoons, so they go in the trash.'],
- ['balloon','🎈','Popped Balloon','tra','Popped balloons go in the trash. Loose balloons can hurt birds and sea animals, so great job picking it up!'],
- ['cup','🥤','Paper Cup','tra','Most paper cups have a thin plastic coat inside, so they usually go in the trash.'],
+ ['fork','@fork','Plastic Fork','tra','Most towns can\'t recycle plastic forks and spoons, so they go in the trash.'],
+ ['balloon','@balloon','Popped Balloon','tra','Popped balloons go in the trash. Loose balloons can hurt birds and sea animals, so great job picking it up!'],
+ ['cup','🥤','Paper Cup','tra','Most paper cups have a thin plastic coat inside. A few towns do recycle them, so ask a grown-up!','rec'],
  ['sponge','🧽','Old Sponge','tra','Most kitchen sponges are made of plastic, so an old one goes in the trash.'],
- ['core','🍎','Apple Core','com','Apple cores rot and turn into rich new soil. Worms love them!'],
- ['peel','🍌','Banana Peel','com','Banana peels break down in compost and feed the soil.'],
+ ['core','@core','Apple Core','com','Apple cores rot and turn into rich new soil. Worms love them!'],
+ ['peel','@peel','Banana Peel','com','Banana peels break down in compost and feed the soil.'],
  ['shell','@shell','Eggshells','com','Eggshells go in compost. Crush them up so they break down faster!'],
- ['orange','🍊','Orange Peel','com','Orange peels can go in compost. Tear them into small bits so they rot faster.'],
- ['crust','🍕','Pizza Crust','com','Many towns collect food scraps like pizza crust for compost instead of trash.'],
+ ['orange','@orange','Orange Peel','com','Orange peels can go in compost. Tear them into small bits so they rot faster.'],
+ ['crust','🍕','Pizza Crust','com','Many towns collect food scraps like pizza crust for compost. If yours doesn\'t, it goes in the trash.','tra'],
  ['pstick','@pstick','Popsicle Stick','com','Plain wooden popsicle sticks are made of wood, so they can go in compost. (The trash is OK too.)','tra'],
  ['cob','🌽','Corn Cob','com','Corn cobs go in compost. Break them into pieces so they rot faster.'],
  ['rind','🍉','Watermelon Rind','com','Watermelon rinds are full of water and rot fast in compost.'],
- ['bread','🍞','Old Bread Crust','com','Old bread goes in compost. Even fuzzy, moldy bread!'],
- ['berry','🍓','Strawberry Tops','com','Strawberry tops are plant parts, so they go in compost.'],
+ ['bread','🍞','Old Bread Crust','com','Old bread goes in compost, even fuzzy, moldy bread! No compost bin at home? Then the trash.','tra'],
+ ['berry','@berry','Strawberry Tops','com','Strawberry tops are plant parts, so they go in compost.'],
  ['nut','🥜','Peanut Shells','com','Peanut shells are plant parts, so they can go in compost.'],
  ['grass','🌿','Grass Clippings','com','Grass clippings are great "greens" for compost. Mix them with dry leaves!'],
  ['napkin','@napkin','Used Napkin','com','Used paper napkins can\'t be recycled, but many towns take them in compost. (The trash is OK too.)','tra']
@@ -214,8 +223,8 @@ function drop(b){const S=SORT;if(!S)return;NEWS='';const i=S.sel;if(S.done.inclu
  const won=addPts(p,pts);S.won=S.won.concat(won);if(won.length)c.rw=(c.rw||[]).concat(won.map(w=>w.m.star?{s:w.m.star}:{id:w.m.id}));save();
  const fin=S.done.length>=S.items.length;
  const y=young(p);
- S.msg=ok?`${pk(['✅ Yes!','✅ You got it!','✅ Right!','✅ Super sorting!'])} ${b!==x.b?'That works! ':''}${icon(x)} <b>${esc(x.n)}</b> → ${BINS[b].e} ${BINS[b].n}. ${esc(x.f)}`
-  :`${pk(['Oops, almost!','Close one!','Good try!'])} The ${icon(x)} <b>${esc(x.n)}</b> goes in ${BINS[x.b].e} <b>${BINS[x.b].n}</b>. ${esc(x.f)} I put it there for you!`;
+ S.msg=ok?`${pk(['✅ Yes!','✅ You got it!','✅ Right!','✅ Super sorting!'])} ${b!==x.b?`That works! (Best bin: ${BINS[x.b].e} ${BINS[x.b].n}.) `:''}${icon(x)} <b>${esc(x.n)}</b> → ${BINS[b].e} ${BINS[b].n}. ${esc(x.f)}`
+  :`${pk(['Oops, almost!','Close one!','Good try!'])} The ${icon(x)} <b>${esc(x.n)}</b> goes in ${BINS[x.b].e} <b>${BINS[x.b].n}</b>${x.alt?` (or ${BINS[x.alt].e} ${BINS[x.alt].n})`:''}. ${esc(x.f)} I put it there for you!`;
  if(fin)S.msg+=`<br><br>${y?`All done! +${S.gain} points!`:`That's all of it! You earned <b>+${S.gain}</b> Clean-Up points.`}${S.won.length?' And look… a reward! 🎁':''}`;
  try{ok?SFX.correct():tone(330,.12,'sine',.06);}catch(e){}
  drawSort();const el=document.getElementById('cuBin_'+into);if(el){el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');floatAt(el,`+${pts}`);}
@@ -279,7 +288,7 @@ function html(p){css();const c=C(p),a=p.adv;const lo=prevAt(c),hi=nextAt(c),f=Ma
   <h3 style="margin-top:12px">🛤️ Rewards trail</h3><div class="cu-track">${track}</div><p class="muted" style="margin:6px 0 0;font-size:13px">After the last badge, every ${STAR_EVERY} points earns a ⭐ Clean-Up Star (+🪙 ${STAR_COINS}).</p></div>
   <div>${sci}<div class="panel cu-panel" style="margin-top:${sci?'14px':'0'}"><h3>📋 Litter log <span class="muted" style="font-size:14px">${seenN}/${LITTER.length}</span></h3><p class="muted" style="margin:0 0 6px">Every kind of litter you've sorted. Tap one to hear where it goes.</p>
   <div class="cu-log">${LITTER.map(x=>c.seen[x.id]?`<button class="cu-lg" onclick="Cleanup.fact('${x.id}')"><span class="e">${icon(x)}</span><b>${esc(x.n)}</b><small>${BINS[x.b].e} ×${c.seen[x.id]}</small></button>`:`<div class="cu-lg no"><span class="e">❔</span><b>???</b></div>`).join('')}</div></div></div></div>`;}
-function fact(id){const x=LIT_BY[id];if(!x)return;css();const t=`${icon(x)} <b>${esc(x.n)}</b> goes in ${BINS[x.b].e} <b>${BINS[x.b].n}</b>. ${esc(x.f)}`;LAST_SAY=t;
+function fact(id){const x=LIT_BY[id];if(!x)return;css();const t=`${icon(x)} <b>${esc(x.n)}</b> goes in ${BINS[x.b].e} <b>${BINS[x.b].n}</b>${x.alt?` (${BINS[x.alt].e} ${BINS[x.alt].n} is OK too)`:''}. ${esc(x.f)}`;LAST_SAY=t;
  modal(`<div class="mcard cu-sort">${bubble(t)}<div class="row"><button class="btn green" onclick="closeModal()">Got it!</button></div></div>`);if(voiceOn())speak(t);}
 function campStrip(p){css();const c=C(p);if(!c.pend.length&&!(c.rw&&c.rw.length))return '';
  if(!c.pend.length)return `<div class="cu-strip"><span class="e">🎁</span><span><b>You have a Clean-Up reward waiting!</b><small>Scout Leader Mari has something for you.</small></span><button class="btn gold" onclick="Cleanup.rewards()">🎁 Open it</button></div>`;
@@ -344,6 +353,11 @@ const CSS=`
 .cu-hero svg{width:130px;height:170px}.cu-pet{font-size:96px;line-height:1.1;animation:advpop .5s both}.cu-rl{font-weight:700}
 .cu-sci{display:flex;gap:10px;align-items:center;background:#e7f5ff;border:3px solid #4dabf7;border-radius:16px;padding:10px 12px;margin:10px 0;text-align:left}.cu-scie{font-size:44px;line-height:1}.cu-sci small{display:block;font-size:14px;margin-top:2px}
 @media(max-width:560px){.cu-it{width:76px;min-height:74px}.cu-it .e{font-size:30px}.cu-bin{min-height:104px}.cu-binsvg{width:58px;height:72px}.cu-bin b{font-size:15px}.cu-bbox .cu-binsvg{width:72px;height:90px}.cu-badge{--bs:42px}}
+/* phones: 4 litter pieces per row and shorter bins so the pile AND the bins fit on one screen; every tap target stays 40px+ */
+.cu-spk{min-width:40px;min-height:40px;font-size:16px}.cu-sort .row .btn{min-height:44px}
+@media(max-width:560px){.cu-sort .qz-av{flex-basis:56px}.cu-sort .qz-av svg{width:56px;height:68px}.cu-sort .qz-bub{font-size:15px;padding:8px 10px;line-height:1.35}
+ .cu-sort .cu-pile{gap:6px;margin:8px 0 6px}.cu-sort .cu-it{width:calc(25% - 5px);max-width:84px;min-width:60px;min-height:66px;padding:4px 2px 3px;border-radius:14px}.cu-sort .cu-it .e{font-size:28px}.cu-sort .cu-it .n{font-size:11px}
+ .cu-sort .cu-bins{gap:6px}.cu-sort .cu-bin{min-height:92px;padding:4px 2px 6px}.cu-sort .cu-binsvg{width:48px;height:60px}.cu-sort .cu-bin b{font-size:14px}}
 @media (prefers-reduced-motion:reduce){.cu-pend,.cu-strip{animation:none}.cu-bin.hit{animation:none}}`;
 function css(){if(!document.getElementById('cuCSS')){const s=document.createElement('style');s.id='cuCSS';s.textContent=CSS;document.head.appendChild(s);}}
 

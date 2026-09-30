@@ -956,7 +956,7 @@ window.MQ_CONTENT = {
     '1': mqUniq(WORD_BANK_1.concat(WORD_BANK_3)),
     '3': WORD_BANK_3,
     '5': WORD_BANK_5,
-    '7': WORD_BANK_7.concat(WORD_BANK_5),
+    '7': mqUniq(WORD_BANK_7.concat(WORD_BANK_5)),
     '10': mqUniq(WORD_BANK_10.concat(WORD_BANK_7))
   },
   updated: '2026-09-30',
@@ -1203,7 +1203,7 @@ window.MQ_CONTENT = {
         { q: 'What is the chemical symbol for gold?', c: ['Go', 'Gd', 'Ag', 'Au'], a: 3, why: 'Au comes from the Latin "aurum." Ag is silver.' },
         { q: 'Which equation is Newton\'s second law?', c: ['E = mc²', 'F = ma', 'V = IR', 'PV = nRT'], a: 1, why: 'Force equals mass times acceleration.' },
         { q: 'What is the unit of electrical resistance?', c: ['Volt', 'Ampere', 'Ohm', 'Watt'], a: 2, why: 'Resistance is measured in ohms (Ω).' },
-        { q: 'Near Earth\'s surface, gravity accelerates falling objects at about...', c: ['9.8 m/s²', '1 m/s²', '32 m/s²', '98 m/s²'], a: 0, why: 'About 9.8 meters per second squared (about 32 feet per second squared).' },
+        { q: 'Near Earth\'s surface, gravity accelerates falling objects at about...', c: ['9.8 m/s²', '1 m/s²', '4.9 m/s²', '98 m/s²'], a: 0, why: 'About 9.8 meters per second squared (about 32 feet per second squared).' },
         { q: 'In DNA, adenine (A) pairs with...', c: ['Guanine', 'Cytosine', 'Uracil', 'Thymine'], a: 3, why: 'A pairs with T, and G pairs with C. Uracil replaces thymine in RNA.' },
         { q: 'A bond in which atoms share electrons is called...', c: ['Ionic', 'Covalent', 'Metallic', 'Magnetic'], a: 1, why: 'Covalent bonds share electrons; ionic bonds transfer them.' },
         { q: 'Mitosis produces...', c: ['Four sex cells', 'One larger cell', 'Two genetically identical cells', 'Two cells with half the chromosomes'], a: 2, why: 'Mitosis makes two identical cells. Meiosis makes four sex cells with half the chromosomes.' }
@@ -1296,8 +1296,8 @@ window.MQ_CONTENT = {
       note: "From Mika's 3rd grade math pages",
       questions: [
         { q: '30 people, 5 in each car. Which number sentence finds how many cars?', c: ['30 × 5', '30 ÷ 5', '30 + 5', '30 − 5'], a: 1, why: 'We know the total and the size of each group, so we divide: 30 ÷ 5 = 6 cars.' },
-        { q: '3 rows of 4 stars. Which number sentence matches?', c: ['3 + 4', '3 × 4', '4 − 3', '12 ÷ 4 = 4'], a: 1, why: 'Rows × how many in each row: 3 × 4 = 12.' },
-        { q: 'On a number line, 6 × 3 means...', c: ['3 jumps of 6', '6 jumps of 3', '9 jumps of 1', '6 jumps of 6'], a: 1, why: 'The first number is how many jumps. The second is how big each jump is.' },
+        { q: '3 rows of 4 stars. Which number sentence matches?', c: ['3 + 4', '3 × 4', '4 − 3', '4 + 4'], a: 1, why: 'Rows × how many in each row: 3 × 4 = 12.' },
+        { q: 'On a number line, 6 × 3 means...', c: ['3 jumps of 3', '6 jumps of 3', '9 jumps of 1', '6 jumps of 6'], a: 1, why: 'The first number is how many jumps. The second is how big each jump is.' },
         { q: 'A picture graph key says each 😀 = 2. How many is 😀😀😀?', c: ['3', '5', '6', '9'], a: 2, why: 'Count by 2s: 2, 4, 6.' },
         { q: 'A key says each ⭐ = 2. What is half a ⭐ worth?', c: ['1', '2', '4', '0'], a: 0, why: 'Half of 2 is 1.' },
         { q: 'A bar graph counts by 2s. A bar stops halfway between 6 and 8. What number is that?', c: ['6', '7', '8', '9'], a: 1, why: 'Halfway between 6 and 8 is 7.' },
@@ -1330,7 +1330,7 @@ window.MQ_CONTENT = {
         { q: 'Vincent took his pet ___ the vet.', c: ['two', 'to', 'too', 'toe'], a: 1, why: '"To" shows direction: to the vet.' },
         { q: '___ going to the museum.', c: ['There', 'Their', "They're", 'Theyre'], a: 2, why: "They're = they are. \"They are going to the museum.\"" },
         { q: '___ house is near the school.', c: ['There', 'Their', "They're", 'Thier'], a: 1, why: '"Their" means it belongs to them.' },
-        { q: 'Which word is spelled correctly?', c: ['honist', 'veiw', 'observe', 'wether'], a: 2, why: 'The right spellings are honest, view, observe and weather.' }
+        { q: 'Which word is spelled correctly?', c: ['honist', 'veiw', 'observe', 'wheather'], a: 2, why: 'The right spellings are honest, view, observe and weather.' }
       ]
     },
     'j-volume': {
