@@ -719,7 +719,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="app"></div>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="tales.js?t='+Date.now()+'"><\/script>');document.write('<script src="adv.js?t='+Date.now()+'"><\/script>');document.write('<script src="mastery.js?t='+Date.now()+'"><\/script>');document.write('<script src="insights.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
+<script>document.write('<script src="content.js?t='+Date.now()+'"><\/script>');document.write('<script src="library.js?t='+Date.now()+'"><\/script>');document.write('<script src="troll.js?t='+Date.now()+'"><\/script>');document.write('<script src="eagle.js?t='+Date.now()+'"><\/script>');document.write('<script src="tales.js?t='+Date.now()+'"><\/script>');document.write('<script src="adv.js?t='+Date.now()+'"><\/script>');document.write('<script src="petcare.js?t='+Date.now()+'"><\/script>');document.write('<script src="mastery.js?t='+Date.now()+'"><\/script>');document.write('<script src="insights.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="cave.js?t='+Date.now()+'"><\/script>');document.write('<script src="quartz.js?t='+Date.now()+'"><\/script>');document.write('<script src="lab.js?t='+Date.now()+'"><\/script>');document.write('<script src="inner-space-data.js?t='+Date.now()+'"><\/script>');document.write('<script src="innerspace.js?t='+Date.now()+'"><\/script>');document.write('<script src="music.js?t='+Date.now()+'"><\/script>');document.write('<script src="groups.js?t='+Date.now()+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1465,7 +1465,7 @@ players:`<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#2f
  <circle cx="19" cy="29" r="1.4" fill="#2b2250"/><circle cx="25" cy="29" r="1.4" fill="#2b2250"/><circle cx="40" cy="32" r="1.3" fill="#2b2250"/><circle cx="46" cy="32" r="1.3" fill="#2b2250"/></svg>`};
 
 /* red dot on the Pets button: only for something NEW (a pet back from Adventure Camp); it clears once the kid visits Pet Home */
-function petDotKey(p){try{return window.Adv&&Adv.back(p)&&p.adv&&p.adv.trip?'adv'+p.adv.trip.end:'';}catch(e){return '';}}
+function petDotKey(p){try{return window.Adv&&Adv.back(p)&&p.adv&&p.adv.trip?'adv'+p.adv.trip.end:(window.PetCare?PetCare.dot(p):'');}catch(e){return '';}}
 function topbar(){
  const p=P();const need=xpNeed(p.level);
  return `<div class="topbar">
@@ -1659,7 +1659,7 @@ SCREENS.map=()=>{
 function homeCards(p){const pet=petOf(p);let petLine='';const awayP=!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)?PETS.find(x=>x.id===p.pet):null;
  if(pet){const pd=petMood(petData(p,pet.id));petLine=pd.food<=1?`${esc(pet.name)} is hungry!`:pd.joy<=1?`${esc(pet.name)} wants to play!`:`${pips(pd.food,'🍗')} ${pips(pd.joy,'💖')}`;}
  return `<div class="homecards"><button class="hcard" onclick="go('pethome')">${pet?petAvatar(p,pet):awayP?`<span class="pav"><span class="pe">${awayP.e}</span></span>`:'<span class="pav"><span class="pe">🥚</span></span>'}<div><b>${pet?esc(pet.name)+"'s Home":awayP?esc(awayP.name)+"'s Home":'Pet Home'}</b><small>${pet?petLine:awayP?`🎒 ${esc(awayP.name)} is on an adventure!`:'Hatch a pet to start!'}</small></div></button>
- <button class="hcard ${spinReady(p)?'glow':''}" onclick="openSpin()"><span class="pav"><span class="pe">🎡</span></span><div><b>Daily Spin</b><small>${spinReady(p)?'Ready! Tap to spin':'Come back tomorrow'}</small></div></button>${window.Adv&&p.pets.length?Adv.homeCard(p):''}</div>`;}
+ <button class="hcard ${spinReady(p)?'glow':''}" onclick="openSpin()"><span class="pav"><span class="pe">🎡</span></span><div><b>Daily Spin</b><small>${spinReady(p)?'Ready! Tap to spin':'Come back tomorrow'}</small></div></button>${window.Adv&&p.pets.length?Adv.homeCard(p):''}${window.PetCare&&p.pets.length?PetCare.homeCard(p):''}</div>`;}
 
 /* ---------- zone ---------- */
 SCREENS.zone=zid=>{
@@ -2581,7 +2581,7 @@ SCREENS.backpack=()=>{
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs}) · Epic or Legendary pet!</button>`:''}
    ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="muted" style="margin-bottom:6px">Pets found: <b>${regHave(p)} / ${REG_PETS.length}</b></div>
-   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${window.Adv&&Adv.away(p,x.id)?'🎒 On an adventure<br>':''}${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:'';}).join('')}${moreTile(list.filter(x=>!p.pets.includes(x.id)&&!heldBy(p,x.id)).length,t==='legend'?'Super rare!':'Hatch eggs to find them')}</div>`;}).join('')}
+   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${window.PetCare&&PetCare.rescued(p,x.id)?'🏡 At the Pet Rescue<br>':''}${window.Adv&&Adv.away(p,x.id)?'🎒 On an adventure<br>':''}${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:'';}).join('')}${moreTile(list.filter(x=>!p.pets.includes(x.id)&&!heldBy(p,x.id)).length,t==='legend'?'Super rare!':'Hatch eggs to find them')}</div>`;}).join('')}
    <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):'').join('')}${moreTile(MYTHIC.filter(x=>!p.pets.includes(x.id)).length,'A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal them.')}</div>
    ${EVENT_PETS.some(x=>p.pets.includes(x.id))||eventOpen()||eventSoon()?`<h4 class="tierh" style="color:#fd7e14">🎃 Halloween <span class="muted">${EVENT_PETS.filter(x=>p.pets.includes(x.id)).length} / ${EVENT_PETS.length}</span></h4><div class="items">${EVENT_PETS.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}`):'').join('')}${moreTile(EVENT_PETS.filter(x=>!p.pets.includes(x.id)).length,'Beat the Haunted Hollow boss (Oct 18 to Nov 1).')}</div>`:''}</div>
   <div class="panel bpsec" data-t="spell"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
@@ -2598,7 +2598,7 @@ const poss=n=>n+(/s$/i.test(n)?"'":"'s");
 function shopClick(kind,id){
  const p=P();if(p.troll&&(p.troll.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🧌 Grumbleroot the Troll is holding that one! Win it back by answering his questions.');return;}
  if(p.eagle&&(p.eagle.hoard||[]).some(x=>x.k===kind&&x.id===id)){toast('🦅 Skyla the Eagle keeps that one in her nest! Win it back by solving her chicks\' homework.');return;}
- if(kind==='pet'){if(window.Adv&&Adv.away(p,id)){toast(`🎒 ${(PETS.find(x=>x.id===id)||{}).name} is on an adventure! Visit the Adventure Camp to see when they'll be back.`);return;}p.pet=id;save();SFX.tap();goStay('backpack');return;}
+ if(kind==='pet'){if(window.PetCare&&PetCare.rescued(p,id)){toast(`🏡 ${(PETS.find(x=>x.id===id)||{}).name} is at the Pet Rescue. Bring them home from the Pet Home!`);return;}if(window.Adv&&Adv.away(p,id)){toast(`🎒 ${(PETS.find(x=>x.id===id)||{}).name} is on an adventure! Visit the Adventure Camp to see when they'll be back.`);return;}p.pet=id;save();SFX.tap();goStay('backpack');return;}
  const list=kind==='hat'?HATS:kind==='robe'?ROBES:SPELLS;const it=list.find(x=>x.id===id);
  const ownedList=p.owned[kind==='hat'?'hats':kind==='robe'?'robes':'spells'];
  const equip=()=>{if(kind==='hat')p.look.hat=id;else if(kind==='robe')p.look.robe=id;else p.spell=id;};
@@ -2668,7 +2668,8 @@ const MOOD_HOURS=8,MOOD_MAX=5;
 function petMood(pd){
  const now=Date.now();if(!pd.t){pd.t=now;pd.food=3;pd.joy=3;}
  const steps=Math.floor((now-pd.t)/(MOOD_HOURS*3600e3));
- if(steps>0){pd.food=Math.max(0,pd.food-steps);pd.joy=Math.max(0,pd.joy-steps);pd.t+=steps*MOOD_HOURS*3600e3;}
+ if(steps>0){if(pd.sit&&pd.sit>pd.t){for(let i=1;i<=Math.min(steps,400);i++){const fl=pd.t+i*MOOD_HOURS*3600e3<=pd.sit?2:0;pd.food=Math.max(fl,pd.food-1);pd.joy=Math.max(fl,pd.joy-1);}} /* pd.sit: Nana Paws (petcare.js) keeps pets at 2+ while hired */
+  else{pd.food=Math.max(0,pd.food-steps);pd.joy=Math.max(0,pd.joy-steps);}pd.t+=steps*MOOD_HOURS*3600e3;}
  return pd;
 }
 const petHappy=pd=>{petMood(pd);return pd.food>=3&&pd.joy>=3;};
@@ -2788,7 +2789,7 @@ const BIOMES={
  haunt:{c:[14,24],g:'#5a4a7e',g2:'#524373',zone:'haunt',overlay:true,rad:3.2,bl:['🪦'],de:['🎃','🕸️']}};
 const NPCS=[
  {id:'school',x:18,y:15,e:'🌀',n:'Quest Board'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
- {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'},{id:'library',x:24,y:19,e:'📚',n:'Library'},{id:'build',x:26,y:17,e:'🏗️',n:'Builder'}];
+ {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'},{id:'library',x:24,y:19,e:'📚',n:'Library'},{id:'build',x:26,y:17,e:'🏗️',n:'Builder'},{id:'lab',x:18,y:17,e:'🔬',n:'Quartz Lab',opt:1}]; /* opt: only shown for kids with the Lab Key (lab.js) */
 let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildWorld(){
@@ -2815,7 +2816,7 @@ function buildWorld(){
  // gates
  const gates={};for(const k of keys){const B=BIOMES[k];if(!B.zone)continue;const t=T[B.c[1]][B.c[0]];t.gate=B.zone;t.block=true;t.o=null;t.water=false;gates[B.zone]=B.c;}
  // npcs
- NPCS.forEach(n=>{const t=T[n.y][n.x];t.npc=n.id;t.block=true;t.o=null;});
+ NPCS.forEach(n=>{const t=T[n.y][n.x];t.o=null;if(n.opt)return;t.npc=n.id;t.block=true;});
  // chests: one per wild biome, on a walkable non-path tile reachable (next to a path)
  const chests=[];for(const k of keys){if(k==='village')continue;let tries=0;while(tries++<400){const x=1+Math.floor(r()*(WCOLS-2)),y=1+Math.floor(r()*(WROWS-2));const t=T[y][x];
   if(t.b!==k||t.block||t.path||t.gate||t.plaza)continue;if(Math.hypot(x-BIOMES[k].c[0],y-BIOMES[k].c[1])<3)continue;
@@ -3553,6 +3554,7 @@ function wNpc(id){const p=P();
  if(id==='cafe'){p&&(p.wpos={x:W.hx,y:W.hy});if(npcQuestGate('cafe',"CAFE=null;go('cafe')"))return;CAFE=null;go('cafe');return;}
  if(id==='build'){p&&(p.wpos={x:W.hx,y:W.hy});go('village');return;}
  if(id==='library'){p&&(p.wpos={x:W.hx,y:W.hy});if(npcQuestGate('library',"LIB=null;go('library')"))return;LIB=null;go('library');return;}
+ if(id==='lab'){if(window.Lab&&Lab.hasKey(p)){p&&(p.wpos={x:W.hx,y:W.hy});go('lab');}return;}
  if(id==='mail'){if(!showGift())openGift();return;}
  if(id==='fountain'){fountainOpen();return;}
  const ek=npcQuestIdx(p,'elder');
@@ -4399,7 +4401,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.30a';
+const APP_VER='2026.09.30c';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;

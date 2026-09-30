@@ -154,7 +154,7 @@ const SACK=`<svg viewBox="0 0 60 60"><path d="M18 18 Q10 30 10 42 Q10 56 30 56 Q
 
 /* ---------- trips ---------- */
 let TAB='camp',RES=null;
-function send(force){const p=P(),a=A(p);if(a.trip)return;const crew=a.crew.filter(id=>p.pets.includes(id));if(!crew.length)return;
+function send(force){const p=P(),a=A(p);if(a.trip)return;const crew=a.crew.filter(id=>p.pets.includes(id)&&!(window.PetCare&&PetCare.rescued(p,id)));if(!crew.length)return;
  if(!force&&crew.includes(p.pet)){const n=petN(p.pet);modal(`<div class="mcard"><div class="big-emoji">${petE(p.pet)}</div><h2>${esc(n)} is your battle buddy!</h2><p>If ${esc(n)} goes on the trip, you won't have a pet helping you in battles until they're back (${fmtClock(Date.now()+TRIPS[a.len].hrs*36e5)} ${dayWord(Date.now()+TRIPS[a.len].hrs*36e5)}).</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Keep ${esc(n)} home</button><button class="btn green" onclick="closeModal();Adv.send(true)">Send them anyway</button></div></div>`);return;}
  const T=TRIPS[a.len];a.trip={dest:a.dest,len:a.len,crew,start:Date.now(),end:Date.now()+T.hrs*36e5,mood:{}};
  crew.forEach(id=>{const pd=petData(p,id);if(typeof petMood==='function')petMood(pd);a.trip.mood[id]=[pd.food,pd.joy];});
@@ -259,7 +259,7 @@ function campHTML(p,a){const tr=a.trip,d=dest(tr?tr.dest:a.dest),n=slots(p);
   <div class="panel"><h3>🎒 The crew</h3><div class="adv-slots">${tr.crew.map(id=>`<span class="adv-slot full" title="${esc(petN(id))}">${petE(id)}</span>`).join('')}</div></div></div>`;}
  const T=TRIPS[a.len],back=Date.now()+T.hrs*36e5;const home=a.crew.filter(id=>d.home.includes(id));
  let sl='';for(let i=0;i<12;i++){const id=a.crew[i];sl+=i<n?(id?`<button class="adv-slot full" onclick="Adv.toggle('${id}')" title="${esc(petN(id))}">${petE(id)}</button>`:`<span class="adv-slot">?</span>`):(i===n?`<span class="adv-slot lock">🔒<br>${SLOT_AT[i]} wins</span>`:'');}
- const pets=p.pets.filter(id=>PETS.some(x=>x.id===id));
+ const pets=p.pets.filter(id=>PETS.some(x=>x.id===id)&&!(window.PetCare&&PetCare.rescued(p,id)));
  return scene+`<div class="adv-cols"><div class="panel"><h3>🎒 Pick your crew</h3>
   <p class="muted" style="margin:0">Crew spots: <b>${n}</b> of 12${n<12?` · the next spot opens at <b>${SLOT_AT[n]}</b> battles won (you have ${p.battles||0})`:''}</p>
   <div class="adv-slots">${sl}</div>

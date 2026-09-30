@@ -500,7 +500,7 @@ let onClose=null,cardQ=[];
 function card(html){if(modalOpen())cardQ.push(html);else modal(html);}
 
 /* ---------------- Field Lab ---------------- */
-const STREAK_NAMES={'#ffffff':'white','#2f4f2a':'greenish-black','#8fe3a9':'light green','#8ec5ff':'light blue','#1b1b1b':'black','#8b2a1e':'red-brown','#e8b923':'golden yellow','#7d848c':'lead grey','#fff59a':'pale yellow'};
+const STREAK_NAMES={'#2f3a2a':'greenish-black','#5a5f66':'lead grey','#ffffff':'white','#2f4f2a':'greenish-black','#8fe3a9':'light green','#8ec5ff':'light blue','#1b1b1b':'black','#8b2a1e':'red-brown','#e8b923':'golden yellow','#7d848c':'lead grey','#fff59a':'pale yellow'};
 const UV_NAMES={'#ff5a3d':'orange-red','#5cc8ff':'bright blue','#39ff6a':'neon green','#ff2a2a':'red','#7fb6ff':'pale blue'};
 const LTESTS=[{id:'hard',e:'💅',n:'Scratch test',q:'How hard is it?'},{id:'streak',e:'⬜',n:'Streak test',q:'What color is its powder?'},{id:'acid',e:'🧪',n:'Vinegar drop',q:'Does it fizz?'},{id:'magnet',e:'🧲',n:'Magnet',q:'Does it stick?'},{id:'water',e:'💧',n:'Water drop',q:'Does it dissolve?'},{id:'uv',e:'🔦',n:'UV lamp',q:'Does it glow?',uv:1},{id:'look',e:'🔍',n:'Look closely',q:'What shape? How shiny?'}];
 const hardBand=h=>{const i=CD.TOOLS.findIndex(t=>h<=t.h);return i<0?4:i;};

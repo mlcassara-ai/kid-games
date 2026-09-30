@@ -71,7 +71,7 @@ function meet(){if(busy)return;const p=P();if(!p)return;const s=Q(p);busy=true;W
  const lines=first?[`Oh, hello there! I'm <b>${NAME}</b>, the town's science teacher. 🔬`,
    'I just found this <b>strange rock</b> 🪨 and I can\'t figure out what it is! A clever math hero like you could help me.',
    'My dig site is down in the <b>Science Cave</b> — it goes deep into the real layers of the Earth! Will you come with me?']
-  :[DEMO?'This is a preview trip — nothing will be changed.':'',`${esc(p.name)}! You found a <b>mystery rock</b> 🪨${s.rocks>1?` — actually ${s.rocks} of them`:''}! Let's take it to my lab and find out what it is.`].filter(Boolean);
+  :[DEMO?'This is a preview trip — nothing will be changed.':'',s.key?`${esc(p.name)}! You found a <b>mystery rock</b> 🪨${s.rocks>1?` — actually ${s.rocks} of them`:''}! Want to go dig right now? <small>(You can also use your 🔑 key and ride the lab elevator any time.)</small>`:`${esc(p.name)}! You found a <b>mystery rock</b> 🪨${s.rocks>1?` — actually ${s.rocks} of them`:''}! Let's take it to my lab and find out what it is.`].filter(Boolean);
  let i=0;
  const show=()=>{const last=i>=lines.length-1;
   modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${lines[i]}</div></div></div>
@@ -109,7 +109,12 @@ function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&
  /* every trip ends with a 🎟️ Shrink Ticket for the Inner Space ride (Ozzy picks you up a few battles later) */
  let tix=null;try{if(window.Inner)tix=Inner.award(p,{rock});}catch(e){}
  const inMet=!!(p.inner&&p.inner.met);
+ /* 🔑 Lab Key after the 5th trip (given once; kids who already have it are never offered it again) */
+ const keyNow=!first&&window.Lab&&Lab.keyDue(p);
  save();go('world');
+ if(keyNow){setTimeout(()=>{if(curScreen!=='world')return;Lab.giveKey(p,()=>after());},700);return;}
+ after();
+ function after(){
  const card=(html,btn)=>modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${html}</div></div></div>
    <div class="row"><button class="btn green big" onclick="closeModal()">${btn}</button></div></div>`);
  if(first||s.trips===1)setTimeout(()=>{if(curScreen!=='world')return;
@@ -120,7 +125,7 @@ function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&
    <div class="row"><button class="btn green big" id="qzPg">${last?'Deal! 🤝':'Next ➜'}</button></div></div>`);document.getElementById('qzPg').onclick=()=>{if(last){closeModal();window.visitorQuiet=Date.now()+90e3;}else{i++;show();}};};show();},700);
  else if(tix)setTimeout(()=>{if(curScreen!=='world')return;
   card(`Great work today, ${esc(p.name)}! ${Inner.ticketLine(p,tix,!inMet)}${s.rocks?`<br><br>You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:''}`,'Thanks! 🎟️');},700);
- else toast(`🔬 Dr. Quartz: "Great work today!" ${s.rocks?`You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:'Bring me another 🪨 mystery rock to come back!'}`);}
+ else toast(`🔬 Dr. Quartz: "Great work today!" ${s.rocks?`You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:'Bring me another 🪨 mystery rock to come back!'}`);}}
 
 /* ---------- backpack panel ---------- */
 function bagHTML(p){const s=Q(p);if(!s.met)return '';const c=p.cave||{};const nid=Object.keys(c.idd||{}).length;const tot=window.CAVE_DATA?Object.keys(CAVE_DATA.MIN).length:21;
