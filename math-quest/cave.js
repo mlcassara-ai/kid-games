@@ -56,6 +56,8 @@ function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i)
 function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const pick=(R,a)=>a[Math.floor(R()*a.length)];
 function shuffle(R,a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+/* the real calendar day: the garden drip and the probe's daily runs follow the clock, not the tunnel map (which the host may keep for several trips) */
+function realDay(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function today(){if(H&&H.today)return H.today();const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 let H=null,S=null,W=null,root=null,cv=null,ctx=null,fog=null,fctx=null;
@@ -75,7 +77,8 @@ function initState(){
  S.pack=S.pack||[];S.rp=S.rp||0;S.maxRow=S.maxRow||0;S.probe=S.probe||{rank:0,best:0,wins:0,day:'',runs:0};
  S.stats.dug=S.stats.dug||0;S.dive=S.dive||{c:0,f:0,cr:0,d:0,ch:0};
  const d=today();
- if(S.day!==d){const first=!S.day;S.day=d;S.dug='';S.obs=[];S.x=4;S.y=0;S.bat=batMax();S.caveIn=!first;S.probe.runs=0;}
+ if(S.day!==d){const first=!S.day;S.day=d;S.dug='';S.obs=[];S.x=4;S.y=0;S.bat=batMax();S.caveIn=!first;}
+ {const rd=realDay();if(S.probe.day!==rd){S.probe.day=rd;S.probe.runs=0;}}
  if(S.bat==null)S.bat=batMax();
  charge(true); // the helmet battery charges while you are away
 }
@@ -427,7 +430,7 @@ function drawShaft(c,px,py,T,top){c.fillStyle='#3a3340';c.fillRect(px,py,T+1,T+1
 const CAMP=[{x:2,e:'🔋',n:'Power Up',a:'power'},{x:8,e:'🔬',n:'Lab',a:'lab'},{x:10,e:'🛒',n:'Gear',a:'gear'},{x:12,e:'🏛️',n:'Museum',a:'museum'},{x:14,e:'🌱',n:'Garden',a:'garden',show:()=>S.seen.cave},{x:16,e:'📓',n:'Journal',a:'journal'},{x:18,e:'🚀',n:'Core Probe',a:'probe',show:()=>S.gates.core}];
 const QZX=6.3; // where Dr. Quartz stands
 const campB=()=>CAMP.filter(b=>!b.show||b.show());
-function campBadge(b){if(b.a==='lab'){const u=S.pack.filter(p=>p.t!=='f').length;return u?String(u):'';}if(b.a==='museum')return museumReady()?'!':'';if(b.a==='garden')return S.garden&&S.garden.last!==S.day?'💧':'';if(b.a==='power')return S.bat<batMax()*.25?'!':'';return '';}
+function campBadge(b){if(b.a==='lab'){const u=S.pack.filter(p=>p.t!=='f').length;return u?String(u):'';}if(b.a==='museum')return museumReady()?'!':'';if(b.a==='garden')return S.garden&&S.garden.last!==realDay()?'💧':'';if(b.a==='power')return S.bat<batMax()*.25?'!':'';return '';}
 function campTap(wx,wy){if(wy<-.55||wy>1.05)return false;
  if(Math.abs(wx-.5)<.6){sfx('tap');act('elev');return true;}
  if(Math.abs(wx-QZX)<.55){sfx('tap');act('tip');return true;}
@@ -462,7 +465,7 @@ function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(
  if(S.y===0&&false){const unk=S.pack.filter(p=>p.t!=='f').length;
   if(S.bat<batMax()-.5)a+=`<button class="cv-act pw" data-a="power">⚡<span>Power Up</span></button>`;
   a+=`<button class="cv-act qz" data-a="tip">💡<span>Dr. Quartz</span></button><button class="cv-act" data-a="lab">🔬<span>Lab</span>${unk?`<em>${unk}</em>`:''}</button><button class="cv-act" data-a="gear">🛒<span>Gear</span></button><button class="cv-act" data-a="museum">🏛️<span>Museum</span>${museumReady()?'<em>!</em>':''}</button>`;
-  if(S.seen.cave)a+=`<button class="cv-act" data-a="garden">🌱<span>Garden</span>${S.garden&&S.garden.last!==S.day?'<em>💧</em>':''}</button>`;
+  if(S.seen.cave)a+=`<button class="cv-act" data-a="garden">🌱<span>Garden</span>${S.garden&&S.garden.last!==realDay()?'<em>💧</em>':''}</button>`;
   a+=`<button class="cv-act" data-a="journal">📓<span>Journal</span></button><button class="cv-act" data-a="elev">🛗<span>Elevator</span></button>`;
   if(S.gates.core)a+=`<button class="cv-act" data-a="probe">🚀<span>Core Probe</span></button>`;
  }else if(S.y>0){a+=`<button class="cv-act" data-a="home">🏠<span>Camp</span></button>`;if(S.gear.uv)a+=`<button class="cv-act ${uvOn?'on':''}" data-a="uv">🔦<span>UV ${uvOn?'on':'off'}</span></button>`;}
@@ -753,7 +756,7 @@ function assemble(id){const f=CD.FOSSILS.find(x=>x.id===id);const pos=FPOS[id];c
  draw();}
 
 /* ---------------- Drip Garden ---------------- */
-function openGarden(){S.garden=S.garden||{stage:0,last:'',cols:0};const G=S.garden;const can=G.last!==S.day;const st=G.stage;
+function openGarden(){S.garden=S.garden||{stage:0,last:'',cols:0};const G=S.garden;const can=G.last!==realDay();const st=G.stage;
  const tl=12+st*5.2,tm=8+st*4.4;
  modal(`<h2>🌱 Drip Garden</h2><p class="cv-sub">Drip water on the cave ceiling once a day and watch a stalactite and stalagmite grow toward each other.</p>
   <svg class="cv-drip" viewBox="0 0 200 120"><rect width="200" height="120" rx="12" fill="#2a2330"/><path d="M0 0 H200 V14 Q100 22 0 14Z" fill="#8f897a"/><path d="M0 120 H200 V106 Q100 100 0 106Z" fill="#8f897a"/>
@@ -761,7 +764,7 @@ function openGarden(){S.garden=S.garden||{stage:0,last:'',cols:0};const G=S.gard
   <div class="cv-meter"><i style="width:${Math.min(100,st/7*100)}%"></i></div><p class="cv-sub">Day ${st} of 7 · Columns grown: ${G.cols}</p>
   <p>${TIER()?'Each drip of water carries dissolved calcium bicarbonate. When the drop loses CO₂ to the cave air, calcite (CaCO₃) is left behind. Real stalactites grow only about a centimetre every 100 years — ours are magic-fast!':'Every drop of water leaves a tiny bit of rock behind. Stalac<b>t</b>ites hang from the <b>t</b>op, stalag<b>m</b>ites grow up from the ground. When they meet they make a column!'}</p>
   <div class="cv-row">${can?'<button class="cv-btn" id="cvDrip">💧 Drip water today</button>':'<span class="cv-sub">✅ Watered today. Come back tomorrow!</span>'}</div>`,{wide:1});
- const b=root.querySelector('#cvDrip');if(b)b.onclick=()=>{G.last=S.day;G.stage++;let extra='';if(G.stage>=7){G.cols++;addCoins(150,'column');S.rp+=10;extra='🏛️ They joined into a COLUMN! +150 🪙 +10 🔬';G.stage=7;}save(true);ev('drip',{});openGarden();if(extra){say(extra,4000);G.stage=0;G.last=S.day;save(true);}};}
+ const b=root.querySelector('#cvDrip');if(b)b.onclick=()=>{G.last=realDay();G.stage++;let extra='';if(G.stage>=7){G.cols++;addCoins(150,'column');S.rp+=10;extra='🏛️ They joined into a COLUMN! +150 🪙 +10 🔬';G.stage=7;}save(true);ev('drip',{});openGarden();if(extra){say(extra,4000);G.stage=0;G.last=S.day;save(true);}};}
 
 /* ---------------- Elevator ---------------- */
 function openElevator(){const stops=CD.LAYERS.filter(L=>S.maxRow>=L.r0);

@@ -1,6 +1,6 @@
 /* PET CARE — Nana Paws the pet sitter, lonely-pet warnings and the Pet Rescue.
    • Hearts drop one every 8 hours (index.html petMood). When a pet's tummy AND happy hearts are both at zero it gets lonely:
-     day 1–2 at zero = 😢 lonely (yellow !), day 3–4 = 🧳 packing a suitcase (red !!), day 5 = it goes to the 🏡 Pet Rescue.
+     counted in PLAY days (days the kid opens the game): play days 1–2 at zero = 😢 lonely (yellow !), day 3 = 🧳 packing (red !!), day 4 = the 🏡 Pet Rescue.
    • A pat, a snack or a game clears it right away. Pets at Adventure Camp, the battle buddy, and special prize/event/mythic pets never leave.
    • Nana Paws (hired in the Pet Home for coins) keeps every pet at 2+ hearts while she's hired (pd.sit, read by petMood).
    • Pet Rescue: feed + play + 🪙 100 brings a pet home at 3 hearts with all its levels.
@@ -22,6 +22,8 @@ const rescued=(p,id)=>!!(p.petData&&p.petData[id]&&p.petData[id].resc);
 const owned=p=>(p.pets||[]).filter(id=>petById(id));
 const homePets=p=>owned(p).filter(id=>!atCamp(p,id)&&!rescued(p,id));
 const canLeave=(p,id)=>ruleOn(p)&&id!==p.pet&&!special(id)&&!atCamp(p,id)&&!rescued(p,id);
+/* the pets Nana is paid to watch: not the battle buddy or special pets, which can never leave anyway */
+const sitPets=p=>homePets(p).filter(id=>id!==p.pet&&!special(id));
 const sitUntil=p=>{const c=C(p);return c.sit&&c.sit>Date.now()?c.sit:0;};
 const when=t=>new Date(t).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'});
 
@@ -31,7 +33,7 @@ function sweep(p,quiet){if(!p||!p.setup||!p.pets||!p.pets.length)return;const c=
  if(!c.v){c.v=1;c.lastSeen=now;owned(p).forEach(id=>{const pd=petMood(pdOf(p,id));if(pd.food<3)pd.food=3;if(pd.joy<3)pd.joy=3;pd.t=now;});c.intro=1;ch=true;}
  const su=sitUntil(p);
  /* pets that went to Adventure Camp while Nana was paid to watch them: she gives back the unused days and takes them off her list */
- const cred=[];owned(p).filter(id=>atCamp(p,id)).forEach(id=>{const pd=pdOf(p,id);if(pd.sr&&pd.sit&&pd.sit>now){const cr=Math.round(pd.sr*(pd.sit-now)/DAY);if(cr>0){p.coins=(p.coins||0)+cr;c.spent=Math.max(0,(c.spent||0)-cr);c.credit=(c.credit||0)+cr;cred.push([id,cr]);}delete pd.sit;delete pd.sr;ch=true;}});
+ const cred=[];owned(p).filter(id=>atCamp(p,id)).forEach(id=>{const pd=pdOf(p,id);const paid=Math.min(pd.sit||0,pd.spu||c.sit||0); /* only the days actually PAID for: free Vacation-mode days are never refunded */if(pd.sr&&pd.sit&&pd.sit>now){const cr=paid>now?Math.round(pd.sr*(paid-now)/DAY):0;if(cr>0){p.coins=(p.coins||0)+cr;c.spent=Math.max(0,(c.spent||0)-cr);c.credit=(c.credit||0)+cr;cred.push([id,cr]);}delete pd.sit;delete pd.sr;delete pd.spu;ch=true;}});
  if(cred.length)c.news.push({k:'credit',list:cred,t:now});
  /* during Vacation mode every pet is covered for free */
  const vac=c.vac&&c.vac>now?c.vac:0;
@@ -39,9 +41,12 @@ function sweep(p,quiet){if(!p||!p.setup||!p.pets||!p.pets.length)return;const c=
   if(vac&&(pd.sit||0)<vac){petMood(pd);pd.sit=vac;pd.food=Math.max(2,pd.food);pd.joy=Math.max(2,pd.joy);ch=true;}
   petMood(pd);
   if(!canLeave(p,id)){if(pd.stg){pd.stg=0;ch=true;}return;}
-  if(pd.food>0||pd.joy>0){let z=pd.t+Math.max(pd.food,pd.joy)*H8;if(pd.sit&&pd.sit>now)z=Math.max(z,pd.sit+2*H8);if(Math.abs((pd.cz||0)-z)>6e4||pd.stg){pd.cz=z;pd.stg=0;ch=true;}return;}
+  if(pd.food>0||pd.joy>0){let z=pd.t+Math.max(pd.food,pd.joy)*H8;if(pd.sit&&pd.sit>now)z=Math.max(z,pd.sit+2*H8);if(Math.abs((pd.cz||0)-z)>6e4||pd.stg||pd.lz){pd.cz=z;pd.stg=0;pd.lz=0;delete pd.lzd;ch=true;}return;}
   if(!pd.cz||pd.cz>now){pd.cz=now;ch=true;}
-  const d=(now-pd.cz)/DAY,stg=d>=4?3:d>=2?2:1;
+  /* loneliness counts the days the kid actually PLAYS, not calendar days, so a weekend-only player never comes back to an empty Pet Home.
+     1st–2nd play day with no care = lonely, 3rd = packing, 4th play day ignored = off to the Rescue (and never within 4 real days). */
+  const today=dayKey();if(pd.lzd!==today){pd.lz=(pd.lz||0)+1;pd.lzd=today;ch=true;}
+  const d=(now-pd.cz)/DAY,stg=pd.lz>=4&&d>=4?3:pd.lz>=3?2:1;
   if(stg===3){pd.resc=now;pd.stg=0;pd.rs={};c.news.push({k:'left',id,t:now});c.left=(c.left||0)+1;
    try{if(p.adv&&p.adv.crew)p.adv.crew=p.adv.crew.filter(x=>x!==id);}catch(e){}ch=true;return;}
   if(pd.stg!==stg){pd.stg=stg;ch=true;}});
@@ -52,7 +57,7 @@ function sweep(p,quiet){if(!p||!p.setup||!p.pets||!p.pets.length)return;const c=
  c.lastSeen=now;
  if(ch){try{save();}catch(e){}}
  if(!quiet)showNews(p);}
-function uncovered(p){const su=sitUntil(p);if(!su)return [];return homePets(p).filter(id=>{const pd=pdOf(p,id);return (pd.sit||0)<su&&pd.sitNo!==su;});}
+function uncovered(p){const su=sitUntil(p);if(!su)return [];return sitPets(p).filter(id=>{const pd=pdOf(p,id);return (pd.sit||0)<su&&pd.sitNo!==su;});}
 function offerCost(p,ids){const c=C(p),su=sitUntil(p);return Math.max(1,Math.ceil((c.rate||PRICE)*ids.length*(su-Date.now())/DAY));}
 function counts(p){const o={lonely:[],packing:[],resc:owned(p).filter(id=>rescued(p,id))};homePets(p).forEach(id=>{const s=stageOf(p,id);if(s===1)o.lonely.push(id);if(s===2)o.packing.push(id);});return o;}
 
@@ -94,12 +99,12 @@ function listHTML(p){const ids=owned(p).filter(id=>!rescued(p,id));if(!ids.lengt
   return `<div class="pc-row${camp?' dim':''}" data-pet="${id}"><span class="pc-e">${pe(id)}</span><div class="pc-nm"><b>${nm(id)}</b>${chip(p,id)}</div><div class="pc-h"><span title="Tummy">${hearts(pd.food,'🍗')}</span><span title="Happy">${hearts(pd.joy,'💖')}</span></div>
    ${camp?'':`<div class="pc-act"><button class="btn small ${patOk?'':'ghost dark'}" onclick="PetCare.pat('${id}')" aria-label="Pat">🤗<span class="pc-l"> Pat</span></button><button class="btn small ${!food||pd.food>=MOOD_MAX?'pc-empty':'green'}" onclick="PetCare.snack('${id}')" title="${pd.food>=MOOD_MAX?'Full!':food?food.name:'No snacks left'}" aria-label="Snack">${food?food.e:'🍽️'}<span class="pc-l"> Snack</span></button></div>`}</div>`;}).join('')}</div>
  ${food?'':'<p class="muted" style="margin:8px 0 0;font-size:14px">Out of snacks? Buy some in the Pet Shop below.</p>'}</div>`;}
-function planPrice(p,pl){const n=Math.max(1,homePets(p).length);return Math.round(n*PRICE*pl.id*(1-pl.off));}
-function sitterHTML(p){const c=C(p),su=sitUntil(p),n=homePets(p).length,camp=owned(p).filter(id=>atCamp(p,id)).length;
+function planPrice(p,pl){const n=Math.max(1,sitPets(p).length);return Math.round(n*PRICE*pl.id*(1-pl.off));}
+function sitterHTML(p){const c=C(p),su=sitUntil(p),n=sitPets(p).length,camp=owned(p).filter(id=>atCamp(p,id)).length;
  return `<div class="panel pc-panel pc-sit"><div class="pc-sithead"><div class="pc-nana">${NANA}</div><div><h3 style="margin:0">🧶 Nana Paws, Pet Sitter</h3>
   <p class="muted" style="margin:2px 0 0">${su?`<b style="color:#1e9a53">Hired until ${when(su)}.</b> Everyone stays at 2+ hearts.`:`"Off to school all week? I'll make sure everyone gets breakfast and a good scratch behind the ears."`}</p></div></div>
   <div class="pc-plans" id="pcPlans">${PLANS.map(pl=>{const pr=planPrice(p,pl);return `<button class="pc-plan" onclick="PetCare.hire(${pl.id})"><span>${pl.e} ${pl.n}${pl.off?` <em>${Math.round(pl.off*100)}% off</em>`:''}</span><b>🪙 ${pr}</b></button>`;}).join('')}</div>
-  <p class="muted" style="margin:6px 0 0;font-size:14px">🪙 ${PRICE} per pet per day · ${n} pet${n===1?'':'s'} at home${camp?` · ${camp} at camp (free)`:''}${su?' · Hiring again adds more days.':''} · You have 🪙 ${p.coins||0}</p><p class="muted" style="margin:4px 0 0;font-size:14px">🏕️ Sending a pet she's watching to camp? Nana gives back the unused days. When it gets home, she'll ask if you want her to watch it again.</p>${(()=>{const nc=su?homePets(p).filter(id=>(pdOf(p,id).sit||0)<su).length:0;return nc?`<button class="btn small gold" style="margin-top:6px" onclick="PetCare.offer()">🧶 Ask Nana to watch ${nc} more pet${nc>1?'s':''}</button>`:'';})()}</div>`;}
+  <p class="muted" style="margin:6px 0 0;font-size:14px">🪙 ${PRICE} per pet per day · ${n} pet${n===1?'':'s'} to watch (your battle buddy and special pets are always fine)${camp?` · ${camp} at camp (free)`:''}${su?' · Hiring again adds more days.':''} · You have 🪙 ${p.coins||0}</p><p class="muted" style="margin:4px 0 0;font-size:14px">🏕️ Sending a pet she's watching to camp? Nana gives back the unused days. When it gets home, she'll ask if you want her to watch it again.</p>${(()=>{const nc=su?sitPets(p).filter(id=>(pdOf(p,id).sit||0)<su).length:0;return nc?`<button class="btn small gold" style="margin-top:6px" onclick="PetCare.offer()">🧶 Ask Nana to watch ${nc} more pet${nc>1?'s':''}</button>`:'';})()}</div>`;}
 function rescueHTML(p){const ids=owned(p).filter(id=>rescued(p,id));if(!ids.length)return '';
  const food=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0&&f.food>0).sort((a,b)=>a.price-b.price)[0];
  return `<div class="panel pc-panel pc-resc"><div class="pc-sithead"><div class="pc-nana">${RANGER}</div><div><h3 style="margin:0">🏡 Pet Rescue</h3><p class="muted" style="margin:2px 0 0">"${ids.length>1?'These pets are':nm(ids[0])+' is'} safe with me. Come bring ${ids.length>1?'them':'them'} home!" — Ranger Juniper</p></div></div>
@@ -122,12 +127,12 @@ function snack(id){const p=P();const f=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0
  if(pd.food>=MOOD_MAX){toast(`${pe(id)} ${petById(id).name} is full! No snack needed right now. Try a pat instead 🤗`);return;}
  p.pantry[f.id]--;pd.food=Math.min(MOOD_MAX,pd.food+f.food);pd.joy=Math.min(MOOD_MAX,pd.joy+(f.joy||0));try{petGain(p,petById(id),f.xp);}catch(e){}try{questEvent(p,'petcare',1);}catch(e){}try{SFX.coin();}catch(e){}sweep(p,true);save();toast(`${f.e} ${petById(id).name}: yum!`);refresh(id);}
 function cover(p,ids,cost){const c=C(p),su=sitUntil(p);if(!su||(p.coins||0)<cost)return false;p.coins-=cost;c.spent=(c.spent||0)+cost;const r=c.rate||PRICE;
- ids.forEach(id=>{const pd=petMood(pdOf(p,id));pd.sit=su;pd.sr=r;delete pd.sitNo;pd.food=Math.max(2,pd.food);pd.joy=Math.max(2,pd.joy);});sweep(p,true);save();try{SFX.coin();}catch(e){}return true;}
+ ids.forEach(id=>{const pd=petMood(pdOf(p,id));pd.sit=su;pd.spu=su;pd.sr=r;delete pd.sitNo;pd.food=Math.max(2,pd.food);pd.joy=Math.max(2,pd.joy);});sweep(p,true);save();try{SFX.coin();}catch(e){}return true;}
 function hire(days,yes){const p=P(),pl=PLANS.find(x=>x.id===days);if(!pl)return;const pr=planPrice(p,pl);
  if((p.coins||0)<pr){toast(`🪙 You need ${pr-(p.coins||0)} more coins for that plan.`);return;}
  const box=document.getElementById('pcPlans');if(!yes&&box){box.innerHTML=`<div class="pc-confirm">Hire Nana Paws (<b>${pl.n}</b>) for 🪙 ${pr}?<div class="row" style="justify-content:flex-start;margin-top:6px"><button class="btn gold small" onclick="PetCare.hire(${days},1)">Yes, hire her</button><button class="btn ghost dark small" onclick="PetCare.redraw()">No</button></div></div>`;return;}
  const c=C(p),now=Date.now();p.coins-=pr;c.sit=Math.max(now,c.sit||0)+days*DAY;c.spent=(c.spent||0)+pr;c.hires=(c.hires||0)+1;
- const hp=homePets(p);c.rate=pr/Math.max(1,hp.length)/days;hp.forEach(id=>{const pd=petMood(pdOf(p,id));pd.sit=c.sit;pd.sr=c.rate;delete pd.sitNo;pd.food=Math.max(2,pd.food);pd.joy=Math.max(2,pd.joy);});
+ const hp=sitPets(p);c.rate=pr/Math.max(1,hp.length)/days;hp.forEach(id=>{const pd=petMood(pdOf(p,id));pd.sit=c.sit;pd.spu=c.sit;pd.sr=c.rate;delete pd.sitNo;pd.food=Math.max(2,pd.food);pd.joy=Math.max(2,pd.joy);});
  sweep(p,true);save();try{SFX.coin();}catch(e){}toast(`🧶 Nana Paws is hired until ${when(c.sit)}!`);redraw();}
 function rfeed(id){const p=P();const f=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0&&f.food>0).sort((a,b)=>a.price-b.price)[0];if(!f)return;const pd=pdOf(p,id);p.pantry[f.id]--;pd.rs=pd.rs||{};pd.rs.fed=1;save();try{SFX.coin();}catch(e){}toast(`${f.e} ${petById(id).name} gobbled it up!`);redraw();}
 function rbuy(id){const p=P();if((p.coins||0)<10){toast('🪙 You need 10 coins.');return;}p.coins-=10;p.pantry.apple=(p.pantry.apple||0)+1;rfeed(id);}

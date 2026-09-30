@@ -211,7 +211,7 @@ function drop(b){const S=SORT;if(!S)return;NEWS='';const i=S.sel;if(S.done.inclu
  const p=P(),c=C(p);const ok=b===x.b||b===x.alt;const into=ok?b:x.b;const pts=ok?PT_RIGHT:PT_WRONG;
  const at=c.pend.indexOf(id);if(at>=0)c.pend.splice(at,1);
  c.sorted++;if(ok)c.right++;c.bins[into]++;c.load[into]++;c.seen[id]=(c.seen[id]||0)+1;S.done.push(i);S.gain+=pts;if(ok)S.ok++;
- const won=addPts(p,pts);S.won=S.won.concat(won);save();
+ const won=addPts(p,pts);S.won=S.won.concat(won);if(won.length)c.rw=(c.rw||[]).concat(won.map(w=>w.m.star?{s:w.m.star}:{id:w.m.id}));save();
  const fin=S.done.length>=S.items.length;
  const y=young(p);
  S.msg=ok?`${pk(['✅ Yes!','✅ You got it!','✅ Right!','✅ Super sorting!'])} ${b!==x.b?'That works! ':''}${icon(x)} <b>${esc(x.n)}</b> → ${BINS[b].e} ${BINS[b].n}. ${esc(x.f)}`
@@ -224,11 +224,14 @@ function floatAt(el,t){try{const r=el.getBoundingClientRect(),f=document.createE
 function nextLine(c){const at=nextAt(c),m=nextM(c),need=Math.max(0,at-c.pts),trips=Math.max(1,Math.ceil(need/perTrip(c)));
  return m?`Next reward at <b>${at}</b> points: ${badgeHTML(m,1,26)} <b>${esc(m.n)}</b> badge + ${prizeLine(m)} <span class="muted">(${need} to go · about ${trips} more trip${trips>1?'s':''})</span>`
   :`Next ⭐ Clean-Up Star at <b>${at}</b> points <span class="muted">(${need} to go)</span>`;}
-function close(){SORT=null;NEWS='';try{speechSynthesis.cancel();}catch(e){}closeModal();redraw();}
+function close(){if(SORT&&SORT.won&&SORT.won.length)return rewards(); /* "Sort later" after earning a badge: show the reward first, never lose it */SORT=null;NEWS='';try{speechSynthesis.cancel();}catch(e){}closeModal();redraw();}
 function redraw(){try{if(typeof curScreen!=='undefined'&&curScreen==='camp'&&window.Adv)Adv.draw();}catch(e){}}
 
 /* ---------- reward reveal ---------- */
-function rewards(list){list=list||(SORT&&SORT.won)||[];if(SORT)SORT.won=[];if(!list.length)return close();css();const p=P();const r=list[0],rest=list.slice(1),m=r.m;
+/* rewards earned but not yet shown (saved, so a reload or 'Sort later' never loses the big reveal) */
+function rwList(c){return (c.rw||[]).map(x=>{if(x.s)return {m:{id:'star',e:'⭐',n:'Clean-Up Star',c:'#f59f00',coins:STAR_COINS,star:x.s},lines:[`🪙 ${STAR_COINS} coins`]};const m=TRACK.find(t=>t.id===x.id);return m?{m,lines:[`🪙 ${m.coins} coins`]}:null;}).filter(Boolean);}
+function rewards(list){const p=P(),c=C(p);list=list||(SORT&&SORT.won&&SORT.won.length?SORT.won:rwList(c));if(SORT)SORT.won=[];if(!list.length){SORT=null;return close();}css();const r=list[0],rest=list.slice(1),m=r.m;
+ if(c.rw&&c.rw.length){const k=c.rw.findIndex(x=>m.star?x.s===m.star:x.id===m.id);if(k>=0){c.rw.splice(k,1);save();}}
  let art=badgeHTML(m,1,110),extra='',btn2='';
  if(m.hat){art=`<div class="cu-hero">${heroSVG(Object.assign({},p.look,{hat:m.hat}))}</div>`;extra=`<p>A brand-new hat: the <b>👒 Scout Hat</b>! It's never sold in the shop. Find it in your Backpack → Hats.</p>`;btn2=`<button class="btn" onclick="Cleanup.wear('hat','${m.hat}')">👒 Wear it now!</button>`;}
  else if(m.robe){const R=ROBE_DEFS.find(x=>x.id===m.robe);art=`<div class="cu-hero">${heroSVG(Object.assign({},p.look,{robe:m.robe}))}</div>`;extra=`<p>A brand-new robe: <b>👘 ${esc(R.name)}</b>! It's never sold in the shop. Find it in your Backpack → Robes.</p>`;btn2=`<button class="btn" onclick="Cleanup.wear('robe','${m.robe}')">👘 Wear it now!</button>`;}
@@ -244,7 +247,7 @@ function wear(k,id){const p=P();if(k==='hat'&&p.owned.hats.includes(id))p.look.h
 function buddy(){const p=P();if(window.Adv&&Adv.away(p,BOT.id))return toast('Sorty is on an adventure right now!');if(p.pets.includes(BOT.id)){p.pet=BOT.id;save();try{SFX.tap();}catch(e){}toast('🤖 Sorty is your battle buddy! Beep boop!');}}
 
 /* ---------- after a trip: rare science find first, then sorting ---------- */
-function wants(r){try{const p=P();return !!(p&&(r&&(r.bone||r.rock)||C(p).pend.length));}catch(e){return false;}}
+function wants(r){try{const p=P();return !!(p&&(r&&(r.bone||r.rock)||C(p).pend.length||(C(p).rw||[]).length));}catch(e){return false;}}
 let NEWS='';const newsHTML=()=>NEWS?`<div class="cu-news">${esc(NEWS)}</div>`:'';
 function afterTrip(r,news){const p=P();if(!p)return;const c=C(p);NEWS=news||'';
  if(r&&(r.bone||r.rock)){css();const bits=[];
@@ -253,7 +256,7 @@ function afterTrip(r,news){const p=P();if(!p)return;const c=C(p);NEWS=news||'';
   const t=`WOW! Look what your crew found on the trail! 🔬`;LAST_SAY=t+' '+bits.join(' ');
   modal(`<div class="mcard cu-sort">${newsHTML()}${bubble(t)}${bits.join('')}<div class="row"><button class="btn green big" onclick="${c.pend.length?'Cleanup.sort()':'Cleanup.close()'}">${c.pend.length?'♻️ Now let\'s sort the litter ➜':'Awesome! 🎉'}</button></div></div>`);
   NEWS='';try{SFX.win();}catch(e){}autoSay(p,t+(r.bone?' A fossil for the Science Cave!':' A mystery rock!'));return;}
- if(c.pend.length)sortModal();}
+ if(c.pend.length)sortModal();else if((c.rw||[]).length)rewards();}
 
 /* ---------- Clean-Up tab ---------- */
 function html(p){css();const c=C(p),a=p.adv;const lo=prevAt(c),hi=nextAt(c),f=Math.min(1,(c.pts-lo)/Math.max(1,hi-lo));const mx=Math.max(1,...BIN_IDS.map(b=>c.load[b]));
@@ -278,7 +281,8 @@ function html(p){css();const c=C(p),a=p.adv;const lo=prevAt(c),hi=nextAt(c),f=Ma
   <div class="cu-log">${LITTER.map(x=>c.seen[x.id]?`<button class="cu-lg" onclick="Cleanup.fact('${x.id}')"><span class="e">${icon(x)}</span><b>${esc(x.n)}</b><small>${BINS[x.b].e} ×${c.seen[x.id]}</small></button>`:`<div class="cu-lg no"><span class="e">❔</span><b>???</b></div>`).join('')}</div></div></div></div>`;}
 function fact(id){const x=LIT_BY[id];if(!x)return;css();const t=`${icon(x)} <b>${esc(x.n)}</b> goes in ${BINS[x.b].e} <b>${BINS[x.b].n}</b>. ${esc(x.f)}`;LAST_SAY=t;
  modal(`<div class="mcard cu-sort">${bubble(t)}<div class="row"><button class="btn green" onclick="closeModal()">Got it!</button></div></div>`);if(voiceOn())speak(t);}
-function campStrip(p){const c=C(p);if(!c.pend.length)return '';css();
+function campStrip(p){css();const c=C(p);if(!c.pend.length&&!(c.rw&&c.rw.length))return '';
+ if(!c.pend.length)return `<div class="cu-strip"><span class="e">🎁</span><span><b>You have a Clean-Up reward waiting!</b><small>Scout Leader Mari has something for you.</small></span><button class="btn gold" onclick="Cleanup.rewards()">🎁 Open it</button></div>`;
  return `<div class="cu-strip"><span class="e">🧤</span><span><b>${c.pend.length} piece${c.pend.length>1?'s':''} of litter</b> to sort!<small>${nextLine(c).replace(/<span class="muted">.*<\/span>/,'')}</small></span><button class="btn green" onclick="Cleanup.sort()">♻️ Sort now</button></div>`;}
 function tabLabel(p){const n=C(p).pend.length;return `♻️ Clean-Up${n?` <span class="cu-dot">${n}</span>`:''}`;}
 function shelfBadges(p){const a=p.adv||{},c=C(p);const got=TRACK.filter(m=>(a.badges||[]).includes(m.id));if(!got.length&&!c.stars)return '';css();

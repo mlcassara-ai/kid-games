@@ -254,7 +254,8 @@ function toScene(fn){const c=document.getElementById('advScene');if(!c)return fn
 /* ---------- screens ---------- */
 function draw(){css();const p=P(),a=A(p);a.crew=a.crew.filter(id=>p.pets.includes(id)).slice(0,slots(p));if(!destOpen(a,dest(a.dest)))a.dest='meadow';
  const CU=window.Cleanup;if(TAB==='clean'&&!CU)TAB='camp';
- const body=TAB==='shelf'?shelfHTML(p,a):TAB==='cards'?cardsHTML(a):TAB==='clean'?CU.html(p):(CU?CU.campStrip(p):'')+campHTML(p,a);
+ const resB=a.res&&!RES?`<div class="cu-strip"><span class="e">🎒</span><span><b>Your crew is still unpacking!</b><small>Hear their story and open the sacks.</small></span><button class="btn gold" onclick="Adv.resume()">🎒 Keep unpacking</button></div>`:'';
+ const body=TAB==='shelf'?shelfHTML(p,a):TAB==='cards'?cardsHTML(a):TAB==='clean'?CU.html(p):resB+(CU?CU.campStrip(p):'')+campHTML(p,a);
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏕️ Adventure Camp</h2></div>
  <div class="adv-tabs">${[['camp','🏕️ Camp'],...(CU?[['clean',CU.tabLabel(p)]]:[]),['shelf','🗄️ Curiosity Shelf'],['cards','🖼️ Postcards']].map(([k,t])=>`<button class="${TAB===k?'on':''}" onclick="Adv.tab('${k}')">${t}</button>`).join('')}</div>${body}</div>`;
  if(TAB==='camp')requestAnimationFrame(sitters);}
@@ -349,7 +350,9 @@ function cardsHTML(a){return `<div class="panel" style="color:var(--ink)"><p sty
 
 /* ---------- welcome home ---------- */
 function welcome(){const p=P(),a=A(p);if(!a.trip||Date.now()<a.trip.end)return;const b=document.getElementById('advWelcome');if(b)b.disabled=true;const crew=a.trip.crew;
- RES=finish();SFX.coin();toScene(()=>comeHome(crew,()=>offerTale()));}
+ RES=finish();if(RES){try{a.res=JSON.parse(JSON.stringify(RES));save();}catch(e){}}SFX.coin();toScene(()=>comeHome(crew,()=>offerTale()));}
+/* a reload (or a closed tab) in the middle of welcome-home: the finds are already in the backpack, but let the kid still hear the story and open the sacks */
+function resume(){const a=A(P());if(!a.res)return;RES=a.res;offerTale();}
 function diary(){const r=RES;if(!r)return;const d=dest(r.dest),T=TRIPS[r.len]||TRIPS.mid;
  modal(`<div class="mcard"><h2>📔 Trip Diary</h2><div class="adv-diary"><p class="d">${d.e} ${d.n} · ${T.n}</p>${r.diary.map(l=>`<p>${l}</p>`).join('')}</div>
  ${r.card?`<p style="margin:4px 0">📮 ${r.card.nw?`Someone mailed you a <b>postcard</b>! It's on the Postcards page.`:`Remember the <b>postcard</b> we mailed you? It's on the Postcards page.`}</p>`:''}<div class="row"><button class="btn gold big" onclick="Adv.sacks()">🎒 Open the sacks!</button></div></div>`);}
@@ -364,7 +367,7 @@ function openSack(i){const s=RES&&RES.sacks[i],el=document.getElementById('advSk
  if(s.items.some(it=>it.rare))for(let k=0;k<5;k++)floatAt(el,'✨',k);
  if([...document.querySelectorAll('.adv-sk')].every(x=>x.dataset.open)){const d=document.getElementById('advDone');if(d)d.disabled=false;}}
 function floatAt(el,ch,k){if(!el)return;const r=el.getBoundingClientRect(),f=document.createElement('span');f.className='adv-float';f.textContent=ch;f.style.left=(r.left+r.width*(.2+Math.random()*.6))+'px';f.style.top=(r.top+r.height*.4)+'px';f.style.animationDelay=(k*.12)+'s';document.body.appendChild(f);setTimeout(()=>f.remove(),2400);}
-function done(){const r=RES;RES=null;closeModal();draw();if(!r)return;
+function done(){const r=RES;RES=null;try{const a=A(P());if(a.res){delete a.res;save();}}catch(e){}closeModal();draw();if(!r)return;
  const eggs=r.sacks.some(s=>s.items.some(it=>it.k==='egg'));const grew=r.grew.map(([id,st])=>`${petE(id)} ${petN(id)} is now ${st}!`);
  const msg=[eggs?'🥚 An egg is waiting in your backpack!':'',...grew].filter(Boolean).join(' ');
  /* the one extra step: sort the litter the crew picked up (and hear about any rare Science Cave find). The egg / grew-up news then rides along in that card instead of a toast that would cover it. */
@@ -389,7 +392,7 @@ function petCard(p){css();const a=A(p),t=a.trip,n=slots(p);const crewHTML=ids=>`
    <div class="adv-meter"><i style="width:${pct.toFixed(1)}%"></i></div><div class="muted" style="font-size:13px">Back at <b>${fmtClock(t.end)}</b> ${dayWord(t.end)}</div></div>
    <div class="act"><div class="left">${fmtLeft(t.end-Date.now())}<small>to go</small></div><button class="btn ghost dark small" style="margin-top:6px" onclick="go('camp')">🏕️ Visit camp</button></div></div>`;}
 /* ---------- hooks for the rest of the game ---------- */
-window.Adv={_mail:(t)=>mail(P(),null,!!t),readCard,tellTale,_tale:(c)=>tale(P(),c),diary:()=>{try{speechSynthesis.cancel()}catch(e){};diary();},readAloud:()=>readAloud(LAST_TALE||[]),petCard,away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
+window.Adv={resume,_mail:(t)=>mail(P(),null,!!t),readCard,tellTale,_tale:(c)=>tale(P(),c),diary:()=>{try{speechSynthesis.cancel()}catch(e){};diary();},readAloud:()=>readAloud(LAST_TALE||[]),petCard,away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
  toggle(id){const p=P(),a=A(p);if(a.trip)return toast('Wait for your crew to come home first!');const i=a.crew.indexOf(id);if(i>=0)a.crew.splice(i,1);else{const n=slots(p);if(a.crew.length>=n)return toast(`All ${n} crew spot${n>1?'s are':' is'} full! Win more battles to open more.`);a.crew.push(id);}SFX.tap();save();draw();},
  set(k,v){const a=A(P());a[k]=v;save();draw();},tab(t){TAB=t;draw();window.scrollTo(0,0);},
  askCall(){modal(`<div class="mcard"><div class="big-emoji">📯</div><h2>Call them home early?</h2><p>They'll run right back, but they'll only have time to grab a few coins.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Let them explore</button><button class="btn" onclick="closeModal();Adv.callHome()">Blow the horn!</button></div></div>`);},
