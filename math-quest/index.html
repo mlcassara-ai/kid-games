@@ -1658,7 +1658,7 @@ SCREENS.map=()=>{
 };
 function homeCards(p){const pet=petOf(p);let petLine='';const awayP=!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)?PETS.find(x=>x.id===p.pet):null;
  if(pet){const pd=petMood(petData(p,pet.id));petLine=pd.food<=1?`${esc(pet.name)} is hungry!`:pd.joy<=1?`${esc(pet.name)} wants to play!`:`${pips(pd.food,'🍗')} ${pips(pd.joy,'💖')}`;}
- return `<div class="homecards"><button class="hcard" onclick="go('pethome')">${pet?petAvatar(p,pet):awayP?`<span class="pav"><span class="pe">${awayP.e}</span></span>`:'<span class="pav"><span class="pe">🥚</span></span>'}<div><b>${pet?esc(pet.name)+"'s Home":awayP?esc(awayP.name)+"'s Home":'Pet Home'}</b><small>${pet?petLine:awayP?`🎒 ${esc(awayP.name)} is on an adventure!`:'Hatch a pet to start!'}</small></div></button>
+ return `<div class="homecards"><button class="hcard" onclick="go('pethome')">${pet?petAvatar(p,pet):awayP?`<span class="pav"><span class="pe">${awayP.e}</span></span>`:'<span class="pav"><span class="pe">🥚</span></span>'}<div><b>Pet Home${pet?` · ${esc(pet.name)}`:''}</b><small>${pet?petLine:awayP?`🎒 ${esc(awayP.name)} is on an adventure!`:'Hatch a pet to start!'}</small></div></button>
  <button class="hcard ${spinReady(p)?'glow':''}" onclick="openSpin()"><span class="pav"><span class="pe">🎡</span></span><div><b>Daily Spin</b><small>${spinReady(p)?'Ready! Tap to spin':'Come back tomorrow'}</small></div></button>${window.Adv&&p.pets.length?Adv.homeCard(p):''}${window.PetCare&&p.pets.length?PetCare.homeCard(p):''}</div>`;}
 
 /* ---------- zone ---------- */
@@ -2576,7 +2576,7 @@ SCREENS.backpack=()=>{
   ${giftFriends(p).length?`<div class="panel giftpanel"><h3>🎁 Gifts</h3><p style="margin:0 0 10px">Send a present to someone in your family! <b>${giftsLeft(p)} of ${GIFTS_PER_DAY}</b> gifts left today.</p><button class="btn gold" onclick="openGift()">🎁 Send a gift</button>${pendingGifts(p).length?` <button class="btn green" onclick="showGift()">📬 Open your gifts (${pendingGifts(p).length})</button>`:''}</div>`:''}
   ${(p.kindVisits||[]).length?`<div class="panel kindpanel"><h3>✨ The Kind Teacher</h3><p>She has visited you <b>${p.kindVisits.length} time${p.kindVisits.length>1?'s':''}</b>! Every visit leaves a magic star.</p><div class="kindstars">${p.kindVisits.map(v=>`<span title="${esc(v.d)}">🌟</span>`).join('')}</div></div>`:''}
   ${(p.awards||[]).length?`<div class="panel awardpanel"><h3>📜 Principal's Awards <small class="muted" style="font-size:14px">tap one to see it again</small></h3><div class="awards">${p.awards.map((a,i)=>[a,i]).reverse().map(([a,i])=>`<div class="award" role="button" style="cursor:pointer" onclick="showCert(${i})" title="Tap to see the certificate"><b>🏅 ${esc(a.t)}</b><small>${esc(niceDate(a.d))}</small></div>`).join('')}</div></div>`:''}<div class="panel muted bpempty">Your trophies, gifts and treasure notes show up here.</div></div>
-  <div class="panel bpsec" data-t="pets"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit ${esc(poss(pet.name))} home (feed, play &amp; pet shop)</button>`:''}
+  <div class="panel bpsec" data-t="pets"><h3>🥚 Eggs &amp; Pets</h3>${pet?`<button class="btn small green" style="margin-bottom:10px" onclick="go('pethome')">🏠 Visit the Pet Home (feed, play &amp; pet shop)</button>`:''}
    <div class="eggrow"><span class="n">You have ${p.eggs} egg${p.eggs===1?'':'s'}</span>
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs}) · Epic or Legendary pet!</button>`:''}
    ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
@@ -2692,13 +2692,13 @@ SCREENS.pethome=()=>{
  const pct=nx?Math.min(100,(pd.xp-st.xp)/(nx.xp-st.xp)*100):100;const today=dayKey();pd.played=pd.played||{};
  const pantry=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0);
  const shopItem=(kind,it,owned,eq,sub)=>`<button class="item ${eq?'eq':''} ${!owned&&p.coins<it.price?'need':''}" onclick="petShop('${kind}','${it.id}')"><div class="ie">${it.e}</div><div>${it.name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${kind==='food'?`🪙 ${it.price}`:owned?(eq?'✓ Wearing':kind==='toy'?'✓ Yours':'Wear'):'🪙 '+it.price}</div></button>`;
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏠 ${esc(poss(pet.name))} Home</h2></div>${window.Adv?Adv.petCard(p):''}
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏠 Pet Home</h2></div>${window.Adv?Adv.petCard(p):''}
  <div class="pethome">
   <div class="panel phcard">
    <div class="phstage" id="phStage" onclick="patPet()">${petAvatar(p,pet,'big')}<div class="bubblesay" id="petSay">${esc(petSays(pd,pet))}</div></div>
    <div class="muted" style="margin-top:4px">Tap ${esc(pet.name)} to give a pat!</div>
    <div class="phstats">
-    <div><b>${st.n}</b> ${esc(pet.name)} · ${PERKS[pet.perk]}</div>
+    <div>⭐ <b>${esc(pet.name)}</b>, your battle buddy · ${st.n} · ${PERKS[pet.perk]}</div>
     <div class="pxp"><i style="width:${nx?pct:(()=>{const li=petLvInfo(pd);return Math.round(li.into/li.need*100);})()}%"></i></div><div class="muted">${nx?`${Math.floor(pd.xp)} / ${nx.xp} pet XP to become <b>${nx.n}</b>`:(()=>{const li=petLvInfo(pd);return `🌟 <b>Mighty Lv ${li.lv}</b> · ${Math.floor(li.into)} / ${li.need} XP to Lv ${li.lv+1}. Every level makes pet moves stronger!`;})()}</div>
     <div class="mood"><span>Tummy</span><span>${pips(pd.food,'🍗')}</span></div>
     <div class="mood"><span>Happy</span><span>${pips(pd.joy,'💖')}</span></div>
@@ -4401,7 +4401,7 @@ function takePet(id,lvl){
 
 
 /* ================= auto-update (version check + "been away" fresh start) ================= */
-const APP_VER='2026.09.30c';
+const APP_VER='2026.09.30d';
 const Upd=(function(){
  const AWAY_RESET=6*3600e3,AWAY_QUIET=15*60e3,EVERY=30*60e3,SAFE=['profiles','map','world','rest'];
  let pending=null,bannerShown=false,lastScr=null,arrived=0,busy=false,resetDue=0,waitSince=0;

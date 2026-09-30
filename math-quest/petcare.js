@@ -72,12 +72,12 @@ function chip(p,id){if(atCamp(p,id))return '<span class="pc-chip camp">🎒 At c
  const s=stageOf(p,id);return s===2?'<span class="pc-chip red">🧳 Packing!</span>':s===1?'<span class="pc-chip yel">😢 Lonely</span>':special(id)?'<span class="pc-chip">✨ Special</span>':'';}
 function listHTML(p){const ids=owned(p).filter(id=>!rescued(p,id));if(!ids.length)return '';const now=Date.now();
  const food=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0&&f.food>0).sort((a,b)=>a.price-b.price)[0];
- const rank=id=>atCamp(p,id)?9:-stageOf(p,id)*10+Math.min(petMood(pdOf(p,id)).food,pdOf(p,id).joy);
- ids.sort((a,b)=>rank(a)-rank(b));
- return `<div class="panel pc-panel"><h3>🐾 All your pets <small class="muted">(${ids.length})</small></h3><p class="muted" style="margin:0 0 8px">Every pet needs a little love every few days: a pat, a snack or a game.${ruleOn(p)?' Lonely pets can wander off to the Pet Rescue.':''}</p>
- <div class="pc-list">${ids.map(id=>{const pd=petMood(pdOf(p,id));const camp=atCamp(p,id);const patOk=!pd.patT||now-pd.patT>15*60e3;
-  return `<div class="pc-row${camp?' dim':''}"><span class="pc-e">${pe(id)}</span><div class="pc-nm"><b>${nm(id)}</b>${chip(p,id)}<div class="pc-h">${hearts(pd.food,'🍗')} ${hearts(pd.joy,'💖')}</div></div>
-   ${camp?'':`<div class="pc-act"><button class="btn small ${patOk?'':'ghost dark'}" onclick="PetCare.pat('${id}')">🤗 Pat</button><button class="btn small green" ${food?'':'disabled'} onclick="PetCare.snack('${id}')" title="${food?food.name:'No snacks left'}">${food?food.e:'🍽️'} Snack</button></div>`}</div>`;}).join('')}</div>
+ /* steady order (rows never jump around when you pat or feed): buddy, then A–Z, pets at camp last */
+ const grp=id=>id===p.pet?0:atCamp(p,id)?2:1;ids.sort((a,b)=>grp(a)-grp(b)||String(petById(a).name).localeCompare(petById(b).name));
+ return `<div class="panel pc-panel pc-pets"><h3>🐾 All your pets <small class="muted">(${ids.length})</small></h3><p class="muted" style="margin:0 0 8px">Every pet needs a little love every few days: a pat, a snack or a game.${ruleOn(p)?' Lonely pets can wander off to the Pet Rescue.':''}</p>
+ <div class="pc-list"><div class="pc-hd"><span></span><span>Pet</span><span>Tummy · Happy</span><span></span></div>${ids.map(id=>{const pd=petMood(pdOf(p,id));const camp=atCamp(p,id);const patOk=!pd.patT||now-pd.patT>15*60e3;
+  return `<div class="pc-row${camp?' dim':''}" data-pet="${id}"><span class="pc-e">${pe(id)}</span><div class="pc-nm"><b>${nm(id)}</b>${chip(p,id)}</div><div class="pc-h"><span title="Tummy">${hearts(pd.food,'🍗')}</span><span title="Happy">${hearts(pd.joy,'💖')}</span></div>
+   ${camp?'':`<div class="pc-act"><button class="btn small ${patOk?'':'ghost dark'}" onclick="PetCare.pat('${id}')" aria-label="Pat">🤗<span class="pc-l"> Pat</span></button><button class="btn small green" ${food?'':'disabled'} onclick="PetCare.snack('${id}')" title="${food?food.name:'No snacks left'}" aria-label="Snack">${food?food.e:'🍽️'}<span class="pc-l"> Snack</span></button></div>`}</div>`;}).join('')}</div>
  ${food?'':'<p class="muted" style="margin:8px 0 0;font-size:14px">Out of snacks? Buy some in the Pet Shop below.</p>'}</div>`;}
 function planPrice(p,pl){const n=Math.max(1,homePets(p).length);return Math.round(n*PRICE*pl.id*(1-pl.off));}
 function sitterHTML(p){const c=C(p),su=sitUntil(p),n=homePets(p).length,camp=owned(p).filter(id=>atCamp(p,id)).length;
@@ -94,14 +94,16 @@ function inject(){try{if(typeof curScreen==='undefined'||curScreen!=='pethome')r
  const page=document.querySelector('#app .page');if(!page||page.querySelector('.pc-wrap'))return;const w=document.createElement('div');w.className='pc-wrap';
  w.innerHTML=rescueHTML(p)+listHTML(p)+sitterHTML(p);const zh=page.querySelector('.zhead');if(zh)zh.after(w);else page.prepend(w);}catch(e){console.warn('petcare',e);}}
 function redraw(){const y=window.scrollY;go('pethome');window.scrollTo(0,y);}
+/* update just the pet list (no page redraw, no jump) unless the battle buddy's big card also needs to change */
+function refresh(id){const p=P();const el=document.querySelector('.pc-pets');if(!el||id===p.pet){redraw();return;}const y=window.scrollY;const t=document.createElement('div');t.innerHTML=listHTML(p);if(t.firstElementChild)el.replaceWith(t.firstElementChild);window.scrollTo(0,y);}
 
 /* ---------- actions ---------- */
 function pat(id){const p=P();if(!p.pets.includes(id)||rescued(p,id))return;const pd=petMood(pdOf(p,id));const now=Date.now();
  if(pd.patT&&now-pd.patT<=15*60e3){toast(`${pe(id)} ${nm(id).replace(/<[^>]+>/g,'')} loved that! Pats recharge in a few minutes.`);return;}
- pd.patT=now;if(pd.joy<MOOD_MAX)pd.joy++;const x=petById(id);try{petGain(p,x,.5);}catch(e){}try{SFX.tap();}catch(e){}sweep(p,true);save();toast(`💕 ${pe(id)} ${x.name} is happy!`);redraw();}
+ pd.patT=now;if(pd.joy<MOOD_MAX)pd.joy++;const x=petById(id);try{petGain(p,x,.5);}catch(e){}try{SFX.tap();}catch(e){}sweep(p,true);save();toast(`💕 ${pe(id)} ${x.name} is happy!`);refresh(id);}
 function snack(id){const p=P();const f=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0&&f.food>0).sort((a,b)=>a.price-b.price)[0];if(!f||rescued(p,id))return;const pd=petMood(pdOf(p,id));
  if(pd.food>=MOOD_MAX){toast(`${pe(id)} ${petById(id).name} is full!`);return;}
- p.pantry[f.id]--;pd.food=Math.min(MOOD_MAX,pd.food+f.food);pd.joy=Math.min(MOOD_MAX,pd.joy+(f.joy||0));try{petGain(p,petById(id),f.xp);}catch(e){}try{questEvent(p,'petcare',1);}catch(e){}try{SFX.coin();}catch(e){}sweep(p,true);save();toast(`${f.e} ${petById(id).name}: yum!`);redraw();}
+ p.pantry[f.id]--;pd.food=Math.min(MOOD_MAX,pd.food+f.food);pd.joy=Math.min(MOOD_MAX,pd.joy+(f.joy||0));try{petGain(p,petById(id),f.xp);}catch(e){}try{questEvent(p,'petcare',1);}catch(e){}try{SFX.coin();}catch(e){}sweep(p,true);save();toast(`${f.e} ${petById(id).name}: yum!`);refresh(id);}
 function hire(days,yes){const p=P(),pl=PLANS.find(x=>x.id===days);if(!pl)return;const pr=planPrice(p,pl);
  if((p.coins||0)<pr){toast(`🪙 You need ${pr-(p.coins||0)} more coins for that plan.`);return;}
  const box=document.getElementById('pcPlans');if(!yes&&box){box.innerHTML=`<div class="pc-confirm">Hire Nana Paws (<b>${pl.n}</b>) for 🪙 ${pr}?<div class="row" style="justify-content:flex-start;margin-top:6px"><button class="btn gold small" onclick="PetCare.hire(${days},1)">Yes, hire her</button><button class="btn ghost dark small" onclick="PetCare.redraw()">No</button></div></div>`;return;}
@@ -139,17 +141,21 @@ function vacation(days){const now=Date.now(),until=days?now+days*DAY:0;
 /* ---------- styles ---------- */
 let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElement('style');st.textContent=`
 .pc-wrap{display:grid;gap:0}.pc-panel{color:var(--ink)}.pc-panel h3{margin:0 0 6px}
-.pc-list{display:grid;gap:6px;max-height:420px;overflow:auto;padding-right:2px}
-.pc-row{display:flex;align-items:center;gap:10px;background:#f8f5ff;border-radius:14px;padding:8px 10px;flex-wrap:wrap}
+.pc-list{display:grid;gap:4px}
+.pc-hd,.pc-row{display:grid;grid-template-columns:44px minmax(110px,1fr) auto auto;align-items:center;gap:10px}
+.pc-hd{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:0 10px}
+.pc-row{background:#f8f5ff;border-radius:12px;padding:6px 10px}
+.pc-row .pc-h{display:flex;flex-direction:column;gap:1px;white-space:nowrap}
+@media(max-width:560px){.pc-hd{display:none}.pc-pets .pc-row{grid-template-columns:38px 1fr auto;grid-template-areas:'e nm act' 'e h act';row-gap:0}.pc-pets .pc-e{grid-area:e}.pc-pets .pc-nm{grid-area:nm}.pc-pets .pc-h{grid-area:h;flex-direction:row;gap:6px}.pc-pets .pc-act{grid-area:act;flex-wrap:nowrap}.pc-pets .pc-l{display:none}.pc-pets .pc-act .btn{padding:8px 11px;font-size:18px}}
 .pc-row.dim{opacity:.6}.pc-e{font-size:34px;line-height:1}
-.pc-nm{flex:1;min-width:140px}.pc-nm b{margin-right:6px}.pc-h{font-size:13px;letter-spacing:-1px;margin-top:2px}
+.pc-nm{min-width:0}.pc-nm b{margin-right:6px}.pc-h{font-size:13px;letter-spacing:-1px;margin-top:2px}
 .pc-act{display:flex;gap:6px;flex-wrap:wrap}.pc-act .btn[disabled]{opacity:.45}
 .pc-chip{display:inline-block;font-size:12px;font-weight:700;border-radius:10px;padding:2px 8px;background:#eee9ff;color:#5f3dc4;vertical-align:2px}
 .pc-chip.yel{background:#fff3bf;color:#8a6100}.pc-chip.red{background:#ffe3e3;color:#c92a2a}.pc-chip.camp{background:#e7f5ff;color:#1971c2}.pc-chip.buddy{background:#fff0f6;color:#c2255c}
 .pc-sithead{display:flex;gap:12px;align-items:center;margin-bottom:10px}.pc-nana svg{width:64px;height:78px}
 .pc-plans{display:grid;gap:6px}
 .pc-plan{display:flex;justify-content:space-between;align-items:center;gap:10px;border:2px solid #ffd8a8;background:#fff9f0;border-radius:14px;padding:10px 12px;font:inherit;font-size:16px;color:var(--ink);cursor:pointer;text-align:left}
-.pc-plan:hover{background:#fff4e6}.pc-plan em{font-style:normal;font-size:12px;font-weight:700;color:#1e9a53;background:#d3f9d8;border-radius:8px;padding:1px 6px;margin-left:4px}
+.pc-plan:hover{background:#fff4e6}.pc-plan b{white-space:nowrap}.pc-plan em{white-space:nowrap;font-style:normal;font-size:12px;font-weight:700;color:#1e9a53;background:#d3f9d8;border-radius:8px;padding:1px 6px;margin-left:4px}
 .pc-confirm{background:#fff9f0;border-radius:14px;padding:10px 12px}
 .pc-steps{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:14px;margin-top:2px}
 .pc-resc{border:3px solid #8ce99a}
