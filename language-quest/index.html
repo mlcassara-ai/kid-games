@@ -49,7 +49,7 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 <body>
 <canvas id="game" aria-label="Language Quest world map. Tap to walk."></canvas>
 <div class="hud"><div class="pill">Language Quest</div><div class="pill" id="coinPill">🪙 0</div>
-  <button class="pill" id="whoBtn" aria-label="Switch player">👤 <span id="whoName"></span></button>
+  <button class="pill" id="whoBtn" aria-label="Leave and pick another player">👋 Leave</button>
   <button class="pill" id="soundBtn" aria-label="Sound on or off">🔊</button></div>
 <div id="start"><div class="box"><div style="font-size:3rem">🗺️</div><h2>Language Quest</h2><p>Tap things to hear their names in Arabic.</p>
   <button class="btn go" id="startBtn">▶ Tap to start</button></div></div>
@@ -384,9 +384,18 @@ document.getElementById("startBtn").onclick=()=>{
   document.getElementById("start").remove();
   LQ.profiles(()=>{ hud(); setTimeout(()=>showZone(biomeAt(player.x,player.y)),400); });
 };
-function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("whoName").textContent=p?p.name:""; }
+function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); }
 LQ.onChange(hud); hud();
-document.getElementById("whoBtn").onclick=()=>{ closeCard(); LQ.profiles(()=>hud()); };
+document.getElementById("whoBtn").onclick=()=>{ closeCard(); LQ.leave(); LQ.profiles(()=>hud()); };
+/* coming back from a zone (same tab, same player): go straight back onto the map next to that zone */
+(function resume(){
+  const p=LQ.sessionPlayer(); if(!p) return;
+  const from=new URLSearchParams(location.search).get("from"); const l=LANDMARKS.find(x=>x.id===from);
+  if(l){ player.x=player.tx=l.x; player.y=player.ty=l.y+150; cam.x=player.x-VW/2/ZOOM; cam.y=player.y-VH/2/ZOOM; currentZone=biomeAt(player.x,player.y); }
+  const st=document.getElementById("start"); if(st) st.remove();
+  const h=document.getElementById("hint"); if(h) h.style.opacity=0;
+  hud();
+})();
 document.getElementById("soundBtn").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ player_audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
 
 </script>

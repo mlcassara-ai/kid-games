@@ -173,7 +173,7 @@ function deviceSay(t){ if(!("speechSynthesis" in window))return; speechSynthesis
 function say(t){ if(!soundOn)return; const id=++sid; audio.pause(); audio.src=AUDIO_BASE+audioKey(t)+".mp3";
   audio.onerror=()=>{ if(id===sid) deviceSay(t); }; const p=audio.play(); if(p&&p.catch) p.catch(()=>{ if(id===sid) deviceSay(t); }); }
 $("snd").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
-$("back").onclick=()=>{ location.href="../"; };
+$("back").onclick=()=>{ location.href="../?from=dunes"; };
 $("go").onclick=()=>{ say("كُثْبَانُ الحُرُوف"); $("start").remove(); };
 
 /* ============ creature art ============ */

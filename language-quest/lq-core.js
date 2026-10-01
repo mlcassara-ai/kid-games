@@ -83,11 +83,11 @@ const listeners=[]; function fire(){ listeners.forEach(f=>{ try{ f(); }catch(e){
 function today(){ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
 function record(kind,key,ok,confusedWith){
   const p=cur(); if(!p) return; const st=p.stats=p.stats||{letters:{},words:{},mix:{}}; const bucket=st[kind]=st[kind]||{};
-  const e=bucket[key]=bucket[key]||{r:0,w:0}; ok?e.r++:e.w++;
-  if(!ok&&confusedWith){ const k=key+"→"+confusedWith; st.mix[k]=(st.mix[k]||0)+1; }
+  const e=bucket[key]=bucket[key]||{r:0,w:0}; ok?e.r++:e.w++; e.t=Date.now();
+  if(!ok&&confusedWith){ const k=key+"→"+confusedWith; st.mix=st.mix||{}; st.mix[k]=(st.mix[k]||0)+1; }
+  if(!ok){ st.recent=st.recent||[]; st.recent.unshift({k:kind,a:key,b:confusedWith||"",t:Date.now(),z:location.pathname.split("/").filter(Boolean).pop()||"map"}); st.recent=st.recent.slice(0,25); }
   p.last=Date.now(); p.days=p.days||{}; p.days[today()]=1; save();
 }
-
 /* ---------------- UI ---------------- */
 const CSS=`
 #lqOv{position:fixed;inset:0;z-index:50;background:linear-gradient(180deg,#8FC6F0,#F7DFA8);overflow:auto;font-family:"Baloo Bhaijaan 2","Geeza Pro",system-ui,sans-serif;color:#12233D;-webkit-user-select:none;user-select:none}
@@ -142,15 +142,14 @@ function profiles(onEnter){
     <div class="s">🪙 ${p.coins||0} · ${Object.keys(p.letters||{}).length}/28 letters${p.lock?" 🔒":""}</div></button>`).join("");
   overlay(`<h1>Language Quest<small lang="ar">رِحْلَةُ اللُّغَة</small></h1>
     <h2>Who's playing?</h2>
-    <div class="lq-pro">${list}<button class="lq-pc" id="lqNew"><div style="font-size:3.2rem;line-height:92px">➕</div><div class="n">New player</div><div class="s">Make your hero</div></button></div>
+    ${state.players.length?`<div class="lq-pro">${list}</div>`:`<div class="lq-card" style="text-align:center"><div style="font-size:3rem">👋</div><p style="font-size:1.1rem;margin:4px 0">No players yet.</p><p class="lq-small">A grown-up can add players in the Parent Corner.</p></div>`}
     <div class="lq-row"><button class="lq-btn gh" id="lqParent">👨‍👩‍👧 Parents</button></div>
     <div class="lq-cloud"></div>`);
   document.querySelectorAll(".lq-pc[data-id]").forEach(b=>b.onclick=()=>choose(b.dataset.id));
-  document.getElementById("lqNew").onclick=()=>createPlayer();
   document.getElementById("lqParent").onclick=()=>askPin(parentCorner);
 }
 function choose(id){ const p=state.players.find(x=>x.id===id); if(!p) return; if(p.lock&&p.lock.length) askLock(p); else enter(p); }
-function enter(p){ state.cur=p.id; p.last=Date.now(); saveLocal(); closeOverlay(); fire(); if(enterCb) enterCb(p); }
+function enter(p){ state.cur=p.id; p.last=Date.now(); try{ sessionStorage.setItem("lq.active",p.id); }catch(e){} saveLocal(); closeOverlay(); fire(); if(enterCb) enterCb(p); }
 function askLock(p){ let tries=[]; const pics=[...PICS].sort(()=>Math.random()-.5);
   overlay(`<div class="lq-card" style="max-width:380px;margin:40px auto;text-align:center">${hero(p.color,70)}<h2>Hi ${esc(p.name)}! 🔒</h2>
     <p>Tap your ${p.lock.length} secret pictures in order.</p><div class="lq-dots" id="lqDots">${p.lock.map(()=>"○").join(" ")}</div>
@@ -166,15 +165,17 @@ function askLock(p){ let tries=[]; const pics=[...PICS].sort(()=>Math.random()-.
 }
 function createPlayer(){ let color=COLORS[state.players.length%COLORS.length];
   const draw=()=>{ overlay(`<div class="lq-card" style="max-width:460px;margin:20px auto;text-align:center">
-    <h2>Make your hero</h2><div id="lqPrev">${hero(color,90)}</div>
+    <h2>Add a player</h2><div id="lqPrev">${hero(color,90)}</div>
     <input id="lqName" maxlength="14" placeholder="Your first name" autocomplete="off">
-    <div class="lq-small" style="margin-top:6px">First name only, please.</div>
+    <div class="lq-small" style="margin-top:6px">First name only, please.</div><div id="lqErr" style="color:#C2476A;font-weight:700;min-height:1.2rem;margin-top:4px"></div>
     <div class="lq-cols">${COLORS.map(c=>`<button data-c="${c}" style="background:${c}" class="${c===color?"on":""}" aria-label="color"></button>`).join("")}</div>
     <div class="lq-row"><button class="lq-btn gh" id="lqBack">Back</button><button class="lq-btn g" id="lqNext">Next ▶</button></div></div>`);
     document.querySelectorAll(".lq-cols button").forEach(b=>b.onclick=()=>{ const n=document.getElementById("lqName").value; color=b.dataset.c; draw(); document.getElementById("lqName").value=n; });
-    document.getElementById("lqBack").onclick=()=>profiles();
+    document.getElementById("lqBack").onclick=()=>parentCorner();
     document.getElementById("lqNext").onclick=()=>{ const n=document.getElementById("lqName").value.trim(); if(!n){ document.getElementById("lqName").focus(); return; }
-      const p=blankPlayer(n,color); state.players.push(p); save(); chooseLock(p,true); }; };
+      const norm=x=>x.trim().toLowerCase().replace(/\s+/g," ");
+      if(state.players.some(x=>norm(x.name)===norm(n))){ const i=document.getElementById("lqName"); i.style.borderColor="#E0607E"; document.getElementById("lqErr").textContent=`There's already a player called ${n}. Try adding a last initial, like "${n} B".`; i.focus(); return; }
+      const p=blankPlayer(n,color); state.players.push(p); save(); chooseLock(p,false); }; };
   draw();
 }
 function chooseLock(p,isNew){ let pick=[];
@@ -182,7 +183,7 @@ function chooseLock(p,isNew){ let pick=[];
     <h2>Pick 2 secret pictures</h2><p>They keep your hero safe. Remember the order!</p>
     <div class="lq-dots">${[0,1].map(i=>pick[i]||"○").join(" ")}</div>
     <div class="lq-grid">${PICS.map(e=>`<button data-e="${e}">${e}</button>`).join("")}</div>
-    <div class="lq-row"><button class="lq-btn gh" id="lqSkip">${isNew?"Skip for now":"Remove lock"}</button>${pick.length===2?`<button class="lq-btn g" id="lqOk">Save ✓</button>`:""}</div></div>`);
+    <div class="lq-row"><button class="lq-btn gh" id="lqSkip">${(isNew||!p.lock)?"No secret pictures":"Remove lock"}</button>${pick.length===2?`<button class="lq-btn g" id="lqOk">Save ✓</button>`:""}</div></div>`);
     document.querySelectorAll(".lq-grid button").forEach(b=>b.onclick=()=>{ if(pick.length<2&&!pick.includes(b.dataset.e)){ pick.push(b.dataset.e); draw(); } });
     document.getElementById("lqSkip").onclick=()=>{ p.lock=null; save(); isNew?enter(p):parentCorner(); };
     const ok=document.getElementById("lqOk"); if(ok) ok.onclick=()=>{ p.lock=pick.slice(); save(); isNew?enter(p):parentCorner(); }; };
@@ -209,31 +210,62 @@ function askPin(next){
   const go=()=>{ if(i.value.trim()===state.pin) next(); else { document.getElementById("lqMsg").textContent="That's not it. Try again."; i.value=""; } };
   document.getElementById("lqO").onclick=go; i.onkeydown=e=>{ if(e.key==="Enter") go(); }; document.getElementById("lqC").onclick=()=>profiles();
 }
-const LETTER_NAMES={}; // filled by pages that know letter names (optional)
-function kidReport(p){
-  const st=p.stats||{letters:{},words:{},mix:{}}; const L=Object.entries(st.letters||{}); const M=Object.entries(st.marks||{}); const W=Object.entries(st.words||{});
-  const acc=([k,e])=>e.r/(e.r+e.w);
-  const weak=L.filter(([k,e])=>e.w>=2&&acc([k,e])<0.75).sort((a,b)=>b[1].w-a[1].w).slice(0,6);
-  const strong=L.filter(([k,e])=>e.r>=4&&acc([k,e])>=0.9).sort((a,b)=>b[1].r-a[1].r).slice(0,8);
-  const mix=Object.entries(st.mix||{}).sort((a,b)=>b[1]-a[1]).slice(0,4);
-  const tot=L.reduce((s,[k,e])=>s+e.r+e.w,0), right=L.reduce((s,[k,e])=>s+e.r,0);
+const ALPH=[..."ابتثجحخدذرزسشصضطظعغفقكلمنهوي"];
+const MARK_ORDER=["Fatha","Kasra","Damma","Sukun","Shadda","Tanween fath","Tanween kasr","Tanween damm"];
+const accOf=e=>e&&(e.r+e.w)?e.r/(e.r+e.w):null;
+const level=e=>{ const a=accOf(e); if(a===null) return "none"; if(e.r+e.w<3) return "new"; return a>=0.85?"good":a>=0.6?"ok":"bad"; };
+function agoText(t){ if(!t) return "never"; const d=Math.round((Date.now()-t)/86400000); return d===0?"today":d===1?"yesterday":d+" days ago"; }
+function kidSummary(p){
+  const st=p.stats||{}; const L=Object.values(st.letters||{}), M=Object.values(st.marks||{}), W=Object.values(st.words||{});
+  const all=L.concat(M,W); const tot=all.reduce((s,e)=>s+e.r+e.w,0), right=all.reduce((s,e)=>s+e.r,0);
+  const weak=[...Object.entries(st.letters||{}).filter(([k,e])=>level(e)==="bad").map(([k])=>`<bdi class="lq-ar" lang="ar">${esc(k)}</bdi>`),
+              ...Object.entries(st.marks||{}).filter(([k,e])=>level(e)==="bad").map(([k])=>esc(k))].slice(0,6);
   const caught=Object.keys(p.letters||{}).length, camps=Object.keys(p.camps||{}).length, pools=Object.keys(p.falls||{}).length;
-  const wkM=M.filter(e=>e[1].w>=2&&acc(e)<0.75).sort((a,b)=>b[1].w-a[1].w), okM=M.filter(e=>e[1].r>=4&&acc(e)>=0.9);
-  const wkW=W.filter(e=>e[1].w>=2&&acc(e)<0.75).sort((a,b)=>b[1].w-a[1].w).slice(0,5);
-  const days=Object.keys(p.days||{}).length;
-  const ago=(days&&p.last)?Math.round((Date.now()-p.last)/86400000):null;
-  return `<div class="lq-kid"><h3>${esc(p.name)} <span class="lq-small">🪙 ${p.coins||0}</span></h3>
-    <div class="lq-small">Letters caught: <b>${caught}/28</b> · Camps beaten: <b>${camps}/7</b> · Sound Falls pools: <b>${pools}/8</b> · Accuracy: <b>${tot?Math.round(right/tot*100)+"%":"—"}</b> · Days played: <b>${days}</b> · Last played: <b>${ago===null?"never":ago===0?"today":ago+" day"+(ago>1?"s":"")+" ago"}</b></div>
-    <div class="lq-bar"><i style="width:${caught/28*100}%"></i></div>
-    <div class="lq-small">Doing well</div><div class="lq-tags good">${(strong.length||okM.length)?strong.map(([k])=>`<span><bdi class="lq-ar" lang="ar">${esc(k)}</bdi></span>`).join("")+okM.map(([k])=>`<span>${esc(k)}</span>`).join(""):"<span>Not enough play yet</span>"}</div>
-    <div class="lq-small">Needs help</div><div class="lq-tags bad">${(weak.length||wkM.length||wkW.length)?weak.map(([k,e])=>`<span><bdi class="lq-ar" lang="ar">${esc(k)}</bdi>&nbsp; ${e.r} right · ${e.w} wrong</span>`).join("")+wkM.map(([k,e])=>`<span>${esc(k)} ${e.r} right · ${e.w} wrong</span>`).join("")+wkW.map(([k,e])=>`<span>reading <bdi class="lq-ar" lang="ar">${esc(k)}</bdi></span>`).join(""):"<span>Nothing yet 👍</span>"}</div>
-    ${mix.length?`<div class="lq-small">Mixes up</div><div class="lq-tags bad">${mix.map(([k,n])=>{ const [a,b]=k.split("→"); return `<span><bdi class="lq-ar" lang="ar">${esc(a)}</bdi> with <bdi class="lq-ar" lang="ar">${esc(b)}</bdi> (${n}×)</span>`; }).join("")}</div>`:""}
-    <div class="lq-row" style="justify-content:flex-start;margin-top:4px"><button class="lq-btn gh" data-lock="${p.id}">🔒 Secret pictures</button><button class="lq-btn gh" data-del="${p.id}">Remove</button></div></div>`;
+  return `<div class="lq-kid"><h3>${esc(p.name)} <span class="lq-small">🪙 ${p.coins||0} · last played ${agoText(Object.keys(p.days||{}).length?p.last:0)}</span></h3>
+    <div class="lq-small">Letter Dunes <b>${caught}/28</b> letters, <b>${camps}/7</b> camps · Sound Falls <b>${pools}/8</b> pools · Overall <b>${tot?Math.round(right/tot*100)+"% right":"no answers yet"}</b></div>
+    <div class="lq-bar"><i style="width:${(caught/28*50+pools/8*50)}%"></i></div>
+    <div class="lq-small">Needs help with</div><div class="lq-tags bad">${weak.length?weak.map(x=>`<span>${x}</span>`).join(""):"<span>Nothing flagged yet 👍</span>"}</div>
+    <div class="lq-row" style="justify-content:flex-start;margin-top:4px"><button class="lq-btn" data-detail="${p.id}">See details ▶</button></div></div>`;
+}
+function kidDetail(id){
+  const p=state.players.find(x=>x.id===id); if(!p) return parentCorner(); const st=p.stats||{};
+  const LS=st.letters||{}, MS=st.marks||{}, WS=st.words||{};
+  const COL={good:"#C9F0E3",ok:"#FFF0C2",bad:"#FFD6DE",new:"#EAF2FB",none:"#F4F6F8"};
+  const cell=ch=>{ const e=LS[ch], lv=level(e), got=(p.letters||{})[ch];
+    return `<div style="background:${COL[lv]};border-radius:12px;padding:4px 2px;text-align:center;border:2px solid ${got?"#2FA894":"transparent"}">
+      <div class="lq-ar" lang="ar" style="font-size:1.7rem;line-height:1.3">${ch}</div><div class="lq-small" dir="ltr" style="font-size:.75rem">${e?`${e.r}✓ ${e.w}✗`:"—"}</div></div>`; };
+  const markRow=m=>{ const e=MS[m]; const a=accOf(e); return `<div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+      <div style="width:120px">${esc(m)}</div><div class="lq-bar" style="flex:1;margin:0"><i style="width:${a===null?0:Math.round(a*100)}%;background:${a===null?"#ccc":a>=.85?"#2FA894":a>=.6?"#F2B134":"#E0607E"}"></i></div>
+      <div class="lq-small" style="width:90px;text-align:right">${e?`${e.r} right · ${e.w} wrong`:"not yet"}</div></div>`; };
+  const words=Object.entries(WS).sort((a,b)=>(b[1].w-a[1].w)||(b[1].r-a[1].r));
+  const mix=Object.entries(st.mix||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const recent=(st.recent||[]).slice(0,12);
+  const ZN={letters:"Letter Dunes",falls:"Sound Falls",map:"Map"};
+  overlay(`<h1>${esc(p.name)}</h1>
+    <div class="lq-card"><h2 style="text-align:left;margin-top:0">Letters</h2>
+      <p class="lq-small" style="margin:0 0 8px">Green = getting it right · yellow = getting there · pink = needs help · blue = just started · grey = not tried. A green outline means the letter has been caught in the Letter Dunes.</p>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;direction:rtl">${ALPH.map(cell).join("")}</div></div>
+    <div class="lq-card"><h2 style="text-align:left;margin-top:0">Vowel marks (Sound Falls)</h2>${MARK_ORDER.map(markRow).join("")}</div>
+    <div class="lq-card"><h2 style="text-align:left;margin-top:0">Reading words</h2>
+      ${words.length?`<div class="lq-tags" style="direction:ltr">${words.map(([w,e])=>`<span style="background:${COL[level(e)]}"><bdi class="lq-ar" lang="ar">${esc(w)}</bdi> <span dir="ltr">${e.r}✓ ${e.w}✗</span></span>`).join("")}</div>`:`<p class="lq-small">Not tried yet. Words appear here after the Word River in Sound Falls.</p>`}</div>
+    <div class="lq-card"><h2 style="text-align:left;margin-top:0">Mix-ups</h2>
+      ${mix.length?`<div class="lq-tags bad">${mix.map(([k,n])=>{ const [a,b]=k.split("→"); const ar=t=>/[\u0600-\u06FF]/.test(t)?`<bdi class="lq-ar" lang="ar">${esc(t)}</bdi>`:`<b>${esc(t)}</b>`; return `<span>wanted ${ar(a)}, picked ${ar(b)} <span dir="ltr">(${n}×)</span></span>`; }).join("")}</div>`:`<p class="lq-small">No mix-ups yet.</p>`}</div>
+    <div class="lq-card"><h2 style="text-align:left;margin-top:0">Most recent mistakes</h2>
+      ${recent.length?recent.map(r=>`<div class="lq-small" style="margin:3px 0">${agoText(r.t)} · ${ZN[r.z]||esc(r.z)} · wanted <bdi style="font-size:1.15rem">${esc(r.a)}</bdi>${r.b?` · picked <bdi style="font-size:1.15rem">${esc(r.b)}</bdi>`:""}</div>`).join(""):`<p class="lq-small">None yet.</p>`}</div>
+    <div class="lq-row"><button class="lq-btn gh" data-lock="${p.id}">🔒 Secret pictures</button><button class="lq-btn gh" data-del="${p.id}">Remove player</button><button class="lq-btn" id="lqBackPC">◀ All kids</button></div>`);
+  document.getElementById("lqBackPC").onclick=parentCorner;
+  wireKidButtons();
+}
+function wireKidButtons(){
+  document.querySelectorAll("[data-detail]").forEach(b=>b.onclick=()=>kidDetail(b.dataset.detail));
+  document.querySelectorAll("[data-lock]").forEach(b=>b.onclick=()=>{ const p=state.players.find(x=>x.id===b.dataset.lock); if(p) chooseLock(p,false); });
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ const p=state.players.find(x=>x.id===b.dataset.del); if(!p) return;
+    if(confirm(`Remove ${p.name} and all their progress?`)){ state.deleted[p.id]=Date.now(); state.players=state.players.filter(x=>x.id!==p.id); if(state.cur===p.id) state.cur=null; save(); parentCorner(); } });
 }
 function parentCorner(){
-  const kids=state.players.length?state.players.map(kidReport).join(""):`<p class="lq-small">No players yet.</p>`;
+  const kids=state.players.length?state.players.map(kidSummary).join(""):`<p class="lq-small">No players yet.</p>`;
   overlay(`<h1>Parent Corner</h1>
-    <div class="lq-card"><h2 style="text-align:left;margin-top:0">How the kids are doing</h2>${kids}</div>
+    <div class="lq-card"><h2 style="text-align:left;margin-top:0">How the kids are doing</h2>${kids}<div class="lq-row" style="justify-content:flex-start"><button class="lq-btn g" id="lqAddKid">➕ Add a player</button></div></div>
     <div class="lq-card"><h2 style="text-align:left;margin-top:0">☁️ Online save</h2>
       ${cloud.code?`<p>This device saves online with your family code. Type it on another device to share the same players:</p><div class="lq-code">${esc(cloud.code)}</div>
         <div class="lq-row" style="justify-content:flex-start"><button class="lq-btn gh" id="lqCopy">Copy code</button><button class="lq-btn gh" id="lqOff">Stop saving online on this device</button></div>`
@@ -247,9 +279,8 @@ function parentCorner(){
     <div class="lq-row"><button class="lq-btn" id="lqDone">◀ Back to players</button></div>`);
   document.getElementById("lqDone").onclick=()=>profiles();
   document.getElementById("lqChPin").onclick=()=>{ state.pin=null; askPin(parentCorner); };
-  document.querySelectorAll("[data-lock]").forEach(b=>b.onclick=()=>{ const p=state.players.find(x=>x.id===b.dataset.lock); if(p) chooseLock(p,false); });
-  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ const p=state.players.find(x=>x.id===b.dataset.del); if(!p) return;
-    if(confirm(`Remove ${p.name} and all their progress?`)){ state.deleted[p.id]=Date.now(); state.players=state.players.filter(x=>x.id!==p.id); if(state.cur===p.id) state.cur=null; save(); parentCorner(); } });
+  wireKidButtons();
+  document.getElementById("lqAddKid").onclick=()=>createPlayer();
   const on=document.getElementById("lqOn"); if(on) on.onclick=async()=>{ cloud.code=genCode(); try{ localStorage.setItem(FAM_KEY,cloud.code); }catch(e){} cloud.status=""; parentCorner(); await syncNow(); parentCorner(); };
   const off=document.getElementById("lqOff"); if(off) off.onclick=()=>{ if(!confirm("Stop saving online on this device? Players stay on this device.")) return; cloud.code=null; try{ localStorage.removeItem(FAM_KEY); }catch(e){} parentCorner(); };
   const cp=document.getElementById("lqCopy"); if(cp) cp.onclick=async()=>{ try{ await navigator.clipboard.writeText(cloud.code); cp.textContent="Copied!"; }catch(e){ prompt("Copy this code:",cloud.code); } };
@@ -261,7 +292,10 @@ function parentCorner(){
 /* ---------------- public API ---------------- */
 function cur(){ return state.players.find(p=>p.id===state.cur)||null; }
 window.LQ={
-  player:cur, profiles, parentCorner:()=>askPin(parentCorner), onChange:f=>listeners.push(f),
+  player:cur, profiles,
+  /* the player who is signed in on this tab right now (kept while moving between the map and the zones) */
+  sessionPlayer(){ let id=null; try{ id=sessionStorage.getItem("lq.active"); }catch(e){} const p=cur(); return p&&p.id===id?p:null; },
+  leave(){ state.cur=null; try{ sessionStorage.removeItem("lq.active"); }catch(e){} saveLocal(); fire(); }, parentCorner:()=>askPin(parentCorner), onChange:f=>listeners.push(f),
   update(fn){ const p=cur(); if(!p) return; fn(p); p.last=Date.now(); p.days=p.days||{}; p.days[today()]=1; save(); },
   addCoins(n){ const p=cur(); if(!p) return; p.coins=(p.coins||0)+n; save(); },
   record, syncNow, hero, esc
