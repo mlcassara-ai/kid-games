@@ -100,8 +100,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.01j";</script>
-<script src="lq-core.js?v=2026.10.01j"></script>
+<script>window.LQ_VER="2026.10.01k";</script>
+<script src="lq-core.js?v=2026.10.01k"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -588,23 +588,26 @@ function allFound(){ const p=LQ.player(); if(!p||p.friendsAll) return; LQ.update
 // the 1st and the 10th, then the price goes back to 1 and it picks a new secret number.
 const well=()=>{ const p=LQ.player(); return p&&p.well?p.well:{got:{}}; };
 const tossCost=()=>(well().n||0)+1;
-function fountain(first,msg){
+const NUMS=[["وَاحِد","١"],["اِثْنَان","٢"],["ثَلَاثَة","٣"],["أَرْبَعَة","٤"],["خَمْسَة","٥"],["سِتَّة","٦"],["سَبْعَة","٧"],["ثَمَانِيَة","٨"],["تِسْعَة","٩"],["عَشَرَة","١٠"]];
+// miss = the number of the toss that just got no answer; the fountain counts it out loud in Arabic
+function fountain(first,miss){
   closeCard(); const p=LQ.player(); if(!p) return; if(first!==false) say(FOUNTAIN.ar);
+  const num=miss?NUMS[miss-1]:null; if(num) say(num[0]);
   const n=Object.keys(well().got).length, left=SAYINGS.length-n, cost=tossCost(), coins=p.coins||0;
-  openFm(`<div class="big">${msg?"💦":"⛲"}</div><h2 style="margin:4px 0">${msg||FOUNTAIN.en}</h2>${msg?"":`<div class="saying" lang="ar">${FOUNTAIN.ar}</div>`}
-    <p>${!left?`You have found all <b>${SAYINGS.length}</b>! Open your book to hear them again.`:msg?`Keep tossing! Each toss costs one more coin until the fountain answers.`:`Toss coins into the fountain. Sometimes it answers on the first toss, sometimes it takes a few! It gives you a proverb, a riddle or a surprising word. <b>${n} of ${SAYINGS.length}</b> found.`}</p>
+  openFm(`<div class="big">${num?"💦":"⛲"}</div>${num?`<div class="arw" lang="ar">${num[0]} <span style="color:var(--muted)">${num[1]}</span></div><h2 style="margin:0">Splash! That was toss ${miss}.</h2>`:`<h2 style="margin:4px 0">${FOUNTAIN.en}</h2><div class="saying" lang="ar">${FOUNTAIN.ar}</div>`}
+    <p>${!left?`You have found all <b>${SAYINGS.length}</b>! Open your book to hear them again.`:num?`Keep tossing! Each toss costs one more coin until the fountain answers.`:`Toss coins into the fountain. Sometimes it answers on the first toss, sometimes it takes a few! It gives you a proverb, a riddle or a surprising word. <b>${n} of ${SAYINGS.length}</b> found.`}</p>
     ${left?`<p style="margin:0">Next toss: <b>${cost} 🪙</b> · You have <b>${coins} 🪙</b>${coins<cost?`<br><span style="color:var(--muted)">Earn more coins in the Letter Dunes and Sound Falls.</span>`:""}</p>`:""}
-    <div class="row">${left?`<button class="btn go" id="wToss" ${coins<cost?"disabled":""}>Toss ${cost} 🪙</button>`:""}<button class="btn ghost" id="wBook">📖 My sayings</button><button class="btn ghost" id="wOk">Close</button></div>`);
+    <div class="row">${num?`<button class="btn ghost" id="wHear">🔊 ${miss}</button>`:""}${left?`<button class="btn go" id="wToss" ${coins<cost?"disabled":""}>Toss ${cost} 🪙</button>`:""}<button class="btn ghost" id="wBook">📖 My sayings</button><button class="btn ghost" id="wOk">Close</button></div>`);
   document.getElementById("wOk").onclick=closeFm; document.getElementById("wBook").onclick=sayingBook;
-  if(left) document.getElementById("wToss").onclick=toss;
+  if(left) document.getElementById("wToss").onclick=toss; if(num) document.getElementById("wHear").onclick=()=>say(num[0]);
 }
 function toss(){
   const p=LQ.player(), cost=tossCost(); if(!p||(p.coins||0)<cost) return;
   const got=well().got, pool=SAYINGS.filter(s=>!got[s.id]); if(!pool.length) return;
-  let hit=null;
-  LQ.update(q=>{ const w=q.well=q.well||{got:{}}; if(!w.need) w.need=1+(Math.random()*10|0); w.n=(w.n||0)+1; q.coins=(q.coins||0)-cost;
+  let hit=null, k=0;
+  LQ.update(q=>{ const w=q.well=q.well||{got:{}}; if(!w.need) w.need=1+(Math.random()*10|0); w.n=(w.n||0)+1; k=w.n; q.coins=(q.coins||0)-cost;
     if(w.n>=w.need){ hit=pool[Math.random()*pool.length|0]; w.got[hit.id]=Date.now(); w.n=0; w.need=0; } }); hud();
-  if(hit) showSaying(hit,true); else fountain(false,["Splash!","Plop!","Sploosh!","Plink!"][Math.random()*4|0]);
+  if(hit) showSaying(hit,true); else fountain(false,k);
 }
 function showSaying(s,fresh){
   const head=`<div style="color:var(--muted);font-weight:800">${KIND[s.k][0]} ${KIND[s.k][1]}</div><div class="saying" lang="ar">${s.ar}</div>`;
