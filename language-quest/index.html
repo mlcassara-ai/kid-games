@@ -216,10 +216,14 @@ let entering=null;
 function startEnter(l){
   if(entering) return; const url=OPEN[l.id]; if(!url) return;
   if(!LQ.player()){ LQ.profiles(()=>{ hud(); startEnter(l); }); return; }
-  entering={l,t:setTimeout(()=>{ location.href=url; },1300)};
+  // go in once the zone's name has been heard in full; never wait more than 4 s for a slow or missing clip
+  let heard=false;
+  const go=()=>{ if(!entering||entering.l!==l) return; clearTimeout(entering.t); try{ if(heard) sessionStorage.setItem("lq.said",l.id); }catch(e){} location.href=url; };
+  entering={l,t:setTimeout(go,soundOn?4000:1300)};
   const b=document.getElementById("enterBar"); b.querySelector("b").textContent=l.en; b.querySelector("span").textContent=l.ar; b.classList.add("show"); say(l.ar);
+  if(soundOn){ const err=player_audio.onerror; player_audio.onended=()=>{ heard=true; setTimeout(go,350); }; player_audio.onerror=()=>{ err&&err(); setTimeout(go,1300); }; }
 }
-function cancelEnter(){ if(!entering) return; clearTimeout(entering.t); entering=null; document.getElementById("enterBar").classList.remove("show"); }
+function cancelEnter(){ if(!entering) return; clearTimeout(entering.t); entering=null; player_audio.pause(); document.getElementById("enterBar").classList.remove("show"); }
 function drawPad(l,time){
   const p=padOf(l), open=!!OPEN[l.id];
   if(open){ const k=(Math.sin(time*3)+1)/2;

@@ -173,7 +173,8 @@ function say(t){ if(!soundOn)return; const id=++sid; audio.pause(); audio.src=AU
   audio.onerror=()=>{ if(id===sid) deviceSay(t); }; const p=audio.play(); if(p&&p.catch) p.catch(()=>{ if(id===sid) deviceSay(t); }); }
 $("snd").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
 $("back").onclick=()=>{ location.href="../?from=falls"; };
-$("go").onclick=()=>{ say("شَلَّالُ الأَصْوَات"); $("start").remove(); };
+// the map already said this zone's name on the way in; say it here only when arriving another way
+$("go").onclick=()=>{ let said=false; try{ said=sessionStorage.getItem("lq.said")==="falls"; sessionStorage.removeItem("lq.said"); }catch(e){} if(!said) say("شَلَّالُ الأَصْوَات"); $("start").remove(); };
 
 function lettersFor(markIds){ return LET.map(l=>l[0]).filter(c=>!(c==="ا"&&markIds.some(m=>NO_ALIF.has(m)))); }
 
