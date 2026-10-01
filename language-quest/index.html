@@ -68,6 +68,9 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 #fm .slot.got .l{opacity:1}
 #fm .slot .w{font-size:.95rem; direction:rtl}
 #fm p{line-height:1.45}
+#fm .well{min-height:440px; display:flex; flex-direction:column}
+#fm .well>:first-child{margin-top:auto}
+#fm .well>.row{margin-top:auto; padding-top:12px}
 #fm .saying{font-size:1.8rem; line-height:1.9; direction:rtl; color:var(--sky); margin:6px 0}
 #fm .opt.pic{font-size:2.4rem; line-height:1.2; padding:8px 2px}
 #fm .opt.pic small{display:block; font-size:.9rem; font-weight:700}
@@ -100,8 +103,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.01l";</script>
-<script src="lq-core.js?v=2026.10.01l"></script>
+<script>window.LQ_VER="2026.10.01m";</script>
+<script src="lq-core.js?v=2026.10.01m"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -500,11 +503,35 @@ function drawFriend(f,got,time){
   else { ctx.fillStyle="#F2B134"; ctx.strokeStyle="#fff"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(f.x+28,f.y-58+bob,16,0,7); ctx.fill(); ctx.stroke();
     ctx.fillStyle="#12233D"; ctx.font='500 20px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.direction="rtl"; ctx.fillText(f.ch,f.x+28,f.y-56+bob); ctx.direction="ltr"; }
 }
+/* Teta, drawn in the same style as the scenery: grey bun, round glasses, cream shawl and an embroidered dress.
+   Draws on any 2D context with her feet at (0,0), about 112 units tall. */
+function tetaArt(c,t){
+  const O="rgba(46,36,26,.7)", inked=f=>{ c.fillStyle=f; c.fill(); c.strokeStyle=O; c.lineWidth=2; c.lineJoin="round"; c.lineCap="round"; c.stroke(); };
+  const dot=(x,y,r,f)=>{ c.beginPath(); c.arc(x,y,r,0,7); c.fillStyle=f; c.fill(); };
+  c.beginPath(); c.ellipse(-8,-2,8,4,0,0,7); inked("#5B3A22"); c.beginPath(); c.ellipse(8,-2,8,4,0,0,7); inked("#5B3A22");                 // shoes
+  c.beginPath(); c.moveTo(-15,-68); c.lineTo(15,-68); c.quadraticCurveTo(24,-34,25,-6); c.quadraticCurveTo(0,0,-25,-6); c.quadraticCurveTo(-24,-34,-15,-68); c.closePath(); inked("#2E3350");   // dress
+  c.save(); c.clip(); c.fillStyle="#C8402F"; c.fillRect(-30,-17,60,9); c.fillStyle="#F7E2B5"; for(let i=-4;i<=4;i++){ c.beginPath(); c.moveTo(i*6,-16); c.lineTo(i*6+3,-12.5); c.lineTo(i*6,-9); c.lineTo(i*6-3,-12.5); c.fill(); } c.restore();
+  c.beginPath(); c.rect(-7,-64,14,30); inked("#C8402F"); for(let r=0;r<4;r++) for(const k of [-3,3]) dot(k,-59+r*7,1.5,"#F7E2B5");            // embroidered chest panel
+  const wave=Math.sin(t*3)*0.25;
+  c.save(); c.translate(-15,-62); c.rotate(0.28); c.beginPath(); c.roundRect?c.roundRect(-6,0,12,30,6):c.rect(-6,0,12,30); inked("#2E3350"); dot(0,31,5.5,"#E9B98E"); c.restore();   // resting arm
+  c.save(); c.translate(15,-62); c.rotate(-2.3+wave); c.beginPath(); c.roundRect?c.roundRect(-6,0,12,28,6):c.rect(-6,0,12,28); inked("#2E3350"); c.fillStyle="#C8402F"; c.fillRect(-6,22,12,5); dot(0,31,5.5,"#E9B98E"); c.restore();   // waving arm
+  c.beginPath(); c.moveTo(-21,-60); c.quadraticCurveTo(-18,-76,0,-74); c.quadraticCurveTo(18,-76,21,-60); c.quadraticCurveTo(10,-56,0,-50); c.quadraticCurveTo(-10,-56,-21,-60); c.closePath(); inked("#F6ECD6");   // shawl
+  c.beginPath(); c.arc(0,-106,8,0,7); inked("#D8D8DE");                                                                                      // bun
+  c.beginPath(); c.arc(0,-88,17,0,7); inked("#E9B98E");                                                                                      // face
+  c.beginPath(); c.arc(0,-91,17.5,Math.PI*1.02,Math.PI*1.98); c.quadraticCurveTo(8,-98,0,-99); c.quadraticCurveTo(-8,-98,-17.4,-90); c.closePath(); inked("#D8D8DE");   // hair
+  dot(-10,-82,3.4,"rgba(232,120,120,.45)"); dot(10,-82,3.4,"rgba(232,120,120,.45)");
+  c.strokeStyle="#3B2A20"; c.lineWidth=1.8; c.lineCap="round";
+  for(const k of [-6.5,6.5]){ c.beginPath(); c.arc(k,-86,2.6,Math.PI*1.1,Math.PI*1.9); c.stroke(); }                                          // smiling eyes
+  c.beginPath(); c.arc(0,-82,6,Math.PI*0.2,Math.PI*0.8); c.stroke();                                                                           // smile
+  c.strokeStyle="#7A5230"; c.lineWidth=1.6; for(const k of [-6.5,6.5]){ c.beginPath(); c.arc(k,-87,5.2,0,7); c.stroke(); } c.beginPath(); c.moveTo(-1.3,-87); c.lineTo(1.3,-87); c.stroke();   // glasses
+}
+const TETA_IMG=(()=>{ try{ const c=document.createElement("canvas"); c.width=220; c.height=280; const g=c.getContext("2d"); g.translate(110,266); g.scale(2.25,2.25); tetaArt(g,0); return c.toDataURL(); }catch(e){ return ""; } })();
+const tetaPic=TETA_IMG?`<img src="${TETA_IMG}" alt="Teta" style="height:128px;display:block;margin:0 auto">`:`<div class="big">👵</div>`;
 function drawTeta(time){
-  const p=LQ.player(), started=p&&p.friendsStarted; shadow(TETA.x,TETA.y,30); drawEmoji("👵",TETA.x,TETA.y,78);
+  const p=LQ.player(), started=p&&p.friendsStarted; shadow(TETA.x,TETA.y,30); ctx.save(); ctx.translate(TETA.x,TETA.y); ctx.scale(1.05,1.05); tetaArt(ctx,time); ctx.restore();
   ctx.font='800 16px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText("Teta").width+18; ctx.fillStyle="rgba(18,35,61,.75)"; rr(TETA.x-w/2,TETA.y+6,w,22,11); ctx.fill();
   ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.fillText("Teta",TETA.x,TETA.y+22);
-  if(!started){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle="#F2B134"; ctx.beginPath(); ctx.arc(TETA.x+34,TETA.y-86-b,17,0,7); ctx.fill(); ctx.fillStyle="#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText("!",TETA.x+34,TETA.y-85-b); }
+  if(!started){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle="#F2B134"; ctx.beginPath(); ctx.arc(TETA.x+38,TETA.y-128-b,17,0,7); ctx.fill(); ctx.fillStyle="#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText("!",TETA.x+38,TETA.y-127-b); }
 }
 function drawFountain(time){
   shadow(FOUNTAIN.x,FOUNTAIN.y,58); sprFountain(FOUNTAIN.x,FOUNTAIN.y,time);
@@ -656,6 +683,7 @@ function drawBubble(){
 const fm=document.getElementById("fm"), fmBox=document.getElementById("fmBox");
 const escH=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function openFm(html){ fmBox.innerHTML=html; fm.classList.add("show"); }
+function openWell(html){ openFm(`<div class="well">${html}</div>`); }      // fixed-size layout, so the fountain popup does not jump between views
 function closeFm(){ fm.classList.remove("show"); }
 fm.addEventListener("pointerup",e=>{ if(e.target===fm) closeFm(); });
 function distractors(ch){ const g=(LIKE.find(x=>x.includes(ch))||[]).filter(x=>x!==ch); const pool=[...g]; const all=Object.keys(LNAME).filter(x=>x!==ch&&!g.includes(x));
@@ -688,15 +716,15 @@ function hintFor(){ const fd=found(); let best=null,bd=1e9; FRIENDS.forEach(f=>{
 function tetaTalk(){
   closeCard(); const p=LQ.player(); const n=Object.keys(found()).length; say("أَهْلًا وَسَهْلًا");
   if(!p||!p.friendsStarted){
-    openFm(`<div class="big">👵</div><h2 style="margin:4px 0">Ahlan, habibi! I'm Teta.</h2>
+    openFm(`${tetaPic}<h2 style="margin:4px 0">Ahlan, habibi! I'm Teta.</h2>
       <p>My <b>28 animal friends</b> are hiding all over this land, one for every letter of the alphabet. Each friend's name starts with their letter: <b>أَسَد</b> the lion starts with <b>أَلِف</b>!</p>
       <p>Look for animals with a ✨ sparkle. Tap one, say hello, and find the letter their name starts with. Can you find them all?</p>
       <div class="row"><button class="btn go" id="tGo">Let's go! 📒</button></div>`);
     document.getElementById("tGo").onclick=()=>{ LQ.update(q=>{ q.friendsStarted=true; }); album(); }; return; }
-  if(n>=28){ openFm(`<div class="big">👵🎉</div><h2>You found all 28 friends!</h2><p>Teta is so proud of you. You know every letter of the alphabet!</p><div class="row"><button class="btn go" id="tOk">Shukran, Teta!</button></div>`);
+  if(n>=28){ openFm(`${tetaPic}<h2>🎉 You found all 28 friends!</h2><p>Teta is so proud of you. You know every letter of the alphabet!</p><div class="row"><button class="btn go" id="tOk">Shukran, Teta!</button></div>`);
     document.getElementById("tOk").onclick=closeFm; return; }
   const h=hintFor(), where=h?BIOMES[biomeAt(h.x,h.y)].en:"";
-  openFm(`<div class="big">👵</div><h2 style="margin:4px 0">You've found ${n} of 28 friends!</h2>
+  openFm(`${tetaPic}<h2 style="margin:4px 0">You've found ${n} of 28 friends!</h2>
     <p>${h?`I think someone is waiting near <b>${where}</b>. Look for the ✨ sparkle!`:""}</p>
     <div class="row"><button class="btn ghost" id="tAlb">📒 Album</button><button class="btn go" id="tOk">OK, Teta!</button></div>`);
   document.getElementById("tOk").onclick=closeFm; document.getElementById("tAlb").onclick=album;
@@ -722,13 +750,14 @@ function allFound(){ const p=LQ.player(); if(!p||p.friendsAll) return; LQ.update
 // the 1st and the 10th, then the price goes back to 1 and it picks a new secret number.
 const well=()=>{ const p=LQ.player(); return p&&p.well?p.well:{got:{}}; };
 const tossCost=()=>(well().n||0)+1;
-const NUMS=[["وَاحِد","١"],["اِثْنَان","٢"],["ثَلَاثَة","٣"],["أَرْبَعَة","٤"],["خَمْسَة","٥"],["سِتَّة","٦"],["سَبْعَة","٧"],["ثَمَانِيَة","٨"],["تِسْعَة","٩"],["عَشَرَة","١٠"]];
+// counting coins: one coin, two coins (dual), three to ten coins (plural)
+const NUMS=[["عُمْلَةٌ وَاحِدَة","١"],["عُمْلَتَان","٢"],["ثَلَاثُ عُمْلَات","٣"],["أَرْبَعُ عُمْلَات","٤"],["خَمْسُ عُمْلَات","٥"],["سِتُّ عُمْلَات","٦"],["سَبْعُ عُمْلَات","٧"],["ثَمَانِي عُمْلَات","٨"],["تِسْعُ عُمْلَات","٩"],["عَشْرُ عُمْلَات","١٠"]];
 // miss = the number of the toss that just got no answer; the fountain counts it out loud in Arabic
 function fountain(first,miss){
   closeCard(); const p=LQ.player(); if(!p) return; if(first!==false) say(FOUNTAIN.ar);
   const num=miss?NUMS[miss-1]:null; if(num) say(num[0]);
   const n=Object.keys(well().got).length, left=SAYINGS.length-n, cost=tossCost(), coins=p.coins||0;
-  openFm(`<div class="big">${num?"💦":"⛲"}</div>${num?`<div class="arw" lang="ar">${num[0]} <span style="color:var(--muted)">${num[1]}</span></div><h2 style="margin:0">Splash! That was toss ${miss}.</h2>`:`<h2 style="margin:4px 0">${FOUNTAIN.en}</h2><div class="saying" lang="ar">${FOUNTAIN.ar}</div>`}
+  openWell(`<div class="big">${num?"💦":"⛲"}</div>${num?`<div class="arw" lang="ar">${num[0]} <span style="color:var(--muted)">${num[1]}</span></div><h2 style="margin:0">${miss===1?"One coin":miss+" coins"}… splash!</h2>`:`<h2 style="margin:4px 0">${FOUNTAIN.en}</h2><div class="saying" lang="ar">${FOUNTAIN.ar}</div>`}
     <p>${!left?`You have found all <b>${SAYINGS.length}</b>! Open your book to hear them again.`:num?`Keep tossing! Each toss costs one more coin until the fountain answers.`:`Toss coins into the fountain. Sometimes it answers on the first toss, sometimes it takes a few! It gives you a proverb, a riddle or a surprising word. <b>${n} of ${SAYINGS.length}</b> found.`}</p>
     ${left?`<p style="margin:0">Next toss: <b>${cost} 🪙</b> · You have <b>${coins} 🪙</b>${coins<cost?`<br><span style="color:var(--muted)">Earn more coins in the Letter Dunes and Sound Falls.</span>`:""}</p>`:""}
     <div class="row">${num?`<button class="btn ghost" id="wHear">🔊 ${miss}</button>`:""}${left?`<button class="btn go" id="wToss" ${coins<cost?"disabled":""}>Toss ${cost} 🪙</button>`:""}<button class="btn ghost" id="wBook">📖 My sayings</button><button class="btn ghost" id="wOk">Close</button></div>`);
@@ -748,15 +777,15 @@ function showSaying(s,fresh){
   const foot=`<div class="row"><button class="btn ghost" id="sHear">🔊 Hear again</button>${fresh?`<button class="btn go" id="sBack">⛲ Fountain</button>`:`<button class="btn go" id="sBack">📖 Back</button>`}</div>`;
   const wire=()=>{ document.getElementById("sHear").onclick=()=>say(s.ar); document.getElementById("sBack").onclick=()=>fresh?fountain(false):sayingBook(); };
   say(s.ar);
-  if(s.k==="p"){ openFm(`${head}<p style="margin:0"><b>${escH(s.lit)}</b></p><p style="margin:4px 0 0">${escH(s.mean)}</p>${foot}`); wire(); return; }
-  if(s.k==="w"){ openFm(`${head}<p style="margin:0">English got the word <b>${escH(s.en)}</b> from Arabic!</p>${s.note?`<p style="margin:4px 0 0">${escH(s.note)}</p>`:""}${foot}`); wire(); return; }
+  if(s.k==="p"){ openWell(`${head}<p style="margin:0"><b>${escH(s.lit)}</b></p><p style="margin:4px 0 0">${escH(s.mean)}</p>${foot}`); wire(); return; }
+  if(s.k==="w"){ openWell(`${head}<p style="margin:0">English got the word <b>${escH(s.en)}</b> from Arabic!</p>${s.note?`<p style="margin:4px 0 0">${escH(s.note)}</p>`:""}${foot}`); wire(); return; }
   const opts=[[s.e,s.ansEn.replace(/ \(.*/,""),true],...s.wrong.map(w=>[w[0],w[1],false])].sort(()=>Math.random()-.5);
-  openFm(`${head}<p style="margin:0"><b>${escH(s.en)}</b></p>
+  openWell(`${head}<p style="margin:0"><b>${escH(s.en)}</b></p>
     <div class="opts">${opts.map(o=>`<button class="opt pic" data-ok="${o[2]}">${o[0]}<small>${escH(o[1])}</small></button>`).join("")}</div>${foot}`); wire();
   fmBox.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     if(b.dataset.ok!=="true"){ b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong"); return; }
     b.classList.add("right"); say(s.ans);
-    setTimeout(()=>{ openFm(`${head}<div class="big">${s.e}</div><div class="saying" lang="ar" style="color:var(--ink)">${s.ans}</div><p style="margin:0"><b>Yes!</b> It is ${escH(s.ansEn)}.</p>
+    setTimeout(()=>{ openWell(`${head}<div class="big">${s.e}</div><div class="saying" lang="ar" style="color:var(--ink)">${s.ans}</div><p style="margin:0"><b>Yes!</b> It is ${escH(s.ansEn)}.</p>
       <div class="row"><button class="btn ghost" id="sHear">🔊 Hear the answer</button><button class="btn go" id="sBack">${fresh?"⛲ Fountain":"📖 Back"}</button></div>`);
       document.getElementById("sHear").onclick=()=>say(s.ans); document.getElementById("sBack").onclick=()=>fresh?fountain(false):sayingBook(); },700); });
 }
