@@ -189,6 +189,7 @@ async function sugSend(){if(sugBusy)return;const p=P();const t=($('#sugIn').valu
  if(t.length<4){err.textContent='Tell Professor Hoot a little more about your idea!';return;}
  if(unkind(t)){err.textContent="Let's keep ideas kind. Try another one!";return;}
  if(/https?:|www\.|@|\d{4,}/i.test(t)){err.textContent='Just the idea, please (no links, emails or phone numbers).';return;}
+ if(/\b(my (full |last |real )?name is|my (address|phone|phone number|birthday|password) is|my school is|i live (at|in|on|near|by)|call me at|text me at|(i am|i'?m) \d+\b|\d+ [a-z]+ (street|st|road|rd|avenue|ave|drive|dr|lane|ln|court|ct|blvd|way)\b)/i.test(t)){err.textContent="Just the story idea, please. Don't share your name, age, school or where you live.";return;}
  const item={t,n:String(p.name||'').split(' ')[0].slice(0,14),g:p.adult?'Adult':'Grade '+(p.grade||'?'),d:dayKey(),at:Date.now()};
  p.sugg=(p.sugg||[]).concat([{t,d:item.d,sent:false}]).slice(-30);save();const mine=p.sugg[p.sugg.length-1];
  err.textContent='Sending…';sugBusy=true;document.querySelectorAll('#modal button').forEach(b=>b.disabled=true);

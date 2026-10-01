@@ -268,6 +268,7 @@ function sitters(){const A_=document.getElementById('advActors');if(!A_)return;A
 function toScene(fn){const c=document.getElementById('advScene');if(!c)return fn();const r=c.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight){window.scrollTo({top:Math.max(0,scrollY+r.top-70),behavior:'smooth'});setTimeout(fn,650);}else fn();}
 
 /* ---------- screens ---------- */
+let DRAWN=null;const KEEP_SC='.adv-grid,.cu-track,.cu-log';
 function draw(){css();const p=P(),a=A(p);a.crew=a.crew.filter(id=>p.pets.includes(id)).slice(0,slots(p));if(!destOpen(a,dest(a.dest)))a.dest='meadow';
  const CU=window.Cleanup;if(TAB==='clean'&&!CU)TAB='camp';
  const resB=a.res&&!RES?`<div class="cu-strip"><span class="e">🎒</span><span><b>Your crew is still unpacking!</b><small>Hear their story and open the sacks.</small></span><button class="btn gold" onclick="Adv.resume()">🎒 Keep unpacking</button></div>`:'';
@@ -275,8 +276,11 @@ function draw(){css();const p=P(),a=A(p);a.crew=a.crew.filter(id=>p.pets.include
  /* looking at the Postcards page counts as seeing them: the NEW tags (already in body) show this once, then the 📬 alert clears —
     cleared BEFORE the top bar is drawn, so its 📬 badge is gone right away */
  const seen=TAB==='cards'&&newCards(p)>0;if(seen){a.cards.forEach(c=>{delete c.nw;});save();}
+ /* a redraw of the same tab (picking a pet, changing the trip) keeps every list where the kid left it */
+ const same=DRAWN===TAB&&!!document.querySelector('.adv-tabs'),ks=same?[...document.querySelectorAll(KEEP_SC)].map(e=>e.scrollTop):[],ky=same?window.scrollY:-1;DRAWN=TAB;
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏕️ Adventure Camp</h2></div>
  <div class="adv-tabs">${[['camp','🏕️ Camp'],...(CU?[['clean',CU.tabLabel(p)]]:[]),['shelf','🗄️ Curiosity Shelf'],['cards','🖼️ Postcards'+(TAB!=='cards'&&newCards(p)?` <b class="adv-new">📬 ${newCards(p)}</b>`:'')]].map(([k,t])=>`<button class="${TAB===k?'on':''}" onclick="Adv.tab('${k}')">${t}</button>`).join('')}</div>${body}</div>`;
+ try{if(same){document.querySelectorAll(KEEP_SC).forEach((e,i)=>{if(ks[i])e.scrollTop=ks[i];});if(ky>=0&&window.scrollY!==ky)window.scrollTo(0,ky);}}catch(e){}
  if(TAB==='camp')requestAnimationFrame(sitters);
  try{if(seen&&typeof hudSync==='function')hudSync();}catch(e){}}
 const newCards=p=>((p&&p.adv&&p.adv.cards)||[]).filter(c=>c&&c.nw).length;

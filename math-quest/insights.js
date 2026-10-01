@@ -598,7 +598,7 @@ function renderReport(){
  const pct=a=>Math.round(a*100)+'%';
  const skillTable=areas.length?`<div class="tw"><table class="sk"><tr><th style="width:21%">Skill</th><th>Currently working on · why listed</th><th class="n" style="width:12%">Accuracy</th><th style="width:16%">Level changes</th><th style="width:23%">Related standard</th></tr>
   ${areas.slice(0,6).map(a=>`<tr><td><b>${E(a.name)}</b></td><td>${E(a.desc||'—')}<br><span class="why">${E(a.why.join('; '))}</span></td><td class="n">${pct(a.acc)}${a.tr}<br><span class="muted">of ${a.n}${a.useP?'':' (all time)'}</span></td><td>${a.chg}</td><td>${stdHTML(a.std)}</td></tr>`).join('')}</table></div>
-  <p class="note">Level changes: ↓ = the program eased the difficulty after repeated misses; ↑ = moved up after 6 correct answers in a row.</p>`
+  <p class="note">Level changes: ↓ = the program eased the difficulty after repeated misses; ↑ = moved up after a steady run of correct answers.</p>`
   :'<p class="muted">No math skill stands out as needing extra help in this period.</p>';
  const patHTML=pat.list.length||pat.repeat>=2?`<ul>${pat.list.map(x=>`<li>${E(x.t)}${x.std?` <span class="stdi">${E(x.std.c)}</span>`:''}</li>`).join('')}${pat.repeat>=2?`<li>${pat.repeat} problems have been missed three or more times, so these are persistent rather than one-off slips.</li>`:''}</ul>`:'';
  const fluHTML=flu.length?`<div class="keep"><h3 class="hh">Math facts not yet automatic</h3><p class="note">A fact counts as mastered once it has been answered correctly and quickly on three different days. Only fact families that have been practiced are judged.</p>
