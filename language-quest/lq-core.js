@@ -211,20 +211,22 @@ function askPin(next){
 }
 const LETTER_NAMES={}; // filled by pages that know letter names (optional)
 function kidReport(p){
-  const st=p.stats||{letters:{},words:{},mix:{}}; const L=Object.entries(st.letters||{});
+  const st=p.stats||{letters:{},words:{},mix:{}}; const L=Object.entries(st.letters||{}); const M=Object.entries(st.marks||{}); const W=Object.entries(st.words||{});
   const acc=([k,e])=>e.r/(e.r+e.w);
   const weak=L.filter(([k,e])=>e.w>=2&&acc([k,e])<0.75).sort((a,b)=>b[1].w-a[1].w).slice(0,6);
   const strong=L.filter(([k,e])=>e.r>=4&&acc([k,e])>=0.9).sort((a,b)=>b[1].r-a[1].r).slice(0,8);
   const mix=Object.entries(st.mix||{}).sort((a,b)=>b[1]-a[1]).slice(0,4);
   const tot=L.reduce((s,[k,e])=>s+e.r+e.w,0), right=L.reduce((s,[k,e])=>s+e.r,0);
-  const caught=Object.keys(p.letters||{}).length, camps=Object.keys(p.camps||{}).length;
+  const caught=Object.keys(p.letters||{}).length, camps=Object.keys(p.camps||{}).length, pools=Object.keys(p.falls||{}).length;
+  const wkM=M.filter(e=>e[1].w>=2&&acc(e)<0.75).sort((a,b)=>b[1].w-a[1].w), okM=M.filter(e=>e[1].r>=4&&acc(e)>=0.9);
+  const wkW=W.filter(e=>e[1].w>=2&&acc(e)<0.75).sort((a,b)=>b[1].w-a[1].w).slice(0,5);
   const days=Object.keys(p.days||{}).length;
   const ago=(days&&p.last)?Math.round((Date.now()-p.last)/86400000):null;
   return `<div class="lq-kid"><h3>${esc(p.name)} <span class="lq-small">🪙 ${p.coins||0}</span></h3>
-    <div class="lq-small">Letters caught: <b>${caught}/28</b> · Camps beaten: <b>${camps}/7</b> · Accuracy: <b>${tot?Math.round(right/tot*100)+"%":"—"}</b> · Days played: <b>${days}</b> · Last played: <b>${ago===null?"never":ago===0?"today":ago+" day"+(ago>1?"s":"")+" ago"}</b></div>
+    <div class="lq-small">Letters caught: <b>${caught}/28</b> · Camps beaten: <b>${camps}/7</b> · Sound Falls pools: <b>${pools}/8</b> · Accuracy: <b>${tot?Math.round(right/tot*100)+"%":"—"}</b> · Days played: <b>${days}</b> · Last played: <b>${ago===null?"never":ago===0?"today":ago+" day"+(ago>1?"s":"")+" ago"}</b></div>
     <div class="lq-bar"><i style="width:${caught/28*100}%"></i></div>
-    <div class="lq-small">Doing well</div><div class="lq-tags good">${strong.length?strong.map(([k])=>`<span><bdi class="lq-ar" lang="ar">${esc(k)}</bdi></span>`).join(""):"<span>Not enough play yet</span>"}</div>
-    <div class="lq-small">Needs help</div><div class="lq-tags bad">${weak.length?weak.map(([k,e])=>`<span><bdi class="lq-ar" lang="ar">${esc(k)}</bdi>&nbsp; ${e.r} right · ${e.w} wrong</span>`).join(""):"<span>Nothing yet 👍</span>"}</div>
+    <div class="lq-small">Doing well</div><div class="lq-tags good">${(strong.length||okM.length)?strong.map(([k])=>`<span><bdi class="lq-ar" lang="ar">${esc(k)}</bdi></span>`).join("")+okM.map(([k])=>`<span>${esc(k)}</span>`).join(""):"<span>Not enough play yet</span>"}</div>
+    <div class="lq-small">Needs help</div><div class="lq-tags bad">${(weak.length||wkM.length||wkW.length)?weak.map(([k,e])=>`<span><bdi class="lq-ar" lang="ar">${esc(k)}</bdi>&nbsp; ${e.r} right · ${e.w} wrong</span>`).join("")+wkM.map(([k,e])=>`<span>${esc(k)} ${e.r} right · ${e.w} wrong</span>`).join("")+wkW.map(([k,e])=>`<span>reading <bdi class="lq-ar" lang="ar">${esc(k)}</bdi></span>`).join(""):"<span>Nothing yet 👍</span>"}</div>
     ${mix.length?`<div class="lq-small">Mixes up</div><div class="lq-tags bad">${mix.map(([k,n])=>{ const [a,b]=k.split("→"); return `<span><bdi class="lq-ar" lang="ar">${esc(a)}</bdi> with <bdi class="lq-ar" lang="ar">${esc(b)}</bdi> (${n}×)</span>`; }).join("")}</div>`:""}
     <div class="lq-row" style="justify-content:flex-start;margin-top:4px"><button class="lq-btn gh" data-lock="${p.id}">🔒 Secret pictures</button><button class="lq-btn gh" data-del="${p.id}">Remove</button></div></div>`;
 }

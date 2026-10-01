@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Language Quest – Sound Falls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#1E5AA8; --saffron:#F2B134; --mint:#2FA894; --rose:#E0607E;
+  --card:#FFFFFF; --soft:#EAF6FB; --ink:#12233D; --muted:#5A6B82; --line:#CBE4EF;
+  --font:"Baloo Bhaijaan 2","Geeza Pro","Noto Sans Arabic",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --card:#1D2B45; --soft:#203a52; --ink:#EEF3FA; --muted:#A9B8CC; --line:#35506e; } }
+:root[data-theme="dark"]{ --card:#1D2B45; --soft:#203a52; --ink:#EEF3FA; --muted:#A9B8CC; --line:#35506e; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%}
+body{margin:0; min-height:100%; background:linear-gradient(180deg,#7CC3E8 0,#BFE6D6 160px,#5BAE7E 161px,#3E8E66 100%); background-attachment:fixed; color:var(--ink); font-family:var(--font); -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none}
+.wrap{max-width:760px; margin:0 auto; padding:10px 14px 28px}
+.top{display:flex; align-items:center; gap:8px; justify-content:space-between}
+.top h1{font-size:1.3rem; margin:0; font-weight:800; color:#12233D}
+.pill{background:var(--card); color:var(--ink); border:0; border-radius:999px; padding:6px 14px; font:inherit; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,.15); cursor:pointer; min-height:40px}
+.coins{background:var(--saffron); color:#12233D}
+button:focus-visible{outline:3px solid var(--saffron); outline-offset:3px}
+.panel{background:var(--card); border-radius:24px; padding:14px; margin-top:12px; box-shadow:0 4px 16px rgba(10,50,40,.2)}
+h2{margin:4px 0 8px; font-size:1.3rem}
+.muted{color:var(--muted)}
+.pools{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-top:12px}
+.pool{background:var(--card); border:0; border-radius:22px; padding:12px 10px; cursor:pointer; font:inherit; color:var(--ink); text-align:center; box-shadow:0 4px 14px rgba(10,50,40,.2); position:relative}
+.pool .ic{font-size:2.2rem; line-height:1.3; direction:rtl; font-weight:500}
+.pool .nm{font-weight:800}
+.pool .sub{font-size:.9rem; color:var(--muted)}
+.pool .st{color:var(--saffron); font-size:1.1rem; min-height:1.4rem}
+.pool.locked{opacity:.55; cursor:not-allowed}
+.pool.locked::after{content:"🔒"; position:absolute; top:8px; right:10px; font-size:1.3rem}
+.actions{display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+.btn{font:inherit; font-weight:800; font-size:1.05rem; border:0; border-radius:14px; padding:10px 18px; min-height:48px; cursor:pointer; background:var(--sky); color:#fff}
+.btn.ghost{background:var(--soft); color:var(--ink)}
+.btn.go{background:var(--mint)}
+.btn.boss{background:var(--rose)}
+.btn[disabled]{opacity:.45; cursor:not-allowed}
+/* lab */
+.basin{background:linear-gradient(180deg,#63B6EA,#2F7FC4); border-radius:26px; color:#fff; text-align:center; padding:14px 10px 18px; position:relative; overflow:hidden}
+.basin .glyph{font-size:5.5rem; line-height:1.35; min-height:7.4rem; direction:rtl}
+.basin .tr{font-size:1.4rem; font-weight:800; min-height:2rem}
+.basin .hint{font-size:.95rem; opacity:.9}
+.lrow{display:flex; gap:6px; overflow-x:auto; direction:rtl; padding:8px 2px}
+.lrow button{font-family:var(--font); font-size:1.8rem; min-width:52px; height:56px; border-radius:14px; border:2px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; flex:none}
+.lrow button.on{background:var(--sky); border-color:var(--sky); color:#fff}
+.mrow{display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px; margin-top:6px}
+.mk{font:inherit; border:0; border-radius:16px; background:var(--soft); color:var(--ink); cursor:pointer; padding:8px 4px; text-align:center}
+.mk b{display:block; font-family:var(--font); font-weight:500; font-size:2.4rem; line-height:1.3}
+.mk span{font-size:.85rem; font-weight:700}
+.prog{height:10px; background:var(--soft); border-radius:999px; overflow:hidden; margin:10px 0 0}
+.prog i{display:block; height:100%; background:var(--mint); transition:width .3s}
+/* challenge */
+.bossbar{display:flex; align-items:center; gap:10px; margin:8px 0}
+.hp{flex:1; height:16px; background:#D6EEF7; border-radius:999px; overflow:hidden}
+.hp i{display:block; height:100%; background:#2F7FC4; transition:width .3s}
+.hearts{font-size:1.3rem; min-width:80px; text-align:right}
+.q{font-size:1.2rem; text-align:center; margin:10px 0}
+.q .big{font-size:2.6rem; display:block; line-height:1.4}
+.opts{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+.opt{font-family:var(--font); font-size:2.6rem; min-height:92px; border-radius:20px; border:0; background:var(--soft); color:var(--ink); cursor:pointer; box-shadow:0 4px 0 var(--line); direction:rtl}
+.opt.right{background:#C9F0E3; box-shadow:0 4px 0 var(--mint); color:#12233D}
+.opt.wrong{background:#FFD6DE; box-shadow:0 4px 0 var(--rose); color:#12233D}
+/* blending */
+.build{background:var(--soft); border-radius:20px; padding:10px; text-align:center}
+.build .w{font-size:3.4rem; line-height:1.5; min-height:5.2rem; direction:rtl; color:var(--sky)}
+.build .w.win{color:var(--mint)}
+.tiles{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; direction:rtl; margin-top:12px}
+.tile{width:70px; height:76px; border-radius:16px; border:0; font-family:var(--font); font-size:2.4rem; cursor:pointer; background:var(--sky); color:#fff; box-shadow:0 5px 0 #153F78}
+.tile.used{visibility:hidden}
+.tile.nope{background:var(--rose); box-shadow:0 5px 0 #A83C56}
+.center{text-align:center}
+#start{position:fixed; inset:0; background:rgba(18,35,61,.55); display:flex; align-items:center; justify-content:center; z-index:10}
+#start .box{background:var(--card); color:var(--ink); border-radius:26px; padding:24px; text-align:center; width:min(88vw,360px)}
+@media (prefers-reduced-motion:no-preference){
+  .opt.wrong,.tile.nope{animation:shake .35s}
+  .basin .glyph.pop{animation:pop .45s}
+  .build .w.win{animation:pop .5s}
+}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes pop{40%{transform:scale(1.18)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <button class="pill" id="back">← Map</button>
+    <h1>Sound Falls <span id="who" style="font-size:1rem;color:#1E5AA8"></span></h1>
+    <div style="display:flex;gap:6px"><button class="pill" id="snd" aria-label="Sound on or off">🔊</button><div class="pill coins">🪙 <span id="coins">0</span></div></div>
+  </div>
+  <main id="app"></main>
+</div>
+<div id="start"><div class="box"><div style="font-size:3rem">💦</div><h2>Sound Falls</h2><p class="muted" lang="ar">شَلَّالُ الأَصْوَات</p><p class="muted">Add a little mark to a letter and it starts to sing!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
+
+<script src="../lq-core.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+if(!LQ.player()) location.replace("../");
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.random()*a.length|0];
+
+/* ---------- letters: [char, latin sound, look-alikes] ---------- */
+const LET=[["ا","",["ل"]],["ب","b",["ت","ث","ن"]],["ت","t",["ب","ث","ن"]],["ث","th",["ت","ب"]],["ج","j",["ح","خ"]],["ح","ḥ",["ج","خ"]],["خ","kh",["ح","ج"]],
+ ["د","d",["ذ","ر"]],["ذ","dh",["د","ز"]],["ر","r",["ز","د"]],["ز","z",["ر","ذ"]],["س","s",["ش","ص"]],["ش","sh",["س","ث"]],["ص","ṣ",["ض","س"]],["ض","ḍ",["ص","ظ"]],
+ ["ط","ṭ",["ظ","ت"]],["ظ","ẓ",["ط","ض"]],["ع","ʿ",["غ","ح"]],["غ","gh",["ع","خ"]],["ف","f",["ق","ث"]],["ق","q",["ف","ك"]],["ك","k",["ق","ل"]],["ل","l",["ك","ن"]],
+ ["م","m",["ن","ه"]],["ن","n",["ب","ت"]],["ه","h",["ح","م"]],["و","w",["ر","ق"]],["ي","y",["ب","ن"]]];
+const LI={}; LET.forEach(l=>LI[l[0]]={ch:l[0],lat:l[1],dec:l[2]});
+const F="\u064E",K="\u0650",D="\u064F",S="\u0652",SH="\u0651",TF="\u064B",TK="\u064D",TD="\u064C";
+
+/* ---------- marks: how each one is written, said and spelled in Latin ---------- */
+const MARKS={
+ fatha:{name:"Fatha",ar:"فَتْحَة",sym:"◌"+F,desc:"a little line on top says “a”",
+   make:c=>c==="ا"?"أَ":c+F, lat:c=>(LI[c].lat||"")+"a"},
+ kasra:{name:"Kasra",ar:"كَسْرَة",sym:"◌"+K,desc:"a little line underneath says “i”",
+   make:c=>c==="ا"?"إِ":c+K, lat:c=>(LI[c].lat||"")+"i"},
+ damma:{name:"Damma",ar:"ضَمَّة",sym:"◌"+D,desc:"a little curl on top says “u”",
+   make:c=>c==="ا"?"أُ":c+D, lat:c=>(LI[c].lat||"")+"u"},
+ sukun:{name:"Sukun",ar:"سُكُون",sym:"◌"+S,desc:"a little circle means “stop, no vowel”",
+   make:c=>"أَ"+c+S, lat:c=>"a"+LI[c].lat},
+ shadda:{name:"Shadda",ar:"شَدَّة",sym:"◌"+SH,desc:"a little “w” means say the letter twice",
+   make:c=>"أَ"+c+SH+F, lat:c=>"a"+LI[c].lat+LI[c].lat+"a"},
+ tanfath:{name:"Tanween fath",ar:"تَنْوِين",sym:"◌"+TF,desc:"two lines on top say “an”",
+   make:c=>c+TF+"ا", lat:c=>LI[c].lat+"an"},
+ tankasr:{name:"Tanween kasr",ar:"تَنْوِين",sym:"◌"+TK,desc:"two lines underneath say “in”",
+   make:c=>c+TK, lat:c=>LI[c].lat+"in"},
+ tandamm:{name:"Tanween damm",ar:"تَنْوِين",sym:"◌"+TD,desc:"two curls on top say “un”",
+   make:c=>c+TD, lat:c=>LI[c].lat+"un"}
+};
+const NO_ALIF=new Set(["sukun","shadda","tanfath","tankasr","tandamm"]);
+
+/* ---------- the pools (stages) ---------- */
+const POOLS=[
+ {id:"fatha",  nm:"Fatha pool",       ic:"بَ تَ ثَ", marks:["fatha"],                    distract:[], sub:"says “a”"},
+ {id:"kasra",  nm:"Kasra pool",       ic:"بِ تِ ثِ", marks:["kasra"],                    distract:["fatha"], sub:"says “i”"},
+ {id:"damma",  nm:"Damma pool",       ic:"بُ تُ ثُ", marks:["damma"],                    distract:["fatha","kasra"], sub:"says “u”"},
+ {id:"mix",    nm:"Rainbow pool",     ic:"بَ بِ بُ", marks:["fatha","kasra","damma"],    distract:[], sub:"all three mixed"},
+ {id:"sukun",  nm:"Sukun pool",       ic:"أَبْ أَمْ",  marks:["sukun"],                    distract:["fatha","damma"], sub:"the stop sign"},
+ {id:"shadda", nm:"Shadda pool",      ic:"أَبَّ",      marks:["shadda"],                   distract:["sukun","fatha"], sub:"say it twice"},
+ {id:"tanween",nm:"Tanween pool",     ic:"بٌ بٍ بًا", marks:["tanfath","tankasr","tandamm"],distract:["fatha","kasra","damma"], sub:"an · in · un"},
+ {id:"blend",  nm:"Word River",       ic:"بَاب",       marks:[], distract:[], sub:"join sounds into words"}
+];
+
+/* ---------- blending words: [emoji, word, English, tiles] ---------- */
+const BLEND=[
+ ["🚪","بَاب","door",["بَ","ا","ب"]],["✏️","قَلَم","pen",["قَ","لَ","م"]],["🐪","جَمَل","camel",["جَ","مَ","ل"]],
+ ["🌙","قَمَر","moon",["قَ","مَ","ر"]],["🦁","أَسَد","lion",["أَ","سَ","د"]],["👦","وَلَد","boy",["وَ","لَ","د"]],
+ ["🐟","سَمَك","fish",["سَ","مَ","ك"]],["🐘","فِيل","elephant",["فِ","ي","ل"]],["💡","نُور","light",["نُ","و","ر"]],
+ ["🏠","بَيْت","house",["بَ","يْ","ت"]],["🐶","كَلْب","dog",["كَ","لْ","ب"]],["☀️","شَمْس","sun",["شَ","مْ","س"]],
+ ["🐻","دُبّ","bear",["دُ","بّ"]],["🥇","ذَهَب","gold",["ذَ","هَ","ب"]],["🌹","وَرْد","roses",["وَ","رْ","د"]]
+];
+
+/* ---------- save & voice ---------- */
+function falls(){ const p=LQ.player(); return p?(p.falls=p.falls||{}):{}; }
+function coinsShow(){ const p=LQ.player(); $("coins").textContent=p?p.coins||0:0; if(p) $("who").textContent=p.name; }
+function addCoins(n){ LQ.addCoins(n); coinsShow(); }
+LQ.onChange(coinsShow);
+const AUDIO_BASE="https://storage.googleapis.com/kid-games-dc068-voices/lq/ar-XA-Chirp3-HD-Puck/";
+function audioKey(t){ let h=0x811c9dc5; for(const b of new TextEncoder().encode(t)){ h^=b; h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,"0"); }
+const audio=new Audio(); audio.preload="auto"; let soundOn=true, sid=0;
+function deviceSay(t){ if(!("speechSynthesis" in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang="ar-SA"; u.rate=0.7;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith("ar")); if(v)u.voice=v; speechSynthesis.speak(u); }
+function say(t){ if(!soundOn)return; const id=++sid; audio.pause(); audio.src=AUDIO_BASE+audioKey(t)+".mp3";
+  audio.onerror=()=>{ if(id===sid) deviceSay(t); }; const p=audio.play(); if(p&&p.catch) p.catch(()=>{ if(id===sid) deviceSay(t); }); }
+$("snd").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
+$("back").onclick=()=>{ location.href="../"; };
+$("go").onclick=()=>{ say("شَلَّالُ الأَصْوَات"); $("start").remove(); };
+
+function lettersFor(markIds){ return LET.map(l=>l[0]).filter(c=>!(c==="ا"&&markIds.some(m=>NO_ALIF.has(m)))); }
+
+/* ---------- home ---------- */
+const unlocked=i=>i===0||!!falls()[POOLS[i-1].id];
+function home(){
+  $("app").innerHTML=`<div class="panel"><h2>Welcome to Sound Falls!</h2>
+    <p class="muted" style="margin:0">Letters can't say much on their own. Add a little mark (a <b>haraka</b>) and they start to sing! Play each pool, then beat its waterfall challenge to open the next one.</p></div>
+    <div class="pools">${POOLS.map((p,i)=>{ const st=falls()[p.id]||0, open=unlocked(i);
+      return `<button class="pool ${open?"":"locked"}" data-i="${i}"><div class="ic" lang="ar">${p.ic}</div><div class="nm">${p.nm}</div><div class="sub">${p.sub}</div>
+        <div class="st">${st?"★".repeat(st)+"☆".repeat(3-st):""}</div></button>`; }).join("")}</div>`;
+  document.querySelectorAll(".pool").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; if(!unlocked(i)) return; POOLS[i].id==="blend"?blendLesson(i):lab(i); });
+}
+
+/* ---------- lab: pick a letter, add a mark, hear it ---------- */
+function lab(i){
+  const P=POOLS[i], marks=P.marks, letters=lettersFor(marks); let cur=letters[letters[0]==="ا"?1:0], heard=new Set();
+  const need=Math.min(6,letters.length*marks.length);
+  $("app").innerHTML=`<div class="panel"><h2>${P.nm}</h2>
+    <div class="basin"><div class="glyph" id="gl" lang="ar">${cur}</div><div class="tr" id="tr"> </div><div class="hint" id="hi">Pick a letter, then tap a mark to make it sing.</div></div>
+    <div class="lrow" id="lr">${letters.map(c=>`<button data-c="${c}" class="${c===cur?"on":""}" lang="ar">${c}</button>`).join("")}</div>
+    <div class="mrow">${marks.map(m=>`<button class="mk" data-m="${m}"><b lang="ar">${MARKS[m].sym}</b><span>${MARKS[m].name}</span></button>`).join("")}</div>
+    <p class="muted" style="margin:8px 0 0">${marks.map(m=>`<b>${MARKS[m].name}</b> <span lang="ar">${MARKS[m].ar}</span>: ${MARKS[m].desc}.`).join("<br>")}</p>
+    <div class="prog"><i id="pg" style="width:0"></i></div><div class="muted" style="font-size:.9rem" id="pgt">Make ${need} different sounds to open the challenge.</div>
+    <div class="actions"><button class="btn ghost" id="bk">All pools</button><button class="btn boss" id="ch" disabled>💦 Waterfall challenge</button></div></div>`;
+  if(falls()[P.id]) $("ch").disabled=false;
+  document.querySelectorAll("#lr button").forEach(b=>b.onclick=()=>{ cur=b.dataset.c; document.querySelectorAll("#lr button").forEach(x=>x.classList.toggle("on",x===b)); $("gl").textContent=cur; $("tr").textContent=" "; });
+  document.querySelectorAll(".mk").forEach(b=>b.onclick=()=>{ const m=b.dataset.m, t=MARKS[m].make(cur); say(t);
+    const g=$("gl"); g.textContent=t; g.classList.remove("pop"); void g.offsetWidth; g.classList.add("pop"); $("tr").textContent="“"+MARKS[m].lat(cur)+"”";
+    $("hi").textContent=`${MARKS[m].name} on this letter`;
+    if(!heard.has(t)){ heard.add(t); if(heard.size<=need) addCoins(1); }
+    $("pg").style.width=Math.min(100,heard.size/need*100)+"%";
+    if(heard.size>=need){ $("ch").disabled=false; $("pgt").textContent="Great listening! The waterfall challenge is open."; } else $("pgt").textContent=`${need-heard.size} more different sounds to open the challenge.`; });
+  $("bk").onclick=home; $("ch").onclick=()=>challenge(i);
+}
+
+/* ---------- waterfall challenge ---------- */
+function makeQuestion(P){
+  const marks=P.marks, letters=lettersFor(marks.concat(P.distract)), c=pick(letters.filter(x=>x!=="ا"||!marks.some(m=>NO_ALIF.has(m)))), m=pick(marks);
+  const answer=MARKS[m].make(c); const opts=new Map([[answer,{ok:true,m,c}]]);
+  // same letter, other marks first (that's the skill), then look-alike letters with the same mark
+  shuffle(marks.filter(x=>x!==m).concat(P.distract)).forEach(x=>{ if(opts.size<4&&!(c==="ا"&&NO_ALIF.has(x))){ const t=MARKS[x].make(c); if(!opts.has(t)) opts.set(t,{ok:false,m:x,c}); } });
+  shuffle(LI[c].dec.concat(shuffle(letters).slice(0,6))).forEach(d=>{ if(opts.size<4&&d!==c&&!(d==="ا"&&NO_ALIF.has(m))){ const t=MARKS[m].make(d); if(!opts.has(t)) opts.set(t,{ok:false,m,c:d}); } });
+  return {speak:answer, lat:MARKS[m].lat(c), m, c, opts:shuffle([...opts.entries()].map(([t,o])=>Object.assign({t},o)))};
+}
+function challenge(i){
+  const P=POOLS[i]; let hp=6, hearts=3, busy=false;
+  function draw(){
+    if(hp<=0) return win(); if(hearts<=0) return lose();
+    const q=makeQuestion(P);
+    $("app").innerHTML=`<div class="panel">
+      <div class="bossbar"><span style="font-size:2.2rem">🌊</span><div class="hp"><i style="width:${hp/6*100}%"></i></div><div class="hearts">${"❤️".repeat(hearts)}${"🤍".repeat(3-hearts)}</div></div>
+      <div class="q">Listen! Which one did you hear?<span class="big">🔊</span></div>
+      <div class="opts">${q.opts.map((o,k)=>`<button class="opt" lang="ar" data-k="${k}">${o.t}</button>`).join("")}</div>
+      <div class="actions"><button class="btn ghost" id="again">🔊 Hear again</button><button class="btn ghost" id="run">Back to the pool</button></div></div>`;
+    say(q.speak); $("again").onclick=()=>say(q.speak); $("run").onclick=()=>lab(i);
+    document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy) return; busy=true; const o=q.opts[+b.dataset.k];
+      if(o.ok){ b.classList.add("right"); hp--; addCoins(3); LQ.record("marks",MARKS[q.m].name,true); LQ.record("letters",q.c,true); }
+      else { b.classList.add("wrong"); hearts--; document.querySelectorAll(".opt").forEach((x,k)=>{ if(q.opts[k].ok) x.classList.add("right"); });
+        if(o.m!==q.m) LQ.record("marks",MARKS[q.m].name,false,MARKS[o.m].name); else LQ.record("letters",q.c,false,o.c);
+        setTimeout(()=>say(q.speak),300); }
+      setTimeout(()=>{ busy=false; draw(); },o.ok?900:1700); });
+  }
+  function win(){ finish(i,hearts); }
+  function lose(){ $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🌊</div><h2>The waterfall splashed you!</h2>
+      <p class="muted">Go back to the pool and listen a little more, then try again.</p>
+      <div class="actions"><button class="btn boss" id="retry">Try again</button><button class="btn ghost" id="bk">Back to the pool</button></div></div>`;
+    $("retry").onclick=()=>challenge(i); $("bk").onclick=()=>POOLS[i].id==="blend"?blendLesson(i):lab(i); }
+  draw();
+}
+function finish(i,hearts){
+  const P=POOLS[i], stars=hearts>=3?3:hearts===2?2:1, first=!falls()[P.id];
+  LQ.update(p=>{ p.falls=p.falls||{}; p.falls[P.id]=Math.max(p.falls[P.id]||0,stars); }); addCoins(first?30:10); say("أَحْسَنْتَ");
+  $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You beat the waterfall!</h2>
+    <p style="font-size:2rem;color:var(--saffron);margin:0">${"★".repeat(stars)}${"☆".repeat(3-stars)}</p>
+    <p class="muted">${i<POOLS.length-1?`The ${POOLS[i+1].nm} is now open!`:"You can read Arabic words now. Amazing!"}</p>
+    <div class="actions"><button class="btn go" id="next">${i<POOLS.length-1?"Go to the next pool":"All pools"}</button><button class="btn ghost" id="stay">All pools</button></div></div>`;
+  $("next").onclick=()=>{ const n=i+1; if(n>=POOLS.length) return home(); POOLS[n].id==="blend"?blendLesson(n):lab(n); }; $("stay").onclick=home;
+}
+
+/* ---------- Word River: blend marked letters into words ---------- */
+function blendLesson(i){
+  const order=shuffle([...BLEND]).slice(0,5); let w=0;
+  function next(){
+    if(w>=order.length) return blendChallenge(i);
+    const [em,word,en,tiles]=order[w]; let pos=0;
+    const first=tiles[0], base=first.replace(/[\u064B-\u0652]/g,""); const other=[F,K,D].find(m=>!first.includes(m)&&m!==first.slice(-1))||K;
+    const decoy=(base==="أ"?"إِ":base+other);
+    const pool=shuffle(tiles.map((t,k)=>({t,k})).concat([{t:decoy,k:-1}]));
+    $("app").innerHTML=`<div class="panel"><h2>Word River <span class="muted" style="font-size:1rem">${w+1} of ${order.length}</span></h2>
+      <div class="build"><div style="font-size:3rem">${em}</div><div class="muted">${en}</div><div class="w" id="bw" lang="ar"></div></div>
+      <p class="muted center" style="margin:8px 0 0">Tap the sounds in order, from right to left ←</p>
+      <div class="tiles">${pool.map((o,j)=>`<button class="tile" lang="ar" data-j="${j}">${o.t}</button>`).join("")}</div>
+      <div class="actions"><button class="btn ghost" id="hear">🔊 Hear the word</button><button class="btn ghost" id="bk">All pools</button></div></div>`;
+    $("hear").onclick=()=>say(word); $("bk").onclick=home; setTimeout(()=>say(word),250);
+    document.querySelectorAll(".tile").forEach(b=>b.onclick=()=>{ const o=pool[+b.dataset.j];
+      if(o.k===pos){ b.classList.add("used"); pos++; const part=tiles.slice(0,pos).join(""); $("bw").textContent=part; say(pos===tiles.length?word:part);
+        if(pos===tiles.length){ $("bw").classList.add("win"); addCoins(4); LQ.record("words",word,true); setTimeout(()=>{ w++; next(); },1600); } }
+      else { b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); say(o.t); LQ.record("words",word,false); } });
+  }
+  next();
+}
+function variants(word){ // same letters, different short vowels: قَلَم → قِلَم, قُلُم ...
+  const chars=[...word]; const idx=chars.map((c,k)=>[F,K,D].includes(c)?k:-1).filter(k=>k>=0); const out=new Set();
+  let guard=0; while(out.size<3&&guard++<60){ const c=[...chars]; const k=pick(idx); c[k]=pick([F,K,D].filter(m=>m!==chars[k])); if(Math.random()<.4&&idx.length>1){ const k2=pick(idx); c[k2]=pick([F,K,D]); }
+    const t=c.join(""); if(t!==word) out.add(t); }
+  return [...out];
+}
+function blendChallenge(i){
+  let hp=6, hearts=3, busy=false;
+  function draw(){
+    if(hp<=0) return finish(i,hearts);
+    if(hearts<=0){ $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🌊</div><h2>The river splashed you!</h2><p class="muted">Practice a few more words, then try again.</p>
+      <div class="actions"><button class="btn boss" id="retry">Try again</button><button class="btn ghost" id="bk">More words</button></div></div>`;
+      $("retry").onclick=()=>blendChallenge(i); $("bk").onclick=()=>blendLesson(i); return; }
+    const [em,word,en]=pick(BLEND), vs=variants(word); if(vs.length<3) return draw();
+    const opts=shuffle([{t:word,ok:true},...vs.map(t=>({t,ok:false}))]);
+    $("app").innerHTML=`<div class="panel">
+      <div class="bossbar"><span style="font-size:2.2rem">🌊</span><div class="hp"><i style="width:${hp/6*100}%"></i></div><div class="hearts">${"❤️".repeat(hearts)}${"🤍".repeat(3-hearts)}</div></div>
+      <div class="q">Listen! Which word did you hear?<span class="big">${em}</span></div>
+      <div class="opts">${opts.map((o,k)=>`<button class="opt" lang="ar" data-k="${k}">${o.t}</button>`).join("")}</div>
+      <div class="actions"><button class="btn ghost" id="again">🔊 Hear again</button><button class="btn ghost" id="run">More words</button></div></div>`;
+    say(word); $("again").onclick=()=>say(word); $("run").onclick=()=>blendLesson(i);
+    document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy) return; busy=true; const o=opts[+b.dataset.k];
+      if(o.ok){ b.classList.add("right"); hp--; addCoins(3); LQ.record("words",word,true); }
+      else { b.classList.add("wrong"); hearts--; document.querySelectorAll(".opt").forEach((x,k)=>{ if(opts[k].ok) x.classList.add("right"); }); LQ.record("words",word,false); }
+      setTimeout(()=>{ busy=false; draw(); },o.ok?900:1600); });
+  }
+  draw();
+}
+coinsShow(); home();
+</script>
+</body>
+</html>

@@ -142,7 +142,7 @@ const LANDMARKS=[
  {id:"farm",  x:880, y:1080, icon:"🏡", en:"Olive Farm", ar:"مَزْرَعَةُ الزَّيْتُون", desc:"Harvest time! Hear a word, then pick the right fruit or vegetable to fill your basket."},
  {id:"dunes", x:760, y:1850, icon:"⛺", en:"Letter Dunes", ar:"كُثْبَانُ الحُرُوف", desc:"Open now! Meet the letter shapeshifters and learn all 28 letters and their shapes."},
  {id:"forest",x:640, y:600,  icon:"🌳", en:"Word Forest", ar:"غَابَةُ الكَلِمَات", desc:"Learn new words with pictures. This week's words from your teacher live here."},
- {id:"falls", x:2380,y:640,  icon:"💦", en:"Sound Falls", ar:"شَلَّالُ الأَصْوَات", desc:"Vowel marks and sounds. Join letters into syllables: بَ ... بِ ... بُ"},
+ {id:"falls", x:2380,y:640,  icon:"💦", en:"Sound Falls", ar:"شَلَّالُ الأَصْوَات", desc:"Open now! Vowel marks make letters sing: بَ ... بِ ... بُ — then join sounds into words."},
  {id:"tower", x:1640,y:640,  icon:"🏰", en:"Spelling Tower", ar:"بُرْجُ التَّهْجِئَة", desc:"Spell words to climb. Every floor gets a little harder."},
  {id:"arena", x:1450,y:250,  icon:"🏟️", en:"Frost Arena", ar:"سَاحَةُ الجَلِيد", desc:"Spell words correctly to beat the snow monsters!"},
  {id:"harbor",x:2640,y:1420, icon:"⛵", en:"Story Harbor", ar:"مِينَاءُ القِصَص", desc:"Read short stories aloud together. Coming in part two."},
@@ -230,12 +230,12 @@ function showZone(b){ const B=BIOMES[b]; zoneEl.querySelector("b").textContent=B
   zoneEl.classList.add("show"); clearTimeout(zoneTimer); zoneTimer=setTimeout(()=>zoneEl.classList.remove("show"),2600); say(B.ar); }
 const card=document.getElementById("card");
 let cardLandmark=null;
-function openCard(l){ cardLandmark=l; const e=document.getElementById("cEnter"); e.textContent=l.id==="dunes"?"Enter ▶":"Enter (coming soon)"; document.getElementById("cIcon").textContent=l.icon; document.getElementById("cTitle").textContent=l.en;
+function openCard(l){ cardLandmark=l; const e=document.getElementById("cEnter"); e.textContent=(l.id==="dunes"||l.id==="falls")?"Enter ▶":"Enter (coming soon)"; document.getElementById("cIcon").textContent=l.icon; document.getElementById("cTitle").textContent=l.en;
   document.getElementById("cAr").textContent=l.ar; document.getElementById("cDesc").textContent=l.desc; card.classList.add("show"); say(l.ar); }
 function closeCard(){ card.classList.remove("show"); }
 document.getElementById("cClose").onclick=closeCard;
 document.getElementById("cAr").onclick=()=>say(document.getElementById("cAr").textContent);
-document.getElementById("cEnter").onclick=()=>{ if(cardLandmark&&cardLandmark.id==="dunes"){ if(!LQ.player()){ LQ.profiles(()=>{ hud(); location.href="letters/"; }); return; } location.href="letters/"; return; } document.getElementById("cEnter").textContent="Coming soon!"; setTimeout(()=>document.getElementById("cEnter").textContent="Enter (coming soon)",1500); };
+document.getElementById("cEnter").onclick=()=>{ const ZONES={dunes:"letters/",falls:"falls/"}; if(cardLandmark&&ZONES[cardLandmark.id]){ const url=ZONES[cardLandmark.id]; if(!LQ.player()){ LQ.profiles(()=>{ hud(); location.href=url; }); return; } location.href=url; return; } document.getElementById("cEnter").textContent="Coming soon!"; setTimeout(()=>document.getElementById("cEnter").textContent="Enter (coming soon)",1500); };
 
 /* ============ minimap ============ */
 const mini=document.getElementById("mini"), mctx=mini.getContext("2d");
