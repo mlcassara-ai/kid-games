@@ -1,4 +1,4 @@
-/* ================= Pet Food Truck Market (v1 · BETA, hidden) =================
+/* ================= Pet Food Truck Market (opens Oct 10, 2026) =================
    Every hero gets a little food truck in the village square: buy ingredients, cook pet treats (with
    grade-scaled math), pick one of three set prices, open the truck for 1/6/12 hours, read the receipt,
    sell to siblings, and fill the family Pet Picnic every other weekend.
@@ -59,7 +59,16 @@ const me=()=>{try{return P();}catch(e){return null;}};
 const players=()=>(typeof state!=='undefined'&&state&&state.players)||[];
 const byId=id=>players().find(x=>x.id===id);
 const say=m=>{try{toast(m);}catch(e){}};
-function flag(){if(window.MQ_TRUCK_BETA===true)return true;try{return localStorage.getItem('mqTruckBeta')==='1';}catch(e){return false;}}
+/* Grand Opening: Saturday Oct 10, 2026 (local time). Before that the truck only shows on a device that opened the game
+   once with ?truck=1 in the address (a grown-up preview), or with the old beta switches. */
+const OPENS=new Date(2026,9,10).getTime();
+function flag(){if(window.MQ_TRUCK_BETA===true)return true;try{if(/[?&]truck=1(&|$)/.test(location.search))localStorage.setItem('mqTruckBeta','1');if(localStorage.getItem('mqTruckBeta')==='1')return true;}catch(e){}return Date.now()>=OPENS;}
+/* the truck parks on the village map once it is open (same pattern as Dr. Quartz's Lab) */
+const TK_X=22,TK_Y=20;
+function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[TK_Y]&&W.T[TK_Y][TK_X];if(!t||t.water)return;
+ if(flag()){if(t.npc!=='truck'&&!t.npc&&!t.chest){if(W.hx===TK_X&&W.hy===TK_Y)return;t.npc='truck';t.block=true;t.o=null;}}
+ else if(t.npc==='truck'){delete t.npc;t.block=false;}}catch(e){}}
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();},session:()=>syncTile()});
 const enabled=p=>!!p&&flag()&&(p.battles||0)>=UNLOCK;
 function hs(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 function rng(seed){let a=hs(seed);return ()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}

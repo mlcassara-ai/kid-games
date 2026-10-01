@@ -104,6 +104,17 @@ const tests=[
   p.adv.trip.end=Date.now()-1000;const res=Adv._fin();T.ok(res&&res.sacks.length===2,'no sacks came home');
   T.ok(res.sacks.every(s=>Array.isArray(s.items)),'sack without items');}],
 
+['food truck: hidden until opening day, then card, screens and map spot',async function(){
+  T.reset();const p=T.hero('Truck',3,{battles:40});state.cur=p.id;
+  const due=Date.now()>=new Date(2026,9,10).getTime();window.MQ_TRUCK_BETA=false;try{localStorage.removeItem('mqTruckBeta');}catch(e){}
+  T.ok(Truck.flag()===due,'truck visibility does not follow the opening date');go('map');T.ok(!!document.querySelector('.tk-hc')===due,'truck card shown at the wrong time');
+  window.MQ_TRUCK_BETA=true;go('map');T.ok(document.querySelector('.tk-hc'),'truck card missing from the Quest Board');
+  Truck.open();T.ok(curScreen==='truck'&&document.querySelector('#app').innerText.length>40,'truck screen is empty');try{closeModal();}catch(e){}
+  go('market');T.ok(curScreen==='market'&&document.querySelector('#app').innerText.length>20,'market screen is empty');
+  go('world');await T.wait(100);const t=W.T[20][22];T.ok(t.npc==='truck','truck is not on the map');
+  T.ok([[21,20],[23,20],[22,19],[22,21]].some(([x,y])=>W.T[y]&&W.T[y][x]&&!W.T[y][x].block&&!W.T[y][x].water),'truck cannot be reached on the map');
+  wNpc('truck');T.ok(curScreen==='truck','tapping the truck on the map did not open it');window.MQ_TRUCK_BETA=false;}],
+
 ['save size stays small',async function(){
   T.reset();for(let i=0;i<7;i++){const p=T.hero('Size'+i,3);for(let k=0;k<200;k++)p.missed['q'+k+' + 1']={n:1,a:1,op:'add',last:'2026-10-01',fixed:0,q:{op:'add',L:1,a:k,b:1,answer:k+1,text:'q'+k+' + 1'}};}
   migrate();stampChanges(true);const n=JSON.stringify(cloudPayload()).length;T.ok(n<700000,'family save is '+n+' bytes; the cloud limit is about 1,000,000');}]

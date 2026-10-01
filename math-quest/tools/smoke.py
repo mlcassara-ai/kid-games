@@ -13,7 +13,7 @@ import functools, http.server, json, os, re, shutil, socketserver, subprocess, s
 HERE = os.path.dirname(os.path.abspath(__file__))
 MQ = os.path.dirname(HERE)
 ROOT = os.path.dirname(MQ)
-NOT_LOADED = {"truck.js"}  # beta, deliberately not in the loader
+NOT_LOADED = set()  # files that exist but are deliberately left out of the loader
 CHROME = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/usr/bin/google-chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser",
