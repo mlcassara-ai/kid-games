@@ -144,7 +144,7 @@ function take(k){const p=P();const t=tad(p);if(t.s!==2)return;let msg='';
  else if(k==='treat'){p.pantry=p.pantry||{};['apple','carrot','cookie'].forEach(f=>{p.pantry[f]=(p.pantry[f]||0)+1;});msg='🧺 3 snacks are in your pantry!';}
  else{p.coins+=30;msg='🪙 30 coins!';}
  const d=today(),days=p.days||[];const prev=days[days.length-1]===d?days[days.length-2]:days[days.length-1];
- t.streak=(t.last&&t.last===prev)?(t.streak||0)+1:1;t.last=d;t.stars=(t.stars||0)+1;t.s=3;t.w.adv++;save();
+ t.streak=(t.last&&t.last===prev)?(t.streak||0)+1:1;t.last=d;t.stars=(t.stars||0)+1;t.s=3;t.w.adv++;try{wkBump(p,'adv');}catch(e){}save();
  try{SFX.level();}catch(e){}
  modal(`<div class="mcard"><div class="big-emoji">⭐</div><h2>Adventure Star #${t.stars}!</h2><p>${msg}</p><p class="muted">🔥 ${t.streak} day${t.streak>1?'s':''} in a row.</p><div class="row"><button class="btn green" onclick="closeModal();go('map')">Hooray!</button></div></div>`);}
 
