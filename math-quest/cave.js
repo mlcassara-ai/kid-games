@@ -213,7 +213,7 @@ const campOnly=(f,i)=>f.camp!=null&&i===f.camp;
 function build(){
  root=document.createElement('div');root.className='cv';root.id='cvRoot';
  root.innerHTML=`<canvas id="cvC"></canvas>
- <div class="cv-top"><div class="cv-row1"><div class="cv-chip" id="cvLayer"></div><div class="cv-res"><span id="cvCoins"></span><span id="cvRP"></span><span id="cvPack"></span></div><button class="cv-x cv-snd" id="cvSnd" aria-label="Sound and music"></button><button class="cv-x cv-map" id="cvExit" aria-label="Back to the map">🗺️ Map</button></div>
+ <div class="cv-top"><div class="cv-row1"><div class="cv-chip" id="cvLayer"></div><div class="cv-res"><span id="cvCoins"></span><span id="cvRP"></span><span id="cvPack"></span></div><button class="cv-x cv-snd" id="cvSnd" aria-label="Sound and music"></button><button class="cv-x cv-map" id="cvExit" aria-label="Back to the map">🗺️<span class="cv-mapt"> Map</span></button></div>
   <div class="cv-row2"><div class="cv-g" id="cvG"></div><div class="cv-bat" title="Battery"><i id="cvBatI"></i><span id="cvBatT"></span></div></div></div>
  <div class="cv-depth" id="cvDepth"></div>
  <div class="cv-msg" id="cvMsg"></div>
@@ -1002,7 +1002,7 @@ const CSS=`
 .cv-sheet{position:relative;background:#fff;border-radius:22px;padding:18px;max-width:440px;width:100%;max-height:calc(100dvh - 24px);overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.5);margin:auto}
 .cv-sheet.wide{max-width:720px}.cv-sheet h2{margin:4px 30px 6px 0;font-size:22px}.cv-sheet p{line-height:1.45}
 .cv-sheet.probe{padding:0;max-width:560px;height:min(720px,calc(100dvh - 24px));overflow:hidden}
-.cv-mx{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:#eee9ff!important;font-size:16px;font-weight:700;z-index:2}
+.cv-mx{position:absolute;top:8px;right:8px;width:44px;height:44px;border-radius:50%;background:#eee9ff!important;font-size:18px;font-weight:700;z-index:2}
 .cv-back{background:#eee9ff!important;border-radius:10px;padding:5px 10px;font-weight:600;margin-bottom:4px}
 .cv-sub{color:#6d6490;font-size:14px}
 .cv-card{text-align:center}.cv-card h2{margin-right:0}.cv-big{font-size:64px;line-height:1.1}.cv-big2{font-size:40px}.cv-glowe{filter:drop-shadow(0 0 12px #8fffe0)}
@@ -1113,7 +1113,12 @@ button.cv-tool{font-family:inherit;background:#fff9f0;border-radius:12px;padding
 .cv-sockets,.cv-minsel{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0}
 .cv .cv-sock,.cv .cv-sock span,.cv .cv-sock small{color:#fff}.cv-top .cv-snd{right:54px!important;background:none!important;padding:0;border:2px solid rgba(255,255,255,.9)!important;border-radius:11px!important;box-shadow:0 3px 0 rgba(0,0,0,.4);overflow:hidden}.cv-snd svg{width:100%;height:100%;display:block}
 .cv-sndov{position:absolute;inset:0;z-index:60;background:rgba(10,5,30,.6);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;pointer-events:auto}.cv-sndov .cv-sheet{max-width:440px;width:100%;margin:auto;position:relative}
-.cv-sndp{text-align:center}.cv-sndp h2{margin:0 0 10px}.cv-sndp .snd-opt{font-family:inherit;border:3px solid #d0bfff!important;background:#f8f5ff!important}.cv-sndp .snd-opt.on{border-color:#2ecc71!important;background:#ebfbee!important}.cv-sndp input[type=range]{touch-action:pan-x}.cv-top .cv-row1{padding-right:98px!important}.cv-sock{width:90px;height:100px;border-radius:16px;background:#1c1626;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 16px var(--g),inset 0 0 0 3px var(--g)}.cv-sock.sel{outline:4px solid #ffd43b}.cv-sock span{font-size:30px}
+.cv-sndp{text-align:center}.cv-sndp h2{margin:0 0 10px}.cv-sndp .snd-opt{font-family:inherit;border:3px solid #d0bfff!important;background:#f8f5ff!important}.cv-sndp .snd-opt.on{border-color:#2ecc71!important;background:#ebfbee!important}.cv-sndp input[type=range]{touch-action:pan-x}.cv-top .cv-row1{padding-right:98px!important}
+/* top-right buttons sit in the row (no overlap on wide screens), ≥44px tap targets; phones show the 🗺️ icon only so nothing gets clipped */
+#cvRoot .cv-top .cv-row1{padding-right:0!important}
+#cvRoot .cv-top .cv-x{position:static!important;flex:0 0 auto;width:44px!important;height:44px!important;min-width:44px;font-size:18px!important;display:inline-flex;align-items:center;justify-content:center}
+#cvRoot .cv-top .cv-map{width:auto!important;padding:0 12px!important;font-size:15px!important}#cvRoot .cv-mapt{margin-left:4px}
+@media(max-width:480px){#cvRoot .cv-top .cv-map{width:44px!important;padding:0!important;font-size:20px!important}#cvRoot .cv-top .cv-mapt{display:none}}.cv-sock{width:90px;height:100px;border-radius:16px;background:#1c1626;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 16px var(--g),inset 0 0 0 3px var(--g)}.cv-sock.sel{outline:4px solid #ffd43b}.cv-sock span{font-size:30px}
 .cv-minsel button{background:#1c1626;color:#fff;border-radius:14px;padding:6px 10px;display:flex;flex-direction:column;align-items:center;font-size:12px}
 .cv-nsel{display:flex;gap:6px;justify-content:center}.cv-nsel button{width:44px;height:44px;border-radius:12px;background:#f3f0ff;font-weight:700;font-size:18px}.cv-nsel button.on{background:#7c5cff;color:#fff}
 .cv-choices{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}

@@ -272,11 +272,13 @@ function draw(){css();const p=P(),a=A(p);a.crew=a.crew.filter(id=>p.pets.include
  const CU=window.Cleanup;if(TAB==='clean'&&!CU)TAB='camp';
  const resB=a.res&&!RES?`<div class="cu-strip"><span class="e">🎒</span><span><b>Your crew is still unpacking!</b><small>Hear their story and open the sacks.</small></span><button class="btn gold" onclick="Adv.resume()">🎒 Keep unpacking</button></div>`:'';
  const body=TAB==='shelf'?shelfHTML(p,a):TAB==='cards'?cardsHTML(a):TAB==='clean'?CU.html(p):resB+(CU?CU.campStrip(p):'')+campHTML(p,a);
+ /* looking at the Postcards page counts as seeing them: the NEW tags (already in body) show this once, then the 📬 alert clears —
+    cleared BEFORE the top bar is drawn, so its 📬 badge is gone right away */
+ const seen=TAB==='cards'&&newCards(p)>0;if(seen){a.cards.forEach(c=>{delete c.nw;});save();}
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏕️ Adventure Camp</h2></div>
  <div class="adv-tabs">${[['camp','🏕️ Camp'],...(CU?[['clean',CU.tabLabel(p)]]:[]),['shelf','🗄️ Curiosity Shelf'],['cards','🖼️ Postcards'+(TAB!=='cards'&&newCards(p)?` <b class="adv-new">📬 ${newCards(p)}</b>`:'')]].map(([k,t])=>`<button class="${TAB===k?'on':''}" onclick="Adv.tab('${k}')">${t}</button>`).join('')}</div>${body}</div>`;
  if(TAB==='camp')requestAnimationFrame(sitters);
- /* looking at the Postcards page counts as seeing them: the NEW tags show this once, then the 📬 alert clears */
- if(TAB==='cards'&&newCards(p)){a.cards.forEach(c=>{delete c.nw;});save();}}
+ try{if(seen&&typeof hudSync==='function')hudSync();}catch(e){}}
 const newCards=p=>((p&&p.adv&&p.adv.cards)||[]).filter(c=>c&&c.nw).length;
 function campHTML(p,a){const tr=a.trip,d=dest(tr?tr.dest:a.dest),n=slots(p);
  const done=tr&&Date.now()>=tr.end;
@@ -352,6 +354,8 @@ function tale(p,c){const T=TB();if(!c.k||!c.k.length)c.k=taleKeys(p,c);
  const k=c.k,body=k.slice(2,-3).map(tx).filter(Boolean);
  return {open:tx(k[0]),sayOpen:tx(k[1]),lines:body,ps:tx(k[k.length-3]),close:tx(k[k.length-2]),sayClose:tx(k[k.length-1]),sign:crew.map(id=>`${petE(id)} ${nm(id)}`).join(', ')};}
 const letter=(p,c)=>tale(p,c);
+/* 🔊 tap again to stop: the game's speakToggle() when there, else cancel whatever is being spoken */
+const spkTog=fn=>{try{if(typeof speakToggle==='function'){speakToggle(fn);return;}if(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending)){speechSynthesis.cancel();return;}}catch(e){}fn();};
 function readAloud(parts){try{const t=parts.join(' ').replace(/<[^>]+>/g,'').replace(/P\.S\./g,'P S,');if(typeof say==='function')say(t,.9);}catch(e){}}
 let LAST_TALE=null;
 function readCard(i){const p=P(),a=A(p),c=a.cards[i];if(!c)return;if(c.nw){delete c.nw;save();}const d=dest(c.dest);const had=!!c.k;const L=tale(p,c);if(!had)save();try{SFX.tap();}catch(e){}
@@ -429,7 +433,7 @@ function petCard(p){css();const a=A(p),t=a.trip,n=slots(p);const crewHTML=ids=>`
    <div class="act"><div class="left">${fmtLeft(t.end-Date.now())}<small>to go</small></div><button class="btn ghost dark small" style="margin-top:6px" onclick="go('camp')">🏕️ Visit camp</button></div></div>`;}
 /* ---------- hooks for the rest of the game ---------- */
 let BUSY_UNTIL=0;
-window.Adv={_fin:()=>finish(),newCards:p=>newCards(p||(typeof P==='function'?P():null)),busy:()=>!!RES||Date.now()<BUSY_UNTIL||!!document.querySelector('.adv-walker'),resume,_mail:(t)=>mail(P(),null,!!t),readCard,tellTale,_tale:(c)=>tale(P(),c),diary:()=>{try{speechSynthesis.cancel()}catch(e){};diary();},home:()=>{try{speechSynthesis.cancel()}catch(e){};wh();},readAloud:()=>readAloud(LAST_TALE||[]),petCard,away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
+window.Adv={_fin:()=>finish(),newCards:p=>newCards(p||(typeof P==='function'?P():null)),busy:()=>!!RES||Date.now()<BUSY_UNTIL||!!document.querySelector('.adv-walker'),resume,_mail:(t)=>mail(P(),null,!!t),readCard,tellTale,_tale:(c)=>tale(P(),c),diary:()=>{try{speechSynthesis.cancel()}catch(e){};diary();},home:()=>{try{speechSynthesis.cancel()}catch(e){};wh();},readAloud:()=>spkTog(()=>readAloud(LAST_TALE||[])),petCard,away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
  toggle(id){const p=P(),a=A(p);if(a.trip)return toast('Wait for your crew to come home first!');const i=a.crew.indexOf(id);if(i>=0)a.crew.splice(i,1);else{const n=slots(p);if(a.crew.length>=n)return toast(`All ${n} crew spot${n>1?'s are':' is'} full! Win more battles to open more.`);a.crew.push(id);}SFX.tap();save();draw();},
  set(k,v){const a=A(P());a[k]=v;save();draw();},tab(t){TAB=t;draw();window.scrollTo(0,0);},
  askCall(){modal(`<div class="mcard"><div class="big-emoji">📯</div><h2>Call them home early?</h2><p>They'll run right back, but they'll only have time to grab a few coins.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Let them explore</button><button class="btn" onclick="closeModal();Adv.callHome()">Blow the horn!</button></div></div>`);},

@@ -161,7 +161,9 @@ function fresh(){UI={grp:null,msg:'',warn:[],inp:'',rd:{},spoken:'',serve:null,v
 fresh();
 function stay(){const y=window.scrollY;go('cafe');window.scrollTo(0,y);}
 function speakNow(t){try{if(!t)return;try{speechSynthesis.cancel();}catch(e){}let x=String(t).replace(/<[^>]+>/g,' ');try{x=x.replace(/[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\u200D\uFE0F]/gu,'');}catch(e){}say(speakable(x.replace(/\$(\d+)/g,'$1 dollars').replace(/(\d+)¢/g,'$1 cents')));}catch(e){}}
-function read(k){speakNow(UI.rd[k]);}
+/* 🔊 tap again to stop: the game's speakToggle() when there, else cancel whatever is being spoken */
+const spkTog=fn=>{try{if(typeof speakToggle==='function'){speakToggle(fn);return;}if(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending)){speechSynthesis.cancel();return;}}catch(e){}fn();};
+function read(k){spkTog(()=>speakNow(UI.rd[k]));}
 const spk=k=>`<button class="ln-spk" onclick="Lunch.read('${k}')" aria-label="Read aloud">🔊</button>`;
 function autoRead(p,key,text){UI.rd.auto=text;try{if(young(p)&&voiceOn()&&UI.spoken!==key){UI.spoken=key;setTimeout(()=>{if(typeof curScreen!=='undefined'&&curScreen==='cafe')speakNow(text);},450);}}catch(e){}}
 
@@ -296,7 +298,7 @@ function weekView(p){const W=wkDraft(p);const act=wkActive(p,W);const g=weekGoal
   ${goal(g.full,g.n===5?'🍽️ All 5 days planned':`🍽️ All ${g.n} days left this week planned`)}${goal(g.mains,'🍗 A different main (protein) every day')}${goal(g.veg,`🥦 At least ${g.vegN} different veggie${g.vegN===1?'':'s'}`)}${goal(g.fish,'🐟 Fish at least once')}${goal(g.treat,'🎉 Treats only on Friday')}${goal(g.budget,`💵 Stay within ${money(g.bud)}`)}</div>
   ${g.n<5?`<p class="muted" style="margin:6px 0 0;font-size:14px">Days that are already over this week don't need a plan.</p>`:''}
   <div class="ln-meter"><b>💵 Budget (one plate each day)</b><div class="bar"><i style="width:${pct}%;background:${g.budget?'#40c057':'#fa5252'}"></i></div><small>${money(g.tot)} of ${money(g.bud)} ${g.budget?'':' · over budget!'}</small></div>
-  <div class="row" style="margin-top:10px"><button class="btn ${g.full?'green':'ghost dark'} big" ${g.full?'':'disabled'} onclick="Lunch.wsave()">💾 Save my week plan</button><button class="btn ghost dark small" onclick="Lunch.wback()">← Kitchen</button></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn ${g.full?'green':'ghost dark'} big" ${g.full?'':'disabled'} onclick="Lunch.wsave()">💾 Save my week plan</button><button class="btn ghost dark small backbtn" onclick="Lunch.wback()">← Kitchen</button></div></div>
   <div class="ln-panel"><div class="ln-gstrip">${[[g.full,'🍽️'],[g.mains,'🍗'],[g.veg,'🥦'],[g.fish,'🐟'],[g.treat,'🎉'],[g.budget,'💵']].map(([o,e])=>`<span class="${o?'ok':''}">${e}${o?'✓':'…'}</span>`).join('')}<b>${money(g.tot)}</b></div><div class="ln-days">${tabs}</div><h3 class="ln-h">${DAYF[di]} ${locked?'🔒 already served':past?'· already over':''} <small class="muted">${money(dayCost)}</small></h3><div class="ln-wslots">${slots}</div>
   ${locked?'<div class="ln-lockmsg">This day was already served, so it can\'t change.</div>':past?'<div class="ln-lockmsg">This day is already over, so you don\'t need to plan it. Pick a day that\'s still coming up!</div>':`<div class="ln-cards">${pool.map(x=>`<button class="ln-card ${dm&&dm[x.g]===x.id?'on':''} ${isTreat(x)?'treat':''}" onclick="Lunch.wpick('${x.id}')">${card(x,false,true)}</button>`).join('')}</div>${legend}`}</div></div>`;}
 
@@ -316,8 +318,13 @@ function fbReady(p){const f=p&&p.lunchFb;if(!f)return false;return Date.now()>=f
 let fbShowing=false;
 /* wait while any popup or full-screen scene (Troll, Eagle, Inner Space ride, Science Cave, …) is up — the card must never open underneath one */
 function sceneUp(){try{return !!(window.trollBusy||document.querySelector('#modal.show,#kindOv,.tr-root,.eg-root,.eg-flyover,#isRoot,#cvRoot,.adv-walker'));}catch(e){return false;}}
-function fbCheck(){try{if(fbShowing||typeof curScreen==='undefined'||curScreen!=='world')return;const p=P();if(!p||!p.setup||!fbReady(p))return;
+/* 🚪 the game's visitor queue (index.html MQ_VISIT): the compliment card is a visitor too — it takes a turn and gives it back when closed */
+const VQ=()=>{const v=window.MQ_VISIT;return v&&typeof v.claim==='function'?v:null;};
+const fbUp=()=>!!document.querySelector('#modal.show .ln-fbcard');
+function fbCheck(){try{if(fbShowing&&!fbUp())fbShowing=false; /* its card was closed some other way */
+ if(fbShowing||typeof curScreen==='undefined'||curScreen!=='world')return;const p=P();if(!p||!p.setup||!fbReady(p))return;
  if(sceneUp())return;if((window.visitorQuiet||0)>Date.now())return;if(typeof B!=='undefined'&&B&&!B.over&&curScreen==='battle')return;
+ {const v=VQ();if(v){if(!v.claim('lunch',10*60e3)){v.wait('lunch',fbCheck);return;}v.watch('lunch',fbUp);}}
  const f=p.lunchFb;p.lunchFb=null;let got='';
  if(f.tip&&f.tip.coins){p.coins=(p.coins||0)+f.tip.coins;got=`<div class="ln-tip">🎁 A thank-you tip: <b>🪙 ${f.tip.coins}</b></div>`;}
  else if(f.tip&&f.tip.food){const fd=PET_FOODS.filter(x=>x.price<=25);const x=pk(Math.random,fd.length?fd:PET_FOODS);p.pantry=p.pantry||{};p.pantry[x.id]=(p.pantry[x.id]||0)+1;got=`<div class="ln-tip">🎁 A thank-you gift for your pet: <b>${x.e} ${x.name}</b></div>`;}
@@ -383,7 +390,7 @@ function wsave(){const p=P(),W=UI.wd;if(!W)return;const g=weekGoals(W.days,wkAct
 function screen(){const p=P();if(!p)return;css();
  try{if(typeof CAFE!=='undefined'&&CAFE===null){fresh();CAFE={lunch:1};}}catch(e){}
  UI.rd={};
- const back=`<div class="zhead"><button class="btn ghost small" onclick="CAFE=null;go('world')">← World</button><h2 class="title">🍱 Realm Lunch</h2></div>`;
+ const back=`<div class="zhead"><button class="btn ghost small backbtn" onclick="CAFE=null;go('world')">← World</button><h2 class="title">🍱 Realm Lunch</h2></div>`;
  let body='';
  if(UI.view==='week'&&weekUnlocked(p))body=weekView(p);
  else if(UI.serve)body=serveView(p);
@@ -472,5 +479,5 @@ window.MQ_HOOKS=window.MQ_HOOKS||[];
 window.MQ_HOOKS.push({screen:s=>{if(s==='world')setTimeout(fbCheck,1600);}});
 setInterval(()=>{try{if(typeof curScreen!=='undefined'&&curScreen==='world')fbCheck();}catch(e){}},30e3);
 window.Lunch={read,start,grp,pick:pickItem,clear,send,key,check,next,week,wback,wday,wgrp,wpick,wsave,
- _fbDone:()=>{fbShowing=false;},_fbCheck:fbCheck,_dayPlan:dayPlan,_eval:evalPlate,_makeQs:makeQs,_weekGoals:weekGoals,_ITEM:ITEM,_NEEDS:NEEDS,_UI:()=>UI,_reset:()=>{DAYC={};fresh();},monKey,planWk,WEEK_BUDGET};
+ _fbDone:()=>{fbShowing=false;try{const v=VQ();if(v)v.release('lunch');}catch(e){}},_fbCheck:fbCheck,_dayPlan:dayPlan,_eval:evalPlate,_makeQs:makeQs,_weekGoals:weekGoals,_ITEM:ITEM,_NEEDS:NEEDS,_UI:()=>UI,_reset:()=>{DAYC={};fresh();},monKey,planWk,WEEK_BUDGET};
 })();

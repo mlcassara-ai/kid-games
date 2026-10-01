@@ -287,6 +287,7 @@ function flyover(p){if(flying)return;flying=true;const S=SH();
 setInterval(()=>{try{const p=P();if(!p||!p.setup||document.hidden||busy||flying||window.trollBusy)return;
  if(!FLYDEMO&&typeof tbLastInput!=='undefined'&&Date.now()-tbLastInput>90000)return; // idle screens don't roll (and don't touch saved data)
  if(typeof curScreen!=='undefined'&&curScreen!=='world')return;if(document.querySelector('#modal.show'))return;
+ if(window.MQ_VISIT&&typeof MQ_VISIT.busy==='function'&&MQ_VISIT.busy('eagle'))return; /* a visitor is on: the shadow waits (it's only 4 s, so it doesn't take a turn) */
  const t=flyRoll(p);if(!t)return;const e=p.eagle;
  if(FLYDEMO){FLYDEMO=false;flyover(p);return;}
  if(!e.fly||!e.fly.length||t.play<e.fly[0])return;

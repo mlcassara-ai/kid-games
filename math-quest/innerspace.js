@@ -58,6 +58,12 @@ window.OZZY_SVG=OZZY_CAR;
 
 /* ---------- Ozzy drives over to you on the map ---------- */
 const MOD={draw:drawMob,meet};
+/* 🚪 the game's visitor queue (index.html MQ_VISIT): one visitor at a time. Ozzy holds the slot while he drives over, while his card is open, and for his goodbye */
+const VQ=()=>{const v=window.MQ_VISIT;return v&&typeof v.claim==='function'?v:null;};
+const rel=()=>{try{const v=VQ();if(v)v.release('ozzy');}catch(e){}};
+const cardUp=()=>!!document.querySelector('#modal.show .oz-bub');
+const onlyStanding=v=>{try{return ['principal','quartz'].includes(v.who())&&!document.querySelector('#modal.show')&&!window.trollBusy;}catch(e){return false;}}; /* the goodbye finishes the ride the kid chose: it doesn't wait behind someone only standing on the map */
+const byeUp=()=>cardUp()||!!(typeof W!=='undefined'&&W&&W.mobs&&W.mobs.some(m=>m.byeOzzy));
 /* he only announces himself once per visit, and only from a spot he can really drive from — no "Ozzy is coming" toasts for an Ozzy who never shows up */
 let annAt=0;const ANN_MS=10*60e3;
 function spawn(){if(typeof W==='undefined'||!W||!W.T)return;if(W.mobs.some(m=>m.ozzy||m.quartz))return;if(document.querySelector('#modal.show'))return;const p=P();
@@ -74,7 +80,7 @@ function pathTo(sx,sy,tx,ty){const key=(x,y)=>x+','+y;const prev={};prev[key(sx,
  if(!(key(tx,ty) in prev))return null;const out=[];let c=[tx,ty];while(c&&!(c[0]===sx&&c[1]===sy)){out.unshift(c);c=prev[key(c[0],c[1])];}return out;}
 function walk(now){const m=W.mobs.find(o=>o.ozzy);if(!m)return;
  if(Math.abs(m.x-W.hx)+Math.abs(m.y-W.hy)<=1){if(!W.moving&&!document.querySelector('#modal.show'))meet();return;}
- const path=pathTo(m.x,m.y,W.hx,W.hy);if(!path||!path.length){W.mobs=W.mobs.filter(o=>o!==m);return;}
+ const path=pathTo(m.x,m.y,W.hx,W.hy);if(!path||!path.length){W.mobs=W.mobs.filter(o=>o!==m);rel();return;}
  const [nx,ny]=path[0];if(nx===W.hx&&ny===W.hy)return;if(W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;}
 function drawMob(ctx,sx,sy,ts,now){const im=oimg();ctx.fillStyle='rgba(177,151,252,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.92,ts*.62,ts*.16,0,0,7);ctx.fill();
  const ww=ts*1.5,hh=ww*146/144;if(im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*1.02-hh+Math.abs(Math.sin(now/90))*1.5,ww,hh);
@@ -82,6 +88,7 @@ function drawMob(ctx,sx,sy,ts,now){const im=oimg();ctx.fillStyle='rgba(177,151,2
 
 /* ---------- meeting Ozzy ---------- */
 function meet(){if(busy)return;const p=P();if(!p)return;const s=S(p);busy=true;W.path=[];W.mobs=W.mobs.filter(m=>!m.ozzy);
+ {const v=VQ();if(v&&v.claim('ozzy',10*60e3))v.watch('ozzy',cardUp);} /* his card holds the visitor slot until it closes */
  const first=!s.met&&!s.hi;let t=s.tix[0];const again=!!t&&!t.demo&&(t.seen==null||t.seen>=1); /* this ticket was offered before (older tickets have no count) */
  if(DEMO){const want=(location.search.match(/innerdemo=(\w+)/)||[])[1];t={id:D.SUB.some(x=>x.id===want)?want:(ORDER.find(id=>s.album[id]==null)||'water'),demo:true};}
  if(!t){busy=false;return;}const sb=sub(t.id);
@@ -125,7 +132,10 @@ function close(){stopAnim();if(root)root.remove();root=null;}
 /* "Not now", leaving the ride, or the ride getting interrupted → Ozzy waits for a few more battles AND at least 20 minutes; the second time in a day he waits until tomorrow */
 function later(p){if(!p||DEMO)return;const s=S(p);const d=typeof dayKey==='function'?dayKey():'';if(s.declDay!==d){s.declDay=d;s.decl=0;}s.decl=(s.decl||0)+1;
  s.after=(p.battles||0)+WAIT_BATTLES;const t=new Date();t.setHours(24,0,0,0);s.snooze=s.decl>=2?t.getTime():Date.now()+20*60e3;save();}
-function exit(){if(R&&!R.finished&&R.score!=null&&!DEMO)commit(R.score);const fin=!!(R&&R.finished);close();const p=PL||P();if(!fin)later(p);R=null;PL=null;if(fin)setTimeout(()=>farewell(p),700);
+function exit(){if(R&&!R.finished&&R.score!=null&&!DEMO)commit(R.score);const fin=!!(R&&R.finished);close();const p=PL||P();if(!fin)later(p);R=null;PL=null;
+ if(fin){const v=VQ(); /* the goodbye is a visit too: hold the slot before going back to the map */
+  if(!v||v.claim('ozzy',10*60e3)||onlyStanding(v)){if(v)v.watch('ozzy',byeUp);setTimeout(()=>farewell(p),700);}
+  else v.wait('ozzy',()=>{if(typeof curScreen!=='undefined'&&curScreen==='world'&&P()===p&&v.claim('ozzy',10*60e3)){v.watch('ozzy',byeUp);farewell(p);}});}
  if(DEMO&&DEMO!==true){const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();go('world');toast('🎢 That was a preview — nothing was changed.');return;}
  save();go('world');}
 const tier=()=>{const g=(PL&&PL.grade)||3;return g<=4?0:g<=8?1:2;};
@@ -551,11 +561,16 @@ setInterval(()=>{try{
  if(root&&typeof curScreen!=='undefined'&&curScreen!=='inner'){ // time's up (play-time bank) or the screen changed → close the ride; the ticket is kept
   if(R&&!DEMO){if(!R.finished&&R.score!=null)commit(R.score);else if(!R.finished)later(PL||P());}close();R=null;if(DEMO&&DEMO!==true){const p=PL||P();const d=JSON.parse(DEMO);DEMO=null;if(d.inner)p.inner=d.inner;else delete p.inner;p.coins=d.coins;p.owned.robes=d.robes;save();}PL=null;}
  if(busy&&!root&&!document.querySelector('#modal.show .oz-bub'))busy=false; /* another popup replaced Ozzy's → don't get stuck */
+ tick();}catch(e){}},330);
+function tick(){try{
  if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
  {const bye=W.mobs.find(m=>m.byeOzzy);if(bye){if(bye.st==='talk'&&!document.querySelector('#modal.show'))driveOff(bye);return;}}
- if(!wants(p)){if(W.mobs.some(m=>m.ozzy)&&!wants(p,true))W.mobs=W.mobs.filter(m=>!m.ozzy);return;} /* quiet time → he waits where he is */
+ if(!wants(p)){if(W.mobs.some(m=>m.ozzy)&&!wants(p,true)){W.mobs=W.mobs.filter(m=>!m.ozzy);rel();}return;} /* quiet time → he waits where he is */
  if(W.mobs.some(m=>m.quartz))return; // Dr. Quartz goes first
- if(!W.mobs.some(m=>m.ozzy))spawn();else walk(performance.now());}catch(e){}},330);
+ if(!W.mobs.some(m=>m.ozzy)){if(document.querySelector('#modal.show'))return;
+  const v=VQ();if(v&&!v.claim('ozzy',30*60e3)){v.wait('ozzy',tick);return;} /* another visitor's turn: get in line */
+  spawn();if(!W.mobs.some(m=>m.ozzy))rel();}
+ else walk(performance.now());}catch(e){}}
 if(/innerdemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&curScreen==='world'){clearInterval(iv);DEMO=true;toast(`🎢 Inner Space preview: ${NAME} is on his way…`);}}catch(e){}},500);}
 
 /* ---------- styles (all scoped to the ride) ---------- */
@@ -566,7 +581,7 @@ const st=document.createElement('style');st.textContent=`
 #isRoot .is-top{position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:7;pointer-events:none}
 #isRoot .is-top>*{pointer-events:auto}#isRoot .is-chip{background:rgba(0,0,0,.55);color:#fff;border-radius:14px;padding:5px 12px;font-weight:700;font-size:15px}
 #isRoot .is-dots{display:flex;gap:6px}#isRoot .is-dots i{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.3)}#isRoot .is-dots i.on{background:#ffd43b}#isRoot .is-dots i.done{background:#8ce99a}
-#isRoot .is-x{border:none;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:38px;height:38px;font-size:18px}
+#isRoot .is-x{border:none;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:44px;height:44px;min-width:44px;flex:0 0 auto;font-size:18px}
 #isRoot canvas.is-cv{position:absolute;inset:0;width:100%;height:100%}
 #isRoot .is-svg{position:absolute;inset:0;width:100%;height:100%}#isRoot .is-svg.is-tall{overflow:visible;top:56px;height:calc(100% - 290px)}#isRoot .is-stage:has(.is-tall){background:#2b1d5c}
 #isRoot .is-nar{position:absolute;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:6;background:rgba(255,255,255,.96);border:4px solid #7048e8;border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 0 rgba(0,0,0,.25);max-width:880px;margin:0 auto}

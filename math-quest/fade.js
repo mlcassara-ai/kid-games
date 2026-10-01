@@ -352,7 +352,7 @@ const STAGES=b=>[{n:'Win back the primaries',t:'Red, yellow and blue are the <b>
  {n:'The Rainbow Bridge',t:'All 7 colors are on the Color Wheel! Put them back in the rainbow and the Grey Goblin\'s trick is undone!'}];
 function helpReady(p){const a=p&&p.fade&&p.fade.a;if(!a||!a.in)return false;const z=SIZES(a.b);if(a.s>=z.length)return false;return now()-Math.max(a.t,a.hp||0)>=HELP_DAYS*DAY;}
 function page(p,inner){let tb='';try{tb=typeof topbar==='function'?topbar():'';}catch(e){tb='';}
- const app=document.getElementById('app');app.innerHTML=`<div class="fd-tb">${tb}</div><div class="page fd"><div class="zhead"><button class="btn ghost small" onclick="Fade._back()">← Back</button><h2 class="title">🎨 Prisma's Mixing Table</h2></div>${inner}</div>`;
+ const app=document.getElementById('app');app.innerHTML=`<div class="fd-tb">${tb}</div><div class="page fd"><div class="zhead"><button class="btn ghost small backbtn" onclick="Fade._back()">← ${backName(RET&&RET!=='fade'&&typeof SCREENS!=='undefined'&&SCREENS[RET]?RET:'world')}</button><h2 class="title">🎨 Prisma's Mixing Table</h2></div>${inner}</div>`;
  const t=app.querySelector('.fd-tb');if(t)t.style.filter=`grayscale(${active(p)?level(p).toFixed(2):0})`;}
 function draw(){const p=me();if(!p){goTo('profiles');return;}css();const f=F(p),a=f.a;
  if(!a||!enabled())return drawCalm(p,f);
@@ -594,6 +594,8 @@ function bagInject(p){try{const f=p.fade||{};const own=(p.pets||[]).includes(CHA
 
 /* ---------- open / navigation ---------- */
 function open(){LASTPZ=null;const s=cur();if(s&&s!=='fade'&&s!=='battle')RET=s;closeLayer();goTo('fade');}
+const BACK_NAME={world:'World',map:'Map',village:'Village',quests:'Quest Board',pethome:'Pet Home',backpack:'Backpack',zone:'Zone',camp:'Camp',leaders:'Leaders',library:'Library',cafe:'Kitchen',market:'Market',truck:'My truck',fade:'Paint'};
+const backName=s=>BACK_NAME[s]||'World'; /* the ← button names where it goes */
 function back(){closeLayer();const r=RET&&RET!=='fade'&&typeof SCREENS!=='undefined'&&SCREENS[RET]?RET:'world';goTo(r);}
 function home(){closeLayer();const r=RET&&RET!=='fade'&&typeof SCREENS!=='undefined'&&SCREENS[RET]?RET:'world';
  if(SWEEP){SWEEP=false;DRAINING=true;goTo(r);DRAINING=false;const p=me();setGray(.9);ov().style.display='block';tween(.9,0,2600,()=>{apply();},true);try{hud(p,false);}catch(e){}}else goTo(r);}

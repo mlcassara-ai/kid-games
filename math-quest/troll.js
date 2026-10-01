@@ -35,11 +35,26 @@ window.trollCheck=function(tile){
  const armed=ARM; // a parent preview (?trolldemo / ?eagledemo) — kept in memory, not in saved data, so profile switches and cloud syncs can't lose it
  const wk=(!armed&&!t.force&&(t.at==null||t.play<t.at))?weekDue(p,t):null;
  if(!armed&&!t.force&&!wk&&(t.at==null||t.play<t.at))return false;
- const fe=t.forceEagle||wk==='eagle';ARM=null;t.force=0;t.forceEagle=0;
- if(armed){if(armed==='eagle'&&window.Eagle){Eagle.start(true);return true;}DEMO=snap(p);start();return true;}
+ const fe=t.forceEagle||wk==='eagle';
+ /* 🚪 visitor queue: the trap stays armed until it's our turn (no troll on top of Dr. Quartz, Principal Wise…) */
+ const eg=!!window.Eagle&&(armed?armed==='eagle':(wk!=='troll'&&(fe||EAGLE_BIOMES.includes(tile.b))));const who=eg?'eagle':'troll';
+ const v=VQ();if(v){if(v.who()===(eg?'troll':'eagle')&&PRE)v.swap(PRE,who); /* our turn was saved under the other name */
+  if(!v.claim(who,20*60e3)){v.wait(who,()=>{try{const q=P();if(!(q&&q===p&&typeof curScreen!=='undefined'&&curScreen==='world'))return;
+   /* our turn: the kid is usually still standing on the trap square → spring right now; otherwise keep the turn for their next step */
+   const here=typeof W!=='undefined'&&W&&W.T&&W.T[W.hy]&&W.T[W.hy][W.hx];if(here&&!W.moving&&window.trollCheck(here))return;
+   if(v.claim(who,90e3))PRE=who;}catch(e){}});return false;}}
+ PRE=null;ARM=null;t.force=0;t.forceEagle=0;
+ if(armed){if(armed==='eagle'&&window.Eagle){vqDone(who,Eagle.start(true));return true;}DEMO=snap(p);vqDone(who,start());return true;}
  t.at=null;save();
- if(window.Eagle&&wk!=='troll'&&(fe||EAGLE_BIOMES.includes(tile.b))){Eagle.start();return true;}
- start();return true;};
+ if(eg){vqDone(who,Eagle.start());return true;}
+ vqDone(who,start());return true;};
+/* 🔊 tap again to stop: the game's speakToggle() when there, else cancel whatever is being spoken */
+const spkTog=fn=>{try{if(typeof speakToggle==='function'){speakToggle(fn);return;}if(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending)){speechSynthesis.cancel();return;}}catch(e){}fn();};
+/* give the visitor slot back when the scene ends — even if it broke halfway (never a stuck queue) */
+let PRE=null;
+const VQ=()=>{const v=window.MQ_VISIT;return v&&typeof v.claim==='function'?v:null;};
+function vqDone(who,pr){const fin=()=>{try{if(window.trollBusy&&!document.querySelector('.tr-root,.eg-root'))window.trollBusy=false;const v=VQ();if(v)v.release(who);}catch(e){}};
+ Promise.resolve(pr).then(fin,e=>{console.warn('troll/eagle',e);fin();});}
 /* ?trolldemo in the URL: the next unmarked step drops you in, and afterwards everything is put back exactly as it was (for parents to preview) */
 let DEMO=null,ARM=null;
 const snap=p=>JSON.stringify({troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily,feathers:p.feathers||0,wkHist:p.wkHist||null});
@@ -383,7 +398,7 @@ function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  stage.appendChild(box);const qt=box.querySelector('.tr-qt');const st=box.querySelector('.tr-story');
  /* 🔊 read the story problem out loud (automatic for grade 2 and under) */
  const spk=()=>{try{speechSynthesis.cancel();}catch(e){}const c=document.createElement('div');c.innerHTML=(q.story||'')+' '+(q.story?'':(qt.innerText||''));c.querySelectorAll('.ansbox').forEach(x=>x.remove());const t=typeof speakable==='function'?speakable(c.innerText||c.textContent):c.textContent;if(t&&typeof window.say==='function')window.say(t,.85);};
- {const sb=el(`<button class="qspk tr-spk" type="button" title="Read it to me" aria-label="Read the question out loud">🔊</button>`);sb.onclick=e=>{e.stopPropagation();spk();};box.style.position='relative';box.appendChild(sb);}
+ {const sb=el(`<button class="qspk tr-spk" type="button" title="Read it to me" aria-label="Read the question out loud">🔊</button>`);sb.onclick=e=>{e.stopPropagation();spkTog(spk);};box.style.position='relative';box.appendChild(sb);}
  try{if(typeof youngReader==='function'&&youngReader(p)&&(typeof voiceOn!=='function'||voiceOn()))setTimeout(spk,600);}catch(e){}
  const featherBtn=()=>{const f=box.querySelector('.tr-feather');if(f)f.remove();if((p.feathers||0)>0&&o.easier&&!q.feathered){const b=el(`<button class="tr-feather">🪶 Use a Golden Feather — make this one easier (${p.feathers} left)</button>`);b.onclick=()=>{p.feathers--;q=o.easier();q.feathered=true;inp='';t0=Date.now();save();try{snd(1200,.3,'triangle',.08);}catch(e){}featherBtn();show();box.querySelector('.tr-pad').classList.toggle('negon',!!q.neg);};box.appendChild(b);}};
  const show=()=>{window.__surpriseQ=q;if(st)st.innerHTML=q.story||'';if(q.story){qt.innerHTML=`<span class="tr-ansl">Answer:</span> <span class="ansbox">${inp||'?'}</span>`;return;}if(q.tpl){const box=`<span class="ansbox">${typeof xInpFmt==='function'?xInpFmt(q,inp):(inp||'?')}</span>`;qt.innerHTML=`<div class="xq">${q.vis&&typeof visHTML==='function'?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div></div></div>`;}else qt.innerHTML=`${q.text} = <span class="ansbox">${inp||'?'}</span>`;};show();

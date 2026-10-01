@@ -193,6 +193,8 @@ function prizeLine(m){return m.pet?'🤖 a rare pet: <b>Sorty the Recycle Bot</b
 let LAST_SAY='';
 function speak(t){try{let x=String(t).replace(/<[^>]+>/g,' ');try{x=x.replace(/[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}‍️]/gu,'');}catch(e){}try{speechSynthesis.cancel();}catch(e){}say(typeof speakable==='function'?speakable(x):x,.9);}catch(e){}}
 function autoSay(p,t){LAST_SAY=t;try{if(young(p)&&voiceOn())setTimeout(()=>speak(t),250);}catch(e){}}
+/* 🔊 tap again to stop: the game's speakToggle() when there, else cancel whatever is being spoken */
+const spkTog=fn=>{try{if(typeof speakToggle==='function'){speakToggle(fn);return;}if(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending)){speechSynthesis.cancel();return;}}catch(e){}fn();};
 const spkBtn=`<button class="cu-spk" onclick="Cleanup.readAloud()" aria-label="Read it to me">🔊</button>`;
 const bubble=(t)=>`<div class="qz-row cu-row"><div class="qz-av">${LEADER}</div><div class="qz-bub cu-bub"><b>🧤 ${NAME} ${spkBtn}</b><div id="cuSay">${t}</div></div></div>`;
 
@@ -365,6 +367,6 @@ function css(){if(!document.getElementById('cuCSS')){const s=document.createElem
 window.MQ_HOOKS=window.MQ_HOOKS||[];
 window.MQ_HOOKS.push({screen:s=>{try{if(s==='backpack'){const p=typeof P==='function'?P():null;if(p)bagInject(p);}}catch(e){}}});
 window.Cleanup={onTrip,afterTrip,wants,html,campStrip,tabLabel,shelfBadges,sort:()=>{if(!sortModal())close();},pick:pickIt,drop,close,rewards:()=>rewards(),_more:()=>rewards(REST),wear,buddy,fact,
- readAloud:()=>speak(LAST_SAY),state:p=>C(p),addPts:(p,n)=>addPts(p,n),
+ readAloud:()=>spkTog(()=>speak(LAST_SAY)),state:p=>C(p),addPts:(p,n)=>addPts(p,n),
  LITTER,TRACK,BOT,HAT,ROBES:ROBE_DEFS,PT_RIGHT,PT_WRONG,LIT_COUNT:LIT,BONE,ROCK,BONE_PITY};
 })();

@@ -761,7 +761,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.09.30p';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.09.30q';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1763,22 +1763,43 @@ function tryLock(id,e){
    MQ_VISIT.busy([name])     → true when someone ELSE holds the slot, or another walk-up visitor is already standing on the map.
    MQ_VISIT.wait(name,fn)    → call fn once the slot is free again (one waiter per name; fn must re-check its own rules, then claim()).
    MQ_VISIT.who() / release(name). A claim runs out by itself after ms (default 20 min), so a stuck add-on never blocks everyone.
+   MQ_VISIT.hold(name,on[,ms]) → claim + watch(name,on): the slot is given back by itself once on() (e.g. "my card is still open") stays false ~2 s.
+   MQ_VISIT.swap(from,to) hands a held slot to another name; reset() clears everything (player switch).
+   Waiting is fair: when the slot frees, the head of the wait() line gets first dibs, so anyone refused should wait() to get in line.
    Add-ons that haven't adopted it yet are still respected: W.mobs quartz / ozzy / byeOzzy / principal and window.trollBusy count as busy. */
-window.MQ_VISIT=(function(){let cur=null,until=0,tm=null;const q=[];
- const held=()=>{if(cur&&Date.now()>until)cur=null;return cur;};
- const legacy=me=>{try{if(window.trollBusy&&me!=='troll')return 'troll';if(typeof W!=='undefined'&&W&&Array.isArray(W.mobs)){for(const o of W.mobs){if(o.quartz&&me!=='quartz')return 'quartz';if((o.ozzy||o.byeOzzy)&&me!=='ozzy')return 'ozzy';if(o.principal&&me!=='principal')return 'principal';}}}catch(e){}return null;};
+window.MQ_VISIT=(function(){let cur=null,until=0,tm=null,due=0,resv=null,ru=0;const q=[];
+ /* fair turns: when the slot frees up and someone is waiting in line, the head of the line gets first dibs (resv) for a little while,
+    so a walk-up visitor that polls every half second can't jump the queue. Anyone refused should call wait() to get in line. */
+ const held=()=>{if(cur&&Date.now()>until){cur=null;if(q.length)kick(1500);}return cur;};
+ const legacy=me=>{try{if(window.trollBusy&&me!=='troll'&&me!=='eagle')return 'troll';if(typeof W!=='undefined'&&W&&Array.isArray(W.mobs)){for(const o of W.mobs){if(o.quartz&&me!=='quartz')return 'quartz';if((o.ozzy||o.byeOzzy)&&me!=='ozzy')return 'ozzy';if(o.principal&&me!=='principal')return 'principal';}}}catch(e){}return null;};
+ const reserved=me=>{if(!resv)return false;if(Date.now()>ru){resv=null;return false;}return resv!==me;};
+ const head=ms=>{if(q.length){resv=q[0].n;ru=Date.now()+(ms||20e3);}else resv=null;};
  const api={
   who(){return held()||legacy(null);},
-  busy(me){const h=held();return !!((h&&h!==me)||legacy(me));},
-  claim(name,ms){if(!name||api.busy(name))return false;cur=name;until=Date.now()+(ms||20*60e3);return true;},
-  release(name){if(!name||held()===name){cur=null;until=0;}if(q.length)kick(4000);},
-  wait(name,fn){if(typeof fn!=='function')return;const i=q.findIndex(x=>x.n===name);if(i>=0)q[i].f=fn;else q.push({n:name,f:fn});kick(4000);},
+  busy(me){const h=held();return !!((h&&h!==me)||legacy(me)||(me&&!h&&reserved(me)));},
+  claim(name,ms){if(!name)return false;const h=held();
+   if(h===name){until=Math.max(until,Date.now()+(ms||20*60e3));return true;}
+   if(h||legacy(name)||reserved(name))return false;
+   cur=name;until=Date.now()+(ms||20*60e3);if(resv===name)resv=null;const i=q.findIndex(x=>x.n===name);if(i>=0)q.splice(i,1);return true;},
+  release(name){if(!name||held()===name){cur=null;until=0;if(q.length){head();kick(1500);}}},
+  wait(name,fn){if(typeof fn!=='function')return;const i=q.findIndex(x=>x.n===name);if(i>=0)q[i].f=fn;else q.push({n:name,f:fn});if(!held()&&!resv)head();kick(4000);},
+  /* auto-release: keep the slot while on() is true (e.g. "my card is still open"); give it back once on() has been false for ~2 s */
+  watch(name,on,grace){let miss=0;const t0=Date.now()+(grace==null?2500:grace);const iv=setInterval(()=>{if(held()!==name){clearInterval(iv);return;}let up=false;try{up=!!on();}catch(e){}
+   if(up||Date.now()<t0){miss=0;return;}if(++miss>=3){clearInterval(iv);api.release(name);}},700);},
+  hold(name,on,ms,grace){if(!api.claim(name,ms))return false;api.watch(name,on,grace);return true;},
+  swap(from,to){if(held()===from){cur=to;return true;}return false;},
+  reset(){cur=null;until=0;q.length=0;resv=null;clearTimeout(tm);tm=null;},
   _q:q};
- function kick(ms){clearTimeout(tm);tm=setTimeout(()=>{if(!q.length)return;if(api.busy(null)||document.querySelector('#modal.show')||(typeof curScreen!=='undefined'&&curScreen==='battle')){kick(15e3);return;}
-  const x=q.shift();try{x.f();}catch(e){console.warn('MQ_VISIT',x.n,e);}if(q.length)kick(8000);},ms);}
+ function kick(ms){const d=Date.now()+ms;if(tm&&due<=d)return;clearTimeout(tm);due=d;tm=setTimeout(run,ms);}
+ function run(){tm=null;if(!q.length){resv=null;return;}
+  if(held()||legacy(null)){head(25e3);kick(15e3);return;}
+  if(document.querySelector('#modal.show')||(typeof curScreen!=='undefined'&&curScreen==='battle')){head(15e3);kick(5000);return;}
+  const x=q.shift();resv=x.n;ru=Date.now()+10e3;try{x.f();}catch(e){console.warn('MQ_VISIT',x.n,e);}
+  if(resv===x.n)resv=null; /* its turn came but it didn't claim (its own rules said not now) */
+  if(q.length){if(!held())head();kick(held()?15e3:3000);}}
  return api;})();
 let AUTO_POP_AT=0,LOGIN_QUIET=0;
-function autoPopOK(){const q=window.visitorQuiet||0;return Date.now()-AUTO_POP_AT>150e3&&(Date.now()>=q||q===LOGIN_QUIET)&&!document.querySelector('#modal.show');}
+function autoPopOK(){const q=window.visitorQuiet||0;return !window.trollBusy&&Date.now()-AUTO_POP_AT>150e3&&(Date.now()>=q||q===LOGIN_QUIET)&&!document.querySelector('#modal.show');}
 function autoPopUsed(){AUTO_POP_AT=Date.now();LOGIN_QUIET=0;window.visitorQuiet=Math.max(window.visitorQuiet||0,Date.now()+150e3);}
 function autoPopups(scr){const p=P();if(!p)return;if(!(p.battles>0))return; /* brand-new kid: let them play first */setTimeout(()=>{if(curScreen!==scr||P()!==p||!autoPopOK())return;let f=null;
  if(scr==='map'&&ceremonyDue(p))f=()=>modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>The Sunday Star Ceremony is here!</h2><p>Let's see who earned stars last week…</p><button class="btn gold big" onclick="closeModal();go('leaders','ceremony')">See the stars! ✨</button></div>`);
@@ -1787,7 +1808,7 @@ function autoPopups(scr){const p=P();if(!p)return;if(!(p.battles>0))return; /* b
  else if(petMilestones(p).length)f=offerPet;
  else if(scr==='map'&&goalPrizeDue(p))f=()=>checkGoalPrize(p);
  if(f){autoPopUsed();f();}},700);}
-function enter(p){try{hook('session',p);}catch(e){}AUTO_POP_AT=0;LOGIN_QUIET=Date.now()+30e3;window.visitorQuiet=Math.max(window.visitorQuiet||0,LOGIN_QUIET);if(window.visitorQuiet!==LOGIN_QUIET)LOGIN_QUIET=0;try{liveMark(p.id,true);setTimeout(scheduleSync,50);}catch(e){}
+function enter(p){try{if(state.cur!==p.id&&window.MQ_VISIT)MQ_VISIT.reset();}catch(e){}try{hook('session',p);}catch(e){}AUTO_POP_AT=0;LOGIN_QUIET=Date.now()+30e3;window.visitorQuiet=Math.max(window.visitorQuiet||0,LOGIN_QUIET);if(window.visitorQuiet!==LOGIN_QUIET)LOGIN_QUIET=0;try{liveMark(p.id,true);setTimeout(scheduleSync,50);}catch(e){}
  state.cur=p.id;applyHeroSound(p);save();
  if(!p.setup){go('create',p.id);return;}
  go('world');
@@ -2945,9 +2966,9 @@ SCREENS.backpack=()=>{
    ${p.eggs?`<button class="btn gold small" onclick="hatchEgg()">Hatch an egg!</button>`:''}${p.legendEggs?`<button class="btn small legendbtn" onclick="hatchEgg(true)">🌟 Hatch a Legend egg (${p.legendEggs}) · Epic or Legendary pet!</button>`:''}
    ${regHave(p)<REG_PETS.length?`<button class="btn small" onclick="buyEgg()">Buy egg · 🪙 ${eggPrice(p)}</button>`:'<span class="muted">You found every pet! 🎉</span>'}</div>
    <div class="muted" style="margin-bottom:6px">Pets found: <b>${regHave(p)} / ${REG_PETS.length}</b></div>
-   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${window.PetCare&&PetCare.rescued(p,x.id)?'🏡 At the Pet Rescue<br>':''}${window.Adv&&Adv.away(p,x.id)?'🎒 On an adventure<br>':''}${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:'';}).join('')}${moreTile(list.filter(x=>!p.pets.includes(x.id)&&!heldBy(p,x.id)).length,t==='legend'?'Super rare!':'Hatch eggs to find them')}</div>`;}).join('')}
-   <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):'').join('')}${moreTile(MYTHIC.filter(x=>!p.pets.includes(x.id)).length,'A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal them.')}</div>
-   ${EVENT_PETS.some(x=>p.pets.includes(x.id))||eventOpen()||eventSoon()?`<h4 class="tierh" style="color:#fd7e14">🎃 Halloween <span class="muted">${EVENT_PETS.filter(x=>p.pets.includes(x.id)).length} / ${EVENT_PETS.length}</span></h4><div class="items">${EVENT_PETS.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie">${x.e}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}`):'').join('')}${moreTile(EVENT_PETS.filter(x=>!p.pets.includes(x.id)).length,'Beat the Haunted Hollow boss (Oct 18 to Nov 1).')}</div>`:''}</div>
+   ${TIER_ORDER.map(t=>{const list=PETS.filter(x=>x.tier===t);const have=list.filter(x=>p.pets.includes(x.id)).length;return `<h4 class="tierh" style="color:${PET_TIERS[t].c}">${PET_TIERS[t].n} <span class="muted">${have} / ${list.length}</span></h4><div class="items">${list.map(x=>{const own=p.pets.includes(x.id);return own?item('pet',x.id,`<div class="ie">${petAvatar(p,x)}</div>`,x.name,0,true,p.pet===x.id,`${window.PetCare&&PetCare.rescued(p,x.id)?'🏡 At the Pet Rescue<br>':''}${window.Adv&&Adv.away(p,x.id)?'🎒 On an adventure<br>':''}${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):heldBy(p,x.id)?`<div class="item held"><div class="ie" style="opacity:.55">${x.e}</div><div>${esc(x.name)}</div><small>${heldBy(p,x.id)}</small></div>`:'';}).join('')}${moreTile(list.filter(x=>!p.pets.includes(x.id)&&!heldBy(p,x.id)).length,t==='legend'?'Super rare!':'Hatch eggs to find them')}</div>`;}).join('')}
+   <h4 class="tierh" style="color:#e64980">🌌 Mythic <span class="muted">${MYTHIC.filter(x=>p.pets.includes(x.id)).length} / ${MYTHIC.length}</span></h4><div class="items">${MYTHIC.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie mythic-ie">${petAvatar(p,x)}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}${petLv(petData(p,x.id))?` Lv ${petLv(petData(p,x.id))}`:''} · ${petMeter(petData(p,x.id))}`):'').join('')}${moreTile(MYTHIC.filter(x=>!p.pets.includes(x.id)).length,'A mystery! Only the <b>🥇 Gold Family Goal</b> can reveal them.')}</div>
+   ${EVENT_PETS.some(x=>p.pets.includes(x.id))||eventOpen()||eventSoon()?`<h4 class="tierh" style="color:#fd7e14">🎃 Halloween <span class="muted">${EVENT_PETS.filter(x=>p.pets.includes(x.id)).length} / ${EVENT_PETS.length}</span></h4><div class="items">${EVENT_PETS.map(x=>p.pets.includes(x.id)?item('pet',x.id,`<div class="ie">${petAvatar(p,x)}</div>`,x.name,0,true,p.pet===x.id,`${PERKS[x.perk]}<br>${petStage(petData(p,x.id)).n}`):'').join('')}${moreTile(EVENT_PETS.filter(x=>!p.pets.includes(x.id)).length,'Beat the Haunted Hollow boss (Oct 18 to Nov 1).')}</div>`:''}</div>
   <div class="panel bpsec" data-t="spell"><h3>🪄 Spells</h3><div class="items">${SPELLS.map(s=>item('spell',s.id,`<div class="ie">${s.e}</div>`,s.name,s.price,p.owned.spells.includes(s.id),p.spell===s.id,s.mult>1?`+${Math.round((s.mult-1)*100)}% power`:'Starter spell',s.lvl)).join('')}</div></div>
   <div class="panel bpsec" data-t="hat"><h3>🎩 Hats</h3><div class="items">${HATS.filter(h=>!h.event||p.owned.hats.includes(h.id)).map(h=>item('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,h.price,p.owned.hats.includes(h.id),p.look.hat===h.id)).join('')}</div></div>
   <div class="panel bpsec" data-t="robe"><h3>👘 Robes</h3><div class="items">${ROBES.filter(r=>!r.event||p.owned.robes.includes(r.id)).map(r=>item('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,r.price,p.owned.robes.includes(r.id),p.look.robe===r.id)).join('')}</div></div>
@@ -3091,7 +3112,7 @@ SCREENS.pethome=()=>{
    <div class="panel"><h3>🛒 Pet Shop</h3><p class="muted" style="margin-top:0">You have 🪙 ${p.coins}</p>
     <h4>Snacks</h4><div class="items">${PET_FOODS.map(f=>shopItem('food',f,false,false,`+${f.xp} pet XP${f.joy?' · 💖':''}`)).join('')}</div>
     <h4>Toys</h4><div class="items">${PET_TOYS.map(t=>shopItem('toy',t,p.toys.includes(t.id),false)).join('')}</div>
-    <h4>Outfits</h4><div class="items">${PET_GEAR.map(g=>shopItem('gear',g,p.petGear.includes(g.id),pd.acc===g.id)).join('')}${pd.acc?`<button class="item" onclick="petShop('gear','')"><div class="ie">🚫</div><div>Nothing</div><div class="ip">Take off</div></button>`:''}</div>
+    <h4>Outfits</h4><p class="muted" style="margin:-4px 0 8px;font-size:14px">👗 These dress your battle buddy. Dress any pet: tap its face in <b>All your pets</b> (Pet Home).</p><div class="items">${PET_GEAR.map(g=>shopItem('gear',g,p.petGear.includes(g.id),pd.acc===g.id)).join('')}${pd.acc?`<button class="item" onclick="petShop('gear','')"><div class="ie">🚫</div><div>Nothing</div><div class="ip">Take off</div></button>`:''}</div>
    </div>
   </div>
  </div></div>`;

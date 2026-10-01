@@ -15,6 +15,13 @@ const PITY=40; // a rock is guaranteed after 40 battles without one (so nobody g
 const FIRST_AFTER=8; // battles before Dr. Quartz first shows up
 const SNOOZE_MS=8*60e3;
 let DEMO=null,busy=false,mobT=0;
+/* 🚪 the game's visitor queue (index.html MQ_VISIT): only one visitor at a time; Dr. Quartz holds the slot while he walks over and while his card is open */
+const VQ=()=>{const v=window.MQ_VISIT;return v&&typeof v.claim==='function'?v:null;};
+const rel=()=>{try{const v=VQ();if(v)v.release('quartz');}catch(e){}};
+const cardUp=()=>!!document.querySelector('#modal.show .qz-card');
+/* the after-trip cards finish the visit the kid chose: they never wait behind someone who is only STANDING on the map (Principal Wise, Ozzy driving over) —
+   that visitor simply waits until the cards are closed. Anything with a card or scene open (troll, another popup) still goes first. */
+const onlyStanding=v=>{try{return ['principal','ozzy'].includes(v.who())&&!document.querySelector('#modal.show')&&!window.trollBusy;}catch(e){return false;}};
 
 /* ---------- art ---------- */
 const SVG=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120">
@@ -62,7 +69,7 @@ function pathTo(sx,sy,tx,ty){const key=(x,y)=>x+','+y;const prev={};prev[key(sx,
  if(!(key(tx,ty) in prev))return null;const out=[];let c=[tx,ty];while(c&&!(c[0]===sx&&c[1]===sy)){out.unshift(c);c=prev[key(c[0],c[1])];}return out;}
 function walk(now){const m=W.mobs.find(o=>o.quartz);if(!m)return;
  if(Math.abs(m.x-W.hx)+Math.abs(m.y-W.hy)<=1){if(!W.moving&&!document.querySelector('#modal.show'))meet();return;}
- const path=pathTo(m.x,m.y,W.hx,W.hy);if(!path||!path.length){W.mobs=W.mobs.filter(o=>o!==m);return;}
+ const path=pathTo(m.x,m.y,W.hx,W.hy);if(!path||!path.length){W.mobs=W.mobs.filter(o=>o!==m);rel();return;}
  const [nx,ny]=path[0];if(nx===W.hx&&ny===W.hy)return;if(W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;}
 function draw(ctx,sx,sy,ts,now){const im=img();ctx.fillStyle='rgba(116,192,252,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.9,ts*.5,ts*.16,0,0,7);ctx.fill();
  const hh=ts*1.4,ww=hh*100/120;if(im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*.97-hh+Math.abs(Math.sin(now/120))*2,ww,hh);
@@ -70,6 +77,7 @@ function draw(ctx,sx,sy,ts,now){const im=img();ctx.fillStyle='rgba(116,192,252,.
 
 /* ---------- meeting ---------- */
 function meet(){if(busy)return;const p=P();if(!p)return;const s=Q(p);busy=true;W.path=[];W.mobs=W.mobs.filter(m=>!m.quartz);
+ {const v=VQ();if(v&&v.claim('quartz',10*60e3))v.watch('quartz',cardUp);} /* his card holds the slot; it's given back once the card closes */
  const first=!s.met;
  const lines=first?[`Oh, hello there! I'm <b>${NAME}</b>, the town's science teacher. 🔬`,
    'I just found this <b>strange rock</b> 🪨 and I can\'t figure out what it is! A clever math hero like you could help me.',
@@ -118,9 +126,12 @@ function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&
  const inMet=!!(p.inner&&p.inner.met);
  /* 🔑 Lab Key after the 5th trip (given once; kids who already have it are never offered it again) */
  const keyNow=!first&&window.Lab&&Lab.keyDue(p);
- save();go('world');
- if(keyNow){setTimeout(()=>{if(curScreen!=='world')return;Lab.giveKey(p,()=>after());},700);return;}
- after();
+ save();
+ /* hold the visitor slot BEFORE going back to the map, so nobody (Principal Wise, Ozzy…) lands on top of the key / thank-you cards */
+ const v=VQ(),mine=!v||v.claim('quartz',10*60e3)||onlyStanding(v);go('world');
+ const post=()=>{if(v)v.watch('quartz',cardUp);if(keyNow){setTimeout(()=>{if(curScreen!=='world')return;Lab.giveKey(p,()=>after());},700);return;}after();};
+ if(!mine){v.wait('quartz',()=>{if(curScreen==='world'&&P()===p&&v.claim('quartz',10*60e3))post();});return;}
+ post();
  function after(){
  const card=(html,btn)=>modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${html}</div></div></div>
    <div class="row"><button class="btn green big" onclick="closeModal()">${btn}</button></div></div>`);
@@ -140,12 +151,17 @@ function bagHTML(p){const s=Q(p);if(!s.met)return '';const c=p.cave||{};const ni
  return `<div class="tr-hoardbox" style="background:#1864ab"><b>🔬 Science Cave</b> · 🪨 Mystery rocks: <b>${s.rocks}</b>/${ROCK_MAX} · 🏅 Boss Medals: <b>${m}</b>${nxt?` (next gate at ${nxt})`:''} · 💎 Minerals: <b>${nid}</b>/${tot} · 📏 Deepest: <b>${esc(sm.layer)}</b><br><small>Find mystery rocks in treasure chests and from monsters. Dr. Quartz comes to get you when you have one!</small></div>`;}
 
 /* ---------- loops ---------- */
+function tick(){try{
+ if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
+ if(!wants(p)){if(W.mobs.some(m=>m.quartz)&&!(Q(p).rocks>0||dueFirst(p)||DEMO)){W.mobs=W.mobs.filter(m=>!m.quartz);rel();}return;}
+ if(!W.mobs.some(m=>m.quartz)){if(document.querySelector('#modal.show'))return;
+  const v=VQ();if(v&&!v.claim('quartz',30*60e3)){v.wait('quartz',tick);return;} /* another visitor's turn: get in line */
+  spawn();if(!W.mobs.some(m=>m.quartz))rel();}
+ else walk(performance.now());}catch(e){}}
 setInterval(()=>{try{
  // time's up while in the cave (play-time bank) → close the cave cleanly
- if(document.getElementById('cvRoot')&&typeof curScreen!=='undefined'&&curScreen!=='cave'&&window.Cave){Cave.leave();}
- if(typeof curScreen==='undefined'||curScreen!=='world'||typeof W==='undefined'||!W||!W.T||busy||window.trollBusy)return;const p=P();if(!p)return;
- if(!wants(p)){if(W.mobs.some(m=>m.quartz)&&!(Q(p).rocks>0||dueFirst(p)||DEMO))W.mobs=W.mobs.filter(m=>!m.quartz);return;}
- if(!W.mobs.some(m=>m.quartz)){if(W.mobs.some(m=>m.ozzy))return;spawn();}else walk(performance.now());}catch(e){}},450);
+ if(document.getElementById('cvRoot')&&typeof curScreen!=='undefined'&&curScreen!=='cave'&&window.Cave){Cave.leave();}}catch(e){}
+ tick();},450);
 
 if(/quartzdemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&curScreen==='world'){clearInterval(iv);DEMO=true;toast('🔬 Dr. Quartz preview: he\'s on his way…');}}catch(e){}},500);}
 

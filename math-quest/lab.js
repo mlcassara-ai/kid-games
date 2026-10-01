@@ -23,6 +23,8 @@ let TAB='min',MM=null,FB='';
 /* ---------- the key: called by Dr. Quartz at the end of a cave trip ---------- */
 function keyDue(p){const s=Q(p);return !s.key&&s.trips>=KEY_TRIPS;}
 function giveKey(p,done){css();const s=Q(p);s.key=1;s.keyAt=Date.now();save();try{SFX.level();}catch(e){}
+ /* 🚪 visitor queue: normally Dr. Quartz already holds the slot for his after-trip cards; otherwise the key card takes its own turn while open */
+ try{const v=window.MQ_VISIT;if(v&&typeof v.claim==='function'&&v.who()!=='quartz'&&v.claim('lab',10*60e3))v.watch('lab',()=>!!document.querySelector('#modal.show .lb-key'));}catch(e){}
  const pages=[`${first(p)}, that was trip number <b>${s.trips}</b>! You're a real explorer now. 🧭`,
   `So I made you something… your very own <b>🔑 Lab Key</b>! My lab is in Number Village, right next to the Quest Board. Come by any time. The coffee is terrible, but the rocks are great.`,
   `In the lab you can look at everything you've found, test a <b>Mystery Mineral</b> every day, and see the <b>Dig Map</b>. When you have a 🪨 mystery rock, you can ride my elevator straight down to dig!`];

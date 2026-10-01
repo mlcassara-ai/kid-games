@@ -71,9 +71,19 @@ let showing=false,retryT=0;
 function busy(){try{return !!(document.querySelector('#modal.show')||window.trollBusy||document.querySelector('.tr-root')||document.querySelector('.adv-walker')||(window.Adv&&typeof Adv.busy==='function'&&Adv.busy()));}catch(e){return false;}}
 /* something else is on screen: try again in a moment, once it's gone */
 function later(p){if(retryT)return;retryT=setTimeout(()=>{retryT=0;try{const q=typeof P==='function'?P():null;if(q&&q.id===p.id)showNews(q);}catch(e){}},1000);}
-function showNews(p){if(showing&&!document.querySelector('#modal.show'))showing=false; /* its card was closed some other way */
+/* 🚪 the game's visitor queue (index.html MQ_VISIT): Nana only takes a turn while her card is open, and gives it back when it closes */
+const VQ=()=>{const v=window.MQ_VISIT;return v&&typeof v.claim==='function'?v:null;};
+const standing=v=>{try{return ['principal','quartz','ozzy'].includes(v.who())&&!document.querySelector('#modal.show')&&!window.trollBusy;}catch(e){return false;}};
+const nanaUp=()=>!!document.querySelector('#modal.show .pc-bub');
+let NCL=false,ND=0; /* NCL: this call (or one it made) took the slot */
+function showNews(p){if(!ND)NCL=false;ND++;try{return showNews0(p);}finally{ND--;if(!ND){try{const v=VQ();if(v&&NCL&&v.who()==='nana'){if(nanaUp())v.watch('nana',nanaUp,0);else v.release('nana');}}catch(e){}NCL=false;}}}
+function showNews0(p){if(showing&&!document.querySelector('#modal.show'))showing=false; /* its card was closed some other way */
  if(showing||typeof curScreen==='undefined'||!['world','map','pethome','backpack','camp'].includes(curScreen))return;const c=C(p);
  if(busy()){if(c.news.length||c.intro===1)later(p);return;}
+ if(!c.news.length&&c.intro!==1)return;
+ {const v=VQ();if(v){if(v.claim('nana',10*60e3))NCL=true;
+  /* someone only STANDING on the World map (Principal Wise waiting, Dr. Quartz / Ozzy on their way) isn't on this screen: Nana doesn't wait for them here */
+  else if(!(curScreen!=='world'&&standing(v))){v.wait('nana',()=>{try{const q=P();if(q&&q.id===p.id)showNews(q);}catch(e){}});return;}}}
  if(c.intro===1){c.intro=2;save();showing=true;return nanaCard(ruleOn(p)?[`Hello, dear! I'm <b>Nana Paws</b>, the village pet sitter. 🐾`,`Pets need love every few days: a pat, a snack or a game. If a pet goes too long with <b>no food and no fun</b>, it gets lonely, and after a few days it goes to stay at the <b>🏡 Pet Rescue</b>.`,`Busy week coming up? <b>Hire me in the Pet Home</b> (tap my picture at the bottom) and I'll keep everyone fed and happy while you're away. Pets on camp adventures and your battle buddy are always fine!`]:[`Hello, dear! I'm <b>Nana Paws</b>, the village pet sitter. 🐾`,`If you're going to be away for a while, <b>hire me in the Pet Home</b> and I'll keep your pets fed and happy until you're back!`],'Nice to meet you! 👋',()=>{showing=false;});}
  const n=c.news.shift();if(!n)return;save();showing=true;
  if(n.k==='left')return nanaCard([`<div style="font-size:54px;text-align:center">${pe(n.id)}🧳</div><b>${nm(n.id)}</b> felt lonely and went to stay at the <b>🏡 Pet Rescue</b> for a while.`,`Don't worry: ${nm(n.id)} is safe, warm and fed there. Ranger Juniper is taking good care of ${nm(n.id)}. You can bring ${nm(n.id)} home from the <b>Pet Home</b> any time!`],'Go to the Pet Home 🏠',()=>{showing=false;go('pethome');},'rescue');
