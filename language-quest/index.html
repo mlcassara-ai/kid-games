@@ -68,6 +68,13 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 #fm .slot.got .l{opacity:1}
 #fm .slot .w{font-size:.95rem; direction:rtl}
 #fm p{line-height:1.45}
+#fm .saying{font-size:1.8rem; line-height:1.9; direction:rtl; color:var(--sky); margin:6px 0}
+#fm .opt.pic{font-size:2.4rem; line-height:1.2; padding:8px 2px}
+#fm .opt.pic small{display:block; font-size:.9rem; font-weight:700}
+#fm .book{display:grid; grid-template-columns:1fr; gap:6px; margin-top:10px; text-align:start}
+#fm .book button{display:flex; align-items:center; gap:10px; border:0; border-radius:14px; background:#F2F5F9; color:#12233D; padding:8px 12px; cursor:pointer; font:inherit; min-height:48px}
+#fm .book button.got{background:#FFF3D1; box-shadow:inset 0 0 0 2px #F2B134}
+#fm .book button span[lang]{flex:1; direction:rtl; text-align:right; font-size:1.15rem; line-height:1.7}
 @media (prefers-reduced-motion:no-preference){ #fm .opt.wrong{animation:fshake .35s} }
 @keyframes fshake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 </style>
@@ -93,8 +100,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.01g";</script>
-<script src="lq-core.js?v=2026.10.01g"></script>
+<script>window.LQ_VER="2026.10.01h";</script>
+<script src="lq-core.js?v=2026.10.01h"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -256,11 +263,48 @@ for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(FRIENDS.some(f=>Math.hy
 for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(LANDMARKS.some(l=>Math.hypot((l.x-q.x)/1.4,l.y+125-q.y)<85)) props.splice(i,1); }
 const found=()=>{ const p=LQ.player(); return p?(p.friends||{}):{}; };
 
+/* ============ Wisdom Fountain: toss coins, get a saying ============
+   p = proverb [id, Arabic, literal meaning, what it teaches]
+   r = riddle  [id, Arabic, English, answer Arabic, answer English, answer picture, two wrong pictures with labels]
+   w = English word borrowed from Arabic [id, Arabic, English word, note]
+   Ids are saved in each player's collection, so never reuse or renumber them. */
+const FOUNTAIN={x:1040,y:1425, en:"Wisdom Fountain", ar:"نَافُورَةُ الحِكْمَة"};
+const SAYINGS=[
+ ["p1","العِلْمُ نُور","Knowledge is light.","Learning helps you see the world clearly."],
+ ["p2","الصَّبْرُ مِفْتَاحُ الفَرَج","Patience is the key to relief.","Good things come if you keep calm and wait."],
+ ["p3","الوَقْتُ مِنْ ذَهَب","Time is made of gold.","Don't waste your time; it's precious."],
+ ["p4","الصَّدِيقُ وَقْتَ الضِّيق","A friend is for the hard times.","A real friend helps when things are difficult."],
+ ["p5","مَنْ جَدَّ وَجَد","Whoever works hard, finds.","Effort gets results."],
+ ["p6","يَدٌ وَاحِدَةٌ لَا تُصَفِّق","One hand cannot clap.","We need each other to get things done."],
+ ["p7","الجَارُ قَبْلَ الدَّار","The neighbour before the house.","Good neighbours matter more than a fancy home."],
+ ["p8","خَيْرُ الكَلَامِ مَا قَلَّ وَدَلّ","The best speech is short and clear.","Say what you mean in few words."],
+ ["p9","العَقْلُ السَّلِيمُ فِي الجِسْمِ السَّلِيم","A healthy mind is in a healthy body.","Look after your body and your mind works better."],
+ ["p10","القِرْدُ فِي عَيْنِ أُمِّهِ غَزَال","In his mother's eyes, the monkey is a gazelle.","Mums think their own children are the most beautiful."],
+ ["p11","عُصْفُورٌ فِي اليَدِ خَيْرٌ مِنْ عَشَرَةٍ عَلَى الشَّجَرَة","A bird in the hand is better than ten in the tree.","What you already have beats what you only hope for."],
+ ["p12","خَيْرُ جَلِيسٍ فِي الزَّمَانِ كِتَاب","The best companion of all time is a book.","Books are wonderful company."],
+ ["p13","التَّكْرَارُ يُعَلِّمُ الشُّطَّار","Repetition teaches the clever ones.","Practising again and again is how you get good."],
+ ["p14","مَنْ زَرَعَ حَصَد","Whoever plants, harvests.","You get out what you put in."],
+ ["r1","مَا هُوَ الشَّيْءُ الَّذِي لَهُ أَسْنَانٌ وَلَا يَعَضّ؟","What has teeth but does not bite?","المُشْط","a comb","🪮",[["🐶","a dog"],["🦈","a shark"]]],
+ ["r2","مَا هُوَ الشَّيْءُ الَّذِي لَهُ عَيْنٌ وَلَا يَرَى؟","What has an eye but cannot see?","الإِبْرَة","a needle","🪡",[["🦉","an owl"],["🐈","a cat"]]],
+ ["r3","مَا هُوَ البَيْتُ الَّذِي لَيْسَ لَهُ أَبْوَابٌ وَلَا نَوَافِذ؟","What house has no doors and no windows?","البَيْضَة","an egg","🥚",[["⛺","a tent"],["🏰","a castle"]]],
+ ["r4","مَا هُوَ الشَّيْءُ الَّذِي لَهُ أَوْرَاقٌ وَلَيْسَ شَجَرَة؟","What has leaves but is not a tree?","الكِتَاب","a book (its pages are also called leaves)","📖",[["🌼","a flower"],["🐟","a fish"]]],
+ ["r5","مَا هُوَ الشَّيْءُ الَّذِي يَتَكَلَّمُ كُلَّ لُغَاتِ العَالَم؟","What speaks every language in the world?","الصَّدَى","an echo","⛰️",[["🦜","a parrot"],["📻","a radio"]]],
+ ["r6","أَخْضَرُ فِي الأَرْض، أَسْوَدُ فِي السُّوق، أَحْمَرُ فِي البَيْت. مَا هُوَ؟","Green in the ground, black in the market, red at home. What is it?","الشَّاي","tea","🍵",[["🍉","a watermelon"],["🍎","an apple"]]],
+ ["w1","سُكَّر","sugar",""],
+ ["w2","زَرَافَة","giraffe",""],
+ ["w3","قُطْن","cotton",""],
+ ["w4","لَيْمُون","lemon",""],
+ ["w5","قَهْوَة","coffee",""],
+ ["w6","صِفْر","zero","The same word also gave English the word “cipher”."]
+].map(a=>a[0][0]==="p"?{id:a[0],k:"p",ar:a[1],lit:a[2],mean:a[3]}:a[0][0]==="r"?{id:a[0],k:"r",ar:a[1],en:a[2],ans:a[3],ansEn:a[4],e:a[5],wrong:a[6]}:{id:a[0],k:"w",ar:a[1],en:a[2],note:a[3]});
+const KIND={p:["💬","Proverb"],r:["❓","Riddle"],w:["🌍","A word English borrowed from Arabic"]};
+for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(Math.hypot(FOUNTAIN.x-q.x,FOUNTAIN.y-q.y)<130) props.splice(i,1); }
+
 /* ============ player & camera ============ */
 const player={x:900,y:1320,tx:900,ty:1320,moving:false,t:0,face:1};
 const cam={x:0,y:0};
 let pendingEnterL=null;
-let bubble=null, pendingLandmark=null, pendingFriend=null, pendingTeta=false, currentZone=null, marker=null;
+let bubble=null, pendingLandmark=null, pendingFriend=null, pendingTeta=false, pendingFountain=false, currentZone=null, marker=null;
 
 /* ============ canvas ============ */
 const cv=document.getElementById("game"), ctx=cv.getContext("2d");
@@ -295,7 +339,7 @@ cv.addEventListener("pointerup",e=>{
   if(!hintHidden){ document.getElementById("hint").style.opacity=0; hintHidden=true; }
   const [wx,wy]=toWorld(e.clientX,e.clientY);
   closeCard();
-  pendingFriend=null; pendingTeta=false;
+  pendingFriend=null; pendingTeta=false; pendingFountain=false;
   cancelEnter();
   for(const l of LANDMARKS){ const pd=padOf(l), onPad=Math.hypot((wx-pd.x)/1.6,wy-pd.y)<55, onBld=Math.abs(wx-l.x)<100 && wy>l.y-(l.id==="falls"?260:150) && wy<l.y+100;
     if(onPad||onBld){ pendingFriend=null; pendingTeta=false;
@@ -304,6 +348,7 @@ cv.addEventListener("pointerup",e=>{
       return; } }
   pendingEnterL=null;
   if(Math.abs(wx-TETA.x)<75 && wy>TETA.y-130 && wy<TETA.y+40){ pendingLandmark=null; pendingTeta=true; setTarget(TETA.x,TETA.y+60); return; }
+  if(Math.abs(wx-FOUNTAIN.x)<80 && wy>FOUNTAIN.y-130 && wy<FOUNTAIN.y+40){ pendingLandmark=null; pendingFountain=true; setTarget(FOUNTAIN.x,FOUNTAIN.y+60); return; }
   for(const f of FRIENDS){ if(Math.hypot(wx-f.x,wy-(f.y-30))<68){ pendingLandmark=null; pendingFriend=f; setTarget(f.x,f.y+45); return; } }
   let hit=null, hd=1e9;
   for(const p of props){ const cx=p.x, cy=p.y-p.s*0.45, d=Math.hypot(wx-cx,wy-cy); if(d<p.s*0.7 && d<hd){hit=p; hd=d;} }
@@ -334,7 +379,7 @@ function drawMini(){ mctx.drawImage(ground,0,0,mini.width,mini.height);
   mctx.font="22px sans-serif"; mctx.textAlign="center"; mctx.textBaseline="middle";
   for(const l of LANDMARKS) mctx.fillText(l.icon,l.x*sx,l.y*sy);
   LANDMARKS.forEach(l=>{ if(OPEN[l.id]){ mctx.strokeStyle="#F2B134"; mctx.lineWidth=4; mctx.beginPath(); mctx.arc(l.x*sx,l.y*sy,16,0,7); mctx.stroke(); } });
-  mctx.font="18px sans-serif"; mctx.fillText("👵",TETA.x*sx,TETA.y*sy); const fdm=found(); mctx.font="14px sans-serif"; FRIENDS.forEach(f=>{ if(fdm[f.ch]) mctx.fillText("⭐",f.x*sx,f.y*sy); });
+  mctx.font="18px sans-serif"; mctx.fillText("👵",TETA.x*sx,TETA.y*sy); mctx.fillText("⛲",FOUNTAIN.x*sx,FOUNTAIN.y*sy); const fdm=found(); mctx.font="14px sans-serif"; FRIENDS.forEach(f=>{ if(fdm[f.ch]) mctx.fillText("⭐",f.x*sx,f.y*sy); });
   mctx.strokeStyle="#fff"; mctx.lineWidth=2; mctx.strokeRect(cam.x*sx,cam.y*sy,VW/ZOOM*sx,VH/ZOOM*sy);
   mctx.fillStyle="#F2B134"; mctx.strokeStyle="#12233D"; mctx.lineWidth=3;
   mctx.beginPath(); mctx.arc(player.x*sx,player.y*sy,8,0,7); mctx.fill(); mctx.stroke(); }
@@ -398,6 +443,12 @@ function drawTeta(time){
   ctx.font='800 16px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText("Teta").width+18; ctx.fillStyle="rgba(18,35,61,.75)"; rr(TETA.x-w/2,TETA.y+6,w,22,11); ctx.fill();
   ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.fillText("Teta",TETA.x,TETA.y+22);
   if(!started){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle="#F2B134"; ctx.beginPath(); ctx.arc(TETA.x+34,TETA.y-86-b,17,0,7); ctx.fill(); ctx.fillStyle="#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText("!",TETA.x+34,TETA.y-85-b); }
+}
+function drawFountain(time){
+  shadow(FOUNTAIN.x,FOUNTAIN.y,40); drawEmoji("⛲",FOUNTAIN.x,FOUNTAIN.y,92);
+  ctx.font='800 16px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText(FOUNTAIN.en).width+18; ctx.fillStyle="rgba(18,35,61,.75)"; rr(FOUNTAIN.x-w/2,FOUNTAIN.y+6,w,22,11); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.fillText(FOUNTAIN.en,FOUNTAIN.x,FOUNTAIN.y+22);
+  const b=Math.abs(Math.sin(time*2.4))*6; drawEmoji("🪙",FOUNTAIN.x+40,FOUNTAIN.y-84-b,26);
 }
 function drawLandmark(l,time){
   if(!OPEN[l.id]) ctx.globalAlpha=0.6;
@@ -513,6 +564,53 @@ function album(){
 function allFound(){ const p=LQ.player(); if(!p||p.friendsAll) return; LQ.update(q=>{ q.friendsAll=Date.now(); }); LQ.addCoins(100); hud(); say("أَحْسَنْتَ");
   openFm(`<div class="big">🏆</div><h2>All 28 Letter Friends!</h2><p>You found every friend and know every letter. <b>+100 🪙</b> from Teta!</p><div class="row"><button class="btn go" id="wOk">Yay!</button></div>`);
   document.getElementById("wOk").onclick=closeFm; }
+/* ---- Wisdom Fountain ---- */
+const dayKey=()=>{ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); };
+const well=()=>{ const p=LQ.player(); return p&&p.well?p.well:{got:{},day:"",n:0}; };
+const tossCost=()=>{ const w=well(); return 5*((w.day===dayKey()?w.n:0)+1); };      // 5, 10, 15... and back to 5 tomorrow
+function fountain(first){
+  closeCard(); const p=LQ.player(); if(!p) return; if(first!==false) say(FOUNTAIN.ar);
+  const n=Object.keys(well().got).length, left=SAYINGS.length-n, cost=tossCost(), coins=p.coins||0;
+  openFm(`<div class="big">⛲</div><h2 style="margin:4px 0">${FOUNTAIN.en}</h2><div class="saying" lang="ar">${FOUNTAIN.ar}</div>
+    <p>${left?`Toss in some coins and the fountain gives you a proverb, a riddle or a surprising word. <b>${n} of ${SAYINGS.length}</b> found.`:`You have found all <b>${SAYINGS.length}</b>! Open your book to hear them again.`}</p>
+    ${left?`<p style="margin:0">Next toss: <b>${cost} 🪙</b> · You have <b>${coins} 🪙</b>${coins<cost?`<br><span style="color:var(--muted)">Earn more coins in the Letter Dunes and Sound Falls.</span>`:""}</p>`:""}
+    <div class="row">${left?`<button class="btn go" id="wToss" ${coins<cost?"disabled":""}>Toss ${cost} 🪙</button>`:""}<button class="btn ghost" id="wBook">📖 My sayings</button><button class="btn ghost" id="wOk">Close</button></div>`);
+  document.getElementById("wOk").onclick=closeFm; document.getElementById("wBook").onclick=sayingBook;
+  if(left) document.getElementById("wToss").onclick=toss;
+}
+function toss(){
+  const p=LQ.player(), cost=tossCost(); if(!p||(p.coins||0)<cost) return;
+  const got=well().got, pool=SAYINGS.filter(s=>!got[s.id]); if(!pool.length) return;
+  const s=pool[Math.random()*pool.length|0], day=dayKey();
+  LQ.update(q=>{ const w=q.well=q.well||{got:{},day:"",n:0}; if(w.day!==day){ w.day=day; w.n=0; } w.n++; w.got[s.id]=Date.now(); q.coins=(q.coins||0)-cost; }); hud();
+  showSaying(s,true);
+}
+function showSaying(s,fresh){
+  const head=`<div style="color:var(--muted);font-weight:800">${KIND[s.k][0]} ${KIND[s.k][1]}</div><div class="saying" lang="ar">${s.ar}</div>`;
+  const foot=`<div class="row"><button class="btn ghost" id="sHear">🔊 Hear again</button>${fresh?`<button class="btn go" id="sBack">⛲ Fountain</button>`:`<button class="btn go" id="sBack">📖 Back</button>`}</div>`;
+  const wire=()=>{ document.getElementById("sHear").onclick=()=>say(s.ar); document.getElementById("sBack").onclick=()=>fresh?fountain(false):sayingBook(); };
+  say(s.ar);
+  if(s.k==="p"){ openFm(`${head}<p style="margin:0"><b>${escH(s.lit)}</b></p><p style="margin:4px 0 0">${escH(s.mean)}</p>${foot}`); wire(); return; }
+  if(s.k==="w"){ openFm(`${head}<p style="margin:0">English got the word <b>${escH(s.en)}</b> from Arabic!</p>${s.note?`<p style="margin:4px 0 0">${escH(s.note)}</p>`:""}${foot}`); wire(); return; }
+  const opts=[[s.e,s.ansEn.replace(/ \(.*/,""),true],...s.wrong.map(w=>[w[0],w[1],false])].sort(()=>Math.random()-.5);
+  openFm(`${head}<p style="margin:0"><b>${escH(s.en)}</b></p>
+    <div class="opts">${opts.map(o=>`<button class="opt pic" data-ok="${o[2]}">${o[0]}<small>${escH(o[1])}</small></button>`).join("")}</div>${foot}`); wire();
+  fmBox.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    if(b.dataset.ok!=="true"){ b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong"); return; }
+    b.classList.add("right"); say(s.ans);
+    setTimeout(()=>{ openFm(`${head}<div class="big">${s.e}</div><div class="saying" lang="ar" style="color:var(--ink)">${s.ans}</div><p style="margin:0"><b>Yes!</b> It is ${escH(s.ansEn)}.</p>
+      <div class="row"><button class="btn ghost" id="sHear">🔊 Hear the answer</button><button class="btn go" id="sBack">${fresh?"⛲ Fountain":"📖 Back"}</button></div>`);
+      document.getElementById("sHear").onclick=()=>say(s.ans); document.getElementById("sBack").onclick=()=>fresh?fountain(false):sayingBook(); },700); });
+}
+function sayingBook(){
+  const got=well().got, n=Object.keys(got).length;
+  openFm(`<h2 style="margin:0">📖 My sayings <span style="color:var(--muted);font-size:1rem">${n}/${SAYINGS.length}</span></h2>
+    <p style="margin:4px 0 0;color:var(--muted)">Tap one you have found to hear it again. It's free!</p>
+    <div class="book">${SAYINGS.map((s,i)=>got[s.id]?`<button class="got" data-i="${i}"><span>${KIND[s.k][0]}</span><span lang="ar">${s.ar}</span></button>`:`<button data-i="${i}" disabled><span>${KIND[s.k][0]}</span><span style="color:var(--muted)">Not found yet</span></button>`).join("")}</div>
+    <div class="row"><button class="btn go" id="bOk">⛲ Fountain</button></div>`);
+  document.getElementById("bOk").onclick=()=>fountain(false);
+  fmBox.querySelectorAll(".book button.got").forEach(b=>b.onclick=()=>showSaying(SAYINGS[+b.dataset.i],false));
+}
 document.getElementById("enterCancel").onclick=e=>{ e.stopPropagation(); cancelEnter(); };
 document.getElementById("albumBtn").onclick=()=>{ closeCard(); album(); };
 
@@ -529,7 +627,8 @@ function frame(now){
       if(pendingEnterL){ startEnter(pendingEnterL); pendingEnterL=null; }
       else { const onPad=LANDMARKS.find(l=>OPEN[l.id]&&Math.hypot((player.x-padOf(l).x)/1.6,player.y-padOf(l).y)<45); if(onPad) startEnter(onPad); }
       if(pendingFriend){ meetFriend(pendingFriend); pendingFriend=null; }
-      if(pendingTeta){ tetaTalk(); pendingTeta=false; } }
+      if(pendingTeta){ tetaTalk(); pendingTeta=false; }
+      if(pendingFountain){ fountain(); pendingFountain=false; } }
     else { const nx=player.x+dx/d*step, ny=player.y+dy/d*step;
       if(walkable(nx,ny)){ player.x=nx; player.y=ny; } else { player.moving=false; marker=null; } }
   }
@@ -553,6 +652,7 @@ function frame(now){
   const fd=found();
   for(const f of FRIENDS) if(f.x>vx0&&f.x<vx1&&f.y>vy0&&f.y<vy1) list.push({y:f.y,f:()=>drawFriend(f,!!fd[f.ch],T)});
   list.push({y:TETA.y,f:()=>drawTeta(T)});
+  list.push({y:FOUNTAIN.y,f:()=>drawFountain(T)});
   list.push({y:player.y,f:()=>drawPlayer(T)});
   list.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
   for(const l of LANDMARKS) drawArrow(l,T);
