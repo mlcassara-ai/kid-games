@@ -94,9 +94,10 @@ const CSS=`
 #lqOv{position:fixed;inset:0;z-index:50;background:linear-gradient(180deg,#8FC6F0,#F7DFA8);overflow:auto;font-family:"Baloo Bhaijaan 2","Geeza Pro",system-ui,sans-serif;color:#12233D;-webkit-user-select:none;user-select:none}
 #lqOv .in{max-width:760px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 18px) 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
 #lqOv h1{margin:0;font-size:2rem;text-align:center;font-weight:800}
-#lqOv h1 small{display:block;font-size:1.3rem;color:#1E5AA8;font-weight:500}
+#lqOv h1 small{display:block;font-size:1.3rem;color:#1E5AA8;font-weight:500;line-height:1.9;margin-top:2px}
 #lqOv h2{margin:14px 0 8px;font-size:1.4rem;text-align:center}
-.lq-pro{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:10px}
+.lq-pro{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:10px}
+.lq-pro .lq-pc{flex:0 1 160px;min-width:140px}
 .lq-pc{background:#fff;border:0;border-radius:22px;padding:12px 8px;cursor:pointer;font:inherit;color:#12233D;box-shadow:0 4px 14px rgba(70,50,10,.18);text-align:center}
 .lq-pc svg{width:80px;height:92px}
 .lq-pc .n{font-weight:800;font-size:1.15rem}.lq-pc .s{font-size:.9rem;color:#5A6B82}
