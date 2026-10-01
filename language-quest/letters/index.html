@@ -85,6 +85,23 @@ h2{margin:4px 0 8px; font-size:1.3rem}
 .opt{font-family:var(--font); font-size:2.6rem; min-height:92px; border-radius:20px; border:0; background:#FFF8E6; color:#12233D; cursor:pointer; box-shadow:0 4px 0 #D9BF85}
 .opt.right{background:#C9F0E3; box-shadow:0 4px 0 var(--mint)}
 .opt.wrong{background:#FFD6DE; box-shadow:0 4px 0 var(--rose)}
+.tracewrap{position:relative; margin:10px auto 0; max-width:520px}
+.trace{display:block; width:100%; height:auto; background:#FFF8E6; border-radius:20px; border:2px dashed #D9BF85; touch-action:none; cursor:crosshair}
+.tbase{stroke:#E3D2A8; stroke-width:2; stroke-dasharray:6 6}
+path.tg{fill:none; stroke:#EADBB4; stroke-width:24; stroke-linecap:round; stroke-linejoin:round}
+circle.tg{fill:#EADBB4}
+path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
+.tink{fill:none; stroke:var(--sky); stroke-width:24; stroke-linecap:round; stroke-linejoin:round}
+.tdot{fill:var(--saffron); stroke:#fff; stroke-width:3}
+.tnum{fill:var(--mint); stroke:#fff; stroke-width:2}
+.tnumt{font:800 15px var(--font); fill:#fff; pointer-events:none}
+.tarr{fill:#fff; stroke:#12233D; stroke-width:1.5; stroke-linejoin:round}
+.tdemo{fill:none; stroke:var(--rose); stroke-width:10; stroke-linecap:round; stroke-linejoin:round}
+.tdemod{fill:var(--rose)}
+.tform{position:absolute; top:8px; left:12px; text-align:center; color:#7A6B45; font-size:.8rem; pointer-events:none}
+.tform b{display:block; font-size:1.9rem; font-weight:500; color:#12233D; line-height:1.3}
+.mem[disabled]{opacity:.5; cursor:not-allowed}
+.mem .st{color:var(--saffron); min-height:1.4rem}
 .center{text-align:center}
 #start{position:fixed; inset:0; background:rgba(18,35,61,.55); display:flex; align-items:center; justify-content:center; z-index:10}
 #start .box{background:var(--card); color:var(--ink); border-radius:26px; padding:24px; text-align:center; width:min(88vw,360px)}
@@ -153,6 +170,21 @@ const CAMP_NAMES=["Camp One","Camp Two","Camp Three","Camp Four","Camp Five","Ca
 const COLORS=["#E0607E","#2FA894","#7A5CD6","#E58A2B","#1E5AA8","#C2476A","#2E8FA8","#8A6B2E"];
 const TAT="\u0640", SLOT=["Alone","Start","Middle","End"], WHERE=["","at the start","in the middle","at the end"];
 function forms(ch){ return INFO[ch]&&!INFO[ch].joins ? [ch,ch,TAT+ch,TAT+ch] : [ch,ch+TAT,TAT+ch+TAT,TAT+ch]; }
+/* ============ tracing data ============
+   TRACE[letter][shape] = strokes in writing order; shape 0 alone, 1 start, 2 middle, 3 end (non-joiners only have 0 and 3).
+   A stroke is an SVG path drawn in a 300x240 box (writing line at y=165), or [x,y] for a dot. Body first, dots last. */
+const BOAT=["M236 108 Q240 162 198 164 L102 164 Q60 162 64 110",
+            "M205 98 L205 150 Q205 165 190 165 L78 165",
+            "M242 165 L178 165 Q165 165 164 152 L158 120 L152 152 Q151 165 138 165 L58 165",
+            "M256 130 L238 130 Q234 163 198 164 L102 164 Q60 162 64 110"];
+const boat=dots=>BOAT.map((b,i)=>[b,...dots[i]]);
+const TRACE={
+ "ا":{0:["M150 45 L150 165"], 3:["M222 165 L164 165 Q150 165 150 151 L150 45"]},
+ "ب":boat([[[150,204]],[[204,205]],[[158,205]],[[150,204]]]),
+ "ت":boat([[[168,122],[136,122]],[[219,56],[191,56]],[[172,80],[144,80]],[[168,122],[136,122]]]),
+ "ث":boat([[[168,128],[136,128],[152,102]],[[219,60],[191,60],[205,34]],[[172,86],[144,86],[158,60]],[[168,128],[136,128],[152,102]]])
+};
+const traceShapes=ch=>INFO[ch].joins?[0,1,2,3]:[0,3];
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
 /* ============ save: the signed-in player (shared with the map through lq-core.js) ============ */
@@ -208,9 +240,10 @@ function camp(c){
   $("app").innerHTML=`<div class="panel"><h2>${CAMP_NAMES[c]}</h2><p class="muted" style="margin:0">Tap a shapeshifter to find its four disguises.</p>
     <div class="crew">${ls.map(ch=>`<button class="mem ${save.letters[ch]?"done":""}" data-ch="${ch}">${creature(ch)}<div class="nm">${INFO[ch].en}</div></button>`).join("")}</div>
     <div class="actions"><button class="btn ghost" id="toHome">All camps</button>
+    ${ls.some(ch=>TRACE[ch])?`<button class="btn go" id="toTent">✏️ Tracing tent</button>`:""}
     <button class="btn boss" id="toBoss" ${all?"":"disabled"}>🦂 Sand monster ${all?"":"(catch all 4 first)"}</button></div></div>`;
   document.querySelectorAll(".mem").forEach(b=>b.onclick=()=>catchGame(b.dataset.ch));
-  $("toHome").onclick=home; $("toBoss").onclick=()=>{ if(all) boss(c); };
+  $("toHome").onclick=home; $("toBoss").onclick=()=>{ if(all) boss(c); }; if($("toTent")) $("toTent").onclick=()=>tent(c);
 }
 
 /* ---- catching the four disguises ---- */
@@ -301,6 +334,92 @@ function boss(c){
       <div class="actions"><button class="btn boss" id="retry">Try again</button><button class="btn ghost" id="bk">Back to camp</button></div></div>`;
     $("retry").onclick=()=>boss(c); $("bk").onclick=()=>camp(c); }
   draw();
+}
+/* ---- tracing tent ---- */
+const stars3=n=>"★".repeat(n)+"☆".repeat(3-n);
+function tent(c){
+  curCamp=c; const ls=CAMPS[c].filter(ch=>TRACE[ch]), tr=(LQ.player()||{}).trace||{};
+  $("app").innerHTML=`<div class="panel"><h2>✏️ Tracing Tent</h2><p class="muted" style="margin:0">Pick a letter you have caught and write each of its shapes.</p>
+    <div class="crew">${ls.map(ch=>`<button class="mem ${tr[ch]?"done":""}" data-ch="${ch}" ${save.letters[ch]?"":"disabled"}>${creature(ch)}<div class="nm">${INFO[ch].en}</div>
+      <div class="st">${tr[ch]?stars3(tr[ch]):`<span class="muted" style="font-size:.9rem">${save.letters[ch]?"Tap to trace":"Catch me first"}</span>`}</div></button>`).join("")}</div>
+    <div class="actions"><button class="btn ghost" id="bk">Back to camp</button></div></div>`;
+  document.querySelectorAll(".mem").forEach(b=>b.onclick=()=>traceLetter(b.dataset.ch));
+  $("bk").onclick=()=>camp(c);
+}
+function traceLetter(ch){
+  const I=INFO[ch], shapes=traceShapes(ch), scores=[]; let k=0;
+  const step=()=> k>=shapes.length ? finish() : traceForm(ch,shapes[k],k,shapes.length,s=>{ scores.push(s); k++; step(); });
+  function finish(){
+    const stars=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length), first=!((LQ.player()||{}).trace||{})[ch];
+    LQ.update(p=>{ p.trace=p.trace||{}; p.trace[ch]=Math.max(p.trace[ch]||0,stars); }); if(first) addCoins(10); persist(); say("أَحْسَنْتَ");
+    $("app").innerHTML=`<div class="panel center">${creature(ch)}<h2>You can write ${I.en}!</h2>
+      <p style="font-size:2rem;color:var(--saffron);margin:0">${stars3(stars)}</p>
+      <div class="actions"><button class="btn go" id="tent">Back to the tent</button><button class="btn ghost" id="again">Trace again</button></div></div>`;
+    $("app").querySelector("svg").style.width="110px";
+    $("tent").onclick=()=>tent(curCamp); $("again").onclick=()=>traceLetter(ch);
+  }
+  step();
+}
+function traceForm(ch,fi,n,of,done){
+  const I=INFO[ch], strokes=TRACE[ch][fi], NS="http://www.w3.org/2000/svg", isDot=Array.isArray;
+  $("app").innerHTML=`<div class="panel">
+    <div class="hero">${creature(ch,"hero")}<div class="talk" id="talk"></div></div>
+    <div class="tracewrap"><svg id="tr" class="trace" viewBox="0 0 300 240" role="img" aria-label="Trace ${I.en}, ${SLOT[fi].toLowerCase()} shape"></svg>
+      <div class="tform"><span>${SLOT[fi]}${I.joins?"":fi?" and middle":" and start"}</span><b lang="ar">${forms(ch)[fi]}</b></div></div>
+    <div class="actions"><button class="btn ghost" id="bk">Back</button><button class="btn ghost" id="show">▶ Show me</button><button class="btn ghost" id="hear">🔊 My name</button></div></div>`;
+  const svg=$("tr");
+  svg.innerHTML=`<line class="tbase" x1="20" y1="165" x2="280" y2="165"/>`+
+    strokes.map((s,i)=>isDot(s)?`<circle class="tg" data-i="${i}" cx="${s[0]}" cy="${s[1]}" r="11"/>`:`<path class="tg" data-i="${i}" d="${s}"/>`).join("")+
+    `<path id="trInk" class="tink"/><circle id="trDot" class="tdot" r="12"/><g id="trMark"></g>`;
+  // sample every stroke into points about 4 units apart; a dot is a single point
+  const pts=strokes.map((s,i)=>{ if(isDot(s)) return [{x:s[0],y:s[1]}];
+    const p=svg.querySelector(`path.tg[data-i="${i}"]`), len=p.getTotalLength(), m=Math.max(2,Math.ceil(len/4));
+    return Array.from({length:m+1},(_,j)=>{ const q=p.getPointAtLength(len*j/m); return {x:q.x,y:q.y}; }); });
+  let si=0, pi=0, active=false, moved=0, off=0, tot=0, showing=false, inkLen=0;
+  const ink=$("trInk"), dot=$("trDot"), mk=$("trMark");
+  talk(`Shape ${n+1} of ${of}: my <b>${SLOT[fi].toLowerCase()}</b> shape. Start at the green number and follow the arrow.`);
+  function tick(){ const P=pts[si]; dot.setAttribute("cx",P[pi].x); dot.setAttribute("cy",P[pi].y);
+    if(P.length>1) ink.style.strokeDasharray=`${inkLen*pi/(P.length-1)} ${inkLen+1}`; }
+  function mark(){
+    if(si>=strokes.length){ mk.innerHTML=""; ink.removeAttribute("d"); dot.style.display="none"; return; }
+    const P=pts[si], a=P[0];
+    let h=`<circle class="tnum" cx="${a.x}" cy="${a.y}" r="13"/><text class="tnumt" x="${a.x}" y="${a.y+5}" text-anchor="middle">${si+1}</text>`;
+    if(P.length>1){ const j=Math.min(P.length-1,Math.max(6,Math.round(P.length*.3))), b=P[j], c=P[j-1];
+      h+=`<path class="tarr" d="M-9 -8 L7 0 L-9 8 Z" transform="translate(${b.x} ${b.y}) rotate(${Math.atan2(b.y-c.y,b.x-c.x)*180/Math.PI})"/>`;
+      ink.setAttribute("d",strokes[si]); inkLen=ink.getTotalLength(); }
+    else ink.removeAttribute("d");
+    mk.innerHTML=h; tick();
+  }
+  const tol=e=>e.pointerType==="mouse"?34:28;                     // mouse and trackpad get more room
+  const at=e=>new DOMPoint(e.clientX,e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+  const dist=(p,q)=>Math.hypot(p.x-q.x,p.y-q.y);
+  function miss(){ talk("Start at the green number, then follow the arrow."); mk.animate&&mk.animate([{opacity:.2},{opacity:1}],{duration:350}); }
+  function strokeDone(){ svg.querySelector(`.tg[data-i="${si}"]`).classList.add("done"); si++; pi=0; active=false; mark(); if(si>=strokes.length) formDone(); }
+  function formDone(){ const r=off/Math.max(tot,1), stars=r<.15?3:r<.4?2:1; say(I.nm); hop(); addCoins(3);
+    talk(`${stars===3?"Beautiful":"Nice"} writing! ${stars3(stars)}`); setTimeout(()=>{ if(svg.isConnected) done(stars); },1300); }
+  svg.onpointerdown=e=>{ if(showing||si>=strokes.length) return; e.preventDefault(); const p=at(e), P=pts[si], t=tol(e);
+    if(P.length===1){ if(dist(p,P[0])<=t*1.2) strokeDone(); else miss(); return; }
+    if(active){ active=false; return; }                           // mouse: a second click lets go
+    if(dist(p,P[pi])<=t*1.3){ active=true; moved=0; try{ svg.setPointerCapture(e.pointerId); }catch(_){} } else miss(); };
+  svg.onpointermove=e=>{ if(!active) return; const p=at(e), P=pts[si], t=tol(e); let best=pi, near=dist(p,P[pi]); moved++; tot++;
+    for(let j=pi+1;j<=Math.min(P.length-1,pi+10);j++){ const q=dist(p,P[j]); if(q<near){ near=q; best=j; } }   // follow the closest point just ahead
+    if(near<=t) pi=best; if(near>16) off++;                         // outside the painted band counts against the stars
+    if(pi>=P.length-1) strokeDone(); else tick(); };
+  // finger or pen: lifting lets go. mouse: a plain click keeps hold so a trackpad can trace without dragging
+  svg.onpointerup=svg.onpointercancel=e=>{ if(e.pointerType!=="mouse"||moved>3) active=false; };
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  async function showMe(){ if(showing) return; showing=true; active=false;
+    const g=document.createElementNS(NS,"g"); svg.appendChild(g);
+    for(const s of strokes){ if(!svg.isConnected) return;
+      if(isDot(s)){ const c=document.createElementNS(NS,"circle"); c.setAttribute("class","tdemod"); c.setAttribute("cx",s[0]); c.setAttribute("cy",s[1]); c.setAttribute("r",9); g.appendChild(c); await wait(450); continue; }
+      const p=document.createElementNS(NS,"path"); p.setAttribute("class","tdemo"); p.setAttribute("d",s); g.appendChild(p);
+      const len=p.getTotalLength(), dur=Math.max(600,len*7), t0=performance.now(); p.style.strokeDasharray=`0 ${len+1}`;
+      await new Promise(r=>{ (function f(now){ const k=Math.min(1,(now-t0)/dur); p.style.strokeDasharray=`${len*k} ${len+1}`; k<1&&svg.isConnected?requestAnimationFrame(f):r(); })(t0); });
+      await wait(250); }
+    await wait(700); g.remove(); showing=false; }
+  $("show").onclick=showMe; $("bk").onclick=()=>tent(curCamp);
+  $("hero").onclick=$("hear").onclick=()=>{ say(I.nm); hop(); };
+  mark();
 }
 persist(); home();
 </script>

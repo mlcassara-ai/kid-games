@@ -223,9 +223,9 @@ function kidSummary(p){
   const all=L.concat(M,W); const tot=all.reduce((s,e)=>s+e.r+e.w,0), right=all.reduce((s,e)=>s+e.r,0);
   const weak=[...Object.entries(st.letters||{}).filter(([k,e])=>level(e)==="bad").map(([k])=>`<bdi class="lq-ar" lang="ar">${esc(k)}</bdi>`),
               ...Object.entries(st.marks||{}).filter(([k,e])=>level(e)==="bad").map(([k])=>esc(k))].slice(0,6);
-  const caught=Object.keys(p.letters||{}).length, camps=Object.keys(p.camps||{}).length, pools=Object.keys(p.falls||{}).length, friends=Object.keys(p.friends||{}).length;
+  const caught=Object.keys(p.letters||{}).length, camps=Object.keys(p.camps||{}).length, pools=Object.keys(p.falls||{}).length, friends=Object.keys(p.friends||{}).length, traced=Object.keys(p.trace||{}).length;
   return `<div class="lq-kid"><h3>${esc(p.name)} <span class="lq-small">🪙 ${p.coins||0} · last played ${agoText(Object.keys(p.days||{}).length?p.last:0)}</span></h3>
-    <div class="lq-small">Letter Dunes <b>${caught}/28</b> letters, <b>${camps}/7</b> camps · Sound Falls <b>${pools}/8</b> pools · Letter Friends <b>${friends}/28</b> · Overall <b>${tot?Math.round(right/tot*100)+"% right":"no answers yet"}</b></div>
+    <div class="lq-small">Letter Dunes <b>${caught}/28</b> letters, <b>${camps}/7</b> camps · Sound Falls <b>${pools}/8</b> pools · Letter Friends <b>${friends}/28</b> · Tracing <b>${traced}/28</b> · Overall <b>${tot?Math.round(right/tot*100)+"% right":"no answers yet"}</b></div>
     <div class="lq-bar"><i style="width:${(caught/28*50+pools/8*50)}%"></i></div>
     <div class="lq-small">Needs help with</div><div class="lq-tags bad">${weak.length?weak.map(x=>`<span>${x}</span>`).join(""):"<span>Nothing flagged yet 👍</span>"}</div>
     <div class="lq-row" style="justify-content:flex-start;margin-top:4px"><button class="lq-btn" data-detail="${p.id}">See details ▶</button></div></div>`;
