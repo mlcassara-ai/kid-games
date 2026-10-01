@@ -165,7 +165,11 @@ const CSS=`
 .adv-pcard .adv-meter{margin:6px 0 2px}
 @media (max-width:620px){.adv-pcard{grid-template-columns:auto minmax(0,1fr)}.adv-pcard .act{grid-column:1/-1}.adv-pcard .left{text-align:left}}
 @media (prefers-reduced-motion:reduce){.adv-pcard.back{animation:none}}
-@media (prefers-reduced-motion:reduce){.adv-walker .bob,.adv-sitter,.adv-sk .bag{animation:none}}`;
+@media (prefers-reduced-motion:reduce){.adv-walker .bob,.adv-sitter,.adv-sk .bag{animation:none}}
+.adv-wh{padding:16px 18px}.adv-whtop{display:flex;gap:10px;align-items:center;text-align:left}.adv-whcrew{font-size:40px;line-height:1.05;flex:0 0 auto;max-width:34%;word-break:break-all;text-align:center}
+.adv-whsay{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px}.adv-whsay .adv-bubble{margin:0;max-width:none;font-size:17px;padding:8px 12px}.adv-whsay .adv-bubble:before{top:50%;left:-12px;margin:-9px 0 0;border:9px solid transparent;border-left:0;border-right:12px solid #ffd43b}.adv-whsay .btn{margin:0}
+.adv-wh .adv-diary{margin:10px 0 6px;font-size:16px}.adv-whpc{margin:0 0 4px;font-size:14px}.adv-whh{margin:8px 0 0;font-size:18px}.adv-whh small{font-size:14px;font-weight:500}.adv-whxp{margin:2px 0 6px;font-size:14px}.adv-wh .adv-sacks{margin:8px 0}
+@media (max-width:560px){.adv-wh{padding:12px}.adv-whcrew{font-size:32px}.adv-whsay .adv-bubble{font-size:15px}.adv-wh .adv-diary{font-size:14.5px;line-height:24px;padding:8px 12px 4px;background:#fffbea repeating-linear-gradient(#fffbea 0 23px,#e9dfb6 23px 24px);background-origin:content-box}.adv-wh .adv-diary *{line-height:24px}.adv-wh .adv-sacks{grid-template-columns:repeat(var(--pc,2),minmax(0,1fr));gap:6px}.adv-wh .adv-sk{min-height:84px;padding:5px 4px;gap:2px}.adv-wh .adv-sk .bag{width:42px;height:42px}.adv-wh .adv-sk .pe{font-size:24px}.adv-wh .adv-sk .nm{font-size:12px;text-align:center;line-height:1.15}.adv-wh .adv-sk .items{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:3px}.adv-wh .adv-lt .e{font-size:20px}.adv-wh .adv-lt .n{font-size:9.5px}.adv-whh{font-size:16px}.adv-whsay .btn.small{font-size:14px;padding:7px 12px}}`;
 function css(){if(!document.getElementById('advCSS')){const s=document.createElement('style');s.id='advCSS';s.textContent=CSS;document.head.appendChild(s);}}
 const SACK=`<svg viewBox="0 0 60 60"><path d="M18 18 Q10 30 10 42 Q10 56 30 56 Q50 56 50 42 Q50 30 42 18Z" fill="#c68b4e" stroke="#7a4b1f" stroke-width="3"/><path d="M18 18 Q30 24 42 18 L38 12 Q30 16 22 12Z" fill="#a86b33" stroke="#7a4b1f" stroke-width="3"/><path d="M20 20 Q30 26 40 20" stroke="#ffd43b" stroke-width="3" fill="none"/><text x="30" y="46" text-anchor="middle" font-size="16">✨</text></svg>`;
 
@@ -218,7 +222,7 @@ function finish(){const p=P(),a=A(p),tr=a.trip;if(!tr)return null;const T=TRIPS[
   if(tr.pc&&Date.now()>=tr.pc)mail(p,tr,true);const c=tr.pcT&&a.cards.find(x=>x.t===tr.pcT);
   if(c){res.card=c;res.tale=c;}else if(!early){res.tale={dest:tr.dest,crew:tr.crew.slice(0,5),t:Date.now(),r:rnd(-4,4),n:tr.len==='short'?1:2,len:tr.len};res.tale.k=taleKeys(p,res.tale);}}
  else{if(!early){res.tale={dest:tr.dest,crew:tr.crew.slice(0,5),t:Date.now(),r:rnd(-4,4),n:tr.len==='short'?1:2,len:tr.len};res.tale.k=taleKeys(p,res.tale);}
-  if(!early&&(Math.random()<pc||a.trips===0)){res.card=res.tale;a.cards.unshift(res.card);a.cards=a.cards.slice(0,60);}}
+  if(!early&&(Math.random()<pc||a.trips===0)){res.card=res.tale;res.card.nw=1;a.cards.unshift(res.card);a.cards=a.cards.slice(0,60);}}
  const solo=tr.crew.length<2;const nm=id=>`<b>${esc(petN(id))}</b>`,fill=(s,x,y,it)=>capS(s.replace(/\{A\}/g,nm(x)).replace(/\{B\}/g,nm(y||x)).replace(/\{C\}/g,solo?nm(tr.crew[0]):'the crew').replace(/\{D\}/g,d.n).replace(/\{I\}/g,it?`${it.e} ${esc(it.n)}`:'a shiny button'));
  /* recent diary lines are skipped so the same line doesn't show up trip after trip */
  const dh=a.dh=Array.isArray(a.dh)?a.dh:[];const dpick=(arr,pre)=>{const ks=arr.map((_,i)=>pre+i);const fresh=ks.filter(k=>!dh.includes(k));const k=fresh.length?pk(fresh):ks.slice().sort((x,y)=>dh.lastIndexOf(x)-dh.lastIndexOf(y))[0]; /* all used lately: the one used longest ago */dh.push(k);return arr[+k.slice(pre.length)];};
@@ -269,8 +273,11 @@ function draw(){css();const p=P(),a=A(p);a.crew=a.crew.filter(id=>p.pets.include
  const resB=a.res&&!RES?`<div class="cu-strip"><span class="e">🎒</span><span><b>Your crew is still unpacking!</b><small>Hear their story and open the sacks.</small></span><button class="btn gold" onclick="Adv.resume()">🎒 Keep unpacking</button></div>`:'';
  const body=TAB==='shelf'?shelfHTML(p,a):TAB==='cards'?cardsHTML(a):TAB==='clean'?CU.html(p):resB+(CU?CU.campStrip(p):'')+campHTML(p,a);
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title">🏕️ Adventure Camp</h2></div>
- <div class="adv-tabs">${[['camp','🏕️ Camp'],...(CU?[['clean',CU.tabLabel(p)]]:[]),['shelf','🗄️ Curiosity Shelf'],['cards','🖼️ Postcards']].map(([k,t])=>`<button class="${TAB===k?'on':''}" onclick="Adv.tab('${k}')">${t}</button>`).join('')}</div>${body}</div>`;
- if(TAB==='camp')requestAnimationFrame(sitters);}
+ <div class="adv-tabs">${[['camp','🏕️ Camp'],...(CU?[['clean',CU.tabLabel(p)]]:[]),['shelf','🗄️ Curiosity Shelf'],['cards','🖼️ Postcards'+(TAB!=='cards'&&newCards(p)?` <b class="adv-new">📬 ${newCards(p)}</b>`:'')]].map(([k,t])=>`<button class="${TAB===k?'on':''}" onclick="Adv.tab('${k}')">${t}</button>`).join('')}</div>${body}</div>`;
+ if(TAB==='camp')requestAnimationFrame(sitters);
+ /* looking at the Postcards page counts as seeing them: the NEW tags show this once, then the 📬 alert clears */
+ if(TAB==='cards'&&newCards(p)){a.cards.forEach(c=>{delete c.nw;});save();}}
+const newCards=p=>((p&&p.adv&&p.adv.cards)||[]).filter(c=>c&&c.nw).length;
 function campHTML(p,a){const tr=a.trip,d=dest(tr?tr.dest:a.dest),n=slots(p);
  const done=tr&&Date.now()>=tr.end;
  const scene=`<div class="adv-scene" id="advScene"><div class="sc" id="advSc">${sceneSVG(d)}<div class="adv-actors" id="advActors"></div>
@@ -353,40 +360,47 @@ function readCard(i){const p=P(),a=A(p),c=a.cards[i];if(!c)return;if(c.nw){delet
   <div class="adv-lbody"><p>${L.open}</p>${L.lines.map(t=>`<p>${t}</p>`).join('')}<p class="adv-lps">${L.ps}</p><p style="margin-bottom:0">${L.close}</p><p class="adv-lsign">${L.sign}</p></div>
   <div class="row"><button class="btn" onclick="Adv.readAloud()">🔊 Read it to me</button><button class="btn green" onclick="try{speechSynthesis.cancel()}catch(e){};closeModal()">😂 Ha! Close</button></div></div>`);}
 /* the crew tells the story out loud when they get home */
-function offerTale(){const r=RES;if(!r||!r.tale)return diary();const p=P();const crew=r.crew||[];try{SFX.tap();}catch(e){}
- const who=crew.length>1?'We\'re':'I\'m',askers=['Want to hear about our adventure?','Can we tell you what happened?!','Guess what happened on our trip!','Ooh ooh! Want to hear a story?','You will NOT believe what happened. Want to hear?'];
- const ask=crew.length>1?askers[Math.floor(Math.random()*askers.length)]:askers[Math.floor(Math.random()*askers.length)].replace(/\bour\b/,'my').replace(/\bwe\b/i,'I');
- modal(`<div class="mcard" style="text-align:center"><div style="font-size:54px;line-height:1.1">${crew.map(petE).join('')}</div>
-  <div class="adv-bubble">${who} back, ${esc(String(p.name||'').split(' ')[0])}! ${ask}</div>
-  <div class="row"><button class="btn gold big" onclick="Adv.tellTale()">📣 Yes! Tell me!</button><button class="btn" onclick="Adv.diary()">Maybe later</button></div></div>`);}
-function tellTale(){const r=RES;if(!r||!r.tale)return diary();const p=P(),d=dest(r.dest);const L=tale(p,r.tale);try{SFX.tap();}catch(e){}
+function offerTale(){return wh();}
+function tellTale(){const r=RES;if(!r||!r.tale)return wh();r.heard=1;const p=P(),d=dest(r.dest);const L=tale(p,r.tale);try{SFX.tap();}catch(e){}
  LAST_TALE=[L.sayOpen,...L.lines,L.sayClose];
  modal(`<div class="mcard adv-letter adv-tale"><div class="adv-lhead"><span>📣 Our adventure in ${d.e} ${esc(d.n)}</span><span class="adv-stamp">${r.crew.slice(0,3).map(petE).join('')}</span></div>
   <div class="adv-lbody"><p><i>${L.sayOpen}</i></p>${L.lines.map(t=>`<p>${t}</p>`).join('')}<p class="adv-lps">${L.sayClose}</p></div>
   ${r.card?`<p style="margin:6px 0 0;font-size:14px">📮 We wrote this on a <b>postcard</b> too! It's on the Postcards page.</p>`:''}
-  <div class="row"><button class="btn" onclick="Adv.readAloud()">🔊 Read it to me</button><button class="btn gold big" onclick="try{speechSynthesis.cancel()}catch(e){};Adv.diary()">📔 Trip Diary</button></div></div>`);
+  <div class="row"><button class="btn" onclick="Adv.readAloud()">🔊 Read it to me</button><button class="btn gold big" onclick="try{speechSynthesis.cancel()}catch(e){};Adv.home()">🎒 Back to the sacks</button></div></div>`);
  }
 function cardsHTML(a){return `<div class="panel" style="color:var(--ink)"><p style="margin-top:0">Sometimes your crew mails a postcard from where they went. Longer trips mean more postcards!</p>
  ${a.cards.length?`<p class="muted" style="margin:0 0 8px">💌 Tap a postcard to read what your crew wrote!</p><div class="adv-pcards">${a.cards.map((c,ci)=>{const d=dest(c.dest);return `<div class="adv-postc" role="button" tabindex="0" style="--r:${c.r}deg;cursor:pointer" onclick="Adv.readCard(${ci})" title="Read the postcard"><div class="ph"><svg viewBox="0 0 300 200"><defs><linearGradient id="apg${c.t}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${d.sky}"/><stop offset="1" stop-color="#fff"/></linearGradient></defs><rect width="300" height="200" fill="url(#apg${c.t})"/><path d="M0 120 Q80 70 150 110 Q220 60 300 100 L300 200 L0 200Z" fill="${d.c1}"/><path d="M0 160 Q150 130 300 160 L300 200 L0 200Z" fill="${d.c2}"/><text x="250" y="60" font-size="44" text-anchor="middle">${d.e}</text><text x="18" y="34" font-size="20" font-weight="700" fill="#fff" stroke="#0005" stroke-width="3" paint-order="stroke">Hi from ${esc(d.n)}!</text></svg><div class="ps">${c.crew.map(id=>`<span>${petE(id)}</span>`).join('')}</div></div><div class="cap">${c.nw?'<b class="adv-new">NEW 📮</b> ':''}${c.crew.map(id=>esc(petN(id))).join(', ')}<small>${new Date(c.t).toLocaleDateString([],{month:'short',day:'numeric'})}</small></div></div>`;}).join('')}</div>`:'<p class="muted">No postcards yet. Send a crew on an adventure!</p>'}</div>`;}
 
 /* ---------- welcome home ---------- */
 function welcome(){const p=P(),a=A(p);if(!a.trip||Date.now()<a.trip.end)return;const b=document.getElementById('advWelcome');if(b)b.disabled=true;const crew=a.trip.crew;
- RES=finish();if(RES){try{a.res=JSON.parse(JSON.stringify(RES));save();}catch(e){}}SFX.coin();toScene(()=>comeHome(crew,()=>offerTale()));}
+ RES=finish();if(RES){try{a.res=JSON.parse(JSON.stringify(RES));RES=a.res;save();}catch(e){}}SFX.coin();toScene(()=>comeHome(crew,()=>wh()));}
 /* a reload (or a closed tab) in the middle of welcome-home: the finds are already in the backpack, but let the kid still hear the story and open the sacks */
-function resume(){const a=A(P());if(!a.res)return;RES=a.res;offerTale();}
-function diary(){const r=RES;if(!r)return;const d=dest(r.dest),T=TRIPS[r.len]||TRIPS.mid;
- modal(`<div class="mcard"><h2>📔 Trip Diary</h2><div class="adv-diary"><p class="d">${d.e} ${d.n} · ${T.n}</p>${r.diary.map(l=>`<p>${l}</p>`).join('')}</div>
- ${r.card?`<p style="margin:4px 0">📮 ${r.card.nw?`Someone mailed you a <b>postcard</b>! It's on the Postcards page.`:`Remember the <b>postcard</b> we mailed you? It's on the Postcards page.`}</p>`:''}<div class="row"><button class="btn gold big" onclick="Adv.sacks()">🎒 Open the sacks!</button></div></div>`);}
-function sacks(){const r=RES;const n=r.sacks.length;r.shown=1;
- modal(`<div class="mcard ${n>3?'adv-wide':''}"><h2>🎒 What did they find?</h2><p class="muted" style="margin:0">Tap each sack!</p><div class="adv-sacks" style="--c:${n<=4?n:n<=6?3:4}">${r.sacks.map((s,i)=>`<div class="adv-sk" id="advSk${i}"><span class="pe">${petE(s.id)}</span><span class="nm">${esc(petN(s.id))}${s.home?' ⭐':''}</span><span class="bag" role="button" tabindex="0" onclick="Adv.open(${i})">${SACK}</span><span class="items"></span></div>`).join('')}</div>
- <p style="margin:6px 0;font-size:15px">✨ Every pet also got <b>+${r.xp} pet XP</b> from the trip.${r.grew&&r.grew.length?' '+r.grew.map(([id,st])=>`🌱 <b>${esc(petN(id))}</b> grew up: now <b>${esc(st)}</b>!`).join(' '):''}</p>${r.litter&&r.litter.length?`<p style="margin:0 0 6px;font-size:15px">🧤 The crew also picked up <b>${r.litter.length} pieces of litter</b>! You'll sort them next.</p>`:''}
- <div class="row"><button class="btn ghost dark" onclick="Adv.openAll()">Open all</button><button class="btn green" id="advDone" disabled onclick="Adv.done()">Put it all away</button></div></div>`);}
+function resume(){const a=A(P());if(!a.res)return;RES=a.res;wh();}
+/* ONE welcome-home card: the crew says hi (with a "hear our adventure" button), the trip diary, and the sacks to tap open.
+   Opened sacks are remembered in r.op (saved in a.res), so a reload or a trip to the story and back keeps them open. */
+const ASKERS=['Want to hear about our adventure?','Can we tell you what happened?!','Guess what happened on our trip!','Ooh ooh! Want to hear a story?','You will NOT believe what happened. Want to hear?'];
+function itemsHTML(s,anim){return s.items.map((it,k)=>`<span class="adv-lt ${it.rare?'rare':''} ${it.junk?'junk':''} ${it.sci?'sci':''}" style="${anim?`animation-delay:${k*.15}s`:'animation:none'}" title="${esc(it.n)}">${it.isNew?'<i class="nw">NEW</i>':''}${it.sci?'<i class="nw sci">🔬 CAVE</i>':''}<span class="e">${it.e}</span><span class="n">${esc(it.n)}</span></span>`).join('');}
+function wh(){const r=RES;if(!r)return;css();const p=P(),d=dest(r.dest),T=TRIPS[r.len]||TRIPS.mid,crew=r.crew||[],n=r.sacks.length;r.op=r.op||[];r.shown=1;
+ if(r.ask==null)r.ask=Math.floor(Math.random()*ASKERS.length);let ask=ASKERS[r.ask%ASKERS.length];if(crew.length<2)ask=ask.replace(/\bour\b/,'my').replace(/\bwe\b/i,'I');
+ const first=esc(String(p.name||'').split(' ')[0]),all=r.sacks.every((_,i)=>r.op.includes(i));try{save();}catch(e){}
+ modal(`<div class="mcard adv-wh ${n>3?'adv-wide':''}">
+  <div class="adv-whtop"><div class="adv-whcrew">${crew.map(petE).join('')}</div><div class="adv-whsay"><div class="adv-bubble">${crew.length>1?"We're":"I'm"} back, ${first}!${r.tale&&!r.heard?' '+ask:r.tale?' That was the best trip ever!':''}</div>
+   ${r.tale?`<button class="btn ${r.heard?'':'gold'} small" onclick="Adv.tellTale()">📣 ${r.heard?'Hear it again':'Hear our adventure!'}</button>`:''}</div></div>
+  <div class="adv-diary"><p class="d">📔 ${d.e} ${d.n} · ${T.n}</p>${r.diary.map(l=>`<p>${l}</p>`).join('')}</div>
+  ${r.card?`<p class="adv-whpc">📮 ${r.card.nw?`Someone mailed you a <b>postcard</b>! It's on the Postcards page.`:`Remember the <b>postcard</b> we mailed you? It's on the Postcards page.`}</p>`:''}
+  <h3 class="adv-whh">🎒 What did they find? <small class="muted">${all?'':'Tap each sack!'}</small></h3>
+  <div class="adv-sacks" style="--c:${n<=4?n:n<=6?3:4};--pc:${n===1?1:n===2||n===4?2:3}">${r.sacks.map((s,i)=>{const o=r.op.includes(i);return `<div class="adv-sk" id="advSk${i}"${o?' data-open="1"':''}><span class="pe">${petE(s.id)}</span><span class="nm">${esc(petN(s.id))}${s.home?' ⭐':''}</span>${o?'':`<span class="bag" role="button" tabindex="0" onclick="Adv.open(${i})">${SACK}</span>`}<span class="items">${o?itemsHTML(s,false):''}</span></div>`;}).join('')}</div>
+  <p class="adv-whxp">✨ Every pet also got <b>+${r.xp} pet XP</b> from the trip.${r.grew&&r.grew.length?' '+r.grew.map(([id,st])=>`🌱 <b>${esc(petN(id))}</b> grew up: now <b>${esc(st)}</b>!`).join(' '):''}${r.litter&&r.litter.length?` 🧤 The crew also picked up <b>${r.litter.length} pieces of litter</b>! You'll sort them next.`:''}</p>
+  <div class="row"><button class="btn ghost dark" id="advAll" onclick="Adv.openAll()"${all?' disabled':''}>Open all</button><button class="btn green big" id="advDone"${all?'':' disabled'} onclick="Adv.done()">Put it all away</button></div></div>`);}
+function diary(){return wh();}
+function sacks(){return wh();}
 function openSack(i){const s=RES&&RES.sacks[i],el=document.getElementById('advSk'+i);if(!s||!el||el.dataset.open)return;el.dataset.open=1;const bag=el.querySelector('.bag');if(bag)bag.remove();
- el.querySelector('.items').innerHTML=s.items.map((it,k)=>`<span class="adv-lt ${it.rare?'rare':''} ${it.junk?'junk':''} ${it.sci?'sci':''}" style="animation-delay:${k*.15}s" title="${esc(it.n)}">${it.isNew?'<i class="nw">NEW</i>':''}${it.sci?'<i class="nw sci">🔬 CAVE</i>':''}<span class="e">${it.e}</span><span class="n">${esc(it.n)}</span></span>`).join('');
+ RES.op=RES.op||[];if(!RES.op.includes(i)){RES.op.push(i);try{save();}catch(e){}}
+ el.querySelector('.items').innerHTML=itemsHTML(s,true);
  const sci=s.items.find(it=>it.sci);if(sci)for(let k=0;k<4;k++)floatAt(el,sci.k==='rock'?'🪨':'🦴',k+3);
  try{s.items.some(it=>it.rare)?SFX.win():SFX.coin();}catch(e){}
  if(s.items.some(it=>it.rare))for(let k=0;k<5;k++)floatAt(el,'✨',k);
- if([...document.querySelectorAll('.adv-sk')].every(x=>x.dataset.open)){const d=document.getElementById('advDone');if(d)d.disabled=false;}}
+ if([...document.querySelectorAll('.adv-sk')].every(x=>x.dataset.open)){const d=document.getElementById('advDone');if(d)d.disabled=false;const oa=document.getElementById('advAll');if(oa)oa.disabled=true;const h=document.querySelector('.adv-whh small');if(h)h.textContent='';}}
 function floatAt(el,ch,k){if(!el)return;const r=el.getBoundingClientRect(),f=document.createElement('span');f.className='adv-float';f.textContent=ch;f.style.left=(r.left+r.width*(.2+Math.random()*.6))+'px';f.style.top=(r.top+r.height*.4)+'px';f.style.animationDelay=(k*.12)+'s';document.body.appendChild(f);setTimeout(()=>f.remove(),2400);}
 function done(){const r=RES;RES=null;BUSY_UNTIL=Date.now()+2000;try{const a=A(P());if(a.res){delete a.res;save();}}catch(e){}closeModal();draw();if(!r)return;
  const eggs=r.sacks.some(s=>s.items.some(it=>it.k==='egg'));const grew=r.grew.map(([id,st])=>`${petE(id)} ${petN(id)} is now ${st}!`);
@@ -415,7 +429,7 @@ function petCard(p){css();const a=A(p),t=a.trip,n=slots(p);const crewHTML=ids=>`
    <div class="act"><div class="left">${fmtLeft(t.end-Date.now())}<small>to go</small></div><button class="btn ghost dark small" style="margin-top:6px" onclick="go('camp')">🏕️ Visit camp</button></div></div>`;}
 /* ---------- hooks for the rest of the game ---------- */
 let BUSY_UNTIL=0;
-window.Adv={_fin:()=>finish(),busy:()=>!!RES||Date.now()<BUSY_UNTIL||!!document.querySelector('.adv-walker'),resume,_mail:(t)=>mail(P(),null,!!t),readCard,tellTale,_tale:(c)=>tale(P(),c),diary:()=>{try{speechSynthesis.cancel()}catch(e){};diary();},readAloud:()=>readAloud(LAST_TALE||[]),petCard,away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
+window.Adv={_fin:()=>finish(),newCards:p=>newCards(p||(typeof P==='function'?P():null)),busy:()=>!!RES||Date.now()<BUSY_UNTIL||!!document.querySelector('.adv-walker'),resume,_mail:(t)=>mail(P(),null,!!t),readCard,tellTale,_tale:(c)=>tale(P(),c),diary:()=>{try{speechSynthesis.cancel()}catch(e){};diary();},home:()=>{try{speechSynthesis.cancel()}catch(e){};wh();},readAloud:()=>readAloud(LAST_TALE||[]),petCard,away:(p,id)=>away(p,id),done:()=>done(),draw,send:f=>send(f),welcome,sacks,open:openSack,openAll:()=>{(RES?RES.sacks:[]).forEach((s,i)=>setTimeout(()=>openSack(i),i*180));},
  toggle(id){const p=P(),a=A(p);if(a.trip)return toast('Wait for your crew to come home first!');const i=a.crew.indexOf(id);if(i>=0)a.crew.splice(i,1);else{const n=slots(p);if(a.crew.length>=n)return toast(`All ${n} crew spot${n>1?'s are':' is'} full! Win more battles to open more.`);a.crew.push(id);}SFX.tap();save();draw();},
  set(k,v){const a=A(P());a[k]=v;save();draw();},tab(t){TAB=t;draw();window.scrollTo(0,0);},
  askCall(){modal(`<div class="mcard"><div class="big-emoji">📯</div><h2>Call them home early?</h2><p>They'll run right back, but they'll only have time to grab a few coins.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Let them explore</button><button class="btn" onclick="closeModal();Adv.callHome()">Blow the horn!</button></div></div>`);},

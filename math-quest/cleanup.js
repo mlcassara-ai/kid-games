@@ -334,7 +334,7 @@ const CSS=`
 .cu-panel{color:var(--ink)}.cu-panel h3{margin:0 0 6px;font-size:20px}
 .cu-pend,.cu-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff9db;border:3px solid #ffd43b;border-radius:16px;padding:8px 12px;margin:10px 0;color:var(--ink);animation:advglow 1.6s ease-in-out infinite}
 .cu-pend .btn,.cu-strip .btn{white-space:nowrap;flex:none}
-.cu-strip{margin:0 0 12px}.cu-strip .e{font-size:30px}.cu-strip>span:nth-child(2){flex:1}.cu-strip small{display:block;font-size:12px;opacity:.8}.cu-strip .cu-badge{--bs:20px!important;vertical-align:middle}
+.cu-strip{margin:0 0 12px}.cu-strip .e{font-size:30px}.cu-strip>span:nth-child(2){flex:1;min-width:0}@media(max-width:420px){.cu-strip{flex-wrap:wrap}.cu-strip .btn{flex:1 1 100%;margin:0}}.cu-strip small{display:block;font-size:12px;opacity:.8}.cu-strip .cu-badge{--bs:20px!important;vertical-align:middle}
 .cu-binrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0 4px;text-align:center}
 .cu-bbox{display:flex;flex-direction:column;align-items:center}.cu-bbox .cu-binsvg{width:90px;height:112px}.cu-bbox b{font-size:15px}.cu-bbox small{font-size:12px;opacity:.75}
 .cu-pts{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:17px;margin-top:6px}
