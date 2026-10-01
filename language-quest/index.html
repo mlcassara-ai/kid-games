@@ -100,8 +100,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.01i";</script>
-<script src="lq-core.js?v=2026.10.01i"></script>
+<script>window.LQ_VER="2026.10.01j";</script>
+<script src="lq-core.js?v=2026.10.01j"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -142,27 +142,43 @@ function biomeAt(x,y){
 }
 const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t];
 
-/* ---- ground buffer ---- */
-const S=6, BW=Math.ceil(W/S), BH=Math.ceil(H/S);
+/* ---- ground buffer ----
+   Painted once at 1/3 scale. Every colour change is a soft blend (never a hard threshold), so the picture
+   stays smooth when the canvas scales it up; hard edges are what made the old map look blocky. */
+const S=3, BW=Math.ceil(W/S), BH=Math.ceil(H/S);
 const ground=document.createElement("canvas"); ground.width=BW; ground.height=BH;
+const ss=(a,b,x)=>{ x=Math.max(0,Math.min(1,(x-a)/(b-a))); return x*x*(3-2*x); };
+function groundColor(b,x,y,n){
+  const B=BIOMES[b]; let c=mix(B.c1,B.c2,n);
+  if(b==="desert"){ const r=Math.sin(x*0.022+y*0.009+n*7)*0.5+0.5; c=mix(c,[252,230,176],r*0.35); }
+  else if(b==="sea"){ const r=Math.sin(x*0.05+y*0.02+n*9)*0.5+0.5; c=mix(c,[110,190,230],r*0.18); }
+  else if(b==="mountain"){ const r=fbm(x*0.03,y*0.03); c=mix(c,[96,84,74],Math.max(0,r-0.55)*1.6); }
+  else if(b==="farm"){
+    const f=fbm(x*0.004+31,y*0.004+7);
+    const olive=mix([112,138,70],[140,150,84],n);
+    const wheat=mix(mix([214,184,96],[232,204,120],n),[246,222,140],0.4*ss(0.3,0.9,Math.sin(y*0.12+x*0.03)));
+    const plow=mix(mix([150,108,70],[170,126,84],n),[120,84,54],0.5*ss(0,0.6,Math.sin(y*0.16+x*0.02)));     // plowed rows
+    c=mix(mix(olive,wheat,ss(0.405,0.435,f)),plow,ss(0.535,0.565,f));
+    const ty=(y+fbm(x*0.006,y*0.006)*80)%95; c=mix(c,[200,190,170],0.85*(1-ss(1.5,5,Math.abs(ty-3))));       // stone terrace walls
+  }
+  else if(b==="marsh"){ c=mix(c,[70,130,165],0.7*ss(0.56,0.64,fbm(x*0.02+50,y*0.02))); }
+  return c;
+}
 (function paint(){
   const g=ground.getContext("2d"), img=g.createImageData(BW,BH), d=img.data;
   for(let py=0;py<BH;py++) for(let px=0;px<BW;px++){
-    const x=px*S, y=py*S, b=biomeAt(x,y), B=BIOMES[b], n=fbm(x*0.008,y*0.008);
-    let c=mix(B.c1,B.c2,n);
-    if(b==="desert"){ const r=Math.sin(x*0.022+y*0.009+n*7)*0.5+0.5; c=mix(c,[252,230,176],r*0.35); }
-    if(b==="sea"){ const r=Math.sin(x*0.05+y*0.02+n*9)*0.5+0.5; c=mix(c,[110,190,230],r*0.18); }
-    if(b==="mountain"){ const r=fbm(x*0.03,y*0.03); c=mix(c,[96,84,74],Math.max(0,r-0.55)*1.6); }
-    if(b==="farm"){
-      const f=fbm(x*0.004+31,y*0.004+7);
-      if(f<0.42) c=mix([112,138,70],[140,150,84],n);            // olive grove
-      else if(f<0.55) c=mix([214,184,96],[232,204,120],n);      // wheat
-      else { c=mix([150,108,70],[170,126,84],n); if(Math.sin(y*0.16+x*0.02)>0.3) c=mix(c,[120,84,54],0.5); } // plowed rows
-      if(f>=0.42&&f<0.55&&Math.sin(y*0.12+x*0.03)>0.6) c=mix(c,[246,222,140],0.4);
-      const ty=(y+fbm(x*0.006,y*0.006)*80)%95; if(ty<5) c=mix(c,[200,190,170],0.85); // stone terrace walls
-    }
-    if(b==="marsh"){ if(fbm(x*0.02+50,y*0.02)>0.6) c=mix(c,[70,130,165],0.7); }
-    const i=(py*BW+px)*4; d[i]=c[0]; d[i+1]=c[1]; d[i+2]=c[2]; d[i+3]=255;
+    const x=px*S, y=py*S, n=fbm(x*0.008,y*0.008);
+    // nearest biome and the nearest different one; half the gap between them is the distance to the border
+    const nx=x+(fbm(x*0.003,y*0.003)-0.5)*320, ny=y+(fbm(x*0.003+17,y*0.003+9)-0.5)*320;
+    let b1=null, d1=1e18; for(const sd of SEEDS){ const dx=nx-sd[1], dy=ny-sd[2], q=dx*dx+dy*dy; if(q<d1){ d1=q; b1=sd[0]; } }
+    let b2=null, d2=1e18; for(const sd of SEEDS){ if(sd[0]===b1) continue; const dx=nx-sd[1], dy=ny-sd[2], q=dx*dx+dy*dy; if(q<d2){ d2=q; b2=sd[0]; } }
+    const edge=(Math.sqrt(d2)-Math.sqrt(d1))/2;
+    let c=groundColor(b1,x,y,n);
+    if(b1==="sea"){ c=mix(c,[150,214,232],0.75*(1-ss(0,34,edge))); c=mix(c,[250,252,250],0.8*(1-ss(1,7,edge))); }   // shallows, then foam
+    else if(b2==="sea"){ c=mix(c,[240,224,180],0.9*(1-ss(4,26,edge))); c=mix(c,[250,252,250],0.5*(1-ss(0,4,edge))); } // beach
+    else if(edge<26) c=mix(c,groundColor(b2,x,y,n),0.5*(1-ss(0,26,edge)));                                           // land meets land
+    const k=0.975+0.05*vnoise(x*0.045,y*0.045);                                                                          // fine grain
+    const i=(py*BW+px)*4; d[i]=c[0]*k; d[i+1]=c[1]*k; d[i+2]=c[2]*k; d[i+3]=255;
   }
   g.putImageData(img,0,0);
 })();
@@ -359,7 +375,10 @@ cv.addEventListener("pointerup",e=>{
 /* ============ zone banner + card ============ */
 const zoneEl=document.getElementById("zone"); let zoneTimer=null;
 function showZone(b){ const B=BIOMES[b]; zoneEl.querySelector("b").textContent=B.en; zoneEl.querySelector("span").textContent=B.ar;
-  zoneEl.classList.add("show"); clearTimeout(zoneTimer); zoneTimer=setTimeout(()=>zoneEl.classList.remove("show"),2600); say(B.ar); }
+  zoneEl.classList.add("show"); clearTimeout(zoneTimer); zoneTimer=setTimeout(()=>zoneEl.classList.remove("show"),2600);
+  // say a region's name only the first time it is visited in this sitting; after that the banner is enough
+  let heard=[]; try{ heard=JSON.parse(sessionStorage.getItem("lq.zones")||"[]"); }catch(e){}
+  if(!heard.includes(b)){ say(B.ar); heard.push(b); try{ sessionStorage.setItem("lq.zones",JSON.stringify(heard)); }catch(e){} } }
 const card=document.getElementById("card");
 let cardLandmark=null;
 function openCard(l){ cardLandmark=l; const e=document.getElementById("cEnter"); e.textContent=(l.id==="dunes"||l.id==="falls")?"Enter ▶":"Enter (coming soon)"; document.getElementById("cIcon").textContent=l.icon; document.getElementById("cTitle").textContent=l.en;
