@@ -36,7 +36,7 @@ Prodigy-style click-to-move world teaching Modern Standard Arabic with full hara
 - Clips live at `https://storage.googleapis.com/kid-games-dc068-voices/lq/ar-XA-Chirp3-HD-Puck/<key>.mp3`, where `<key>` is the FNV-1a 32-bit hash (8 hex chars) of the exact UTF-8 text. Any change to the text, including harakat, changes the key.
 - Words and phrases: voice `ar-XA-Chirp3-HD-Puck`, rate 0.85. Texts of 2 or fewer base characters: `ar-XA-Wavenet-C`, rate 0.8, uploaded over the same filename (Chirp3-HD returns silent clips for single syllables).
 - Device `speechSynthesis` is the fallback only. On iPad, speech must start inside a `pointerup` handler.
-- Generation scripts currently exist only in Google Cloud Shell (`~/lq/map.py`, `~/lq/syl.py`); copies are in `HANDOFF.md` §2.4.
+- Generate with `/usr/bin/python3 language-quest/tools/gen_audio.py` (`--check` lists missing clips, no flag records and uploads only the missing ones, `--all` re-records everything). Needs `gcloud` signed in as the personal Google account.
 
 ### Backend
 
