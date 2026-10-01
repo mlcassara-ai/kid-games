@@ -200,5 +200,5 @@ window.MQ_HOOKS.push({
 window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 (function reg(n){if(window.Adv&&typeof SCREENS!=='undefined'){wrapAdv();return;}if((n||0)<3000)setTimeout(()=>reg((n||0)+1),50);})(0);
 
-window.Daily={cardHTML,fix,battle,pick,take,trick,help,_k:key,_next:next,_x:closeAsk,_say:()=>{if(ST)speakToggle(()=>speakQ(ST.q));},_hint:()=>{if(ST&&!ST.end){ST.hint=true;paint();}},_dbg:{tad,focus,fixList,funQ,ask}};
+window.Daily={cardHTML,fix,battle,pick,take,trick,help,_k:key,_next:next,_x:closeAsk,_say:()=>{if(ST)speakToggle(()=>speakQ(ST.q));},_hint:()=>{if(ST&&!ST.end){ST.hint=true;paint();}},_dbg:{tad,focus,fixList,funQ,ask,cur:()=>ST&&ST.q}};
 })();

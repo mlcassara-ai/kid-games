@@ -1,0 +1,118 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Math Quest smoke test</title>
+<!-- Run with: /usr/bin/python3 math-quest/tools/smoke.py   (starts a local server and a throwaway headless Chrome)
+     The page loads the real game in a frame and drives it. It only runs on localhost with ?run=1, so opening it on the
+     live site (where a family's real save lives) does nothing. -->
+<style>body{font:15px system-ui;margin:20px}iframe{width:900px;height:650px;border:1px solid #999}.ok{color:#18794e}.bad{color:#c22}</style>
+<h1 id="h">Math Quest smoke test</h1>
+<pre id="log"></pre>
+<pre id="result" hidden></pre>
+<iframe id="game"></iframe>
+<script>
+(async function(){
+const local=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+if(!local||!/[?&]run=1/.test(location.search)){document.getElementById('log').textContent='Not running: this page only runs on localhost with ?run=1.';return;}
+const log=document.getElementById('log'),results=[];
+const frame=document.getElementById('game');
+const boot=()=>new Promise(res=>{frame.onload=()=>res();frame.src='../index.html?smoke='+Date.now();});
+await boot();
+const W=frame.contentWindow;
+/* the game finishes booting a moment after the page loads (it opens its local database first) */
+for(let i=0;i<200;i++){let up=false;try{up=W.eval("typeof state!=='undefined'&&!!state&&Array.isArray(state.players)&&document.querySelector('#app').innerText.length>20");}catch(e){}if(up)break;await new Promise(r=>setTimeout(r,50));}
+const errs=[];W.addEventListener('error',e=>errs.push(String(e.message||e)));W.addEventListener('unhandledrejection',e=>errs.push('rejection: '+String(e.reason&&e.reason.message||e.reason)));
+
+/* helpers that live inside the game's own page, so tests can use its top-level let/const globals */
+W.eval(`window.T={
+ wait:ms=>new Promise(r=>setTimeout(r,ms)),
+ until:async(f,ms,what)=>{const t=Date.now();while(!f()){if(Date.now()-t>(ms||8000))throw new Error('timed out waiting for '+(what||f));await new Promise(r=>setTimeout(r,40));}},
+ ok:(c,m)=>{if(!c)throw new Error(m||'check failed');},
+ clone:x=>JSON.parse(JSON.stringify(x)),
+ hero:(name,grade,o)=>{const p=newPlayer(name||'Smoke',grade||3);p.id='p'+(name||'Smoke')+Math.random().toString(36).slice(2,6);p.setup=true;p.welcomed=true;p.skillChecked=true;p.tbOn=false;p.xplace=1;p.xp2=1;p.battles=20;p.level=8;p.coins=500;p.pets=PETS.slice(0,6).map(x=>x.id);p.pet=p.pets[0];Object.assign(p,o||{});state.players.push(p);migrate();const q=state.players.find(x=>x.id===p.id);q.care=q.care||{};q.care.intro=1;return q;},
+ reset:()=>{try{closeModal();}catch(e){}const ov=document.getElementById('dqOv');if(ov)ov.remove();state.players=[];state.cur=null;state.deleted={};state.ownGroups={};state.gifts={};BASE={};try{MQ_VISIT.reset();}catch(e){}curScreen='profiles';},
+ answerAsk:(right)=>{const q=Daily._dbg.cur();if(!q)throw new Error('no question card open');String(right===false?q.answer+1:q.answer).split('').forEach(c=>Daily._k(c));Daily._k('go');Daily._next();}
+};`);
+
+const tests=[
+['boot: version and add-ons',async function(){
+  const v=await fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json());
+  T.ok(v.v===APP_VER,'version.json '+v.v+' does not match APP_VER '+APP_VER);
+  ['Adv','Cleanup','Lunch','Fade','PetCare','Mastery','Insights','Cave','Quartz','Lab','Inner','Music','Groups','Daily','Surprise','MQ_CONTENT','MORE_STORIES','ADV_TALES','CAVE_DATA','IS_DATA'].forEach(n=>T.ok(window[n],'add-on missing: '+n));
+  T.ok(curScreen==='profiles','did not boot to the profiles screen');
+  T.ok(document.querySelector('#app').innerText.length>20,'profiles screen is empty');}],
+
+['questions: every skill at every level',async function(){
+  const bad=[];OPS.forEach(op=>{for(let L=1;L<=maxLv(op);L++)for(let k=0;k<25;k++){let q;try{q=genQ(op,L);}catch(e){bad.push(op+' L'+L+' threw '+e.message);break;}
+   if(!q||!(q.text||q.tpl)||!Number.isFinite(q.answer)){bad.push(op+' L'+L+' bad question '+JSON.stringify(q).slice(0,120));break;}}});
+  T.ok(!bad.length,bad.slice(0,5).join(' | '));}],
+
+['screens: every screen draws for a hero',async function(){
+  T.reset();const p=T.hero('Screens',3);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;const bad=[];
+  const skip=['rest','skillcheck','inner','cave','office','fade','truck','market'];
+  for(const s of Object.keys(SCREENS)){if(skip.includes(s))continue;try{go(s,s==='zone'?'forest':undefined);T.ok(curScreen===s,'ended on '+curScreen);T.ok(document.querySelector('#app').innerText.length>10,'empty');}catch(e){bad.push(s+': '+e.message);}try{closeModal();}catch(e){}}
+  T.ok(!bad.length,bad.join(' | '));}],
+
+['migrate: bare and old saves survive',async function(){
+  T.reset();state.players.push({id:'pBare'},{id:'pOld',name:'Old',skill:{add:7},battles:12},null);migrate();
+  const b=state.players.find(x=>x.id==='pBare'),o=state.players.find(x=>x.id==='pOld');
+  T.ok(b&&b.look&&b.skill&&b.stats,'bare player was not filled in');T.ok(o.skill.add===7,'old save with progress was reset to '+o.skill.add);
+  T.ok(state.players.every(x=>x&&x.id),'null player survived');}],
+
+['battle: right answer, wrong answer, win',async function(){
+  T.reset();const p=T.hero('Battle',3);state.cur=p.id;go('world');const b0=p.battles;
+  startBattle('forest',0);await T.until(()=>B&&B.q&&!B.busy,10000,'first question');
+  const r0=p.stats.add.r,q1=B.q;B.input=String(q1.answer);answer();
+  await T.until(()=>B.q&&B.q!==q1&&!B.busy,10000,'second question');T.ok(p.stats.add.r===r0+1,'right answer not counted');
+  const q2=B.q;B.input=String(q2.answer+1);answer();await T.until(()=>fbOpen,8000,'wrong-answer card');
+  T.ok(p.missed[q2.text],'missed problem not stored');closeFeedback();
+  await T.until(()=>B.q&&!B.busy&&!fbOpen,12000,'question after a miss');
+  B.mhp=1;B.foes.forEach(f=>{f.hp=1;});const q3=B.q;B.input=String(q3.answer);answer();
+  await T.until(()=>p.battles>b0,20000,'battle win to be counted');T.ok(p.battles===b0+1,'battle win not counted');}],
+
+['sync: field merge, duplicate heroes, removed groups',async function(){
+  T.reset();const p=T.hero('Sync',3);const base=T.clone(p);BASE[p.id]=T.clone(base);
+  p.coins=base.coins+40;p.upd=Date.now();const r=T.clone(base);r.grade=4;r.upd=Date.now()-5000;
+  mergeStates({v:1,players:[r],deleted:{},gifts:{},ownGroups:{},live:{}},false,null);
+  const m=state.players.find(x=>x.id===p.id);T.ok(m.coins===base.coins+40,'local coins lost in merge');T.ok(m.grade===4,'remote grade change lost in merge');
+  T.reset();const weak=T.hero('Mika',3,{level:2,battles:3});const strong=T.clone(weak);strong.id='pCloudStrong';strong.level=9;strong.battles=80;
+  const cloud={v:1,players:[strong],deleted:{},gifts:{},ownGroups:{'AAA-BBB-CCC-11':'s1','DDD-EEE-FFF-22':''},live:{}};
+  state.ownGroups={'DDD-EEE-FFF-22':'s2'};mergeStates(T.clone(cloud),true,null);
+  T.ok(state.players.length===1&&state.players[0].id==='pCloudStrong','join did not keep only the stronger hero');
+  const c2=T.clone(cloud);c2.players.push(T.clone(weak));mergeStates(c2,false,null);
+  T.ok(state.players.length===1,'weaker duplicate came back on the next sync');
+  T.ok(state.ownGroups['DDD-EEE-FFF-22']==='','removed class group came back');T.ok(state.ownGroups['AAA-BBB-CCC-11']==='s1','other class group was lost');}],
+
+['adventure: fix-it, focus battle, leave, reward',async function(){
+  T.reset();const p=T.hero('Adv',3);state.cur=p.id;p.stats.div={r:10,w:10};p.stats.add={r:30,w:2};
+  p.missed={'8 + 7':{n:2,a:15,op:'add',last:'2026-09-28',fixed:0,q:{op:'add',L:4,a:8,b:7,answer:15,text:'8 + 7'}}};
+  go('map');T.ok(document.querySelector('.tad-card'),'Adventure card missing from the Quest Board');
+  Daily.fix();T.answerAsk();T.answerAsk();T.answerAsk();T.ok(p.tad.s===1,'fix-it did not finish');T.ok(p.missed['8 + 7'].fixed===1,'missed problem not marked');closeModal();
+  T.ok(p.tad.cur&&p.tad.cur.zid==='castle','focus battle is not the weakest skill: '+JSON.stringify(p.tad.cur));
+  Daily.battle();await T.until(()=>curScreen==='battle'&&B&&B.q&&!B.busy,10000,'focus battle');T.ok(B.foes.length===1&&B.mmax<110,'focus battle is not shortened');
+  fleeBattle();T.ok(/Show me how/.test(document.querySelector('#modal').innerText),'help button missing');doFlee();T.ok(p.tad.owe&&p.tad.owe.zid==='castle','left monster not remembered');
+  p.tad.s=2;const c0=p.coins;Daily.take('coins');T.ok(p.tad.s===3&&p.tad.stars===1&&p.coins===c0+30,'reward not given');closeModal();}],
+
+['pets and camp: trick, packing, loot, tied sacks',async function(){
+  T.reset();const p=T.hero('Camp',3);state.cur=p.id;go('pethome');try{closeModal();}catch(e){}
+  T.ok(document.getElementById('tadTrick'),'trick panel missing');const pd=petData(p,p.pet),x0=pd.xp;Daily.trick();T.answerAsk();T.ok(pd.xp>x0&&p.tad.tr===1,'trick gave no pet growth');
+  p.adv.crew=[p.pets[1],p.pets[2]];p.adv.len='short';p.adv.trip=null;go('camp');Adv.send();T.answerAsk();T.answerAsk(false);
+  await T.until(()=>p.adv.trip,5000,'trip to start');T.ok(p.adv.trip.pack===1,'packing bonus wrong: '+p.adv.trip.pack);
+  p.adv.trip.end=Date.now()-1000;const res=Adv._fin();T.ok(res&&res.sacks.length===2,'no sacks came home');
+  T.ok(res.sacks.every(s=>Array.isArray(s.items)),'sack without items');}],
+
+['save size stays small',async function(){
+  T.reset();for(let i=0;i<7;i++){const p=T.hero('Size'+i,3);for(let k=0;k<200;k++)p.missed['q'+k+' + 1']={n:1,a:1,op:'add',last:'2026-10-01',fixed:0,q:{op:'add',L:1,a:k,b:1,answer:k+1,text:'q'+k+' + 1'}};}
+  migrate();stampChanges(true);const n=JSON.stringify(cloudPayload()).length;T.ok(n<700000,'family save is '+n+' bytes; the cloud limit is about 1,000,000');}]
+];
+
+for(const [name,fn] of tests){const before=errs.length;let err=null;
+  try{await W.eval('('+fn.toString()+')()');}catch(e){err=String(e&&e.message||e);}
+  if(!err&&errs.length>before)err='page error: '+errs.slice(before).join(' | ');
+  results.push({name,ok:!err,err});
+  log.innerHTML+=`<span class="${err?'bad':'ok'}">${err?'FAIL':'pass'}  ${name}${err?'\n      '+err.replace(/</g,'&lt;'):''}</span>\n`;}
+const pass=results.every(r=>r.ok);
+document.getElementById('h').textContent='Math Quest smoke test: '+(pass?'PASS':'FAIL');document.title=pass?'SMOKE PASS':'SMOKE FAIL';
+document.getElementById('result').textContent=JSON.stringify({pass,results});
+try{await fetch('/__smoke_result',{method:'POST',body:JSON.stringify({pass,results})});}catch(e){} /* smoke.py listens for this */
+})();
+</script>

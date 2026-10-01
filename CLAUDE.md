@@ -53,3 +53,28 @@ Prodigy-style click-to-move world teaching Modern Standard Arabic with full hara
 - Letter Friends characters are original; don't copy Siraj characters, songs or art.
 - Keep the "Farms of Palestine" biome.
 - Reuse Math Quest's proven patterns (accounts, sync, updater) rather than inventing new ones.
+
+## Math Quest
+
+Adaptive math battles plus a village of side activities, for grades 1–12 and adults. Same devices as Language Quest. The detailed handoff is `MATH-QUEST-HANDOFF.md` in the repo root (private, excluded from git like `HANDOFF.md`).
+
+- `math-quest/index.html` — the whole core game (about 765 KB, many very long single lines; edit with exact-match scripted replacements, never retype blocks).
+- Add-ons are separate `.js` files loaded in order by the `document.write` loader line near the top of `index.html`. A new file must be added to that line. `truck.js` (Food Truck, beta) is deliberately not loaded.
+- `daily.js` — Today's Adventure, pet tricks, camp packing and tied sacks.
+- `tools/smoke.py` + `tools/smoke.html` — the smoke test.
+
+### Release checklist
+
+1. Run `/usr/bin/python3 math-quest/tools/smoke.py`. It must print `RESULT: PASS`. Add a test there when a new feature or bug fix would otherwise go unchecked.
+2. Bump the version (`YYYY.MM.DD` + letter) to the same string in `math-quest/version.json` and `APP_VER` in `math-quest/index.html`. Add-ons are cached by `?v=APP_VER`, so any change to any file needs a bump.
+3. Release from a separate git worktree based on `origin/main`, not from this folder: the Language Quest session shares this checkout and may have unpublished work on `main`.
+4. Push, then confirm Pages serves the new `version.json` and that the changed files match byte for byte.
+
+### Rules that must hold
+
+- Never reset or wipe a kid's progress. Migrations only add or raise.
+- The whole family syncs as one Firestore document (1 MiB limit): keep per-player data small, and never put bulk data in synced state.
+- No regex lookbehind (`(?<=`, `(?<!`): it stops the whole script parsing on Safari older than 16.4.
+- Add-on files run before the core script, so they may only touch core globals inside functions or after a deferred `reg()` wait. Avoid top-level names that already exist in the file being edited (`pk`, `pick`, `P`, `B`).
+- Stories, notes and long text are never read aloud automatically; grades 1–2 hear questions and short lines automatically. No emoji are read aloud.
+- A wrong answer never takes away something already earned.
