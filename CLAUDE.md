@@ -1,0 +1,55 @@
+# kid-games
+
+Plain HTML/CSS/JS games served by GitHub Pages from `main` at https://mlcassara-ai.github.io/kid-games/. No build step, no JS libraries. Games: `language-quest/` (active work), `math-quest/`, `castle-quest/`, `lake-legends/`, `beat-the-bully/`, plus the hub `index.html`.
+
+**Read `HANDOFF.md` in the repo root before non-trivial work.** It holds the full architecture, external resources, decisions, and backlog. It is deliberately excluded from git (it names children and family members and this repo is public) — never commit it or copy personal details from it into tracked files.
+
+## Working with the owner
+
+- He does not edit code or config himself. Make the edits directly; give copy/paste commands only when he must run something, and say which machine and window (Mac "Michaels-Mini" or the Ubuntu box "trg").
+- Walk him through unfamiliar web setups step by step.
+- Verify after every release rather than assuming it worked.
+- Use the personal GitHub account `mlcassara-ai` and Google account `mlcassara@gmail.com` only — never the Westport Solutions work accounts.
+- Don't spend real money without asking. Show and explain any Firebase rules change before publishing it.
+- When brainstorming, don't change files unless asked.
+
+## Language Quest
+
+Prodigy-style click-to-move world teaching Modern Standard Arabic with full harakat. Built for a remote children's class and the owner's kids. Primary target is iPad Safari; Mac Chrome/Safari and mouse/trackpad must work too.
+
+- `index.html` — world map (canvas), zones, Letter Friends quest.
+- `lq-core.js` — shared engine (`window.LQ`): players, picture locks, parent PIN, Parent Corner, Firestore sync, class families, auto-update.
+- `letters/` Letter Dunes, `falls/` Sound Falls, `teacher/` teacher dashboard, `voices/` voice picker.
+- `words.json` — list of every spoken Arabic phrase for audio generation. The game never reads it.
+
+### Release checklist
+
+1. Bump the version (`YYYY.MM.DD` + letter, next letter for same-day releases) to the same string in:
+   - `language-quest/version.json`
+   - `window.LQ_VER="…"` and `lq-core.js?v=…` in `index.html`, `letters/index.html`, `falls/index.html`, `teacher/index.html`
+2. Test locally: `python3 -m http.server` from the repo root, then `http://localhost:8000/language-quest/`.
+3. Commit and push; confirm Pages serves the new `version.json`.
+4. If any spoken Arabic text changed, update `words.json` and regenerate audio (see below).
+
+### Audio
+
+- Clips live at `https://storage.googleapis.com/kid-games-dc068-voices/lq/ar-XA-Chirp3-HD-Puck/<key>.mp3`, where `<key>` is the FNV-1a 32-bit hash (8 hex chars) of the exact UTF-8 text. Any change to the text, including harakat, changes the key.
+- Words and phrases: voice `ar-XA-Chirp3-HD-Puck`, rate 0.85. Texts of 2 or fewer base characters: `ar-XA-Wavenet-C`, rate 0.8, uploaded over the same filename (Chirp3-HD returns silent clips for single syllables).
+- Device `speechSynthesis` is the fallback only. On iPad, speech must start inside a `pointerup` handler.
+- Generation scripts currently exist only in Google Cloud Shell (`~/lq/map.py`, `~/lq/syl.py`); copies are in `HANDOFF.md` §2.4.
+
+### Backend
+
+- Firebase project `kid-games-dc068`, shared by Math Quest, Castle Quest and Language Quest: anonymous auth and Firestore over REST, one `families` collection. Doc id prefixes: `f_` Math Quest, `cq_` Castle Quest, `lq_` Language Quest families, `lq_class` teacher docs.
+- Access control is possession of a long random code. Never put a real family code or teacher key in a tracked file.
+- Sync rule: only re-stamp a player's `upd` when that player's data actually changed, or an idle tab on another device overwrites progress.
+- Don't change Firestore rules or anything that could break Math Quest or Castle Quest saves.
+
+### Rules that must hold
+
+- First names only; no emails, birthdays or surnames. Kids cannot create players.
+- No analytics, ads, trackers or third-party scripts beyond Google Fonts and Firebase/Google APIs.
+- Letter forms and standalone marks are shown with tatweel (U+0640), not ZWJ or the dotted circle.
+- Letter Friends characters are original; don't copy Siraj characters, songs or art.
+- Keep the "Farms of Palestine" biome.
+- Reuse Math Quest's proven patterns (accounts, sync, updater) rather than inventing new ones.
