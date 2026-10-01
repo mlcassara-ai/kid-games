@@ -31,7 +31,7 @@
    Stuck kids: after 3 wrong mixes or 2 dumps on one color, or 3 days in, Prisma offers an easy helper puzzle (her secret
    paint makes that color / finishes the stage). The finale says truthfully what the kid mixed by themself.
    Finale: Prisma rainbow-poofs in, dances, praises the kid by name, waves her wand (ALL the color comes back), the Goblin
-   grumbles "No fair! You win this time… but I'll be back for your colors!", then the prize card: the Rainbow Chameleon
+   grumbles "No fair! You win this time… but I'll be back for your colors!", then the prize card: the Color Chameleon
    (the Prismatic robe is saved for Chapter 2), coins, and Prisma buys leftover paint. Holds MQ_VISIT from the finale to the
    prize card's close, then keeps visitors quiet ~1 minute. The finale always plays over the World (the Pet Home behind it
    would show the Chameleon before the prize card).
@@ -58,7 +58,7 @@
 'use strict';
 const EV_MONTH=10,EV_DAY=1,EV_DAYS=16; /* (old yearly window, no longer used) */
 /* Since Sep 30 2026: Chapter 1 is a ONE-TIME adventure per hero (level 10+). It comes at a random battle win (WIN_P) or login
-   (LOGIN_P) within 14 days (MAX_D) of reaching level 10, and for sure by then. Prize: the Rainbow Chameleon (the Prismatic robe
+   (LOGIN_P) within 14 days (MAX_D) of reaching level 10, and for sure by then. Prize: the Color Chameleon (the Prismatic robe
    is saved for Chapter 2). A grown-up can replay it from the Parent Corner (coins and a rare paint splotch). */
 const MIN_LV=10,LIVE_FROM=new Date(2026,8,30).getTime(),MIN_D=10,MAX_D=14,WIN_P=.06,LOGIN_P=.03;
 const FIRST_WINS=1,GAP=[21,28],HELP_DAYS=3,POT_CAP=30,LOGIN_WAIT=25e3,VISIT_GAP=10*60e3;
@@ -622,7 +622,7 @@ function villageSVG(){return `<svg class="fd-vil" viewBox="0 0 400 170" preserve
 function goblinSVG(o){o=o||{};const sad=!!o.soft;return `<svg class="fd-goblin" viewBox="0 0 110 120" width="${o.w||96}" aria-hidden="true">
 <ellipse cx="52" cy="116" rx="30" ry="4" fill="rgba(0,0,0,.2)"/>
 <g transform="translate(80 70) rotate(12)"><path d="M-20 0 Q-24 32 0 36 Q24 32 20 0 Q10 -8 0 -6 Q-10 -8 -20 0Z" fill="#8d8f96" stroke="#4a4c52" stroke-width="2.5"/><path d="M-10 -6 Q0 -14 10 -6" stroke="#4a4c52" stroke-width="3" fill="none"/>
-<circle cx="-8" cy="-9" r="4" fill="#ff6b6b"/><circle cx="1" cy="-12" r="4" fill="#ffd43b"/><circle cx="9" cy="-9" r="4" fill="#4dabf7"/><circle cx="-2" cy="14" r="2.4" fill="#6b6d73"/><circle cx="7" cy="20" r="2" fill="#6b6d73"/></g>
+<circle cx="-8" cy="-9" r="4" fill="#6b6d73"/><circle cx="1" cy="-12" r="4" fill="#c9c9cf"/><circle cx="9" cy="-9" r="4" fill="#9a9ca3"/><circle cx="-2" cy="14" r="2.4" fill="#6b6d73"/><circle cx="7" cy="20" r="2" fill="#6b6d73"/></g>
 <path d="M34 72 Q52 64 70 72 L74 108 Q52 114 30 108Z" fill="#6b6d73" stroke="#4a4c52" stroke-width="2.5"/>
 <path d="M38 108 L36 116 M66 108 L68 116" stroke="#4a4c52" stroke-width="6" stroke-linecap="round"/>
 <path d="M70 80 Q80 76 78 66" stroke="#9a9ca3" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M34 80 Q24 88 28 96" stroke="#9a9ca3" stroke-width="7" fill="none" stroke-linecap="round"/>
@@ -646,7 +646,7 @@ function goblinVillainSVG(){const K='#16151c',W='3.6';return `<svg class="fd-gob
 <path d="M108 102 Q128 92 138 70" stroke="${K}" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M108 102 Q128 92 138 70" stroke="#9a9ca5" stroke-width="7" fill="none" stroke-linecap="round"/>
 <path d="M132 70 Q130 58 138 56 Q146 58 144 70 Q140 74 136 73Z" fill="#9a9ca5" stroke="${K}" stroke-width="3"/><path d="M139 56 L141 40" stroke="${K}" stroke-width="7" stroke-linecap="round"/><path d="M139 56 L141 40" stroke="#9a9ca5" stroke-width="3.5" stroke-linecap="round"/>
 <g transform="translate(34 118) rotate(-10)"><path d="M-22 0 Q-28 36 0 40 Q28 36 22 0 Q12 -9 0 -7 Q-12 -9 -22 0Z" fill="#8d8f96" stroke="${K}" stroke-width="${W}"/><path d="M-11 -7 Q0 -16 11 -7" stroke="${K}" stroke-width="3.5" fill="none"/>
- <circle class="fd-sk1" cx="-9" cy="-11" r="4.5" fill="#ff6b6b" stroke="${K}" stroke-width="1.5"/><circle class="fd-sk2" cx="1" cy="-14" r="4.5" fill="#ffd43b" stroke="${K}" stroke-width="1.5"/><circle class="fd-sk3" cx="10" cy="-11" r="4.5" fill="#4dabf7" stroke="${K}" stroke-width="1.5"/></g>
+ <circle class="fd-sk1" cx="-9" cy="-11" r="4.5" fill="#6e7078" stroke="${K}" stroke-width="1.5"/><circle class="fd-sk2" cx="1" cy="-14" r="4.5" fill="#c9c9cf" stroke="${K}" stroke-width="1.5"/><circle class="fd-sk3" cx="10" cy="-11" r="4.5" fill="#9a9ca5" stroke="${K}" stroke-width="1.5"/></g>
 <path d="M62 104 Q46 108 40 116" stroke="${K}" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M62 104 Q46 108 40 116" stroke="#9a9ca5" stroke-width="7" fill="none" stroke-linecap="round"/>
 <path d="M44 42 L10 22 L40 62Z" fill="#a3a5ad" stroke="${K}" stroke-width="${W}" stroke-linejoin="round"/><path d="M38 44 L20 32 L38 56Z" fill="#7d7f88" opacity=".6"/>
 <path d="M126 42 L160 22 L130 62Z" fill="#a3a5ad" stroke="${K}" stroke-width="${W}" stroke-linejoin="round"/><path d="M132 44 L150 32 L132 56Z" fill="#7d7f88" opacity=".6"/>
@@ -1063,7 +1063,7 @@ function celebrate(p,rw){const reduce=RM();
  const conf=reduce?'':Array.from({length:44},(_,j)=>`<i class="fd-conf" style="left:${(j*37)%100}%;background:${STR[j%6][1]};animation-delay:${(j%11)*.18}s;animation-duration:${2.6+(j%5)*.4}s"></i>`).join('');
  const fw=reduce?'':`<svg class="fd-fw" viewBox="0 0 400 300" aria-hidden="true">${[[90,90,'#ff6b6b'],[300,70,'#ffd43b'],[200,150,'#4dabf7'],[330,190,'#69db7c'],[70,210,'#cc5de8']].map(([x,y,c],j)=>`<g transform="translate(${x},${y})" style="animation-delay:${j*.45}s">${Array.from({length:12},(_,q)=>`<line x1="0" y1="0" x2="${(Math.cos(q*Math.PI/6)*34).toFixed(1)}" y2="${(Math.sin(q*Math.PI/6)*34).toFixed(1)}" stroke="${c}" stroke-width="4" stroke-linecap="round"/>`).join('')}</g>`).join('')}</svg>`;
  let prize='';
- if(rw.pet)prize=`<div class="fd-prize"><div class="fd-chamw"><div class="fd-cham">🦎</div></div><h3>Rainbow Chameleon!</h3><p>"I change color to match the world I'm in. Thanks for bringing the colors back!"</p><small>A new pet for your collection (Great Fade prize)</small>${p.pet!==CHAM.id?`<div class="row" style="margin-top:6px"><button class="btn green small" onclick="Fade._buddy(this)">🦎 Make it my buddy!</button></div>`:''}</div>`;
+ if(rw.pet)prize=`<div class="fd-prize"><div class="fd-chamw"><div class="fd-cham">🦎</div></div><h3>Color Chameleon!</h3><p>"I change color to match the world I'm in. Thanks for bringing the colors back!"</p><small>A new pet for your collection (Great Fade prize)</small>${p.pet!==CHAM.id?`<div class="row" style="margin-top:6px"><button class="btn green small" onclick="Fade._buddy(this)">🦎 Make it my buddy!</button></div>`:''}</div>`;
  else prize=`<div class="fd-prize"><div class="fd-spl">${splotchSVG()}</div><h3>A rare paint splotch!</h3><p>For beating the Grey Goblin again.</p></div>`;
  const coins=n=>`<b>+${n}</b> coin${n===1?'':'s'}`;const lines=[`🪙 ${coins(rw.base)}`];if(rw.left)lines.push(`🎨 Prisma buys your leftover paint (${rw.left} drop${rw.left>1?'s':''}): ${coins(rw.paint)}`);lines.push(`✨ <b>+${rw.xp}</b> XP${rw.up?' · ⭐ Level up!':''}`);
  layer(`${fw}<div class="fd-confw">${conf}</div><div class="fd-card fd-end"><div class="fd-art">${prismaSVG({gray:0,on:ALL7()})}</div><h2 class="fd-rainbowt">The colors are back!</h2><p class="fd-big">You beat the Grey Goblin! Your whole world is in color again.</p>${prize}<div class="fd-rw">${lines.map(x=>`<div>${x}</div>`).join('')}</div><div class="row"><button class="btn gold big" onclick="Fade._home()">🌍 See my world!</button></div></div>`,'party');
@@ -1071,7 +1071,7 @@ function celebrate(p,rw){const reduce=RM();
 function splotchSVG(){return `<svg viewBox="0 0 100 80" width="110" aria-hidden="true"><path d="M20 40 Q10 20 30 18 Q40 4 55 14 Q72 6 78 24 Q96 30 84 48 Q92 66 70 64 Q58 78 44 66 Q24 74 22 58 Q6 52 20 40Z" fill="#cc5de8" stroke="#2b2250" stroke-width="2.5"/><circle cx="40" cy="36" r="8" fill="#ffd43b"/><circle cx="60" cy="46" r="7" fill="#4dabf7"/><circle cx="52" cy="28" r="5" fill="#ff6b6b"/><circle cx="86" cy="14" r="5" fill="#cc5de8"/><circle cx="10" cy="66" r="4" fill="#cc5de8"/></svg>`;}
 
 /* ---------- prizes: registered at run time (inert unless owned) ---------- */
-const CHAM={id:'chameleon',e:'🦎',name:'Rainbow Chameleon',perk:'xp',tier:'event',rare:true,fade:1};
+const CHAM={id:'chameleon',e:'🦎',name:'Color Chameleon',perk:'xp',tier:'event',rare:true,fade:1};
 const PRISM=['#e03131','#fd7e14','#fcc419','#37b24d','#1c7ed6','#3b3fae','#9c5bd6']; /* ROYGBIV */
 const ROBE={id:'prismatic',name:'Prismatic',grad:PRISM,price:1,event:true,fade:1};
 function defs(){try{if(typeof PETS!=='undefined'&&Array.isArray(PETS)&&!PETS.some(x=>x.id===CHAM.id))PETS.push(Object.assign({},CHAM));}catch(e){}
