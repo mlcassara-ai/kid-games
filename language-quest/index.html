@@ -44,11 +44,38 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 .btn.go{background:var(--mint); color:#fff}
 .btn.ghost{background:var(--line); color:var(--ink)}
 .btn:focus-visible{outline:3px solid var(--saffron); outline-offset:2px}
+#enterBar{position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 18px); transform:translate(-50%,160%); z-index:5; background:var(--card); color:var(--ink); border-radius:22px; padding:12px 16px; box-shadow:0 8px 28px rgba(0,0,0,.35); display:flex; gap:12px; align-items:center; transition:transform .3s; width:min(92vw,460px); font-size:1.1rem}
+#enterBar.show{transform:translate(-50%,0)}
+#enterBar span{color:var(--sky); font-size:1.3rem}
+#enterBar .btn{flex:none}
+#fm{position:fixed; inset:0; z-index:6; background:rgba(18,35,61,.5); display:none; align-items:center; justify-content:center; padding:14px}
+#fm.show{display:flex}
+#fm .box{background:var(--card); color:var(--ink); border-radius:26px; padding:18px; width:min(94vw,520px); max-height:88vh; overflow:auto; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.4)}
+#fm .big{font-size:5rem; line-height:1.15}
+#fm .arw{font-size:2.6rem; line-height:1.7; direction:rtl; color:var(--sky)}
+#fm .ltr{font-size:4rem; line-height:1.6}
+#fm .opts{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:12px 0}
+#fm .opt{font-family:var(--font); font-size:2.6rem; line-height:1.7; border:0; border-radius:18px; background:#EAF2FB; color:#12233D; cursor:pointer; box-shadow:0 4px 0 #C9D6E6; min-height:84px}
+#fm .opt.right{background:#C9F0E3; box-shadow:0 4px 0 #2FA894}
+#fm .opt.wrong{background:#FFD6DE; box-shadow:0 4px 0 #E0607E}
+#fm .row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px}
+#fm .alb{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; direction:rtl; margin-top:10px}
+@media (min-width:520px){ #fm .alb{grid-template-columns:repeat(7,1fr)} }
+#fm .slot{border:0; border-radius:14px; background:#F2F5F9; color:#12233D; padding:6px 2px; cursor:pointer; font:inherit; min-height:96px}
+#fm .slot.got{background:#FFF3D1; box-shadow:inset 0 0 0 2px #F2B134}
+#fm .slot .e{font-size:2rem; line-height:1.3}
+#fm .slot .l{font-size:1.5rem; line-height:1.5; opacity:.35}
+#fm .slot.got .l{opacity:1}
+#fm .slot .w{font-size:.95rem; direction:rtl}
+#fm p{line-height:1.45}
+@media (prefers-reduced-motion:no-preference){ #fm .opt.wrong{animation:fshake .35s} }
+@keyframes fshake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 </style>
 </head>
 <body>
 <canvas id="game" aria-label="Language Quest world map. Tap to walk."></canvas>
 <div class="hud"><div class="pill">Language Quest</div><div class="pill" id="coinPill">🪙 0</div>
+  <button class="pill" id="albumBtn" aria-label="Letter Friends album">📒 <span id="albumN">0</span>/28</button>
   <button class="pill" id="whoBtn" aria-label="Leave and pick another player">👋 Leave</button>
   <button class="pill" id="soundBtn" aria-label="Sound on or off">🔊</button></div>
 <div id="start"><div class="box"><div style="font-size:3rem">🗺️</div><h2>Language Quest</h2><p>Tap things to hear their names in Arabic.</p>
@@ -56,6 +83,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 <canvas id="mini" aria-label="Mini map"></canvas>
 <div id="zone"><b></b><span lang="ar"></span></div>
 <div id="hint">Tap anywhere to walk · tap things to learn their names</div>
+<div id="enterBar" role="status"><div>Going into <b></b> <span lang="ar"></span>…</div><button class="btn ghost" id="enterCancel">Stay on the map</button></div>
+<div id="fm" role="dialog" aria-modal="true"><div class="box" id="fmBox"></div></div>
 <div id="card" role="dialog" aria-live="polite">
   <div class="icon" id="cIcon"></div>
   <h2 id="cTitle"></h2>
@@ -64,8 +93,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.01c";</script>
-<script src="lq-core.js?v=2026.10.01c"></script>
+<script>window.LQ_VER="2026.10.01e";</script>
+<script src="lq-core.js?v=2026.10.01e"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -180,10 +209,54 @@ for(let tries=0; tries<20000; tries++){
   props.push({x,y,e:pick[0],ar:pick[1],en:pick[2],s:pick[4],b}); have[b]=(have[b]||0)+1;
 }
 
+/* ============ zone doorways ============ */
+const OPEN={dunes:"letters/",falls:"falls/"};
+const padOf=l=>({x:l.x,y:l.y+125});
+let entering=null;
+function startEnter(l){
+  if(entering) return; const url=OPEN[l.id]; if(!url) return;
+  if(!LQ.player()){ LQ.profiles(()=>{ hud(); startEnter(l); }); return; }
+  entering={l,t:setTimeout(()=>{ location.href=url; },1300)};
+  const b=document.getElementById("enterBar"); b.querySelector("b").textContent=l.en; b.querySelector("span").textContent=l.ar; b.classList.add("show"); say(l.ar);
+}
+function cancelEnter(){ if(!entering) return; clearTimeout(entering.t); entering=null; document.getElementById("enterBar").classList.remove("show"); }
+function drawPad(l,time){
+  const p=padOf(l), open=!!OPEN[l.id];
+  if(open){ const k=(Math.sin(time*3)+1)/2;
+    ctx.fillStyle=`rgba(47,168,148,${0.25+0.2*k})`; ctx.beginPath(); ctx.ellipse(p.x,p.y,62+6*k,26+3*k,0,0,7); ctx.fill();
+    ctx.strokeStyle="#fff"; ctx.lineWidth=4; ctx.setLineDash([10,8]); ctx.lineDashOffset=-time*30; ctx.beginPath(); ctx.ellipse(p.x,p.y,56,23,0,0,7); ctx.stroke(); ctx.setLineDash([]);
+    const label="▶ Go in"; ctx.font='800 17px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText(label).width+22;
+    ctx.fillStyle="#2FA894"; rr(p.x-w/2,p.y+30,w,28,14); ctx.fill(); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(label,p.x,p.y+45);
+  } else {
+    ctx.font='700 14px "Baloo Bhaijaan 2",system-ui,sans-serif'; const label="🔒 Coming soon"; const w=ctx.measureText(label).width+18;
+    ctx.fillStyle="rgba(18,35,61,.55)"; rr(p.x-w/2,p.y-6,w,24,12); ctx.fill(); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(label,p.x,p.y+6);
+  }
+}
+function drawArrow(l,time){ if(!OPEN[l.id]) return; const b=Math.abs(Math.sin(time*3))*12, x=l.x, y=l.y-(l.id==="falls"?250:150)-b;
+  ctx.fillStyle="#F2B134"; ctx.strokeStyle="#fff"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(x-20,y-24); ctx.lineTo(x+20,y-24); ctx.lineTo(x+20,y-4); ctx.lineTo(x+32,y-4); ctx.lineTo(x,y+24); ctx.lineTo(x-32,y-4); ctx.lineTo(x-20,y-4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+
+/* ============ Letter Friends: 28 animals, one for each letter, hidden around the land ============ */
+const FRIENDS=[
+ ["ا","أَسَد","lion","🦁",520,1930],["ب","بَطَّة","duck","🦆",2060,1760],["ت","تِمْسَاح","crocodile","🐊",2330,1900],["ث","ثَعْلَب","fox","🦊",360,360],
+ ["ج","جَمَل","camel","🐪",1300,2150],["ح","حِصَان","horse","🐴",650,1240],["خ","خَرُوف","sheep","🐑",1060,1150],["د","دُبّ","bear","🐻",470,520],
+ ["ذ","ذِئْب","wolf","🐺",1250,190],["ر","رُوبْيَان","shrimp","🦐",2660,2010],["ز","زَرَافَة","giraffe","🦒",1520,1460],["س","سُلَحْفَاة","turtle","🐢",2690,900],
+ ["ش","شَمْبَانْزِي","chimpanzee","🐒",300,760],["ص","صَقْر","falcon","🦅",1160,640],["ض","ضِفْدَع","frog","🐸",2210,960],["ط","طَاوُوس","peacock","🦚",1760,1360],
+ ["ظ","ظَبْي","gazelle","🦌",900,2250],["ع","عُصْفُور","sparrow","🐦",420,1150],["غ","غُورِيلَّا","gorilla","🦍",560,210],["ف","فِيل","elephant","🐘",1640,1660],
+ ["ق","قُنْفُذ","hedgehog","🦔",860,760],["ك","كَلْب","dog","🐶",780,1330],["ل","لَامَا","llama","🦙",1900,660],["م","مَاعِز","goat","🐐",1500,790],
+ ["ن","نَمِر","tiger","🐅",150,520],["ه","هِرّ","cat","🐈",1860,1060],["و","وَطْوَاط","bat","🦇",1760,250],["ي","يَمَامَة","dove","🕊️",300,1360]
+].map(([ch,ar,en,e,x,y])=>({ch,ar,en,e,x,y}));
+const TETA={x:1230,y:1330};
+const LNAME={"ا":"أَلِف","ب":"بَاء","ت":"تَاء","ث":"ثَاء","ج":"جِيم","ح":"حَاء","خ":"خَاء","د":"دَال","ذ":"ذَال","ر":"رَاء","ز":"زَاي","س":"سِين","ش":"شِين","ص":"صَاد","ض":"ضَاد","ط":"طَاء","ظ":"ظَاء","ع":"عَيْن","غ":"غَيْن","ف":"فَاء","ق":"قَاف","ك":"كَاف","ل":"لَام","م":"مِيم","ن":"نُون","ه":"هَاء","و":"وَاو","ي":"يَاء"};
+const LIKE=[["ب","ت","ث","ن","ي"],["ج","ح","خ"],["د","ذ"],["ر","ز","و"],["س","ش"],["ص","ض"],["ط","ظ"],["ع","غ"],["ف","ق"],["ك","ل"],["م","ه"],["ا","ل"]];
+for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(FRIENDS.some(f=>Math.hypot(f.x-q.x,f.y-q.y)<110)||Math.hypot(TETA.x-q.x,TETA.y-q.y)<130) props.splice(i,1); }
+for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(LANDMARKS.some(l=>Math.hypot((l.x-q.x)/1.4,l.y+125-q.y)<85)) props.splice(i,1); }
+const found=()=>{ const p=LQ.player(); return p?(p.friends||{}):{}; };
+
 /* ============ player & camera ============ */
 const player={x:900,y:1320,tx:900,ty:1320,moving:false,t:0,face:1};
 const cam={x:0,y:0};
-let bubble=null, pendingLandmark=null, currentZone=null, marker=null;
+let pendingEnterL=null;
+let bubble=null, pendingLandmark=null, pendingFriend=null, pendingTeta=false, currentZone=null, marker=null;
 
 /* ============ canvas ============ */
 const cv=document.getElementById("game"), ctx=cv.getContext("2d");
@@ -218,7 +291,16 @@ cv.addEventListener("pointerup",e=>{
   if(!hintHidden){ document.getElementById("hint").style.opacity=0; hintHidden=true; }
   const [wx,wy]=toWorld(e.clientX,e.clientY);
   closeCard();
-  for(const l of LANDMARKS){ if(Math.abs(wx-l.x)<70 && wy>l.y-130 && wy<l.y+40){ pendingLandmark=l; setTarget(l.x,l.y+150); return; } }
+  pendingFriend=null; pendingTeta=false;
+  cancelEnter();
+  for(const l of LANDMARKS){ const pd=padOf(l), onPad=Math.hypot((wx-pd.x)/1.6,wy-pd.y)<55, onBld=Math.abs(wx-l.x)<100 && wy>l.y-(l.id==="falls"?260:150) && wy<l.y+100;
+    if(onPad||onBld){ pendingFriend=null; pendingTeta=false;
+      if(OPEN[l.id]){ pendingLandmark=null; pendingEnterL=l; setTarget(pd.x,pd.y); }
+      else { pendingEnterL=null; pendingLandmark=l; setTarget(pd.x,pd.y+40); }
+      return; } }
+  pendingEnterL=null;
+  if(Math.abs(wx-TETA.x)<75 && wy>TETA.y-130 && wy<TETA.y+40){ pendingLandmark=null; pendingTeta=true; setTarget(TETA.x,TETA.y+60); return; }
+  for(const f of FRIENDS){ if(Math.hypot(wx-f.x,wy-(f.y-30))<68){ pendingLandmark=null; pendingFriend=f; setTarget(f.x,f.y+45); return; } }
   let hit=null, hd=1e9;
   for(const p of props){ const cx=p.x, cy=p.y-p.s*0.45, d=Math.hypot(wx-cx,wy-cy); if(d<p.s*0.7 && d<hd){hit=p; hd=d;} }
   if(hit){ bubble={p:hit,t:0}; say(hit.ar); if(hit.b!=="sea") setTarget(hit.x, hit.y+28); return; }
@@ -247,6 +329,8 @@ function drawMini(){ mctx.drawImage(ground,0,0,mini.width,mini.height);
   const sx=mini.width/W, sy=mini.height/H;
   mctx.font="22px sans-serif"; mctx.textAlign="center"; mctx.textBaseline="middle";
   for(const l of LANDMARKS) mctx.fillText(l.icon,l.x*sx,l.y*sy);
+  LANDMARKS.forEach(l=>{ if(OPEN[l.id]){ mctx.strokeStyle="#F2B134"; mctx.lineWidth=4; mctx.beginPath(); mctx.arc(l.x*sx,l.y*sy,16,0,7); mctx.stroke(); } });
+  mctx.font="18px sans-serif"; mctx.fillText("👵",TETA.x*sx,TETA.y*sy); const fdm=found(); mctx.font="14px sans-serif"; FRIENDS.forEach(f=>{ if(fdm[f.ch]) mctx.fillText("⭐",f.x*sx,f.y*sy); });
   mctx.strokeStyle="#fff"; mctx.lineWidth=2; mctx.strokeRect(cam.x*sx,cam.y*sy,VW/ZOOM*sx,VH/ZOOM*sy);
   mctx.fillStyle="#F2B134"; mctx.strokeStyle="#12233D"; mctx.lineWidth=3;
   mctx.beginPath(); mctx.arc(player.x*sx,player.y*sy,8,0,7); mctx.fill(); mctx.stroke(); }
@@ -297,7 +381,22 @@ function drawStall(l){
     ctx.beginPath(); ctx.arc(x-60+i*24,y-86,12,0,Math.PI); ctx.fill(); }
   drawEmoji("🍊",x-40,y-30,26); drawEmoji("🏺",x-8,y-30,30); drawEmoji("🧺",x+30,y-30,28);
 }
+function drawFriend(f,got,time){
+  const bob=Math.sin(time*2.4+f.x)*3;
+  if(!got){ const r=34+Math.sin(time*3+f.y)*4; ctx.fillStyle="rgba(242,177,52,.28)"; ctx.beginPath(); ctx.ellipse(f.x,f.y-4,r,r*0.42,0,0,7); ctx.fill(); }
+  shadow(f.x,f.y,22); drawEmoji(f.e,f.x,f.y+bob,60);
+  if(!got){ ctx.font=`26px ${EMOJI}`; ctx.fillStyle="#000"; ctx.textAlign="center"; ctx.textBaseline="bottom"; ctx.fillText("✨",f.x+30,f.y-48+bob); }
+  else { ctx.fillStyle="#F2B134"; ctx.strokeStyle="#fff"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(f.x+28,f.y-58+bob,16,0,7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle="#12233D"; ctx.font='500 20px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.direction="rtl"; ctx.fillText(f.ch,f.x+28,f.y-56+bob); ctx.direction="ltr"; }
+}
+function drawTeta(time){
+  const p=LQ.player(), started=p&&p.friendsStarted; shadow(TETA.x,TETA.y,30); drawEmoji("👵",TETA.x,TETA.y,78);
+  ctx.font='800 16px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText("Teta").width+18; ctx.fillStyle="rgba(18,35,61,.75)"; rr(TETA.x-w/2,TETA.y+6,w,22,11); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.fillText("Teta",TETA.x,TETA.y+22);
+  if(!started){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle="#F2B134"; ctx.beginPath(); ctx.arc(TETA.x+34,TETA.y-86-b,17,0,7); ctx.fill(); ctx.fillStyle="#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText("!",TETA.x+34,TETA.y-85-b); }
+}
 function drawLandmark(l,time){
+  if(!OPEN[l.id]) ctx.globalAlpha=0.6;
   if(l.id==="falls") drawWaterfall(l,time); else if(l.id==="souq") drawStall(l); else if(l.id==="farm") drawFarmhouse(l); else { shadow(l.x,l.y,60); drawEmoji(l.icon,l.x,l.y,110); }
   // signboard
   const sy=l.y+14; ctx.font=`800 18px ${'"Baloo Bhaijaan 2",system-ui,sans-serif'}`; const w1=ctx.measureText(l.en).width;
@@ -308,6 +407,7 @@ function drawLandmark(l,time){
   ctx.fillStyle="#12233D"; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
   ctx.font=`800 18px "Baloo Bhaijaan 2",system-ui,sans-serif`; ctx.fillText(l.en,l.x,sy+34);
   ctx.direction="rtl"; ctx.font=`500 22px "Baloo Bhaijaan 2","Geeza Pro",sans-serif`; ctx.fillStyle="#1E5AA8"; ctx.fillText(l.ar,l.x,sy+62); ctx.direction="ltr";
+  ctx.globalAlpha=1;
 }
 function drawPlayer(time){
   const x=player.x, y=player.y, bob=player.moving?Math.abs(Math.sin(time*12))*5:0;
@@ -344,6 +444,74 @@ function drawBubble(){
   ctx.globalAlpha=1;
 }
 
+/* ============ Letter Friends: meeting, Teta, album ============ */
+const fm=document.getElementById("fm"), fmBox=document.getElementById("fmBox");
+const escH=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function openFm(html){ fmBox.innerHTML=html; fm.classList.add("show"); }
+function closeFm(){ fm.classList.remove("show"); }
+fm.addEventListener("pointerup",e=>{ if(e.target===fm) closeFm(); });
+function distractors(ch){ const g=(LIKE.find(x=>x.includes(ch))||[]).filter(x=>x!==ch); const pool=[...g]; const all=Object.keys(LNAME).filter(x=>x!==ch&&!g.includes(x));
+  while(pool.length<2) pool.push(all.splice(Math.random()*all.length|0,1)[0]); return pool.sort(()=>Math.random()-.5).slice(0,2); }
+function meetFriend(f){
+  closeCard(); const got=!!found()[f.ch]; say(f.ar);
+  const head=`<div class="big">${f.e}</div><div class="arw" lang="ar">${f.ar}</div><p style="margin:0">Marhaba! I'm a <b>${f.en}</b>.</p>`;
+  if(got){ openFm(`${head}<div class="ltr" lang="ar">${f.ch}</div><p>My name starts with <b>${LNAME[f.ch]}</b> <span lang="ar">${LNAME[f.ch]}</span>. I'm already in your album! ⭐</p>
+      <div class="row"><button class="btn ghost" id="fHear">🔊 Hear again</button><button class="btn go" id="fOk">OK</button></div>`);
+    document.getElementById("fHear").onclick=()=>say(f.ar); document.getElementById("fOk").onclick=closeFm; return; }
+  const opts=[f.ch,...distractors(f.ch)].sort(()=>Math.random()-.5);
+  openFm(`${head}<p><b>Which letter does my name start with?</b></p>
+    <div class="opts">${opts.map(o=>`<button class="opt" lang="ar" data-o="${o}">${o}</button>`).join("")}</div>
+    <div class="row"><button class="btn ghost" id="fHear">🔊 Hear my name</button><button class="btn ghost" id="fLater">Later</button></div>`);
+  document.getElementById("fHear").onclick=()=>say(f.ar); document.getElementById("fLater").onclick=closeFm;
+  fmBox.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ const o=b.dataset.o;
+    if(o===f.ch){ b.classList.add("right"); LQ.record("letters",f.ch,true); say(LNAME[f.ch]);
+      LQ.update(p=>{ p.friends=p.friends||{}; p.friends[f.ch]=Date.now(); p.friendsStarted=true; }); LQ.addCoins(15); hud();
+      const n=Object.keys(found()).length;
+      setTimeout(()=>{ openFm(`<div class="big">${f.e}</div><div class="ltr" lang="ar">${f.ch}</div>
+        <p style="font-size:1.15rem"><b>Yes!</b> <span lang="ar">${f.ar}</span> starts with <b>${LNAME[f.ch]}</b> <span lang="ar">${LNAME[f.ch]}</span>.</p>
+        <p>⭐ I'm in your Letter Friends album now! <b>+15 🪙</b><br><span class="muted" style="color:var(--muted)">${n} of 28 friends found</span></p>
+        <div class="row"><button class="btn ghost" id="fAlb">📒 Album</button><button class="btn go" id="fOk">Yalla!</button></div>`);
+        document.getElementById("fOk").onclick=closeFm; document.getElementById("fAlb").onclick=album;
+        if(n===28) setTimeout(allFound,900); },700);
+    } else { b.classList.add("wrong"); LQ.record("letters",f.ch,false,o); say(LNAME[o]); }
+  });
+}
+function hintFor(){ const fd=found(); let best=null,bd=1e9; FRIENDS.forEach(f=>{ if(fd[f.ch]) return; const d=Math.hypot(f.x-player.x,f.y-player.y); if(d<bd){bd=d;best=f;} }); return best; }
+function tetaTalk(){
+  closeCard(); const p=LQ.player(); const n=Object.keys(found()).length; say("أَهْلًا وَسَهْلًا");
+  if(!p||!p.friendsStarted){
+    openFm(`<div class="big">👵</div><h2 style="margin:4px 0">Ahlan, habibi! I'm Teta.</h2>
+      <p>My <b>28 animal friends</b> are hiding all over this land, one for every letter of the alphabet. Each friend's name starts with their letter: <b>أَسَد</b> the lion starts with <b>أَلِف</b>!</p>
+      <p>Look for animals with a ✨ sparkle. Tap one, say hello, and find the letter their name starts with. Can you find them all?</p>
+      <div class="row"><button class="btn go" id="tGo">Let's go! 📒</button></div>`);
+    document.getElementById("tGo").onclick=()=>{ LQ.update(q=>{ q.friendsStarted=true; }); album(); }; return; }
+  if(n>=28){ openFm(`<div class="big">👵🎉</div><h2>You found all 28 friends!</h2><p>Teta is so proud of you. You know every letter of the alphabet!</p><div class="row"><button class="btn go" id="tOk">Shukran, Teta!</button></div>`);
+    document.getElementById("tOk").onclick=closeFm; return; }
+  const h=hintFor(), where=h?BIOMES[biomeAt(h.x,h.y)].en:"";
+  openFm(`<div class="big">👵</div><h2 style="margin:4px 0">You've found ${n} of 28 friends!</h2>
+    <p>${h?`I think someone is waiting near <b>${where}</b>. Look for the ✨ sparkle!`:""}</p>
+    <div class="row"><button class="btn ghost" id="tAlb">📒 Album</button><button class="btn go" id="tOk">OK, Teta!</button></div>`);
+  document.getElementById("tOk").onclick=closeFm; document.getElementById("tAlb").onclick=album;
+}
+function album(){
+  const fd=found(), n=Object.keys(fd).length;
+  openFm(`<h2 style="margin:0">📒 Letter Friends <span style="color:var(--muted);font-size:1rem">${n}/28</span></h2>
+    <p style="margin:4px 0 0;color:var(--muted)">Tap a friend you've found to hear them again.</p>
+    <div class="alb">${FRIENDS.map((f,i)=>fd[f.ch]?`<button class="slot got" data-i="${i}"><div class="e">${f.e}</div><div class="l" lang="ar">${f.ch}</div><div class="w" lang="ar">${f.ar}</div></button>`
+      :`<button class="slot" data-i="${i}"><div class="e">❔</div><div class="l" lang="ar">${f.ch}</div><div class="w" style="color:var(--muted)">&nbsp;</div></button>`).join("")}</div>
+    <p id="albHint" style="min-height:1.4rem;color:var(--muted)"></p>
+    <div class="row"><button class="btn go" id="aOk">Close</button></div>`);
+  document.getElementById("aOk").onclick=closeFm;
+  fmBox.querySelectorAll(".slot").forEach(b=>b.onclick=()=>{ const f=FRIENDS[+b.dataset.i];
+    if(fd[f.ch]){ say(f.ar); document.getElementById("albHint").innerHTML=`${f.e} <span lang="ar">${f.ar}</span> (${f.en}) starts with <span lang="ar">${LNAME[f.ch]}</span>`; }
+    else { say(LNAME[f.ch]); document.getElementById("albHint").innerHTML=`The <b><span lang="ar">${LNAME[f.ch]}</span></b> friend is hiding in <b>${BIOMES[biomeAt(f.x,f.y)].en}</b>.`; } });
+}
+function allFound(){ const p=LQ.player(); if(!p||p.friendsAll) return; LQ.update(q=>{ q.friendsAll=Date.now(); }); LQ.addCoins(100); hud(); say("أَحْسَنْتَ");
+  openFm(`<div class="big">🏆</div><h2>All 28 Letter Friends!</h2><p>You found every friend and know every letter. <b>+100 🪙</b> from Teta!</p><div class="row"><button class="btn go" id="wOk">Yay!</button></div>`);
+  document.getElementById("wOk").onclick=closeFm; }
+document.getElementById("enterCancel").onclick=e=>{ e.stopPropagation(); cancelEnter(); };
+document.getElementById("albumBtn").onclick=()=>{ closeCard(); album(); };
+
 /* ============ loop ============ */
 let last=performance.now(), T=0;
 function frame(now){
@@ -353,7 +521,11 @@ function frame(now){
     const dx=player.tx-player.x, dy=player.ty-player.y, d=Math.hypot(dx,dy), step=280*dt;
     if(Math.abs(dx)>2) player.face=dx>0?1:-1;
     if(d<=step){ player.x=player.tx; player.y=player.ty; player.moving=false; marker=null;
-      if(pendingLandmark){ openCard(pendingLandmark); pendingLandmark=null; } }
+      if(pendingLandmark){ openCard(pendingLandmark); pendingLandmark=null; }
+      if(pendingEnterL){ startEnter(pendingEnterL); pendingEnterL=null; }
+      else { const onPad=LANDMARKS.find(l=>OPEN[l.id]&&Math.hypot((player.x-padOf(l).x)/1.6,player.y-padOf(l).y)<45); if(onPad) startEnter(onPad); }
+      if(pendingFriend){ meetFriend(pendingFriend); pendingFriend=null; }
+      if(pendingTeta){ tetaTalk(); pendingTeta=false; } }
     else { const nx=player.x+dx/d*step, ny=player.y+dy/d*step;
       if(walkable(nx,ny)){ player.x=nx; player.y=ny; } else { player.moving=false; marker=null; } }
   }
@@ -368,13 +540,18 @@ function frame(now){
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
   ctx.drawImage(ground,0,0,W,H);
   drawRiver(T); drawPond();
+  for(const l of LANDMARKS) drawPad(l,T);
   if(marker){ marker.t+=dt; const r=14+Math.sin(marker.t*6)*4; ctx.strokeStyle="rgba(255,255,255,.9)"; ctx.lineWidth=4; ctx.beginPath(); ctx.ellipse(marker.x,marker.y,r,r*0.45,0,0,7); ctx.stroke(); }
   const vx0=cam.x-120, vx1=cam.x+VW/ZOOM+120, vy0=cam.y-60, vy1=cam.y+VH/ZOOM+160;
   const list=[];
   for(const p of props) if(p.x>vx0&&p.x<vx1&&p.y>vy0&&p.y<vy1) list.push({y:p.y,f:()=>{ if(p.b!=="sea") shadow(p.x,p.y,p.s*0.32); const bob=(p.b==="sea")?Math.sin(T*2+p.x)*3:0; drawEmoji(p.e,p.x,p.y+bob,p.s);} });
   for(const l of LANDMARKS) list.push({y:l.y,f:()=>drawLandmark(l,T)});
+  const fd=found();
+  for(const f of FRIENDS) if(f.x>vx0&&f.x<vx1&&f.y>vy0&&f.y<vy1) list.push({y:f.y,f:()=>drawFriend(f,!!fd[f.ch],T)});
+  list.push({y:TETA.y,f:()=>drawTeta(T)});
   list.push({y:player.y,f:()=>drawPlayer(T)});
   list.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
+  for(const l of LANDMARKS) drawArrow(l,T);
   drawBubble();
   drawMini();
   requestAnimationFrame(frame);
@@ -385,14 +562,14 @@ document.getElementById("startBtn").onclick=()=>{
   document.getElementById("start").remove();
   LQ.profiles(()=>{ hud(); setTimeout(()=>showZone(biomeAt(player.x,player.y)),400); });
 };
-function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); }
+function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("albumN").textContent=Object.keys(found()).length; }
 LQ.onChange(hud); hud();
 document.getElementById("whoBtn").onclick=()=>{ closeCard(); LQ.leave(); LQ.profiles(()=>hud()); };
 /* coming back from a zone (same tab, same player): go straight back onto the map next to that zone */
 (function resume(){
   const p=LQ.sessionPlayer(); if(!p) return;
   const from=new URLSearchParams(location.search).get("from"); const l=LANDMARKS.find(x=>x.id===from);
-  if(l){ player.x=player.tx=l.x; player.y=player.ty=l.y+150; cam.x=player.x-VW/2/ZOOM; cam.y=player.y-VH/2/ZOOM; currentZone=biomeAt(player.x,player.y); }
+  if(l){ player.x=player.tx=l.x; player.y=player.ty=l.y+215; cam.x=player.x-VW/2/ZOOM; cam.y=player.y-VH/2/ZOOM; currentZone=biomeAt(player.x,player.y); }
   const st=document.getElementById("start"); if(st) st.remove();
   const h=document.getElementById("hint"); if(h) h.style.opacity=0;
   hud();
