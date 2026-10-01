@@ -81,7 +81,11 @@ function initState(){
  {const rd=realDay();if(S.probe.day!==rd){S.probe.day=rd;S.probe.runs=0;}}
  if(S.bat==null)S.bat=batMax();
  charge(true); // the helmet battery charges while you are away
+ if(S.y===0)PEND_FOS=deliverFossils(); /* fossil pieces still in the backpack at camp (a new cave reset the hero to camp without beaming home) go to the Museum */
 }
+/* fossil pieces travel to the Museum whenever the hero is at camp; they never sit in the backpack (where the Lab can't see them) */
+let PEND_FOS=0;
+function deliverFossils(){const fos=(S.pack||[]).filter(p=>p.t==='f');if(!fos.length)return 0;S.fos=S.fos||{};fos.forEach(p=>{S.fos[p.id]=S.fos[p.id]||[];S.fos[p.id][p.i]=1;});S.pack=S.pack.filter(p=>p.t!=='f');try{save(true);}catch(e){}return fos.length;}
 /* battery charges over time — only at camp (or while the game is closed). Math power-ups charge it instantly. */
 const CHG=[{v:10,c:0,e:'🔌',n:'Basic Charger'},{v:15,c:250,r:10,e:'🔌',n:'Fast Charger'},{v:22,c:700,r:25,e:'⚡',n:'Turbo Charger'},{v:32,c:1600,r:50,e:'⚡',n:'Mega Charger'}];
 function now(){try{return H&&H.now?H.now():Date.now();}catch(e){return Date.now();}}
@@ -1134,12 +1138,13 @@ function open(host){
  H=host;S=host.state;initState();
  if(!document.getElementById('cvCSS')){const st=document.createElement('style');st.id='cvCSS';st.textContent=CSS;document.head.appendChild(st);}
  let tripK=null;
- if(MQ()){S.bat=batMax();S.tripPow=0;S.x=4;S.y=0;uvOn=false;S.trips=(S.trips||0)+1;
+ if(MQ()){S.bat=batMax();S.tripPow=0;S.x=4;S.y=0;uvOn=false;S.trips=(S.trips||0)+1;PEND_FOS+=deliverFossils();
   if(H.tripRock){tripK='r'+Date.now().toString(36);S.pack.push({t:'m',id:H.tripRock,k:tripK,tests:{},map:1});}}
  genWorld();build();snapCam();hud();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+ if(!MQ()&&PEND_FOS){try{say(`🦴 ${PEND_FOS} fossil piece${PEND_FOS>1?'s':''} went to the 🏛️ Museum.`);}catch(e){}PEND_FOS=0;}
  if(MQ()){const first=!S.stats.dug&&S.trips<=1;setTimeout(()=>{S.caveIn=false;},0);
   modal(`<div class="cv-card">${first?`<div class="cv-big">⛏️</div><h2>Deep Down: The Science Cave</h2>`:''}${guide(first?`Welcome to my dig site, ${esc(H.player.name)}! Down there are the real layers of the Earth — minerals 💎, fossils 🦴 and cave critters 🦇.<br>First, let's find out what your <b>mystery rock</b> is. I'll show you how in the Lab!`:pick(Math.random,[`Welcome back, ${esc(H.player.name)}! Let's see what that mystery rock of yours is.`,`Ooh, another mystery rock! To the Lab — I can't wait to find out what it is!`,`Hello again, rock detective! Let's test your mystery rock first, then you can dig.`]))}
-  ${!first&&S.caveIn?'<p class="cv-sub">🌀 The cave shifted since your last visit — fresh minerals, coins and fossil pieces are waiting!</p>':(!first?'<p class="cv-sub">⛏️ Your tunnels are just where you left them. Keep digging deeper!</p>':'')}<p class="cv-sub">Your battery is full. ⚡ Math can add up to one more battery of charge this trip.</p><button class="cv-btn" id="cvGoLab">🔬 Study my mystery rock</button></div>`,{noX:1});
+  ${!first&&S.caveIn?'<p class="cv-sub">🌀 The cave shifted since your last visit — fresh minerals, coins and fossil pieces are waiting!</p>':(!first?'<p class="cv-sub">⛏️ Your tunnels are just where you left them. Keep digging deeper!</p>':'')}${(()=>{const n=PEND_FOS;PEND_FOS=0;return n?`<p class="cv-sub">🦴 <b>${n} fossil piece${n>1?'s':''}</b> from your backpack went to the 🏛️ Museum! Build skeletons there.</p>`:'';})()}<p class="cv-sub">Your battery is full. ⚡ Math can add up to one more battery of charge this trip.</p><button class="cv-btn" id="cvGoLab">🔬 Study my mystery rock</button></div>`,{noX:1});
   const b=root.querySelector('#cvGoLab');if(b)b.onclick=()=>{closeModal();if(tripK)bench(tripK);else openLab();};
   save(true);return;}
  if(S.caveIn){S.caveIn=false;say('🌙 Overnight a small cave-in shifted the rocks — new pockets have opened! Look for today\'s ✨ secret pocket.',5000);}

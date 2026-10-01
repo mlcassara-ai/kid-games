@@ -761,7 +761,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.09.30q';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.01a';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -3949,7 +3949,7 @@ const youngReader=p=>!!p&&!p.adult&&(+p.grade||3)<=2;
    signs ("minus", "negative"), squares, degrees, percents */
 const FR_ORD={2:['half','halves'],3:['third','thirds'],4:['fourth','fourths'],5:['fifth','fifths'],6:['sixth','sixths'],7:['seventh','sevenths'],8:['eighth','eighths'],9:['ninth','ninths'],10:['tenth','tenths'],11:['eleventh','elevenths'],12:['twelfth','twelfths'],15:['fifteenth','fifteenths'],16:['sixteenth','sixteenths'],20:['twentieth','twentieths'],25:['twenty-fifth','twenty-fifths'],50:['fiftieth','fiftieths'],100:['hundredth','hundredths'],1000:['thousandth','thousandths']};
 function frWords(n,d){const w=FR_ORD[+d];if(w)return ` ${n} ${+n===1?w[0]:w[1]} `;return ` ${n} over ${d} `;}
-function speakable(t){let s=String(t).replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,' and ');
+function speakable(t){let s=String(t).replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,' and ');try{s=s.replace(/[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\u{1F1E6}-\u{1F1FF}\u200d\ufe0f\u20e3]/gu,' ');}catch(e){} /* never read emoji out loud */
  s=s.replace(/½/g,' 1 half ').replace(/¼/g,' 1 fourth ').replace(/¾/g,' 3 fourths ').replace(/⅓/g,' 1 third ').replace(/⅔/g,' 2 thirds ').replace(/⅛/g,' 1 eighth ');
  s=s.replace(/_{2,}|＿+|☐|□/g,' ? ');                                   // blanks
  s=s.replace(/(^|[^\d.\/])(\d+)\s*\/\s*(\d+)(?![\d.\/])/g,(m,pre,n,d)=>pre+frWords(n,d)); // 3/4 -> 3 fourths
@@ -3963,7 +3963,7 @@ function speakable(t){let s=String(t).replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,
   .replace(/\?{2,}/g,'?').replace(/\s+([?.!,])/g,'$1').replace(/\s+/g,' ').trim();
  return s;}
 function qSpeakText(){const el=document.getElementById('qtext');if(!el)return '';const c=el.cloneNode(true);
- c.querySelectorAll('.qspk,.tqa,button,.lboxes,.wtimer').forEach(x=>x.remove());
+ c.querySelectorAll('.qspk,.tqa,button,.lboxes,.wtimer,.vis').forEach(x=>x.remove()); /* .vis = the picture (ladybug groups, towers, graphs): the kid looks at it; never read each emoji aloud */
  c.querySelectorAll('.fr').forEach(f=>{const k=f.children;const part=x=>x?(x.querySelector('.ansbox')?'?':x.textContent.trim()):'';f.replaceWith(document.createTextNode(k.length>=2?` ${part(k[0])}/${part(k[1])} `:f.textContent));});
  c.querySelectorAll('.ansbox').forEach(x=>x.replaceWith(document.createTextNode(' ? ')));
  return speakable(c.innerText||c.textContent||'');}
@@ -3974,7 +3974,7 @@ function qSpeakFor(q){if(q&&q.type==='word')return {t:q.sentence?`${q.word}. ${q
  return {t,r:.85};}
 function qSpeak(){try{speechSynthesis.cancel();}catch(e){}const q=typeof B!=='undefined'&&B?B.q:null;const s=qSpeakFor(q);if(s&&s.t)say(s.t,s.r);}
 /* every 🔊 button: tap once to read, tap again (while it's talking) to stop */
-function ttsBusy(){try{return !!(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending));}catch(e){return false;}}
+function ttsBusy(){try{return !!(TTS_QON||window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending));}catch(e){return false;}}
 function ttsStop(){try{TTS_KEEP=null;speechSynthesis.cancel();}catch(e){}}
 function speakToggle(fn){if(ttsBusy()){ttsStop();return;}fn();}
 let QPRIMING=false;
@@ -4611,9 +4611,26 @@ function pickVoice(){try{const vs=speechSynthesis.getVoices()||[];return vs.find
    cancel() and speak() happen in the same instant, the speech engine got paused in the background, or the utterance is
    garbage-collected mid-sentence. ttsSpeak() works around all four. */
 let TTS_KEEP=null,TTS_UNLOCKED=false;
-function ttsSpeak(u){try{const ss=window.speechSynthesis;if(!ss)return;TTS_KEEP=u;u.onend=u.onerror=()=>{if(TTS_KEEP===u)TTS_KEEP=null;};
- const go=()=>{try{ss.resume();ss.speak(u);}catch(e){}};
- if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120);}else go();}catch(e){}}
+/* Natural pacing: every spoken text is split into sentences and spoken one at a time with a short breath between them
+   (the speech engines run sentences together otherwise). Any cancel — ttsStop(), a new ttsSpeak(), or a direct
+   speechSynthesis.cancel() anywhere in the game — drops the rest of the queue. */
+const TTS_PAUSE=450;let TTS_SEQ=0,TTS_QON=false,TTS_GAP=null;
+function ttsSentences(t){t=String(t||'').replace(/\s+/g,' ').trim();if(!t)return [];
+ const keep=t.replace(/\b(Dr|Mr|Mrs|Ms|St|Mt|vs|etc|e\.g|i\.e)\.\s/gi,(m,a)=>a+'\u0001 ');
+ const parts=keep.replace(/([.!?…])\s+(?=["'“(]?[A-Z0-9¿¡])/g,'$1\u0002').split('\u0002').map(x=>x.replace(/\u0001/g,'.').trim()).filter(x=>x&&/[A-Za-z0-9]/.test(x));
+ return parts.length?parts:[t];}
+(function(){try{const ss=window.speechSynthesis;if(!ss||ss.__mqWrap)return;const c=ss.cancel.bind(ss);ss.cancel=function(){TTS_SEQ++;TTS_QON=false;clearTimeout(TTS_GAP);return c();};ss.__mqWrap=1;}catch(e){}})();
+function ttsSpeak(u){try{const ss=window.speechSynthesis;if(!ss)return;
+ const parts=ttsSentences(u.text);
+ const mk=t=>{const x=new SpeechSynthesisUtterance(t);x.lang=u.lang;x.rate=u.rate;x.pitch=u.pitch;x.volume=u.volume;if(u.voice)x.voice=u.voice;return x;};
+ const start=()=>{const seq=++TTS_SEQ;TTS_QON=true;let i=0;
+  const next=()=>{if(seq!==TTS_SEQ)return;if(i>=parts.length){TTS_QON=false;TTS_KEEP=null;return;}
+   const x=parts.length===1?u:mk(parts[i]);i++;TTS_KEEP=x;let fin=false;
+   const done=()=>{if(fin)return;fin=true;if(seq!==TTS_SEQ)return;if(i<parts.length){TTS_GAP=setTimeout(next,TTS_PAUSE);}else next();};
+   x.onend=done;x.onerror=e=>{if(e&&(e.error==='interrupted'||e.error==='canceled'))return;done();};
+   try{ss.resume();ss.speak(x);}catch(e){done();}};
+  next();};
+ if(ss.speaking||ss.pending||TTS_QON){ss.cancel();setTimeout(start,120);}else start();}catch(e){}}
 function ttsUnlock(){if(TTS_UNLOCKED)return;TTS_UNLOCKED=true;try{const ss=window.speechSynthesis;if(!ss)return;ss.getVoices();const u=new SpeechSynthesisUtterance(' ');u.volume=0;ss.speak(u);}catch(e){}}
 ['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,ttsUnlock,{once:true,capture:true}));
 function voiceOn(){try{const p=state.cur&&P();return !(p&&p.voice===false);}catch(e){return true;}}
