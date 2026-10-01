@@ -65,8 +65,8 @@ Adaptive math battles plus a village of side activities, for grades 1–12 and a
 
 ### Release checklist
 
-1. Run `/usr/bin/python3 math-quest/tools/smoke.py`. It must print `RESULT: PASS`. Add a test there when a new feature or bug fix would otherwise go unchecked.
-2. Bump the version (`YYYY.MM.DD` + letter) to the same string in `math-quest/version.json` and `APP_VER` in `math-quest/index.html`. Add-ons are cached by `?v=APP_VER`, so any change to any file needs a bump.
+1. Run `/usr/bin/python3 math-quest/tools/smoke.py` on its own (never piped or chained with `|`, which hides its exit code). It must print `RESULT: PASS`. Add a test there when a new feature or bug fix would otherwise go unchecked.
+2. Bump the version (`YYYY.MM.DD` + letter) to the same string in `math-quest/version.json` and `APP_VER` in `math-quest/index.html`. Add-ons are cached by `?v=APP_VER`, so any change to a game file needs a bump (files under `tools/` do not).
 3. Release from a separate git worktree based on `origin/main`, not from this folder: the Language Quest session shares this checkout and may have unpublished work on `main`.
 4. Push, then confirm Pages serves the new `version.json` and that the changed files match byte for byte.
 

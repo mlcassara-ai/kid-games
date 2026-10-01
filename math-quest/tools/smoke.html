@@ -60,13 +60,17 @@ const tests=[
 
 ['battle: right answer, wrong answer, win',async function(){
   T.reset();const p=T.hero('Battle',3);state.cur=p.id;go('world');const b0=p.battles;
-  startBattle('forest',0);await T.until(()=>B&&B.q&&!B.busy,10000,'first question');
-  const r0=p.stats.add.r,q1=B.q;B.input=String(q1.answer);answer();
-  await T.until(()=>B.q&&B.q!==q1&&!B.busy,10000,'second question');T.ok(p.stats.add.r===r0+1,'right answer not counted');
-  const q2=B.q;B.input=String(q2.answer+1);answer();await T.until(()=>fbOpen,8000,'wrong-answer card');
-  T.ok(p.missed[q2.text],'missed problem not stored');closeFeedback();
-  await T.until(()=>B.q&&!B.busy&&!fbOpen,12000,'question after a miss');
-  B.mhp=1;B.foes.forEach(f=>{f.hp=1;});const q3=B.q;B.input=String(q3.answer);answer();
+  /* "Flip it" questions (20% of the time) take two numbers, so answer through helpers that know both kinds */
+  const right=()=>{const q=B.q;if(q.rev){B.input=String(q.ex[0][0]);B.input2=String(q.ex[0][1]);}else B.input=String(q.answer);answer();};
+  const wrong=()=>{const q=B.q;if(q.rev){B.input='99999';B.input2='99999';}else B.input=String(q.answer+1);answer();};
+  const ready=()=>B&&B.q&&!B.busy&&!fbOpen&&!document.querySelector('#modal.show');
+  startBattle('forest',0);await T.until(ready,10000,'first question');
+  const r0=p.stats.add.r,q1=B.q;right();
+  await T.until(()=>ready()&&B.q!==q1,12000,'second question');T.ok(p.stats.add.r===r0+1,'right answer not counted');
+  const w0=p.stats.add.w,n0=Object.keys(p.missed).length;wrong();await T.until(()=>fbOpen,8000,'wrong-answer card');
+  T.ok(p.stats.add.w===w0+1&&Object.keys(p.missed).length===n0+1,'missed problem not stored');closeFeedback();
+  await T.until(ready,12000,'question after a miss');
+  B.mhp=1;B.foes.forEach(f=>{f.hp=1;});right();
   await T.until(()=>p.battles>b0,20000,'battle win to be counted');T.ok(p.battles===b0+1,'battle win not counted');}],
 
 ['sync: field merge, duplicate heroes, removed groups',async function(){
