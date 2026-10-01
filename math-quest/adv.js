@@ -177,7 +177,7 @@ const SACK=`<svg viewBox="0 0 60 60"><path d="M18 18 Q10 30 10 42 Q10 56 30 56 Q
 let TAB='camp',RES=null;
 function send(force){const p=P(),a=A(p);if(a.trip)return;const crew=a.crew.filter(id=>p.pets.includes(id)&&!(window.PetCare&&PetCare.rescued(p,id)));if(!crew.length)return;
  if(!force&&crew.includes(p.pet)){const n=petN(p.pet);modal(`<div class="mcard"><div class="big-emoji">${petE(p.pet)}</div><h2>${esc(n)} is your battle buddy!</h2><p>If ${esc(n)} goes on the trip, you won't have a pet helping you in battles until they're back (${fmtClock(Date.now()+TRIPS[a.len].hrs*36e5)} ${dayWord(Date.now()+TRIPS[a.len].hrs*36e5)}).</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Keep ${esc(n)} home</button><button class="btn green" onclick="closeModal();Adv.send(true)">Send them anyway</button></div></div>`);return;}
- const T=TRIPS[a.len];a.trip={dest:a.dest,len:a.len,crew,start:Date.now(),end:Date.now()+T.hrs*36e5,mood:{}};
+ const T=TRIPS[a.len];a.trip={dest:a.dest,len:a.len,crew,start:Date.now(),end:Date.now()+T.hrs*36e5,mood:{}};if(a.pack){a.trip.pack=Math.min(4,a.pack);a.pack=0;} /* pack: extra finds earned by the packing questions (daily.js) */
  /* postcards are mailed halfway through the trip (chance grows with trip length; the very first trip always sends one) */
  if(Math.random()<({short:.08,mid:.25,night:.5}[a.len]||.25)||a.trips===0)a.trip.pc=a.trip.start+(a.trip.end-a.trip.start)/2;a.trip.v=2;
  crew.forEach(id=>{const pd=petData(p,id);if(typeof petMood==='function')petMood(pd);a.trip.mood[id]=[pd.food,pd.joy];});
@@ -198,7 +198,8 @@ function finish(){const p=P(),a=A(p),tr=a.trip;if(!tr)return null;const T=TRIPS[
  const early=!!tr.early&&Date.now()<tr.start+T.hrs*36e5;
  const res={dest:tr.dest,len:tr.len,crew:tr.crew,early,sacks:[],diary:[],xp:early?2:T.xp,card:null,grew:[]};
  const seen={...a.shelf};let egg=0;
- tr.crew.forEach(id=>{const home=d.home.includes(id);const n=early?1:T.items+(home?1:0);const items=[];let coins=0;
+ const xPack=early?0:(tr.pack||0),xCrew=tr.crew.length||1;
+ tr.crew.forEach((id,ci)=>{const home=d.home.includes(id);const n=early?1:T.items+(home?1:0)+Math.floor(xPack/xCrew)+(ci<xPack%xCrew?1:0);const items=[];let coins=0;
   for(let k=0;k<n;k++){let it=early?{k:'coins',e:'🪙',n:'coins',v:rnd(2,6)}:rollItem(p,tr.len,d);
    if(it.k==='egg'){if(egg)it={k:'coins',e:'🪙',n:'coins',v:rnd(T.coins[0],T.coins[1])};else egg=1;}
    if((it.k==='toy'||it.k==='gear')&&res.sacks.concat([{items}]).some(s=>s.items.some(x=>x.k===it.k&&x.id===it.id)))it={k:'coins',e:'🪙',n:'coins',v:rnd(T.coins[0],T.coins[1])};
