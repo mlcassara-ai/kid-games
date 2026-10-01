@@ -70,7 +70,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&state&&sta
 
 /* ---------------- Parent Corner ---------------- */
 const own=()=>state.ownGroups||(state.ownGroups={});
-function allCodes(){const s=new Map();Object.keys(own()).forEach(c=>s.set(gNorm(c),c));state.players.forEach(p=>mine(p).forEach(g=>s.set(gNorm(g.code),g.code)));return [...s.values()];}
+function allCodes(){const s=new Map();Object.keys(own()).filter(c=>own()[c]).forEach(c=>s.set(gNorm(c),c));state.players.forEach(p=>mine(p).forEach(g=>s.set(gNorm(g.code),g.code)));return [...s.values()];}
 function section(){const codes=allCodes();
  return `<div class="pp" id="grpbox"><h3>👫 Class groups</h3>
  <p>Let classmates see each other on a weekly <b>class leaderboard</b>. Each hero shares only a small score card: a name you choose, their hero picture, level and this week's points. No chat, and nobody can see or change anyone else's game. Names are checked for unkind words and can't repeat in a group.</p>
@@ -124,7 +124,7 @@ async function leave(code,pid){const p=state.players.find(x=>x.id===pid);if(!p)r
  modal(`<div class="mcard"><h2>Leave the group?</h2><p>${esc(p.name)}'s score card will be removed from the class board. You can join again later with the code.</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Cancel</button><button class="btn danger" onclick="Groups.leaveNow('${esc(code)}','${pid}')">Leave</button></div></div>`);}
 async function leaveNow(code,pid){const p=state.players.find(x=>x.id===pid);try{await gWrite(code,d=>{if(!d.members[pid])return false;delete d.members[pid];});}catch(e){}
  if(p){p.groups=mine(p).filter(g=>gNorm(g.code)!==gNorm(code));save();}closeModal();go('parent');}
-function forget(code){const k=gNorm(code);state.players.forEach(p=>{if(mine(p).some(g=>gNorm(g.code)===k)){leaveNow(code,p.id);}});delete own()[k];save();go('parent');}
+function forget(code){const k=gNorm(code);state.players.forEach(p=>{if(mine(p).some(g=>gNorm(g.code)===k)){leaveNow(code,p.id);}});own()[k]='';save();go('parent');}
 async function manageUI(code){let d=null;try{d=await gLoad(code,0);}catch(e){toast("Couldn't reach the internet.");return;}if(!d)return;
  const ms=Object.entries(d.members||{}).sort((a,b)=>String(a[1].n).localeCompare(b[1].n));
  modal(`<div class="mcard"><h2>👫 ${esc(d.name)}</h2><p>Rename or remove a score card. A removed hero can only come back if their parent joins again.</p>
