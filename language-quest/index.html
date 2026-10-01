@@ -48,7 +48,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 </head>
 <body>
 <canvas id="game" aria-label="Language Quest world map. Tap to walk."></canvas>
-<div class="hud"><div class="pill">Language Quest</div><div class="pill">🪙 0</div>
+<div class="hud"><div class="pill">Language Quest</div><div class="pill" id="coinPill">🪙 0</div>
+  <button class="pill" id="whoBtn" aria-label="Switch player">👤 <span id="whoName"></span></button>
   <button class="pill" id="soundBtn" aria-label="Sound on or off">🔊</button></div>
 <div id="start"><div class="box"><div style="font-size:3rem">🗺️</div><h2>Language Quest</h2><p>Tap things to hear their names in Arabic.</p>
   <button class="btn go" id="startBtn">▶ Tap to start</button></div></div>
@@ -63,6 +64,7 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
+<script src="lq-core.js"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -233,7 +235,7 @@ function openCard(l){ cardLandmark=l; const e=document.getElementById("cEnter");
 function closeCard(){ card.classList.remove("show"); }
 document.getElementById("cClose").onclick=closeCard;
 document.getElementById("cAr").onclick=()=>say(document.getElementById("cAr").textContent);
-document.getElementById("cEnter").onclick=()=>{ if(cardLandmark&&cardLandmark.id==="dunes"){ location.href="letters/"; return; } document.getElementById("cEnter").textContent="Coming soon!"; setTimeout(()=>document.getElementById("cEnter").textContent="Enter (coming soon)",1500); };
+document.getElementById("cEnter").onclick=()=>{ if(cardLandmark&&cardLandmark.id==="dunes"){ if(!LQ.player()){ LQ.profiles(()=>{ hud(); location.href="letters/"; }); return; } location.href="letters/"; return; } document.getElementById("cEnter").textContent="Coming soon!"; setTimeout(()=>document.getElementById("cEnter").textContent="Enter (coming soon)",1500); };
 
 /* ============ minimap ============ */
 const mini=document.getElementById("mini"), mctx=mini.getContext("2d");
@@ -314,7 +316,7 @@ function drawPlayer(time){
   ctx.fillStyle="#12233D"; const sw=player.moving?Math.sin(time*12)*5:0;
   rr(-11+sw,-18,8,18,4); ctx.fill(); rr(3-sw,-18,8,18,4); ctx.fill();
   // body
-  ctx.fillStyle="#1E5AA8"; rr(-16,-50,32,36,12); ctx.fill();
+  ctx.fillStyle=(LQ.player()&&LQ.player().color)||"#1E5AA8"; rr(-16,-50,32,36,12); ctx.fill();
   ctx.fillStyle="#F2B134"; rr(-16,-36,32,6,3); ctx.fill();
   // head
   ctx.fillStyle="#E9B98E"; ctx.beginPath(); ctx.arc(0,-66,18,0,7); ctx.fill();
@@ -323,8 +325,8 @@ function drawPlayer(time){
   ctx.restore();
   // name tag
   ctx.font=`800 15px "Baloo Bhaijaan 2",system-ui,sans-serif`; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
-  const tw=ctx.measureText("You").width+16; ctx.fillStyle="rgba(18,35,61,.75)"; rr(x-tw/2,y-bob-112,tw,22,11); ctx.fill();
-  ctx.fillStyle="#fff"; ctx.fillText("You",x,y-bob-96);
+  const tag=(LQ.player()&&LQ.player().name)||"You"; const tw=ctx.measureText(tag).width+16; ctx.fillStyle="rgba(18,35,61,.75)"; rr(x-tw/2,y-bob-112,tw,22,11); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.fillText(tag,x,y-bob-96);
 }
 function drawBubble(){
   if(!bubble) return; const p=bubble.p; const a=Math.min(1,(3.2-bubble.t)*2);
@@ -380,8 +382,11 @@ requestAnimationFrame(frame);
 document.getElementById("startBtn").onclick=()=>{
   pickVoice(); say("أَهْلًا وَسَهْلًا");            // first sound inside a tap unlocks speech on iPad
   document.getElementById("start").remove();
-  setTimeout(()=>showZone(biomeAt(player.x,player.y)),1400);
+  LQ.profiles(()=>{ hud(); setTimeout(()=>showZone(biomeAt(player.x,player.y)),400); });
 };
+function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("whoName").textContent=p?p.name:""; }
+LQ.onChange(hud); hud();
+document.getElementById("whoBtn").onclick=()=>{ closeCard(); LQ.profiles(()=>hud()); };
 document.getElementById("soundBtn").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ player_audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
 
 </script>

@@ -105,13 +105,14 @@ h2{margin:4px 0 8px; font-size:1.3rem}
 <div class="wrap">
   <div class="top">
     <button class="pill" id="back">← Map</button>
-    <h1>Letter Dunes</h1>
+    <h1>Letter Dunes <span id="who" style="font-size:1rem;color:#1E5AA8"></span></h1>
     <div style="display:flex;gap:6px"><button class="pill" id="snd" aria-label="Sound on or off">🔊</button><div class="pill coins">🪙 <span id="coins">0</span></div></div>
   </div>
   <main id="app"></main>
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛺</div><h2>Letter Dunes</h2><p class="muted">كُثْبَانُ الحُرُوف — catch the letter shapeshifters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
+<script src="../lq-core.js"></script>
 <script>
 /* ============ letters data ============
    [letter, name(with harakat), English name, joins-left?, look-alikes, words: [emoji, word, English, position 1=start 2=middle 3=end] ] */
@@ -153,13 +154,15 @@ const TAT="\u0640", SLOT=["Alone","Start","Middle","End"], WHERE=["","at the sta
 function forms(ch){ return INFO[ch]&&!INFO[ch].joins ? [ch,ch,TAT+ch,TAT+ch] : [ch,ch+TAT,TAT+ch+TAT,TAT+ch]; }
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
-/* ============ save (this device for now; class accounts come later) ============ */
-const KEY="languagequest.letters.v1";
-let save={coins:0, letters:{}, camps:{}};
-try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) save=Object.assign(save,s); }catch(e){}
-function persist(){ try{ localStorage.setItem(KEY,JSON.stringify(save)); }catch(e){} $("coins").textContent=save.coins; }
-function addCoins(n){ save.coins+=n; persist(); }
+/* ============ save: the signed-in player (shared with the map through lq-core.js) ============ */
 const $=id=>document.getElementById(id);
+if(!LQ.player()) location.replace("../");               // nobody signed in: go pick a player on the map
+const save={ get coins(){ const p=LQ.player(); return p?p.coins||0:0; },
+             get letters(){ const p=LQ.player(); return p?(p.letters=p.letters||{}):{}; },
+             get camps(){ const p=LQ.player(); return p?(p.camps=p.camps||{}):{}; } };
+function persist(){ LQ.update(()=>{}); $("coins").textContent=save.coins; const p=LQ.player(); if(p) $("who").textContent=p.name; }
+function addCoins(n){ LQ.addCoins(n); $("coins").textContent=save.coins; }
+LQ.onChange(()=>{ const e=$("coins"); if(e) e.textContent=save.coins; });
 
 /* ============ voice: generated Google voice (Puck) with device fallback ============ */
 const AUDIO_BASE="https://storage.googleapis.com/kid-games-dc068-voices/lq/ar-XA-Chirp3-HD-Puck/";
@@ -235,13 +238,13 @@ function catchGame(ch){
 function tapOrb(b,ch){
   const I=INFO[ch], f=forms(ch);
   if(b.dataset.real==="true"){
-    const idx=b.dataset.idx.split(",").map(Number); b.classList.add("pop"); say(I.nm); hop(); addCoins(5);
+    const idx=b.dataset.idx.split(",").map(Number); b.classList.add("pop"); say(I.nm); hop(); addCoins(5); LQ.record("letters",ch,true);
     idx.forEach(i=>{ caught.add(i); const s=document.querySelectorAll(".slot")[i]; s.classList.add("got"); s.querySelector("b").textContent=f[i]; });
     const left=4-caught.size;
     if(left<=0){ talk("You found all my disguises! 🎉 Now find me hiding inside real words."); setTimeout(()=>wordsStep(ch),1300); }
     else talk(`Got me! That's my <b>${idx.map(i=>SLOT[i].toLowerCase()).join(" and ")}</b> shape. ${left} more to go.`);
   } else {
-    const D=INFO[b.dataset.d]; b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); if(D) say(D.nm);
+    const D=INFO[b.dataset.d]; LQ.record("letters",ch,false,b.dataset.d); b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); if(D) say(D.nm);
     talk(`Nope, that's <b>${D?D.en:"another letter"}</b> <span class="ar" lang="ar">${D?D.nm:""}</span>, not me! Look closely at the dots and the shape.`);
   }
 }
@@ -256,7 +259,7 @@ function wordsStep(ch){
   document.querySelectorAll(".word").forEach(b=>b.onclick=()=>{ const j=+b.dataset.j; say(I.words[j][1]); b.classList.add("heard");
     if(!heard.has(j)){ heard.add(j); addCoins(3); }
     if(heard.size===3){ $("done").disabled=false; talk("You found me everywhere! Tap Done to go back to camp."); } });
-  $("done").onclick=()=>{ if(!save.letters[ch]){ save.letters[ch]=1; addCoins(10); } persist(); camp(curCamp); };
+  $("done").onclick=()=>{ if(!save.letters[ch]){ LQ.update(p=>{ p.letters=p.letters||{}; p.letters[ch]=1; }); addCoins(10); } persist(); camp(curCamp); };
 }
 
 /* ---- sand monster (camp boss) ---- */
@@ -281,11 +284,11 @@ function boss(c){
       <div class="actions"><button class="btn ghost" id="again">🔊 Hear again</button><button class="btn ghost" id="run">Run away</button></div></div>`;
     say(speak); $("again").onclick=()=>say(speak); $("run").onclick=()=>camp(c);
     document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy)return; busy=true;
-      if(b.dataset.ok==="true"){ b.classList.add("right"); hp--; qn++; addCoins(4); }
-      else { b.classList.add("wrong"); hearts--; document.querySelector('.opt[data-ok="true"]').classList.add("right"); qn++; }
+      if(b.dataset.ok==="true"){ b.classList.add("right"); hp--; qn++; addCoins(4); LQ.record("letters",q.ch,true); }
+      else { b.classList.add("wrong"); hearts--; LQ.record("letters",q.ch,false,b.textContent.replace(/\u0640/g,"")); document.querySelector('.opt[data-ok="true"]').classList.add("right"); qn++; }
       setTimeout(()=>{ busy=false; draw(); },900); });
   }
-  function win(){ const stars=hearts===3?3:hearts===2?2:1; const first=!save.camps[c]; save.camps[c]=Math.max(save.camps[c]||0,stars); addCoins(first?30:10); persist();
+  function win(){ const stars=hearts===3?3:hearts===2?2:1; const first=!save.camps[c]; LQ.update(p=>{ p.camps=p.camps||{}; p.camps[c]=Math.max(p.camps[c]||0,stars); }); addCoins(first?30:10); persist();
     say("أَحْسَنْتَ");
     $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You beat the sand monster!</h2>
       <p style="font-size:2rem;color:var(--saffron);margin:0">${"★".repeat(stars)}${"☆".repeat(3-stars)}</p>
