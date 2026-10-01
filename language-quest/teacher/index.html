@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Language Quest – Teacher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{ --sky:#1E5AA8; --mint:#2FA894; --rose:#E0607E; --saffron:#F2B134; --ink:#12233D; --muted:#5A6B82; --line:#D5DFEA; --card:#fff; --bg:#EEF4FA;
+  --font:"Baloo Bhaijaan 2","Geeza Pro","Noto Sans Arabic",system-ui,sans-serif; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --ink:#EEF3FA; --muted:#A9B8CC; --line:#35506e; --card:#1D2B45; --bg:#0F1B2E; } }
+:root[data-theme="dark"]{ --ink:#EEF3FA; --muted:#A9B8CC; --line:#35506e; --card:#1D2B45; --bg:#0F1B2E; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%} body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font)}
+.wrap{max-width:900px; margin:0 auto; padding:16px}
+h1{margin:0; font-size:1.7rem} h1 small{display:block; font-size:1rem; color:var(--muted); font-weight:500}
+h2{margin:0 0 8px; font-size:1.25rem}
+.card{background:var(--card); border-radius:20px; padding:16px; margin-top:14px; box-shadow:0 3px 12px rgba(20,40,80,.1)}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.btn{font:inherit; font-weight:800; font-size:1rem; border:0; border-radius:12px; padding:9px 16px; min-height:44px; cursor:pointer; background:var(--sky); color:#fff}
+.btn.g{background:var(--mint)} .btn.gh{background:#EAF2FB; color:#12233D} .btn.r{background:var(--rose)}
+.btn:focus-visible,input:focus-visible{outline:3px solid var(--saffron); outline-offset:2px}
+.row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+input{font:inherit; font-size:1.1rem; padding:9px 12px; border-radius:12px; border:2px solid var(--line); background:var(--card); color:var(--ink); width:100%}
+label{display:block; font-weight:700; margin:10px 0 4px}
+.key{font-weight:800; font-size:1.25rem; background:#FFF8E6; color:#12233D; border-radius:12px; padding:10px 12px; text-align:center; word-break:break-all; margin:8px 0}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse; width:100%; min-width:640px}
+th,td{text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:middle}
+th{font-size:.85rem; color:var(--muted); font-weight:700}
+td .ar{font-size:1.25rem}
+.tag{display:inline-block; background:#FFE3E8; color:#12233D; border-radius:999px; padding:1px 9px; margin:2px; font-size:.95rem}
+.tag.good{background:#DDF5EC}
+.fam{border-top:1px solid var(--line); padding-top:12px; margin-top:12px}
+.fam h3{margin:0 0 4px}
+.kid{display:inline-flex; align-items:center; gap:6px; background:#EAF2FB; color:#12233D; border-radius:999px; padding:3px 6px 3px 12px; margin:3px 4px 3px 0}
+.kid button{border:0; background:transparent; cursor:pointer; font-size:1rem; color:#C2476A}
+.dot{width:14px; height:14px; border-radius:50%; display:inline-block}
+.err{color:#C2476A; font-weight:700; min-height:1.2rem}
+.cols{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0}
+.cols button{width:36px; height:36px; border-radius:50%; border:3px solid #fff; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.cols button.on{border-color:#12233D}
+.status{font-size:.9rem; color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>window.LQ_VER="2026.10.01c";</script>
+<script src="../lq-core.js?v=2026.10.01c"></script>
+<script>
+const $=id=>document.getElementById(id), esc=LQ.esc, API=LQ.cloudApi;
+const TKEY="languagequest.teacher";
+const WORDS="FALCON OLIVE RIVER MOON CEDAR DUNE CAMEL LEMON MANGO TIGER PANDA ROCKET COMET MAPLE OCEAN CANYON DESERT MEADOW FOREST PLANET DRAGON CASTLE BRIDGE HARBOR ISLAND GLACIER THUNDER RAINBOW SUNSET PENGUIN DOLPHIN OTTER PARROT GIRAFFE ZEBRA KOALA LLAMA PEPPER GINGER COCOA WAFFLE PICKLE MUFFIN PEACH PLUM CHERRY ROBOT MAGNET PUZZLE MARBLE KITE DRUM FLUTE PIANO SILVER GOLDEN COPPER VIOLET AMBER CORAL JADE RUBY PEARL TOPAZ".split(" ");
+function teacherKey(){ const r=()=>crypto.getRandomValues(new Uint32Array(1))[0]; const w=()=>WORDS[r()%WORDS.length]; return `CLASS-${w()}-${w()}-${w()}-${w()}-${w()}-${String(r()%90+10)}`; }
+const norm=x=>String(x||"").trim().toLowerCase().replace(/\s+/g," ");
+const BASE=location.href.replace(/teacher\/.*$/,"");
+const joinLink=code=>BASE+"?family="+encodeURIComponent(code);
+let key=null, cls=null, fams={}, unlocked=false;
+try{ key=localStorage.getItem(TKEY); }catch(e){}
+
+/* ---------- storage helpers (same online save as the families use) ---------- */
+async function loadClass(){ cls=await API.get(key); if(cls&&cls.kind!=="class") cls=null; return cls; }
+async function saveClass(){ cls.upd=Date.now(); await API.put(key,cls); }
+async function loadFamilies(){ const out={}; await Promise.all((cls.families||[]).map(async f=>{ try{ out[f.code]=await API.get(f.code)||{players:[]}; }catch(e){ out[f.code]={players:[],error:true}; } })); fams=out; }
+async function editFamily(code,fn){ const d=await API.get(code)||{v:1,players:[],deleted:{},pin:null,pinUpd:0}; d.deleted=d.deleted||{}; fn(d); d.cls={name:cls.name,teacher:cls.teacher}; d.upd=Date.now(); await API.put(code,d); fams[code]=d; }
+function allStudents(){ const list=[]; (cls.families||[]).forEach(f=>{ (fams[f.code]&&fams[f.code].players||[]).forEach(p=>list.push({p,f})); }); return list; }
+
+/* ---------- screens ---------- */
+function shell(html){ $("app").innerHTML=html; }
+function start(){
+  if(!key) return welcome();
+  shell(`<div class="card" style="text-align:center">Loading your class…</div>`);
+  loadClass().then(c=>{ if(!c){ shell(`<div class="card"><h2>Couldn't open the class</h2><p class="muted">The teacher key saved on this device didn't work. Check the internet connection, or enter your teacher key again.</p><div class="row"><button class="btn" id="retry">Try again</button><button class="btn gh" id="other">Enter a teacher key</button></div></div>`); $("retry").onclick=start; $("other").onclick=()=>{ localStorage.removeItem(TKEY); key=null; welcome(); }; return; }
+    unlocked?dashboard():askPin(); }).catch(()=>{ shell(`<div class="card"><h2>No internet?</h2><p class="muted">The teacher page needs a connection.</p><button class="btn" id="retry">Try again</button></div>`); $("retry").onclick=start; });
+}
+function welcome(){
+  shell(`<h1>🍎 Language Quest — Teacher<small lang="ar">رِحْلَةُ اللُّغَة</small></h1>
+   <div class="card"><h2>Set up your class</h2>
+     <label for="cn">Class name</label><input id="cn" placeholder="e.g. Saturday Arabic">
+     <label for="tn">Your name (families will see it)</label><input id="tn" placeholder="e.g. Teacher Aroub">
+     <label for="pn">Pick a 4-digit teacher PIN</label><input id="pn" inputmode="numeric" maxlength="4" style="max-width:160px">
+     <div class="err" id="err"></div><button class="btn g" id="make">Create my class</button></div>
+   <div class="card"><h2>Already have a class?</h2><p class="muted small">Type your teacher key to open it on this device.</p>
+     <input id="tk" placeholder="CLASS-…" autocapitalize="characters" autocomplete="off"><div class="err" id="err2"></div><button class="btn" id="open">Open my class</button></div>`);
+  $("make").onclick=async()=>{ const name=$("cn").value.trim(), teacher=$("tn").value.trim(), pin=$("pn").value.trim();
+    if(!name) return $("err").textContent="Please give the class a name."; if(!/^\d{4}$/.test(pin)) return $("err").textContent="The PIN needs exactly 4 digits.";
+    $("make").textContent="Creating…"; key=teacherKey(); cls={v:1,kind:"class",name,teacher,pin,families:[],created:Date.now()};
+    try{ await saveClass(); localStorage.setItem(TKEY,key); unlocked=true; fams={}; showKey(true); } catch(e){ key=null; $("make").textContent="Create my class"; $("err").textContent="Couldn't reach the internet. Try again."; } };
+  $("open").onclick=async()=>{ const k=$("tk").value.trim().toUpperCase(); if(k.replace(/[^A-Z0-9]/g,"").length<20) return $("err2").textContent="That key looks too short.";
+    key=k; $("open").textContent="Opening…"; try{ if(!await loadClass()){ key=null; $("open").textContent="Open my class"; return $("err2").textContent="No class found with that key."; } localStorage.setItem(TKEY,key); askPin(); }
+    catch(e){ key=null; $("open").textContent="Open my class"; $("err2").textContent="Couldn't reach the internet."; } };
+}
+function showKey(first){
+  shell(`<div class="card"><h2>${first?"🎉 Your class is ready!":"Your teacher key"}</h2>
+    <p>This is your <b>teacher key</b>. It opens your class on any device. <b>Keep it private</b> — don't send it to families.</p>
+    <div class="key">${esc(key)}</div>
+    <div class="row"><button class="btn gh" id="cp">Copy key</button><button class="btn g" id="go">${first?"Go to my class ▶":"Back"}</button></div></div>`);
+  $("cp").onclick=()=>copy(key,$("cp")); $("go").onclick=()=>dashboard();
+}
+function askPin(){
+  shell(`<div class="card" style="max-width:380px;margin:40px auto;text-align:center"><h2>🍎 ${esc(cls.name)}</h2><p class="muted">Teacher PIN</p>
+    <input id="pin" type="password" inputmode="numeric" maxlength="4" style="text-align:center;letter-spacing:.5rem;max-width:180px">
+    <div class="err" id="err"></div><button class="btn g" id="ok">Open</button></div>`);
+  const go=()=>{ if($("pin").value.trim()===cls.pin){ unlocked=true; dashboard(); } else { $("err").textContent="That's not it."; $("pin").value=""; } };
+  $("ok").onclick=go; $("pin").onkeydown=e=>{ if(e.key==="Enter") go(); }; setTimeout(()=>$("pin").focus(),50);
+}
+const acc=e=>e&&(e.r+e.w)?e.r/(e.r+e.w):null;
+function statsOf(p){ const st=p.stats||{}; const all=[].concat(Object.values(st.letters||{}),Object.values(st.marks||{}),Object.values(st.words||{}));
+  const tot=all.reduce((s,e)=>s+e.r+e.w,0), right=all.reduce((s,e)=>s+e.r,0);
+  const weak=[...Object.entries(st.letters||{}).filter(([k,e])=>e.r+e.w>=3&&acc(e)<0.6).map(([k])=>`<span class="tag ar" lang="ar">${esc(k)}</span>`),
+              ...Object.entries(st.marks||{}).filter(([k,e])=>e.r+e.w>=3&&acc(e)<0.6).map(([k])=>`<span class="tag">${esc(k)}</span>`)].slice(0,5);
+  const days=Object.keys(p.days||{}).length; const last=days&&p.last?Math.round((Date.now()-p.last)/86400000):null;
+  return {letters:Object.keys(p.letters||{}).length, camps:Object.keys(p.camps||{}).length, pools:Object.keys(p.falls||{}).length,
+          pct:tot?Math.round(right/tot*100):null, weak, last:last===null?"never":last===0?"today":last===1?"yesterday":last+" days ago"}; }
+async function dashboard(refresh){
+  if(refresh||!Object.keys(fams).length&&(cls.families||[]).length){ shell(`<div class="card" style="text-align:center">Loading students…</div>`); try{ await loadFamilies(); }catch(e){} }
+  const students=allStudents();
+  const mix={}; students.forEach(({p})=>Object.entries((p.stats||{}).mix||{}).forEach(([k,n])=>mix[k]=(mix[k]||0)+n));
+  const topMix=Object.entries(mix).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const ar=t=>/[\u0600-\u06FF]/.test(t)?`<bdi class="ar" lang="ar" style="font-size:1.2rem">${esc(t)}</bdi>`:`<b>${esc(t)}</b>`;
+  shell(`<div class="row" style="justify-content:space-between"><h1>🍎 ${esc(cls.name)}<small>${esc(cls.teacher||"")} · ${students.length} student${students.length===1?"":"s"} in ${(cls.families||[]).length} famil${(cls.families||[]).length===1?"y":"ies"}</small></h1>
+      <div class="row"><button class="btn gh" id="rf">↻ Refresh</button><button class="btn gh" id="tk">🔑 Teacher key</button></div></div>
+    <div class="card"><h2>How the class is doing</h2>
+      ${students.length?`<div class="tbl"><table><thead><tr><th>Student</th><th>Letters</th><th>Camps</th><th>Sound Falls</th><th>Right</th><th>Needs help</th><th>Last played</th><th></th></tr></thead><tbody>
+      ${students.map(({p,f},i)=>{ const s=statsOf(p); return `<tr><td><span class="dot" style="background:${esc(p.color)}"></span> <b>${esc(p.name)}</b><div class="small muted">${esc(f.label)}</div></td>
+        <td>${s.letters}/28</td><td>${s.camps}/7</td><td>${s.pools}/8</td><td>${s.pct===null?"—":s.pct+"%"}</td><td>${s.weak.join("")||'<span class="muted small">—</span>'}</td><td class="small">${s.last}</td>
+        <td><button class="btn gh" data-det="${i}">Details</button></td></tr>`; }).join("")}</tbody></table></div>`:`<p class="muted">No students yet. Add your first family below.</p>`}
+      ${topMix.length?`<h2 style="margin-top:14px">Class mix-ups</h2><div>${topMix.map(([k,n])=>{ const [a,b]=k.split("→"); return `<span class="tag">wanted ${ar(a)}, picked ${ar(b)} (${n}×)</span>`; }).join("")}</div>`:""}
+      <div class="status" style="margin-top:8px">Progress updates when the families' devices go online. Tap Refresh to pull the latest.</div></div>
+    <div class="card"><h2>Families</h2><p class="muted small" style="margin:0">Each family gets one private link for all their children. They open it once on each device they use.</p>
+      ${(cls.families||[]).map((f,i)=>{ const d=fams[f.code]||{players:[]}; return `<div class="fam"><h3>${esc(f.label)}</h3>
+        <div>${(d.players||[]).map(p=>`<span class="kid"><span class="dot" style="background:${esc(p.color)}"></span>${esc(p.name)}<button title="Remove ${esc(p.name)}" data-rm="${i}|${p.id}">✕</button></span>`).join("")||'<span class="muted small">No children yet</span>'}</div>
+        <div class="row" style="margin-top:6px"><button class="btn g" data-share="${i}">📨 Share join link</button><button class="btn gh" data-copy="${i}">Copy link</button><button class="btn gh" data-add="${i}">➕ Add child</button><button class="btn gh" data-drop="${i}">Remove family</button></div></div>`; }).join("")}
+      <div class="row" style="margin-top:14px"><button class="btn" id="addFam">➕ Add a family</button></div></div>`);
+  $("rf").onclick=()=>dashboard(true); $("tk").onclick=()=>showKey(false); $("addFam").onclick=()=>familyForm();
+  document.querySelectorAll("[data-det]").forEach(b=>b.onclick=()=>{ const {p}=students[+b.dataset.det]; LQ.report.detail(p,()=>{ LQ.report.close(); },false); });
+  document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>copy(joinLink(cls.families[+b.dataset.copy].code),b));
+  document.querySelectorAll("[data-share]").forEach(b=>b.onclick=()=>share(cls.families[+b.dataset.share],b));
+  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>familyForm(cls.families[+b.dataset.add]));
+  document.querySelectorAll("[data-drop]").forEach(b=>b.onclick=async()=>{ const f=cls.families[+b.dataset.drop]; if(!confirm(`Remove the ${f.label} from your class? Their link keeps working at home, but you won't see their progress.`)) return;
+    cls.families.splice(+b.dataset.drop,1); try{ await saveClass(); }catch(e){ alert("Couldn't save. Check the internet."); } dashboard(); });
+  document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{ const [i,id]=b.dataset.rm.split("|"); const f=cls.families[+i]; const p=(fams[f.code].players||[]).find(x=>x.id===id);
+    if(!p||!confirm(`Remove ${p.name} from the class? Their progress will be deleted.`)) return;
+    try{ await editFamily(f.code,d=>{ d.deleted[id]=Date.now(); d.players=(d.players||[]).filter(x=>x.id!==id); }); }catch(e){ alert("Couldn't save. Check the internet."); } dashboard(); });
+}
+function familyForm(fam){
+  let rows=[{name:"",color:LQ.COLORS[0]}], label="";
+  const draw=()=>{ shell(`<div class="card" style="max-width:560px;margin:10px auto"><h2>${fam?`Add a child to the ${esc(fam.label)}`:"Add a family"}</h2>
+      ${fam?"":`<label for="fl">Family name</label><input id="fl" placeholder="e.g. Haddad family" value="${esc(label)}">`}
+      ${rows.map((r,i)=>`<label for="k${i}">Child ${rows.length>1?i+1:""} first name</label><input id="k${i}" value="${esc(r.name)}" maxlength="14" autocomplete="off">
+        <div class="cols">${LQ.COLORS.map(c=>`<button data-i="${i}" data-c="${c}" class="${c===r.color?"on":""}" style="background:${c}" aria-label="color"></button>`).join("")}</div>`).join("")}
+      ${fam?"":`<button class="btn gh" id="more">➕ Another child in this family</button>`}
+      <div class="err" id="err"></div>
+      <div class="row" style="margin-top:8px"><button class="btn gh" id="cancel">Cancel</button><button class="btn g" id="save">Save</button></div></div>`);
+    const sync=()=>{ rows.forEach((r,i)=>r.name=$("k"+i).value); if($("fl")) label=$("fl").value; };
+    document.querySelectorAll(".cols button").forEach(b=>b.onclick=()=>{ sync(); rows[+b.dataset.i].color=b.dataset.c; draw(); });
+    if($("more")) $("more").onclick=()=>{ sync(); rows.push({name:"",color:LQ.COLORS[rows.length%LQ.COLORS.length]}); draw(); };
+    $("cancel").onclick=()=>dashboard();
+    $("save").onclick=async()=>{ sync(); const kids=rows.filter(r=>r.name.trim()); label=fam?fam.label:label.trim();
+      if(!label) return $("err").textContent="Please type the family name."; if(!kids.length) return $("err").textContent="Please type at least one child's name.";
+      const taken=new Set(allStudents().map(({p})=>norm(p.name))); const seen=new Set();
+      for(const k of kids){ const n=norm(k.name); if(taken.has(n)||seen.has(n)) return $("err").textContent=`There's already a student called ${k.name.trim()}. Add a last initial, like "${k.name.trim()} B".`; seen.add(n); }
+      $("save").textContent="Saving…";
+      try{
+        if(fam){ await editFamily(fam.code,d=>{ kids.forEach(k=>d.players.push(LQ.blankPlayer(k.name.trim(),k.color))); }); dashboard(); }
+        else { const code=API.genCode(); const d={v:1,players:kids.map(k=>LQ.blankPlayer(k.name.trim(),k.color)),pin:null,pinUpd:0,deleted:{},cls:{name:cls.name,teacher:cls.teacher},upd:Date.now()};
+          await API.put(code,d); fams[code]=d; cls.families.push({code,label,created:Date.now()}); await saveClass(); linkReady(cls.families[cls.families.length-1]); }
+      }catch(e){ $("save").textContent="Save"; $("err").textContent="Couldn't reach the internet. Try again."; } };
+  };
+  draw();
+}
+function linkReady(f){
+  shell(`<div class="card" style="max-width:560px;margin:10px auto"><h2>✅ ${esc(f.label)} added</h2>
+    <p>Send this link to the family. They open it once on each device, and their children appear ready to play.</p>
+    <div class="key" style="font-size:1rem">${esc(joinLink(f.code))}</div>
+    <div class="row"><button class="btn g" id="sh">📨 Share link</button><button class="btn gh" id="cp">Copy link</button><button class="btn" id="dn">Done</button></div></div>`);
+  $("sh").onclick=()=>share(f,$("sh")); $("cp").onclick=()=>copy(joinLink(f.code),$("cp")); $("dn").onclick=()=>dashboard();
+}
+async function copy(t,btn){ try{ await navigator.clipboard.writeText(t); if(btn){ const o=btn.textContent; btn.textContent="Copied!"; setTimeout(()=>btn.textContent=o,1500); } }catch(e){ prompt("Copy this:",t); } }
+async function share(f,btn){ const text=`${cls.teacher||"Your teacher"} invited you to ${cls.name} on Language Quest. Open this link on your child's device:`;
+  if(navigator.share){ try{ await navigator.share({title:"Language Quest",text,url:joinLink(f.code)}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
+  copy(text+" "+joinLink(f.code),btn); }
+LQ.report.css(); start();
+</script>
+</body>
+</html>

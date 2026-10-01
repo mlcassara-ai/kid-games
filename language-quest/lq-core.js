@@ -15,7 +15,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
 
 /* ---------------- state ---------------- */
-let state={v:1, players:[], cur:null, pin:null, pinUpd:0, deleted:{}};
+let state={v:1, players:[], cur:null, pin:null, pinUpd:0, deleted:{}, cls:null};
 try{ const s=JSON.parse(localStorage.getItem(SAVE_KEY)||"null"); if(s&&s.players) state=Object.assign(state,s); }catch(e){}
 try{ if(!state.pin){ const p=localStorage.getItem(PIN_KEY); if(p) state.pin=p; } }catch(e){}
 function blankPlayer(name,color){ return {id:uid(), name, color, lock:null, setup:true, coins:0, created:Date.now(),
@@ -52,7 +52,7 @@ async function cloudPut(c,obj){ const t=await token();
   const body={fields:{data:{stringValue:JSON.stringify(obj)},updated:{integerValue:String(Date.now())},v:{integerValue:"1"}}};
   const r=await fetch(docUrl(c),{method:"PATCH",headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify(body)});
   if(!r.ok) throw new Error("put "+r.status); }
-const payload=()=>({v:1,players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},upd:Date.now()});
+const payload=()=>({v:1,players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},cls:state.cls||null,upd:Date.now()});
 function merge(remote,keepId){
   const del=Object.assign({},remote.deleted||{},state.deleted||{}); const map=new Map(), order=[];
   (remote.players||[]).forEach(p=>{ map.set(p.id,p); order.push(p.id); });
@@ -60,6 +60,7 @@ function merge(remote,keepId){
   const sig=()=>JSON.stringify(state.players,(k,v)=>k==="upd"?undefined:v); const before=sig();
   state.players=order.map(id=>map.get(id)).filter(p=>!(del[p.id]&&del[p.id]>=(p.upd||0))); state.deleted=del;
   if(remote.pin&&(!state.pin||(remote.pinUpd||0)>(state.pinUpd||0))){ state.pin=remote.pin; state.pinUpd=remote.pinUpd||0; }
+  if(remote.cls) state.cls=remote.cls;
   if(state.cur&&!state.players.find(p=>p.id===state.cur)) state.cur=null;
   stampChanges(true); saveLocal(); return before!==sig();
 }
@@ -77,7 +78,7 @@ function cloudText(){ if(!cloud.code) return "Saved on this device only"; if(clo
 function badge(){ document.querySelectorAll(".lq-cloud").forEach(e=>e.textContent=cloudText()); }
 
 /* ---------------- listeners ---------------- */
-const listeners=[]; function fire(){ listeners.forEach(f=>{ try{ f(); }catch(e){} }); }
+const listeners=[]; function fire(){ listeners.forEach(f=>{ try{ f(); }catch(e){} }); if(onProfiles&&document.getElementById("lqOv")&&document.querySelector("#lqOv .lq-pro, #lqOv #lqParent")&&!document.querySelector("#lqOv input")) profiles(); }
 
 /* ---------------- stats (for the parent/teacher view) ---------------- */
 function today(){ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
@@ -136,7 +137,8 @@ function hero(color,size){ return `<svg viewBox="0 0 80 92" width="${size||80}" 
   <path d="M35 34q5 4 10 0" fill="none" stroke="#12233D" stroke-width="2" stroke-linecap="round"/></svg>`; }
 
 let enterCb=null;
-function profiles(onEnter){
+let onProfiles=false;
+function profiles(onEnter){ onProfiles=true;
   if(onEnter) enterCb=onEnter;
   const list=state.players.map(p=>`<button class="lq-pc" data-id="${p.id}">${hero(p.color)}<div class="n">${esc(p.name)}</div>
     <div class="s">🪙 ${p.coins||0} · ${Object.keys(p.letters||{}).length}/28 letters${p.lock?" 🔒":""}</div></button>`).join("");
@@ -149,7 +151,7 @@ function profiles(onEnter){
   document.getElementById("lqParent").onclick=()=>askPin(parentCorner);
 }
 function choose(id){ const p=state.players.find(x=>x.id===id); if(!p) return; if(p.lock&&p.lock.length) askLock(p); else enter(p); }
-function enter(p){ state.cur=p.id; p.last=Date.now(); try{ sessionStorage.setItem("lq.active",p.id); }catch(e){} saveLocal(); closeOverlay(); fire(); if(enterCb) enterCb(p); }
+function enter(p){ onProfiles=false; state.cur=p.id; p.last=Date.now(); try{ sessionStorage.setItem("lq.active",p.id); }catch(e){} saveLocal(); closeOverlay(); fire(); if(enterCb) enterCb(p); }
 function askLock(p){ let tries=[]; const pics=[...PICS].sort(()=>Math.random()-.5);
   overlay(`<div class="lq-card" style="max-width:380px;margin:40px auto;text-align:center">${hero(p.color,70)}<h2>Hi ${esc(p.name)}! 🔒</h2>
     <p>Tap your ${p.lock.length} secret pictures in order.</p><div class="lq-dots" id="lqDots">${p.lock.map(()=>"○").join(" ")}</div>
@@ -191,7 +193,7 @@ function chooseLock(p,isNew){ let pick=[];
 }
 
 /* ---------------- parent PIN + Parent Corner ---------------- */
-function askPin(next){
+function askPin(next){ onProfiles=false;
   if(!state.pin){ let first=null;
     const setP=(msg)=>{ overlay(`<div class="lq-card" style="max-width:380px;margin:40px auto;text-align:center"><h2>${first?"Type it again":"Create a parent PIN"}</h2>
       <p class="lq-small">${msg||"4 digits. Grown-ups use it to open the Parent Corner."}</p>
@@ -227,8 +229,8 @@ function kidSummary(p){
     <div class="lq-small">Needs help with</div><div class="lq-tags bad">${weak.length?weak.map(x=>`<span>${x}</span>`).join(""):"<span>Nothing flagged yet 👍</span>"}</div>
     <div class="lq-row" style="justify-content:flex-start;margin-top:4px"><button class="lq-btn" data-detail="${p.id}">See details ▶</button></div></div>`;
 }
-function kidDetail(id){
-  const p=state.players.find(x=>x.id===id); if(!p) return parentCorner(); const st=p.stats||{};
+function kidDetail(id){ const p=state.players.find(x=>x.id===id); if(!p) return parentCorner(); kidDetailFor(p,parentCorner,true); }
+function kidDetailFor(p,back,family){ const st=p.stats||{};
   const LS=st.letters||{}, MS=st.marks||{}, WS=st.words||{};
   const COL={good:"#C9F0E3",ok:"#FFF0C2",bad:"#FFD6DE",new:"#EAF2FB",none:"#F4F6F8"};
   const cell=ch=>{ const e=LS[ch], lv=level(e), got=(p.letters||{})[ch];
@@ -252,8 +254,8 @@ function kidDetail(id){
       ${mix.length?`<div class="lq-tags bad">${mix.map(([k,n])=>{ const [a,b]=k.split("→"); const ar=t=>/[\u0600-\u06FF]/.test(t)?`<bdi class="lq-ar" lang="ar">${esc(t)}</bdi>`:`<b>${esc(t)}</b>`; return `<span>wanted ${ar(a)}, picked ${ar(b)} <span dir="ltr">(${n}×)</span></span>`; }).join("")}</div>`:`<p class="lq-small">No mix-ups yet.</p>`}</div>
     <div class="lq-card"><h2 style="text-align:left;margin-top:0">Most recent mistakes</h2>
       ${recent.length?recent.map(r=>`<div class="lq-small" style="margin:3px 0">${agoText(r.t)} · ${ZN[r.z]||esc(r.z)} · wanted <bdi style="font-size:1.15rem">${esc(r.a)}</bdi>${r.b?` · picked <bdi style="font-size:1.15rem">${esc(r.b)}</bdi>`:""}</div>`).join(""):`<p class="lq-small">None yet.</p>`}</div>
-    <div class="lq-row"><button class="lq-btn gh" data-lock="${p.id}">🔒 Secret pictures</button><button class="lq-btn gh" data-del="${p.id}">Remove player</button><button class="lq-btn" id="lqBackPC">◀ All kids</button></div>`);
-  document.getElementById("lqBackPC").onclick=parentCorner;
+    <div class="lq-row">${family?`<button class="lq-btn gh" data-lock="${p.id}">🔒 Secret pictures</button>${state.cls?"":`<button class="lq-btn gh" data-del="${p.id}">Remove player</button>`}`:""}<button class="lq-btn" id="lqBackPC">◀ Back</button></div>`);
+  document.getElementById("lqBackPC").onclick=back;
   wireKidButtons();
 }
 function wireKidButtons(){
@@ -265,7 +267,7 @@ function wireKidButtons(){
 function parentCorner(){
   const kids=state.players.length?state.players.map(kidSummary).join(""):`<p class="lq-small">No players yet.</p>`;
   overlay(`<h1>Parent Corner</h1>
-    <div class="lq-card"><h2 style="text-align:left;margin-top:0">How the kids are doing</h2>${kids}<div class="lq-row" style="justify-content:flex-start"><button class="lq-btn g" id="lqAddKid">➕ Add a player</button></div></div>
+    <div class="lq-card"><h2 style="text-align:left;margin-top:0">How the kids are doing</h2>${kids}${state.cls?`<p class="lq-small" style="margin-top:12px">🍎 You're in <b>${esc(state.cls.name)}</b>${state.cls.teacher?" with "+esc(state.cls.teacher):""}. Your teacher adds and removes students.</p>`:`<div class="lq-row" style="justify-content:flex-start"><button class="lq-btn g" id="lqAddKid">➕ Add a player</button></div>`}</div>
     <div class="lq-card"><h2 style="text-align:left;margin-top:0">☁️ Online save</h2>
       ${cloud.code?`<p>This device saves online with your family code. Type it on another device to share the same players:</p><div class="lq-code">${esc(cloud.code)}</div>
         <div class="lq-row" style="justify-content:flex-start"><button class="lq-btn gh" id="lqCopy">Copy code</button><button class="lq-btn gh" id="lqOff">Stop saving online on this device</button></div>`
@@ -280,7 +282,7 @@ function parentCorner(){
   document.getElementById("lqDone").onclick=()=>profiles();
   document.getElementById("lqChPin").onclick=()=>{ state.pin=null; askPin(parentCorner); };
   wireKidButtons();
-  document.getElementById("lqAddKid").onclick=()=>createPlayer();
+  const ak=document.getElementById("lqAddKid"); if(ak) ak.onclick=()=>createPlayer();
   const on=document.getElementById("lqOn"); if(on) on.onclick=async()=>{ cloud.code=genCode(); try{ localStorage.setItem(FAM_KEY,cloud.code); }catch(e){} cloud.status=""; parentCorner(); await syncNow(); parentCorner(); };
   const off=document.getElementById("lqOff"); if(off) off.onclick=()=>{ if(!confirm("Stop saving online on this device? Players stay on this device.")) return; cloud.code=null; try{ localStorage.removeItem(FAM_KEY); }catch(e){} parentCorner(); };
   const cp=document.getElementById("lqCopy"); if(cp) cp.onclick=async()=>{ try{ await navigator.clipboard.writeText(cloud.code); cp.textContent="Copied!"; }catch(e){ prompt("Copy this code:",cloud.code); } };
@@ -298,9 +300,48 @@ window.LQ={
   leave(){ state.cur=null; try{ sessionStorage.removeItem("lq.active"); }catch(e){} saveLocal(); fire(); }, parentCorner:()=>askPin(parentCorner), onChange:f=>listeners.push(f),
   update(fn){ const p=cur(); if(!p) return; fn(p); p.last=Date.now(); p.days=p.days||{}; p.days[today()]=1; save(); },
   addCoins(n){ const p=cur(); if(!p) return; p.coins=(p.coins||0)+n; save(); },
-  record, syncNow, hero, esc
+  record, syncNow, hero, esc,
+  cloudApi:{ get:cloudGet, put:cloudPut, genCode, famId },
+  report:{ summary:kidSummary, detail:kidDetailFor, close:closeOverlay, css:ensureCss },
+  COLORS, blankPlayer
 };
 /* ?family=CODE link joins a household once */
-try{ const q=new URLSearchParams(location.search).get("family"); if(q&&!cloud.code){ cloud.code=q.toUpperCase(); localStorage.setItem(FAM_KEY,cloud.code); } }catch(e){}
+try{ const q=(new URLSearchParams(location.search).get("family")||"").toUpperCase();
+  if(q&&q!==cloud.code&&(!cloud.code||confirm("Switch this device to the family from this link? Players from the old family stay saved online under the old code."))){
+    if(cloud.code){ state.players=[]; state.deleted={}; state.cur=null; state.pin=null; state.cls=null; }
+    cloud.code=q; localStorage.setItem(FAM_KEY,q); saveLocal(); }
+  if(q){ const u=new URLSearchParams(location.search); u.delete("family"); history.replaceState(null,"",location.pathname+(u.toString()?"?"+u:"")+location.hash); } }catch(e){}
 if(cloud.code) syncNow();
+
+/* ---------------- updates: like Math Quest, the game notices a new version and reloads itself ----------------
+   Every page carries window.LQ_VER; language-quest/version.json holds the newest one. */
+(function(){
+  const VER=window.LQ_VER||"dev", ROOT=(location.pathname.match(/^(.*\/language-quest\/)/)||[])[1]||"./";
+  const EVERY=30*60e3, AWAY_QUIET=15*60e3; let pending=null, busy=false;
+  const onMap=()=>/\/language-quest\/(index\.html)?$/.test(location.pathname);
+  const safeNow=()=>onMap()&&!document.getElementById("lqOv")&&!document.getElementById("start")&&!document.hidden&&!(document.getElementById("card")||{classList:{contains:()=>false}}).classList.contains("show");
+  async function latest(){ if(location.protocol==="file:") return null; try{ const r=await fetch(ROOT+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) return null; const j=await r.json(); return j&&j.v?String(j.v):null; }catch(e){ return null; } }
+  function triedRecently(v){ try{ const t=JSON.parse(localStorage.getItem("lqUpdTry")||"null"); return t&&t.v===v&&Date.now()-t.t<20*60e3; }catch(e){ return false; } }
+  async function check(){ const v=await latest(); if(v&&v!==VER&&!triedRecently(v)){ pending=v; return true; } return false; }
+  function splash(msg){ const d=document.createElement("div"); d.style.cssText="position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#8FC6F0,#F7DFA8);display:flex;align-items:center;justify-content:center;font-family:'Baloo Bhaijaan 2',system-ui,sans-serif;color:#12233D;text-align:center";
+    d.innerHTML=`<div><div style="font-size:3rem">✨</div><div style="font-size:1.5rem;font-weight:800">${msg}</div><div style="color:#1E5AA8;font-size:1.3rem" lang="ar">رِحْلَةُ اللُّغَة</div></div>`; document.body.appendChild(d); }
+  async function reload(msg){ if(busy) return; busy=true; try{ saveLocal(); }catch(e){}
+    splash(msg||"Updating Language Quest…");
+    try{ if(cloud.code){ clearTimeout(cloud.timer); await Promise.race([syncNow(),new Promise(r=>setTimeout(r,4000))]); } }catch(e){}
+    try{ if(pending) localStorage.setItem("lqUpdTry",JSON.stringify({v:pending,t:Date.now()})); sessionStorage.setItem("lq.updated","1"); }catch(e){}
+    const q=new URLSearchParams(location.search); q.set("r",Date.now()); location.replace(location.pathname+"?"+q.toString()+location.hash); }
+  function banner(){ if(document.getElementById("lqUpd")) return; const b=document.createElement("button"); b.id="lqUpd"; b.type="button";
+    b.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:60;border:0;border-radius:999px;padding:12px 20px;font:800 1.05rem 'Baloo Bhaijaan 2',system-ui,sans-serif;background:#F2B134;color:#12233D;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer";
+    b.innerHTML="✨ New stuff in Language Quest! <u>Tap to update</u>"; b.onclick=()=>reload(); document.body.appendChild(b); }
+  function toast(t){ const d=document.createElement("div"); d.textContent=t; d.style.cssText="position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 70px);z-index:60;background:#fff;color:#12233D;border-radius:999px;padding:8px 16px;font:800 1rem 'Baloo Bhaijaan 2',system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.2)"; document.body.appendChild(d); setTimeout(()=>d.remove(),2600); }
+  // just arrived on a page (nothing to lose yet): if it's out of date, update right away
+  (async()=>{ try{ if(sessionStorage.getItem("lq.updated")){ sessionStorage.removeItem("lq.updated"); const q=new URLSearchParams(location.search); if(q.has("r")){ q.delete("r"); history.replaceState(null,"",location.pathname+(q.toString()?"?"+q:"")+location.hash); } setTimeout(()=>toast("✨ Language Quest is up to date!"),600); return; } }catch(e){}
+    if(await check()) reload(); })();
+  // while playing: check now and then; on the map it updates by itself when it's safe, elsewhere it offers a button
+  setInterval(async()=>{ if(document.hidden||busy) return; if(pending||await check()){ safeNow()?reload():banner(); } },EVERY);
+  document.addEventListener("visibilitychange",async()=>{ if(document.hidden){ try{ localStorage.setItem("lqHiddenAt",String(Date.now())); }catch(e){} return; }
+    let hid=0; try{ hid=+localStorage.getItem("lqHiddenAt")||0; }catch(e){} const away=Date.now()-hid;
+    if(await check()){ (away>=AWAY_QUIET&&safeNow())?reload():banner(); } });
+  window.LQ_UPDATE={check,reload,version:VER};
+})();
 })();
