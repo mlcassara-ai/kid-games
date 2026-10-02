@@ -155,8 +155,8 @@ h3{margin:14px 0 8px; font-size:1.1rem}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🛍️</div><h2>The Souq</h2><p class="muted">السُّوق — count with the shopkeepers!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02l";</script>
-<script src="../lq-core.js?v=2026.10.02l"></script>
+<script>window.LQ_VER="2026.10.02m";</script>
+<script src="../lq-core.js?v=2026.10.02m"></script>
 <script>
 /* ============ numbers data ============
    Counting words in the form used when counting aloud. STALLS: [name, what it covers, kind, the numbers taught].
@@ -193,6 +193,7 @@ function deviceSay(t){ if(!("speechSynthesis" in window))return; speechSynthesis
 function say(t){ if(!soundOn)return; const id=++sid; audio.pause(); audio.src=AUDIO_BASE+audioKey(t)+".mp3";
   audio.onerror=()=>{ if(id===sid) deviceSay(t); }; const p=audio.play(); if(p&&p.catch) p.catch(()=>{ if(id===sid) deviceSay(t); }); }
 $("snd").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
+try{ audio.volume=LQ.voiceVol()||1; }catch(e){} if(!LQ.voiceVol()){ soundOn=false; $("snd").textContent="🔇"; }      // voice volume comes from the map's sound menu
 $("back").onclick=()=>{ location.href="../?from=souq"; };
 // the map already said this zone's name on the way in; say it here only when arriving another way
 $("go").onclick=()=>{ let said=false; try{ said=sessionStorage.getItem("lq.said")==="souq"; sessionStorage.removeItem("lq.said"); }catch(e){} if(!said) say("السُّوق"); $("start").remove(); };

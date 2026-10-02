@@ -385,7 +385,10 @@ function mePage(){
   document.getElementById("lqMeWear").onclick=()=>{ location.href=((location.pathname.match(/^(.*\/language-quest\/)/)||[])[1]||"./")+"souq/?tailor=1"; };
 }
 window.LQ={
-  player:cur, profiles, me:mePage, mark, drawHero, WEAR, COLOR_NAMES, COLOR_EN,
+  player:cur, profiles, me:mePage, mark,
+  /* how loud the spoken Arabic is, 0 to 1, remembered on the device (set from the map's sound menu) */
+  voiceVol(){ try{ const v=parseFloat(localStorage.getItem("languagequest.voice")); return isNaN(v)?1:Math.max(0,Math.min(1,v)); }catch(e){ return 1; } },
+  setVoiceVol(v){ try{ localStorage.setItem("languagequest.voice",String(Math.max(0,Math.min(1,+v||0)))); }catch(e){} }, drawHero, WEAR, COLOR_NAMES, COLOR_EN,
   /* the player who is signed in on this tab right now (kept while moving between the map and the zones) */
   sessionPlayer(){ let id=null; try{ id=sessionStorage.getItem("lq.active"); }catch(e){} const p=cur(); return p&&p.id===id?p:null; },
   leave(){ state.cur=null; try{ sessionStorage.removeItem("lq.active"); }catch(e){} saveLocal(); fire(); }, parentCorner:()=>askPin(parentCorner), onChange:f=>listeners.push(f),

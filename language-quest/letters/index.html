@@ -129,8 +129,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛺</div><h2>Letter Dunes</h2><p class="muted">كُثْبَانُ الحُرُوف — catch the letter shapeshifters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02l";</script>
-<script src="../lq-core.js?v=2026.10.02l"></script>
+<script>window.LQ_VER="2026.10.02m";</script>
+<script src="../lq-core.js?v=2026.10.02m"></script>
 <script>
 /* ============ letters data ============
    [letter, name(with harakat), English name, joins-left?, look-alikes, words: [emoji, word, English, position 1=start 2=middle 3=end] ] */
@@ -206,6 +206,7 @@ function deviceSay(t){ if(!("speechSynthesis" in window))return; speechSynthesis
 function say(t){ if(!soundOn)return; const id=++sid; audio.pause(); audio.src=AUDIO_BASE+audioKey(t)+".mp3";
   audio.onerror=()=>{ if(id===sid) deviceSay(t); }; const p=audio.play(); if(p&&p.catch) p.catch(()=>{ if(id===sid) deviceSay(t); }); }
 $("snd").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
+try{ audio.volume=LQ.voiceVol()||1; }catch(e){} if(!LQ.voiceVol()){ soundOn=false; $("snd").textContent="🔇"; }      // voice volume comes from the map's sound menu
 $("back").onclick=()=>{ location.href="../?from=dunes"; };
 // the map already said this zone's name on the way in; say it here only when arriving another way
 $("go").onclick=()=>{ let said=false; try{ said=sessionStorage.getItem("lq.said")==="dunes"; sessionStorage.removeItem("lq.said"); }catch(e){} if(!said) say("كُثْبَانُ الحُرُوف"); $("start").remove(); };
