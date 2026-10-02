@@ -97,6 +97,10 @@ const tests=[
    T.ok(state.players.find(x=>x.id===h.id)===h,'the merge replaced the hero object');T.ok(h.sci===sci0,'the merge replaced an inner object');
    T.ok(h.grade===5&&h.sci.rocks===2&&h.sci.trips===6&&h.coins===b0.coins+7,'merged values are wrong: '+JSON.stringify([h.grade,h.sci,h.coins]));
    h.sci.key=1;T.ok(P()===null||true);T.ok(state.players.find(x=>x.id===h.id).sci.key===1,'a write after the merge was lost');}
+  /* a stale device (no agreed copy, or an old one) must never take a Troll or Eagle visit away */
+  {T.reset();const h=T.hero('Vis',3);h.troll={visits:2,hoard:[]};h.upd=Date.now()-9000;const rem=T.clone(h);rem.troll.visits=0;rem.eagle={visits:1,hoard:[]};rem.upd=Date.now();
+   mergeStates({v:1,players:[rem],deleted:{},gifts:{},ownGroups:{},live:{}},false,null);T.ok(h.troll.visits===2&&h.eagle.visits===1,'a visit count went down with no agreed copy: '+JSON.stringify([h.troll,h.eagle]));
+   BASE[h.id]=T.clone(h);const r2=T.clone(h);r2.troll.visits=1;r2.upd=Date.now()+50;mergeStates({v:1,players:[r2],deleted:{},gifts:{},ownGroups:{},live:{}},false,null);T.ok(h.troll.visits===2,'a visit count went down in a field merge');}
   T.reset();const weak=T.hero('Mika',3,{level:2,battles:3});const strong=T.clone(weak);strong.id='pCloudStrong';strong.level=9;strong.battles=80;
   const cloud={v:1,players:[strong],deleted:{},gifts:{},ownGroups:{'AAA-BBB-CCC-11':'s1','DDD-EEE-FFF-22':''},live:{}};
   state.ownGroups={'DDD-EEE-FFF-22':'s2'};mergeStates(T.clone(cloud),true,null);

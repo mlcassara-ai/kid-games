@@ -226,6 +226,7 @@ async function start(demo){
  }
  // 5. three story problems
  const res=[],took=[],gave=[],seenQ=new Set();
+ e.visits++;e.last=Date.now();save(); // counted as soon as the questions begin (see troll.js)
  for(let i=0;i<3;i++){
   let q=storyQ(p,0,seenQ);
   const ans=await S.ask(stage,bub,q,i,res,{who:WHO,intro:['Homework problem ONE!','Problem TWO!','Last one… problem THREE!'],story:true,easier:()=>storyQ(p,-1)});
@@ -251,7 +252,7 @@ async function start(demo){
   await say('You\'re no egg thief… you\'re a FRIEND! My chicks love you already. 💛');
   await say('But be careful! Next time, if you miss a problem, I\'ll keep something SHINY for my nest. Eagles LOVE shiny things!');
  }else await say(right===3?'The chicks are going to ACE Flight School thanks to you! 💛':took.length?'Remember — get them right next time and you can win your shiny things back!':'Great job, friend! The chicks learned a lot today.');
- e.visits++;e.last=Date.now();e.best=Math.max(e.best||0,right);save();
+ e.last=Date.now();e.best=Math.max(e.best||0,right);save();
  // 6. ride home on her back — friends now
  stage.classList.add('eg-kind');await say(first?'Hop on my back — I\'ll fly you home, friend!':pick(['Climb aboard, friend — same seat as last time!','Hop on! Hold on to my feathers — let\'s fly!','Time to go home! Hop on my back, homework hero!']));
  dark.classList.add('on');await sleep(700);stage.remove();

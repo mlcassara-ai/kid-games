@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.02n';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.02o';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -5077,9 +5077,11 @@ function merge3(b,l,r,preferL){
   ids.forEach(id=>{const v=merge3(bm.get(id),lm.get(id),rm.get(id),preferL);if(v!==undefined)out.push(v);});return out;}
  return preferL?l:r;
 }
+/* how many times the Troll and the Eagle have visited only ever goes up, whichever device wins */
+function visitsUp(m,l,r){['troll','eagle'].forEach(k=>{const v=Math.max((l[k]||{}).visits||0,(r[k]||{}).visits||0);if(v>((m[k]||{}).visits||0)){m[k]=m[k]||{};m[k].visits=v;}});return m;}
 function mergePlayer(b,l,r,preferL){
- if(!b)return preferL?l:r; // never agreed before: keep the old whole-player rule
- const m=merge3(b,l,r,preferL);
+ if(!b)return visitsUp(preferL?l:r,l,r); // never agreed before: keep the old whole-player rule
+ const m=visitsUp(merge3(b,l,r,preferL),l,r);
  /* play-time bank: a parent's change (+15, refill, limit) always beats a kid device's ticking clock */
  const lt=l.tb||{},rt=r.tb||{};if((lt.ps||0)!==(rt.ps||0))m.tb=JSON.parse(JSON.stringify((lt.ps||0)>(rt.ps||0)?l.tb:r.tb));
  m.upd=Math.max(l.upd||0,r.upd||0);return m;

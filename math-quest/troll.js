@@ -342,6 +342,8 @@ async function start(){
   await say(bub,pick(NQ===2?[`Are you ready for my test? TWO questions! HAR!`,`Now… are you ready for my TWO questions? HAR HAR!`,`Ready for my test, friend? Just two questions!`]:[`Are you ready for my test? THREE questions! And remember… this time I'm NOT so generous! HAR!`,`Now… are you ready for my THREE questions? Wrong answers go in my hoard! HAR HAR!`,`Ready for my test, friend? Three questions — and they're HARD ones!`]),600);
  }
  // 7. three questions
+ /* the visit counts from the moment the questions begin, so leaving halfway still makes the next one a return visit */
+ t.visits++;t.last=Date.now();save();
  const res=[];const took=[],gave=[];
  for(let i=0;i<NQ;i++){
   let q=makeQ(p,i);
@@ -366,7 +368,7 @@ async function start(){
  }else{
   await say(bub,right===NQ?`All ${NQ===2?'of them':'three'} right! You win! Off you go, clever one.`:took.length?`Remember — answer right next time and you can win your things back!`:`Off you go. Come visit again… I mean, WATCH YOUR STEP!`,800);
  }
- t.visits++;t.last=Date.now();t.best=Math.max(t.best||0,right);save();
+ t.last=Date.now();t.best=Math.max(t.best||0,right);save();
  // the troll stomps over, grabs you and TOSSES you back up the hole
  await say(bub,'Now OFF you go! Hold on tight…');bub.style.display='none';
  const tr=tbox.getBoundingClientRect(),hr=hbox.getBoundingClientRect();const dx=Math.max(0,tr.left+tr.width*.2-(hr.right+hr.width*.2));
