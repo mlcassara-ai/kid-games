@@ -61,7 +61,7 @@ Adaptive math battles plus a village of side activities, for grades 1–12 and a
 - `math-quest/index.html` — the whole core game (about 765 KB, many very long single lines; edit with exact-match scripted replacements, never retype blocks).
 - Add-ons are separate `.js` files loaded in order by the `document.write` loader line near the top of `index.html`. A new file must be added to that line.
 - `daily.js` — Today's Adventure, pet tricks, camp packing and tied sacks.
-- `truck.js` — Food Truck; hidden until Oct 10, 2026 unless the device opened the game once with `?truck=1`.
+- `truck.js` — Food Truck; hidden (no opening date) unless the device opened the game with `?truck=1`; `?truck=0` hides it again.
 - `district.js` — Discovery District, a second walkable map reached by train. A walk-around preview only, with its own map drawing; hidden unless the device opened the game once with `?district=1`.
 - `tools/smoke.py` + `tools/smoke.html` — the smoke test.
 

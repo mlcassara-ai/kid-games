@@ -1,4 +1,4 @@
-/* ================= Pet Food Truck Market (opens Oct 10, 2026) =================
+/* ================= Pet Food Truck Market (hidden for now) =================
    Every hero gets a little food truck in the village square: buy ingredients, cook pet treats (with
    grade-scaled math), pick one of three set prices, open the truck for 1/6/12 hours, read the receipt,
    sell to siblings, and fill the family Pet Picnic every other weekend.
@@ -59,10 +59,9 @@ const me=()=>{try{return P();}catch(e){return null;}};
 const players=()=>(typeof state!=='undefined'&&state&&state.players)||[];
 const byId=id=>players().find(x=>x.id===id);
 const say=m=>{try{toast(m);}catch(e){}};
-/* Grand Opening: Saturday Oct 10, 2026 (local time). Before that the truck only shows on a device that opened the game
-   once with ?truck=1 in the address (a grown-up preview), or with the old beta switches. */
-const OPENS=new Date(2026,9,10).getTime();
-function flag(){if(window.MQ_TRUCK_BETA===true)return true;try{if(/[?&]truck=1(&|$)/.test(location.search))localStorage.setItem('mqTruckBeta','1');if(localStorage.getItem('mqTruckBeta')==='1')return true;}catch(e){}return Date.now()>=OPENS;}
+/* HIDDEN for now (Oct 2026): no opening date. The truck only shows on a device that opened the game with ?truck=1 in the
+   address (a grown-up preview); ?truck=0 hides it again. The preview key was renamed so earlier previews are switched off. */
+function flag(){if(window.MQ_TRUCK_BETA===true)return true;try{const m=/[?&]truck=([01])(&|$)/.exec(location.search);if(m){if(m[1]==='1')localStorage.setItem('mqTruckPreview','1');else localStorage.removeItem('mqTruckPreview');}localStorage.removeItem('mqTruckBeta');return localStorage.getItem('mqTruckPreview')==='1';}catch(e){return false;}}
 /* the truck parks on the village map once it is open (same pattern as Dr. Quartz's Lab) */
 const TK_X=22,TK_Y=20;
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[TK_Y]&&W.T[TK_Y][TK_X];if(!t||t.water)return;

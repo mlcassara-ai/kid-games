@@ -119,10 +119,10 @@ const tests=[
   PLAZA_DECOR.flat().forEach(([e,x,y])=>{if(!W.T[y][x].plaza||W.T[y][x].npc)bad.push('plaza decoration at '+x+','+y+' is misplaced');});
   T.ok(wWalk(W.hx,W.hy),'hero starts on a blocked tile');T.ok(!bad.length,bad.slice(0,4).join(' | '));window.MQ_TRUCK_BETA=false;window.MQ_DISTRICT_BETA=false;W=null;}],
 
-['food truck: hidden until opening day, then card, screens and map spot',async function(){
+['food truck: hidden unless the preview switch is on; then card, screens and map spot',async function(){
   T.reset();const p=T.hero('Truck',3,{battles:40});state.cur=p.id;
-  const due=Date.now()>=new Date(2026,9,10).getTime();window.MQ_TRUCK_BETA=false;try{localStorage.removeItem('mqTruckBeta');}catch(e){}
-  T.ok(Truck.flag()===due,'truck visibility does not follow the opening date');go('map');T.ok(!!document.querySelector('.tk-hc')===due,'truck card shown at the wrong time');
+  window.MQ_TRUCK_BETA=false;try{localStorage.removeItem('mqTruckPreview');localStorage.setItem('mqTruckBeta','1');}catch(e){}
+  T.ok(!Truck.flag(),'truck shows without the preview switch (an old preview must not count)');go('map');T.ok(!document.querySelector('.tk-hc'),'truck card shown while hidden');go('world');await T.wait(100);T.ok(W.T[20][22].npc!=='truck','truck on the map while hidden');
   window.MQ_TRUCK_BETA=true;go('map');T.ok(document.querySelector('.tk-hc'),'truck card missing from the Quest Board');
   Truck.open();T.ok(curScreen==='truck'&&document.querySelector('#app').innerText.length>40,'truck screen is empty');try{closeModal();}catch(e){}
   go('market');T.ok(curScreen==='market'&&document.querySelector('#app').innerText.length>20,'market screen is empty');
