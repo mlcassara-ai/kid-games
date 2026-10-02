@@ -210,7 +210,7 @@ const tests=[
   go('world');await T.wait(50);say({ev:'end',stage:1,win:1,secs:5});await T.wait(60);T.ok(P().bp.m[39][1]===5,'a match was logged away from the Battle Pets screen');
   BattlePets._set(p.id,false);try{closeModal();}catch(e){}state.cur=p.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets stayed after switching off');
  }],
- ['core keeper: needs the Core Suit; hints before it; fall, questions and launch home',async function(){
+ ['core keeper: needs the Core Suit; hints before it; fall, questions and launch home (plus critters and the solar array)',async function(){
   T.reset();const p=T.hero('Core',5);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;p.sci.met=true;p.sci.rocks=0;p.sci.trips=5;p.sci.lab={ok:{},freeDay:''};p.cave={trips:5,stats:{dug:12}};
   const SU=CAVE_DATA.SUITS,ci=SU.findIndex(x=>x.core);T.ok(ci===SU.length-1&&ci===5&&SU[ci].t>5400,'the Core Suit is not the last suit');
   T.ok(Cave.coreHint({maxRow:5},1)===''&&/thump/.test(Cave.coreHint({maxRow:5},2))&&/rhythm/.test(Cave.coreHint({maxRow:50},6))&&/Core Suit/.test(Cave.coreHint({maxRow:120,gear:{suit:4}},2))&&Cave.coreHint({maxRow:120,core:{v:1}},2)==='','Dr. Quartz hints are wrong');
@@ -227,6 +227,13 @@ const tests=[
   const c0=P().coins;await run(false);T.ok(S.core.v===3&&S.core.keep.length===0&&S.pack.some(x=>x.k==='ck1')&&S.rp>=rp0+9,'right answers did not win the specimen back');T.ok(P().coins>=c0+50,'no coins for a perfect score');
   /* critters are looked at, not collected: a known one stays in the cave and says hello again once per dive */
   {S.crit.ant=1;S.x=4;S.y=0;const j=d.idx(5,1);d.W.items.set(j,{t:'c',id:'ant'});d.step(0,1);await T.wait(350);if(S.y===1){T.ok(d.W.items.has(j),'a critter was taken out of the cave');T.ok(/Hello again/.test(document.querySelector('#cvMod').innerText),'no Hello again card for a known critter');}try{d.closeModal();}catch(e){}}
+  /* solar panels: only at camp, only in daylight; one panel takes a whole day, four about ten minutes; none without panels */
+  {try{d.closeModal();}catch(e){}const bm=d.batMax();S.x=4;S.y=0;S.gear.solar=0;S.bat=10;S.tripSol=0;d.solarTick();T.ok(S.bat===10&&d.solarState()==='','charged without a solar array');
+   S.gear.solar=1;S.y=5;d.solarTick();T.ok(S.bat===10&&d.solarState()==='under','solar charged underground');S.y=0;
+   if(d.sunUp()){d.solarTick();const one=S.bat-10;const E=CAVE_DATA.WH_PER_ENERGY;T.ok(Math.abs(one-10/E/3600)<1e-9,'one 10 W panel charged the wrong amount: '+one);T.ok(60*E/10===12&&Math.round(60*E/720*60)===10,'starting battery: one panel should take 12 hours and four about 10 minutes');S.gear.solar=4;d.solarTick();T.ok(Math.abs(S.bat-10-one-720/E/3600)<1e-9,'four panels charged the wrong amount');S.bat=bm-.001;d.solarTick();T.ok(S.bat<=bm,'solar overfilled the battery');}
+   else{d.solarTick();T.ok(S.bat===10&&d.solarState()==='night','solar charged at night');}
+   T.ok(CAVE_DATA.SOLAR.length===5&&CAVE_DATA.SOLAR[1].c>=1000&&CAVE_DATA.SOLAR.every(s=>!s.w||s.panels*s.each>=s.w*.95&&s.panels*s.each<=s.w*1.05),'solar panels are missing, too cheap, or their watts do not add up');
+   d.openGear();T.ok(/How solar charging works/.test(document.querySelector('#cvMod').innerText)&&/Wh/.test(document.querySelector('#cvMod').innerText),'Gear shop does not show solar watts and battery size');const root_=document.querySelector('#cvSolInfo');root_.click();T.ok(/battery ÷ power/.test(document.querySelector('#cvMod').innerText),'How solar charging works card missing');try{d.closeModal();d.closeModal();}catch(e){}}
   S.x=4;S.y=0;try{Cave.leave();}catch(e){}
  }],
  ['music: the login page plays the map tune, Discovery District has its own choices',async function(){

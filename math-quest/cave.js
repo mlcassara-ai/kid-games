@@ -72,7 +72,7 @@ const txt=o=>{const t=TIER();return (t>0&&o.o?o.o:o.y)+(t>1&&o.hs?`<div class="c
 
 /* ---------------- state ---------------- */
 function initState(){
- S.v=1;S.gear=Object.assign({drill:0,suit:0,bat:0,pack:0,lamp:0,uv:0,chg:0},S.gear||{});
+ S.v=1;S.gear=Object.assign({drill:0,suit:0,bat:0,pack:0,lamp:0,uv:0,chg:0,solar:0},S.gear||{});
  ['gates','found','idd','fos','ex','crit','geo','seen','stats'].forEach(k=>S[k]=S[k]||{});
  S.pack=S.pack||[];S.rp=S.rp||0;S.maxRow=S.maxRow||0;S.probe=S.probe||{rank:0,best:0,wins:0,day:'',runs:0};
  S.stats.dug=S.stats.dug||0;S.dive=S.dive||{c:0,f:0,cr:0,d:0,ch:0};
@@ -314,7 +314,7 @@ function after(){
 function beamHome(why){sfx('beam');metNow.clear();
  const dv=S.dive;S.dive={c:0,f:0,cr:0,d:0,ch:0};
  S.x=4;S.y=0;charge();uvOn=false;snapCam();
- const fos=S.pack.filter(p=>p.t==='f');let msg=MQ()?(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp.':'🏠 Back at camp.'):(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp. It\'s charging now 🔌':'🏠 Back at camp. Your battery is charging 🔌');
+ const fos=S.pack.filter(p=>p.t==='f');let msg=MQ()?(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp.':'🏠 Back at camp.')+(solarLine()?' '+solarLine():''):(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp. It\'s charging now 🔌':'🏠 Back at camp. Your battery is charging 🔌');
  const known=S.pack.filter(p=>p.t==='m'&&S.idd[p.id]);const starMsgs=[];let sold=0;if(known.length){known.forEach(p=>{const st=foundOne(p.id);if(st)starMsgs.push(`⭐ ${CD.MIN[p.id].n} reached ${'★'.repeat(st)}! +3 🔬`);sold+=CD.RAR[CD.MIN[p.id].r].sell;});S.pack=S.pack.filter(p=>!known.includes(p));sold=addDugCoins(sold);}
  if(fos.length){fos.forEach(p=>{S.fos[p.id]=S.fos[p.id]||[];S.fos[p.id][p.i]=1;});S.pack=S.pack.filter(p=>p.t!=='f');msg+=` 🦴 ${fos.length} fossil piece${fos.length>1?'s':''} sent to the 🏛️ Museum.`;}
  say(msg);hud();save(true);
@@ -479,7 +479,7 @@ function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(
  }else if(S.y>0){a+=`<button class="cv-act" data-a="home">🏠<span>Camp</span></button>`;if(S.gear.uv)a+=`<button class="cv-act ${uvOn?'on':''}" data-a="uv">🔦<span>UV ${uvOn?'on':'off'}</span></button>`;}
  const acts=q('#cvActs');if(acts.dataset.h!==a){acts.innerHTML=a;acts.dataset.h=a;acts.querySelectorAll('button').forEach(b=>b.onclick=()=>act(b.dataset.a));}
 }
-function hudBat(){if(!root)return;const q=s=>root.querySelector(s);const bm=batMax();q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';const f=S.y===0&&S.bat<bm?fullIn():'';q('#cvBatT').textContent=`${f?'🔌':'🔋'} ${Math.floor(S.bat)}/${bm}${f?' · '+f:''}`;q('#cvBatT').parentNode.title=f?'Charging — full in '+f:'Battery';}
+function hudBat(){if(!root)return;const q=s=>root.querySelector(s);const bm=batMax();q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';const f=S.y===0&&S.bat<bm?fullIn():'';const sol=solarState()==='on';q('#cvBatT').textContent=`${f?'🔌':sol?'☀️':'🔋'} ${Math.floor(S.bat)}/${bm}${f?' · '+f:''}`;q('#cvBatT').parentNode.title=f?'Charging — full in '+f:'Battery';}
 function act(a){if(S.y===0&&!S.tapHint){S.tapHint=1;save();}({tip:()=>tipCard(),power:openPower,lab:openLab,gear:openGear,museum:openMuseum,garden:openGarden,journal:openJournal,elev:openElevator,probe:openProbe,home:()=>beamHome(),uv:()=>{uvOn=!uvOn;sfx('uvon');hud();say(uvOn?'🔦 UV lamp ON — fluorescent minerals glow! (Your normal light is dimmer.)':'🔦 UV lamp off.',2200);}})[a]();}
 
 /* gates deeper down stay sealed until you have enough Boss Medals from Math Quest */
@@ -722,15 +722,35 @@ function openGear(){const t=TIER();
  modal(`<h2>🛒 Gear Shop</h2><p class="cv-sub">You have 🪙 ${fmt(H.coins())} and 🔬 ${fmt(S.rp)} research points (earn 🔬 by identifying minerals, meeting critters and solving puzzles).</p>
   ${rowH('drill',CD.DRILLS,{},d=>`digs rock up to hardness ${d.h}`)}
   ${rowH('suit',CD.SUITS,{},s=>`safe up to ${fmt(s.t)} °C`)}
-  ${rowH('bat',CD.BATT.map((b,i)=>({...b,e:'🔋',n:['Battery','Big Battery','Mega Battery','Super Battery','Ultra Battery'][i]})),{},b=>`${b.v} energy per dive`)}
+  ${rowH('bat',CD.BATT.map((b,i)=>({...b,e:'🔋',n:['Battery','Big Battery','Mega Battery','Super Battery','Ultra Battery'][i]})),{},b=>`${b.v} energy per dive (${fmt(b.v*CD.WH_PER_ENERGY)} Wh)`)}
   ${rowH('pack',CD.PACK.map((b,i)=>({...b,e:'🎒',n:['Backpack','Big Backpack','Explorer Pack','Expedition Pack','Mega Pack'][i]})),{},b=>`holds ${b.v} finds`)}
   ${rowH('lamp',CD.LAMP.map((b,i)=>({...b,e:'🔦',n:['Head Lamp','Bright Lamp','Super Lamp','Mega Lamp'][i]})),{},b=>`lights ${b.v} tiles around you`)}
   ${H.noRecharge?'':rowH('chg',CHG,{},c=>`charges ${c.v} energy per minute at camp`)}
+  ${rowH('solar',CD.SOLAR,{},s=>s.w?`${s.panels} × ${s.each} W = <b>${s.w} W</b> · fills your ${fmt(batWh())} Wh battery in about ${fillStr(s.w)} at camp, in daylight`:'charges your battery at camp in the daytime')}
+  <button class="cv-btn sm" id="cvSolInfo">☀️ How solar charging works</button>
   ${rowH('uv',[{e:'🔦',n:'No UV lamp',c:0},{e:'🟣',n:'UV Lamp',c:CD.UV.c,r:CD.UV.r,why:'Ultraviolet light is invisible to us, but it makes some minerals glow (fluorescence).'}],{},u=>u.c?'shows glowing minerals + UV lab test':'—')}`,{wide:1});
- root.querySelectorAll('.cv-buy').forEach(b=>b.onclick=()=>buy(b.dataset.k));}
-function gearArr(k){return {chg:CHG,drill:CD.DRILLS,suit:CD.SUITS,bat:CD.BATT,pack:CD.PACK,lamp:CD.LAMP,uv:[{},{c:CD.UV.c,r:CD.UV.r}]}[k];}
+ root.querySelectorAll('.cv-buy').forEach(b=>b.onclick=()=>buy(b.dataset.k));const si=root.querySelector('#cvSolInfo');if(si)si.onclick=()=>{solarInfo();onClose=openGear;};}
+function gearArr(k){return {solar:CD.SOLAR,chg:CHG,drill:CD.DRILLS,suit:CD.SUITS,bat:CD.BATT,pack:CD.PACK,lamp:CD.LAMP,uv:[{},{c:CD.UV.c,r:CD.UV.r}]}[k];}
 function canBuy(nx){return H.coins()>=nx.c&&S.rp>=(nx.r||0)&&(!nx.need||S.idd[nx.need]);}
-function buy(k){const arr=gearArr(k),nx=arr[S.gear[k]+1];if(!nx||!canBuy(nx))return;if(!H.spend(nx.c))return;sfx('buy');S.rp-=nx.r||0;S.gear[k]++;if(k==='bat')S.bat=batMax();save(true);ev('gear',{k,lv:S.gear[k]});openGear();say('✅ Upgraded!',1500);}
+function buy(k){const arr=gearArr(k),nx=arr[S.gear[k]+1];if(!nx||!canBuy(nx))return;if(!H.spend(nx.c))return;sfx('buy');S.rp-=nx.r||0;S.gear[k]++;if(k==='bat')S.bat=batMax();save(true);ev('gear',{k,lv:S.gear[k]});if(k==='solar'&&S.gear.solar===1){solarCard();return;}if(k==='solar'){const s=CD.SOLAR[S.gear.solar];openGear();say(`☀️ ${s.n} installed! ${s.w} W: your battery fills in about ${fillStr(s.w)}.`,3500);return;}openGear();say('✅ Upgraded!',1500);}
+/* ---------------- Solar array ---------------- */
+const sunUp=()=>{const h=new Date().getHours();return h>=7&&h<19;}; /* daylight by the device's own clock, roughly 7 am to 7 pm */
+const batWh=()=>batMax()*CD.WH_PER_ENERGY;
+function solarRate(){const w=(CD.SOLAR[S.gear.solar||0]||{}).w||0;return w/CD.WH_PER_ENERGY/60;} /* energy points per minute: watts ÷ Wh-per-point ÷ 60 */
+function fillStr(w){const m=batWh()/w*60;return m>=90?`${fmt(Math.round(m/60*10)/10)} hours`:`${Math.max(1,Math.round(m))} minutes`;}
+/* the numbers behind it: power (watts) vs. energy stored (watt-hours), and the time each step of panels takes to fill this battery */
+function solarInfo(){const t=TIER(),wh=batWh();modal(`<div class="cv-card"><div class="cv-big">☀️</div><h2>How solar charging works</h2>
+  <p>A panel's <b>power</b> is measured in <b>watts (W)</b>: how fast it makes electricity. A battery's <b>size</b> is measured in <b>watt-hours (Wh)</b>: how much it can hold.</p>
+  <p>Your battery holds <b>${fmt(wh)} Wh</b>. To find how long it takes to fill: <b>battery ÷ power</b>. With one 10 W panel: ${fmt(wh)} ÷ 10 = <b>${fmt(wh/10)} hours</b>.</p>
+  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums"><tr><th>Panels</th><th>Each</th><th>Total power</th><th>Fills your battery in</th></tr>${CD.SOLAR.filter(s=>s.w).map((s,i)=>`<tr style="${i+1===S.gear.solar?'font-weight:700;background:#fff3bf':''}"><td>${s.panels}</td><td>${s.each} W</td><td>${s.w} W</td><td>about ${fillStr(s.w)}</td></tr>`).join('')}</table></div>
+  ${t?`<p class="cv-sub">Why does each step jump so much? You get more panels AND better ones. Real solar farms grow the same way: more panels, and newer panels that turn more of the sunlight into electricity. A bigger battery holds more, so it also takes longer to fill.</p>`:''}
+  <p class="cv-sub">Panels only work in daylight, and only at camp: there's no sunlight underground.</p><button class="cv-btn" data-close>Got it!</button></div>`);}
+function solarState(){if(!solarRate())return '';if(S.y!==0)return 'under';if(!sunUp())return 'night';if(S.bat>=batMax()-.01)return 'full';return 'on';}
+function solarTick(){try{if(!root||!S||coreOn||solarState()!=='on')return;const add=Math.min(batMax()-S.bat,solarRate()/60);if(add<=0)return;S.bat+=add;S.tripSol=(S.tripSol||0)+add;hudBat();save();}catch(e){}}
+setInterval(solarTick,1000);
+function solarLine(){const st=solarState();return st==='on'?'☀️ Your solar array is charging the battery.':st==='night'?'🌙 No sunlight, so your solar array can\'t charge right now. Try ⚡ Power Up!':'';}
+function solarCard(){const t=TIER();modal(`<div class="cv-card"><div class="cv-big">☀️</div><h2>Solar panel installed!</h2><p>Solar panels turn <b>sunlight</b> straight into <b>electricity</b>. Your panel sits on the surface by camp, so it charges your helmet battery while you are at camp, in the daytime.</p>
+  <p>It can't work underground or at night, because there is no sunlight to catch. Your small panel makes <b>10 watts</b> and your battery holds <b>${fmt(batWh())} watt-hours</b>, so it takes about <b>${fillStr(10)}</b> to fill. Add more panels to charge faster. ⚡ <b>Power Up</b> is always quick!</p>${t?`<p class="cv-sub">How it works: each panel is made of silicon cells. Sunlight knocks tiny particles called electrons loose in the silicon, and that flow of electrons is electricity. Most panels turn about a fifth of the sunlight that hits them into electricity.</p>`:''}<button class="cv-btn" data-close>Cool!</button></div>`);onClose=openGear;}
 
 /* ---------------- ⚡ Power Up with math ---------------- */
 function mathQ(g){const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),p=Math.random();
@@ -1194,7 +1214,7 @@ function open(host){coreOn=false;coreRoll=null;
  H=host;S=host.state;initState();
  if(!document.getElementById('cvCSS')){const st=document.createElement('style');st.id='cvCSS';st.textContent=CSS;document.head.appendChild(st);}
  let tripK=null;
- if(MQ()){S.bat=batMax();S.tripPow=0;S.x=4;S.y=0;uvOn=false;S.trips=(S.trips||0)+1;PEND_FOS+=deliverFossils();
+ if(MQ()){S.bat=batMax();S.tripPow=0;S.tripSol=0;S.x=4;S.y=0;uvOn=false;S.trips=(S.trips||0)+1;PEND_FOS+=deliverFossils();
   if(H.tripRock){tripK='r'+Date.now().toString(36);S.pack.push({t:'m',id:H.tripRock,k:tripK,tests:{},map:1});}}
  genWorld();build();snapCam();hud();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
  if(!MQ()&&PEND_FOS){try{say(`🦴 ${PEND_FOS} fossil piece${PEND_FOS>1?'s':''} went to the 🏛️ Museum.`);}catch(e){}PEND_FOS=0;}
@@ -1407,5 +1427,5 @@ let coreDbg=null;
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={mathQ,open,leave,summary,coreHint,_dbg:()=>({S,W,H,coreFall,coreDue,core:()=>coreDbg,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
+window.Cave={mathQ,open,leave,summary,coreHint,_dbg:()=>({S,W,H,coreFall,coreDue,core:()=>coreDbg,solarTick,solarState,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
 })();
