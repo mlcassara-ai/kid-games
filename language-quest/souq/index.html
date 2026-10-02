@@ -157,8 +157,8 @@ h3{margin:14px 0 8px; font-size:1.1rem}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🛍️</div><h2>The Souq</h2><p class="muted">السُّوق — count with the shopkeepers!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02u";</script>
-<script src="../lq-core.js?v=2026.10.02u"></script>
+<script>window.LQ_VER="2026.10.02v";</script>
+<script src="../lq-core.js?v=2026.10.02v"></script>
 <script>
 /* ============ numbers data ============
    Counting words in the form used when counting aloud. STALLS: [name, what it covers, kind, the numbers taught].
@@ -217,7 +217,7 @@ function home(){ LQ.mark("Souq: all stalls");
 function paintHero(cv,wear){ const c=cv.getContext("2d"), k=cv.height/112; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,cv.width,cv.height); c.translate(cv.width/2,cv.height-4*k); c.scale(k,k); LQ.drawHero(c,LQ.player(),wear?{wear}:{}); }
 function tailor(ask){ if(!ask) LQ.mark("Tailor");
   const p=LQ.player(), own=p.own||{}, wear=p.wear||{}, W=LQ.WEAR, it=ask&&W.find(w=>w.id===ask);
-  $("app").innerHTML=`<div class="panel"><h2>🧵 The Tailor</h2><p class="muted" style="margin:0">Pick a colour, or spend your coins on something new to wear.</p>
+  $("app").innerHTML=`<div class="panel"><h2>🧵 The Tailor</h2><p class="muted" style="margin:0">Pick a colour, or spend your dinars on something new to wear.</p>
     <div class="center"><canvas id="me" width="264" height="308" style="width:132px;height:154px"></canvas></div>
     <h3>Colours <span class="muted" style="font-weight:500">· free</span></h3>
     <div class="swatches">${LQ.COLORS.map((c,i)=>`<button class="sw ${p.color===c?"on":""}" data-i="${i}" style="background:${c}" aria-label="${LQ.COLOR_EN[i]}"></button>`).join("")}</div>
@@ -226,7 +226,7 @@ function tailor(ask){ if(!ask) LQ.mark("Tailor");
       <div class="nm">${w.en}</div><div class="ar" lang="ar">${w.ar}</div><div class="st">${on?"Wearing ✓":own[w.id]?"Tap to wear":"🪙 "+w.price}</div></button>`; }).join("")}</div>
     ${it?`<div class="buy">${save.coins>=it.price?`Buy the <b>${it.en}</b> <span lang="ar">${it.ar}</span> for <b>${it.price} 🪙</b>?
         <div class="actions" style="margin-top:8px"><button class="btn go" id="buyOk">Buy it</button><button class="btn ghost" id="buyNo">Not now</button></div>`
-      :`The <b>${it.en}</b> <span lang="ar">${it.ar}</span> costs <b>${it.price} 🪙</b>. You need <b>${it.price-save.coins}</b> more. Play to earn coins!`}</div>`:""}
+      :`The <b>${it.en}</b> <span lang="ar">${it.ar}</span> costs <b>${it.price} 🪙</b>. You need <b>${it.price-save.coins}</b> more. Play to earn dinars!`}</div>`:""}
     <div class="actions"><button class="btn ghost" id="toHome">Back to the stalls</button></div></div>`;
   paintHero($("me")); document.querySelectorAll(".wr").forEach(b=>paintHero(b.querySelector("canvas"),{[W.find(w=>w.id===b.dataset.id).slot]:b.dataset.id}));
   document.querySelectorAll(".sw").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; say(LQ.COLOR_NAMES[i]); LQ.update(q=>{ q.color=LQ.COLORS[i]; }); tailor(); });
