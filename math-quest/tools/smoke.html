@@ -46,6 +46,13 @@ const tests=[
    if(!q||!(q.text||q.tpl)||!Number.isFinite(q.answer)){bad.push(op+' L'+L+' bad question '+JSON.stringify(q).slice(0,120));break;}}});
   T.ok(!bad.length,bad.slice(0,5).join(' | '));}],
 
+['minerals: every one has a hammer-tap result, and the tests can tell them all apart',async function(){
+  const D=CAVE_DATA,ids=Object.keys(D.MIN),br=D.BREAKS.map(b=>b.id),band=h=>{const i=D.TOOLS.findIndex(t=>h<=t.h);return i<0?4:i;};
+  T.ok(ids.every(k=>br.includes(D.MIN[k].br)),'a mineral has no hammer-tap result: '+ids.filter(k=>!br.includes(D.MIN[k].br)));
+  const sig=(k,uv)=>{const m=D.MIN[k];return [band(m.h),m.s,!!m.f,!!m.m,!!m.w,m.br,uv?m.u||'':''].join('|');};
+  T.ok(new Set(ids.map(k=>sig(k,true))).size===ids.length,'two minerals give the same result on every test, even with the UV lamp');
+  T.ok(sig('mica')!==sig('gypsum')&&sig('feldspar')!==sig('olivine'),'mica/gypsum or feldspar/olivine still cannot be told apart');}],
+
 ['screens: every screen draws for a hero',async function(){
   T.reset();const p=T.hero('Screens',3);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;const bad=[];
   const skip=['rest','skillcheck','inner','cave','office','fade','truck','market','district']; /* these need their own setup; truck and district have their own tests */

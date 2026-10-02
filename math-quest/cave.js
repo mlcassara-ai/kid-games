@@ -511,15 +511,16 @@ function card(html){if(modalOpen())cardQ.push(html);else modal(html);}
 /* ---------------- Field Lab ---------------- */
 const STREAK_NAMES={'#2f3a2a':'greenish-black','#5a5f66':'lead grey','#ffffff':'white','#2f4f2a':'greenish-black','#8fe3a9':'light green','#8ec5ff':'light blue','#1b1b1b':'black','#8b2a1e':'red-brown','#e8b923':'golden yellow','#7d848c':'lead grey','#fff59a':'pale yellow'};
 const UV_NAMES={'#ff5a3d':'orange-red','#5cc8ff':'bright blue','#39ff6a':'bright green','#ff2a2a':'red','#7fb6ff':'pale blue'};
-const LTESTS=[{id:'hard',e:'💅',n:'Scratch test',q:'How hard is it?'},{id:'streak',e:'⬜',n:'Streak test',q:'What color is its powder?'},{id:'acid',e:'🧪',n:'Vinegar drop',q:'Does it fizz?'},{id:'magnet',e:'🧲',n:'Magnet',q:'Does it stick?'},{id:'water',e:'💧',n:'Water drop',q:'Does it dissolve?'},{id:'uv',e:'🔦',n:'UV lamp',q:'Does it glow?',uv:1},{id:'look',e:'🔍',n:'Look closely',q:'What shape? How shiny?'}];
+const LTESTS=[{id:'hard',e:'💅',n:'Scratch test',q:'How hard is it?'},{id:'streak',e:'⬜',n:'Streak test',q:'What color is its powder?'},{id:'acid',e:'🧪',n:'Vinegar drop',q:'Does it fizz?'},{id:'magnet',e:'🧲',n:'Magnet',q:'Does it stick?'},{id:'water',e:'💧',n:'Water drop',q:'Does it dissolve?'},{id:'uv',e:'🔦',n:'UV lamp',q:'Does it glow?',uv:1},{id:'break',e:'🔨',n:'Hammer tap',q:'How does it break?'},{id:'look',e:'🔍',n:'Look closely',q:'What shape? How shiny?'}];
 const hardBand=h=>{const i=CD.TOOLS.findIndex(t=>h<=t.h);return i<0?4:i;};
 const HB_WORD=['very soft','soft','medium','hard','super hard'],HB_NUM=['2.5 or less','2.5 – 3.5','3.5 – 5.5','5.5 – 7','more than 7'];
-function tval(m,t){return t==='hard'?hardBand(m.h):t==='streak'?(m.s||'none'):t==='acid'?!!m.f:t==='magnet'?!!m.m:t==='water'?!!m.w:t==='uv'?(m.u||''):m.look;}
+const brOf=id=>CD.BREAKS.find(b=>b.id===id)||CD.BREAKS[2];
+function tval(m,t){return t==='hard'?hardBand(m.h):t==='streak'?(m.s||'none'):t==='acid'?!!m.f:t==='magnet'?!!m.m:t==='water'?!!m.w:t==='uv'?(m.u||''):t==='break'?(m.br||'chips'):m.look;}
 function shortV(m,t){const n=TIER();
  if(t==='hard')return HB_WORD[hardBand(m.h)]+(n?` (${m.h})`:'');
  if(t==='streak')return m.s?`${sw(m.s)} ${STREAK_NAMES[m.s]}`:'no streak';
  if(t==='acid')return m.f?'🫧 fizzes':'no fizz';if(t==='magnet')return m.m?'🧲 sticks':'no pull';if(t==='water')return m.w?'💧 dissolves':'no';
- if(t==='uv')return m.u?`${sw(m.u)} glows ${UV_NAMES[m.u]}`:'no glow';return esc(m.look);}
+ if(t==='uv')return m.u?`${sw(m.u)} glows ${UV_NAMES[m.u]}`:'no glow';if(t==='break')return '🔨 '+brOf(m.br).n.toLowerCase();return esc(m.look);}
 function resText(m,t){const n=TIER();
  if(t==='hard'){const b=hardBand(m.h);const tl=CD.TOOLS;const msg=b===0?`Your ${tl[0].e} fingernail scratches it!`:b===4?'Nothing scratches it — not even the 🔺 quartz point!':`The ${tl[b].e} ${tl[b].n.toLowerCase()} scratches it, but the ${tl[b-1].e} ${tl[b-1].n.toLowerCase()} doesn't.`;return `${msg} <b>It's ${HB_WORD[b]}${n?` (hardness ${HB_NUM[b]})`:''}.</b>`;}
  if(t==='streak')return m.s?`Rubbed on the white tile it leaves a ${sw(m.s)} <b>${STREAK_NAMES[m.s]}</b> streak.`:`<b>No streak</b> — it's so hard it scratched the tile instead!`;
@@ -527,13 +528,14 @@ function resText(m,t){const n=TIER();
  if(t==='magnet')return m.m?'<b>SNAP!</b> 🧲 It sticks to the magnet.':'The magnet <b>doesn\'t pull</b> on it at all.';
  if(t==='water')return m.w?'<b>It dissolved!</b> 💧 It disappeared into the water.':'In water it <b>stays the same.</b>';
  if(t==='uv')return m.u?`Under UV light it <b>glows</b> ${sw(m.u)} ${UV_NAMES[m.u]}!`:'Under UV light: <b>no glow.</b>';
+ if(t==='break')return `Tapped with the hammer, it <b>${brOf(m.br).r}</b>.`;
  return `Up close it looks: <b>${esc(m.look)}</b>.`;}
 const sw=c=>`<i class="cv-sw" style="background:${c}"></i>`;
 function testsOf(p){const o={};Object.keys(p.tests||{}).forEach(k=>{if(k.startsWith('scratch:'))o.hard=1;else if(LTESTS.some(t=>t.id===k))o[k]=1;});return Object.keys(o);}
 function crackGeode(i){const p=S.pack[i];const g=CD.GEODES.find(x=>x.id===p.id);S.pack.splice(i,1);sfx('geode');const first=!S.geo[g.id];S.geo[g.id]=(S.geo[g.id]||0)+1;addCoins(g.c,'geode');S.rp+=first?8:2;save(true);
  modal(`<div class="cv-card"><div class="cv-geode" style="--gc:${g.col}"><i></i></div><h2>🔨 Crack! ${esc(g.n)}</h2><p>${esc(g.y)}</p><p class="cv-sub">A geode starts as a hollow bubble in rock. Mineral-rich water seeps in and, over thousands of years, crystals grow inward from the walls.</p><div class="cv-rew">+${g.c} 🪙 · +${first?8:2} 🔬</div><button class="cv-btn" data-close>Beautiful!</button></div>`);onClose=openLab;ev('geode',{id:g.id});}
 /* suspects are chosen so a real test can always tell them apart (no "what does it look like?" guessing) */
-const sig=id=>['magnet','acid','water','streak','hard'].concat(S.gear.uv?['uv']:[]).map(t=>JSON.stringify(tval(CD.MIN[id],t))).join('|');
+const sig=id=>['magnet','acid','water','streak','hard','break'].concat(S.gear.uv?['uv']:[]).map(t=>JSON.stringify(tval(CD.MIN[id],t))).join('|');
 function candidates(p){if(p.cands&&p.cands.includes(p.id))return p.cands;const seen=CD.LAYERS.filter(L=>S.seen[L.id]).map(L=>L.id);const n=[3,4,6][TIER()];
  const R=rng(hash(p.k));let pool=Object.keys(CD.MIN).filter(id=>id!==p.id&&CD.MIN[id].L.some(l=>seen.includes(l)));
  if(pool.length<n-1)pool=Object.keys(CD.MIN).filter(id=>id!==p.id);
@@ -545,20 +547,22 @@ function alive(p){const m=CD.MIN[p.id],done=testsOf(p);return candidates(p).filt
    One question at a time. Each test shows a picture of what happens; you read the result and pick the answer.
    The path of answers leads to the mineral. Dr. Quartz explains each test and helps if you misread a result. */
 const KQ={magnet:'🧲 Does it stick to a magnet?',acid:'🧪 Does it fizz when a drop of vinegar (acid) touches it?',water:'💧 Does it dissolve in water?',
- streak:'⬜ What color is its powder on the streak tile?',hard:'💅 How hard is it? Which tools scratch it?',uv:'🔦 Does it glow under UV light?',look:'🔍 What does it look like up close?'};
+ streak:'⬜ What color is its powder on the streak tile?',hard:'💅 How hard is it? Which tools scratch it?',uv:'🔦 Does it glow under UV light?',look:'🔍 What does it look like up close?',break:'🔨 How does it break when you tap it with a hammer?'};
 const KHINT={magnet:'Minerals with lots of <b>iron</b> in them are pulled by a magnet. Let\'s hold one close!',
  acid:'Vinegar is a weak <b>acid</b>. Minerals made with <b>carbonate</b> (like the stuff in seashells) fizz when it touches them. The bubbles are carbon dioxide gas!',
  water:'A few minerals are made of salt and <b>dissolve</b> in water. Let\'s drop it in a glass!',
  streak:'The color of a mineral can fool you, but its <b>powder</b> never lies. Rub it on the white tile!',
  hard:'Scratch it with different tools. The <b>softest tool that leaves a scratch</b> tells us how hard it is.',
  uv:'Some minerals <b>glow</b> in ultraviolet light — that\'s called fluorescence. Lights off, UV on!',
- look:'Scientists also look closely at a mineral\'s <b>shape and shine</b>. What do you notice?'};
-const KBTN={magnet:'🧲 Hold the magnet close',acid:'🧪 Add a drop of vinegar',water:'💧 Drop it in water',streak:'⬜ Rub it on the tile',hard:'💅 Try the scratch tools',uv:'🔦 Turn on the UV lamp',look:'🔍 Look closely'};
+ look:'Scientists also look closely at a mineral\'s <b>shape and shine</b>. What do you notice?',
+ break:'Every mineral breaks its own way. Some split along <b>flat</b> surfaces, some chip like glass, some crumble, and a few just bend. Let\'s tap a small piece!'};
+const KBTN={magnet:'🧲 Hold the magnet close',acid:'🧪 Add a drop of vinegar',water:'💧 Drop it in water',streak:'⬜ Rub it on the tile',hard:'💅 Try the scratch tools',uv:'🔦 Turn on the UV lamp',look:'🔍 Look closely',break:'🔨 Tap it with the hammer'};
 const BIN=['magnet','acid','water'];
-function keyTests(){return ['magnet','acid','water','streak','hard'].concat(S.gear.uv?['uv']:[]);}
+function keyTests(){return ['magnet','acid','water','streak','hard','break'].concat(S.gear.uv?['uv']:[]);}
 /* every test always shows ALL its possible answers (not just the ones our suspects could give) */
 function kOpts(t,C){if(BIN.includes(t))return [true,false];
  if(t==='hard')return [0,1,2,3,4];
+ if(t==='break')return CD.BREAKS.map(b=>b.id);
  const all=[...new Set(Object.keys(CD.MIN).map(id=>JSON.stringify(tval(CD.MIN[id],t))))].map(v=>JSON.parse(v));
  if(t==='uv')return all.sort((a,b)=>(a?1:0)-(b?1:0));
  if(t==='streak'){const nm=v=>v==='none'?'zzz':(STREAK_NAMES[v]||v);return all.filter((v,i,a)=>a.findIndex(x=>nm(x)===nm(v))===i).sort((a,b)=>nm(a).localeCompare(nm(b)));}
@@ -570,6 +574,7 @@ function kLabel(t,v){
  if(t==='streak')return v==='none'?'No powder (it scratched the tile!)':`${sw(v)} ${STREAK_NAMES[v]}`;
  if(t==='hard')return `${HB_OPT[v]} <small>${HB_WORD[v]}</small>`;
  if(t==='uv')return v?`${sw(v)} glows ${UV_NAMES[v]}`:'No glow';
+ if(t==='break')return brOf(v).n;
  return esc(v);}
 /* the best next question: splits the suspects most evenly (yes/no questions win ties — easier for young detectives) */
 function kNext(p,C){const used=(p.path||[]).map(s=>s.t);let best=null;
@@ -578,7 +583,7 @@ function kNext(p,C){const used=(p.path||[]).map(s=>s.t);let best=null;
  return best?best.t:(used.includes('look')?null:'look');}
 function kAlive(p){const cs=candidates(p);return cs.filter(c=>(p.path||[]).every(st=>st.t==='look'||JSON.stringify(tval(CD.MIN[c],st.t))===JSON.stringify(st.v)));}
 /* the order a geologist uses: look first, then streak, then hardness, then the special tests */
-function sciOrder(){return ['look','streak','hard','magnet','acid','water'].concat(S.gear.uv?['uv']:[]);}
+function sciOrder(){return ['look','streak','hard','break','magnet','acid','water'].concat(S.gear.uv?['uv']:[]);}
 /* a plain grey "mystery rock" so the picture never gives the answer away (the real mineral is shown once it's identified) */
 function rockSVG(k,size,tint){size=size||64;const R=rng(hash('rock|'+k));const n=9,pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=14+R()*6;pts.push([22+Math.cos(a)*r,23+Math.sin(a)*r*.82]);}
  const d='M'+pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')+'Z';const f=tint||'#8a8f98';
@@ -596,6 +601,14 @@ function kPic(m,t,p){const G=rockSVG(p.k,64);const W2=250,H2=150;
  if(t==='streak'){const c=m.s;return `<svg viewBox="0 0 ${W2} ${H2}" class="cv-kp"><rect x="30" y="30" width="190" height="95" rx="6" fill="#fdfdfd" stroke="#ced4da" stroke-width="4"/>
   ${c?`<path d="M55 90 Q100 55 150 80 Q180 92 200 70" stroke="${c==='#ffffff'?'#b8bec6':c}" stroke-width="19" stroke-linecap="round" fill="none"/>${c==='#ffffff'?'<path d="M55 90 Q100 55 150 80 Q180 92 200 70" stroke="#ffffff" stroke-width="15" stroke-linecap="round" fill="none"/>':''}`:'<path d="M60 60 L200 95 M70 90 L190 55" stroke="#adb5bd" stroke-width="2"/>'}
   <text x="125" y="20" font-size="14" text-anchor="middle" fill="#555">white streak tile</text></svg>`;}
+ if(t==='break'){const c='#8a8f98',k='#495057',b=m.br||'chips';let pcs='';
+  if(b==='sheets')pcs=[0,1,2,3,4].map(i=>`<path d="M${70+i*8} ${96-i*9} l96 -10 l14 6 l-96 10Z" fill="${i%2?'#a3a8b0':c}" stroke="${k}" stroke-width="1.5"/>`).join('');
+  else if(b==='blocks')pcs=[[70,84,30],[108,92,24],[140,78,34],[150,116,18],[88,116,16]].map(([x,y,s])=>`<path d="M${x} ${y} l${s} -4 l4 ${s*.8} l-${s} 4Z" fill="${c}" stroke="${k}" stroke-width="1.8" stroke-linejoin="round"/><path d="M${x+3} ${y+2} l${s*.5} -1" stroke="#fff" stroke-width="2" opacity=".5"/>`).join('');
+  else if(b==='chips')pcs=[[72,96,1],[112,84,-1],[146,100,1],[98,116,-1],[168,116,1]].map(([x,y,f])=>`<path d="M${x} ${y} q${14*f} -22 30 -14 q8 12 -6 20 q-14 6 -24 -6Z" fill="${c}" stroke="${k}" stroke-width="1.8" stroke-linejoin="round"/><path d="M${x+8} ${y-4} q8 -8 14 -2" stroke="#fff" stroke-width="2" opacity=".5" fill="none"/>`).join('');
+  else if(b==='crumbs'){for(let i=0;i<40;i++){const x=72+((i*29)%106),hill=Math.max(0,26-Math.abs(125-x)*.5);pcs+=`<circle cx="${x}" cy="${(117-((i*17)%Math.max(3,Math.round(hill)))).toFixed(0)}" r="${(2.2+i%3*1.3).toFixed(1)}" fill="${i%2?'#a3a8b0':c}" stroke="${k}" stroke-width="1"/>`;}}
+  else pcs=`<path d="M70 118 Q72 86 104 84 Q118 98 132 84 Q170 84 178 118Z" fill="${c}" stroke="${k}" stroke-width="2"/><path d="M106 88 q12 12 24 0" stroke="${k}" stroke-width="2" fill="none"/>`;
+  return `<svg viewBox="0 0 ${W2} ${H2}" class="cv-kp"><rect x="0" y="120" width="250" height="30" fill="#c7a178"/>${pcs}
+  <g transform="translate(196 34) rotate(28)"><rect x="-4" y="0" width="8" height="52" rx="3" fill="#8a5a2b"/><rect x="-20" y="-12" width="40" height="16" rx="3" fill="#495057"/></g></svg>`;}
  if(t==='uv'){return `<svg viewBox="0 0 ${W2} ${H2}" class="cv-kp"><rect width="250" height="150" rx="10" fill="#1a1033"/><g transform="translate(93 50)" style="${m.u?`filter:drop-shadow(0 0 14px ${m.u}) drop-shadow(0 0 6px ${m.u})`:'filter:brightness(.35)'}">${m.u?rockSVG(p.k,64,m.u):G}</g><text x="125" y="30" font-size="14" text-anchor="middle" fill="#b197fc">🔦 UV light on</text></svg>`;}
  return `<div class="cv-klook">${gemSVG(m,90)}<div>${esc(m.look)}</div></div>`;}
 /* scratch test: the kid tries the tools one at a time (softest first is the smart way) */
@@ -606,7 +619,7 @@ function scratchKnown(p){const sc=p.scr||{};for(let i=0;i<4;i++){if(sc[i]===true
 const HB_OPT=['Your fingernail scratches it','Fingernail can\'t, but the copper coin can','Coin can\'t, but the steel nail can','Only the quartz point scratches it','Nothing scratches it'];
 function speak(t){return;try{if(!window.speechSynthesis||!sndOK())return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/<[^>]+>/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]/gu,'').replace(/—/g,','));u.lang='en-US';u.rate=.9;try{u.volume=Math.min(1,Math.max(.25,window.fxLevel?fxLevel():1));}catch(e){}speechSynthesis.speak(u);}catch(e){}}
 function splits(t,C){return new Set(C.map(c=>JSON.stringify(tval(CD.MIN[c],t)))).size>1;}
-const TNAME={look:'🔍 Look closely',magnet:'🧲 Magnet',acid:'🧪 Vinegar drop',water:'💧 Water',streak:'⬜ Streak tile',hard:'💅 Scratch tools',uv:'🔦 UV lamp'};
+const TNAME={look:'🔍 Look closely',magnet:'🧲 Magnet',acid:'🧪 Vinegar drop',water:'💧 Water',streak:'⬜ Streak tile',hard:'💅 Scratch tools',uv:'🔦 UV lamp',break:'🔨 Hammer tap'};
 function openLab(){
  const list=S.pack.filter(p=>p.t!=='f');
  const cards=list.map(p=>p.t==='g'?`<button class="cv-spec" data-k="g:${S.pack.indexOf(p)}"><span class="cv-big2">🔮</span><b>Geode</b><small>Crack it open!</small></button>`
@@ -616,8 +629,9 @@ function openLab(){
 }
 function bench(k,st){
  const p=S.pack.find(x=>x.k===k);if(!p)return openLab();const m=CD.MIN[p.id];p.path=p.path||[];p.miss=p.miss||0;p.scr=p.scr||{};st=st||{};
- const C=kAlive(p);if(C.length<=1)return kReveal(p);
- const young=TIER()===0,used=p.path.map(s=>s.t);
+ /* every specimen gets every test: the answer only comes once the whole set is in the notebook, even if one suspect is left sooner */
+ const C=kAlive(p),used=p.path.map(s=>s.t);if(!C.length||sciOrder().every(x=>used.includes(x)))return kReveal(p);
+ const young=TIER()===0;
  // young detectives get the next test chosen for them; older ones pick the tool themselves
  const nextSci=sciOrder().find(x=>!used.includes(x));
  let t=st.t||p.cur||(young?nextSci:null); /* young detectives follow the scientist's order automatically; older ones may pick any test */
@@ -655,7 +669,7 @@ function bench(k,st){
   bench(k,{t:'hard',quiet:1,mood:yes?'happy':'think',say:yes?(i===0?'Your fingernail left a scratch! It\'s very soft.':skipped?`A scratch! But did a <b>softer</b> tool scratch it too? Try one to find out.`:`A scratch! The ${CD.TOOLS[i].n.toLowerCase()} is the first tool that scratches it.`):(i===3?'Not even the quartz point scratches it! Wow!':`No mark. It's harder than the ${CD.TOOLS[i].n.toLowerCase()}. Try a harder tool!`)});});
  root.querySelectorAll('.cv-kopt:not([disabled])').forEach(b=>b.onclick=()=>{const v=opts[+b.dataset.i];const real=tval(m,t);
   if(JSON.stringify(v)===JSON.stringify(real)){sfx('right');p.path.push({t,v:real});p.cur=null;save();ev('keystep',{t,ok:1});
-   const left=kAlive(p);const same=left.length===C.length;bench(k,{say:left.length<=1?'Excellent! I think we\'ve cracked it…':same?'Good observing! That test didn\'t rule anyone out this time, but it\'s another clue in our notebook. Try another test!':pick(Math.random,['Great observing! That rules out some suspects.','Exactly right! Let\'s try the next test.','Yes! A real scientist reads results just like that.']),mood:'happy'});}
+   const left=kAlive(p);const same=left.length===C.length;bench(k,{say:sciOrder().every(x=>p.path.some(s=>s.t===x))?'Excellent! Every test is done. I think we\'ve cracked it…':left.length<=1?'Only one suspect is left! A good scientist still finishes every test to be sure.':same?'Good observing! That test didn\'t rule anyone out this time, but it\'s another clue in our notebook. Try another test!':pick(Math.random,['Great observing! That rules out some suspects.','Exactly right! Let\'s try the next test.','Yes! A real scientist reads results just like that.']),mood:'happy'});}
   else{sfx('wrong');p.miss++;save();ev('keystep',{t,ok:0});bench(k,{t,tested:1,quiet:1,bad:(st.bad||[]).concat(+b.dataset.i),mood:'think',say:'Scientists re-check their results all the time. Look at the picture again and try another answer!'});}});
 }
 function kFb(st,m,t){return (st.bad&&st.bad.length)?`<div class="cv-kfb" role="status">🤔 Not quite! ${kWhy(m,t)}</div>`:'';}
@@ -664,7 +678,8 @@ function kWhy(m,t){if(t==='magnet')return m.m?'Watch the rock: it jumps up and s
  if(t==='water')return m.w?'It got smaller and smaller until it was gone — it dissolved!':'It\'s still sitting in the water — it didn\'t dissolve.';
  if(t==='streak')return m.s?`Look at the color of the line on the tile.`:'There\'s no colored line — just scratches. It\'s harder than the tile!';
  if(t==='hard')return 'Look at the tools you tried. Which was the <b>first</b> one (the softest) that made a scratch?';
- if(t==='uv')return m.u?'It\'s glowing brightly in the dark!':'It stays dark — no glow.';return 'Read the description under the picture.';}
+ if(t==='uv')return m.u?'It\'s glowing brightly in the dark!':'It stays dark — no glow.';
+ if(t==='break')return 'Look at the pieces. Are their sides flat, curved or rough? Are they thin sheets, or tiny crumbs? Or did it only dent?';return 'Read the description under the picture.';}
 function kReveal(p){const m=CD.MIN[p.id];
  modal(`<div class="cv-card"><div class="cv-kpath">${(p.path||[]).map(s=>`<span>${KQ[s.t].split(' ')[0]} ${kLabel(s.t,s.v)}</span>`).join('<i>➜</i>')}</div>${gemSVG(m,110)}<h2>The path leads to… <br>${esc(m.n)}!</h2>
  ${guide(p.miss?'We got there! Next time, look extra carefully at each picture — you\'ll be a master detective.':pick(Math.random,['Perfect detective work — every answer right!','Brilliant! You read every test like a real geologist.','Wow, not a single mistake. I\'m impressed!']),'happy')}<button class="cv-btn" id="cvKDone">Add it to my Journal!</button></div>`,{noX:1});

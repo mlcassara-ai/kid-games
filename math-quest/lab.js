@@ -56,9 +56,9 @@ const STREAK={'#ffffff':'white','#2f3a2a':'greenish-black','#2f4f2a':'greenish-b
 const HB=['very soft','soft','medium','hard','super hard'];
 const hardBand=h=>{const T=CD().TOOLS;const i=T.findIndex(t=>h<=t.h);return i<0?4:i;};
 /* same order as the cave's Field Lab bench: look → streak → scratch → the special tests (any order, every test always offered) */
-const TESTS=[{id:'look',e:'🔍',n:'Look closely'},{id:'streak',e:'⬜',n:'Streak'},{id:'hard',e:'💅',n:'Scratch'},{id:'magnet',e:'🧲',n:'Magnet'},{id:'acid',e:'🧪',n:'Vinegar'},{id:'water',e:'💧',n:'Water'},{id:'uv',e:'🔦',n:'UV lamp'}];
+const TESTS=[{id:'look',e:'🔍',n:'Look closely'},{id:'streak',e:'⬜',n:'Streak'},{id:'hard',e:'💅',n:'Scratch'},{id:'break',e:'🔨',n:'Hammer tap'},{id:'magnet',e:'🧲',n:'Magnet'},{id:'acid',e:'🧪',n:'Vinegar'},{id:'water',e:'💧',n:'Water'},{id:'uv',e:'🔦',n:'UV lamp'}];
 const UV_NAMES={'#ff5a3d':'orange-red','#5cc8ff':'bright blue','#39ff6a':'bright green','#ff2a2a':'red','#7fb6ff':'pale blue'};
-function tval(m,t){return t==='hard'?hardBand(m.h):t==='streak'?(m.s||'none'):t==='acid'?!!m.f:t==='magnet'?!!m.m:t==='water'?!!m.w:t==='uv'?(m.u||''):t==='look'?m.look:'';}
+function tval(m,t){return t==='hard'?hardBand(m.h):t==='streak'?(m.s||'none'):t==='acid'?!!m.f:t==='magnet'?!!m.m:t==='water'?!!m.w:t==='uv'?(m.u||''):t==='break'?(m.br||'chips'):t==='look'?m.look:'';}
 const sw=c=>`<i class="lb-sw" style="background:${c}"></i>`;
 /* a plain grey "mystery rock" so the picture never gives the answer away (the real color shows once it's solved) */
 function rockSVG(k,size){const R=seeded(hash('rock|'+k));const n=9,pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=14+R()*6;pts.push([22+Math.cos(a)*r,23+Math.sin(a)*r*.82]);}
@@ -71,13 +71,14 @@ function result(m,t,p){const n=tier(p);
  if(t==='magnet')return m.m?`<b>SNAP!</b> 🧲 It sticks to the magnet.`:`The magnet <b>doesn't pull</b> on it.`;
  if(t==='water')return m.w?`<b>It dissolved!</b> 💧`:`In water it <b>stays the same.</b>`;
  if(t==='uv')return m.u?`Under UV light it <b>glows</b> ${sw(m.u)} <b>${UV_NAMES[m.u]||'brightly'}</b>!`:`Under UV light: <b>no glow.</b>`;
+ if(t==='break'){const b=(CD().BREAKS||[]).find(x=>x.id===m.br);return b?`Tapped with the hammer, it <b>${b.r}</b>.`:'';}
  if(t==='look')return `Up close it looks: <b>${esc(m.look)}</b>.`;return '';}
 /* today's sample: a mineral the kid has already identified, plus suspects a real test can tell apart */
 function mmState(p){const D=CD();if(!D)return null;const s=Q(p),L=s.lab,day=dayKey();const known=Object.keys(cv(p).idd).filter(id=>D.MIN[id]);
  if(known.length<3)return null;
  if(L.mm&&L.mm.d===day&&D.MIN[L.mm.id])return L.mm;
  const R=seeded(hash(p.id+'|'+day));const prev=L.mm&&L.mm.id;const pool=known.length>3?known.filter(id=>id!==prev):known;const id=pool[Math.floor(R()*pool.length)];
- const uv=!!cv(p).gear.uv;const sig=k=>['hard','streak','acid','magnet','water'].concat(uv?['uv']:[]).map(t=>JSON.stringify(tval(D.MIN[k],t))).join('|');
+ const uv=!!cv(p).gear.uv;const sig=k=>['hard','streak','break','acid','magnet','water'].concat(uv?['uv']:[]).map(t=>JSON.stringify(tval(D.MIN[k],t))).join('|');
  const others=known.filter(k=>k!==id&&sig(k)!==sig(id));const n=Math.min([3,4,4][tier(p)]-1,others.length);const sus=[];while(sus.length<n){const k=others[Math.floor(R()*others.length)];if(!sus.includes(k))sus.push(k);}
  const opts=sus.concat([id]).sort((a,b)=>hash(a+day)-hash(b+day));
  if(DEMO)return {d:day,id,opts,tests:[],tries:0,done:false};
@@ -88,18 +89,18 @@ function mmHTML(p){const D=CD(),mm=MM||mmState(p);if(!mm)return `<p class="muted
  if(mm.done)return `<div class="lb-mm">${gem}<div><b>${mm.ok?'✅ Solved!':'Today\'s sample'}: ${esc(m.n)}</b><p class="muted" style="margin:4px 0 0">${esc(tier(p)?m.o:m.y)}</p><p style="margin:6px 0 0">${mm.ok?`🪙 +${MM_COINS} and a 🔬 lab check on your ${esc(m.n)} card.`:'Nice try! A new sample comes tomorrow.'}</p>${FB&&!mm.ok?`<div class="lb-fb" id="lbFb" role="status">${FB}</div>`:''}</div></div>`;
  const tests=TESTS.filter(t=>t.id!=='uv'||uv);const nxt=(tests.find(t=>!mm.tests.includes(t.id))||{}).id;
  const done=TESTS.filter(t=>mm.tests.includes(t.id)); /* clues always listed in the scientist's order */
- return `<div class="lb-mm">${gem}<div style="min-width:0"><p style="margin:0 0 6px">Run tests to collect clues, then pick which mineral it is.${mm.tries?` <b>One more try!</b>`:''}</p>
-  <p class="muted lb-order">Scientists go: 🔍 look → ⬜ streak → 💅 scratch → 🧲 🧪 💧${uv?' 🔦':''} special tests. You can pick any test!</p>
+ return `<div class="lb-mm">${gem}<div style="min-width:0"><p style="margin:0 0 6px">Run every test to collect the clues, then pick which mineral it is.${mm.tries?` <b>One more try!</b>`:''}</p>
+  <p class="muted lb-order">Scientists go: 🔍 look → ⬜ streak → 💅 scratch → 🔨 hammer → 🧲 🧪 💧${uv?' 🔦':''} special tests. Any order is fine, but do them all!</p>
   <div class="lb-tests">${tests.map(t=>{const did=mm.tests.includes(t.id);return `<button class="btn small ${did?'ghost dark':''}${t.id===nxt?' lb-nxt':''}" ${did?'disabled aria-pressed="true"':''} onclick="Lab.test('${t.id}')">${did?'✓ ':''}${t.e} ${t.n}${t.id===nxt?' <em>next step</em>':''}</button>`;}).join('')}</div>
   ${done.length?`<ul class="lb-clues">${done.map(t=>`<li>${result(m,t.id,p)}</li>`).join('')}</ul>`:''}
   <p class="lb-pick"><b>Which mineral is it?</b></p>
-  <div class="lb-opts">${mm.opts.map(k=>`<button class="btn gold small" ${mm.tests.length?'':'disabled'} onclick="Lab.guess('${k}')">${esc(D.MIN[k].n)}</button>`).join('')}</div>
+  <div class="lb-opts">${mm.opts.map(k=>`<button class="btn gold small" ${tests.every(t=>mm.tests.includes(t.id))?'':'disabled'} onclick="Lab.guess('${k}')">${esc(D.MIN[k].n)}</button>`).join('')}</div>
   ${FB?`<div class="lb-fb" id="lbFb" role="status">${FB}</div>`:''}
-  ${mm.tests.length?'':'<p class="muted" style="margin:6px 0 0;font-size:14px">Run at least one test first.</p>'}</div></div>`;}
+  ${tests.every(t=>mm.tests.includes(t.id))?'':`<p class="muted" style="margin:6px 0 0;font-size:14px">Run all the tests first: ${tests.filter(t=>!mm.tests.includes(t.id)).length} to go.</p>`}</div></div>`;}
 function test(t){const p=P();const mm=MM||mmState(p);if(!mm||mm.done)return;FB='';if(!mm.tests.includes(t)){mm.tests.push(t);if(!DEMO)save();}try{SFX.tap();}catch(e){}draw();}
 /* phones: keep the answer feedback on screen (it sits right under the answer buttons) */
 function showFb(){const e=document.getElementById('lbFb');if(!e)return;try{const r=e.getBoundingClientRect();if(r.top<60||r.bottom>innerHeight-10)e.scrollIntoView({block:'center'});}catch(x){}}
-function guess(k){const p=P(),s=Q(p);const mm=MM||mmState(p);if(!mm||mm.done||!mm.tests.length)return;const D=CD();
+function guess(k){const p=P(),s=Q(p);const mm=MM||mmState(p);if(!mm||mm.done||!TESTS.filter(t=>t.id!=='uv'||cv(p).gear.uv).every(t=>mm.tests.includes(t.id)))return;const D=CD();
  if(k===mm.id){mm.done=true;mm.ok=true;try{SFX.win();}catch(e){}
   if(!DEMO){p.coins=(p.coins||0)+MM_COINS;s.lab.ok[k]=(s.lab.ok[k]||0)+1;s.lab.solved=(s.lab.solved||0)+1;save();}
   FB=`✅ Yes! It's <b>${esc(D.MIN[k].n)}</b>! 🪙 +${MM_COINS}`;toast(`🔬 Yes! It's ${D.MIN[k].n}! 🪙 +${MM_COINS}${DEMO?' (preview)':''}`);}

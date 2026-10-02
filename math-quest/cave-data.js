@@ -220,5 +220,15 @@ CD.Q=[
 
 /* ---------- mineral mini-guide for choosing the field guide difficulty ---------- */
 CD.tier=g=>g<=4?0:g<=8?1:2;
+/* ---------- the hammer-tap test: how each mineral breaks (cleavage and fracture) ----------
+   sheets = one perfect cleavage (mica)            blocks = flat-sided pieces: cubes, slanted blocks, 8-sided bits
+   chips  = no cleavage: rough or curved, glassy    crumbs = soft and crumbly      bends = a metal that dents instead of breaking
+   This is what tells apart minerals that agree on every other test (mica and gypsum, feldspar and olivine). */
+CD.BREAKS=[{id:'sheets',n:'Peels into thin sheets',r:'peels apart into thin, bendy sheets'},{id:'blocks',n:'Splits into flat-sided pieces',r:'splits into pieces with flat, smooth sides'},
+ {id:'chips',n:'Chips into rough or curved pieces',r:'chips into rough pieces with no flat sides, some curved like broken glass'},{id:'crumbs',n:'Crumbles and flakes',r:'crumbles and flakes into small soft bits'},
+ {id:'bends',n:'Dents and bends, but does not break',r:'dents and bends but does not break'}];
+{const BR={quartz:'chips',mica:'sheets',gypsum:'crumbs',halite:'blocks',pyrite:'chips',calcite:'blocks',fluorite:'blocks',malachite:'chips',azurite:'chips',willemite:'chips',feldspar:'blocks',
+ magnetite:'chips',hematite:'chips',gold:'bends',galena:'blocks',garnet:'chips',corundum:'chips',obsidian:'chips',sulfur:'crumbs',olivine:'chips',diamond:'blocks'};
+ Object.keys(CD.MIN).forEach(k=>{CD.MIN[k].br=BR[k]||'chips';});}
 window.CAVE_DATA=CD;
 })();
