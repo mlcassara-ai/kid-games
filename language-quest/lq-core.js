@@ -142,6 +142,9 @@ const CSS=`
 .lq-tags.bad span{background:#FFE3E8}.lq-tags.good span{background:#DDF5EC}
 .lq-ar{font-size:1.35rem}
 .lq-small{font-size:.9rem;color:#5A6B82}
+.lq-goto{display:block;width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left;padding:6px 6px 0;margin:2px 0;border-radius:12px;cursor:pointer}
+.lq-goto:hover,.lq-goto:focus-visible{background:#EEF4FB}
+.lq-chip{display:inline-block;background:#1E5AA8;color:#fff;border-radius:999px;padding:1px 9px;font-size:.8rem;font-weight:800;margin-left:6px}
 .lq-cloud{font-size:.95rem;color:#5A6B82;text-align:center;margin-top:10px}
 .lq-code{font-weight:800;font-size:1.2rem;letter-spacing:.05rem;background:#FFF8E6;border-radius:12px;padding:8px 12px;text-align:center;margin:8px 0;word-break:break-all}
 @media (prefers-reduced-motion:reduce){.lq-shake{animation:none}}`;
@@ -352,7 +355,7 @@ function drawHero(c,p,o){ o=o||{}; const wear=o.wear||(p&&p.wear)||{}, t=o.time|
 /* ---------------- "Me": the player's own page ---------------- */
 function mePage(){
   const p=cur(); if(!p) return; mark("Me page"); const n=o=>Object.keys(o||{}).length, sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
-  const L=n(p.letters), rows=[["⛺ Letters caught",L,28],["✏️ Letters traced",n(p.trace),28],["💦 Sound Falls pools",n(p.falls),8],["🛍️ Souq stalls",n(p.souq),5],["⛵ Stories finished",n(p.harbor),5],["📒 Letter Friends",n(p.friends),28],["⛲ Sayings found",n(p.well&&p.well.got),26]];
+  const L=n(p.letters), rows=[["⛺ Letters caught",L,28,"letters/"],["✏️ Letters traced",n(p.trace),28,"letters/"],["💦 Sound Falls pools",n(p.falls),8,"falls/"],["🛍️ Souq stalls",n(p.souq),5,"souq/"],["⛵ Stories finished",n(p.harbor),5,"harbor/"],["📒 Letter Friends",n(p.friends),28,"#album"],["⛲ Sayings found",n(p.well&&p.well.got),26,"#fountain"]];   // last item: where tapping the row goes
   const stars=sum(p.camps)+sum(p.falls)+sum(p.souq)+sum(p.harbor), days=n(p.days), dr=p.dr||{}, td=dr[today()]||0, best=p.best||{n:0};
   const right=["letters","marks","words"].reduce((a,k)=>a+Object.values((p.stats||{})[k]||{}).reduce((x,e)=>x+(e.r||0),0),0);
   const week=[]; for(let i=6;i>=0;i--){ const d=new Date(Date.now()-i*864e5); week.push([["Su","Mo","Tu","We","Th","Fr","Sa"][d.getDay()],dr[d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()]||0]); }
@@ -374,7 +377,8 @@ function mePage(){
     <h2 style="margin:0">${esc(p.name)}</h2>
     <p style="margin:4px 0"><b>🪙 ${p.coins||0}</b> · <b>★ ${stars}</b> of 75 stars · played on <b>${days}</b> day${days===1?"":"s"}</p>
     <p style="margin:6px 0;font-weight:800;color:#1E5AA8">${cheer}</p>
-    <div style="text-align:left">${rows.map(r=>`<div class="lq-small" style="display:flex;justify-content:space-between;margin-top:8px"><span>${r[0]}</span><b>${r[1]} / ${r[2]}</b></div><div class="lq-bar"><i style="width:${Math.min(100,r[1]/r[2]*100)}%"></i></div>`).join("")}</div>
+    <p class="lq-small" style="margin:8px 0 0">Tap a row to go straight there.</p>
+    <div style="text-align:left">${rows.map(r=>`<button class="lq-goto" data-go="${r[3]}"><div class="lq-small" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${r[0]}</span><span><b>${r[1]} / ${r[2]}</b> <span class="lq-chip">Go ▶</span></span></div><div class="lq-bar"><i style="width:${Math.min(100,r[1]/r[2]*100)}%"></i></div></button>`).join("")}</div>
     <h2 style="font-size:1.15rem;margin:16px 0 2px">My right answers this week</h2>
     <div style="display:flex;gap:6px;align-items:flex-end;justify-content:center;height:96px">${week.map((w,i)=>`<div style="width:34px;text-align:center"><div class="lq-small">${w[1]||""}</div><div style="height:${Math.round(w[1]/top*60)+4}px;border-radius:6px 6px 0 0;background:${i===6?"#F2B134":"#2FA894"}"></div><div class="lq-small">${w[0]}</div></div>`).join("")}</div>
     <p class="lq-small" style="margin:4px 0">Today: <b>${td}</b> · My best day: <b>${best.n}</b> · All time: <b>${right}</b></p>
@@ -382,6 +386,10 @@ function mePage(){
   const cv=document.getElementById("lqMe"), c=cv.getContext("2d"); c.translate(130,292); c.scale(2.6,2.6); drawHero(c,p);
   document.getElementById("lqMeOk").onclick=()=>{ closeOverlay(); fire(); };
   document.getElementById("lqMeLock").onclick=()=>chooseLock(p,false,mePage);
+  const root=(location.pathname.match(/^(.*\/language-quest\/)/)||[])[1]||"./";
+  document.querySelectorAll(".lq-goto").forEach(b=>b.onclick=()=>{ const go=b.dataset.go;
+    if(go[0]!=="#") return void(location.href=root+go);
+    closeOverlay(); fire(); dispatchEvent(new CustomEvent("lq:goto",{detail:go.slice(1)})); });      // the album and the fountain are on the map, which listens for this
   document.getElementById("lqMeWear").onclick=()=>{ location.href=((location.pathname.match(/^(.*\/language-quest\/)/)||[])[1]||"./")+"souq/?tailor=1"; };
 }
 window.LQ={
