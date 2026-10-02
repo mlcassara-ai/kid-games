@@ -81,3 +81,4 @@ Adaptive math battles plus a village of side activities, for grades 1–12 and a
 - Add-on files run before the core script, so they may only touch core globals inside functions or after a deferred `reg()` wait. Avoid top-level names that already exist in the file being edited (`pk`, `pick`, `P`, `B`).
 - Stories, notes and long text are never read aloud automatically; grades 1–2 hear questions and short lines automatically. No emoji are read aloud.
 - A wrong answer never takes away something already earned.
+- Never hold a player object (`P()`, `p.adv`, `p.tad`…) across a wait such as a question popup or a timer. An online sync replaces player objects, so anything written to the old one is lost. Fetch `P()` again inside the callback. The smoke test cannot see this unless a test swaps the player mid-flow (see the adventure test).
