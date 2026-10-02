@@ -45,7 +45,10 @@ window.QUARTZ_SVG=SVG;
 /* ---------- state ---------- */
 function Q(p){p.sci=p.sci||{};const s=p.sci;s.rocks=s.rocks||0;s.trips=s.trips||0;return s;}
 function medals(p){let n=0;(typeof ZONES!=='undefined'?ZONES:[]).forEach(z=>{for(let r=1;r<=5;r++){if((rpeek(p,z.id,r)[5]||0)>0)n++;else break;}});return n;}
-function dueFirst(p){const s=Q(p);return !s.met&&(p.battles||0)>=FIRST_AFTER;}
+function dueFirst(p){const s=Q(p);return !s.met&&((p.battles||0)>=FIRST_AFTER||!!s.call);}
+/* Parent Corner 'Send a visitor': he comes now. A hero who has met him needs a rock for the trip, so one is added if there is none. */
+function bring(p){const s=Q(p);s.snooze=0;if(s.met){if(s.rocks<1)s.rocks=1;}else s.call=1;}
+function coming(p){const s=p.sci||{};return Date.now()>(s.snooze||0)&&(s.met?(s.rocks||0)>0:(!!s.call||(p.battles||0)>=FIRST_AFTER));}
 function wants(p){const s=Q(p);if(!p||!p.setup)return false;if(DEMO)return true;if(Date.now()<(window.visitorQuiet||0))return false;if(dueFirst(p))return Date.now()>(s.snooze||0);return s.met&&s.rocks>0&&Date.now()>(s.snooze||0);}
 
 /* ---------- mystery rock drops (called from chests, wild wins, battle wins) ---------- */
@@ -174,5 +177,5 @@ const st=document.createElement('style');st.textContent=`.qz-row{display:flex;ga
 .qz-bub{flex:1;background:#e7f5ff;border:3px solid #74c0fc;border-radius:18px;padding:10px 14px;font-size:18px;line-height:1.45;color:#1f2340}.qz-bub>b{display:block;color:#1971c2;font-size:14px;margin-bottom:2px}
 @media(max-width:560px){.qz-av{flex-basis:70px}.qz-av svg{width:70px;height:85px}.qz-bub{font-size:16px}}`;document.head.appendChild(st);
 
-window.Quartz={SVG,openCave,meet,drop,DROP_HTML,draw,bagHTML,medals,rockMineral,GATE_NEED,DROP,_Q:Q,_spawn:spawn,_demo:()=>{DEMO=true;},startTrip};
+window.Quartz={_bring:bring,_coming:coming,SVG,openCave,meet,drop,DROP_HTML,draw,bagHTML,medals,rockMineral,GATE_NEED,DROP,_Q:Q,_spawn:spawn,_demo:()=>{DEMO=true;},startTrip};
 })();

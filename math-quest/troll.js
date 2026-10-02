@@ -37,7 +37,7 @@ window.trollCheck=function(tile){
  if(!armed&&!t.force&&!wk&&(t.at==null||t.play<t.at))return false;
  const fe=t.forceEagle||wk==='eagle';
  /* 🚪 visitor queue: the trap stays armed until it's our turn (no troll on top of Dr. Quartz, Principal Wise…) */
- const eg=!!window.Eagle&&(armed?armed==='eagle':(wk!=='troll'&&(fe||EAGLE_BIOMES.includes(tile.b))));const who=eg?'eagle':'troll';
+ const eg=!!window.Eagle&&(armed?armed==='eagle':(wk!=='troll'&&t.force!=='troll'&&(fe||EAGLE_BIOMES.includes(tile.b))));const who=eg?'eagle':'troll';
  const v=VQ();if(v){if(v.who()===(eg?'troll':'eagle')&&PRE)v.swap(PRE,who); /* our turn was saved under the other name */
   if(!v.claim(who,20*60e3)){v.wait(who,()=>{try{const q=P();if(!(q&&q===p&&typeof curScreen!=='undefined'&&curScreen==='world'))return;
    /* our turn: the kid is usually still standing on the trap square → spring right now; otherwise keep the turn for their next step */
@@ -417,6 +417,18 @@ function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  box.querySelectorAll('.tr-pad button').forEach(b=>b.onclick=()=>{try{SFX.tap();}catch(e){}press(b.dataset.k);});
  const finish=()=>{if(done)return;done=true;clearInterval(tiv);document.removeEventListener('visibilitychange',vis);window.removeEventListener('keydown',key);const v=parseInt(inp,10);const ok=!timedOut&&(v===q.answer||!!(q.alt&&q.alt.includes(v)));box.remove();resolve({ok,q,timeout:timedOut});};
 });}
-window.Troll={_wk:weekDue,_sess:v=>{SESS=v;},start,arm:k=>{ARM=k;},_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
+/* ---------- Parent Corner: a grown-up sends a visitor to a hero now ---------- */
+/* A real visit, not a preview. The flags live in the hero's saved data, so they reach the kid's own device with the next sync. */
+function bring(id,who){try{const p=state.players.find(x=>x.id===id);if(!p)return;const t=T(p);let name=TNAME+' the Troll';
+ if(who==='troll'){t.force='troll';t.forceEagle=0;}
+ else if(who==='eagle'){t.force=1;t.forceEagle=1;name='Skyla the Eagle';}
+ else if(who==='quartz'&&window.Quartz&&Quartz._bring){Quartz._bring(p);name='Dr. Quartz';}else return;
+ save();if(typeof refreshParent==='function')refreshParent(null);else go('parent');toast('⚡ '+name+' is on the way to '+p.name+'!');}catch(e){}}
+function bringSection(){try{if(typeof state==='undefined'||!state.players)return '';const list=state.players.filter(p=>p.setup);if(!list.length)return '';
+ const b=(p,who,txt,on)=>on?`<small class="muted">${txt} ⚡ on the way</small>`:`<button class="btn small ghost dark" onclick="Troll._bring('${p.id}','${who}')">${txt}</button>`;
+ return `<div class="panel"><h3>⚡ Send a visitor</h3><p class="muted" style="margin-top:0">Normally these visitors turn up on their own. A button here sends one to a hero now. ${esc(TNAME)} the Troll and Skyla the Eagle spring on the hero's next step onto an empty square outside the village. Dr. Quartz walks over on the World map and brings a mystery rock if the hero has none. It may take a minute to reach another device.</p>
+ ${list.map(p=>{const t=p.troll||{},s=p.sci||{};return `<div class="row" style="justify-content:flex-start;align-items:center;gap:10px;margin:6px 0;flex-wrap:wrap"><b style="min-width:90px">${esc(p.name)}</b>${b(p,'troll','🧌 Troll',t.force==='troll')}${window.Eagle?b(p,'eagle','🦅 Skyla',!!t.forceEagle):''}${window.Quartz&&Quartz._bring?b(p,'quartz','🔬 Dr. Quartz',Quartz._coming(p)):''}</div>`;}).join('')}</div>`;}catch(e){return '';}}
+window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(bringSection);
+window.Troll={_bring:bring,_wk:weekDue,_sess:v=>{SESS=v;},start,arm:k=>{ARM=k;},_T:T,_take:take,_give:giveBack,unmarked,_q:makeQ};
 window.Surprise={reclaimed,say,tapWait,ask,label,take,giveBack,el,sleep,snd,makeQ,EAGLE_BIOMES,heroHTML,isDemo:()=>!!DEMO};
 })();

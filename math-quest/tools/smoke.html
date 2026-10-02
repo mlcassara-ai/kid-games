@@ -190,7 +190,19 @@ const tests=[
   T.ok(new Set(d.FACTS.map(x=>x[0])).size===d.FACTS.length&&d.FACTS.every(x=>d.SETS.some(s=>s[0]===x[0][0])),'fact ids are not unique or lack a set');
   closeModal();window.MQ_DISTRICT_BETA=false;go('world');}],
 
-['great fade: a grown-up can bring the Goblin now',async function(){
+['send a visitor: a grown-up can send the Troll, Skyla and Dr. Quartz',async function(){
+  T.reset();const p=T.hero('Vis',5,{level:12,battles:1});state.cur=p.id;const html=()=>{const d=document.createElement('div');d.innerHTML=MQ_PARENT.map(f=>{try{return f()||'';}catch(e){return '';}}).join('');return d;};
+  T.ok(html().querySelectorAll('[onclick*="Troll._bring"]').length===3,'expected three send buttons for one hero');
+  window.trollBusy=false;try{MQ_VISIT.reset();}catch(e){}const plain={b:'forest'},sky={b:'farm'};let who='';
+  const t0=Troll.start,e0=Eagle.start;Troll._bring(p.id,'troll');try{closeModal();}catch(e){}T.ok(p.troll.force==='troll','troll flag not set');
+  T.ok(/Troll ⚡ on the way/.test(html().innerText),'no on-the-way note for the troll');
+  T.ok(Troll.unmarked(sky),'test tile is not an empty square');
+  Troll._bring(p.id,'eagle');T.ok(p.troll.forceEagle===1,'eagle flag not set');Troll._bring(p.id,'troll');T.ok(!p.troll.forceEagle&&p.troll.force==='troll','troll did not replace the eagle');
+  T.ok(Quartz._coming(p)===false,'Dr. Quartz already due for a new hero');Troll._bring(p.id,'quartz');T.ok(Quartz._coming(p)&&p.sci.call===1&&!p.sci.rocks,'Dr. Quartz not called for a hero who has not met him');
+  p.sci.met=true;p.sci.rocks=0;p.sci.snooze=Date.now()+9e6;T.ok(!Quartz._coming(p));Troll._bring(p.id,'quartz');T.ok(Quartz._coming(p)&&p.sci.rocks===1,'Dr. Quartz did not bring a rock');
+  p.sci.rocks=3;Troll._bring(p.id,'quartz');T.ok(p.sci.rocks===3,'rocks changed for a hero who had some');
+ }],
+ ['great fade: a grown-up can bring the Goblin now',async function(){
   T.reset();const p=T.hero('Fade',5,{level:12,battles:40});state.cur=p.id;const html=()=>{const d=document.createElement('div');d.innerHTML=MQ_PARENT.map(f=>{try{return f()||'';}catch(e){return '';}}).join('');return d.innerText;};
   T.ok(/Bring him now/.test(html()),'no Bring him now button for a level 10+ hero');T.ok(Fade._dbg.whyNot(p)!=='',"the Fade was already due before the button");
   Fade._soon(p.id);try{closeModal();}catch(e){}T.ok(Fade._dbg.whyNot(P())==='' ,'the Fade is not due after Bring him now: '+Fade._dbg.whyNot(P()));T.ok(/Coming on the next visit/.test(html()),'status did not change');
