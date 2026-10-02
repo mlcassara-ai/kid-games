@@ -147,6 +147,11 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 .book button{font-family:var(--font); font-size:1.5rem; line-height:1.9; direction:rtl; text-align:right; background:#FFF8E6; color:#12233D; border:3px solid transparent; border-radius:16px; padding:6px 12px; cursor:pointer}
 .book button small{display:block; direction:ltr; text-align:left; font-size:.9rem; color:#7A6B45; line-height:1.3}
 .book button.on{border-color:var(--mint)}
+.book button{position:relative}
+.book button.miss{background:#FFE9B8; border-color:#F2B134}
+.mk{display:inline-block; width:1.7rem; height:1.7rem; line-height:1.7rem; border-radius:50%; text-align:center; font-size:1rem; font-weight:800; color:#fff; direction:ltr}
+.mk.ok{background:var(--mint)} .mk.miss{background:#E58A2B}
+.book button .mk{position:absolute; left:10px; top:10px}
 .step{text-align:center; color:var(--muted); font-weight:800; margin:0}
 @media (prefers-reduced-motion:no-preference){ .pick.wrong{animation:shake .35s} }
 </style>
@@ -162,8 +167,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛵</div><h2>Story Harbor</h2><p class="muted">مِينَاءُ القِصَص — finish the stories!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02j";</script>
-<script src="../lq-core.js?v=2026.10.02j"></script>
+<script>window.LQ_VER="2026.10.02k";</script>
+<script src="../lq-core.js?v=2026.10.02k"></script>
 <script>
 /* ============ stories ============
    Short retellings of traditional tales. Each line: [Arabic with {} for the missing word, English with {}, scene picture,
@@ -245,7 +250,7 @@ function home(){ LQ.mark("Story Harbor: bookshelf"); hush();
   document.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; save.harbor[i]?book(i):story(i); });
 }
 /* ---- one story: a missing word in every line ---- */
-function story(i){ LQ.mark("Story "+(i+1)); const S=STORIES[i]; let k=0, misses=0, heardTitle=false;
+function story(i){ LQ.mark("Story "+(i+1)); const S=STORIES[i]; let k=0, misses=0, heardTitle=false; const missed=new Set();
   function line(){
     if(k>=S.lines.length) return done();
     const l=S.lines[k], picks=shuffle(l[3].map((c,j)=>({c,ok:j===0}))); let tried=false, solved=false;
@@ -264,7 +269,7 @@ function story(i){ LQ.mark("Story "+(i+1)); const S=STORIES[i]; let k=0, misses=
     $("rd").onclick=read; if(k===0&&!heardTitle){ heardTitle=true; say(S.ar,()=>setTimeout(read,400)); } else read();
     document.querySelectorAll(".hear").forEach(b=>b.onclick=()=>say(picks[+b.dataset.j].c[0]));
     document.querySelectorAll(".pick").forEach(b=>b.onclick=()=>{ if(solved) return; const o=picks[+b.dataset.j];
-      if(!o.ok){ misses++; tried=true; LQ.record("words",l[3][0][0],false,o.c[0]); b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong"); say(o.c[0]); return; }
+      if(!o.ok){ misses++; tried=true; missed.add(k); LQ.record("words",l[3][0][0],false,o.c[0]); b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong"); say(o.c[0]); return; }
       solved=true; b.classList.add("right"); LQ.record("words",l[3][0][0],true); if(!tried) addCoins(4);
       $("ln").innerHTML=l[0].replace("{}",`<span class="fill">${o.c[0]}</span>`); $("en").textContent=l[1].replace("{}",o.c[1]);
       $("next").disabled=false; say(full(l)); });
@@ -272,14 +277,16 @@ function story(i){ LQ.mark("Story "+(i+1)); const S=STORIES[i]; let k=0, misses=
   }
   function done(){ const stars=misses<=1?3:misses<=4?2:1, first=!save.harbor[i];
     LQ.update(p=>{ p.harbor=p.harbor||{}; p.harbor[i]=Math.max(p.harbor[i]||0,stars); }); addCoins(first?20:5); persist(); LQ.mark("Story "+(i+1)+" finished");
-    book(i,stars); }
+    book(i,stars,missed); }
   line();
 }
 /* ---- the finished story, to read and hear again ---- */
-function book(i,stars){ const S=STORIES[i], last=i===STORIES.length-1; hush();
+// missed = the lines that took more than one try this time (only known straight after playing)
+function book(i,stars,missed){ const S=STORIES[i], last=i===STORIES.length-1; hush();
   $("app").innerHTML=`<div class="panel">${stars?`<div class="center"><div style="font-size:3rem">🏆</div><p style="font-size:2rem;color:var(--saffron);margin:0">${stars3(stars)}</p></div>`:""}
     <h2 class="center" lang="ar" style="font-size:1.7rem;line-height:1.8;margin:0">${S.ar}</h2><p class="en">${S.en}</p>
-    <div class="book">${S.lines.map((l,j)=>`<button data-j="${j}" lang="ar">${full(l)}<small>${l[1].replace("{}",l[3][0][1])}</small></button>`).join("")}</div>
+    ${missed?`<p class="en" style="margin:8px 0 0"><span class="mk ok">✓</span> right first time${missed.size?` · <span class="mk miss">↻</span> listen to this one again`:""}</p>`:""}
+    <div class="book">${S.lines.map((l,j)=>`<button data-j="${j}" lang="ar" class="${missed?(missed.has(j)?"miss":"ok"):""}">${missed?`<span class="mk ${missed.has(j)?"miss":"ok"}">${missed.has(j)?"↻":"✓"}</span>`:""}${full(l)}<small>${l[1].replace("{}",l[3][0][1])}</small></button>`).join("")}</div>
     <div class="actions"><button class="btn go" id="all">🔊 Hear the whole story</button><button class="btn ghost" id="again">Play it again</button>
       <button class="btn ghost" id="home">${stars&&!last?"Next story":"All stories"}</button></div></div>`;
   const rows=[...document.querySelectorAll(".book button")], light=j=>rows.forEach((r,x)=>r.classList.toggle("on",x===j));
