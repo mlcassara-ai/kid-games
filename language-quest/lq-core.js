@@ -334,8 +334,13 @@ function mePage(){
   const right=["letters","marks","words"].reduce((a,k)=>a+Object.values((p.stats||{})[k]||{}).reduce((x,e)=>x+(e.r||0),0),0);
   const week=[]; for(let i=6;i>=0;i--){ const d=new Date(Date.now()-i*864e5); week.push([["Su","Mo","Tu","We","Th","Fr","Sa"][d.getDay()],dr[d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()]||0]); }
   const top=Math.max(1,...week.map(w=>w[1]));
+  // next step in the Letter Dunes: its seven camps hold four letters each, in alphabet order
+  const NAMES=["One","Two","Three","Four","Five","Six","Seven"], ALPH=[..."ابتثجحخدذرزسشصضطظعغفقكلمنهوي"]; let dunes="";
+  for(let c=0;c<7&&!dunes;c++){ const got=ALPH.slice(c*4,c*4+4).filter(ch=>(p.letters||{})[ch]).length;
+    if(got<4) dunes=`Next: learn ${4-got} more letter${4-got===1?"":"s"} at Camp ${NAMES[c]} in the Letter Dunes ⛺`;
+    else if(!(p.camps||{})[c]) dunes=`Next: beat the sand monster at Camp ${NAMES[c]} in the Letter Dunes 🦂`; }
   const cheer=td>0&&td>=best.n?"🎉 Today is your best day ever! Amazing work."
-    :L<28?`Catch ${4-(L%4)} more letter${4-(L%4)===1?"":"s"} to fill your next camp.`
+    :dunes?dunes
     :n(p.falls)<8?"Open the next pool at Sound Falls."
     :n(p.souq)<5?"Help the next shopkeeper in the Souq."
     :n(p.friends)<28?`${28-n(p.friends)} Letter Friends are still hiding on the map.`
