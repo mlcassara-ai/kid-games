@@ -48,6 +48,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 #enterBar.show{transform:translate(-50%,0)}
 #enterBar span{color:var(--sky); font-size:1.3rem}
 #enterBar .btn{flex:none}
+#enterBar{flex-wrap:wrap; justify-content:center; width:max-content; max-width:94vw}
+#enterBar>div{white-space:nowrap; font-weight:800}
 #fm{position:fixed; inset:0; z-index:6; background:rgba(18,35,61,.5); display:none; align-items:center; justify-content:center; padding:14px}
 #fm.show{display:flex}
 #fm .box{background:var(--card); color:var(--ink); border-radius:26px; padding:18px; width:min(94vw,520px); max-height:88vh; overflow:auto; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.4)}
@@ -94,7 +96,7 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 <canvas id="mini" aria-label="Mini map"></canvas>
 <div id="zone"><b></b><span lang="ar"></span></div>
 <div id="hint">Tap anywhere to walk · tap things to learn their names</div>
-<div id="enterBar" role="status"><div>Going into <b></b> <span lang="ar"></span>…</div><button class="btn ghost" id="enterCancel">Stay on the map</button></div>
+<div id="enterBar" role="status"><div><b></b> <span lang="ar"></span></div><button class="btn ghost" id="enterHear" aria-label="Hear the name again">🔊</button><button class="btn go" id="enterGo">Enter ▶</button><button class="btn ghost" id="enterCancel">Not now</button></div>
 <div id="fm" role="dialog" aria-modal="true"><div class="box" id="fmBox"></div></div>
 <div id="card" role="dialog" aria-live="polite">
   <div class="icon" id="cIcon"></div>
@@ -104,8 +106,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02i";</script>
-<script src="lq-core.js?v=2026.10.02i"></script>
+<script>window.LQ_VER="2026.10.02j";</script>
+<script src="lq-core.js?v=2026.10.02j"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -243,14 +245,13 @@ let entering=null;
 function startEnter(l){
   if(entering) return; const url=OPEN[l.id]; if(!url) return;
   if(!LQ.player()){ LQ.profiles(()=>{ hud(); startEnter(l); }); return; } LQ.mark("Going into "+l.en);
-  // go in once the zone's name has been heard in full; never wait more than 4 s for a slow or missing clip
+  // say the zone's name and offer an Enter button; nothing happens until the player taps it, and walking away closes the bar
   let heard=false;
-  const go=()=>{ if(!entering||entering.l!==l) return; clearTimeout(entering.t); try{ if(heard) sessionStorage.setItem("lq.said",l.id); }catch(e){} location.href=url; };
-  entering={l,t:setTimeout(go,soundOn?4000:1300)};
+  entering={l,go:()=>{ if(!entering||entering.l!==l) return; try{ if(heard) sessionStorage.setItem("lq.said",l.id); }catch(e){} location.href=url; }};
   const b=document.getElementById("enterBar"); b.querySelector("b").textContent=l.en; b.querySelector("span").textContent=l.ar; b.classList.add("show"); say(l.ar);
-  if(soundOn){ const err=player_audio.onerror; player_audio.onended=()=>{ heard=true; setTimeout(go,350); }; player_audio.onerror=()=>{ err&&err(); setTimeout(go,1300); }; }
+  player_audio.onended=()=>{ if(entering&&entering.l===l) heard=true; };
 }
-function cancelEnter(){ if(!entering) return; clearTimeout(entering.t); entering=null; player_audio.pause(); document.getElementById("enterBar").classList.remove("show"); }
+function cancelEnter(){ if(!entering) return; entering=null; player_audio.pause(); document.getElementById("enterBar").classList.remove("show"); }
 function drawPad(l,time){
   const p=padOf(l), open=!!OPEN[l.id];
   if(open){ const k=(Math.sin(time*3)+1)/2;
@@ -791,6 +792,8 @@ function sayingBook(){
   fmBox.querySelectorAll(".book button.got").forEach(b=>b.onclick=()=>showSaying(SAYINGS[+b.dataset.i],false));
 }
 document.getElementById("enterCancel").onclick=e=>{ e.stopPropagation(); cancelEnter(); };
+document.getElementById("enterGo").onclick=e=>{ e.stopPropagation(); if(entering) entering.go(); };
+document.getElementById("enterHear").onclick=e=>{ e.stopPropagation(); if(entering) say(entering.l.ar); };
 document.getElementById("albumBtn").onclick=()=>{ closeCard(); album(); };
 
 /* ============ loop ============ */
