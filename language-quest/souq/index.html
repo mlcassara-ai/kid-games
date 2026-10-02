@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Language Quest – The Souq</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#1E5AA8; --deep:#153F78; --saffron:#F2B134; --mint:#2FA894; --rose:#E0607E;
+  --sand1:#F7DFA8; --sand2:#EBC47C; --card:#FFFFFF; --ink:#12233D; --muted:#5A6B82; --line:#E3D2A8;
+  --font:"Baloo Bhaijaan 2","Geeza Pro","Noto Sans Arabic",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --sand1:#5A4526; --sand2:#43331B; --card:#1D2B45; --ink:#EEF3FA; --muted:#A9B8CC; --line:#3A4B68; } }
+:root[data-theme="dark"]{ --sand1:#5A4526; --sand2:#43331B; --card:#1D2B45; --ink:#EEF3FA; --muted:#A9B8CC; --line:#3A4B68; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%}
+body{margin:0; min-height:100%; background:linear-gradient(180deg,#8FC6F0 0,#CFE6F7 140px,var(--sand1) 141px,var(--sand2) 100%); background-attachment:fixed; color:var(--ink); font-family:var(--font); -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none}
+.wrap{max-width:760px; margin:0 auto; padding:10px 14px 28px}
+.top{display:flex; align-items:center; gap:8px; justify-content:space-between}
+.top h1{font-size:1.3rem; margin:0; font-weight:800; color:#12233D}
+.pill{background:var(--card); color:var(--ink); border:0; border-radius:999px; padding:6px 14px; font:inherit; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,.15); cursor:pointer; min-height:40px}
+.coins{background:var(--saffron); color:#12233D}
+button:focus-visible{outline:3px solid var(--saffron); outline-offset:3px}
+.panel{background:var(--card); border-radius:24px; padding:14px; margin-top:12px; box-shadow:0 4px 16px rgba(70,50,10,.15)}
+h2{margin:4px 0 8px; font-size:1.3rem}
+.muted{color:var(--muted)}
+.camps{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-top:12px}
+.camp{background:var(--card); border:0; border-radius:22px; padding:12px 10px; cursor:pointer; font:inherit; color:var(--ink); text-align:center; box-shadow:0 4px 14px rgba(70,50,10,.15); position:relative}
+.camp .tent{font-size:2.4rem}
+.camp .ls{font-size:1.6rem; direction:rtl; word-spacing:.15rem; line-height:1.5; white-space:nowrap}
+.camp .nm{font-weight:800}
+.camp .st{color:var(--saffron); font-size:1.1rem; min-height:1.4rem}
+.camp.locked{opacity:.55; cursor:not-allowed}
+.camp.locked::after{content:"🔒"; position:absolute; top:8px; right:10px; font-size:1.3rem}
+.crew{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:10px}
+@media (min-width:560px){ .crew{grid-template-columns:repeat(4,1fr)} }
+.mem{background:var(--card); border:3px solid transparent; border-radius:20px; padding:8px; cursor:pointer; font:inherit; color:var(--ink); text-align:center; box-shadow:0 3px 10px rgba(70,50,10,.12)}
+.mem svg{width:84px; height:84px}
+.mem .nm{font-weight:800}
+.mem.done{border-color:var(--mint)}
+.mem.done .nm::after{content:" ✓"; color:var(--mint)}
+.actions{display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+.btn{font:inherit; font-weight:800; font-size:1.05rem; border:0; border-radius:14px; padding:10px 18px; min-height:48px; cursor:pointer; background:var(--sky); color:#fff}
+.btn.ghost{background:var(--line); color:var(--ink)}
+.btn.go{background:var(--mint)}
+.btn.boss{background:var(--rose)}
+.btn[disabled]{opacity:.45; cursor:not-allowed}
+.hero{display:flex; align-items:center; gap:12px}
+.hero svg{width:104px; height:104px; flex:none; cursor:pointer}
+.talk{background:#FFF8E6; color:#12233D; border-radius:18px; padding:10px 14px; font-size:1.05rem; line-height:1.35; position:relative; flex:1}
+.talk::before{content:""; position:absolute; left:-8px; top:26px; border:8px solid transparent; border-right-color:#FFF8E6; border-left:0}
+.talk .ar{font-size:1.5rem}
+.slots{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; direction:rtl; margin:12px 0}
+.slot{background:#FFF8E6; color:#12233D; border-radius:16px; text-align:center; padding:6px 2px; border:2px dashed #D9BF85}
+.slot b{display:block; font-size:2.4rem; font-weight:500; line-height:1.4; min-height:3.3rem; color:var(--sky)}
+.slot span{font-size:.8rem; color:#7A6B45}
+.slot.got{border-style:solid; border-color:var(--mint)}
+.field{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:4px}
+.orb{aspect-ratio:1; border-radius:50%; border:0; cursor:pointer; font-family:var(--font); font-size:2.5rem; line-height:1; color:#12233D;
+  background:radial-gradient(circle at 32% 28%, #fff 0 12%, rgba(255,255,255,.9) 13% 40%, rgba(255,255,255,.62) 70%);
+  box-shadow:inset 0 -6px 12px rgba(160,110,20,.2), 0 4px 10px rgba(120,80,10,.18)}
+.orb.pop{visibility:hidden}
+.orb.nope{background:radial-gradient(circle,#FFD6DE,#F7A8B8)}
+.orb.glow{box-shadow:0 0 0 5px var(--saffron), 0 0 22px var(--saffron)}
+.words{display:grid; gap:10px; margin-top:8px}
+.word{display:flex; align-items:center; gap:12px; background:#FFF8E6; color:#12233D; border-radius:18px; padding:10px 14px; border:3px solid transparent; cursor:pointer; font:inherit; text-align:start}
+.word .em{font-size:2.2rem}
+.word .ar{font-size:2rem; line-height:1.5; direction:rtl}
+.word .info{flex:1}
+.word .where{font-size:.9rem; color:#7A6B45}
+.word .form{font-size:2.1rem; color:var(--sky); min-width:52px; text-align:center}
+.word.heard{border-color:var(--mint)}
+.bossbar{display:flex; align-items:center; gap:10px; margin:8px 0}
+.hp{flex:1; height:16px; background:#F3D6DD; border-radius:999px; overflow:hidden}
+.hp i{display:block; height:100%; background:var(--rose); transition:width .3s}
+.hearts{font-size:1.3rem; min-width:80px; text-align:right}
+.q{font-size:1.2rem; text-align:center; margin:10px 0}
+.q .big{font-size:2.8rem; display:block; line-height:1.4}
+.opts{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+.opt{font-family:var(--font); font-size:2.6rem; min-height:92px; border-radius:20px; border:0; background:#FFF8E6; color:#12233D; cursor:pointer; box-shadow:0 4px 0 #D9BF85}
+.opt.right{background:#C9F0E3; box-shadow:0 4px 0 var(--mint)}
+.opt.wrong{background:#FFD6DE; box-shadow:0 4px 0 var(--rose)}
+.tracewrap{position:relative; margin:10px auto 0; max-width:520px}
+.trace{display:block; width:100%; height:auto; background:#FFF8E6; border-radius:20px; border:2px dashed #D9BF85; touch-action:none; cursor:crosshair}
+.tbase{stroke:#E3D2A8; stroke-width:2; stroke-dasharray:6 6}
+path.tg{fill:none; stroke:#EADBB4; stroke-width:24; stroke-linecap:round; stroke-linejoin:round}
+circle.tg{fill:#EADBB4}
+path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
+.tink{fill:none; stroke:var(--sky); stroke-width:24; stroke-linecap:round; stroke-linejoin:round}
+.tdot{fill:var(--saffron); stroke:#fff; stroke-width:3}
+.tnum{fill:var(--mint); stroke:#fff; stroke-width:2}
+.tnumt{font:800 15px var(--font); fill:#fff; pointer-events:none}
+.tarr{fill:#fff; stroke:#12233D; stroke-width:1.5; stroke-linejoin:round}
+.tdemo{fill:none; stroke:var(--rose); stroke-width:10; stroke-linecap:round; stroke-linejoin:round}
+.tdemod{fill:var(--rose)}
+.tform{position:absolute; top:8px; left:12px; text-align:center; color:#7A6B45; font-size:.8rem; pointer-events:none}
+.tform b{display:block; font-size:1.9rem; font-weight:500; color:#12233D; line-height:1.3}
+.mem[disabled]{opacity:.5; cursor:not-allowed}
+.mem .st{color:var(--saffron); min-height:1.4rem}
+.center{text-align:center}
+#start{position:fixed; inset:0; background:rgba(18,35,61,.55); display:flex; align-items:center; justify-content:center; z-index:10}
+#start .box{background:var(--card); color:var(--ink); border-radius:26px; padding:24px; text-align:center; width:min(88vw,360px)}
+@media (prefers-reduced-motion:no-preference){
+  .orb{animation:bob 3s ease-in-out infinite}
+  .orb:nth-child(2n){animation-delay:-1.2s}.orb:nth-child(3n){animation-delay:-2.1s}
+  .orb.nope,.opt.wrong{animation:shake .35s}
+  .hero svg.happy{animation:hop .5s}
+  .slot.got b{animation:land .4s}
+}
+@keyframes bob{50%{transform:translateY(-6px)}}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes hop{40%{transform:translateY(-14px) rotate(-5deg)}}
+@keyframes land{0%{transform:scale(1.8)}100%{transform:scale(1)}}
+.stalls{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-top:12px}
+.nums{display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:10px; margin-top:10px; direction:rtl}
+.num{background:#FFF8E6; color:#12233D; border:3px solid transparent; border-radius:18px; padding:8px 4px; cursor:pointer; font:inherit; text-align:center}
+.num b{display:block; font-size:2.6rem; font-weight:700; line-height:1.3; color:var(--sky)}
+.num .w{display:block; font-size:1.25rem; line-height:1.7; direction:rtl}
+.num .d{display:block; font-size:.85rem; color:#7A6B45; direction:ltr}
+.num.heard{border-color:var(--mint)}
+.opt.word{font-size:1.5rem; line-height:1.8; direction:rtl}
+.things{font-size:2.2rem; line-height:1.35; letter-spacing:.2rem; display:block; max-width:340px; margin:0 auto}
+.shelf,.basket{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; min-height:64px; padding:8px; border-radius:18px}
+.shelf{background:#FFF8E6; border:2px dashed #D9BF85}
+.basket{background:#F3E2BE; border:3px solid #B07F45; margin-top:10px; min-height:118px; align-content:flex-start}
+.basket::before{content:"🧺"; font-size:2.2rem; width:100%; text-align:center; line-height:1.1}
+.item{font-size:2rem; line-height:1; border:0; background:none; cursor:pointer; padding:4px; min-width:44px; min-height:44px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <button class="pill" id="back">← Map</button>
+    <h1>The Souq <span id="who" style="font-size:1rem;color:#1E5AA8"></span></h1>
+    <div style="display:flex;gap:6px"><button class="pill" id="snd" aria-label="Sound on or off">🔊</button><div class="pill coins">🪙 <span id="coins">0</span></div></div>
+  </div>
+  <main id="app"></main>
+</div>
+<div id="start"><div class="box"><div style="font-size:3rem">🛍️</div><h2>The Souq</h2><p class="muted">السُّوق — count with the shopkeepers!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
+
+<script>window.LQ_VER="2026.10.01n";</script>
+<script src="../lq-core.js?v=2026.10.01n"></script>
+<script>
+/* ============ numbers data ============
+   Counting words in the form used when counting aloud. STALLS: [name, what it covers, kind, the numbers taught].
+   kind "num" = hear, read and count questions; kind "basket" = put that many things in the basket. */
+const WORD={0:"صِفْر",1:"وَاحِد",2:"اِثْنَان",3:"ثَلَاثَة",4:"أَرْبَعَة",5:"خَمْسَة",6:"سِتَّة",7:"سَبْعَة",8:"ثَمَانِيَة",9:"تِسْعَة",10:"عَشَرَة",
+ 11:"أَحَدَ عَشَر",12:"اِثْنَا عَشَر",13:"ثَلَاثَةَ عَشَر",14:"أَرْبَعَةَ عَشَر",15:"خَمْسَةَ عَشَر",16:"سِتَّةَ عَشَر",17:"سَبْعَةَ عَشَر",18:"ثَمَانِيَةَ عَشَر",19:"تِسْعَةَ عَشَر",20:"عِشْرُون",
+ 30:"ثَلَاثُون",40:"أَرْبَعُون",50:"خَمْسُون",60:"سِتُّون",70:"سَبْعُون",80:"ثَمَانُون",90:"تِسْعُون",100:"مِئَة"};
+const STALLS=[
+ ["Fruit Stall","Numbers 1 to 5","num",[1,2,3,4,5],"🍊"],
+ ["Spice Stall","Numbers 6 to 10","num",[6,7,8,9,10],"🌶️"],
+ ["Basket Stall","Count out 1 to 10","basket",[1,2,3,4,5,6,7,8,9,10],"🧺"],
+ ["Pottery Stall","Numbers 11 to 20","num",[11,12,13,14,15,16,17,18,19,20],"🏺"],
+ ["Carpet Stall","Tens: 10 to 100","num",[10,20,30,40,50,60,70,80,90,100],"🧶"]
+];
+const THINGS=["🍊","🍋","🍎","🍇","🍉","🥕","🍅","🥒","🫒","🥚"];
+const ar=n=>String(n).replace(/[0-9]/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);        // 12 -> ١٢
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ============ save: the signed-in player (shared with the map through lq-core.js) ============ */
+const $=id=>document.getElementById(id);
+if(!LQ.player()) location.replace("../");               // nobody signed in: go pick a player on the map
+const save={ get coins(){ const p=LQ.player(); return p?p.coins||0:0; },
+             get souq(){ const p=LQ.player(); return p?(p.souq=p.souq||{}):{}; } };
+function persist(){ LQ.update(()=>{}); $("coins").textContent=save.coins; const p=LQ.player(); if(p) $("who").textContent=p.name; }
+function addCoins(n){ LQ.addCoins(n); $("coins").textContent=save.coins; }
+LQ.onChange(()=>{ const e=$("coins"); if(e) e.textContent=save.coins; });
+
+/* ============ voice: generated Google voice (Puck) with device fallback ============ */
+const AUDIO_BASE="https://storage.googleapis.com/kid-games-dc068-voices/lq/ar-XA-Chirp3-HD-Puck/";
+function audioKey(t){ let h=0x811c9dc5; for(const b of new TextEncoder().encode(t)){ h^=b; h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,"0"); }
+const audio=new Audio(); audio.preload="auto"; let soundOn=true, sid=0;
+function deviceSay(t){ if(!("speechSynthesis" in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang="ar-SA"; u.rate=0.75;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith("ar")); if(v)u.voice=v; speechSynthesis.speak(u); }
+function say(t){ if(!soundOn)return; const id=++sid; audio.pause(); audio.src=AUDIO_BASE+audioKey(t)+".mp3";
+  audio.onerror=()=>{ if(id===sid) deviceSay(t); }; const p=audio.play(); if(p&&p.catch) p.catch(()=>{ if(id===sid) deviceSay(t); }); }
+$("snd").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
+$("back").onclick=()=>{ location.href="../?from=souq"; };
+// the map already said this zone's name on the way in; say it here only when arriving another way
+$("go").onclick=()=>{ let said=false; try{ said=sessionStorage.getItem("lq.said")==="souq"; sessionStorage.removeItem("lq.said"); }catch(e){} if(!said) say("السُّوق"); $("start").remove(); };
+
+/* ============ screens ============ */
+const stars3=n=>"★".repeat(n)+"☆".repeat(3-n);
+const unlocked=i=>i===0||!!save.souq[i-1];
+function home(){
+  $("app").innerHTML=`<div class="panel"><h2>Welcome to the Souq!</h2>
+    <p class="muted" style="margin:0">Every stall teaches some numbers. Learn them, then help the shopkeeper to open the next stall.</p></div>
+    <div class="stalls">${STALLS.map((s,i)=>{ const open=unlocked(i), st=save.souq[i]||0;
+      return `<button class="camp ${open?"":"locked"}" data-i="${i}" ${open?"":"aria-disabled=\"true\""}><div class="tent">${s[4]}</div><div class="nm">${s[0]}</div>
+        <div class="muted" style="font-size:.95rem">${s[1]}</div><div class="st">${st?stars3(st):"&nbsp;"}</div></button>`; }).join("")}</div>`;
+  document.querySelectorAll(".camp").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; if(unlocked(i)) stall(i); else b.animate([{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"none"}],{duration:300}); });
+}
+/* ---- learn the stall's numbers ---- */
+function stall(i){
+  const S=STALLS[i], heard=new Set(), done=!!save.souq[i];
+  $("app").innerHTML=`<div class="panel"><h2>${S[4]} ${S[0]}</h2><p class="muted" style="margin:0">Tap each number to hear it.</p>
+    <div class="nums">${S[3].map(n=>`<button class="num" data-n="${n}"><b>${ar(n)}</b><span class="w" lang="ar">${WORD[n]}</span><span class="d">${n}</span></button>`).join("")}</div>
+    <div class="actions"><button class="btn ghost" id="toHome">All stalls</button>
+    <button class="btn boss" id="toPlay" ${done?"":"disabled"}>${S[2]==="basket"?"🧺 Fill the baskets":"🛍️ Help the shopkeeper"}${done?"":" (hear them all first)"}</button></div></div>`;
+  document.querySelectorAll(".num").forEach(b=>b.onclick=()=>{ const n=+b.dataset.n; say(WORD[n]); b.classList.add("heard");
+    if(!heard.has(n)){ heard.add(n); if(!done) addCoins(2); }
+    if(heard.size===S[3].length){ const t=$("toPlay"); t.disabled=false; t.textContent=S[2]==="basket"?"🧺 Fill the baskets":"🛍️ Help the shopkeeper"; } });
+  $("toHome").onclick=home; $("toPlay").onclick=()=>{ if(!$("toPlay").disabled) (S[2]==="basket"?baskets:shop)(i); };
+}
+function bar(hp,hearts,icon){ return `<div class="bossbar"><span style="font-size:2.4rem">${icon}</span><div class="hp"><i style="width:${hp/6*100}%"></i></div><div class="hearts">${"❤️".repeat(hearts)}${"🤍".repeat(3-hearts)}</div></div>`; }
+function finish(i,hearts){
+  if(hearts<=0){ $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">${STALLS[i][4]}</div><h2>The shopkeeper needs more help!</h2>
+      <p class="muted">Listen to the numbers again, then try once more.</p>
+      <div class="actions"><button class="btn boss" id="retry">Try again</button><button class="btn ghost" id="bk">Back to the stall</button></div></div>`;
+    $("retry").onclick=()=>(STALLS[i][2]==="basket"?baskets:shop)(i); $("bk").onclick=()=>stall(i); return; }
+  const stars=hearts, first=!save.souq[i], last=i===STALLS.length-1;
+  LQ.update(p=>{ p.souq=p.souq||{}; p.souq[i]=Math.max(p.souq[i]||0,stars); }); addCoins(first?30:10); persist(); say("أَحْسَنْتَ");
+  $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>The shopkeeper says thank you!</h2>
+    <p style="font-size:2rem;color:var(--saffron);margin:0">${stars3(stars)}</p>
+    <p class="muted">${last?"You can count all the way to one hundred. Amazing!":`The ${STALLS[i+1][0]} is now open!`}</p>
+    <div class="actions"><button class="btn go" id="next">${last?"All stalls":"Go to the next stall"}</button><button class="btn ghost" id="stay">Stay here</button></div></div>`;
+  $("next").onclick=()=>last?home():stall(i+1); $("stay").onclick=()=>stall(i);
+}
+/* ---- shopkeeper questions: hear a number, read a number, count things ---- */
+function shop(i){
+  const S=STALLS[i], set=S[3]; let hp=6, hearts=3, qn=0, busy=false;
+  const types=set.every(n=>n<=10)?["hear","read","count"]:["hear","read","write"];
+  const qs=shuffle([...set,...shuffle([...set])]).slice(0,9).map((n,k)=>({n,type:types[k%3]}));
+  const others=n=>shuffle(set.filter(x=>x!==n)).slice(0,3);
+  function draw(){
+    if(hp<=0||hearts<=0) return finish(i,hp<=0?hearts:0);
+    const q=qs[qn%qs.length], n=q.n; let prompt="", opts=[], speak=WORD[n], cls="";
+    if(q.type==="hear"){ prompt=`Listen! Which number is this?<span class="big">🔊</span>`; opts=shuffle([n,...others(n)]).map(x=>({t:ar(x),v:x})); }
+    if(q.type==="read"){ prompt=`Which word is this number?<span class="big">${ar(n)}</span>`; speak=""; cls="word"; opts=shuffle([n,...others(n)]).map(x=>({t:WORD[x],v:x})); }
+    if(q.type==="count"){ const e=THINGS[Math.random()*THINGS.length|0]; prompt=`How many?<span class="things" aria-label="${n} things">${e.repeat(n)}</span>`; speak=""; opts=shuffle([n,...others(n)]).map(x=>({t:ar(x),v:x})); }
+    if(q.type==="write"){ prompt=`Which number is this word?<span class="big" lang="ar">${WORD[n]}</span>`; opts=shuffle([n,...others(n)]).map(x=>({t:ar(x),v:x})); }
+    $("app").innerHTML=`<div class="panel">${bar(hp,hearts,S[4])}<div class="q">${prompt}</div>
+      <div class="opts">${opts.map(o=>`<button class="opt ${cls}" lang="ar" data-v="${o.v}">${o.t}</button>`).join("")}</div>
+      <div class="actions">${speak?`<button class="btn ghost" id="again">🔊 Hear again</button>`:""}<button class="btn ghost" id="run">Leave the stall</button></div></div>`;
+    if(speak){ say(speak); $("again").onclick=()=>say(speak); } $("run").onclick=()=>stall(i);
+    document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy)return; busy=true; const v=+b.dataset.v; say(WORD[n]);
+      if(v===n){ b.classList.add("right"); hp--; addCoins(4); LQ.record("words",WORD[n],true); }
+      else { b.classList.add("wrong"); hearts--; LQ.record("words",WORD[n],false,WORD[v]); document.querySelector(`.opt[data-v="${n}"]`).classList.add("right"); }
+      qn++; setTimeout(()=>{ busy=false; draw(); },1100); });
+  }
+  draw();
+}
+/* ---- basket stall: put that many things in the basket ---- */
+function baskets(i){
+  const S=STALLS[i]; let hp=6, hearts=3, qn=0, busy=false; const qs=shuffle([...S[3]]);
+  function draw(){
+    if(hp<=0||hearts<=0) return finish(i,hp<=0?hearts:0);
+    const n=qs[qn%qs.length], e=THINGS[Math.random()*THINGS.length|0]; let inB=0;
+    $("app").innerHTML=`<div class="panel">${bar(hp,hearts,S[4])}
+      <div class="q">Put this many in the basket:<span class="big" lang="ar">${WORD[n]} ${e}</span></div>
+      <div class="shelf" id="shelf">${`<button class="item" aria-label="add one">${e}</button>`.repeat(12)}</div>
+      <div class="basket" id="basket" aria-live="polite"></div>
+      <div class="actions"><button class="btn ghost" id="again">🔊 Hear again</button><button class="btn go" id="ok">Done ✓</button><button class="btn ghost" id="run">Leave the stall</button></div></div>`;
+    say(WORD[n]); $("again").onclick=()=>say(WORD[n]); $("run").onclick=()=>stall(i);
+    const move=(b,to)=>{ if(busy) return; $(to).appendChild(b); inB+=to==="basket"?1:-1; b.onclick=()=>move(b,to==="basket"?"shelf":"basket"); if(to==="basket"&&WORD[inB]) say(WORD[inB]); };
+    document.querySelectorAll(".item").forEach(b=>b.onclick=()=>move(b,"basket"));
+    $("ok").onclick=()=>{ if(busy) return; busy=true; const B=$("basket");
+      if(inB===n){ B.style.borderColor="var(--mint)"; hp--; addCoins(4); LQ.record("words",WORD[n],true); say("أَحْسَنْتَ"); }
+      else { B.style.borderColor="var(--rose)"; hearts--; LQ.record("words",WORD[n],false,WORD[inB]||""); say(WORD[n]);
+        $("app").querySelector(".q").innerHTML=`You put <b>${inB}</b>. <span lang="ar">${WORD[n]}</span> is <b>${ar(n)}</b> (${n}).`; }
+      qn++; setTimeout(()=>{ busy=false; draw(); },inB===n?1100:2200); };
+  }
+  draw();
+}
+persist(); home();
+</script>
+</body>
+</html>
