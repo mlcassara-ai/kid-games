@@ -302,13 +302,15 @@ function after(){
    else if(it.t==='g'){sfx('find');S.dive.f++;S.pack.push({t:'g',id:it.id});say('🔮 You found today\'s SECRET POCKET — a geode! Crack it open in the 🔬 Lab.');}
   }}
  // critter next to you? observe automatically when you bump into it
- [[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{const j=idx(S.x+a,S.y+b);const c=W.items.get(j);if(c&&c.t==='c'&&!S.crit[c.id]&&S.x+a>0)observe(j,c);});
+ [[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{const j=idx(S.x+a,S.y+b);const c=W.items.get(j);if(!c||c.t!=='c'||S.x+a<=0)return;if(!S.crit[c.id]){observe(j,c);return;}
+  /* one you already have: a short note, once per dive for each kind, so walking past it is not just silence */
+  if(!metNow.has(c.id)){metNow.add(c.id);const cr=CD.CRITTERS.find(x=>x.id===c.id);if(cr)say(`${cr.e} ${esc(cr.n)} · already in your Journal ✓ <small>(tap it to read about it again)</small>`,3200);}});
  if(S.y>S.dive.d)S.dive.d=S.y;
  if(S.y>S.maxRow){S.maxRow=S.y;ev('depth',{row:S.y,km:rowKm(S.y)});}
  const L=layerOf(S.y);if(L&&!S.seen[L.id]){S.seen[L.id]=1;save(true);layerCard(L);}
  hud();save();
 }
-function beamHome(why){sfx('beam');
+function beamHome(why){sfx('beam');metNow.clear();
  const dv=S.dive;S.dive={c:0,f:0,cr:0,d:0,ch:0};
  S.x=4;S.y=0;charge();uvOn=false;snapCam();
  const fos=S.pack.filter(p=>p.t==='f');let msg=MQ()?(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp.':'🏠 Back at camp.'):(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp. It\'s charging now 🔌':'🏠 Back at camp. Your battery is charging 🔌');
@@ -319,7 +321,7 @@ function beamHome(why){sfx('beam');
   card(`<div class="cv-card"><div class="cv-big">🎒</div><h2>Dive haul!</h2><div class="cv-haul">${dv.c?`<div><b>+${fmt(dv.c)}</b><span>🪙 coins dug up${dv.ch?` (${dv.ch} chest${dv.ch>1?'s':''}!)`:''}</span></div>`:''}${dv.f?`<div><b>${dv.f}</b><span>💎 finds</span></div>`:''}${known.length?`<div><b>+${fmt(sold)}</b><span>🪙 sold ${known.length} mineral${known.length>1?'s':''} you already know</span></div>`:''}${dv.cr?`<div><b>${dv.cr}</b><span>🐾 new critters</span></div>`:''}<div><b>${depthStr(Math.max(1,dv.d))}</b><span>📏 deepest this dive</span></div></div>${starMsgs.length?`<div class="cv-rew">${starMsgs.join('<br>')}</div>`:''}${spec?`<p class="cv-sub">${spec} specimen${spec>1?'s':''} waiting in the Lab — identify them for more coins and 🔬!</p>`:''}${why==='battery'?'<p class="cv-sub">🔋 Your battery ran out, so the rescue rope pulled you up.</p>':''}<div class="cv-row">${spec?'<button class="cv-btn" id="cvToLab">🔬 Go to the Lab</button>':''}<button class="cv-btn ${spec?'ghost':''}" data-close>OK</button></div></div>`);
   setTimeout(()=>{const tl=root&&root.querySelector('#cvToLab');if(tl)tl.onclick=()=>{closeModal();openLab();};},0);}
 }
-let floats=[];
+let floats=[];const metNow=new Set(); /* critters already greeted on this dive */
 function burst(x,y,col){for(let k=0;k<10;k++)parts.push({x:(x+.5)*TS,y:(y+.5)*TS,vx:(Math.random()-.5)*5,vy:(Math.random()-.8)*4,l:1,col});}
 function say(m,ms){const el=root&&root.querySelector('#cvMsg');if(!el)return;el.innerHTML=m;el.classList.add('show');clearTimeout(msgT);msgT=setTimeout(()=>el.classList.remove('show'),ms||3800);}
 function observe(i,c){const cr=CD.CRITTERS.find(x=>x.id===c.id);sfx('critter');W.items.delete(i);S.obs=S.obs||[];S.obs.push(i);
@@ -393,6 +395,7 @@ function frame(){
   else if(it.t==='f'){if(dist>vr)return;drawBone(c,px,py,T*(inAir?.6:.5));}
   else if(it.t==='g'){if(dist>lr*2.2)return;c.save();c.shadowColor='#e0b0ff';c.shadowBlur=14;c.font=`${T*.55}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('🔮',px,py+Math.sin(tick*.08)*2);c.restore();}
   else if(it.t==='c'){const cr=CD.CRITTERS.find(z=>z.id===it.id);if(dist>vr&&!(cr.glow&&dist<lr*2.5))return;c.save();if(cr.glow){c.shadowColor='#8fffe0';c.shadowBlur=18;}c.font=`${T*(cr.tiny?.45:.62)}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(cr.e,px+Math.sin(tick*.05+i)*T*.12,py+Math.cos(tick*.07+i)*T*.06);c.restore();
+   if(S.crit[cr.id]){c.save();c.font=`bold ${T*.3}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.65)';c.fillStyle='#69db7c';c.strokeText('✓',px+T*.3,py-T*.28);c.fillText('✓',px+T*.3,py-T*.28);c.restore();} /* already in the Journal */
    if(cr.tiny){c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=2;c.beginPath();c.arc(px,py,T*.36,0,Math.PI*2);c.stroke();}}
  });
  if(skyB>-T){drawCamp(c,T);}
