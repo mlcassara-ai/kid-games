@@ -91,6 +91,24 @@ function record(kind,key,ok,confusedWith){
     const ks=Object.keys(dr); if(ks.length>21){ const ms=k=>{ const a=k.split("-"); return new Date(+a[0],a[1]-1,+a[2]).getTime(); }; ks.sort((a,b)=>ms(a)-ms(b)).slice(0,ks.length-21).forEach(k=>delete dr[k]); } }
   p.last=Date.now(); p.days=p.days||{}; p.days[today()]=1; save();
 }
+/* ---------------- diagnostics: kept inside the family's own save, sent nowhere else ----------------
+   p.trail = the last 30 screens a player opened; p.errs = the last 10 problems (page errors and freezes).
+   They exist so "she got stuck" can be answered from the save. No answers, names or typing are recorded here. */
+const HANG_KEY="lqHang", zoneNow=()=>location.pathname.split("/").filter(Boolean).pop()||"map";
+let lastScreen="";
+function keepDiag(){ stampChanges(false); saveLocal(); scheduleSync(); }
+function logErr(m,at,p,scr){ p=p||cur(); if(!p) return; const er=p.errs=p.errs||[], msg=String(m||"error").slice(0,140), last=er[er.length-1];
+  if(last&&last.m===msg&&Date.now()-last.t<60000) return;                       // do not pile up a repeating error
+  er.push({t:Date.now(),m:msg,at:String(at||"").slice(0,60),s:scr||lastScreen,z:zoneNow(),v:window.LQ_VER||"dev"}); if(er.length>10) er.splice(0,er.length-10); keepDiag(); }
+function mark(scr){ const p=cur(); if(!p) return; lastScreen=String(scr).slice(0,40);
+  const tr=p.trail=p.trail||[]; tr.push({t:Date.now(),s:lastScreen,z:zoneNow(),v:window.LQ_VER||"dev"}); if(tr.length>30) tr.splice(0,tr.length-30); keepDiag();
+  // freeze check: this note is wiped as soon as the screen finishes drawing; if the page hangs instead, the next visit finds it
+  try{ localStorage.setItem(HANG_KEY,JSON.stringify({s:lastScreen,t:Date.now(),id:p.id})); setTimeout(()=>{ try{ localStorage.removeItem(HANG_KEY); }catch(e){} },0); }catch(e){} }
+try{ const h=JSON.parse(localStorage.getItem(HANG_KEY)||"null"); localStorage.removeItem(HANG_KEY);
+  if(h){ const hp=state.players.find(q=>q.id===h.id); if(hp){ logErr("The page froze and had to be reloaded","",hp,h.s); const e=hp.errs[hp.errs.length-1]; if(e) e.t=h.t; saveLocal(); } } }catch(e){}
+addEventListener("pagehide",()=>{ try{ localStorage.removeItem(HANG_KEY); }catch(e){} });
+addEventListener("error",e=>{ try{ logErr(e.message,(e.filename||"").split("/").slice(-2).join("/")+":"+(e.lineno||"")); }catch(_){} });
+addEventListener("unhandledrejection",e=>{ try{ const r=e.reason; logErr(r&&r.message||r,"promise"); }catch(_){} });
 /* ---------------- UI ---------------- */
 const CSS=`
 #lqOv{position:fixed;inset:0;z-index:50;background:linear-gradient(180deg,#8FC6F0,#F7DFA8);overflow:auto;font-family:"Baloo Bhaijaan 2","Geeza Pro",system-ui,sans-serif;color:#12233D;-webkit-user-select:none;user-select:none}
@@ -245,7 +263,8 @@ function kidDetailFor(p,back,family){ const st=p.stats||{};
   const words=Object.entries(WS).sort((a,b)=>(b[1].w-a[1].w)||(b[1].r-a[1].r));
   const mix=Object.entries(st.mix||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const recent=(st.recent||[]).slice(0,12);
-  const ZN={letters:"Letter Dunes",falls:"Sound Falls",map:"Map"};
+  const ZN={letters:"Letter Dunes",falls:"Sound Falls",souq:"The Souq",map:"Map","language-quest":"Map"};
+  const trail=(p.trail||[]).slice(-15).reverse(), errs=(p.errs||[]).slice().reverse();
   overlay(`<h1>${esc(p.name)}</h1>
     <div class="lq-card"><h2 style="text-align:left;margin-top:0">Letters</h2>
       <p class="lq-small" style="margin:0 0 8px">Green = getting it right · yellow = getting there · pink = needs help · blue = just started · grey = not tried. A green outline means the letter has been caught in the Letter Dunes.</p>
@@ -257,6 +276,10 @@ function kidDetailFor(p,back,family){ const st=p.stats||{};
       ${mix.length?`<div class="lq-tags bad">${mix.map(([k,n])=>{ const [a,b]=k.split("→"); const ar=t=>/[\u0600-\u06FF]/.test(t)?`<bdi class="lq-ar" lang="ar">${esc(t)}</bdi>`:`<b>${esc(t)}</b>`; return `<span>wanted ${ar(a)}, picked ${ar(b)} <span dir="ltr">(${n}×)</span></span>`; }).join("")}</div>`:`<p class="lq-small">No mix-ups yet.</p>`}</div>
     <div class="lq-card"><h2 style="text-align:left;margin-top:0">Most recent mistakes</h2>
       ${recent.length?recent.map(r=>`<div class="lq-small" style="margin:3px 0">${agoText(r.t)} · ${ZN[r.z]||esc(r.z)} · wanted <bdi style="font-size:1.15rem">${esc(r.a)}</bdi>${r.b?` · picked <bdi style="font-size:1.15rem">${esc(r.b)}</bdi>`:""}</div>`).join(""):`<p class="lq-small">None yet.</p>`}</div>
+    <div class="lq-card"><h2 style="text-align:left;margin-top:0">Where they have been</h2>
+      <p class="lq-small" style="margin:0 0 6px">The last screens opened, newest first. Useful if someone says they got stuck.</p>
+      ${trail.length?trail.map(r=>`<div class="lq-small" style="margin:3px 0">${agoText(r.t)} · ${ZN[r.z]||esc(r.z)} · <bdi>${esc(r.s)}</bdi></div>`).join(""):`<p class="lq-small">Nothing recorded yet.</p>`}
+      ${errs.length?`<h2 style="text-align:left;font-size:1.1rem">Problems</h2>${errs.map(r=>`<div class="lq-small" style="margin:3px 0;color:#B23A56">${agoText(r.t)} · ${ZN[r.z]||esc(r.z)} · <bdi>${esc(r.s||"")}</bdi> · ${esc(r.m)} <span dir="ltr">${esc(r.at||"")} (${esc(r.v||"")})</span></div>`).join("")}`:""}</div>
     <div class="lq-row">${family?`<button class="lq-btn gh" data-lock="${p.id}">🔒 Secret pictures</button>${state.cls?"":`<button class="lq-btn gh" data-del="${p.id}">Remove player</button>`}`:""}<button class="lq-btn" id="lqBackPC">◀ Back</button></div>`);
   document.getElementById("lqBackPC").onclick=back;
   wireKidButtons();
@@ -328,7 +351,7 @@ function drawHero(c,p,o){ o=o||{}; const wear=o.wear||(p&&p.wear)||{}, t=o.time|
 }
 /* ---------------- "Me": the player's own page ---------------- */
 function mePage(){
-  const p=cur(); if(!p) return; const n=o=>Object.keys(o||{}).length, sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
+  const p=cur(); if(!p) return; mark("Me page"); const n=o=>Object.keys(o||{}).length, sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
   const L=n(p.letters), rows=[["⛺ Letters caught",L,28],["✏️ Letters traced",n(p.trace),28],["💦 Sound Falls pools",n(p.falls),8],["🛍️ Souq stalls",n(p.souq),5],["📒 Letter Friends",n(p.friends),28],["⛲ Sayings found",n(p.well&&p.well.got),26]];
   const stars=sum(p.camps)+sum(p.falls)+sum(p.souq), days=n(p.days), dr=p.dr||{}, td=dr[today()]||0, best=p.best||{n:0};
   const right=["letters","marks","words"].reduce((a,k)=>a+Object.values((p.stats||{})[k]||{}).reduce((x,e)=>x+(e.r||0),0),0);
@@ -361,7 +384,7 @@ function mePage(){
   document.getElementById("lqMeWear").onclick=()=>{ location.href=((location.pathname.match(/^(.*\/language-quest\/)/)||[])[1]||"./")+"souq/?tailor=1"; };
 }
 window.LQ={
-  player:cur, profiles, me:mePage, drawHero, WEAR, COLOR_NAMES, COLOR_EN,
+  player:cur, profiles, me:mePage, mark, drawHero, WEAR, COLOR_NAMES, COLOR_EN,
   /* the player who is signed in on this tab right now (kept while moving between the map and the zones) */
   sessionPlayer(){ let id=null; try{ id=sessionStorage.getItem("lq.active"); }catch(e){} const p=cur(); return p&&p.id===id?p:null; },
   leave(){ state.cur=null; try{ sessionStorage.removeItem("lq.active"); }catch(e){} saveLocal(); fire(); }, parentCorner:()=>askPin(parentCorner), onChange:f=>listeners.push(f),

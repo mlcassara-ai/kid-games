@@ -46,6 +46,12 @@ Prodigy-style click-to-move world teaching Modern Standard Arabic with full hara
 - Sync rule: only re-stamp a player's `upd` when that player's data actually changed, or an idle tab on another device overwrites progress.
 - Don't change Firestore rules or anything that could break Math Quest or Castle Quest saves.
 
+### Diagnostics
+
+- Each player's save carries `trail` (last 30 screens opened) and `errs` (last 10 page errors and freezes). Every screen function calls `LQ.mark("…")` first; a new screen must do the same, before any heavy work, so a freeze is attributed to it.
+- Parents and the teacher see both under a child's details. To read a family's save from the terminal: `/usr/bin/python3 language-quest/tools/peek.py FAMILY-CODE` (read-only; never store the code in a file).
+- This stays inside the family's own save. Do not add third-party analytics or send it anywhere else.
+
 ### Rules that must hold
 
 - First names only; no emails, birthdays or surnames. Kids cannot create players.

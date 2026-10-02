@@ -100,8 +100,8 @@ h2{margin:4px 0 8px; font-size:1.3rem}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">💦</div><h2>Sound Falls</h2><p class="muted" lang="ar">شَلَّالُ الأَصْوَات</p><p class="muted">Add a little mark to a letter and it starts to sing!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02f";</script>
-<script src="../lq-core.js?v=2026.10.02f"></script>
+<script>window.LQ_VER="2026.10.02g";</script>
+<script src="../lq-core.js?v=2026.10.02g"></script>
 <script>
 const $=id=>document.getElementById(id);
 if(!LQ.player()) location.replace("../");
@@ -179,7 +179,7 @@ function lettersFor(markIds){ return LET.map(l=>l[0]).filter(c=>!(c==="ا"&&mark
 
 /* ---------- home ---------- */
 const unlocked=i=>i===0||!!falls()[POOLS[i-1].id];
-function home(){
+function home(){ LQ.mark("Sound Falls: all pools");
   $("app").innerHTML=`<div class="panel"><h2>Welcome to Sound Falls!</h2>
     <p class="muted" style="margin:0">Letters can't say much on their own. Add a little mark (a <b>haraka</b>) and they start to sing! Play each pool, then beat its waterfall challenge to open the next one.</p></div>
     <div class="pools">${POOLS.map((p,i)=>{ const st=falls()[p.id]||0, open=unlocked(i);
@@ -189,7 +189,7 @@ function home(){
 }
 
 /* ---------- lab: pick a letter, add a mark, hear it ---------- */
-function lab(i){
+function lab(i){ LQ.mark("Pool "+(i+1)+" lab");
   const P=POOLS[i], marks=P.marks, letters=lettersFor(marks); let cur=letters[letters[0]==="ا"?1:0], heard=new Set();
   const need=Math.min(6,letters.length*marks.length);
   $("app").innerHTML=`<div class="panel"><h2>${P.nm}</h2>
@@ -219,7 +219,7 @@ function makeQuestion(P){
   shuffle(LI[c].dec.concat(shuffle(letters).slice(0,6))).forEach(d=>{ if(opts.size<4&&d!==c&&!(d==="ا"&&NO_ALIF.has(m))){ const t=MARKS[m].make(d); if(!opts.has(t)) opts.set(t,{ok:false,m,c:d}); } });
   return {speak:answer, lat:MARKS[m].lat(c), m, c, opts:shuffle([...opts.entries()].map(([t,o])=>Object.assign({t},o)))};
 }
-function challenge(i){
+function challenge(i){ LQ.mark("Pool "+(i+1)+" challenge");
   const P=POOLS[i]; let hp=6, hearts=3, busy=false;
   function draw(){
     if(hp<=0) return win(); if(hearts<=0) return lose();
@@ -244,7 +244,7 @@ function challenge(i){
     $("retry").onclick=()=>challenge(i); $("bk").onclick=()=>POOLS[i].id==="blend"?blendLesson(i):lab(i); }
   draw();
 }
-function finish(i,hearts){
+function finish(i,hearts){ LQ.mark("Pool "+(i+1)+" won");
   const P=POOLS[i], stars=hearts>=3?3:hearts===2?2:1, first=!falls()[P.id];
   LQ.update(p=>{ p.falls=p.falls||{}; p.falls[P.id]=Math.max(p.falls[P.id]||0,stars); }); addCoins(first?30:10); say("أَحْسَنْتَ");
   $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You beat the waterfall!</h2>
@@ -255,7 +255,7 @@ function finish(i,hearts){
 }
 
 /* ---------- Word River: blend marked letters into words ---------- */
-function blendLesson(i){
+function blendLesson(i){ LQ.mark("Word River lesson");
   const order=shuffle([...BLEND]).slice(0,5); let w=0;
   function next(){
     if(w>=order.length) return blendChallenge(i);
@@ -282,7 +282,7 @@ function variants(word){ // same letters, different short vowels: قَلَم →
     const t=c.join(""); if(t!==word) out.add(t); }
   return [...out];
 }
-function blendChallenge(i){
+function blendChallenge(i){ LQ.mark("Word River challenge");
   let hp=6, hearts=3, busy=false;
   function draw(){
     if(hp<=0) return finish(i,hearts);

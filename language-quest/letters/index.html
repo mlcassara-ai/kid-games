@@ -129,8 +129,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛺</div><h2>Letter Dunes</h2><p class="muted">كُثْبَانُ الحُرُوف — catch the letter shapeshifters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02f";</script>
-<script src="../lq-core.js?v=2026.10.02f"></script>
+<script>window.LQ_VER="2026.10.02g";</script>
+<script src="../lq-core.js?v=2026.10.02g"></script>
 <script>
 /* ============ letters data ============
    [letter, name(with harakat), English name, joins-left?, look-alikes, words: [emoji, word, English, position 1=start 2=middle 3=end] ] */
@@ -225,7 +225,7 @@ function talk(h){ const t=$("talk"); if(t) t.innerHTML=h; }
 
 /* ============ screens ============ */
 function campUnlocked(c){ return c===0 || !!save.camps[c-1]; }
-function home(){
+function home(){ LQ.mark("Letter Dunes: all camps");
   const html=CAMPS.map((ls,c)=>{ const open=campUnlocked(c), done=ls.filter(ch=>save.letters[ch]).length, stars=save.camps[c]||0;
     return `<button class="camp ${open?"":"locked"}" data-c="${c}" ${open?"":"aria-disabled=\"true\""}>
       <div class="tent">⛺</div><div class="nm">${CAMP_NAMES[c]}</div><div class="ls" lang="ar">${ls.join(" ")}</div>
@@ -236,7 +236,7 @@ function home(){
   document.querySelectorAll(".camp").forEach(b=>b.onclick=()=>{ const c=+b.dataset.c; if(campUnlocked(c)) camp(c); else { b.animate([{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"none"}],{duration:300}); } });
 }
 let curCamp=0;
-function camp(c){
+function camp(c){ LQ.mark("Camp "+(c+1));
   curCamp=c; const ls=CAMPS[c], all=ls.every(ch=>save.letters[ch]);
   $("app").innerHTML=`<div class="panel"><h2>${CAMP_NAMES[c]}</h2><p class="muted" style="margin:0">Tap a shapeshifter to find its four disguises.</p>
     <div class="crew">${ls.map(ch=>`<button class="mem ${save.letters[ch]?"done":""}" data-ch="${ch}">${creature(ch)}<div class="nm">${INFO[ch].en}</div></button>`).join("")}</div>
@@ -249,7 +249,7 @@ function camp(c){
 
 /* ---- catching the four disguises ---- */
 let caught;
-function catchGame(ch){
+function catchGame(ch){ LQ.mark("Catch "+ch);
   caught=new Set(); const I=INFO[ch], f=forms(ch);
   $("app").innerHTML=`<div class="panel">
     <div class="hero">${creature(ch,"hero")}<div class="talk" id="talk"></div></div>
@@ -286,7 +286,7 @@ function tapOrb(b,ch){
     talk(`Nope, that's <b>${D?D.en:"another letter"}</b> <span class="ar" lang="ar">${D?D.nm:""}</span>, not me! Look closely at the dots and the shape.`);
   }
 }
-function wordsStep(ch){
+function wordsStep(ch){ LQ.mark("Words for "+ch);
   const I=INFO[ch], f=forms(ch), heard=new Set();
   $("app").innerHTML=`<div class="panel">
     <div class="hero">${creature(ch,"hero")}<div class="talk" id="talk">Tap each word to hear it. Can you spot me inside?</div></div>
@@ -301,7 +301,7 @@ function wordsStep(ch){
 }
 
 /* ---- sand monster (camp boss) ---- */
-function boss(c){
+function boss(c){ LQ.mark("Sand monster, camp "+(c+1));
   const ls=CAMPS[c]; let hp=6, hearts=3, qn=0, busy=false;
   const qs=[]; // mix of three question types, two per camp letter pair
   shuffle([...ls,...shuffle([...ls]).slice(0,2)]).forEach((ch,i)=>{ qs.push({type:["hear","shape","word"][i%3],ch}); });
@@ -326,14 +326,14 @@ function boss(c){
       else { b.classList.add("wrong"); hearts--; LQ.record("letters",q.ch,false,b.textContent.replace(/\u0640/g,"")); document.querySelector('.opt[data-ok="true"]').classList.add("right"); qn++; }
       setTimeout(()=>{ busy=false; draw(); },900); });
   }
-  function win(){ const stars=hearts===3?3:hearts===2?2:1; const first=!save.camps[c]; LQ.update(p=>{ p.camps=p.camps||{}; p.camps[c]=Math.max(p.camps[c]||0,stars); }); addCoins(first?30:10); persist();
+  function win(){ LQ.mark("Sand monster beaten"); const stars=hearts===3?3:hearts===2?2:1; const first=!save.camps[c]; LQ.update(p=>{ p.camps=p.camps||{}; p.camps[c]=Math.max(p.camps[c]||0,stars); }); addCoins(first?30:10); persist();
     say("أَحْسَنْتَ");
     $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You beat the sand monster!</h2>
       <p style="font-size:2rem;color:var(--saffron);margin:0">${"★".repeat(stars)}${"☆".repeat(3-stars)}</p>
       <p class="muted">${c<6?`${CAMP_NAMES[c+1]} is now open!`:"You've caught all 28 letters. Amazing!"}</p>
       <div class="actions"><button class="btn go" id="next">${c<6?"Go to next camp":"All camps"}</button><button class="btn ghost" id="stay">Stay here</button></div></div>`;
     $("next").onclick=()=> c<6 ? camp(c+1) : home(); $("stay").onclick=()=>camp(c); }
-  function lose(){ $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🦂</div><h2>The sand monster got away!</h2>
+  function lose(){ LQ.mark("Sand monster got away"); $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🦂</div><h2>The sand monster got away!</h2>
       <p class="muted">Practice the letters again, then try once more.</p>
       <div class="actions"><button class="btn boss" id="retry">Try again</button><button class="btn ghost" id="bk">Back to camp</button></div></div>`;
     $("retry").onclick=()=>boss(c); $("bk").onclick=()=>camp(c); }
@@ -341,7 +341,7 @@ function boss(c){
 }
 /* ---- tracing tent ---- */
 const stars3=n=>"★".repeat(n)+"☆".repeat(3-n);
-function tent(c){
+function tent(c){ LQ.mark("Tracing tent "+(c+1));
   curCamp=c; const ls=CAMPS[c].filter(ch=>TRACE[ch]), tr=(LQ.player()||{}).trace||{};
   $("app").innerHTML=`<div class="panel"><h2>✏️ Tracing Tent</h2><p class="muted" style="margin:0">Pick a letter you have caught and write each of its shapes.</p>
     <div class="crew">${ls.map(ch=>`<button class="mem ${tr[ch]?"done":""}" data-ch="${ch}" ${save.letters[ch]?"":"disabled"}>${creature(ch)}<div class="nm">${INFO[ch].en}</div>
@@ -350,7 +350,7 @@ function tent(c){
   document.querySelectorAll(".mem").forEach(b=>b.onclick=()=>traceLetter(b.dataset.ch));
   $("bk").onclick=()=>camp(c);
 }
-function traceLetter(ch){
+function traceLetter(ch){ LQ.mark("Trace "+ch);
   const I=INFO[ch], shapes=traceShapes(ch), scores=[]; let k=0;
   const step=()=> k>=shapes.length ? finish() : traceForm(ch,shapes[k],k,shapes.length,s=>{ scores.push(s); k++; step(); });
   function finish(){

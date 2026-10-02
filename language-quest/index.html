@@ -104,8 +104,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02f";</script>
-<script src="lq-core.js?v=2026.10.02f"></script>
+<script>window.LQ_VER="2026.10.02g";</script>
+<script src="lq-core.js?v=2026.10.02g"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -242,7 +242,7 @@ const padOf=l=>({x:l.x,y:l.y+125});
 let entering=null;
 function startEnter(l){
   if(entering) return; const url=OPEN[l.id]; if(!url) return;
-  if(!LQ.player()){ LQ.profiles(()=>{ hud(); startEnter(l); }); return; }
+  if(!LQ.player()){ LQ.profiles(()=>{ hud(); startEnter(l); }); return; } LQ.mark("Going into "+l.en);
   // go in once the zone's name has been heard in full; never wait more than 4 s for a slow or missing clip
   let heard=false;
   const go=()=>{ if(!entering||entering.l!==l) return; clearTimeout(entering.t); try{ if(heard) sessionStorage.setItem("lq.said",l.id); }catch(e){} location.href=url; };
@@ -680,7 +680,7 @@ function closeFm(){ fm.classList.remove("show"); }
 fm.addEventListener("pointerup",e=>{ if(e.target===fm) closeFm(); });
 function distractors(ch){ const g=(LIKE.find(x=>x.includes(ch))||[]).filter(x=>x!==ch); const pool=[...g]; const all=Object.keys(LNAME).filter(x=>x!==ch&&!g.includes(x));
   while(pool.length<2) pool.push(all.splice(Math.random()*all.length|0,1)[0]); return pool.sort(()=>Math.random()-.5).slice(0,2); }
-function meetFriend(f){
+function meetFriend(f){ LQ.mark("Friend "+f.ch);
   closeCard(); const got=!!found()[f.ch]; say(f.ar);
   const head=`<div class="big">${f.e}</div><div class="arw" lang="ar">${f.ar}</div><p style="margin:0">Marhaba! I'm a <b>${f.en}</b>.</p>`;
   if(got){ openFm(`${head}<div class="ltr" lang="ar">${f.ch}</div><p>My name starts with <b>${LNAME[f.ch]}</b> <span lang="ar">${LNAME[f.ch]}</span>. I'm already in your album! ⭐</p>
@@ -705,7 +705,7 @@ function meetFriend(f){
   });
 }
 function hintFor(){ const fd=found(); let best=null,bd=1e9; FRIENDS.forEach(f=>{ if(fd[f.ch]) return; const d=Math.hypot(f.x-player.x,f.y-player.y); if(d<bd){bd=d;best=f;} }); return best; }
-function tetaTalk(){
+function tetaTalk(){ LQ.mark("Teta");
   closeCard(); const p=LQ.player(); const n=Object.keys(found()).length; say("أَهْلًا وَسَهْلًا");
   if(!p||!p.friendsStarted){
     openFm(`${tetaPic}<h2 style="margin:4px 0">Ahlan, habibi! I'm Teta.</h2>
@@ -721,7 +721,7 @@ function tetaTalk(){
     <div class="row"><button class="btn ghost" id="tAlb">📒 Album</button><button class="btn go" id="tOk">OK, Teta!</button></div>`);
   document.getElementById("tOk").onclick=closeFm; document.getElementById("tAlb").onclick=album;
 }
-function album(){
+function album(){ LQ.mark("Album");
   const fd=found(), n=Object.keys(fd).length;
   openFm(`<h2 style="margin:0">📒 Letter Friends <span style="color:var(--muted);font-size:1rem">${n}/28</span></h2>
     <p style="margin:4px 0 0;color:var(--muted)">Tap a friend you've found to hear them again.</p>
@@ -745,7 +745,7 @@ const tossCost=()=>(well().n||0)+1;
 // counting coins: one coin, two coins (dual), three to ten coins (plural)
 const NUMS=[["عُمْلَةٌ وَاحِدَة","١"],["عُمْلَتَان","٢"],["ثَلَاثُ عُمْلَات","٣"],["أَرْبَعُ عُمْلَات","٤"],["خَمْسُ عُمْلَات","٥"],["سِتُّ عُمْلَات","٦"],["سَبْعُ عُمْلَات","٧"],["ثَمَانِي عُمْلَات","٨"],["تِسْعُ عُمْلَات","٩"],["عَشْرُ عُمْلَات","١٠"]];
 // miss = the number of the toss that just got no answer; the fountain counts it out loud in Arabic
-function fountain(first,miss){
+function fountain(first,miss){ if(first!==false) LQ.mark("Fountain");
   closeCard(); const p=LQ.player(); if(!p) return; if(first!==false) say(FOUNTAIN.ar);
   const num=miss?NUMS[miss-1]:null; if(num) say(num[0]);
   const n=Object.keys(well().got).length, left=SAYINGS.length-n, cost=tossCost(), coins=p.coins||0;
@@ -845,7 +845,7 @@ requestAnimationFrame(frame);
 document.getElementById("startBtn").onclick=()=>{
   pickVoice(); say("أَهْلًا وَسَهْلًا");            // first sound inside a tap unlocks speech on iPad
   document.getElementById("start").remove();
-  LQ.profiles(()=>{ hud(); setTimeout(()=>showZone(biomeAt(player.x,player.y)),400); });
+  LQ.profiles(()=>{ hud(); LQ.mark("Map: signed in"); setTimeout(()=>showZone(biomeAt(player.x,player.y)),400); });
 };
 function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("albumN").textContent=Object.keys(found()).length; }
 LQ.onChange(hud); hud();
@@ -858,7 +858,7 @@ document.getElementById("whoBtn").onclick=()=>{ closeCard(); LQ.leave(); LQ.prof
   if(l){ player.x=player.tx=l.x; player.y=player.ty=l.y+215; cam.x=player.x-VW/2/ZOOM; cam.y=player.y-VH/2/ZOOM; currentZone=biomeAt(player.x,player.y); }
   const st=document.getElementById("start"); if(st) st.remove();
   const h=document.getElementById("hint"); if(h) h.style.opacity=0;
-  hud();
+  hud(); LQ.mark(l?"Map: back from "+l.en:"Map");
 })();
 document.getElementById("soundBtn").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn){ player_audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); } };
 
