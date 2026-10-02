@@ -154,7 +154,7 @@ function take(k){const p=P();const t=tad(p);if(t.s!==2)return;let msg='';
 
 /* ---------- PART C: battle exit ---------- */
 function help(){try{if(typeof B==='undefined'||!B||!B.q)return closeModal();const q=B.q;q.hinted=true;let h='';try{h=hintHTML(q)||'';}catch(e){}
- modal(`<div class="mcard"><div class="big-emoji">🆘</div><h2>Here's how to do it</h2><div class="hint">${h||'Take a breath and read it one more time. You can do this!'}</div><div class="row"><button class="btn green" onclick="closeModal()">Back to the battle</button></div></div>`);}catch(e){closeModal();}}
+ modal(`<div class="mcard"><div class="big-emoji">🆘</div><h2>Here's how to do it</h2><div class="hint">${h||'Take a breath and read it one more time. You can do this!'}</div><p class="muted" style="font-size:14px">Help is free. A helped answer earns no coins or streak, and the problem comes back later for a real try.</p><div class="row"><button class="btn green" onclick="closeModal()">Back to the battle</button></div></div>`);}catch(e){closeModal();}}
 
 /* ---------- PART B: Pet Home tricks ---------- */
 function trickPanel(){try{const p=P();if(!show(p))return;const pet=petOf(p);if(!pet||document.getElementById('tadTrick'))return;css();const t=tad(p);const left=TRICKS-(t.tr||0);

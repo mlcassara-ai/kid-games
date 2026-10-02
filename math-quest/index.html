@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.01m';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.01n';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -2736,26 +2736,32 @@ window.addEventListener('resize',()=>{if(typeof curScreen!=='undefined'&&curScre
 function answer(){
  const p=P(),q=B.q,secs=(performance.now()-B.t0)/1000;
 const v=parseInt(B.input,10);const ok=q.rev?revCheck(q,v,parseInt(B.input2,10)):(v===q.answer||!!(q.alt&&q.alt.includes(v)));const med=medianThink(p);const fast=med?secs<med*0.85:secs<fastLimit(q);const slip=!ok&&!q.tpl&&!q.rev&&isSlip(q,B.input);
+ /* helped: the kid looked at how to solve it (🆘 Show me how, or the pet's hint) before answering. Help is free, but a helped
+    right answer earns nothing: no streak, power charge, coins, XP, points or stats, and the problem comes back for a real try. */
+ const helped=ok&&!!q.hinted;
  B.busy=true;B.hist=B.hist||[];B.hist.push({op:q.op,ok});if(B.hist.length>12)B.hist.shift();
- p.stats[q.op][ok?'r':'w']++;
- const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;
+ const dk=dayKey();
+ if(!helped){p.stats[q.op][ok?'r':'w']++;p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;}
  let lvChange=null;const prevL=lvl(p,q.op);
- hook('answer',p,q,ok,secs,{slip,zone:B.z&&B.z.id,round:B.round||1,boss:!!B.isBoss});
+ if(!helped)hook('answer',p,q,ok,secs,{slip,zone:B.z&&B.z.id,round:B.round||1,boss:!!B.isBoss});
  if(!q.again&&!q.practice&&!q.hinted&&!q.mastered)lvChange=adjustSkill(p,q.op,ok,slip);
  if(lvChange===-1){B.review=B.review.filter(r=>r.q.op!==q.op);const nl=prevL-1;setTimeout(()=>{banner('🎯 Easier problems for now!');toast(`Now mixing in more ${KID_DESC[q.op][Math.max(1,lvl(p,q.op))]}. Keep going and you'll climb back up!`);},900);}
  if(ok){
-  B.right++;B.petSince=(B.petSince||0)+1;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();thawTick();
-  wkAnswer(p,champPts(p,q.L,q.op));{const w=wkOf(p);w.bs=Math.max(w.bs||0,B.streak);}questRight(p,q);questEvent(p,'streak',B.streak);
-  const mm=p.missed[q.text];if(mm&&(q.practice||q.again))mm.fixed=(mm.fixed||0)+1;
+  if(helped){B.missRow=0;const m=p.missed[q.text]||{n:0,a:q.answer,op:q.op};m.n++;m.last=dk;m.fixed=0;m.q=q.tpl?slimQ(q):{op:q.op,L:q.L,a:q.a,b:q.b,c:q.c,answer:q.answer,text:q.text};p.missed[q.text]=m;pruneMissed(p);
+   if(!q.again&&!q.rev)B.review.push({q:Object.assign({},q,{hinted:false}),wait:3});
+   if(!B.helpTold){B.helpTold=true;setTimeout(()=>toast('🆘 Helped answers earn no coins or streak. That one will come back for a real try!'),600);}}
+  else{B.right++;B.petSince=(B.petSince||0)+1;B.streak++;B.best=Math.max(B.best,B.streak);B.missRow=0;petCharge(p);addCharge();thawTick();
+  wkAnswer(p,champPts(p,q.L,q.op));{const w=wkOf(p);w.bs=Math.max(w.bs||0,B.streak);}questRight(p,q);questEvent(p,'streak',B.streak);}
+  const mm=p.missed[q.text];if(!helped&&mm&&(q.practice||q.again))mm.fixed=(mm.fixed||0)+1;
   if(lvChange===1){questEvent(p,'skillup',1);const nl=prevL+1;const isNew=nl>(p.maxL[q.op]||0);if(isNew){p.maxL[q.op]=nl;wkBump(p,'lv');}
    setTimeout(()=>{if(isNew){banner(`⭐ NEW LEVEL! ${OPNAME[q.op]} ${nl}`);SFX.level();toast(`New challenge: ${KID_DESC[q.op][nl]}`);}else toast(`👍 Back up to ${OPNAME[q.op]} level ${nl}!`);},700);}
-  if(q.again||q.practice){B.coins+=3;p.coins+=3;}
+  if(!helped&&(q.again||q.practice)){B.coins+=3;p.coins+=3;}
   const perk=petPerk(p),spell=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];
-  let dmg=20*(B.spellFrozen>0?1:spell.mult)*(perk==='power'?1.15:1)*(1+Math.min(B.streak-1,5)*.1);
-  p.thinkT=p.thinkT||[];p.thinkT.push(Math.round(Math.min(60,secs)*10)/10);if(p.thinkT.length>20)p.thinkT.shift();
+  let dmg=20*(B.spellFrozen>0?1:spell.mult)*(perk==='power'?1.15:1)*(1+Math.max(0,Math.min(B.streak-1,5))*.1);
+  if(!helped){p.thinkT=p.thinkT||[];p.thinkT.push(Math.round(Math.min(60,secs)*10)/10);if(p.thinkT.length>20)p.thinkT.shift();}
   const crit=fast&&!q.hinted&&Math.random()<(B.streak>=2?.6:.35);if(crit)dmg*=2;dmg=Math.round(dmg);
-  const pcb=perk==='coins'?2+Math.min(4,Math.floor(petLv(petData(p,p.pet))/5)):0;const c=(coinPer(p,q)+pcb)*(B&&B.z&&!B.wild&&isBonusZ(p,B.z.id)?2:1);B.coins+=c;p.coins+=c;if(pcb)petCredit(p,'c',pcb);
-  B.xp+=Math.round(10*(perk==='xp'?1.5:1));if(perk==='xp')petCredit(p,'xp',5);if(perk==='power')petCredit(p,'dmg',Math.round(dmg*.15/1.15));
+  const pcb=perk==='coins'?2+Math.min(4,Math.floor(petLv(petData(p,p.pet))/5)):0;const c=helped?0:(coinPer(p,q)+pcb)*(B&&B.z&&!B.wild&&isBonusZ(p,B.z.id)?2:1);B.coins+=c;p.coins+=c;if(pcb&&!helped)petCredit(p,'c',pcb);
+  if(!helped){B.xp+=Math.round(10*(perk==='xp'?1.5:1));if(perk==='xp')petCredit(p,'xp',5);}if(perk==='power')petCredit(p,'dmg',Math.round(dmg*.15/1.15));
   save();SFX.correct();$('#qcard').classList.add('right');
   if(q.rev){const others=q.ex.filter(p=>!((p[0]===+B.input&&p[1]===+B.input2)||(q.op==='mul'&&p[1]===+B.input&&p[0]===+B.input2)));if(others.length)setTimeout(()=>toast(`🔄 Other ways to make ${q.target}: ${others.slice(0,3).map(p=>p[0]+' '+REV_SYM[q.op]+' '+p[1]).join(', ')}`),500);}
   const blocked=!!B.monShield;if(blocked){B.monShield=0;dmg=0;}
@@ -2764,8 +2770,8 @@ const v=parseInt(B.input,10);const ok=q.rev?revCheck(q,v,parseInt(B.input2,10)):
    B.mhp=Math.max(0,B.mhp-dmg);SFX.hit();
    floatText('#monS',(crit?'💥 CRITICAL! ':'')+'-'+dmg,crit?'#ffe066':'#fff');if(crit){banner('💥 CRITICAL HIT!');const ar=$('#arena');if(ar){ar.classList.remove('critflash');void ar.offsetWidth;ar.classList.add('critflash');}}
    $('#monS').animate([{transform:'translateX(0)'},{transform:'translateX(14px) rotate(8deg)'},{transform:'translateX(-8px)'},{transform:'none'}],{duration:350});
-   if(perk==='heal'&&B.streak%5===0&&B.hhp<B.hmax){const h=Math.min(20,B.hmax-B.hhp);B.hhp+=h;petCredit(p,'hp',h);floatText('#heroS','+'+h+' ❤️','#8dffb0');}
-   if([3,5,10,15,20].includes(B.streak))banner(B.streak>=10?`🔥 UNSTOPPABLE x${B.streak}!`:`🔥 COMBO x${B.streak}!`);
+   if(!helped&&perk==='heal'&&B.streak%5===0&&B.hhp<B.hmax){const h=Math.min(20,B.hmax-B.hhp);B.hhp+=h;petCredit(p,'hp',h);floatText('#heroS','+'+h+' ❤️','#8dffb0');}
+   if(!helped&&[3,5,10,15,20].includes(B.streak))banner(B.streak>=10?`🔥 UNSTOPPABLE x${B.streak}!`:`🔥 COMBO x${B.streak}!`);
    updateBars();
    if(B.mhp<=0){if(!nextFoe(()=>setTimeout(nextQ,250))){B.over=true;setTimeout(winBattle,500);}}
    else setTimeout(nextQ,450);

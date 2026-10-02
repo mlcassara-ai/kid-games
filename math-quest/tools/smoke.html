@@ -67,6 +67,12 @@ const tests=[
   startBattle('forest',0);await T.until(ready,10000,'first question');
   const r0=p.stats.add.r,q1=B.q;right();
   await T.until(()=>ready()&&B.q!==q1,12000,'second question');T.ok(p.stats.add.r===r0+1,'right answer not counted');
+  /* a helped answer: the hit lands, but no streak, coins or stats, and the problem is queued to come back */
+  for(let k=0;k<6&&B.q.rev;k++){const q0=B.q;right();await T.until(()=>ready()&&B.q!==q0,12000,'a plain question');}
+  {const qh=B.q,s0=B.streak,c0=p.coins,r1=p.stats.add.r,hp0=B.mhp,rv0=B.review.length;fleeBattle();T.ok(/Show me how/.test(document.querySelector('#modal').innerText),'help button missing');Daily.help();closeModal();
+   T.ok(qh.hinted,'help did not mark the question');right();await T.until(()=>ready()&&B.q!==qh,12000,'question after a helped answer');
+   T.ok(B.streak===s0,'helped answer raised the streak');T.ok(p.coins===c0,'helped answer paid coins');T.ok(p.stats.add.r===r1,'helped answer counted as right');
+   T.ok(B.mhp<hp0,'helped answer did no damage');T.ok(B.review.length===rv0+1||B.q.again,'helped problem was not queued to come back');T.ok(p.missed[qh.text],'helped problem not recorded');}
   const w0=p.stats.add.w,n0=Object.keys(p.missed).length;wrong();await T.until(()=>fbOpen,8000,'wrong-answer card');
   T.ok(p.stats.add.w===w0+1&&Object.keys(p.missed).length===n0+1,'missed problem not stored');closeFeedback();
   await T.until(ready,12000,'question after a miss');
