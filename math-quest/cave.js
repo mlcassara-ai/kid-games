@@ -629,6 +629,9 @@ function openLab(){
 }
 function bench(k,st){
  const p=S.pack.find(x=>x.k===k);if(!p)return openLab();const m=CD.MIN[p.id];p.path=p.path||[];p.miss=p.miss||0;p.scr=p.scr||{};st=st||{};
+ /* A mineral the kid has already found 3 or more times: before any tests, show what it looks like and ask if they know it.
+    Easy = 2 choices, middle grades 3, older 4 (one more after 8 finds). A wrong guess, or "not sure", leads to the full set of tests. */
+ if(!p.qk&&!p.path.length&&S.idd[p.id]&&(S.found[p.id]||0)>=3)return quickID(p);
  /* every specimen gets every test: the answer only comes once the whole set is in the notebook, even if one suspect is left sooner */
  const C=kAlive(p),used=p.path.map(s=>s.t);if(!C.length||sciOrder().every(x=>used.includes(x)))return kReveal(p);
  const young=TIER()===0;
@@ -684,6 +687,19 @@ function kReveal(p){const m=CD.MIN[p.id];
  modal(`<div class="cv-card"><div class="cv-kpath">${(p.path||[]).map(s=>`<span>${KQ[s.t].split(' ')[0]} ${kLabel(s.t,s.v)}</span>`).join('<i>➜</i>')}</div>${gemSVG(m,110)}<h2>The path leads to… <br>${esc(m.n)}!</h2>
  ${guide(p.miss?'We got there! Next time, look extra carefully at each picture — you\'ll be a master detective.':pick(Math.random,['Perfect detective work — every answer right!','Brilliant! You read every test like a real geologist.','Wow, not a single mistake. I\'m impressed!']),'happy')}<button class="cv-btn" id="cvKDone">Add it to my Journal!</button></div>`,{noX:1});
  root.querySelector('#cvKDone').onclick=()=>guess(p.k,p.id);}
+function quickID(p){const m=CD.MIN[p.id],k=p.k,n=Math.min(5,2+TIER()+((S.found[p.id]||0)>=8?1:0));
+ const R=rng(hash('quick|'+k)),known=shuffle(R,Object.keys(S.idd).filter(id=>id!==p.id&&CD.MIN[id])),rest=shuffle(R,Object.keys(CD.MIN).filter(id=>id!==p.id&&!known.includes(id)));
+ const opts=shuffle(R,[p.id].concat(known.concat(rest).slice(0,n-1)));
+ modal(`<button class="cv-back" data-back>‹ Lab</button><h2>🔎 You have seen this one before!</h2>
+  <div class="cv-kres"><div class="cv-klook">${rockSVG(k,96,m.col)}<div><b>${esc(m.look)}</b></div></div></div>
+  ${guide('You have found this mineral before. Do you know which one it is? If you are not sure, we will run the tests.')}
+  <div class="cv-kopts ${opts.length>4?'many':''}">${opts.map(id=>`<button class="cv-kopt" data-q="${id}">${gemSVG(CD.MIN[id],22)} ${esc(CD.MIN[id].n)}</button>`).join('')}</div>
+  <div style="text-align:center;margin-top:8px"><button class="cv-say" data-q="">🧪 I'm not sure. Run the tests</button></div>`,{wide:1});
+ root.querySelector('[data-back]').onclick=openLab;
+ root.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=b.dataset.q;p.qk=1;
+  if(id===p.id){ev('quick',{ok:1});save();guess(k,p.id);return;}
+  if(id){p.miss=(p.miss||0)+1;sfx('wrong');ev('quick',{ok:0});}else sfx('tap');save();
+  bench(k,{mood:'think',say:id?`Not this time: it is <b>not ${esc(CD.MIN[id].n)}</b>. No problem! Let's run the tests and find out what it is.`:'Good thinking. When a scientist is not sure, they test! Let\'s start.'});});}
 function identify(k){bench(k);}
 
 function guess(k,id){const p=S.pack.find(x=>x.k===k);if(!p)return;const m=CD.MIN[p.id];

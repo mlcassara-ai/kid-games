@@ -84,12 +84,18 @@ function mmState(p){const D=CD();if(!D)return null;const s=Q(p),L=s.lab,day=dayK
  const opts=sus.concat([id]).sort((a,b)=>hash(a+day)-hash(b+day));
  if(DEMO)return {d:day,id,opts,tests:[],tries:0,done:false};
  L.mm={d:day,id,opts,tests:[],tries:0,done:false};save();return L.mm;}
+/* a sample the kid has solved 3+ times: offer a guess from the Look clue alone, with fewer choices (2 for the youngest) */
+const quickOK=(p,mm)=>!mm.done&&!mm.q&&!mm.tests.length&&((Q(p).lab.ok||{})[mm.id]||0)>=3;
+const quickOpts=(p,mm)=>{const n=2+tier(p);return [mm.id].concat(mm.opts.filter(k=>k!==mm.id).slice(0,n-1)).sort((a,b)=>hash(a+mm.d+'q')-hash(b+mm.d+'q'));};
 function mmHTML(p){const D=CD(),mm=MM||mmState(p);if(!mm)return `<p class="muted">Identify <b>3 minerals</b> in the Science Cave and Dr. Quartz will start leaving you a sample here every day.</p>`;MM=mm;
  const m=D.MIN[mm.id],uv=!!cv(p).gear.uv;
  const gem=mm.done?`<div class="lb-sample" style="--gc:${m.col}"><i></i></div>`:`<div class="lb-sample lb-unk">${rockSVG(mm.d+mm.id,76)}</div>`;
  if(mm.done)return `<div class="lb-mm">${gem}<div><b>${mm.ok?'✅ Solved!':'Today\'s sample'}: ${esc(m.n)}</b><p class="muted" style="margin:4px 0 0">${esc(tier(p)?m.o:m.y)}</p><p style="margin:6px 0 0">${mm.ok?`🪙 +${MM_COINS} and a 🔬 lab check on your ${esc(m.n)} card.`:'Nice try! A new sample comes tomorrow.'}</p>${FB&&!mm.ok?`<div class="lb-fb" id="lbFb" role="status">${FB}</div>`:''}</div></div>`;
  const tests=TESTS.filter(t=>t.id!=='uv'||uv);const nxt=(tests.find(t=>!mm.tests.includes(t.id))||{}).id;
  const done=TESTS.filter(t=>mm.tests.includes(t.id)); /* clues always listed in the scientist's order */
+ if(quickOK(p,mm))return `<div class="lb-mm">${gem}<div style="min-width:0"><p style="margin:0 0 6px;font-weight:700">🔎 You have solved this mineral before!</p><ul class="lb-clues"><li>${result(m,'look',p)}</li></ul>
+   <p class="lb-pick"><b>Do you know which one it is?</b></p><div class="lb-opts">${quickOpts(p,mm).map(k=>`<button class="btn gold small" onclick="Lab.quick('${k}')">${esc(D.MIN[k].n)}</button>`).join('')}</div>
+   <p style="margin:8px 0 0"><button class="btn ghost dark small" onclick="Lab.quick('')">🧪 I'm not sure. Run the tests</button></p>${FB?`<div class="lb-fb" id="lbFb" role="status">${FB}</div>`:''}</div></div>`;
  return `<div class="lb-mm">${gem}<div style="min-width:0"><p style="margin:0 0 6px">Run every test to collect the clues, then pick which mineral it is.${mm.tries?` <b>One more try!</b>`:''}</p>
   <p class="muted lb-order">Scientists go: 🔍 look → ⬜ streak → 💅 scratch → 🔨 hammer → 🧲 🧪 💧${uv?' 🔦':''} special tests. Any order is fine, but do them all!</p>
   <div class="lb-tests">${tests.map(t=>{const did=mm.tests.includes(t.id);return `<button class="btn small ${did?'ghost dark':''}${t.id===nxt?' lb-nxt':''}" ${did?'disabled aria-pressed="true"':''} onclick="Lab.test('${t.id}')">${did?'✓ ':''}${t.e} ${t.n}${t.id===nxt?' <em>next step</em>':''}</button>`;}).join('')}</div>
@@ -101,7 +107,11 @@ function mmHTML(p){const D=CD(),mm=MM||mmState(p);if(!mm)return `<p class="muted
 function test(t){const p=P();const mm=MM||mmState(p);if(!mm||mm.done)return;FB='';if(!mm.tests.includes(t)){mm.tests.push(t);if(!DEMO)save();}try{SFX.tap();}catch(e){}draw();}
 /* phones: keep the answer feedback on screen (it sits right under the answer buttons) */
 function showFb(){const e=document.getElementById('lbFb');if(!e)return;try{const r=e.getBoundingClientRect();if(r.top<60||r.bottom>innerHeight-10)e.scrollIntoView({block:'center'});}catch(x){}}
-function guess(k){const p=P(),s=Q(p);const mm=MM||mmState(p);if(!mm||mm.done||!TESTS.filter(t=>t.id!=='uv'||cv(p).gear.uv).every(t=>mm.tests.includes(t.id)))return;const D=CD();
+function quick(k){const p=P();const mm=MM||mmState(p);if(!mm||!quickOK(p,mm))return;const D=CD();
+ if(k===mm.id){guess(k,true);return;}
+ mm.q=1;if(!mm.tests.includes('look'))mm.tests.push('look');if(!DEMO)save();try{k?SFX.wrong():SFX.tap();}catch(e){}
+ FB=k?`🤔 Not this time: it is <b>not ${esc(D.MIN[k].n)}</b>. No problem! Run the tests and find out.`:'Good thinking. When a scientist is not sure, they test!';draw();showFb();}
+function guess(k,sure){const p=P(),s=Q(p);const mm=MM||mmState(p);if(!mm||mm.done||(!sure&&!TESTS.filter(t=>t.id!=='uv'||cv(p).gear.uv).every(t=>mm.tests.includes(t.id))))return;const D=CD();
  if(k===mm.id){mm.done=true;mm.ok=true;try{SFX.win();}catch(e){}
   if(!DEMO){p.coins=(p.coins||0)+MM_COINS;s.lab.ok[k]=(s.lab.ok[k]||0)+1;s.lab.solved=(s.lab.solved||0)+1;save();}
   FB=`✅ Yes! It's <b>${esc(D.MIN[k].n)}</b>! 🪙 +${MM_COINS}`;toast(`🔬 Yes! It's ${D.MIN[k].n}! 🪙 +${MM_COINS}${DEMO?' (preview)':''}`);}
@@ -233,5 +243,5 @@ setInterval(syncTile,500);
 /* a key that is due but was never saved (it could be lost to an online sync before Oct 2 2026) is handed over again on the map */
 function keyCatchUp(){try{const p=P();if(!p||DEMO||!keyDue(p)||curScreen!=='world'||document.querySelector('#modal.show'))return;if(window.MQ_VISIT&&MQ_VISIT.busy('labkey'))return;giveKey(p,()=>{});}catch(e){}}
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world'){setTimeout(syncTile,0);setTimeout(keyCatchUp,2500);}}});
-window.Lab={open,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
+window.Lab={open,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,quick,buy,down,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
 })();
