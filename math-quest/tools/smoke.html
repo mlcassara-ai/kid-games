@@ -190,7 +190,7 @@ const tests=[
   T.ok(new Set(d.FACTS.map(x=>x[0])).size===d.FACTS.length&&d.FACTS.every(x=>d.SETS.some(s=>s[0]===x[0][0])),'fact ids are not unique or lack a set');
   closeModal();window.MQ_DISTRICT_BETA=false;go('world');}],
 
-['battle pets test: hidden unless switched on for a hero, and saves only the switch',async function(){
+['battle pets test: hidden unless switched on for a hero; saves only the switch and a play log',async function(){
   T.reset();window.MQ_BP_BETA=false;try{localStorage.removeItem('mqBpTest');}catch(e){}const p=T.hero('Pets',5),q=T.hero('Other',3);state.cur=p.id;W=null;go('world');await T.wait(150);
   T.ok(W.T[20][28].npc!=='bp','Battle Pets is on the map without the switch');go('bp');T.ok(curScreen!=='bp'||!document.querySelector('#app iframe'),'Battle Pets opened without the switch');
   const before=JSON.stringify(state.players);BattlePets._set(p.id,true);try{closeModal();}catch(e){}go('world');await T.wait(100);
@@ -198,6 +198,11 @@ const tests=[
   const res=await fetch('battle-pets.html',{cache:'no-store'});T.ok(res.ok,'battle-pets.html is missing');
   state.cur=q.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets shows for a hero who is not in the test');
   const b0=JSON.parse(before).find(x=>x.id===p.id),added=Object.keys(p).filter(k=>!(k in b0));T.ok(added.filter(k=>/bp|pets/i.test(k)).join()==='bpTest'&&p.bpTest===1&&p.coins===b0.coins,'the Battle Pets test changed saved hero data: '+added.join());
+  /* the play log: the page reports a start and an end; only counted for a hero in the test who is on the Battle Pets screen */
+  state.cur=p.id;go('bp');const say=m=>window.postMessage(Object.assign({mq:'bp'},m),location.origin);say({ev:'start',stage:1});say({ev:'end',stage:1,win:1,secs:95,asked:20,right:18,sent:9,cast:0,house:62,log:0});say({ev:'start',stage:3});await T.wait(80);
+  T.ok(P().bp&&P().bp.s===2&&P().bp.m.length===1&&P().bp.m[0][2]===1&&P().bp.m[0][3]===95,'play log not recorded: '+JSON.stringify(P().bp));const st=BattlePets.stats(P());T.ok(st.wins===1&&st.started===2&&st.winSecs===95&&st.houseLeft===62,'play log summary wrong');
+  for(let i=0;i<50;i++)say({ev:'end',stage:5,win:0,secs:60});await T.wait(80);T.ok(P().bp.m.length===40,'play log is not capped');T.ok(P().coins===b0.coins,'the play log changed coins');
+  go('world');await T.wait(50);say({ev:'end',stage:1,win:1,secs:5});await T.wait(60);T.ok(P().bp.m[39][1]===5,'a match was logged away from the Battle Pets screen');
   BattlePets._set(p.id,false);try{closeModal();}catch(e){}state.cur=p.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets stayed after switching off');
  }],
  ['music: the login page plays the map tune, Discovery District has its own choices',async function(){
