@@ -117,7 +117,7 @@ const tests=[
    if(![[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>wWalk(n.x+dx,n.y+dy)))bad.push(n.id+' cannot be reached');
    NPCS.forEach(m=>{if(m!==n&&Math.abs(m.x-n.x)<=1&&Math.abs(m.y-n.y)<=1)bad.push(n.id+' touches '+m.id);});});
   PLAZA_DECOR.flat().forEach(([e,x,y])=>{if(!W.T[y][x].plaza||W.T[y][x].npc)bad.push('plaza decoration at '+x+','+y+' is misplaced');});
-  T.ok(!NPCS.some(n=>n.id==='school'||n.id==='board'),'a menu-only building is back on the plaza');go('map');T.ok(document.querySelector('.qb-lead'),'Leaderboard button missing from the Quest Board');go('world');await T.wait(100);T.ok(/Quest Board/.test(document.querySelector('.wtop').innerText),'Quest Board button missing from the World screen');
+  T.ok(!NPCS.some(n=>n.id==='school'||n.id==='board'),'a menu-only building is back on the plaza');go('map');T.ok(document.querySelector('.qb-lead'),'Leaderboard button missing from the Quest Board');go('world');await T.wait(100);T.ok(/Quest Board/.test(document.querySelector('.wtop').innerText),'Quest Board button missing from the World screen');p.vil=p.vil||{};p.vil.portal=2;go('world');await T.wait(50);T.ok(/Quest Board ★2/.test(document.querySelector('.wtop').innerText),'Quest Portal stars missing from the Quest Board button');
   T.ok(wWalk(W.hx,W.hy),'hero starts on a blocked tile');T.ok(!bad.length,bad.slice(0,4).join(' | '));window.MQ_TRUCK_BETA=false;window.MQ_DISTRICT_BETA=false;W=null;}],
 
 ['food truck: hidden unless the preview switch is on; then card, screens and map spot',async function(){
