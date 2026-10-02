@@ -48,7 +48,7 @@ const tests=[
 
 ['screens: every screen draws for a hero',async function(){
   T.reset();const p=T.hero('Screens',3);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;const bad=[];
-  const skip=['rest','skillcheck','inner','cave','office','fade','truck','market'];
+  const skip=['rest','skillcheck','inner','cave','office','fade','truck','market','district']; /* these need their own setup; truck and district have their own tests */
   for(const s of Object.keys(SCREENS)){if(skip.includes(s))continue;try{go(s,s==='zone'?'forest':undefined);T.ok(curScreen===s,'ended on '+curScreen);T.ok(document.querySelector('#app').innerText.length>10,'empty');}catch(e){bad.push(s+': '+e.message);}try{closeModal();}catch(e){}}
   T.ok(!bad.length,bad.join(' | '));}],
 
@@ -115,6 +115,17 @@ const tests=[
   go('world');await T.wait(100);const t=W.T[20][22];T.ok(t.npc==='truck','truck is not on the map');
   T.ok([[21,20],[23,20],[22,19],[22,21]].some(([x,y])=>W.T[y]&&W.T[y][x]&&!W.T[y][x].block&&!W.T[y][x].water),'truck cannot be reached on the map');
   wNpc('truck');T.ok(curScreen==='truck','tapping the truck on the map did not open it');window.MQ_TRUCK_BETA=false;}],
+
+['discovery district preview: hidden by default, walkable with the switch on',async function(){
+  T.reset();const p=T.hero('District',3);state.cur=p.id;window.MQ_DISTRICT_BETA=false;try{localStorage.removeItem('mqDistrictBeta');}catch(e){}
+  T.ok(!Discovery.flag(),'district preview is on without the switch');go('world');await T.wait(100);T.ok(W.T[13][27].npc!=='train','train shows on the map without the switch');
+  go('district');T.ok(curScreen==='world','district opened without the switch');
+  window.MQ_DISTRICT_BETA=true;go('world');await T.wait(100);T.ok(W.T[13][27].npc==='train','train station missing from the village');
+  go('district');T.ok(curScreen==='district'&&document.getElementById('dcv'),'district map did not open');
+  const d=Discovery._dbg,D=d.state();Object.keys(d.AREAS).filter(k=>d.AREAS[k].zone).forEach(k=>{const c=d.AREAS[k].c;
+   const ok=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const x=c[0]+dx,y=c[1]+dy;return D.T[y]&&D.T[y][x]&&!D.T[y][x].block&&d.pathTo(x,y);});T.ok(ok,'cannot walk to '+d.AREAS[k].name);});
+  d.useTile(d.AREAS.bay.c[0],d.AREAS.bay.c[1]);T.ok(/Balance Bay/.test(document.querySelector('#modal').innerText),'Balance Bay sign did not open');closeModal();
+  await T.wait(300);T.ok(document.getElementById('dcv').width>0,'district canvas has no size');window.MQ_DISTRICT_BETA=false;go('world');}],
 
 ['save size stays small',async function(){
   T.reset();for(let i=0;i<7;i++){const p=T.hero('Size'+i,3);for(let k=0;k<200;k++)p.missed['q'+k+' + 1']={n:1,a:1,op:'add',last:'2026-10-01',fixed:0,q:{op:'add',L:1,a:k,b:1,answer:k+1,text:'q'+k+' + 1'}};}
