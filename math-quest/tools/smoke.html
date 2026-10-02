@@ -134,7 +134,7 @@ const tests=[
    const ok=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const x=c[0]+dx,y=c[1]+dy;return D.T[y]&&D.T[y][x]&&!D.T[y][x].block&&d.pathTo(x,y);});T.ok(ok,'cannot walk to '+d.AREAS[k].name);});
   d.useTile(d.AREAS.bay.c[0],d.AREAS.bay.c[1]);T.ok(/Balance Bay/.test(document.querySelector('#modal').innerText),'Balance Bay sign did not open');closeModal();
   await T.wait(300);T.ok(document.getElementById('dcv').width>0,'district canvas has no size');
-  /* Fizz Fountain: tosses cost 1, 2, 3...; a card resets the price; a full set pays out */
+  /* Munch-Bot: coin snacks cost 1, 2, 3...; a card resets the price; a full set pays out */
   const f=d.fz(p);f.t=0;f.need=2;p.coins=50;Discovery._fizz();Discovery._toss();T.ok(p.coins===49&&f.t===1,'first toss did not cost 1 coin');Discovery._toss();T.ok(p.coins===47,'second toss did not cost 2 coins');
   await T.wait(1100);T.ok(f.seen.length===1&&f.t===0&&/fact card/i.test(document.querySelector('#modal').innerText),'no fact card after enough tosses');
   f.seen=d.FACTS.filter(x=>x[0][0]==='a').map(x=>x[0]).slice(0,5);f.sets=[];const c0=p.coins;for(let k=0;k<60&&!f.sets.includes('a');k++)d.card();T.ok(f.sets.includes('a')&&p.coins>=c0+100,'finishing a set gave no reward');

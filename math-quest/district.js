@@ -1,7 +1,7 @@
 /* ================= Discovery District (walk-around PREVIEW, hidden) =================
    A second neighborhood reached by train from Number Village: a station plaza and five physics areas.
    This file is a look-and-feel preview only: you can ride the train, walk the map and tap things. There are no
-   battles, wild monsters or chests here yet. Only the Fizz Fountain is real: it spends coins and saves its cards (p.fizz). It draws its own map so the main world code is untouched.
+   battles, wild monsters or chests here yet. Only Munch-Bot, the hungry robot, is real: he takes coins and saves his fact cards (p.fizz). It draws its own map so the main world code is untouched.
    HIDDEN: no entry point unless the game was opened once with ?district=1 on that device (or window.MQ_DISTRICT_BETA===true).
    Uses Math Quest globals: P, save, go, modal, closeModal, toast, esc, topbar, heroSVG, SFX, tone, say, speakable, speakToggle,
    youngReader, voiceOn, SCREENS, curScreen, W (main map tiles). */
@@ -15,8 +15,8 @@ const AREAS={
  canyon:{c:[22,4],g:'#e0a070',g2:'#d89868',zone:1,name:'Echo Canyon',art:'📣',bl:['🌵','🪨'],de:['🦇','🎵'],about:'Sound, echoes and waves.'},
  city:{c:[36,6],g:'#c9c4e8',g2:'#c0bae2',zone:1,name:'Circuit City',art:'💡',bl:['🏢','🔋'],de:['⚡','🔌'],about:'Batteries, bulbs and wires.'},
  lagoon:{c:[8,21],g:'#bfe9d2',g2:'#b3e0c7',zone:1,name:'Float or Sink Lagoon',art:'🛶',bl:['🌿','🎋'],de:['🦆','🫧'],about:'What floats, what sinks, and why.'}};
-/* plaza is 15x9 with the Fizz Fountain in the middle */
-const SPOTS=[{id:'fizz',x:22,y:14,e:'⛲',n:'Fizz Fountain'},{id:'train',x:17,y:14,e:'🚂',n:'Train to Number Village'},{id:'board',x:27,y:14,e:'📜',n:'District Board'},{id:'scope',x:22,y:11,e:'🔭',n:''}];
+/* plaza is 15x9 with Munch-Bot, the hungry robot, in the middle */
+const SPOTS=[{id:'fizz',x:22,y:14,e:'🤖',n:'Munch-Bot'},{id:'train',x:17,y:14,e:'🚂',n:'Train to Number Village'},{id:'board',x:27,y:14,e:'📜',n:'District Board'},{id:'scope',x:22,y:11,e:'🔭',n:''}];
 const LAKES=[[41,26,5.6],[4,25,3.4],[30,12,1.5]];
 const BAY_STOPS=[['Wobble Crab','Which side is heavier?'],['Tippy Gull','Make it level'],['See-Saw Seal','Find the weight'],['Heavy Hermit','Find the distance'],['Pulley Pelican','Levers and pulleys'],['Captain Counterweight (boss)','Everything, mixed']];
 const TRAIN_X=28,TRAIN_Y=15; /* the station tile on the main map (right side of the village plaza) */
@@ -69,8 +69,9 @@ function tap(e){if(!D||document.querySelector('#modal.show'))return;const cv=e.c
 function stepBy(dx,dy){if(!D||D.moving||document.querySelector('#modal.show'))return;const nx=D.hx+dx,ny=D.hy+dy;const t=D.T[ny]&&D.T[ny][nx];if(!t)return;
  if(dx)D.dir=dx;if(t.gate||t.spot){useTile(nx,ny);return;}if(!t.block){D.path=[[nx,ny]];D.after=null;}}
 
-/* ---------- the Fizz Fountain: same toss mechanic as the village's Wishing Fountain, but it pays out a strange-but-true
-   fact card for an album. Saved in p.fizz {t, need, seen:[fact ids], sets:[finished set ids]}.
+/* ---------- Munch-Bot, the hungry robot: same toss mechanic as the village's Wishing Fountain (each coin snack costs 1 more
+   than the last), but when he is full he burps out a strange-but-true fact card for an album. The burp is shown as a word and
+   played as a sound, never spoken. (Saved under p.fizz: this began as a fizzing fountain.) Saved in p.fizz {t, need, seen:[fact ids], sets:[finished set ids]}.
    Facts must be checked before they go in; only ever ADD to the end of a set (cards are saved by id). ---------- */
 const SETS=[['a','🐾','Animals'],['s','🚀','Space'],['b','🫀','Your Body'],['w','🌍','Wild World']];
 const FACTS=[
@@ -103,28 +104,33 @@ const rndN=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 function fz(p){p.fizz=p.fizz||{t:0,need:rndN(1,15),seen:[],sets:[]};const f=p.fizz;if(!Array.isArray(f.seen))f.seen=[];if(!Array.isArray(f.sets))f.sets=[];if(!(f.need>=1&&f.need<=15))f.need=rndN(1,15);return f;}
 const setOf=id=>SETS.find(s=>s[0]===id[0]);
 function fizzCSS(){if(document.getElementById('fzCSS'))return;const s=document.createElement('style');s.id='fzCSS';s.textContent=`
-.fz-pool{position:relative;height:110px;margin:0 auto 6px;max-width:260px;border-radius:50%/40%;background:radial-gradient(ellipse at 50% 60%,#d8fff4,#63d6c0 70%,#2aa58f);overflow:hidden;box-shadow:inset 0 -8px 0 rgba(0,0,0,.15)}
-.fz-pool .e{font-size:60px;line-height:110px}
-.fz-b{position:absolute;bottom:-14px;font-size:20px;animation:fzUp 1.1s ease-out forwards}
-@keyframes fzUp{to{transform:translateY(-130px) scale(1.5);opacity:0}}
+.fz-pool{position:relative;height:120px;margin:0 auto 6px;max-width:220px;border-radius:26px;background:linear-gradient(#e7f5ff,#bcdcf5);overflow:hidden;box-shadow:inset 0 -8px 0 rgba(0,0,0,.12)}
+.fz-pool .e{font-size:78px;line-height:120px;display:inline-block}
+.fz-pool .e.nom{animation:fzNom .35s}
+.fz-pool .e.burp{animation:fzBurp .7s}
+@keyframes fzNom{40%{transform:scale(1.18) rotate(-6deg)}70%{transform:scale(.94) rotate(4deg)}}
+@keyframes fzBurp{20%{transform:scale(1.3)}45%{transform:scale(.85) translateY(6px)}70%{transform:scale(1.15)}}
+.fz-b{position:absolute;bottom:-14px;font-size:20px;animation:fzUp .5s ease-in forwards}
+@keyframes fzUp{to{transform:translateY(-70px) translateX(var(--dx,0px)) scale(.5);opacity:0}}
 .fz-card{background:#f1eefc;border:3px solid #7048e8;border-radius:18px;padding:12px 14px;margin:8px auto;max-width:360px}
 .fz-card .set{font-weight:700;color:#5b3fd0;font-size:15px}.fz-card .txt{font-size:19px;font-weight:600;margin:6px 0;line-height:1.35}
 .fz-alb{display:grid;gap:10px;text-align:left;max-height:56vh;overflow:auto}
 .fz-alb h4{margin:0 0 4px;font-size:16px}.fz-alb p{margin:3px 0;font-size:15px;line-height:1.35}.fz-alb .no{color:#9a94b5}`;document.head.appendChild(s);}
 const fzSpeak=t=>{try{speakToggle(()=>say(speakable(t),.9));}catch(e){}};
 function fizzOpen(){const p=P(),f=fz(p);fizzCSS();
- modal(`<div class="mcard"><div class="fz-pool" id="fzPool"><span class="e">⛲</span></div><h2>The Fizz Fountain</h2><p id="fzMsg" style="min-height:24px">Toss in a coin and watch it fizz…</p>
- <div class="row"><button class="btn gold big" id="fzBtn" onclick="Discovery._toss()">Toss 🪙 ${f.t+1}</button></div><p class="muted" style="margin:0">Each toss costs 1 more coin than the last. A fact card resets the price to 1.</p>
+ modal(`<div class="mcard"><div class="fz-pool" id="fzPool"><span class="e" id="fzBot">🤖</span></div><h2>Munch-Bot</h2><p id="fzMsg" style="min-height:24px">Beep boop! Munch-Bot is hungry for coins…</p>
+ <div class="row"><button class="btn gold big" id="fzBtn" onclick="Discovery._toss()">Feed 🪙 ${f.t+1}</button></div><p class="muted" style="margin:0">Each snack costs 1 more coin than the last. A fact card resets the price to 1.</p>
  <p class="muted" id="fzCoins">You have 🪙 ${p.coins} · 📒 ${f.seen.length} of ${FACTS.length} cards</p>
  <div class="row"><button class="btn small" onclick="Discovery._album()">📒 My fact cards</button><button class="btn ghost dark small" onclick="closeModal()">Walk away</button></div></div>`);}
 let fzBusy=false;
 function fizzToss(){const p=P(),f=fz(p),msg=document.getElementById('fzMsg');if(fzBusy||!msg)return;const n=f.t+1;
- if(p.coins<n){msg.textContent=p.coins?`You only have ${p.coins} coin${p.coins>1?'s':''}!`:'The fountain burbles. You need a coin!';return;}
- p.coins-=n;f.t++;save();const b=document.getElementById('fzBtn');if(b)b.textContent=`Toss 🪙 ${f.t+1}`;
- const pool=document.getElementById('fzPool');for(let i=0;i<Math.min(n+2,7);i++){try{tone(700+Math.random()*500,.1,'sine',.05,i*.07);}catch(e){}if(pool){const c=document.createElement('span');c.className='fz-b';c.textContent='🫧';c.style.left=(15+Math.random()*70)+'%';c.style.animationDelay=(i*.07)+'s';pool.appendChild(c);setTimeout(()=>c.remove(),1400);}}
+ if(p.coins<n){msg.textContent=p.coins?`You only have ${p.coins} coin${p.coins>1?'s':''}!`:'Munch-Bot looks at your empty pockets. You need a coin!';return;}
+ p.coins-=n;f.t++;save();const b=document.getElementById('fzBtn');if(b)b.textContent=`Feed 🪙 ${f.t+1}`;
+ const pool=document.getElementById('fzPool'),bot=document.getElementById('fzBot');if(bot){bot.classList.remove('nom');void bot.offsetWidth;bot.classList.add('nom');}
+ for(let i=0;i<Math.min(n,5);i++){try{tone(500+Math.random()*200,.07,'square',.04,i*.08);}catch(e){}if(pool){const c=document.createElement('span');c.className='fz-b';c.textContent='🪙';const lx=20+Math.random()*60;c.style.left=lx+'%';c.style.setProperty('--dx',((50-lx)*1.6)+'px');c.style.animationDelay=(i*.08)+'s';pool.appendChild(c);setTimeout(()=>c.remove(),900);}}
  const ce=document.getElementById('fzCoins');if(ce)ce.textContent=`You have 🪙 ${p.coins} · 📒 ${f.seen.length} of ${FACTS.length} cards`;
- if(f.t>=f.need){fzBusy=true;msg.textContent='🫧 It is fizzing like crazy…';setTimeout(()=>{fzBusy=false;fizzCard();},900);}
- else msg.textContent=['Fizz…','Bubble bubble…','It tickles the fountain!','Fizzier and fizzier…','Glub glub glub…'][Math.floor(Math.random()*5)];}
+ if(f.t>=f.need){fzBusy=true;msg.textContent='Uh oh… his tummy is rumbling!';if(bot){bot.classList.remove('nom');void bot.offsetWidth;bot.classList.add('burp');}try{tone(110,.35,'sawtooth',.07,.35);tone(80,.3,'sawtooth',.06,.6);}catch(e){}setTimeout(()=>{fzBusy=false;fizzCard();},1000);}
+ else msg.textContent=['Nom nom nom!','Crunchy!','More, please!','Mmm, shiny.','Yum. Tastes like a nickel.','Beep! Delicious.','Still hungry!'][Math.floor(Math.random()*7)];}
 function fizzCard(){const p=P(),f=fz(p);let pool=FACTS.filter(x=>!f.seen.includes(x[0])),repeat=false;if(!pool.length){pool=FACTS;repeat=true;}
  const [id,txt]=pool[Math.floor(Math.random()*pool.length)];f.t=0;f.need=rndN(1,15);let extra='';
  if(repeat){p.coins+=REPEAT_COINS;extra=`<p class="muted">You already have this card, so here are 🪙 ${REPEAT_COINS} back.</p>`;}
@@ -133,13 +139,13 @@ function fizzCard(){const p=P(),f=fz(p);let pool=FACTS.filter(x=>!f.seen.include
    if(f.sets.length===SETS.length){p.coins+=ALL_COINS;extra+=`<p><b>🏆 Every card found! 🪙 +${ALL_COINS}</b></p>`;}}}
  save();try{[523,659,784,1047].forEach((x,k)=>tone(x,.16,'triangle',.07,k*.09));}catch(e){}
  const S=setOf(id);window.__fzTxt=txt;
- modal(`<div class="mcard"><div class="big-emoji">🫧</div><h2>FIZZ! A fact card!</h2><div class="fz-card"><div class="set">${S[1]} ${S[2]} · strange but true</div><div class="txt">${esc(txt)}</div><button class="btn ghost dark small" onclick="Discovery._read()">🔊 Read it to me</button></div>${extra}
- <p class="muted">📒 ${f.seen.length} of ${FACTS.length} cards</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Done</button><button class="btn gold" onclick="Discovery._fizz()">Again!</button></div></div>`);
+ modal(`<div class="mcard"><div class="big-emoji">🤖</div><h2>BURP! A fact card!</h2><p class="muted" style="margin:0">"Excuse me," says Munch-Bot.</p><div class="fz-card"><div class="set">${S[1]} ${S[2]} · strange but true</div><div class="txt">${esc(txt)}</div><button class="btn ghost dark small" onclick="Discovery._read()">🔊 Read it to me</button></div>${extra}
+ <p class="muted">📒 ${f.seen.length} of ${FACTS.length} cards</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Done</button><button class="btn gold" onclick="Discovery._fizz()">Feed him again!</button></div></div>`);
  try{if(youngReader(p)&&voiceOn())setTimeout(()=>say(speakable(txt),.9),400);}catch(e){}}
 function fizzAlbum(){const p=P(),f=fz(p);fizzCSS();
  modal(`<div class="mcard"><h2>📒 Strange-but-true cards</h2><p class="muted">${f.seen.length} of ${FACTS.length} found. A full set earns 🪙 ${SET_COINS}.</p><div class="fz-alb">${SETS.map(S=>{const list=FACTS.filter(x=>x[0][0]===S[0]),got=list.filter(x=>f.seen.includes(x[0])).length;
   return `<div><h4>${S[1]} ${S[2]} · ${got} of ${list.length}${f.sets.includes(S[0])?' ✅':''}</h4>${list.map(x=>f.seen.includes(x[0])?`<p>• ${esc(x[1])}</p>`:'<p class="no">• ? ? ?</p>').join('')}</div>`;}).join('')}</div>
- <div class="row"><button class="btn green" onclick="Discovery._fizz()">Back to the fountain</button></div></div>`);}
+ <div class="row"><button class="btn green" onclick="Discovery._fizz()">Back to Munch-Bot</button></div></div>`);}
 
 /* ---------- drawing ---------- */
 function sprite(e,size){const k=e+'|'+size;if(D.spr[k])return D.spr[k];const dpr=window.devicePixelRatio||1,c=document.createElement('canvas'),s=Math.ceil(size*dpr*1.25);c.width=c.height=s;
