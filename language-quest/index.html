@@ -106,8 +106,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02k";</script>
-<script src="lq-core.js?v=2026.10.02k"></script>
+<script>window.LQ_VER="2026.10.02l";</script>
+<script src="lq-core.js?v=2026.10.02l"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -277,7 +277,9 @@ const FRIENDS=[
  ["ق","قُنْفُذ","hedgehog","🦔",860,760],["ك","كَلْب","dog","🐶",780,1330],["ل","لَامَا","llama","🦙",1900,660],["م","مَاعِز","goat","🐐",1500,790],
  ["ن","نَمِر","tiger","🐅",150,520],["ه","هِرّ","cat","🐈",1860,1060],["و","وَطْوَاط","bat","🦇",1760,250],["ي","يَمَامَة","dove","🕊️",300,1360]
 ].map(([ch,ar,en,e,x,y])=>({ch,ar,en,e,x,y}));
-const TETA={x:1230,y:1330};
+const PLAZA={x:1040,y:1440,rx:250,ry:150};                              // the town square, centred on the fountain
+const inPlaza=(x,y,pad)=>((x-PLAZA.x)/(PLAZA.rx+(pad||0)))**2+((y-PLAZA.y)/(PLAZA.ry+(pad||0)))**2<1;
+const TETA={x:880,y:1420}, JIDDO={x:1200,y:1420};
 const LNAME={"ا":"أَلِف","ب":"بَاء","ت":"تَاء","ث":"ثَاء","ج":"جِيم","ح":"حَاء","خ":"خَاء","د":"دَال","ذ":"ذَال","ر":"رَاء","ز":"زَاي","س":"سِين","ش":"شِين","ص":"صَاد","ض":"ضَاد","ط":"طَاء","ظ":"ظَاء","ع":"عَيْن","غ":"غَيْن","ف":"فَاء","ق":"قَاف","ك":"كَاف","ل":"لَام","م":"مِيم","ن":"نُون","ه":"هَاء","و":"وَاو","ي":"يَاء"};
 const LIKE=[["ب","ت","ث","ن","ي"],["ج","ح","خ"],["د","ذ"],["ر","ز","و"],["س","ش"],["ص","ض"],["ط","ظ"],["ع","غ"],["ف","ق"],["ك","ل"],["م","ه"],["ا","ل"]];
 for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(FRIENDS.some(f=>Math.hypot(f.x-q.x,f.y-q.y)<110)||Math.hypot(TETA.x-q.x,TETA.y-q.y)<130) props.splice(i,1); }
@@ -321,16 +323,21 @@ const SAYINGS=[
 const KIND={p:["💬","Proverb"],r:["❓","Riddle"],w:["🌍","A word English borrowed from Arabic"]};
 for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(Math.hypot(FOUNTAIN.x-q.x,FOUNTAIN.y-q.y)<130) props.splice(i,1); }
 /* ============ drawn world: trails, bridges and scenery ============ */
-const START={x:900,y:1320};
+const START={x:1040,y:1545};
+for(let i=props.length-1;i>=0;i--){ if(inPlaza(props[i].x,props[i].y-10,45)) props.splice(i,1); }
+// things to tap in the square (drawn by SPRITE below)
+props.push({x:860,y:1552,e:"bench",ar:"مَقْعَد",en:"bench",s:54,b:"farm"},{x:1220,y:1552,e:"bench",ar:"مَقْعَد",en:"bench",s:54,b:"farm"},
+  {x:852,y:1338,e:"lamp",ar:"مِصْبَاح",en:"lamp",s:64,b:"farm"},{x:1228,y:1338,e:"lamp",ar:"مِصْبَاح",en:"lamp",s:64,b:"farm"},
+  {x:1040,y:1318,e:"sign",ar:"سَاحَةُ البَلْدَة",en:"town square",s:60,b:"farm"});
 const padPt=id=>{ const l=LANDMARKS.find(l=>l.id===id), q=padOf(l); return [q.x,q.y]; };
 // trails between the start, Teta, the fountain and every zone doorway (way-points; the wiggle is added below)
 const TRAILS=[
- [[START.x,START.y],padPt("farm"),[760,960],padPt("forest")],
- [[START.x,START.y],[FOUNTAIN.x,FOUNTAIN.y+62],[TETA.x,TETA.y+62],padPt("souq")],
+ [[1000,1310],padPt("farm"),[760,960],padPt("forest")],
+ [[1270,1400],padPt("souq")],
  [padPt("souq"),[1560,1010],padPt("tower"),[1540,560],padPt("arena")],
  [padPt("tower"),[2000,830],padPt("falls")],
  [padPt("souq"),[1900,1400],padPt("harbor")],
- [[START.x,START.y],[830,1640],[900,1900],padPt("dunes")],
+ [[1000,1580],[900,1740],[900,1900],padPt("dunes")],
  [padPt("dunes"),[1300,2160],[1800,2240],padPt("reeds")]
 ].map(pts=>{ const out=[pts[0]];
   for(let i=1;i<pts.length;i++){ const [ax,ay]=pts[i-1],[bx,by]=pts[i], len=Math.hypot(bx-ax,by-ay), n=Math.max(1,Math.round(len/150));
@@ -345,7 +352,7 @@ for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(nearTrail(q.x,q.y-8,40)
 // ground details (flat, drawn under everything) and mountain peaks (stand up, sorted with the scenery)
 const DECOR=[], PEAKS=[];
 (function(){ const r=mulberry(4711);
-  const clear=(x,y,d)=>LANDMARKS.every(l=>Math.hypot(l.x-x,l.y+40-y)>d)&&Math.hypot(TETA.x-x,TETA.y-y)>d*0.6&&Math.hypot(FOUNTAIN.x-x,FOUNTAIN.y-y)>d*0.6;
+  const clear=(x,y,d)=>LANDMARKS.every(l=>Math.hypot(l.x-x,l.y+40-y)>d)&&!inPlaza(x,y,30);
   for(let i=0;i<5200;i++){ const x=30+r()*(W-60), y=50+r()*(H-80), b=biomeAt(x,y), k=r();
     if(riverDist(x,y)<60||nearTrail(x,y,34)||!clear(x,y,150)) continue;
     if(b==="desert"){ if(k<0.3&&!DECOR.some(q=>q.t==="dune"&&Math.abs(q.x-x)<150&&Math.abs(q.y-y)<46)) DECOR.push({t:"dune",x,y,w:70+r()*90}); }
@@ -363,10 +370,10 @@ const DECOR=[], PEAKS=[];
 })();
 
 /* ============ player & camera ============ */
-const player={x:900,y:1320,tx:900,ty:1320,moving:false,t:0,face:1};
+const player={x:START.x,y:START.y,tx:START.x,ty:START.y,moving:false,t:0,face:1};
 const cam={x:0,y:0};
 let pendingEnterL=null;
-let bubble=null, pendingLandmark=null, pendingFriend=null, pendingTeta=false, pendingFountain=false, currentZone=null, marker=null;
+let bubble=null, pendingLandmark=null, pendingFriend=null, pendingTeta=false, pendingJiddo=false, pendingFountain=false, currentZone=null, marker=null;
 
 /* ============ canvas ============ */
 const cv=document.getElementById("game"), ctx=cv.getContext("2d");
@@ -401,7 +408,7 @@ cv.addEventListener("pointerup",e=>{
   if(!hintHidden){ document.getElementById("hint").style.opacity=0; hintHidden=true; }
   const [wx,wy]=toWorld(e.clientX,e.clientY);
   closeCard();
-  pendingFriend=null; pendingTeta=false; pendingFountain=false;
+  pendingFriend=null; pendingTeta=false; pendingJiddo=false; pendingFountain=false;
   cancelEnter();
   for(const l of LANDMARKS){ const pd=padOf(l), onPad=Math.hypot((wx-pd.x)/1.6,wy-pd.y)<55, onBld=Math.abs(wx-l.x)<100 && wy>l.y-(l.id==="falls"?260:150) && wy<l.y+100;
     if(onPad||onBld){ pendingFriend=null; pendingTeta=false;
@@ -410,6 +417,7 @@ cv.addEventListener("pointerup",e=>{
       return; } }
   pendingEnterL=null;
   if(Math.abs(wx-TETA.x)<75 && wy>TETA.y-130 && wy<TETA.y+40){ pendingLandmark=null; pendingTeta=true; setTarget(TETA.x,TETA.y+60); return; }
+  if(Math.abs(wx-JIDDO.x)<75 && wy>JIDDO.y-130 && wy<JIDDO.y+40){ pendingLandmark=null; pendingJiddo=true; setTarget(JIDDO.x,JIDDO.y+60); return; }
   if(Math.abs(wx-FOUNTAIN.x)<80 && wy>FOUNTAIN.y-130 && wy<FOUNTAIN.y+40){ pendingLandmark=null; pendingFountain=true; setTarget(FOUNTAIN.x,FOUNTAIN.y+60); return; }
   for(const f of FRIENDS){ if(Math.hypot(wx-f.x,wy-(f.y-30))<68){ pendingLandmark=null; pendingFriend=f; setTarget(f.x,f.y+45); return; } }
   let hit=null, hd=1e9;
@@ -445,7 +453,7 @@ function drawMini(){ mctx.drawImage(ground,0,0,mini.width,mini.height);
   mctx.font="22px sans-serif"; mctx.textAlign="center"; mctx.textBaseline="middle";
   for(const l of LANDMARKS) mctx.fillText(l.icon,l.x*sx,l.y*sy);
   LANDMARKS.forEach(l=>{ if(OPEN[l.id]){ mctx.strokeStyle="#F2B134"; mctx.lineWidth=4; mctx.beginPath(); mctx.arc(l.x*sx,l.y*sy,16,0,7); mctx.stroke(); } });
-  mctx.font="18px sans-serif"; mctx.fillText("👵",TETA.x*sx,TETA.y*sy); mctx.fillText("⛲",FOUNTAIN.x*sx,FOUNTAIN.y*sy); const fdm=found(); mctx.font="14px sans-serif"; FRIENDS.forEach(f=>{ if(fdm[f.ch]) mctx.fillText("⭐",f.x*sx,f.y*sy); });
+  mctx.font="18px sans-serif"; mctx.fillText("🏘️",PLAZA.x*sx,PLAZA.y*sy); const fdm=found(); mctx.font="14px sans-serif"; FRIENDS.forEach(f=>{ if(fdm[f.ch]) mctx.fillText("⭐",f.x*sx,f.y*sy); });
   mctx.strokeStyle="#fff"; mctx.lineWidth=2; mctx.strokeRect(cam.x*sx,cam.y*sy,VW/ZOOM*sx,VH/ZOOM*sy);
   mctx.fillStyle="#F2B134"; mctx.strokeStyle="#12233D"; mctx.lineWidth=3;
   mctx.beginPath(); mctx.arc(player.x*sx,player.y*sy,8,0,7); mctx.fill(); mctx.stroke(); }
@@ -632,6 +640,51 @@ function drawDecor(time,x0,x1,y0,y1){ ctx.lineCap="round";
     else if(d.t==="drift"){ const w=d.w; ctx.fillStyle="rgba(255,255,255,.75)"; ctx.beginPath(); ctx.ellipse(x,y,w/2,w*0.16,0,0,7); ctx.fill(); ctx.beginPath(); ctx.moveTo(x-w/2+4,y+4); ctx.quadraticCurveTo(x,y+w*0.2,x+w/2-4,y+4); ctx.strokeStyle="rgba(140,170,210,.45)"; ctx.lineWidth=4; ctx.stroke(); }
     else if(d.t==="pool"){ const w=d.w; ctx.beginPath(); ctx.ellipse(x,y,w/2,w*0.2,0,0,7); ctx.fillStyle="rgba(86,150,190,.75)"; ctx.fill(); ctx.strokeStyle="rgba(40,70,60,.35)"; ctx.lineWidth=2; ctx.stroke(); }
     else if(d.t==="wave"){ const w=d.w, ox=Math.sin(time*0.9+d.ph)*8; ctx.beginPath(); ctx.moveTo(x+ox-w,y); ctx.quadraticCurveTo(x+ox-w/2,y-7,x+ox,y); ctx.quadraticCurveTo(x+ox+w/2,y+7,x+ox+w,y); ctx.strokeStyle=`rgba(255,255,255,${0.35+0.25*Math.sin(time*1.3+d.ph)})`; ctx.lineWidth=3; ctx.stroke(); } } }
+/* ---- the town square ---- */
+function drawPlaza(){ const {x,y,rx,ry}=PLAZA, el=k=>{ ctx.beginPath(); ctx.ellipse(x,y,rx*k,ry*k,0,0,7); };
+  el(1.045); ctx.fillStyle="rgba(110,82,46,.4)"; ctx.fill(); el(1); ctx.fillStyle="#E6D8B8"; ctx.fill();
+  ctx.strokeStyle="rgba(140,110,70,.4)"; ctx.lineWidth=3; el(0.72); ctx.stroke(); el(0.4); ctx.fillStyle="#D9C8A0"; ctx.fill(); ctx.stroke();
+  ctx.lineWidth=2.5; ctx.beginPath(); for(let i=0;i<18;i++){ const a=i*Math.PI/9+(0.09), c=Math.cos(a), sn=Math.sin(a); ctx.moveTo(x+c*rx*0.4,y+sn*ry*0.4); ctx.lineTo(x+c*rx*0.72,y+sn*ry*0.72); }
+  for(let i=0;i<26;i++){ const a=i*Math.PI/13, c=Math.cos(a), sn=Math.sin(a); ctx.moveTo(x+c*rx*0.72,y+sn*ry*0.72); ctx.lineTo(x+c*rx,y+sn*ry); } ctx.stroke(); }
+SPRITE.bench=p=>{ const {x,y}=p; shadow(x,y,34); ctx.fillStyle="#6B4423"; for(const k of [-26,22]){ ctx.fillRect(x+k,y-16,5,16); }
+  rr(x-34,y-22,68,9,3); ink("#B07F45"); rr(x-34,y-44,68,8,3); ink("#B07F45"); rr(x-34,y-33,68,7,3); ink("#C9955A"); ctx.fillStyle="#6B4423"; ctx.fillRect(x-30,y-44,4,24); ctx.fillRect(x+26,y-44,4,24); };
+SPRITE.lamp=p=>{ const {x,y}=p; shadow(x,y,14); rr(x-3,y-78,6,78,3); ink("#4A4E57"); rr(x-9,y-6,18,6,3); ink("#4A4E57");
+  ctx.fillStyle="rgba(255,224,138,.35)"; circ(x,y-88,22); ctx.fill(); rr(x-10,y-102,20,26,5); ink("#FFE08A"); poly([x-13,y-102, x,y-114, x+13,y-102]); ink("#4A4E57"); };
+SPRITE.sign=p=>{ const {x,y}=p; ctx.fillStyle="#6B4A2B"; ctx.fillRect(x-4,y-44,8,44); rr(x-66,y-86,132,46,10); ink("#F7E2B5");
+  ctx.fillStyle="#12233D"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.font='800 14px "Baloo Bhaijaan 2",system-ui,sans-serif'; ctx.fillText("Town Square",x,y-68);
+  ctx.direction="rtl"; ctx.font='500 18px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; ctx.fillStyle="#1E5AA8"; ctx.fillText("سَاحَةُ البَلْدَة",x,y-48); ctx.direction="ltr"; };
+/* Jiddo, the grandfather who gives quests: white keffiyeh with a black band, grey moustache, striped robe, vest and a walking stick.
+   Draws on any 2D context with his feet at (0,0), about 112 units tall. */
+function jiddoArt(c,t){
+  const O="rgba(46,36,26,.7)", inked=f=>{ c.fillStyle=f; c.fill(); c.strokeStyle=O; c.lineWidth=2; c.lineJoin="round"; c.lineCap="round"; c.stroke(); };
+  const dot=(x,y,r,f)=>{ c.beginPath(); c.arc(x,y,r,0,7); c.fillStyle=f; c.fill(); }, R=(x,y,w,h,r)=>{ c.beginPath(); c.roundRect?c.roundRect(x,y,w,h,r):c.rect(x,y,w,h); };
+  c.beginPath(); c.ellipse(-8,-2,8,4,0,0,7); inked("#5B3A22"); c.beginPath(); c.ellipse(8,-2,8,4,0,0,7); inked("#5B3A22");                    // shoes
+  c.beginPath(); c.moveTo(-15,-68); c.lineTo(15,-68); c.quadraticCurveTo(21,-34,22,-6); c.quadraticCurveTo(0,-1,-22,-6); c.quadraticCurveTo(-21,-34,-15,-68); c.closePath(); inked("#EFE7D2");   // robe
+  c.save(); c.clip(); c.strokeStyle="rgba(120,100,70,.35)"; c.lineWidth=1.5; for(let k=-18;k<=18;k+=6){ c.beginPath(); c.moveTo(k,-70); c.lineTo(k*1.25,0); c.stroke(); } c.restore();
+  R(-17,-42,34,6,3); inked("#6B4423");                                                                                                         // sash
+  for(const k of [-1,1]){ c.beginPath(); c.moveTo(k*4,-68); c.lineTo(k*16,-68); c.quadraticCurveTo(k*20,-52,k*18,-40); c.lineTo(k*7,-40); c.closePath(); inked("#5E4A3A"); }   // vest
+  const sway=Math.sin(t*2)*0.06;
+  c.save(); c.translate(15,-62); c.rotate(-0.25+sway); R(-6,0,12,30,6); inked("#EFE7D2"); dot(0,31,5.5,"#E9B98E"); c.restore();                 // free arm
+  c.save(); c.translate(-15,-62); c.rotate(0.3); R(-6,0,12,28,6); inked("#EFE7D2"); dot(0,30,5.5,"#E9B98E"); c.restore();                        // arm on the stick
+  c.strokeStyle="#6B4423"; c.lineWidth=4; c.lineCap="round"; c.beginPath(); c.moveTo(-27,-1); c.lineTo(-24,-36); c.quadraticCurveTo(-23,-44,-16,-42); c.stroke();   // walking stick
+  c.beginPath(); c.moveTo(-19,-94); c.quadraticCurveTo(-27,-72,-24,-58); c.lineTo(24,-58); c.quadraticCurveTo(27,-72,19,-94); c.closePath(); inked("#FFFFFF");     // keffiyeh, behind
+  c.beginPath(); c.arc(0,-88,16,0,7); inked("#E9B98E");                                                                                         // face
+  c.beginPath(); c.arc(0,-90,17.5,Math.PI*1.04,Math.PI*1.96); c.quadraticCurveTo(0,-90,-16.5,-93); c.closePath(); inked("#FFFFFF");             // keffiyeh, on top
+  c.strokeStyle="#22242B"; c.lineWidth=3; for(const r of [0,3.2]){ c.beginPath(); c.arc(0,-90-r,17.2-r*0.5,Math.PI*1.14,Math.PI*1.86); c.stroke(); }      // black band
+  c.strokeStyle="#3B2A20"; c.lineWidth=1.8; for(const k of [-6.5,6.5]){ c.beginPath(); c.arc(k,-86,2.6,Math.PI*1.1,Math.PI*1.9); c.stroke(); }  // smiling eyes
+  c.strokeStyle="#9A9AA2"; c.lineWidth=2; for(const k of [-6.5,6.5]){ c.beginPath(); c.moveTo(k-3.5,-91.5); c.lineTo(k+3.5,-92.5+Math.sign(k)); c.stroke(); }   // eyebrows
+  dot(0,-82.5,2.2,"#D9A47A");
+  for(const k of [-1,1]){ c.beginPath(); c.ellipse(k*5,-78.5,6.2,2.8,k*0.25,0,7); inked("#D8D8DE"); }                                          // moustache
+}
+const JIDDO_IMG=(()=>{ try{ const c=document.createElement("canvas"); c.width=220; c.height=280; const g=c.getContext("2d"); g.translate(116,266); g.scale(2.25,2.25); jiddoArt(g,0); return c.toDataURL(); }catch(e){ return ""; } })();
+const jiddoPic=JIDDO_IMG?`<img src="${JIDDO_IMG}" alt="Jiddo" style="height:128px;display:block;margin:0 auto">`:`<div class="big">👴</div>`;
+function drawJiddo(time){
+  shadow(JIDDO.x,JIDDO.y,30); ctx.save(); ctx.translate(JIDDO.x,JIDDO.y); ctx.scale(1.05,1.05); jiddoArt(ctx,time); ctx.restore();
+  ctx.font='800 16px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText("Jiddo").width+18; ctx.fillStyle="rgba(18,35,61,.75)"; rr(JIDDO.x-w/2,JIDDO.y+6,w,22,11); ctx.fill();
+  ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.fillText("Jiddo",JIDDO.x,JIDDO.y+22);
+  const st=questState(); if(st==="new"||st==="ready"){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle=st==="ready"?"#2FA894":"#F2B134"; ctx.beginPath(); ctx.arc(JIDDO.x+38,JIDDO.y-128-b,17,0,7); ctx.fill();
+    ctx.fillStyle=st==="ready"?"#fff":"#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText(st==="ready"?"✓":"!",JIDDO.x+38,JIDDO.y-127-b); }
+}
 function drawLandmark(l,time){
   if(!OPEN[l.id]) ctx.globalAlpha=0.6;
   if(l.id==="falls") drawWaterfall(l,time); else if(l.id==="souq") drawStall(l); else if(l.id==="farm") drawFarmhouse(l); else if(BUILDING[l.id]) BUILDING[l.id](l.x,l.y); else { shadow(l.x,l.y,60); drawEmoji(l.icon,l.x,l.y,110); }
@@ -704,6 +757,41 @@ function meetFriend(f){ LQ.mark("Friend "+f.ch);
         if(n===28) setTimeout(allFound,900); },700);
     } else { b.classList.add("wrong"); LQ.record("letters",f.ch,false,o); say(LNAME[o]); }
   });
+}
+/* ---- Jiddo's quests: one at a time, a new one each day; a quest that is not finished simply stays ----
+   QUESTS: id (saved in p.quest, never rename), Arabic key word, what to do, which count it watches, how many more are needed,
+   the most that count can ever reach, and the reward. "base" in the save is the count when the quest was given. */
+const QUESTS=[
+ {id:"letters",kw:"حُرُوف",kwEn:"letters",en:"Catch 2 new letters at the Letter Dunes.",m:"letters",need:2,max:28,coins:40},
+ {id:"friends",kw:"أَصْدِقَاء",kwEn:"friends",en:"Find 2 Letter Friends on the map.",m:"friends",need:2,max:28,coins:30},
+ {id:"trace",kw:"كِتَابَة",kwEn:"writing",en:"Trace a new letter in the Tracing tent at the Letter Dunes.",m:"trace",need:1,max:4,coins:30},
+ {id:"falls",kw:"أَصْوَات",kwEn:"sounds",en:"Win a new pool at Sound Falls.",m:"falls",need:1,max:8,coins:40},
+ {id:"souq",kw:"أَرْقَام",kwEn:"numbers",en:"Help a new shopkeeper at the Souq.",m:"souq",need:1,max:5,coins:40},
+ {id:"story",kw:"قِصَّة",kwEn:"a story",en:"Finish a new story at Story Harbor.",m:"harbor",need:1,max:5,coins:40},
+ {id:"well",kw:"حِكْمَة",kwEn:"wisdom",en:"Get a new saying from the Wisdom Fountain.",m:"well",need:1,max:26,coins:25},
+ {id:"right",kw:"إِجَابَات",kwEn:"answers",en:"Get 15 answers right, anywhere you like.",m:"right",need:15,max:1e9,coins:30}];
+const questCount=(p,m)=>{ const n=o=>Object.keys(o||{}).length;
+  return m==="right"?["letters","marks","words"].reduce((a,k)=>a+Object.values((p.stats||{})[k]||{}).reduce((x,e)=>x+(e.r||0),0),0):m==="well"?n(p.well&&p.well.got):n(p[m]); };
+const dayNow=()=>{ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); };
+// "new" = Jiddo has a quest to give, "ready" = the quest is done and the reward is waiting, "busy" = in progress, "rest" = done for today
+function questState(){ const p=LQ.player(); if(!p) return ""; const q=p.quest, d=q&&QUESTS.find(x=>x.id===q.id);
+  if(!q||!d||(q.paid&&q.day!==dayNow())) return "new"; if(q.paid) return "rest"; return questCount(p,d.m)-q.base>=d.need?"ready":"busy"; }
+function jiddoTalk(){ LQ.mark("Jiddo"); closeCard(); const p=LQ.player(); if(!p) return;
+  if(questState()==="new"){ const prev=p.quest&&p.quest.id, pool=QUESTS.filter(d=>d.id!==prev&&questCount(p,d.m)+d.need<=d.max), d=pool[Math.random()*pool.length|0]||QUESTS[QUESTS.length-1];
+    LQ.update(q=>{ q.quest={id:d.id,base:questCount(q,d.m),day:dayNow(),paid:false}; }); }
+  const q=LQ.player().quest, d=QUESTS.find(x=>x.id===q.id), st=questState(), got=Math.min(d.need,questCount(LQ.player(),d.m)-q.base);
+  const word=`<div class="arw" lang="ar">${d.kw}</div><p style="margin:0;color:var(--muted)">${d.kwEn}</p>`;
+  if(st==="ready"){ LQ.update(x=>{ x.quest.paid=true; x.quest.day=dayNow(); x.coins=(x.coins||0)+d.coins; }); hud(); say("أَحْسَنْتَ");
+    openFm(`${jiddoPic}<h2 style="margin:4px 0">Well done, habibi!</h2>${word}<p>You finished my quest. Here are <b>${d.coins} 🪙</b> for you!</p><p style="color:var(--muted)">Come back tomorrow for a new quest.</p>
+      <div class="row"><button class="btn go" id="jOk">Shukran, Jiddo!</button></div>`); }
+  else if(st==="rest"){ say("أَهْلًا وَسَهْلًا");
+    openFm(`${jiddoPic}<h2 style="margin:4px 0">Ahlan! You did today's quest.</h2><p>Rest, play, and come back tomorrow. I will have a new quest for you.</p><div class="row"><button class="btn go" id="jOk">OK, Jiddo!</button></div>`); }
+  else { say(d.kw);
+    openFm(`${jiddoPic}<h2 style="margin:4px 0">Ahlan! I'm Jiddo. I have a quest for you.</h2>${word}<p style="font-size:1.15rem"><b>${d.en}</b></p>
+      <p style="margin:0">Done so far: <b>${got} of ${d.need}</b> · Reward: <b>${d.coins} 🪙</b></p>
+      <div class="row"><button class="btn ghost" id="jHear">🔊 Hear the word</button><button class="btn go" id="jOk">I'll do it!</button></div>`);
+    document.getElementById("jHear").onclick=()=>say(d.kw); }
+  document.getElementById("jOk").onclick=closeFm;
 }
 function hintFor(){ const fd=found(); let best=null,bd=1e9; FRIENDS.forEach(f=>{ if(fd[f.ch]) return; const d=Math.hypot(f.x-player.x,f.y-player.y); if(d<bd){bd=d;best=f;} }); return best; }
 function tetaTalk(){ LQ.mark("Teta");
@@ -810,6 +898,7 @@ function frame(now){
       else { const onPad=LANDMARKS.find(l=>OPEN[l.id]&&Math.hypot((player.x-padOf(l).x)/1.6,player.y-padOf(l).y)<45); if(onPad) startEnter(onPad); }
       if(pendingFriend){ meetFriend(pendingFriend); pendingFriend=null; }
       if(pendingTeta){ tetaTalk(); pendingTeta=false; }
+      if(pendingJiddo){ jiddoTalk(); pendingJiddo=false; }
       if(pendingFountain){ fountain(); pendingFountain=false; } }
     else { const nx=player.x+dx/d*step, ny=player.y+dy/d*step;
       if(walkable(nx,ny)){ player.x=nx; player.y=ny; } else { player.moving=false; marker=null; } }
@@ -825,7 +914,7 @@ function frame(now){
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
   ctx.drawImage(ground,0,0,W,H);
   const vx0=cam.x-120, vx1=cam.x+VW/ZOOM+120, vy0=cam.y-60, vy1=cam.y+VH/ZOOM+160;
-  drawDecor(T,vx0,vx1,vy0,vy1); drawTrails();
+  drawDecor(T,vx0,vx1,vy0,vy1); drawTrails(); drawPlaza();
   drawRiver(T); drawPond(); drawBridges();
   for(const l of LANDMARKS) drawPad(l,T);
   if(marker){ marker.t+=dt; const r=14+Math.sin(marker.t*6)*4; ctx.strokeStyle="rgba(255,255,255,.9)"; ctx.lineWidth=4; ctx.beginPath(); ctx.ellipse(marker.x,marker.y,r,r*0.45,0,0,7); ctx.stroke(); }
@@ -837,6 +926,7 @@ function frame(now){
   for(const f of FRIENDS) if(f.x>vx0&&f.x<vx1&&f.y>vy0&&f.y<vy1) list.push({y:f.y,f:()=>drawFriend(f,!!fd[f.ch],T)});
   list.push({y:TETA.y,f:()=>drawTeta(T)});
   list.push({y:FOUNTAIN.y,f:()=>drawFountain(T)});
+  list.push({y:JIDDO.y,f:()=>drawJiddo(T)});
   list.push({y:player.y,f:()=>drawPlayer(T)});
   list.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
   for(const l of LANDMARKS) drawArrow(l,T);
