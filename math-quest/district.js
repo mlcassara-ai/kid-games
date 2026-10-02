@@ -188,8 +188,9 @@ function screen(){if(!flag()){go('world');return;}const p=P();if(!D)build();D.pa
  document.querySelectorAll('#dworld .dpad button').forEach(b=>{const [dx,dy]=b.dataset.d.split(',').map(Number);b.addEventListener('pointerdown',e=>{e.preventDefault();stepBy(dx,dy);});});
  cancelAnimationFrame(D.raf);D.raf=requestAnimationFrame(frame);}
 function ride(to){if(!flag())return;try{closeModal();}catch(e){}
- const going=to!=='home';modal(`<div class="mcard" style="overflow:hidden"><h2>${going?'Next stop: Discovery District!':'Next stop: Number Village!'}</h2><div style="font-size:64px;white-space:nowrap;animation:dTrain 1.5s linear forwards">🚂🚃🚃</div></div>`);
- if(!document.getElementById('dCSS')){const s=document.createElement('style');s.id='dCSS';s.textContent='@keyframes dTrain{from{transform:translateX(-110%) scaleX(-1)}to{transform:translateX(110%) scaleX(-1)}}';document.head.appendChild(s);}
+ const going=to!=='home';modal(`<div class="mcard" style="overflow:hidden"><h2>${going?'Next stop: Discovery District!':'Next stop: Number Village!'}</h2><div style="font-size:64px;white-space:nowrap;animation:${going?'dTrainR':'dTrainL'} 1.5s linear forwards">🚂🚃🚃</div></div>`);
+ if(!document.getElementById('dCSS')){const s=document.createElement('style');s.id='dCSS';/* out to the district: left to right (engine flipped to lead); home again: right to left */
+  s.textContent='@keyframes dTrainR{from{transform:translateX(-110%) scaleX(-1)}to{transform:translateX(110%) scaleX(-1)}}@keyframes dTrainL{from{transform:translateX(110%)}to{transform:translateX(-110%)}}';document.head.appendChild(s);}
  try{SFX.coin();}catch(e){}
  setTimeout(()=>{try{closeModal();}catch(e){}if(going){if(D){D.hx=AREAS.plaza.c[0]-4;D.hy=AREAS.plaza.c[1]+1;}go('district');}else go('world');},1500);}
 /* the station on the main map (same pattern as the Food Truck and Dr. Quartz's Lab) */
