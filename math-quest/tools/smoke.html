@@ -225,6 +225,8 @@ const tests=[
   T.ok(S.core.v===1&&S.core.keep.length===0&&S.pack.some(x=>x.k==='ck1')&&S.y===0,'first visit took something or did not send the hero to camp: '+JSON.stringify(S.core));
   await run(true);T.ok(S.core.v===2&&S.core.keep.length===1&&!S.pack.some(x=>x.k==='ck1'),'a wrong answer on a return visit did not cost one specimen: '+JSON.stringify(S.core));
   const c0=P().coins;await run(false);T.ok(S.core.v===3&&S.core.keep.length===0&&S.pack.some(x=>x.k==='ck1')&&S.rp>=rp0+9,'right answers did not win the specimen back');T.ok(P().coins>=c0+50,'no coins for a perfect score');
+  /* critters are looked at, not collected: a known one stays in the cave and says hello again once per dive */
+  {S.crit.ant=1;S.x=4;S.y=0;const j=d.idx(5,1);d.W.items.set(j,{t:'c',id:'ant'});d.step(0,1);await T.wait(350);if(S.y===1){T.ok(d.W.items.has(j),'a critter was taken out of the cave');T.ok(/Hello again/.test(document.querySelector('#cvMod').innerText),'no Hello again card for a known critter');}try{d.closeModal();}catch(e){}}
   S.x=4;S.y=0;try{Cave.leave();}catch(e){}
  }],
  ['music: the login page plays the map tune, Discovery District has its own choices',async function(){

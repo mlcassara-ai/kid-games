@@ -302,9 +302,9 @@ function after(){
    else if(it.t==='g'){sfx('find');S.dive.f++;S.pack.push({t:'g',id:it.id});say('🔮 You found today\'s SECRET POCKET — a geode! Crack it open in the 🔬 Lab.');}
   }}
  // critter next to you? observe automatically when you bump into it
- [[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{const j=idx(S.x+a,S.y+b);const c=W.items.get(j);if(!c||c.t!=='c'||S.x+a<=0)return;if(!S.crit[c.id]){observe(j,c);return;}
-  /* one you already have: a short note, once per dive for each kind, so walking past it is not just silence */
-  if(!metNow.has(c.id)){metNow.add(c.id);const cr=CD.CRITTERS.find(x=>x.id===c.id);if(cr)say(`${cr.e} ${esc(cr.n)} · already in your Journal ✓ <small>(tap it to read about it again)</small>`,3200);}});
+ [[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{const j=idx(S.x+a,S.y+b);const c=W.items.get(j);if(!c||c.t!=='c'||S.x+a<=0)return;
+  /* a new critter always opens its card; one you already have says 'Hello again!' once per dive for each kind */
+  if(!S.crit[c.id]||!metNow.has(c.id))observe(j,c);});
  if(S.y>S.dive.d)S.dive.d=S.y;
  if(S.y>S.maxRow){S.maxRow=S.y;ev('depth',{row:S.y,km:rowKm(S.y)});}
  const L=layerOf(S.y);if(L&&!S.seen[L.id]){S.seen[L.id]=1;save(true);layerCard(L);}
@@ -325,7 +325,7 @@ function beamHome(why){sfx('beam');metNow.clear();
 let floats=[];const metNow=new Set(); /* critters already greeted on this dive */
 function burst(x,y,col){for(let k=0;k<10;k++)parts.push({x:(x+.5)*TS,y:(y+.5)*TS,vx:(Math.random()-.5)*5,vy:(Math.random()-.8)*4,l:1,col});}
 function say(m,ms){const el=root&&root.querySelector('#cvMsg');if(!el)return;el.innerHTML=m;el.classList.add('show');clearTimeout(msgT);msgT=setTimeout(()=>el.classList.remove('show'),ms||3800);}
-function observe(i,c){const cr=CD.CRITTERS.find(x=>x.id===c.id);sfx('critter');W.items.delete(i);S.obs=S.obs||[];S.obs.push(i);
+function observe(i,c){const cr=CD.CRITTERS.find(x=>x.id===c.id);sfx('critter');metNow.add(c.id); /* critters are looked at, not collected: they stay where they live */
  const first=!S.crit[cr.id];S.crit[cr.id]=(S.crit[cr.id]||0)+1;let rew='';
  if(first){S.dive.cr++;addCoins(20,'critter');S.rp+=4;rew='<div class="cv-rew">+20 🪙 · +4 🔬 New critter in your Journal!</div>';ev('critter',{id:cr.id});}
  card(`<div class="cv-card"><div class="cv-big ${cr.glow?'cv-glowe':''}">${cr.e}</div><h2>${first?'New critter!':'Hello again!'}<br>${esc(cr.n)}</h2>${cr.tiny?'<div class="cv-tag">🔬 Seen through your microscope</div>':''}<p>${txt(cr)}</p>${rew}<button class="cv-btn" data-close>Cool!</button></div>`);save(true);hud();}
@@ -396,7 +396,6 @@ function frame(){
   else if(it.t==='f'){if(dist>vr)return;drawBone(c,px,py,T*(inAir?.6:.5));}
   else if(it.t==='g'){if(dist>lr*2.2)return;c.save();c.shadowColor='#e0b0ff';c.shadowBlur=14;c.font=`${T*.55}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('🔮',px,py+Math.sin(tick*.08)*2);c.restore();}
   else if(it.t==='c'){const cr=CD.CRITTERS.find(z=>z.id===it.id);if(dist>vr&&!(cr.glow&&dist<lr*2.5))return;c.save();if(cr.glow){c.shadowColor='#8fffe0';c.shadowBlur=18;}c.font=`${T*(cr.tiny?.45:.62)}px serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(cr.e,px+Math.sin(tick*.05+i)*T*.12,py+Math.cos(tick*.07+i)*T*.06);c.restore();
-   if(S.crit[cr.id]){c.save();c.font=`bold ${T*.3}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.65)';c.fillStyle='#69db7c';c.strokeText('✓',px+T*.3,py-T*.28);c.fillText('✓',px+T*.3,py-T*.28);c.restore();} /* already in the Journal */
    if(cr.tiny){c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=2;c.beginPath();c.arc(px,py,T*.36,0,Math.PI*2);c.stroke();}}
  });
  if(skyB>-T){drawCamp(c,T);}
@@ -1225,22 +1224,40 @@ const CKP_KM=6371,CKP_SUIT=CD.SUITS.findIndex(s=>s.core),CKP_ROW=(CD.LAYERS.find
 const CKP_L=[
  {n:'Crust',d0:0,d1:40,col:[122,86,58],secs:2,
   y:'This is the crust: the thin, hard skin of the Earth. Everything we know lives on it!',
-  o:'The crust is the thin rocky skin we live on. Under the land it is only about 40 km thick. If the Earth were an apple, the crust would be the peel.'},
+  o:'The crust is the thin rocky skin we live on. Under the land it is only about 40 km thick. If the Earth were an apple, the crust would be the peel.',
+  y2:'People have never dug all the way through the crust. The deepest hole ever is about 12 km deep, and it took almost 20 years to dig!',
+  o2:'The deepest hole people ever dug, in Russia, is about 12 km deep. It took almost 20 years and only got about a third of the way through the crust.',
+  h:'Under the continents the crust is about 35 to 40 km of mostly granite-like rock. Under the oceans it is only about 7 km of basalt. Its bottom edge is called the Moho, found in 1909 from the way earthquake waves suddenly speed up there.'},
  {n:'Upper mantle',d0:40,d1:660,col:[168,62,30],secs:3.3,
   y:'Now the mantle. The rock here is so hot that it bends and creeps, like very thick, slow toffee.',
-  o:'The mantle is hot, solid rock that still flows, very slowly, a few centimetres a year. That slow flow is what moves the continents.'},
+  o:'The mantle is hot, solid rock that still flows, very slowly, a few centimetres a year. That slow flow is what moves the continents.',
+  y2:'Diamonds are made down here in the mantle, by squeezing and heat!',
+  o2:'Diamonds form here in the upper mantle, about 150 to 200 km down, where carbon is squeezed and heated. Volcanoes carry them up to the surface.',
+  h:'The mantle is solid, but over millions of years it flows by convection: hot rock rises and cooler rock sinks. That slow churning drags the plates of the crust around. This is plate tectonics.'},
  {n:'Lower mantle',d0:660,d1:2890,col:[214,84,24],secs:3.6,
   y:'Still the mantle! It is the biggest part of the Earth. Most of our planet is mantle.',
-  o:'Upper and lower mantle together make up about 84% of the Earth by volume. Down here it is over 3,000 °C, but the huge pressure keeps the rock solid.'},
+  o:'Upper and lower mantle together make up about 84% of the Earth by volume. Down here it is over 3,000 °C, but the huge pressure keeps the rock solid.',
+  y2:'Hot rock down here rises very, very slowly, like a lava lamp in super slow motion.',
+  o2:'Heat from the core makes mantle rock rise very slowly, cool, and sink again, like a lava lamp in extreme slow motion. One loop takes many millions of years.',
+  h:'The lower mantle is mostly a mineral called bridgmanite. It is the most common mineral in the whole Earth, yet almost nobody has ever held a piece, because it is only stable under enormous pressure.'},
  {n:'Outer core',d0:2890,d1:5150,col:[245,150,30],secs:3.6,liquid:1,
   y:'The outer core is LIQUID metal: a deep, swirling ocean of melted iron!',
-  o:'The outer core is liquid iron and nickel. As it swirls, it makes the Earth\'s magnetic field: the reason a compass points north. Nobody has ever seen it. We know it is liquid because some earthquake waves cannot travel through liquid, and they stop here.'},
+  o:'The outer core is liquid iron and nickel. Its swirling makes the Earth\'s magnetic field, which is why a compass points north. We know it is liquid because some earthquake waves cannot pass through liquid, and they stop here.',
+  y2:'The swirling metal here turns the whole Earth into a giant magnet. That is why a compass works!',
+  o2:'The magnetic field made here works like a shield. It steers harmful particles from the Sun away from our air.',
+  h:'Earthquake S-waves cannot pass through liquid, so they vanish at the outer core and leave a "shadow" on the far side of the planet. That shadow is how scientists proved, in the early 1900s, that the outer core is liquid.',
+  guess:{q:'It is over 3,700 °C here. What do you think this layer is like?',a:'Liquid metal',b:'Solid rock',yes:'Good thinking!',no:'Surprise: it is liquid!'}},
  {n:'Inner core',d0:5150,d1:CKP_KM,col:[255,244,205],secs:3,solid:1,
   y:'The inner core is a giant ball of solid metal, right in the middle of the Earth. It is the hottest place of all!',
-  o:'The inner core is a solid ball of iron and nickel, about as hot as the surface of the Sun. It stays solid because the weight of the whole planet squeezes it.'}];
+  o:'The inner core is a solid ball of iron and nickel, about as hot as the surface of the Sun. It stays solid because the weight of the whole planet squeezes it.',
+  y2:'The inner core is a metal ball a bit smaller than the Moon.',
+  o2:'The inner core is a metal ball about 2,440 km across, a bit smaller than the Moon. It grows by about a millimetre a year as the liquid metal around it slowly freezes.',
+  h:'The solid inner core was discovered in 1936 by Inge Lehmann, a Danish scientist, who noticed earthquake waves bouncing off something inside the liquid core. The pressure here is about 3.6 million times the air pressure at the surface.',
+  guess:{q:'The very centre is even hotter than the liquid layer above. Liquid or solid?',a:'Solid',b:'Liquid',yes:'Yes! Hotter, but solid.',no:'Surprise: it is solid!'}}];
 const CKP_T=[[0,15],[40,500],[660,1600],[2890,3700],[5150,5000],[CKP_KM,5400]];
 const coreTemp=d=>{for(let i=1;i<CKP_T.length;i++)if(d<=CKP_T[i][0]){const a=CKP_T[i-1],b=CKP_T[i];return a[1]+(b[1]-a[1])*(d-a[0])/(b[0]-a[0]);}return 5400;};
-/* a[0] is the right answer; the choices are shuffled when shown. young = the short list for grades 1–2 */
+/* a[0] is the right answer; the choices are shuffled when shown. young = the short list for grades 1–2; hard = grades 6 and up only
+   (their answers are taught in the 'h' facts those grades read on the way down) */
 const CKP_Q=[
  {q:'Which layer is liquid?',a:['Outer core','Inner core','Mantle','Crust'],young:1,why:'The outer core is a swirling ocean of melted iron and nickel.'},
  {q:'What is the Earth\'s core mostly made of?',a:['Iron and nickel','Ice','Gold','Wood'],young:1,why:'The core is metal: mostly iron, with some nickel.'},
@@ -1249,6 +1266,9 @@ const CKP_Q=[
  {q:'The inner core is hotter than the liquid outer core, but it is solid. Why?',a:['Huge pressure squeezes it solid','It is made of ice','It is far from the Sun'],why:'The weight of the whole planet presses on it so hard that the metal cannot melt.'},
  {q:'What does the swirling liquid outer core make?',a:['The Earth\'s magnetic field','Rain clouds','The ocean tides'],why:'Moving liquid metal makes the magnetic field that turns a compass needle north.'},
  {q:'Nobody has ever seen the core. How do scientists know what is inside the Earth?',a:['By studying earthquake waves','By digging a hole to the centre','By looking through a telescope'],why:'Earthquake waves bend, bounce and stop as they pass through the layers. Scientists read those waves like an X-ray of the planet.'},
+ {q:'Which earthquake waves cannot travel through liquid?',a:['S-waves','P-waves','Radio waves'],hard:1,why:'S-waves stop at the liquid outer core. That is how we know it is liquid.'},
+ {q:'Who discovered the Earth\'s solid inner core, in 1936?',a:['Inge Lehmann','Isaac Newton','Marie Curie'],hard:1,why:'Inge Lehmann spotted earthquake waves bouncing off a solid ball inside the liquid core.'},
+ {q:'What slow movement in the mantle drags the plates of the crust around?',a:['Convection','Evaporation','Magnetism'],hard:1,why:'Hot rock rises and cooler rock sinks. That slow loop is convection.'},
  {q:'About how far is it from the ground to the centre of the Earth?',a:['About 6,400 km','About 64 km','About 640,000 km'],why:'It is about 6,371 km straight down.'}];
 const CKP_CSS=`#cvCore{position:absolute;inset:0;z-index:80;background:#17110e;color:#fff4e6;display:flex;justify-content:center;overflow:auto;font-size:16px;line-height:1.4}
 #cvCore .ck{width:100%;max-width:560px;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
@@ -1293,7 +1313,9 @@ function coreHint(st,trips){st=st||{};if(CKP_SUIT<0||(st.core&&st.core.v)||(trip
  if(deep>=81)return 'Whatever is down there, it\'s at the very centre of the Earth. No suit I own could survive it. I\'ve started sketching a new one…';
  if(deep>=31)return 'There it is again. Something very, very deep is giving off heat in a steady rhythm. I have no idea what it is.';
  return 'Funny… my instruments picked up a strange, slow <b>thump</b> from far below. Probably nothing…';}
-function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=coreState(),first=!k.v,young=(+H.player.grade||3)<=2;
+function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=coreState(),first=!k.v,grade=+H.player.grade||3,young=grade<=2,older=grade>=6,alt=(k.v||0)%2===1;
+ /* three reading levels: grades 1–2 (y), 3–5 (o), 6+ (h). Every other visit swaps to a second set of facts (y2 / o2), so a return trip teaches something new. */
+ const factOf=L=>young?((alt&&L.y2)||L.y):older?((alt&&L.o2)||L.h||L.o):((alt&&L.o2)||L.o);
  if(!document.getElementById('cvkCSS')){const s=document.createElement('style');s.id='cvkCSS';s.textContent=CKP_CSS;document.head.appendChild(s);}
  const el=document.createElement('div');el.id='cvCore';
  el.innerHTML=`<div class="ck"><div class="ck-read"><span><small>Depth</small><b data-r="d">0 km</b></span><span><small>Temperature</small><b data-r="t">15 °C</b></span><span><small>To the centre</small><b data-r="l">6,371 km</b></span></div>
@@ -1336,17 +1358,22 @@ function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=c
  const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
  const loop=()=>{let last=performance.now();const f=now=>{if(!coreOn)return;const dt=Math.min(.05,(now-last)/1000);last=now;st.t+=dt;
    if(st.mode==='fall')fall(dt);else if(st.mode==='up')rise(dt);paint(dt);if(st.mode==='fall'||st.mode==='up'||st.mode==='hold')raf=requestAnimationFrame(f);};raf=requestAnimationFrame(f);};
- const fall=dt=>{const j=CKP_L.findIndex(L=>st.depth<L.d1),i=j<0?CKP_L.length-1:j,L=CKP_L[i],fact=young?L.y:L.o;
+ const fall=dt=>{const j=CKP_L.findIndex(L=>st.depth<L.d1),i=j<0?CKP_L.length-1:j,L=CKP_L[i],fact=factOf(L);
   if(st.li!==i){st.li=i;sfx('layer');q('.ck-layer').innerHTML=`${L.n}<small>${fmt(L.d0)} to ${fmt(L.d1)} km deep</small>`;
-   st.mode='hold';panel(`<h2>${L.n}</h2><p>${fact}</p><button class="ck-go">${i<CKP_L.length-1?'Keep falling ➜':'Down to the centre ➜'}</button>`);
-   q('.ck-go').onclick=()=>{if(st.mode!=='hold')return;st.mode='fall';panel(`<h2>${L.n}</h2><p>${fact}</p>`);};return;}
+   const more=i<CKP_L.length-1?'Keep falling ➜':'Down to the centre ➜';
+   const tell=pre=>{panel(`<h2>${L.n}</h2><p>${pre||''}${fact}</p><button class="ck-go">${more}</button>`);q('.ck-go').onclick=()=>{if(st.mode!=='hold')return;st.mode='fall';panel(`<h2>${L.n}</h2><p>${fact}</p>`);};};
+   st.mode='hold';
+   /* two layers ask for a guess first (solid or liquid?). Nothing rides on it: guessing before being told makes the answer stick. */
+   if(L.guess){const g=L.guess,two=Math.random()<.5?[g.a,g.b]:[g.b,g.a];panel(`<h2>${L.n}</h2><p>${g.q}</p><div class="ck-opts">${two.map(o=>`<button class="ck-opt">${o}</button>`).join('')}</div>`);
+    el.querySelectorAll('.ck-opt').forEach(b=>b.onclick=()=>{const ok=b.textContent===g.a;sfx(ok?'find':'layer');tell(`<b>${ok?g.yes:g.no}</b> `);});}
+   else tell();return;}
   st.depth=Math.min(CKP_KM,st.depth+(L.d1-L.d0)/L.secs*dt);readout(st.depth);if(st.depth>=CKP_KM)arrive();};
  const arrive=()=>{cancelAnimationFrame(raf);st.mode='core';st.depth=CKP_KM;readout(CKP_KM);paint(0);q('.ck-skip').hidden=true;q('.ck-layer').innerHTML='The centre of the Earth<small>6,371 km down</small>';q('.ck-keeper').hidden=false;sfx('bonk');
   const K='The Core Keeper',nm=esc(H.player.name||'You');
   const intro=first?(young?[['🙂 '+nm,'Oof! Something big, round and warm caught you.'],[K,'<b>WHO fell into my core?!</b> I am the Core Keeper. I am made of iron, and I am so hot that I glow white!'],[K,'No real person could ever come down here. It is much too hot and squashy! Lucky for you, this is a pretend trip.'],[K,'Nobody ever visits. Hmph. If you want to go home, answer my questions about what you fell through!']]
    :[['🙂 '+nm,'Something big, round and glowing catches you before you hit the middle. So THIS is what Dr. Quartz kept hearing!'],[K,'<b>WHO dropped into MY core?!</b> I am the Core Keeper: solid iron and nickel, squeezed by a whole planet. I am over 5,000 degrees, so hot that I glow <b>white</b>, like the surface of the Sun.'],[K,'No real person has ever come here, and none ever could. The deepest hole people ever dug is about <b>12 km</b>. You fell <b>6,371</b>. Only in a pretend suit!'],[K,'Nobody ever visits. If you want a push back up, prove you were paying attention on the way down!']])
    :[[K,'<b>YOU again!</b> My favourite visitor. I mean… what are you doing in my core?!'],[K,`Same deal as last time. Answer right and up you go. Miss one and I keep a specimen from your backpack for my collection.${k.keep.length?` I am still holding ${k.keep.length} of yours. Answer right to win ${k.keep.length>1?'them':'it'} back!`:''}`]];
-  let n=0;const next=()=>{if(n<intro.length){const [who,text]=intro[n++];talk(who,text,'Next ➜',next);}else{st.qs=shuf(CKP_Q.filter(x=>!young||x.young)).slice(0,young?2:3);st.qi=0;ask();}};next();};
+  let n=0;const next=()=>{if(n<intro.length){const [who,text]=intro[n++];talk(who,text,'Next ➜',next);}else{st.qs=young?shuf(CKP_Q.filter(x=>x.young)).slice(0,2):older?shuf(shuf(CKP_Q.filter(x=>x.hard)).slice(0,1).concat(shuf(CKP_Q.filter(x=>!x.hard)).slice(0,2))):shuf(CKP_Q.filter(x=>!x.hard)).slice(0,3);st.qi=0;ask();}};next();};
  const specName=it=>S.idd[it.id]&&CD.MIN[it.id]?CD.MIN[it.id].n:'a mystery specimen';
  const ask=()=>{const qq=st.qs[st.qi],n=st.qs.length,opts=shuf(young?qq.a.slice(0,3):qq.a);
   panel(`<div class="ck-dots">${st.qs.map((_,i)=>`<i class="${st.res[i]===true?'ok':st.res[i]===false?'no':''}"></i>`).join('')}</div><div class="ck-who">The Core Keeper · question ${st.qi+1} of ${n}</div><h2>${esc(qq.q)}</h2><div class="ck-opts">${opts.map(o=>`<button class="ck-opt" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div><div class="ck-after"></div>`);
@@ -1367,7 +1394,8 @@ function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=c
   window.removeEventListener('resize',size);el.remove();coreOn=false;beamHome('core');
   /* after the first fall Dr. Quartz says plainly which parts were real science and which were pretend, and how we really know */
   if(!k.told){k.told=1;save(true);card(`<div class="cv-card"><div class="cv-big">🔬</div><h2>Real or pretend?</h2><p><b>Dr. Quartz:</b> You met it! So THAT was the thumping. Now, a scientist always says what is real and what is not.</p>
-   <p style="text-align:left">✅ <b>Real:</b> the layers, how deep they are, how hot they are, and what they are made of.<br>🎭 <b>Pretend:</b> the Core Suit, the fall and the Core Keeper. No person or machine could ever go there: it is far too hot, and the squeeze would crush anything we can build.</p>
+   <p style="text-align:left">✅ <b>Real:</b> the layers, how deep they are, how hot they are, and what they are made of.</p>
+   <p style="text-align:left">🎭 <b>Pretend:</b> the Core Suit, the fall and the Core Keeper. No person or machine could ever go there: it is far too hot, and the squeeze would crush anything we can build.</p>
    <p style="text-align:left">🌍 <b>So how do we know?</b> Nobody has seen the inside of the Earth. Scientists worked it out by measuring how earthquake waves bend, bounce and stop as they travel through the planet.</p><button class="cv-btn" data-close>Got it!</button></div>`);}
   say(`🚀 The Core Keeper launched you all the way back to camp! ${right} of ${n} right · ${rew}${st.took?` · he kept ${st.took} specimen${st.took>1?'s':''}`:''}${st.gave?` · you won back ${st.gave}`:''}`,7000);};
  q('.ck-skip').onclick=()=>{if(st.mode==='fall'||st.mode==='hold')arrive();};
