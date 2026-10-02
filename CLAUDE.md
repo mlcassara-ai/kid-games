@@ -70,6 +70,7 @@ Adaptive math battles plus a village of side activities, for grades 1–12 and a
 - `daily.js` — Today's Adventure, pet tricks, camp packing and tied sacks.
 - `truck.js` — Food Truck; hidden (no opening date) unless the device opened the game with `?truck=1`; `?truck=0` hides it again.
 - `district.js` — Discovery District, a second walkable map reached by train. A walk-around preview only, with its own map drawing; hidden unless the device opened the game once with `?district=1`.
+- `battlepets.js` + `battle-pets.html` — Battle Pets, a test only. A plaza building opens the prototype page in a frame; it reads and writes nothing in a hero's save. Shown only for heroes switched on in Parent Corner, which is remembered on that device (localStorage), not in the save.
 - `tools/smoke.py` + `tools/smoke.html` — the smoke test.
 
 ### Release checklist
