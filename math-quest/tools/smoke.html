@@ -218,10 +218,11 @@ const tests=[
   S.y=d.CKP_ROW+1;T.ok(!d.coreDue(),'the fall is due without the Core Suit');S.gear.suit=5;T.ok(d.coreDue(),'the fall is not due in the Mantle with the Core Suit');S.y=3;T.ok(!d.coreDue(),'the fall is due near the surface');
   S.pack=S.pack.filter(x=>x.t!=='m');S.pack.push({t:'m',id:'quartz',k:'ck1',tests:{}});const rp0=S.rp;
   const run=async wrongAll=>{d.coreFall();const el=document.getElementById('cvCore');T.ok(el,'the fall did not open');const x=d.core();el.querySelector('.ck-go').click();await T.wait(80);T.ok(x.st.mode==='hold'&&/Crust/.test(el.querySelector('.ck-panel').innerText),'the fall did not pause at the crust');
-   {const y0=S.y,x0=S.x;d.step(0,1);d.step(1,0);T.ok(S.y===y0&&S.x===x0,'the hero can still walk during the fall');}x.arrive();for(let i=0;i<6&&!el.querySelector('.ck-opt');i++)el.querySelector('.ck-go').click();
+   {const y0=S.y,x0=S.x;d.step(0,1);d.step(1,0);T.ok(S.y===y0&&S.x===x0,'the hero can still walk during the fall');}x.arrive();for(let i=0;i<8&&!el.querySelector('.ck-opt');i++)el.querySelector('.ck-go').click();
    for(let n=0;n<3;n++){const o=[...el.querySelectorAll('.ck-opt')];T.ok(o.length>=3,'no answer choices');const qd=x.st.qs[x.st.qi];(wrongAll?o.find(b=>b.textContent!==qd.a[0]):o.find(b=>b.textContent===qd.a[0])).click();el.querySelector('.ck-after .ck-go').click();}
    el.querySelector('.ck-go').click();el.querySelector('.ck-go').click();const t0=Date.now();while(document.getElementById('cvCore')&&Date.now()-t0<9000)await T.wait(200);T.ok(!document.getElementById('cvCore'),'the launch home never finished');try{d.closeModal();}catch(e){}};
-  await run(true);T.ok(S.core.v===1&&S.core.keep.length===0&&S.pack.some(x=>x.k==='ck1')&&S.y===0,'first visit took something or did not send the hero to camp: '+JSON.stringify(S.core));
+  await run(true);T.ok(S.core.told===1,'no Real or pretend card after the first fall');for(let i=0;i<4;i++){try{d.closeModal();}catch(e){}}
+  T.ok(S.core.v===1&&S.core.keep.length===0&&S.pack.some(x=>x.k==='ck1')&&S.y===0,'first visit took something or did not send the hero to camp: '+JSON.stringify(S.core));
   await run(true);T.ok(S.core.v===2&&S.core.keep.length===1&&!S.pack.some(x=>x.k==='ck1'),'a wrong answer on a return visit did not cost one specimen: '+JSON.stringify(S.core));
   const c0=P().coins;await run(false);T.ok(S.core.v===3&&S.core.keep.length===0&&S.pack.some(x=>x.k==='ck1')&&S.rp>=rp0+9,'right answers did not win the specimen back');T.ok(P().coins>=c0+50,'no coins for a perfect score');
   S.x=4;S.y=0;try{Cave.leave();}catch(e){}

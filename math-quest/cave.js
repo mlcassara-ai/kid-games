@@ -718,7 +718,7 @@ function guess(k,id){const p=S.pack.find(x=>x.k===k);if(!p)return;const m=CD.MIN
 /* ---------------- Gear shop ---------------- */
 function openGear(){const t=TIER();
  const rowH=(key,arr,label,desc)=>{const lv=S.gear[key],cur=arr[lv],nx=arr[lv+1];
-  return `<div class="cv-gear"><div class="cv-gi">${cur.e||label.e}</div><div class="cv-gt"><b>${cur.n||label.n}</b><small>${desc(cur)}</small>${nx?`<div class="cv-next">Next: <b>${nx.e||''} ${nx.n||label.n+' '+(lv+2)}</b> — ${desc(nx)}${nx.why&&t?`<br><i>${nx.why}</i>`:''}${nx.need&&!S.idd[nx.need]?'<br><b class="warn">Needs a real 💎 diamond — identify one in the Lab first!</b>':''}</div>`:'<div class="cv-next">⭐ Maxed out!</div>'}</div>
+  return `<div class="cv-gear"><div class="cv-gi">${cur.e||label.e}</div><div class="cv-gt"><b>${cur.n||label.n}</b><small>${desc(cur)}</small>${nx?`<div class="cv-next">Next: <b>${nx.e||''} ${nx.n||label.n+' '+(lv+2)}</b> — ${desc(nx)}${nx.why&&(t||nx.core)?`<br><i>${nx.why}</i>`:''}${nx.need&&!S.idd[nx.need]?'<br><b class="warn">Needs a real 💎 diamond — identify one in the Lab first!</b>':''}</div>`:'<div class="cv-next">⭐ Maxed out!</div>'}</div>
    ${nx?`<button class="cv-buy" data-k="${key}" ${canBuy(nx)?'':'disabled'}>🪙 ${fmt(nx.c)}${nx.r?`<br>🔬 ${nx.r}`:''}</button>`:''}</div>`;};
  modal(`<h2>🛒 Gear Shop</h2><p class="cv-sub">You have 🪙 ${fmt(H.coins())} and 🔬 ${fmt(S.rp)} research points (earn 🔬 by identifying minerals, meeting critters and solving puzzles).</p>
   ${rowH('drill',CD.DRILLS,{},d=>`digs rock up to hardness ${d.h}`)}
@@ -984,7 +984,7 @@ const PHASES=[{n:'Deep Mantle',km:[200,2900],tC:[1300,3700],col:'#6b2a1f',ob:'pl
  {n:'Outer Core',km:[2900,5150],tC:[4000,5000],col:'#c2551a',ob:'swirl',y:'A giant ocean of liquid metal! Its swirling makes Earth\'s magnetic field.',o:'The outer core is liquid iron and nickel. As it churns it acts like a dynamo, generating Earth\'s magnetic field that shields us from solar wind. S-waves cannot pass through it.'},
  {n:'Inner Core',km:[5150,6371],tC:[5200,5400],col:'#ffd08a',ob:'crystal',y:'A solid ball of iron as hot as the surface of the Sun!',o:'The inner core is a solid iron-nickel ball about 1,220 km in radius, around 5,400 °C. It stays solid because the pressure — about 3.3–3.6 million atmospheres — keeps the atoms locked in place.'}];
 function openProbe(){const rank=S.probe.rank||0;const left=Math.max(0,3-(S.probe.runs||0));
- modal(`<div class="cv-card"><div class="cv-big">🚀</div><h2>Core Probe Expedition</h2><p>No human can go deeper — but a heat-shielded probe can! Steer it down through the deep mantle, the liquid outer core and into the solid inner core, 6,371 km down. Dodge hot spots, collect 🔷 data, and answer science checks to repair your shield.</p>
+ modal(`<div class="cv-card"><div class="cv-big">🚀</div><h2>Core Probe Expedition</h2><p>No person or machine has ever gone this deep in real life. In the cave, your pretend probe can! Steer it down through the deep mantle, the liquid outer core and into the solid inner core, 6,371 km down. Dodge hot spots, collect 🔷 data, and answer science checks to repair your shield.</p>
   <div class="cv-stats"><span>⭐ Rank ${rank}${rank?' '+'★'.repeat(Math.min(5,rank)):''}</span><span>🏆 Best ${S.probe.best} data</span><span>🎁 Rewards left today: ${left}</span></div>
   <p class="cv-sub">${rank?'Each rank makes the probe fall faster. Win to rank up!':'Win once to earn the Core Explorer trophy.'}</p><button class="cv-btn" id="cvGo">🚀 Launch!</button></div>`);
  root.querySelector('#cvGo').onclick=()=>probeRun();}
@@ -1216,7 +1216,9 @@ function leave(){save(true);cardQ.length=0;cancelAnimationFrame(raf);window.remo
    ball of iron and nickel, asks science questions about the layers (not math), then launches the hero back to camp.
    Like the Troll and the Eagle: on the first visit he grabs a specimen for each wrong answer but hands everything back at the end
    (nothing really leaves the backpack). Later visits: a wrong answer costs one unidentified specimen from the backpack (kept in
-   S.core.keep, at most 6) and a right answer wins one back. He is drawn white-hot with a faint yellow tint: nobody has seen the
+   S.core.keep, at most 6) and a right answer wins one back. HONESTY RULE: the game says plainly that the suit, the fall and the
+   Keeper are pretend (no person or machine could reach the core) while the layer facts are real: in the suit's shop text, in the
+   Keeper's first hello, and in Dr. Quartz's 'Real or pretend?' card after the first fall (S.core.told). He is drawn white-hot with a faint yellow tint: nobody has seen the
    core, but metal at about 5,400 °C would glow nearly white, like the Sun's surface (which is about that hot). Before a kid has the suit, Dr. Quartz only hints (coreHint).
    S.core = {v: visits, keep: [specimens], last}. */
 const CKP_KM=6371,CKP_SUIT=CD.SUITS.findIndex(s=>s.core),CKP_ROW=(CD.LAYERS.find(l=>l.id==='mantle')||{r0:ROWS}).r0+2,CKP_KEEP=6;
@@ -1232,7 +1234,7 @@ const CKP_L=[
   o:'Upper and lower mantle together make up about 84% of the Earth by volume. Down here it is over 3,000 °C, but the huge pressure keeps the rock solid.'},
  {n:'Outer core',d0:2890,d1:5150,col:[245,150,30],secs:3.6,liquid:1,
   y:'The outer core is LIQUID metal: a deep, swirling ocean of melted iron!',
-  o:'The outer core is liquid iron and nickel. As it swirls, it makes the Earth\'s magnetic field: the reason a compass points north.'},
+  o:'The outer core is liquid iron and nickel. As it swirls, it makes the Earth\'s magnetic field: the reason a compass points north. Nobody has ever seen it. We know it is liquid because some earthquake waves cannot travel through liquid, and they stop here.'},
  {n:'Inner core',d0:5150,d1:CKP_KM,col:[255,244,205],secs:3,solid:1,
   y:'The inner core is a giant ball of solid metal, right in the middle of the Earth. It is the hottest place of all!',
   o:'The inner core is a solid ball of iron and nickel, about as hot as the surface of the Sun. It stays solid because the weight of the whole planet squeezes it.'}];
@@ -1246,6 +1248,7 @@ const CKP_Q=[
  {q:'Which layer is the thinnest?',a:['Crust','Mantle','Outer core','Inner core'],why:'The crust is only about 40 km thick under the land. You fell through it in seconds.'},
  {q:'The inner core is hotter than the liquid outer core, but it is solid. Why?',a:['Huge pressure squeezes it solid','It is made of ice','It is far from the Sun'],why:'The weight of the whole planet presses on it so hard that the metal cannot melt.'},
  {q:'What does the swirling liquid outer core make?',a:['The Earth\'s magnetic field','Rain clouds','The ocean tides'],why:'Moving liquid metal makes the magnetic field that turns a compass needle north.'},
+ {q:'Nobody has ever seen the core. How do scientists know what is inside the Earth?',a:['By studying earthquake waves','By digging a hole to the centre','By looking through a telescope'],why:'Earthquake waves bend, bounce and stop as they pass through the layers. Scientists read those waves like an X-ray of the planet.'},
  {q:'About how far is it from the ground to the centre of the Earth?',a:['About 6,400 km','About 64 km','About 640,000 km'],why:'It is about 6,371 km straight down.'}];
 const CKP_CSS=`#cvCore{position:absolute;inset:0;z-index:80;background:#17110e;color:#fff4e6;display:flex;justify-content:center;overflow:auto;font-size:16px;line-height:1.4}
 #cvCore .ck{width:100%;max-width:560px;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
@@ -1286,7 +1289,7 @@ function coreDue(){if(coreOn||coreRoll===false||CKP_SUIT<0||(S.gear.suit||0)<CKP
 /* Dr. Quartz's hints after a trip (quartz.js): about one trip in four, stronger the deeper the kid has been; none once the Keeper has been met */
 function coreHint(st,trips){st=st||{};if(CKP_SUIT<0||(st.core&&st.core.v)||(trips||0)%4!==2)return '';const suitLv=(st.gear&&st.gear.suit)||0,deep=st.maxRow||0;
  if(suitLv>=CKP_SUIT)return 'You have the <b>Core Suit</b> now. Something far below us is still thumping away. If you dig down into the Mantle, be ready for anything!';
- if(suitLv>=CKP_SUIT-1)return 'I\'ve finished the design for a <b>Core Suit</b>, with a space helmet. If anyone could reach the very bottom and find out what\'s making that sound, it\'s you. Look in the 🛒 Gear shop.';
+ if(suitLv>=CKP_SUIT-1)return 'I\'ve finished the design for a <b>Core Suit</b>, with a space helmet. I\'ll be honest: it could never work in real life. But here we can pretend! If anyone could reach the very bottom and find out what\'s making that sound, it\'s you. Look in the 🛒 Gear shop.';
  if(deep>=81)return 'Whatever is down there, it\'s at the very centre of the Earth. No suit I own could survive it. I\'ve started sketching a new one…';
  if(deep>=31)return 'There it is again. Something very, very deep is giving off heat in a steady rhythm. I have no idea what it is.';
  return 'Funny… my instruments picked up a strange, slow <b>thump</b> from far below. Probably nothing…';}
@@ -1340,8 +1343,8 @@ function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=c
   st.depth=Math.min(CKP_KM,st.depth+(L.d1-L.d0)/L.secs*dt);readout(st.depth);if(st.depth>=CKP_KM)arrive();};
  const arrive=()=>{cancelAnimationFrame(raf);st.mode='core';st.depth=CKP_KM;readout(CKP_KM);paint(0);q('.ck-skip').hidden=true;q('.ck-layer').innerHTML='The centre of the Earth<small>6,371 km down</small>';q('.ck-keeper').hidden=false;sfx('bonk');
   const K='The Core Keeper',nm=esc(H.player.name||'You');
-  const intro=first?(young?[['🙂 '+nm,'Oof! Something big, round and warm caught you.'],[K,'<b>WHO fell into my core?!</b> I am the Core Keeper. I am made of iron, and I am so hot that I glow white!'],[K,'Nobody ever visits. Hmph. If you want to go home, answer my questions about what you fell through!']]
-   :[['🙂 '+nm,'Something big, round and glowing catches you before you hit the middle. So THIS is what Dr. Quartz kept hearing!'],[K,'<b>WHO dropped into MY core?!</b> I am the Core Keeper: solid iron and nickel, squeezed by a whole planet. I am over 5,000 degrees, so hot that I glow <b>white</b>, like the surface of the Sun.'],[K,'Nobody ever visits. If you want a push back up, prove you were paying attention on the way down!']])
+  const intro=first?(young?[['🙂 '+nm,'Oof! Something big, round and warm caught you.'],[K,'<b>WHO fell into my core?!</b> I am the Core Keeper. I am made of iron, and I am so hot that I glow white!'],[K,'No real person could ever come down here. It is much too hot and squashy! Lucky for you, this is a pretend trip.'],[K,'Nobody ever visits. Hmph. If you want to go home, answer my questions about what you fell through!']]
+   :[['🙂 '+nm,'Something big, round and glowing catches you before you hit the middle. So THIS is what Dr. Quartz kept hearing!'],[K,'<b>WHO dropped into MY core?!</b> I am the Core Keeper: solid iron and nickel, squeezed by a whole planet. I am over 5,000 degrees, so hot that I glow <b>white</b>, like the surface of the Sun.'],[K,'No real person has ever come here, and none ever could. The deepest hole people ever dug is about <b>12 km</b>. You fell <b>6,371</b>. Only in a pretend suit!'],[K,'Nobody ever visits. If you want a push back up, prove you were paying attention on the way down!']])
    :[[K,'<b>YOU again!</b> My favourite visitor. I mean… what are you doing in my core?!'],[K,`Same deal as last time. Answer right and up you go. Miss one and I keep a specimen from your backpack for my collection.${k.keep.length?` I am still holding ${k.keep.length} of yours. Answer right to win ${k.keep.length>1?'them':'it'} back!`:''}`]];
   let n=0;const next=()=>{if(n<intro.length){const [who,text]=intro[n++];talk(who,text,'Next ➜',next);}else{st.qs=shuf(CKP_Q.filter(x=>!young||x.young)).slice(0,young?2:3);st.qi=0;ask();}};next();};
  const specName=it=>S.idd[it.id]&&CD.MIN[it.id]?CD.MIN[it.id].n:'a mystery specimen';
@@ -1362,6 +1365,10 @@ function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=c
  const done=()=>{cancelAnimationFrame(raf);st.mode='done';const right=st.res.filter(Boolean).length,n=st.qs.length;k.v=(k.v||0)+1;k.last=Date.now();
   let rew=`+${right*3} 🔬`;if(right===n){addCoins(50,'core');rew+=' · +50 🪙';}if(first)ev('core',{right});save(true);
   window.removeEventListener('resize',size);el.remove();coreOn=false;beamHome('core');
+  /* after the first fall Dr. Quartz says plainly which parts were real science and which were pretend, and how we really know */
+  if(!k.told){k.told=1;save(true);card(`<div class="cv-card"><div class="cv-big">🔬</div><h2>Real or pretend?</h2><p><b>Dr. Quartz:</b> You met it! So THAT was the thumping. Now, a scientist always says what is real and what is not.</p>
+   <p style="text-align:left">✅ <b>Real:</b> the layers, how deep they are, how hot they are, and what they are made of.<br>🎭 <b>Pretend:</b> the Core Suit, the fall and the Core Keeper. No person or machine could ever go there: it is far too hot, and the squeeze would crush anything we can build.</p>
+   <p style="text-align:left">🌍 <b>So how do we know?</b> Nobody has seen the inside of the Earth. Scientists worked it out by measuring how earthquake waves bend, bounce and stop as they travel through the planet.</p><button class="cv-btn" data-close>Got it!</button></div>`);}
   say(`🚀 The Core Keeper launched you all the way back to camp! ${right} of ${n} right · ${rew}${st.took?` · he kept ${st.took} specimen${st.took>1?'s':''}`:''}${st.gave?` · you won back ${st.gave}`:''}`,7000);};
  q('.ck-skip').onclick=()=>{if(st.mode==='fall'||st.mode==='hold')arrive();};
  window.addEventListener('resize',size);size();readout(0);paint(0);sfx('bonk');

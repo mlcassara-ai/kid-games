@@ -60,7 +60,7 @@ CD.SUITS=[
  {n:'Thermal Armor',e:'🛡️',t:700,c:2500,r:90},
  {n:'Magma Armor',e:'🔥',t:1400,c:5000,r:160},
  /* the sixth suit is the way in to the Core Keeper (cave.js): owning it lets the Mantle floor crack */
- {n:'Core Suit',e:'🧑‍🚀',t:6000,c:9000,r:250,core:1,why:'Dr. Quartz\'s newest design, with a space helmet. Built for whatever is at the very bottom.'}];
+ {n:'Core Suit',e:'🧑‍🚀',t:6000,c:9000,r:250,core:1,why:'Dr. Quartz says: "This is the one invention of mine that could never work in real life. No suit could. But in Math Quest we can pretend!"'}];
 CD.BATT=[{v:60,c:0},{v:100,c:150},{v:160,c:400},{v:250,c:900},{v:400,c:2000}];
 CD.PACK=[{v:8,c:0},{v:12,c:100},{v:18,c:350},{v:25,c:800},{v:35,c:1600}];
 CD.LAMP=[{v:3,c:0},{v:4,c:120},{v:5,c:400},{v:6,c:900}];
