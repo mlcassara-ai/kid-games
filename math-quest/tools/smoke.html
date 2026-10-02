@@ -165,11 +165,11 @@ const tests=[
 ['food truck: hidden unless the preview switch is on; then card, screens and map spot',async function(){
   T.reset();const p=T.hero('Truck',3,{battles:40});state.cur=p.id;
   window.MQ_TRUCK_BETA=false;try{localStorage.removeItem('mqTruckPreview');localStorage.setItem('mqTruckBeta','1');}catch(e){}
-  T.ok(!Truck.flag(),'truck shows without the preview switch (an old preview must not count)');go('map');T.ok(!document.querySelector('.tk-hc'),'truck card shown while hidden');go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='truck','truck on the map while hidden');
+  T.ok(!Truck.flag(),'truck shows without the preview switch (an old preview must not count)');go('map');T.ok(!document.querySelector('.tk-hc'),'truck card shown while hidden');go('world');await T.wait(100);T.ok(W.T[17][25].npc!=='truck','truck on the map while hidden');
   window.MQ_TRUCK_BETA=true;go('map');T.ok(document.querySelector('.tk-hc'),'truck card missing from the Quest Board');
   Truck.open();T.ok(curScreen==='truck'&&document.querySelector('#app').innerText.length>40,'truck screen is empty');try{closeModal();}catch(e){}
   go('market');T.ok(curScreen==='market'&&document.querySelector('#app').innerText.length>20,'market screen is empty');
-  go('world');await T.wait(100);const t=W.T[20][28];T.ok(t.npc==='truck','truck is not on the map');
+  go('world');await T.wait(100);const t=W.T[17][25];T.ok(t.npc==='truck','truck is not on the map');
   T.ok([[21,20],[23,20],[22,19],[22,21]].some(([x,y])=>W.T[y]&&W.T[y][x]&&!W.T[y][x].block&&!W.T[y][x].water),'truck cannot be reached on the map');
   wNpc('truck');T.ok(curScreen==='truck','tapping the truck on the map did not open it');window.MQ_TRUCK_BETA=false;}],
 
@@ -192,13 +192,13 @@ const tests=[
 
 ['battle pets test: hidden unless switched on for a hero on this device, and saves nothing',async function(){
   T.reset();window.MQ_BP_BETA=false;try{localStorage.removeItem('mqBpTest');}catch(e){}const p=T.hero('Pets',5),q=T.hero('Other',3);state.cur=p.id;W=null;go('world');await T.wait(150);
-  T.ok(W.T[17][25].npc!=='bp','Battle Pets is on the map without the switch');go('bp');T.ok(curScreen!=='bp'||!document.querySelector('#app iframe'),'Battle Pets opened without the switch');
+  T.ok(W.T[20][28].npc!=='bp','Battle Pets is on the map without the switch');go('bp');T.ok(curScreen!=='bp'||!document.querySelector('#app iframe'),'Battle Pets opened without the switch');
   const before=JSON.stringify(state.players);BattlePets._set(p.id,true);try{closeModal();}catch(e){}go('world');await T.wait(100);
-  T.ok(W.T[17][25].npc==='bp','Battle Pets is not on the map after the switch');go('bp');const f=document.querySelector('#app iframe');T.ok(f&&/battle-pets\.html\?embed=1&g=5/.test(f.getAttribute('src')),'Battle Pets frame missing');
+  T.ok(W.T[20][28].npc==='bp','Battle Pets is not on the map after the switch');go('bp');const f=document.querySelector('#app iframe');T.ok(f&&/battle-pets\.html\?embed=1&g=5/.test(f.getAttribute('src')),'Battle Pets frame missing');
   const res=await fetch('battle-pets.html',{cache:'no-store'});T.ok(res.ok,'battle-pets.html is missing');
-  state.cur=q.id;go('world');await T.wait(100);T.ok(W.T[17][25].npc!=='bp','Battle Pets shows for a hero who is not in the test');
+  state.cur=q.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets shows for a hero who is not in the test');
   const b0=JSON.parse(before).find(x=>x.id===p.id),added=Object.keys(p).filter(k=>!(k in b0));T.ok(!added.some(k=>/bp|pets?test/i.test(k))&&p.coins===b0.coins&&!/mqBp|bpTest/.test(JSON.stringify(state)),'the Battle Pets test changed saved hero data: '+added.join());
-  BattlePets._set(p.id,false);try{closeModal();}catch(e){}state.cur=p.id;go('world');await T.wait(100);T.ok(W.T[17][25].npc!=='bp','Battle Pets stayed after switching off');
+  BattlePets._set(p.id,false);try{closeModal();}catch(e){}state.cur=p.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets stayed after switching off');
  }],
  ['send a visitor: a grown-up can send the Troll, Skyla and Dr. Quartz',async function(){
   T.reset();const p=T.hero('Vis',5,{level:12,battles:1});state.cur=p.id;const html=()=>{const d=document.createElement('div');d.innerHTML=MQ_PARENT.map(f=>{try{return f()||'';}catch(e){return '';}}).join('');return d;};

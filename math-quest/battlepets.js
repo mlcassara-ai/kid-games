@@ -5,7 +5,7 @@
    Uses Math Quest globals: P, state, W, SCREENS, go, topbar, toast, refreshParent, esc. */
 (function(){
 'use strict';
-const KEY='mqBpTest',BP_X=25,BP_Y=17;
+const KEY='mqBpTest',BP_X=28,BP_Y=20;
 const ids=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const on=p=>window.MQ_BP_BETA===true||(!!p&&ids().includes(p.id));
 const me=()=>{try{return P();}catch(e){return null;}};

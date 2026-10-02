@@ -63,7 +63,7 @@ const say=m=>{try{toast(m);}catch(e){}};
    address (a grown-up preview); ?truck=0 hides it again. The preview key was renamed so earlier previews are switched off. */
 function flag(){if(window.MQ_TRUCK_BETA===true)return true;try{const m=/[?&]truck=([01])(&|$)/.exec(location.search);if(m){if(m[1]==='1')localStorage.setItem('mqTruckPreview','1');else localStorage.removeItem('mqTruckPreview');}localStorage.removeItem('mqTruckBeta');return localStorage.getItem('mqTruckPreview')==='1';}catch(e){return false;}}
 /* the truck parks on the village map once it is open (same pattern as Dr. Quartz's Lab) */
-const TK_X=28,TK_Y=20;
+const TK_X=25,TK_Y=17;
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[TK_Y]&&W.T[TK_Y][TK_X];if(!t||t.water)return;
  if(flag()){if(t.npc!=='truck'&&!t.npc&&!t.chest){if(W.hx===TK_X&&W.hy===TK_Y)return;t.npc='truck';t.block=true;t.o=null;}}
  else if(t.npc==='truck'){delete t.npc;t.block=false;}}catch(e){}}
