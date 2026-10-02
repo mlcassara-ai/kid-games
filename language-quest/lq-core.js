@@ -87,6 +87,8 @@ function record(kind,key,ok,confusedWith){
   const e=bucket[key]=bucket[key]||{r:0,w:0}; ok?e.r++:e.w++; e.t=Date.now();
   if(!ok&&confusedWith){ const k=key+"→"+confusedWith; st.mix=st.mix||{}; st.mix[k]=(st.mix[k]||0)+1; }
   if(!ok){ st.recent=st.recent||[]; st.recent.unshift({k:kind,a:key,b:confusedWith||"",t:Date.now(),z:location.pathname.split("/").filter(Boolean).pop()||"map"}); st.recent=st.recent.slice(0,25); }
+  if(ok){ const d=today(), dr=p.dr=p.dr||{}; dr[d]=(dr[d]||0)+1; if(!p.best||dr[d]>p.best.n) p.best={d,n:dr[d]};
+    const ks=Object.keys(dr); if(ks.length>21){ const ms=k=>{ const a=k.split("-"); return new Date(+a[0],a[1]-1,+a[2]).getTime(); }; ks.sort((a,b)=>ms(a)-ms(b)).slice(0,ks.length-21).forEach(k=>delete dr[k]); } }
   p.last=Date.now(); p.days=p.days||{}; p.days[today()]=1; save();
 }
 /* ---------------- UI ---------------- */
@@ -181,15 +183,15 @@ function createPlayer(){ let color=COLORS[state.players.length%COLORS.length];
       const p=blankPlayer(n,color); state.players.push(p); save(); chooseLock(p,false); }; };
   draw();
 }
-function chooseLock(p,isNew){ let pick=[];
+function chooseLock(p,isNew,done){ let pick=[]; const after=()=>done?done():isNew?enter(p):parentCorner();
   const draw=()=>{ overlay(`<div class="lq-card" style="max-width:420px;margin:20px auto;text-align:center">${hero(p.color,70)}
     <h2>Pick 2 secret pictures</h2><p>They keep your hero safe. Remember the order!</p>
     <div class="lq-dots">${[0,1].map(i=>pick[i]||"○").join(" ")}</div>
     <div class="lq-grid">${PICS.map(e=>`<button data-e="${e}">${e}</button>`).join("")}</div>
     <div class="lq-row"><button class="lq-btn gh" id="lqSkip">${(isNew||!p.lock)?"No secret pictures":"Remove lock"}</button>${pick.length===2?`<button class="lq-btn g" id="lqOk">Save ✓</button>`:""}</div></div>`);
     document.querySelectorAll(".lq-grid button").forEach(b=>b.onclick=()=>{ if(pick.length<2&&!pick.includes(b.dataset.e)){ pick.push(b.dataset.e); draw(); } });
-    document.getElementById("lqSkip").onclick=()=>{ p.lock=null; save(); isNew?enter(p):parentCorner(); };
-    const ok=document.getElementById("lqOk"); if(ok) ok.onclick=()=>{ p.lock=pick.slice(); save(); isNew?enter(p):parentCorner(); }; };
+    document.getElementById("lqSkip").onclick=()=>{ p.lock=null; save(); after(); };
+    const ok=document.getElementById("lqOk"); if(ok) ok.onclick=()=>{ p.lock=pick.slice(); save(); after(); }; };
   draw();
 }
 
@@ -294,8 +296,67 @@ function parentCorner(){
 
 /* ---------------- public API ---------------- */
 function cur(){ return state.players.find(p=>p.id===state.cur)||null; }
+/* ---------------- drawn hero + costumes ----------------
+   drawHero paints the player on any 2D canvas with the feet at (0,0), about 100 units tall, wearing p.wear.
+   WEAR ids are saved in each player's wardrobe (p.own, p.wear), so never reuse or rename them. */
+const COLOR_NAMES=["أَزْرَق","وَرْدِيّ","أَخْضَر","بَنَفْسَجِيّ","بُرْتُقَالِيّ","أَحْمَر","فَيْرُوزِيّ","زَيْتُونِيّ"];
+const COLOR_EN=["Blue","Pink","Green","Purple","Orange","Red","Turquoise","Olive"];
+const WEAR=[
+ {id:"hat",slot:"head",ar:"قُبَّعَة",en:"Hat",price:40}, {id:"flower",slot:"head",ar:"زَهْرَة",en:"Flower",price:40},
+ {id:"tarboosh",slot:"head",ar:"طَرْبُوش",en:"Tarboosh",price:80}, {id:"crown",slot:"head",ar:"تَاج",en:"Crown",price:150},
+ {id:"glasses",slot:"face",ar:"نَظَّارَة",en:"Glasses",price:50}, {id:"shades",slot:"face",ar:"نَظَّارَةٌ شَمْسِيَّة",en:"Sunglasses",price:70},
+ {id:"scarf",slot:"back",ar:"وِشَاح",en:"Scarf",price:60}, {id:"bag",slot:"back",ar:"حَقِيبَة",en:"Backpack",price:80}, {id:"cape",slot:"back",ar:"رِدَاء",en:"Cape",price:120}];
+function drawHero(c,p,o){ o=o||{}; const wear=o.wear||(p&&p.wear)||{}, t=o.time||0, fx=(o.face||0)*3, sw=o.moving?Math.sin(t*12)*5:0;
+  const R=(x,y,w,h,r)=>{ c.beginPath(); c.roundRect?c.roundRect(x,y,w,h,r):c.rect(x,y,w,h); }, dot=(x,y,r,f)=>{ c.fillStyle=f; c.beginPath(); c.arc(x,y,r,0,7); c.fill(); };
+  if(wear.back==="cape"){ c.fillStyle="#C8402F"; c.beginPath(); c.moveTo(-15,-48); c.lineTo(15,-48); c.lineTo(24,-12); c.quadraticCurveTo(0,-5,-24,-12); c.closePath(); c.fill(); }
+  if(wear.back==="bag"){ c.fillStyle="#8A5A33"; R(-23,-46,12,24,5); c.fill(); R(11,-46,12,24,5); c.fill(); }
+  c.fillStyle="#12233D"; R(-11+sw,-18,8,18,4); c.fill(); R(3-sw,-18,8,18,4); c.fill();                                  // legs
+  c.fillStyle=(p&&p.color)||"#1E5AA8"; R(-16,-50,32,36,12); c.fill(); c.fillStyle="#F2B134"; R(-16,-36,32,6,3); c.fill();   // body and belt
+  if(wear.back==="bag"){ c.strokeStyle="#6B4423"; c.lineWidth=4; c.lineCap="round"; c.beginPath(); c.moveTo(-10,-48); c.lineTo(-10,-38); c.moveTo(10,-48); c.lineTo(10,-38); c.stroke(); }
+  dot(0,-66,18,"#E9B98E"); c.fillStyle="#3B2A20"; c.beginPath(); c.arc(0,-72,18,Math.PI,0); c.fill();               // head and hair
+  dot(-6+fx,-65,2.6,"#12233D"); dot(6+fx,-65,2.6,"#12233D");
+  if(wear.back==="cape") dot(0,-48,4,"#F2B134");
+  if(wear.back==="scarf"){ c.fillStyle="#2FA894"; R(-15,-52,30,8,4); c.fill(); R(5,-49,8,20,3); c.fill(); c.fillStyle="#fff"; c.fillRect(5,-35,8,3); }
+  if(wear.face==="glasses"){ c.strokeStyle="#7A5230"; c.lineWidth=2; for(const k of [-6,6]){ c.beginPath(); c.arc(k+fx,-65,5.6,0,7); c.stroke(); } }
+  if(wear.face==="shades"){ c.fillStyle="#12233D"; R(-13+fx,-70,11,9,3); c.fill(); R(2+fx,-70,11,9,3); c.fill(); c.fillRect(-3+fx,-68,6,2); }
+  if(wear.head==="hat"){ c.fillStyle="#C9A66B"; c.beginPath(); c.ellipse(0,-82,26,6,0,0,7); c.fill(); c.beginPath(); c.arc(0,-83,14,Math.PI,0); c.fill(); c.fillStyle="#8A5A33"; c.fillRect(-14,-87,28,4); }
+  if(wear.head==="flower"){ for(let i=0;i<5;i++){ const a=i*Math.PI*0.4; dot(13+Math.cos(a)*5,-84+Math.sin(a)*5,3.6,"#F7A8C4"); } dot(13,-84,3,"#F2B134"); }
+  if(wear.head==="tarboosh"){ c.fillStyle="#C8402F"; c.beginPath(); c.moveTo(-13,-82); c.lineTo(13,-82); c.lineTo(10,-102); c.lineTo(-10,-102); c.closePath(); c.fill();
+    c.strokeStyle="#12233D"; c.lineWidth=2; c.beginPath(); c.moveTo(0,-102); c.lineTo(12,-99); c.lineTo(13,-88); c.stroke(); }
+  if(wear.head==="crown"){ c.fillStyle="#F2B134"; c.beginPath(); c.moveTo(-14,-82); c.lineTo(-14,-98); c.lineTo(-7,-90); c.lineTo(0,-101); c.lineTo(7,-90); c.lineTo(14,-98); c.lineTo(14,-82); c.closePath(); c.fill();
+    dot(0,-87,2.6,"#E0607E"); dot(-8,-86,2,"#1E5AA8"); dot(8,-86,2,"#1E5AA8"); }
+}
+/* ---------------- "Me": the player's own page ---------------- */
+function mePage(){
+  const p=cur(); if(!p) return; const n=o=>Object.keys(o||{}).length, sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
+  const L=n(p.letters), rows=[["⛺ Letters caught",L,28],["✏️ Letters traced",n(p.trace),28],["💦 Sound Falls pools",n(p.falls),8],["🛍️ Souq stalls",n(p.souq),5],["📒 Letter Friends",n(p.friends),28],["⛲ Sayings found",n(p.well&&p.well.got),26]];
+  const stars=sum(p.camps)+sum(p.falls)+sum(p.souq), days=n(p.days), dr=p.dr||{}, td=dr[today()]||0, best=p.best||{n:0};
+  const right=["letters","marks","words"].reduce((a,k)=>a+Object.values((p.stats||{})[k]||{}).reduce((x,e)=>x+(e.r||0),0),0);
+  const week=[]; for(let i=6;i>=0;i--){ const d=new Date(Date.now()-i*864e5); week.push([["Su","Mo","Tu","We","Th","Fr","Sa"][d.getDay()],dr[d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()]||0]); }
+  const top=Math.max(1,...week.map(w=>w[1]));
+  const cheer=td>0&&td>=best.n?"🎉 Today is your best day ever! Amazing work."
+    :L<28?`Catch ${4-(L%4)} more letter${4-(L%4)===1?"":"s"} to fill your next camp.`
+    :n(p.falls)<8?"Open the next pool at Sound Falls."
+    :n(p.souq)<5?"Help the next shopkeeper in the Souq."
+    :n(p.friends)<28?`${28-n(p.friends)} Letter Friends are still hiding on the map.`
+    :"You have done everything! Play again to earn more stars.";
+  overlay(`<div class="lq-card" style="max-width:520px;margin:10px auto;text-align:center">
+    <canvas id="lqMe" width="260" height="300" style="width:130px;height:150px"></canvas>
+    <h2 style="margin:0">${esc(p.name)}</h2>
+    <p style="margin:4px 0"><b>🪙 ${p.coins||0}</b> · <b>★ ${stars}</b> of 60 stars · played on <b>${days}</b> day${days===1?"":"s"}</p>
+    <p style="margin:6px 0;font-weight:800;color:#1E5AA8">${cheer}</p>
+    <div style="text-align:left">${rows.map(r=>`<div class="lq-small" style="display:flex;justify-content:space-between;margin-top:8px"><span>${r[0]}</span><b>${r[1]} / ${r[2]}</b></div><div class="lq-bar"><i style="width:${Math.min(100,r[1]/r[2]*100)}%"></i></div>`).join("")}</div>
+    <h2 style="font-size:1.15rem;margin:16px 0 2px">My right answers this week</h2>
+    <div style="display:flex;gap:6px;align-items:flex-end;justify-content:center;height:96px">${week.map((w,i)=>`<div style="width:34px;text-align:center"><div class="lq-small">${w[1]||""}</div><div style="height:${Math.round(w[1]/top*60)+4}px;border-radius:6px 6px 0 0;background:${i===6?"#F2B134":"#2FA894"}"></div><div class="lq-small">${w[0]}</div></div>`).join("")}</div>
+    <p class="lq-small" style="margin:4px 0">Today: <b>${td}</b> · My best day: <b>${best.n}</b> · All time: <b>${right}</b></p>
+    <div class="lq-row" style="flex-wrap:wrap"><button class="lq-btn" id="lqMeWear">🧵 Colours and clothes</button><button class="lq-btn gh" id="lqMeLock">🔒 My secret pictures</button><button class="lq-btn g" id="lqMeOk">Back to the game</button></div></div>`);
+  const cv=document.getElementById("lqMe"), c=cv.getContext("2d"); c.translate(130,292); c.scale(2.6,2.6); drawHero(c,p);
+  document.getElementById("lqMeOk").onclick=()=>{ closeOverlay(); fire(); };
+  document.getElementById("lqMeLock").onclick=()=>chooseLock(p,false,mePage);
+  document.getElementById("lqMeWear").onclick=()=>{ location.href=((location.pathname.match(/^(.*\/language-quest\/)/)||[])[1]||"./")+"souq/?tailor=1"; };
+}
 window.LQ={
-  player:cur, profiles,
+  player:cur, profiles, me:mePage, drawHero, WEAR, COLOR_NAMES, COLOR_EN,
   /* the player who is signed in on this tab right now (kept while moving between the map and the zones) */
   sessionPlayer(){ let id=null; try{ id=sessionStorage.getItem("lq.active"); }catch(e){} const p=cur(); return p&&p.id===id?p:null; },
   leave(){ state.cur=null; try{ sessionStorage.removeItem("lq.active"); }catch(e){} saveLocal(); fire(); }, parentCorner:()=>askPin(parentCorner), onChange:f=>listeners.push(f),

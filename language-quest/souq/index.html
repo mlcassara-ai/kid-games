@@ -116,6 +116,16 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 @keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 @keyframes hop{40%{transform:translateY(-14px) rotate(-5deg)}}
 @keyframes land{0%{transform:scale(1.8)}100%{transform:scale(1)}}
+.swatches{display:flex; flex-wrap:wrap; gap:10px; justify-content:center}
+.sw{width:50px; height:50px; border-radius:50%; border:4px solid #fff; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.sw.on{outline:4px solid var(--saffron)}
+.wears{display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:10px}
+.wr{background:#FFF8E6; color:#12233D; border:3px solid transparent; border-radius:18px; padding:6px 4px; font:inherit; cursor:pointer; text-align:center}
+.wr.on{border-color:var(--mint)}
+.wr .ar{font-size:1.2rem; line-height:1.7; direction:rtl}
+.wr .st{font-weight:800; font-size:.9rem; color:#7A6B45}
+.buy{background:#FFF8E6; color:#12233D; border-radius:18px; padding:10px 14px; margin-top:12px; text-align:center}
+h3{margin:14px 0 8px; font-size:1.1rem}
 .stalls{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-top:12px}
 .nums{display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:10px; margin-top:10px; direction:rtl}
 .num{background:#FFF8E6; color:#12233D; border:3px solid transparent; border-radius:18px; padding:8px 4px; cursor:pointer; font:inherit; text-align:center}
@@ -145,8 +155,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🛍️</div><h2>The Souq</h2><p class="muted">السُّوق — count with the shopkeepers!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02c";</script>
-<script src="../lq-core.js?v=2026.10.02c"></script>
+<script>window.LQ_VER="2026.10.02d";</script>
+<script src="../lq-core.js?v=2026.10.02d"></script>
 <script>
 /* ============ numbers data ============
    Counting words in the form used when counting aloud. STALLS: [name, what it covers, kind, the numbers taught].
@@ -195,8 +205,35 @@ function home(){
     <p class="muted" style="margin:0">Every stall teaches some numbers. Learn them, then help the shopkeeper to open the next stall.</p></div>
     <div class="stalls">${STALLS.map((s,i)=>{ const open=unlocked(i), st=save.souq[i]||0;
       return `<button class="camp ${open?"":"locked"}" data-i="${i}" ${open?"":"aria-disabled=\"true\""}><div class="tent">${s[4]}</div><div class="nm">${s[0]}</div>
-        <div class="muted" style="font-size:.95rem">${s[1]}</div><div class="st">${st?stars3(st):"&nbsp;"}</div></button>`; }).join("")}</div>`;
-  document.querySelectorAll(".camp").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; if(unlocked(i)) stall(i); else b.animate([{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"none"}],{duration:300}); });
+        <div class="muted" style="font-size:.95rem">${s[1]}</div><div class="st">${st?stars3(st):"&nbsp;"}</div></button>`; }).join("")}
+      <button class="camp" id="toTailor"><div class="tent">🧵</div><div class="nm">The Tailor</div><div class="muted" style="font-size:.95rem">Colours and costumes</div><div class="st">&nbsp;</div></button></div>`;
+  $("toTailor").onclick=()=>tailor();
+  document.querySelectorAll(".camp[data-i]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; if(unlocked(i)) stall(i); else b.animate([{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"none"}],{duration:300}); });
+}
+/* ---- the tailor: colours are free, costumes cost coins; tapping anything says its Arabic name ---- */
+function paintHero(cv,wear){ const c=cv.getContext("2d"), k=cv.height/112; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,cv.width,cv.height); c.translate(cv.width/2,cv.height-4*k); c.scale(k,k); LQ.drawHero(c,LQ.player(),wear?{wear}:{}); }
+function tailor(ask){
+  const p=LQ.player(), own=p.own||{}, wear=p.wear||{}, W=LQ.WEAR, it=ask&&W.find(w=>w.id===ask);
+  $("app").innerHTML=`<div class="panel"><h2>🧵 The Tailor</h2><p class="muted" style="margin:0">Pick a colour, or spend your coins on something new to wear.</p>
+    <div class="center"><canvas id="me" width="264" height="308" style="width:132px;height:154px"></canvas></div>
+    <h3>Colours <span class="muted" style="font-weight:500">· free</span></h3>
+    <div class="swatches">${LQ.COLORS.map((c,i)=>`<button class="sw ${p.color===c?"on":""}" data-i="${i}" style="background:${c}" aria-label="${LQ.COLOR_EN[i]}"></button>`).join("")}</div>
+    <h3>Costumes</h3>
+    <div class="wears">${W.map(w=>{ const on=wear[w.slot]===w.id; return `<button class="wr ${on?"on":""}" data-id="${w.id}"><canvas width="144" height="168" style="width:72px;height:84px"></canvas>
+      <div class="nm">${w.en}</div><div class="ar" lang="ar">${w.ar}</div><div class="st">${on?"Wearing ✓":own[w.id]?"Tap to wear":"🪙 "+w.price}</div></button>`; }).join("")}</div>
+    ${it?`<div class="buy">${save.coins>=it.price?`Buy the <b>${it.en}</b> <span lang="ar">${it.ar}</span> for <b>${it.price} 🪙</b>?
+        <div class="actions" style="margin-top:8px"><button class="btn go" id="buyOk">Buy it</button><button class="btn ghost" id="buyNo">Not now</button></div>`
+      :`The <b>${it.en}</b> <span lang="ar">${it.ar}</span> costs <b>${it.price} 🪙</b>. You need <b>${it.price-save.coins}</b> more. Play to earn coins!`}</div>`:""}
+    <div class="actions"><button class="btn ghost" id="toHome">Back to the stalls</button></div></div>`;
+  paintHero($("me")); document.querySelectorAll(".wr").forEach(b=>paintHero(b.querySelector("canvas"),{[W.find(w=>w.id===b.dataset.id).slot]:b.dataset.id}));
+  document.querySelectorAll(".sw").forEach(b=>b.onclick=()=>{ const i=+b.dataset.i; say(LQ.COLOR_NAMES[i]); LQ.update(q=>{ q.color=LQ.COLORS[i]; }); tailor(); });
+  document.querySelectorAll(".wr").forEach(b=>b.onclick=()=>{ const w=W.find(x=>x.id===b.dataset.id); say(w.ar);
+    if(!own[w.id]) return tailor(w.id);
+    LQ.update(q=>{ q.wear=q.wear||{}; q.wear[w.slot]=q.wear[w.slot]===w.id?null:w.id; }); tailor(); });
+  if($("buyOk")) $("buyOk").onclick=()=>{ if(save.coins<it.price) return; LQ.update(q=>{ q.own=q.own||{}; q.own[it.id]=1; q.wear=q.wear||{}; q.wear[it.slot]=it.id; q.coins=(q.coins||0)-it.price; }); persist(); say(it.ar); tailor(); };
+  if($("buyNo")) $("buyNo").onclick=()=>tailor();
+  if(it) $("app").querySelector(".buy").scrollIntoView({block:"nearest"});
+  $("toHome").onclick=home;
 }
 /* ---- learn the stall's numbers ---- */
 function stall(i){
@@ -273,7 +310,7 @@ function baskets(i){
   }
   draw();
 }
-persist(); home();
+persist(); new URLSearchParams(location.search).has("tailor")?tailor():home();      // "Colours and clothes" on the Me page opens the tailor directly
 </script>
 </body>
 </html>
