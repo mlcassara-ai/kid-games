@@ -378,6 +378,7 @@ function mePage(){
     :"You have done everything! Play again to earn more stars.";
   overlay(`<div class="lq-card" style="max-width:520px;margin:10px auto;text-align:center">
     <canvas id="lqMe" width="260" height="300" style="width:130px;height:150px"></canvas>
+    <div class="lq-row" style="flex-wrap:wrap;margin:0 0 10px"><button class="lq-btn" id="lqMeWear">🧵 Colours and clothes</button><button class="lq-btn gh" id="lqMeLock">🔒 My secret pictures</button><button class="lq-btn g" id="lqMeOk">Back to the game</button></div>
     <h2 style="margin:0">${esc(p.name)}</h2>
     <p style="margin:4px 0"><b>🪙 ${p.coins||0}</b> · <b>★ ${stars}</b> of 87 stars · played on <b>${days}</b> day${days===1?"":"s"}</p>
     <p style="margin:6px 0;font-weight:800;color:#1E5AA8">${cheer}</p>
@@ -385,8 +386,7 @@ function mePage(){
     <div style="text-align:left">${rows.map(r=>`<button class="lq-goto" data-go="${r[3]}"><div class="lq-small" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${r[0]}</span><span><b>${r[1]} / ${r[2]}</b> <span class="lq-chip">Go ▶</span></span></div><div class="lq-bar"><i style="width:${Math.min(100,r[1]/r[2]*100)}%"></i></div></button>`).join("")}</div>
     <h2 style="font-size:1.15rem;margin:16px 0 2px">My right answers this week</h2>
     <div style="display:flex;gap:6px;align-items:flex-end;justify-content:center;height:96px">${week.map((w,i)=>`<div style="width:34px;text-align:center"><div class="lq-small">${w[1]||""}</div><div style="height:${Math.round(w[1]/top*60)+4}px;border-radius:6px 6px 0 0;background:${i===6?"#F2B134":"#2FA894"}"></div><div class="lq-small">${w[0]}</div></div>`).join("")}</div>
-    <p class="lq-small" style="margin:4px 0">Today: <b>${td}</b> · My best day: <b>${best.n}</b> · All time: <b>${right}</b></p>
-    <div class="lq-row" style="flex-wrap:wrap"><button class="lq-btn" id="lqMeWear">🧵 Colours and clothes</button><button class="lq-btn gh" id="lqMeLock">🔒 My secret pictures</button><button class="lq-btn g" id="lqMeOk">Back to the game</button></div></div>`);
+    <p class="lq-small" style="margin:4px 0">Today: <b>${td}</b> · My best day: <b>${best.n}</b> · All time: <b>${right}</b></p></div>`);
   const cv=document.getElementById("lqMe"), c=cv.getContext("2d"); c.translate(130,292); c.scale(2.6,2.6); drawHero(c,p);
   document.getElementById("lqMeOk").onclick=()=>{ closeOverlay(); fire(); };
   document.getElementById("lqMeLock").onclick=()=>chooseLock(p,false,mePage);
