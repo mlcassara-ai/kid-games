@@ -25,7 +25,7 @@ const TRACKS=[
   rhythms:[[2,2,2,2],[1,1,2,2,2],[2,1,1,2,2],[2,2,4],[1,1,1,1,2,2],[2,2,1,1,2]]}
 ];
 let vol=0.6; try{ const v=parseFloat(localStorage.getItem(KEY)); if(!isNaN(v)) vol=Math.max(0,Math.min(1,v)); }catch(e){}
-let T=TRACKS[0]; try{ T=TRACKS.find(t=>t.id===localStorage.getItem(TKEY))||T; }catch(e){}
+let T=TRACKS.find(t=>t.id==="play"); try{ T=TRACKS.find(t=>t.id===localStorage.getItem(TKEY))||T; }catch(e){}      // Playtime unless the player picked another
 let ctx=null, master=null, duckG=null, noise=null, timer=null, barAt=0, bar=0, deg=0, muted=false;
 const hz=m=>440*Math.pow(2,(m-69)/12);
 const pitch=d=>T.base+12*Math.floor(d/7)+T.scale[((d%7)+7)%7];
