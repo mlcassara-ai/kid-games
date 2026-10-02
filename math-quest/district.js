@@ -1,9 +1,10 @@
 /* ================= Discovery District (walk-around PREVIEW, hidden) =================
    A second neighborhood reached by train from Number Village: a station plaza and five physics areas.
    This file is a look-and-feel preview only: you can ride the train, walk the map and tap things. There are no
-   battles, wild monsters or chests here yet, and nothing is saved. It draws its own map so the main world code is untouched.
+   battles, wild monsters or chests here yet. Only the Fizz Fountain is real: it spends coins and saves its cards (p.fizz). It draws its own map so the main world code is untouched.
    HIDDEN: no entry point unless the game was opened once with ?district=1 on that device (or window.MQ_DISTRICT_BETA===true).
-   Uses Math Quest globals: P, go, modal, closeModal, toast, esc, topbar, heroSVG, SFX, SCREENS, curScreen, W (main map tiles). */
+   Uses Math Quest globals: P, save, go, modal, closeModal, toast, esc, topbar, heroSVG, SFX, tone, say, speakable, speakToggle,
+   youngReader, voiceOn, SCREENS, curScreen, W (main map tiles). */
 (function(){
 'use strict';
 const COLS=44,ROWS=28,SEED=20261001;
@@ -14,10 +15,11 @@ const AREAS={
  canyon:{c:[22,4],g:'#e0a070',g2:'#d89868',zone:1,name:'Echo Canyon',art:'📣',bl:['🌵','🪨'],de:['🦇','🎵'],about:'Sound, echoes and waves.'},
  city:{c:[36,6],g:'#c9c4e8',g2:'#c0bae2',zone:1,name:'Circuit City',art:'💡',bl:['🏢','🔋'],de:['⚡','🔌'],about:'Batteries, bulbs and wires.'},
  lagoon:{c:[8,21],g:'#bfe9d2',g2:'#b3e0c7',zone:1,name:'Float or Sink Lagoon',art:'🛶',bl:['🌿','🎋'],de:['🦆','🫧'],about:'What floats, what sinks, and why.'}};
-const SPOTS=[{id:'train',x:19,y:14,e:'🚂',n:'Train to Number Village'},{id:'board',x:25,y:14,e:'📜',n:'District Board'},{id:'scope',x:22,y:12,e:'🔭',n:''}];
+/* plaza is 15x9 with the Fizz Fountain in the middle */
+const SPOTS=[{id:'fizz',x:22,y:14,e:'⛲',n:'Fizz Fountain'},{id:'train',x:17,y:14,e:'🚂',n:'Train to Number Village'},{id:'board',x:27,y:14,e:'📜',n:'District Board'},{id:'scope',x:22,y:11,e:'🔭',n:''}];
 const LAKES=[[41,26,5.6],[4,25,3.4],[30,12,1.5]];
 const BAY_STOPS=[['Wobble Crab','Which side is heavier?'],['Tippy Gull','Make it level'],['See-Saw Seal','Find the weight'],['Heavy Hermit','Find the distance'],['Pulley Pelican','Levers and pulleys'],['Captain Counterweight (boss)','Everything, mixed']];
-const TRAIN_X=27,TRAIN_Y=13; /* the station tile on the main map (top-right corner of the village plaza) */
+const TRAIN_X=28,TRAIN_Y=15; /* the station tile on the main map (right side of the village plaza) */
 let D=null;
 function flag(){if(window.MQ_DISTRICT_BETA===true)return true;try{if(/[?&]district=1(&|$)/.test(location.search))localStorage.setItem('mqDistrictBeta','1');return localStorage.getItem('mqDistrictBeta')==='1';}catch(e){return false;}}
 function rng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
@@ -32,14 +34,14 @@ function build(){const r=rng(SEED),T=[],keys=Object.keys(AREAS);
  const carve=(x1,y1)=>{let x=pc[0],y=pc[1];const lay=()=>{for(const dx of [0,1]){const t=T[y]&&T[y][x+dx];if(t&&!t.water){t.path=true;t.block=false;t.o=null;}}};
   if(r()<.5){while(x!==x1){x+=Math.sign(x1-x);lay();}while(y!==y1){y+=Math.sign(y1-y);lay();}}else{while(y!==y1){y+=Math.sign(y1-y);lay();}while(x!==x1){x+=Math.sign(x1-x);lay();}}};
  for(const k of keys)if(k!=='plaza')carve(AREAS[k].c[0],AREAS[k].c[1]);
- for(let y=pc[1]-3;y<=pc[1]+2;y++)for(let x=pc[0]-5;x<=pc[0]+5;x++){const t=T[y][x];t.plaza=true;t.path=false;t.block=false;t.o=null;}
+ for(let y=pc[1]-4;y<=pc[1]+4;y++)for(let x=pc[0]-7;x<=pc[0]+7;x++){const t=T[y][x];t.plaza=true;t.path=false;t.block=false;t.o=null;}
  for(let y=1;y<ROWS-1;y++)for(let x=1;x<COLS-1;x++){const t=T[y][x];if(t.path||t.plaza)continue;const B=AREAS[t.b],v=r();
   if(keys.some(k=>AREAS[k].zone&&Math.abs(AREAS[k].c[0]-x)<=1&&Math.abs(AREAS[k].c[1]-y)<=1))continue;
   if(v<.17){t.o=B.bl[Math.floor(r()*B.bl.length)];t.block=true;}else if(v<.25){t.o=B.de[Math.floor(r()*B.de.length)];t.deco=true;}}
  for(const [cx,cy,rad] of LAKES)for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){const t=T[y][x];if(!t.path&&!t.plaza&&Math.hypot(x-cx,y-cy)<rad){t.water=true;t.block=true;t.o=null;t.deco=false;}}
  for(const k of keys){const B=AREAS[k];if(!B.zone)continue;const t=T[B.c[1]][B.c[0]];t.gate=k;t.block=true;t.o=null;t.water=false;t.path=false;}
  SPOTS.forEach(n=>{const t=T[n.y][n.x];t.o=null;t.spot=n.id;t.block=true;});
- D={T,hx:pc[0],hy:pc[1]+1,fx:pc[0],fy:pc[1]+1,drawX:pc[0],drawY:pc[1]+1,moving:false,mt:0,path:[],after:null,spr:{},dir:1,last:null,raf:0,ts:48,vw:0,vh:0,img:null,mark:null};}
+ D={T,hx:pc[0],hy:pc[1]+2,fx:pc[0],fy:pc[1]+2,drawX:pc[0],drawY:pc[1]+2,moving:false,mt:0,path:[],after:null,spr:{},dir:1,last:null,raf:0,ts:48,vw:0,vh:0,img:null,mark:null};}
 const walk=(x,y)=>{const t=D.T[y]&&D.T[y][x];return !!t&&!t.block;};
 function pathTo(tx,ty){const k=(x,y)=>y*COLS+x,prev=new Map([[k(D.hx,D.hy),-1]]),q=[[D.hx,D.hy]];
  while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty){const out=[];let c=k(x,y);while(c!==k(D.hx,D.hy)){out.unshift([c%COLS,Math.floor(c/COLS)]);c=prev.get(c);}return out;}
@@ -55,6 +57,7 @@ function useTile(x,y){const t=D.T[y]&&D.T[y][x];if(!t)return;try{SFX.tap();}catc
   else modal(`<div class="mcard"><div class="big-emoji">🚧</div><h2>${esc(B.name)}</h2><p>${esc(B.about)}</p><p><b>Coming soon!</b></p><div class="row"><button class="btn green" onclick="closeModal()">OK</button></div></div>`);return;}
  if(t.spot==='train'){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>Ride back to Number Village?</h2><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green" onclick="closeModal();Discovery.ride('home')">All aboard!</button></div></div>`);return;}
  if(t.spot==='board'){modal(`<div class="mcard"><div class="big-emoji">📜</div><h2>District Board</h2><div style="text-align:left;max-width:340px;margin:0 auto">${Object.keys(AREAS).filter(k=>AREAS[k].zone).map(k=>{const B=AREAS[k];return `<p style="margin:6px 0">${B.art} <b>${esc(B.name)}</b> ${B.open?'<span style="color:#2f9e58">· opening first</span>':'<span class="muted">· coming soon</span>'}<br><span class="muted">${esc(B.about)}</span></p>`;}).join('')}</div><div class="row"><button class="btn green" onclick="closeModal()">OK</button></div></div>`);return;}
+ if(t.spot==='fizz'){fizzOpen();return;}
  if(t.spot==='scope')toast('🔭 Welcome to Discovery District!');}
 function tap(e){if(!D||document.querySelector('#modal.show'))return;const cv=e.currentTarget,r=cv.getBoundingClientRect(),[cx,cy]=cam();
  const x=Math.floor((e.clientX-r.left+cx)/D.ts),y=Math.floor((e.clientY-r.top+cy)/D.ts);const t=D.T[y]&&D.T[y][x];if(!t)return;
@@ -65,6 +68,78 @@ function tap(e){if(!D||document.querySelector('#modal.show'))return;const cv=e.c
  if(t.block)return;const p=pathTo(x,y);if(p){D.path=p;D.after=null;}}
 function stepBy(dx,dy){if(!D||D.moving||document.querySelector('#modal.show'))return;const nx=D.hx+dx,ny=D.hy+dy;const t=D.T[ny]&&D.T[ny][nx];if(!t)return;
  if(dx)D.dir=dx;if(t.gate||t.spot){useTile(nx,ny);return;}if(!t.block){D.path=[[nx,ny]];D.after=null;}}
+
+/* ---------- the Fizz Fountain: same toss mechanic as the village's Wishing Fountain, but it pays out a strange-but-true
+   fact card for an album. Saved in p.fizz {t, need, seen:[fact ids], sets:[finished set ids]}.
+   Facts must be checked before they go in; only ever ADD to the end of a set (cards are saved by id). ---------- */
+const SETS=[['a','🐾','Animals'],['s','🚀','Space'],['b','🫀','Your Body'],['w','🌍','Wild World']];
+const FACTS=[
+ ['a1','An octopus has three hearts.'],
+ ['a2','A group of flamingos is called a flamboyance.'],
+ ['a3','Sea otters sometimes hold paws while they sleep, so they do not drift apart.'],
+ ['a4','Some desert snails can sleep for up to three years.'],
+ ['a5','Butterflies taste with their feet.'],
+ ['a6','Wombat poop is shaped like cubes.'],
+ ['s1','A day on Venus is longer than a year on Venus.'],
+ ['s2','More than a million Earths could fit inside the Sun.'],
+ ['s3','Footprints on the Moon can last for millions of years, because there is no wind to blow them away.'],
+ ['s4','Saturn is so light for its size that it would float in water, if you could find a bathtub big enough.'],
+ ['s5','Space is silent, because sound needs something like air to travel through.'],
+ ['s6','On the Moon you would weigh about one sixth of what you weigh on Earth.'],
+ ['b1','You are a tiny bit taller in the morning than at night.'],
+ ['b2','Your heart beats about 100,000 times every day.'],
+ ['b3','Your brain is about three quarters water.'],
+ ['b4','Babies are born with about 300 bones. Grown-ups have 206.'],
+ ['b5','The rumbling sound your tummy makes has a name: borborygmus.'],
+ ['b6','You blink more than 10,000 times a day.'],
+ ['w1','A fluffy white cloud can weigh as much as 100 elephants.'],
+ ['w2','Lightning is about five times hotter than the surface of the Sun.'],
+ ['w3','Honey never spoils. Honey found in ancient Egyptian tombs was still good to eat.'],
+ ['w4','Bananas are a tiny bit radioactive, and totally safe to eat.'],
+ ['w5','Sound travels about four times faster in water than in air.'],
+ ['w6','The Eiffel Tower gets about 15 centimeters taller in summer, because metal grows when it is hot.']];
+const SET_COINS=100,ALL_COINS=300,REPEAT_COINS=5;
+const rndN=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function fz(p){p.fizz=p.fizz||{t:0,need:rndN(1,15),seen:[],sets:[]};const f=p.fizz;if(!Array.isArray(f.seen))f.seen=[];if(!Array.isArray(f.sets))f.sets=[];if(!(f.need>=1&&f.need<=15))f.need=rndN(1,15);return f;}
+const setOf=id=>SETS.find(s=>s[0]===id[0]);
+function fizzCSS(){if(document.getElementById('fzCSS'))return;const s=document.createElement('style');s.id='fzCSS';s.textContent=`
+.fz-pool{position:relative;height:110px;margin:0 auto 6px;max-width:260px;border-radius:50%/40%;background:radial-gradient(ellipse at 50% 60%,#d8fff4,#63d6c0 70%,#2aa58f);overflow:hidden;box-shadow:inset 0 -8px 0 rgba(0,0,0,.15)}
+.fz-pool .e{font-size:60px;line-height:110px}
+.fz-b{position:absolute;bottom:-14px;font-size:20px;animation:fzUp 1.1s ease-out forwards}
+@keyframes fzUp{to{transform:translateY(-130px) scale(1.5);opacity:0}}
+.fz-card{background:#f1eefc;border:3px solid #7048e8;border-radius:18px;padding:12px 14px;margin:8px auto;max-width:360px}
+.fz-card .set{font-weight:700;color:#5b3fd0;font-size:15px}.fz-card .txt{font-size:19px;font-weight:600;margin:6px 0;line-height:1.35}
+.fz-alb{display:grid;gap:10px;text-align:left;max-height:56vh;overflow:auto}
+.fz-alb h4{margin:0 0 4px;font-size:16px}.fz-alb p{margin:3px 0;font-size:15px;line-height:1.35}.fz-alb .no{color:#9a94b5}`;document.head.appendChild(s);}
+const fzSpeak=t=>{try{speakToggle(()=>say(speakable(t),.9));}catch(e){}};
+function fizzOpen(){const p=P(),f=fz(p);fizzCSS();
+ modal(`<div class="mcard"><div class="fz-pool" id="fzPool"><span class="e">⛲</span></div><h2>The Fizz Fountain</h2><p id="fzMsg" style="min-height:24px">Toss in a coin and watch it fizz…</p>
+ <div class="row"><button class="btn gold big" id="fzBtn" onclick="Discovery._toss()">Toss 🪙 ${f.t+1}</button></div><p class="muted" style="margin:0">Each toss costs 1 more coin than the last. A fact card resets the price to 1.</p>
+ <p class="muted" id="fzCoins">You have 🪙 ${p.coins} · 📒 ${f.seen.length} of ${FACTS.length} cards</p>
+ <div class="row"><button class="btn small" onclick="Discovery._album()">📒 My fact cards</button><button class="btn ghost dark small" onclick="closeModal()">Walk away</button></div></div>`);}
+let fzBusy=false;
+function fizzToss(){const p=P(),f=fz(p),msg=document.getElementById('fzMsg');if(fzBusy||!msg)return;const n=f.t+1;
+ if(p.coins<n){msg.textContent=p.coins?`You only have ${p.coins} coin${p.coins>1?'s':''}!`:'The fountain burbles. You need a coin!';return;}
+ p.coins-=n;f.t++;save();const b=document.getElementById('fzBtn');if(b)b.textContent=`Toss 🪙 ${f.t+1}`;
+ const pool=document.getElementById('fzPool');for(let i=0;i<Math.min(n+2,7);i++){try{tone(700+Math.random()*500,.1,'sine',.05,i*.07);}catch(e){}if(pool){const c=document.createElement('span');c.className='fz-b';c.textContent='🫧';c.style.left=(15+Math.random()*70)+'%';c.style.animationDelay=(i*.07)+'s';pool.appendChild(c);setTimeout(()=>c.remove(),1400);}}
+ const ce=document.getElementById('fzCoins');if(ce)ce.textContent=`You have 🪙 ${p.coins} · 📒 ${f.seen.length} of ${FACTS.length} cards`;
+ if(f.t>=f.need){fzBusy=true;msg.textContent='🫧 It is fizzing like crazy…';setTimeout(()=>{fzBusy=false;fizzCard();},900);}
+ else msg.textContent=['Fizz…','Bubble bubble…','It tickles the fountain!','Fizzier and fizzier…','Glub glub glub…'][Math.floor(Math.random()*5)];}
+function fizzCard(){const p=P(),f=fz(p);let pool=FACTS.filter(x=>!f.seen.includes(x[0])),repeat=false;if(!pool.length){pool=FACTS;repeat=true;}
+ const [id,txt]=pool[Math.floor(Math.random()*pool.length)];f.t=0;f.need=rndN(1,15);let extra='';
+ if(repeat){p.coins+=REPEAT_COINS;extra=`<p class="muted">You already have this card, so here are 🪙 ${REPEAT_COINS} back.</p>`;}
+ else{f.seen.push(id);const S=setOf(id),done=FACTS.filter(x=>x[0][0]===S[0]).every(x=>f.seen.includes(x[0]));
+  if(done&&!f.sets.includes(S[0])){f.sets.push(S[0]);p.coins+=SET_COINS;extra=`<p><b>${S[1]} ${S[2]} set complete! 🪙 +${SET_COINS}</b></p>`;
+   if(f.sets.length===SETS.length){p.coins+=ALL_COINS;extra+=`<p><b>🏆 Every card found! 🪙 +${ALL_COINS}</b></p>`;}}}
+ save();try{[523,659,784,1047].forEach((x,k)=>tone(x,.16,'triangle',.07,k*.09));}catch(e){}
+ const S=setOf(id);window.__fzTxt=txt;
+ modal(`<div class="mcard"><div class="big-emoji">🫧</div><h2>FIZZ! A fact card!</h2><div class="fz-card"><div class="set">${S[1]} ${S[2]} · strange but true</div><div class="txt">${esc(txt)}</div><button class="btn ghost dark small" onclick="Discovery._read()">🔊 Read it to me</button></div>${extra}
+ <p class="muted">📒 ${f.seen.length} of ${FACTS.length} cards</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Done</button><button class="btn gold" onclick="Discovery._fizz()">Again!</button></div></div>`);
+ try{if(youngReader(p)&&voiceOn())setTimeout(()=>say(speakable(txt),.9),400);}catch(e){}}
+function fizzAlbum(){const p=P(),f=fz(p);fizzCSS();
+ modal(`<div class="mcard"><h2>📒 Strange-but-true cards</h2><p class="muted">${f.seen.length} of ${FACTS.length} found. A full set earns 🪙 ${SET_COINS}.</p><div class="fz-alb">${SETS.map(S=>{const list=FACTS.filter(x=>x[0][0]===S[0]),got=list.filter(x=>f.seen.includes(x[0])).length;
+  return `<div><h4>${S[1]} ${S[2]} · ${got} of ${list.length}${f.sets.includes(S[0])?' ✅':''}</h4>${list.map(x=>f.seen.includes(x[0])?`<p>• ${esc(x[1])}</p>`:'<p class="no">• ? ? ?</p>').join('')}</div>`;}).join('')}</div>
+ <div class="row"><button class="btn green" onclick="Discovery._fizz()">Back to the fountain</button></div></div>`);}
 
 /* ---------- drawing ---------- */
 function sprite(e,size){const k=e+'|'+size;if(D.spr[k])return D.spr[k];const dpr=window.devicePixelRatio||1,c=document.createElement('canvas'),s=Math.ceil(size*dpr*1.25);c.width=c.height=s;
@@ -110,7 +185,7 @@ function ride(to){if(!flag())return;try{closeModal();}catch(e){}
  const going=to!=='home';modal(`<div class="mcard" style="overflow:hidden"><h2>${going?'Next stop: Discovery District!':'Next stop: Number Village!'}</h2><div style="font-size:64px;white-space:nowrap;animation:dTrain 1.5s linear forwards">🚂🚃🚃</div></div>`);
  if(!document.getElementById('dCSS')){const s=document.createElement('style');s.id='dCSS';s.textContent='@keyframes dTrain{from{transform:translateX(-110%) scaleX(-1)}to{transform:translateX(110%) scaleX(-1)}}';document.head.appendChild(s);}
  try{SFX.coin();}catch(e){}
- setTimeout(()=>{try{closeModal();}catch(e){}if(going){if(D){D.hx=AREAS.plaza.c[0];D.hy=AREAS.plaza.c[1]+1;}go('district');}else go('world');},1500);}
+ setTimeout(()=>{try{closeModal();}catch(e){}if(going){if(D){D.hx=AREAS.plaza.c[0]-4;D.hy=AREAS.plaza.c[1]+1;}go('district');}else go('world');},1500);}
 /* the station on the main map (same pattern as the Food Truck and Dr. Quartz's Lab) */
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[TRAIN_Y]&&W.T[TRAIN_Y][TRAIN_X];if(!t||t.water)return;
  if(flag()){if(!t.npc&&!t.chest&&!t.gate){if(W.hx===TRAIN_X&&W.hy===TRAIN_Y)return;t.npc='train';t.block=true;t.o=null;}}
@@ -119,5 +194,5 @@ window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='wor
 window.addEventListener('resize',()=>{try{if(typeof curScreen!=='undefined'&&curScreen==='district'&&D)resize();}catch(e){}});
 document.addEventListener('keydown',e=>{try{if(typeof curScreen==='undefined'||curScreen!=='district'||!D)return;const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!d)return;e.preventDefault();stepBy(d[0],d[1]);}catch(x){}});
 (function reg(n){if(typeof SCREENS!=='undefined'){SCREENS.district=screen;return;}if((n||0)<3000)setTimeout(()=>reg((n||0)+1),50);})(0);
-window.Discovery={flag,ride,_dbg:{state:()=>D,build,pathTo,useTile,AREAS,SPOTS,COLS,ROWS}};
+window.Discovery={flag,ride,_fizz:fizzOpen,_toss:fizzToss,_album:fizzAlbum,_read:()=>fzSpeak(window.__fzTxt||''),_dbg:{state:()=>D,build,pathTo,useTile,AREAS,SPOTS,COLS,ROWS,FACTS,SETS,fz,card:fizzCard}};
 })();

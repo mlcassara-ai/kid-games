@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.01j';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.01k';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -3193,8 +3193,10 @@ const BIOMES={
  fair:{c:[46,24],g:'#d3f9d8',g2:'#c3f0cc',zone:'fair',bl:['🏪','🌳'],de:['🥫','🏷️']},
  haunt:{c:[14,24],g:'#5a4a7e',g2:'#524373',zone:'haunt',overlay:true,rad:3.2,bl:['🪦'],de:['🎃','🕸️']}};
 const NPCS=[
- {id:'school',x:18,y:15,e:'🌀',n:'Quest Board'},{id:'elder',x:20,y:14,e:'🧙',n:'Elder Wiz'},{id:'shop',x:26,y:15,e:'🏪',n:'Shop'},
- {id:'pets',x:24,y:14,e:'🧑‍🌾',n:'Pet Keeper'},{id:'spin',x:18,y:19,e:'🎡',n:'Daily Spin'},{id:'board',x:26,y:19,e:'📜',n:'Leaderboard'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:22,y:14,e:'📮',n:'Gifts'},{id:'cafe',x:20,y:19,e:'🍱',n:'Cafeteria'},{id:'library',x:24,y:19,e:'📚',n:'Library'},{id:'build',x:26,y:17,e:'🏗️',n:'Builder'},{id:'lab',x:18,y:17,e:'🔬',n:'Quartz Lab',opt:1},{id:'truck',x:22,y:20,e:'🚚',n:'Food Truck',opt:1},{id:'train',x:27,y:13,e:'🚂',n:'Train',opt:1}]; /* opt: only shown for kids with the Lab Key (lab.js) */
+ /* plaza layout (15x10, fountain in the middle): a top row, a bottom row and the two sides, three tiles apart */
+ {id:'school',x:16,y:13,e:'🌀',n:'Quest Board'},{id:'elder',x:19,y:13,e:'🧙',n:'Elder Wiz'},{id:'mail',x:22,y:13,e:'📮',n:'Gifts'},{id:'pets',x:25,y:13,e:'🧑‍🌾',n:'Pet Keeper'},{id:'shop',x:28,y:13,e:'🏪',n:'Shop'},
+ {id:'lab',x:16,y:17,e:'🔬',n:'Quartz Lab',opt:1},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'build',x:28,y:17,e:'🏗️',n:'Builder'},{id:'train',x:28,y:15,e:'🚂',n:'Train',opt:1},
+ {id:'spin',x:16,y:20,e:'🎡',n:'Daily Spin'},{id:'cafe',x:19,y:20,e:'🍱',n:'Cafeteria'},{id:'truck',x:22,y:20,e:'🚚',n:'Food Truck',opt:1},{id:'library',x:25,y:20,e:'📚',n:'Library'},{id:'board',x:28,y:20,e:'📜',n:'Leaderboard'}]; /* opt: only shown for kids with the Lab Key (lab.js) */
 let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildWorld(){
@@ -3211,10 +3213,12 @@ function buildWorld(){
  const vc=BIOMES.village.c;
  for(const k of keys){if(k==='village')continue;const c=BIOMES[k].c;carve(vc[0],vc[1],c[0],c[1]);}
  // plaza
- for(let y=vc[1]-4;y<=vc[1]+3;y++)for(let x=vc[0]-5;x<=vc[0]+5;x++){const t=T[y][x];t.plaza=true;t.path=false;t.block=false;t.o=null;}
+ /* Oct 2026: the plaza grew from 11x8 to 15x10 so the buildings have room. rk marks the added tiles that used to roll the
+    decor dice, so they still roll (and discard) them: the rest of the map stays exactly as kids know it. */
+ for(let y=vc[1]-5;y<=vc[1]+4;y++)for(let x=vc[0]-7;x<=vc[0]+7;x++){const t=T[y][x];const old=y>=vc[1]-4&&y<=vc[1]+3&&x>=vc[0]-5&&x<=vc[0]+5;if(!old&&!t.path)t.rk=1;t.plaza=true;t.path=false;t.block=false;t.o=null;}
  // decor
- for(let y=1;y<WROWS-1;y++)for(let x=1;x<WCOLS-1;x++){const t=T[y][x];if(t.path||t.plaza)continue;const B=BIOMES[t.b];const v=r();
-  const nearGate=Object.values(BIOMES).some(bb=>bb.zone&&!bb.overlay&&Math.abs(bb.c[0]-x)<=1&&Math.abs(bb.c[1]-y)<=1);if(nearGate)continue;
+ for(let y=1;y<WROWS-1;y++)for(let x=1;x<WCOLS-1;x++){const t=T[y][x];if(t.path||(t.plaza&&!t.rk))continue;const B=BIOMES[t.b];const v=r();
+  const nearGate=Object.values(BIOMES).some(bb=>bb.zone&&!bb.overlay&&Math.abs(bb.c[0]-x)<=1&&Math.abs(bb.c[1]-y)<=1);if(nearGate)continue;if(t.plaza){if(v<.25)r();continue;}
   if(v<.17){t.o=B.bl[Math.floor(r()*B.bl.length)];t.block=true;}else if(v<.25){t.o=B.de[Math.floor(r()*B.de.length)];t.deco=true;}}
  // lakes
  for(const [cx,cy,rad] of [[14,11,2.2],[45,23,2],[46,11,1.6],[35,28,1.4]])for(let y=0;y<WROWS;y++)for(let x=0;x<WCOLS;x++){const t=T[y][x];if(!t.path&&!t.plaza&&Math.hypot(x-cx,y-cy)<rad){t.water=true;t.block=true;t.o=null;}}
@@ -3881,7 +3885,7 @@ const VIL_MAX=10;const PLAZA_NAMES=['🌷 Flowers','🏮 Lanterns','🌳 Trees',
 const vStars=l=>`${'★'.repeat(Math.min(5,l))}${'☆'.repeat(Math.max(0,5-l))}${l>5?' '+'🌟'.repeat(l-5):''} <small>Lv ${l}/${VIL_MAX}</small>`;
 const vLv=(p,id)=>((p&&p.vil)||{})[id]||0;
 const libPerDay=p=>2+(vLv(p,'library')>=3?1:0)+(vLv(p,'library')>=5?1:0)+(vLv(p,'library')>=8?1:0);
-const PLAZA_DECOR=[[['🌷',17,13],['🌷',27,13],['🌷',17,20],['🌷',27,20]],[['🏮',19,17],['🏮',25,17]],[['🌳',17,17],['🌳',27,16]],[['🗿',22,20]],[['🌈',21,13],['🎆',23,13]],[['🎈',20,16],['🎈',24,16]],[['🎠',17,15]],[['🦄',27,18]],[['🎪',25,20]],[['🏰',19,20]]];
+const PLAZA_DECOR=[[['🌷',15,12],['🌷',29,12],['🌷',15,21],['🌷',29,21]],[['🏮',20,17],['🏮',24,17]],[['🌳',18,15],['🌳',26,19]],[['🗿',22,15]],[['🌈',21,12],['🎆',23,12]],[['🎈',20,15],['🎈',24,15]],[['🎠',18,19]],[['🦄',26,15]],[['🎪',24,19]],[['🏰',20,19]]];
 function plazaDecor(x,y){const l=vLv(P(),'plaza');for(let i=0;i<l;i++)for(const [e,dx,dy] of PLAZA_DECOR[i])if(dx===x&&dy===y)return e;return null;}
 function vilUp(id){const p=P();const b=VIL.find(v=>v.id===id);const l=vLv(p,id);if(l>=VIL_MAX)return;const c=b.cost[l];if(p.coins<c){toast(`You need ${c-p.coins} more coins.`);return;}
  p.coins-=c;p.vil=p.vil||{};p.vil[id]=l+1;questEvent(p,'build',1);save();SFX.level();

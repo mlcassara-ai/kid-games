@@ -8,7 +8,7 @@
    Uses Math Quest globals: P(), save(), toast(), go(), SCREENS, NPCS, W, topbar, esc, modal, closeModal, dayKey, SFX, Quartz, CAVE_DATA. */
 (function(){
 'use strict';
-const KEY_TRIPS=5,ROCK_PRICE=150,MM_COINS=15,LAB_X=18,LAB_Y=17;
+const KEY_TRIPS=5,ROCK_PRICE=150,MM_COINS=15,LAB_X=16,LAB_Y=17;
 const DEMO=/labdemo/.test(location.search);
 const CD=()=>window.CAVE_DATA;
 const Q=p=>{p.sci=p.sci||{};const s=p.sci;s.rocks=s.rocks||0;s.trips=s.trips||0;s.lab=s.lab||{};s.lab.ok=s.lab.ok||{};return s;};

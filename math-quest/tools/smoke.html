@@ -105,6 +105,14 @@ const tests=[
   p.adv.trip.end=Date.now()-1000;const res=Adv._fin();T.ok(res&&res.sacks.length===2,'no sacks came home');
   T.ok(res.sacks.every(s=>Array.isArray(s.items)),'sack without items');}],
 
+['village plaza: every building is on the plaza, reachable and not crowded',async function(){
+  T.reset();const p=T.hero('Plaza',3);state.cur=p.id;window.MQ_TRUCK_BETA=true;window.MQ_DISTRICT_BETA=true;p.sci=p.sci||{};p.sci.key=1;W=null;go('world');await T.wait(150);
+  const bad=[];NPCS.forEach(n=>{const t=W.T[n.y][n.x];if(!t.plaza)bad.push(n.id+' is off the plaza');if(t.npc!==n.id)bad.push(n.id+' is not on its tile');
+   if(![[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>wWalk(n.x+dx,n.y+dy)))bad.push(n.id+' cannot be reached');
+   NPCS.forEach(m=>{if(m!==n&&Math.abs(m.x-n.x)<=1&&Math.abs(m.y-n.y)<=1)bad.push(n.id+' touches '+m.id);});});
+  PLAZA_DECOR.flat().forEach(([e,x,y])=>{if(!W.T[y][x].plaza||W.T[y][x].npc)bad.push('plaza decoration at '+x+','+y+' is misplaced');});
+  T.ok(wWalk(W.hx,W.hy),'hero starts on a blocked tile');T.ok(!bad.length,bad.slice(0,4).join(' | '));window.MQ_TRUCK_BETA=false;window.MQ_DISTRICT_BETA=false;W=null;}],
+
 ['food truck: hidden until opening day, then card, screens and map spot',async function(){
   T.reset();const p=T.hero('Truck',3,{battles:40});state.cur=p.id;
   const due=Date.now()>=new Date(2026,9,10).getTime();window.MQ_TRUCK_BETA=false;try{localStorage.removeItem('mqTruckBeta');}catch(e){}
@@ -118,14 +126,20 @@ const tests=[
 
 ['discovery district preview: hidden by default, walkable with the switch on',async function(){
   T.reset();const p=T.hero('District',3);state.cur=p.id;window.MQ_DISTRICT_BETA=false;try{localStorage.removeItem('mqDistrictBeta');}catch(e){}
-  T.ok(!Discovery.flag(),'district preview is on without the switch');go('world');await T.wait(100);T.ok(W.T[13][27].npc!=='train','train shows on the map without the switch');
+  T.ok(!Discovery.flag(),'district preview is on without the switch');go('world');await T.wait(100);T.ok(W.T[15][28].npc!=='train','train shows on the map without the switch');
   go('district');T.ok(curScreen==='world','district opened without the switch');
-  window.MQ_DISTRICT_BETA=true;go('world');await T.wait(100);T.ok(W.T[13][27].npc==='train','train station missing from the village');
+  window.MQ_DISTRICT_BETA=true;go('world');await T.wait(100);T.ok(W.T[15][28].npc==='train','train station missing from the village');
   go('district');T.ok(curScreen==='district'&&document.getElementById('dcv'),'district map did not open');
   const d=Discovery._dbg,D=d.state();Object.keys(d.AREAS).filter(k=>d.AREAS[k].zone).forEach(k=>{const c=d.AREAS[k].c;
    const ok=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const x=c[0]+dx,y=c[1]+dy;return D.T[y]&&D.T[y][x]&&!D.T[y][x].block&&d.pathTo(x,y);});T.ok(ok,'cannot walk to '+d.AREAS[k].name);});
   d.useTile(d.AREAS.bay.c[0],d.AREAS.bay.c[1]);T.ok(/Balance Bay/.test(document.querySelector('#modal').innerText),'Balance Bay sign did not open');closeModal();
-  await T.wait(300);T.ok(document.getElementById('dcv').width>0,'district canvas has no size');window.MQ_DISTRICT_BETA=false;go('world');}],
+  await T.wait(300);T.ok(document.getElementById('dcv').width>0,'district canvas has no size');
+  /* Fizz Fountain: tosses cost 1, 2, 3...; a card resets the price; a full set pays out */
+  const f=d.fz(p);f.t=0;f.need=2;p.coins=50;Discovery._fizz();Discovery._toss();T.ok(p.coins===49&&f.t===1,'first toss did not cost 1 coin');Discovery._toss();T.ok(p.coins===47,'second toss did not cost 2 coins');
+  await T.wait(1100);T.ok(f.seen.length===1&&f.t===0&&/fact card/i.test(document.querySelector('#modal').innerText),'no fact card after enough tosses');
+  f.seen=d.FACTS.filter(x=>x[0][0]==='a').map(x=>x[0]).slice(0,5);f.sets=[];const c0=p.coins;for(let k=0;k<60&&!f.sets.includes('a');k++)d.card();T.ok(f.sets.includes('a')&&p.coins>=c0+100,'finishing a set gave no reward');
+  T.ok(new Set(d.FACTS.map(x=>x[0])).size===d.FACTS.length&&d.FACTS.every(x=>d.SETS.some(s=>s[0]===x[0][0])),'fact ids are not unique or lack a set');
+  closeModal();window.MQ_DISTRICT_BETA=false;go('world');}],
 
 ['save size stays small',async function(){
   T.reset();for(let i=0;i<7;i++){const p=T.hero('Size'+i,3);for(let k=0;k<200;k++)p.missed['q'+k+' + 1']={n:1,a:1,op:'add',last:'2026-10-01',fixed:0,q:{op:'add',L:1,a:k,b:1,answer:k+1,text:'q'+k+' + 1'}};}
