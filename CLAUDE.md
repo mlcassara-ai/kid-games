@@ -20,7 +20,7 @@ Prodigy-style click-to-move world teaching Modern Standard Arabic with full hara
 - `index.html` — world map (canvas), zones, Letter Friends quest.
 - `lq-core.js` — shared engine (`window.LQ`): players, picture locks, parent PIN, Parent Corner, Firestore sync, class families, auto-update.
 - `letters/` Letter Dunes, `falls/` Sound Falls, `souq/` the Souq (numbers, counting and the Tailor), `harbor/` Story Harbor (fill-the-blank stories), `teacher/` teacher dashboard, `voices/` voice picker.
-- `music.js` — the map's background music, synthesised live with Web Audio (no audio files); loaded by the map only. Voice and music volumes are separate, set from the map's 🔊 menu and remembered on the device.
+- `music.js` — the map's background music: three selectable tunes synthesised live with Web Audio (no audio files); loaded by the map only. Voice and music volumes are separate, set from the map's 🔊 menu and remembered on the device.
 - `words.json` — list of every spoken Arabic phrase for audio generation. The game never reads it.
 
 ### Release checklist

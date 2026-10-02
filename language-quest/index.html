@@ -74,6 +74,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 #fm .vol span{width:92px}
 #fm .vol input{flex:1; height:36px; accent-color:var(--mint)}
 #fm .vol b{width:48px; text-align:right}
+#fm .tunes{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:12px 0 0}
+#fm .tunes .btn{font-size:.95rem; padding:8px 12px; min-height:44px}
 #fm .well{min-height:440px; display:flex; flex-direction:column}
 #fm .well>:first-child{margin-top:auto}
 #fm .well>.row{margin-top:auto; padding-top:12px}
@@ -110,8 +112,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02n";</script>
-<script src="lq-core.js?v=2026.10.02n"></script>
+<script>window.LQ_VER="2026.10.02o";</script>
+<script src="lq-core.js?v=2026.10.02o"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -970,10 +972,12 @@ soundBtn.onclick=()=>{ closeCard(); const mv=window.LQMusic?LQMusic.vol():0;
   openFm(`<h2 style="margin:0">🔊 Sound</h2>
     <label class="vol"><span>🗣️ Voice</span><input type="range" id="volVoice" min="0" max="100" step="5" value="${Math.round(LQ.voiceVol()*100)}"><b id="volVoiceN"></b></label>
     <label class="vol"><span>🎵 Music</span><input type="range" id="volMusic" min="0" max="100" step="5" value="${Math.round(mv*100)}" ${window.LQMusic?"":"disabled"}><b id="volMusicN"></b></label>
+    ${window.LQMusic?`<div class="tunes">${LQMusic.tracks().map(t=>`<button class="btn ${t.id===LQMusic.track()?"go":"ghost"}" data-t="${t.id}">${t.name}</button>`).join("")}</div>`:""}
     <p style="color:var(--muted);margin:6px 0 0;font-size:.95rem">Slide all the way left to turn one off. On an iPad the voice is either on or off; use the iPad's own volume buttons to make it quieter.</p>
     <div class="row"><button class="btn ghost" id="volTest">🔊 Test the voice</button><button class="btn go" id="volOk">Done</button></div>`);
   const vv=document.getElementById("volVoice"), vm=document.getElementById("volMusic"), show=()=>{ document.getElementById("volVoiceN").textContent=+vv.value?vv.value+"%":"off"; document.getElementById("volMusicN").textContent=+vm.value?vm.value+"%":"off"; };
   vv.oninput=()=>{ LQ.setVoiceVol(vv.value/100); applyVoice(); show(); }; vm.oninput=()=>{ if(window.LQMusic) LQMusic.setVol(vm.value/100); show(); };
+  fmBox.querySelectorAll(".tunes button").forEach(b=>b.onclick=()=>{ LQMusic.setTrack(b.dataset.t); fmBox.querySelectorAll(".tunes button").forEach(x=>x.className="btn "+(x===b?"go":"ghost")); });
   document.getElementById("volTest").onclick=()=>say("أَهْلًا وَسَهْلًا"); document.getElementById("volOk").onclick=closeFm; show(); };
 
 </script>
