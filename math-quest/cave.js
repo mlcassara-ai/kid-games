@@ -778,12 +778,22 @@ const SLOTHINT={'Fang Skull':'head','Horned Skull':'head','Crested Skull':'head'
 function museumReady(){return CD.FOSSILS.some(f=>!S.ex[f.id]&&f.parts.every((_,i)=>(S.fos[f.id]||[])[i]));}
 function openMuseum(){
  const ex=CD.FOSSILS.map(f=>{const got=S.fos[f.id]||[];const n=got.filter(Boolean).length;const done=S.ex[f.id];const ready=!done&&n===f.parts.length;
-  return `<div class="cv-ex ${done?'done':''}"><div class="cv-exe">${n||done?femo(f):'❔'}</div><div><b>${n||done?esc(f.n):'Unknown fossil'}</b><small>${done?esc(f.age):`${n}/${f.parts.length} pieces${n?'':' · dig in the '+esc(CD.LAYERS.find(L=>L.id===f.L).n)}`}</small>${!done&&f.camp!=null?(got[f.camp]?`<small class="cv-campok">🏕️ ${esc(f.parts[f.camp])}: found by your camp crew!</small>`:`<small class="cv-camp">🏕️ The <b>${esc(f.parts[f.camp])}</b> is only found by your Adventure Camp crew!</small>`):''}</div>${ready?`<button class="cv-btn sm" data-as="${f.id}">🧩 Assemble!</button>`:done?'<span class="cv-ok">🏛️ On display</span>':''}</div>`;}).join('');
+  return `<div class="cv-ex ${done?'done':''}"><div class="cv-exe">${n||done?femo(f):'❔'}</div><div><b>${n||done?esc(f.n):'Unknown fossil'}</b><small>${done?esc(f.age):`${n}/${f.parts.length} pieces${n?'':' · dig in the '+esc(CD.LAYERS.find(L=>L.id===f.L).n)}`}</small>${!done&&f.camp!=null?(got[f.camp]?`<small class="cv-campok">🏕️ ${esc(f.parts[f.camp])}: found by your camp crew!</small>`:`<small class="cv-camp">🏕️ The <b>${esc(f.parts[f.camp])}</b> is only found by your Adventure Camp crew!</small>`):''}</div>${ready?`<button class="cv-btn sm" data-as="${f.id}">🧩 Assemble!</button>`:done?`<button class="cv-btn sm" data-look="${f.id}">🔍 Look</button>`:''}</div>`;}).join('');
  const shown=CD.FOSSILS.filter(f=>S.ex[f.id]).sort((a,b)=>a.ageY-b.ageY);
- const tl=shown.length?`<div class="cv-tl"><h4>🕰️ Time Wall — deeper rock is older rock</h4>${shown.map(f=>`<div class="cv-tli"><span>${femo(f)}</span><b>${esc(f.n)}</b><small>${esc(f.age)} · found in ${esc(CD.LAYERS.find(L=>L.id===f.L).n)}</small></div>`).join('<div class="cv-tla">⬇️ older</div>')}</div>`:'';
+ const tl=shown.length?`<div class="cv-tl"><h4>🕰️ Time Wall — deeper rock is older rock</h4>${shown.map(f=>`<div class="cv-tli" data-look="${f.id}" style="cursor:pointer"><span>${femo(f)}</span><b>${esc(f.n)}</b><small>${esc(f.age)} · found in ${esc(CD.LAYERS.find(L=>L.id===f.L).n)}</small></div>`).join('<div class="cv-tla">⬇️ older</div>')}</div>`:'';
  const today=[...new Set([...W.items.values()].filter(it=>it.t==='f').map(it=>CD.FOSSILS.find(f=>f.id===it.id).L))].filter(l=>S.seen[l]).map(l=>CD.LAYERS.find(L=>L.id===l).n);
- modal(`<h2>🏛️ Museum</h2><p class="cv-sub">Find all the pieces of a fossil, then put the skeleton together!</p>${today.length?`<div class="cv-hint">🦴 Today, fossil pieces are hidden in: <b>${today.map(esc).join(', ')}</b>. Look for the 🦴 on the depth bar!</div>`:''}${ex}${tl}`,{wide:1});
- root.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>assemble(b.dataset.as));}
+ modal(`<h2>🏛️ Museum</h2><p class="cv-sub">Find all the pieces of a fossil, then put the skeleton together! Tap 🔍 Look on a finished one to read about it.</p>${today.length?`<div class="cv-hint">🦴 Today, fossil pieces are hidden in: <b>${today.map(esc).join(', ')}</b>. Look for the 🦴 on the depth bar!</div>`:''}${ex}${tl}`,{wide:1});
+ root.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>assemble(b.dataset.as));
+ root.querySelectorAll('[data-look]').forEach(b=>b.onclick=()=>exhibit(b.dataset.look));}
+/* a finished skeleton on display: come back any time to look at it and read about it */
+function exhibit(id){const f=CD.FOSSILS.find(x=>x.id===id);if(!f||!S.ex[id])return openMuseum();const L=CD.LAYERS.find(l=>l.id===f.L),x=f.x||{};
+ const row=(e,h,v)=>v?`<div style="display:flex;gap:10px;text-align:left;margin:8px 0"><span style="font-size:22px">${e}</span><div><b>${h}</b><br>${esc(v)}</div></div>`:'';
+ const sh=modal(`<button class="cv-back" data-back>‹ Museum</button><div class="cv-card"><div class="cv-big">${femo(f)}</div><h2>${esc(f.n)}</h2>
+  <div class="cv-stats"><span>🕰️ ${esc(f.age)}</span><span>${L.e} Found in ${esc(L.n)}</span><span>🦴 ${f.parts.length} pieces: ${f.parts.map(esc).join(', ')}</span></div>
+  <p>${txt(f)}</p>${row('🔎','What it was',x.what)}${row('📏','How big',x.size)}${row('🍽️','What it ate',x.ate)}${row('🌍','Where it lived',x.where)}
+  ${row('⛏️','Why you found it this deep','Rock builds up in layers over a very long time, so deeper rock is older. This fossil was in the '+L.n+' because of when it lived: '+f.age+'.')}
+  <button class="cv-btn" data-back>Back to the Museum</button></div>`,{wide:1});
+ sh.querySelectorAll('[data-back]').forEach(b=>b.onclick=openMuseum);}
 function assemble(id){const f=CD.FOSSILS.find(x=>x.id===id);const pos=FPOS[id];const placed=[];let sel=null;
  const R=rng(hash(id+S.day));const order=shuffle(R,f.parts.map((_,i)=>i));
  const draw=()=>{const sh=modal(`<button class="cv-back" data-back>‹ Museum</button><h2>🧩 Build the ${esc(f.n)}</h2><p class="cv-sub">Tap a bone, then tap where it goes on the skeleton.</p>
@@ -1200,5 +1210,5 @@ function leave(){save(true);cardQ.length=0;cancelAnimationFrame(raf);window.remo
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={mathQ,open,leave,summary,_dbg:()=>({S,W,H,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
+window.Cave={mathQ,open,leave,summary,_dbg:()=>({S,W,H,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
 })();

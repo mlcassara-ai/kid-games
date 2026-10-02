@@ -47,6 +47,7 @@ const tests=[
   T.ok(!bad.length,bad.slice(0,5).join(' | '));}],
 
 ['minerals: every one has a hammer-tap result, and the tests can tell them all apart',async function(){
+  T.ok(CAVE_DATA.FOSSILS.every(f=>f.x&&['what','size','ate','where'].every(k=>typeof f.x[k]==='string'&&f.x[k].length>3)),'a fossil has no Museum exhibit card facts');
   const D=CAVE_DATA,ids=Object.keys(D.MIN),br=D.BREAKS.map(b=>b.id),band=h=>{const i=D.TOOLS.findIndex(t=>h<=t.h);return i<0?4:i;};
   T.ok(ids.every(k=>br.includes(D.MIN[k].br)),'a mineral has no hammer-tap result: '+ids.filter(k=>!br.includes(D.MIN[k].br)));
   const sig=(k,uv)=>{const m=D.MIN[k];return [band(m.h),m.s,!!m.f,!!m.m,!!m.w,m.br,uv?m.u||'':''].join('|');};
