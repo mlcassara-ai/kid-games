@@ -24,7 +24,7 @@ const TRACKS=[
   drum:[[0,"d"],[2,"t"],[4,"d"],[6,"t"]], rest:0, motif:true,
   rhythms:[[2,2,2,2],[1,1,2,2,2],[2,1,1,2,2],[2,2,4],[1,1,1,1,2,2],[2,2,1,1,2]]}
 ];
-let vol=0.6; try{ const v=parseFloat(localStorage.getItem(KEY)); if(!isNaN(v)) vol=Math.max(0,Math.min(1,v)); }catch(e){}
+let vol=0.3; try{ const v=parseFloat(localStorage.getItem(KEY)); if(!isNaN(v)) vol=Math.max(0,Math.min(1,v)); }catch(e){}
 let T=TRACKS.find(t=>t.id==="play"); try{ T=TRACKS.find(t=>t.id===localStorage.getItem(TKEY))||T; }catch(e){}      // Playtime unless the player picked another
 let ctx=null, master=null, duckG=null, noise=null, timer=null, barAt=0, bar=0, deg=0, muted=false;
 const hz=m=>440*Math.pow(2,(m-69)/12);
