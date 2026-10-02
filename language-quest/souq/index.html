@@ -123,7 +123,9 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 .num .w{display:block; font-size:1.25rem; line-height:1.7; direction:rtl}
 .num .d{display:block; font-size:.85rem; color:#7A6B45; direction:ltr}
 .num.heard{border-color:var(--mint)}
-.opt.word{font-size:1.5rem; line-height:1.8; direction:rtl}
+.opt.word{font-size:1.5rem; line-height:1.8; direction:rtl; text-align:center; width:100%; padding:0 60px}
+.optw{position:relative}
+.hear{position:absolute; left:10px; top:50%; transform:translateY(-54%); width:48px; height:48px; border-radius:50%; border:0; background:#fff; font-size:1.3rem; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.18)}
 .things{font-size:2.2rem; line-height:1.35; letter-spacing:.2rem; display:block; max-width:340px; margin:0 auto}
 .shelf,.basket{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; min-height:64px; padding:8px; border-radius:18px}
 .shelf{background:#FFF8E6; border:2px dashed #D9BF85}
@@ -143,8 +145,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🛍️</div><h2>The Souq</h2><p class="muted">السُّوق — count with the shopkeepers!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02a";</script>
-<script src="../lq-core.js?v=2026.10.02a"></script>
+<script>window.LQ_VER="2026.10.02b";</script>
+<script src="../lq-core.js?v=2026.10.02b"></script>
 <script>
 /* ============ numbers data ============
    Counting words in the form used when counting aloud. STALLS: [name, what it covers, kind, the numbers taught].
@@ -236,9 +238,12 @@ function shop(i){
     if(q.type==="count"){ const e=THINGS[Math.random()*THINGS.length|0]; prompt=`How many?<span class="things" aria-label="${n} things">${e.repeat(n)}</span>`; speak=""; opts=shuffle([n,...others(n)]).map(x=>({t:ar(x),v:x})); }
     if(q.type==="write"){ prompt=`Which number is this word?<span class="big" lang="ar">${WORD[n]}</span>`; opts=shuffle([n,...others(n)]).map(x=>({t:ar(x),v:x})); }
     $("app").innerHTML=`<div class="panel">${bar(hp,hearts,S[4])}<div class="q">${prompt}</div>
-      <div class="opts">${opts.map(o=>`<button class="opt ${cls}" lang="ar" data-v="${o.v}">${o.t}</button>`).join("")}</div>
+      <div class="opts">${opts.map(o=>cls?`<div class="optw"><button class="opt ${cls}" lang="ar" data-v="${o.v}">${o.t}</button><button class="hear" data-v="${o.v}" aria-label="Hear this word">🔊</button></div>`
+        :`<button class="opt" lang="ar" data-v="${o.v}">${o.t}</button>`).join("")}</div>
+      ${cls?`<p class="muted center" style="margin:10px 0 0">Tap 🔊 to hear a word before you choose.</p>`:""}
       <div class="actions">${speak?`<button class="btn ghost" id="again">🔊 Hear again</button>`:""}<button class="btn ghost" id="run">Leave the stall</button></div></div>`;
     if(speak){ say(speak); $("again").onclick=()=>say(speak); } $("run").onclick=()=>stall(i);
+    document.querySelectorAll(".hear").forEach(b=>b.onclick=()=>{ if(!busy) say(WORD[+b.dataset.v]); });
     document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy)return; busy=true; const v=+b.dataset.v; say(WORD[n]);
       if(v===n){ b.classList.add("right"); hp--; addCoins(4); LQ.record("words",WORD[n],true); }
       else { b.classList.add("wrong"); hearts--; LQ.record("words",WORD[n],false,WORD[v]); document.querySelector(`.opt[data-v="${n}"]`).classList.add("right"); }
