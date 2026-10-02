@@ -318,7 +318,7 @@ if(cloud.code) syncNow();
    Every page carries window.LQ_VER; language-quest/version.json holds the newest one. */
 (function(){
   const VER=window.LQ_VER||"dev", ROOT=(location.pathname.match(/^(.*\/language-quest\/)/)||[])[1]||"./";
-  const EVERY=30*60e3, AWAY_QUIET=15*60e3; let pending=null, busy=false;
+  const EVERY=5*60e3, AWAY_QUIET=15*60e3; let pending=null, busy=false;
   const onMap=()=>/\/language-quest\/(index\.html)?$/.test(location.pathname);
   const safeNow=()=>onMap()&&!document.getElementById("lqOv")&&!document.getElementById("start")&&!document.hidden&&!(document.getElementById("card")||{classList:{contains:()=>false}}).classList.contains("show");
   async function latest(){ if(location.protocol==="file:") return null; try{ const r=await fetch(ROOT+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) return null; const j=await r.json(); return j&&j.v?String(j.v):null; }catch(e){ return null; } }
@@ -338,8 +338,8 @@ if(cloud.code) syncNow();
   // just arrived on a page (nothing to lose yet): if it's out of date, update right away
   (async()=>{ try{ if(sessionStorage.getItem("lq.updated")){ sessionStorage.removeItem("lq.updated"); const q=new URLSearchParams(location.search); if(q.has("r")){ q.delete("r"); history.replaceState(null,"",location.pathname+(q.toString()?"?"+q:"")+location.hash); } setTimeout(()=>toast("✨ Language Quest is up to date!"),600); return; } }catch(e){}
     if(await check()) reload(); })();
-  // while playing: check now and then; on the map it updates by itself when it's safe, elsewhere it offers a button
-  setInterval(async()=>{ if(document.hidden||busy) return; if(pending||await check()){ safeNow()?reload():banner(); } },EVERY);
+  // while playing: check every few minutes and tell the player with a button they can tap; never reload under them mid-play
+  setInterval(async()=>{ if(document.hidden||busy) return; if(pending||await check()) banner(); },EVERY);
   document.addEventListener("visibilitychange",async()=>{ if(document.hidden){ try{ localStorage.setItem("lqHiddenAt",String(Date.now())); }catch(e){} return; }
     let hid=0; try{ hid=+localStorage.getItem("lqHiddenAt")||0; }catch(e){} const away=Date.now()-hid;
     if(await check()){ (away>=AWAY_QUIET&&safeNow())?reload():banner(); } });
