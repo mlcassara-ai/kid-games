@@ -139,14 +139,16 @@ function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&
  function after(){
  const card=(html,btn)=>modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${html}</div></div></div>
    <div class="row"><button class="btn green big" onclick="closeModal()">${btn}</button></div></div>`);
+ /* now and then he mentions the strange thump from far below (the Core Keeper, cave.js); never on the very first trip */
+ let hint='';try{hint=(window.Cave&&Cave.coreHint)?Cave.coreHint(p.cave,s.trips):'';}catch(e){}
  if(first||s.trips===1)setTimeout(()=>{if(curScreen!=='world')return;
   const pages=[`Thank you for helping, ${esc(p.name)}! Want to do more science? <b>Bring me a 🪨 mystery rock!</b> You find them in 🎁 treasure chests and from monsters. When you have one, I'll come and find you.`,
    `Every <b>🏅 Boss Medal</b> you win makes my drill stronger, so we can open the deeper gates!`];
   if(tix)pages.push(Inner.ticketLine(p,tix,!inMet));else if(full)pages.push(Inner.fullLine(p));
   let i=0;const show=()=>{const last=i>=pages.length-1;modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${pages[i]}</div></div></div>
    <div class="row"><button class="btn green big" id="qzPg">${last?'Deal! 🤝':'Next ➜'}</button></div></div>`);document.getElementById('qzPg').onclick=()=>{if(last){closeModal();window.visitorQuiet=Date.now()+90e3;}else{i++;show();}};};show();},700);
- else if(tix||full)setTimeout(()=>{if(curScreen!=='world')return;
-  card(`Great work today, ${esc(p.name)}! ${tix?Inner.ticketLine(p,tix,!inMet):Inner.fullLine(p)}${s.rocks?`<br><br>You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:''}`,tix?'Thanks! 🎟️':'Okay! 👍');},700);
+ else if(tix||full||hint)setTimeout(()=>{if(curScreen!=='world')return;
+  card(`Great work today, ${esc(p.name)}! ${tix?Inner.ticketLine(p,tix,!inMet):full?Inner.fullLine(p):''}${hint?`${tix||full?'<br><br>':''}🤔 ${hint}`:''}${s.rocks?`<br><br>You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:''}`,tix?'Thanks! 🎟️':hint&&!full?'Hmm! 🤔':'Okay! 👍');},700);
  else toast(`🔬 Dr. Quartz: "Great work today!" ${s.rocks?`You still have 🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''} — I'll come back for you soon.`:'Bring me another 🪨 mystery rock to come back!'}`);}}
 
 /* ---------- backpack panel ---------- */

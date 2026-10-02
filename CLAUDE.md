@@ -72,6 +72,7 @@ Adaptive math battles plus a village of side activities, for grades 1–12 and a
 - `truck.js` — Food Truck; hidden (no opening date) unless the device opened the game with `?truck=1`; `?truck=0` hides it again.
 - `district.js` — Discovery District, a second walkable map reached by train (its techno music lives in `music.js`). A walk-around preview only, with its own map drawing; hidden unless the device opened the game once with `?district=1`.
 - `battlepets.js` + `battle-pets.html` — Battle Pets, a test only. A plaza building opens the prototype page in a frame; it gives no coins or prizes. Shown only for heroes switched on in Parent Corner (`p.bpTest`); it saves that switch and a small play log (`p.bp`, last 40 matches) shown in Parent Corner.
+- `cave.js` + `cave-data.js` — the Science Cave. Includes the Core Keeper: a hero who owns the Core Suit (the sixth suit) falls from the Mantle to the centre of the Earth and answers science questions; before that Dr. Quartz only hints. `cave-test.html` is a standalone test page for the cave (`?core=1` / `?core=again` start the fall).
 - `tools/smoke.py` + `tools/smoke.html` — the smoke test.
 
 ### Release checklist

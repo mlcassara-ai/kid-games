@@ -32,8 +32,12 @@ small{color:#6d6490}
   <button onclick="D.ms=(D.ms||0)+600000;save();stats();">⏩ Skip 10 minutes (battery)</button>
   <button onclick="gearAll()">🛠️ Max all gear</button>
   <button onclick="gatesAll()">🔓 Open all gates</button>
+  <button onclick="coreTry(false)">☄️ Core Keeper: first fall</button>
+  <button onclick="coreTry(true)">☄️ Core Keeper: return visit</button>
+  <button onclick="hintTry()">💬 Dr. Quartz's hints</button>
   <button onclick="if(confirm('Erase this test explorer?'))reset()">🗑️ Reset</button>
  </div>
+ <div id="hints" style="margin:8px 0"></div>
  <small>The test buttons are only for trying things out — they won't exist in the real game.</small>
 </div>
 <script src="cave-data.js?v=2"></script>
@@ -56,6 +60,14 @@ function nextDay(){D.off=(D.off||0)+1;save();stats();}
 function gearAll(){D.cave.gear={drill:4,suit:4,bat:4,pack:4,lamp:3,uv:1};D.cave.idd=D.cave.idd||{};save();stats();}
 function gatesAll(){D.cave.gates=Object.assign(D.cave.gates||{},{lever:1,mirror:1,sonar:1,raft:1,glow:1,pulley:1,seismo:1});save();stats();}
 function reset(){localStorage.removeItem(KEY);location.reload();}
+/* Core Keeper preview: gives the Core Suit, opens the cave and starts the fall straight away (in the game it starts when a hero in the Core Suit digs into the Mantle) */
+function coreTry(again){D.cave.gear=Object.assign({drill:4,bat:4,pack:4,lamp:3,uv:1},D.cave.gear||{},{suit:5});D.cave.core=again?{v:Math.max(1,(D.cave.core||{}).v||0),keep:(D.cave.core||{}).keep||[]}:{v:0,keep:[]};
+ if(again){D.cave.pack=D.cave.pack||[];if(!D.cave.pack.some(p=>p.t==='m'))D.cave.pack.push({t:'m',id:'quartz',k:'t'+Date.now().toString(36),tests:{}});}
+ save();enter();setTimeout(()=>{try{const x=document.querySelector('#cvMod [data-close]');if(x)x.click();Cave._dbg().coreFall();}catch(e){console.warn(e);}},1200);}
+/* the lines Dr. Quartz drops after a trip, from shallow to deep (in the game: about one trip in four) */
+function hintTry(){const mk=(maxRow,suit)=>Cave.coreHint({maxRow,gear:{suit}},2);const rows=[['Shallow dives',mk(10,0)],['Middle layers',mk(50,1)],['Deep layers',mk(100,3)],['Owns Magma Armor',mk(120,4)],['Owns the Core Suit',mk(120,5)]];
+ document.getElementById('hints').innerHTML=rows.map(([a,b])=>`<p style="margin:6px 0;color:#241a3d"><b>${a}:</b> 🔬 “${b}”</p>`).join('');}
+if(/[?&]core=again/.test(location.search))coreTry(true);else if(/[?&]core=1/.test(location.search))coreTry(false);
 stats();
 </script>
 </body>
