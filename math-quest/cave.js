@@ -799,19 +799,28 @@ const pzR=id=>rng(hash(id+'|'+H.player.id+'|'+(S.pzTry=(S.pzTry||0)+1)));
 /* 1. Lever */
 function pzLever(){const t=TIER(),R=pzR('lever');
  const Wt=[120,[160,200,240][Math.floor(R()*3)],[320,400,480,560][Math.floor(R()*4)]][t],F=[30,40,60][t];
- let d=5;
- const draw=(ang,msg)=>{const fx=20+d*26;const sh=modal(`<h2>🪨 The Giant Boulder</h2><p class="cv-sub">${t?`A ${Wt} kg boulder blocks the way down. You can push with ${F} kg of force. Slide the fulcrum (▲) along the 10 m plank, then push!`:'A giant boulder blocks the way down! Slide the yellow ▲ under the plank, then push. Can you find a spot where you are strong enough to lift it?'}</p>
-  <svg viewBox="0 0 300 150" class="cv-pz"><rect x="0" y="130" width="300" height="20" fill="#5b4633"/>
-   <g transform="rotate(${ang} ${fx} 104)"><rect x="20" y="98" width="260" height="10" rx="3" fill="#b98a52"/><circle cx="36" cy="72" r="26" fill="#7d7468"/><text x="36" y="78" text-anchor="middle" font-size="13" fill="#fff">${Wt}kg</text><text x="266" y="92" text-anchor="middle" font-size="26">${H.player.emoji||'🧑‍🚀'}</text></g>
+ /* The plank is a see-saw: the boulder's end sits on the ground and your end is up in the air. The fulcrum starts right
+    under you (no help at all); slide it toward the boulder until your push is enough to tip the plank and lift the boulder. */
+ let d=9.5;
+ const draw=(mode,msg)=>{const fx=20+d*26,deg=x=>x*180/Math.PI,lim=x=>Math.asin(Math.min(.6,x));
+  /* a0: boulder end resting on the ground; a1: your end pushed down to the ground (kept gentle so the picture stays readable) */
+  const a0=-Math.min(24,deg(lim(22/Math.max(1,fx-20))),deg(lim(62/Math.max(1,266-fx)))),a1=Math.min(24,deg(lim(22/Math.max(1,280-fx)))),a2=a0+(a1-a0)*.3,fin=mode==='win'?a1:a0;
+  const anim=mode==='win'?'animation:cvLevW .7s ease-out forwards':mode==='fail'?'animation:cvLevF .8s ease-in-out':'';
+  const sh=modal(`<h2>🪨 The Giant Boulder</h2><p class="cv-sub">${t?`A ${Wt} kg boulder sits on the low end of the plank. You can push down with ${F} kg of force. Slide the fulcrum (▲) along the 10 m plank toward the boulder, then push!`:'A giant boulder sits on the low end of the plank, and your end is up in the air. Slide the yellow ▲ toward the boulder, then push down. Can you find a spot where you are strong enough to lift it?'}</p>
+  <svg viewBox="0 0 300 150" class="cv-pz"><style>@keyframes cvLevW{from{transform:rotate(${a0.toFixed(2)}deg)}to{transform:rotate(${a1.toFixed(2)}deg)}}@keyframes cvLevF{0%,100%{transform:rotate(${a0.toFixed(2)}deg)}45%{transform:rotate(${a2.toFixed(2)}deg)}}@keyframes cvRoll{to{transform:translate(-70px,0);opacity:0}}</style>
+   <rect x="0" y="130" width="300" height="20" fill="#5b4633"/>
    <path d="M${fx} 108 L${fx-14} 130 L${fx+14} 130 Z" fill="#ffd43b"/>
-   ${t?`<text x="${(20+fx)/2}" y="146" text-anchor="middle" font-size="10" fill="#fff">load arm ${d} m</text><text x="${(fx+280)/2}" y="146" text-anchor="middle" font-size="10" fill="#fff">effort arm ${10-d} m</text>`:''}</svg>
+   <g style="transform-box:view-box;transform-origin:${fx}px 108px;transform:rotate(${fin.toFixed(2)}deg);${anim}"><rect x="20" y="98" width="260" height="10" rx="3" fill="#b98a52"/>
+    <g style="${mode==='win'?'animation:cvRoll .6s .75s ease-in forwards':''}"><circle cx="36" cy="72" r="26" fill="#7d7468"/><text x="36" y="78" text-anchor="middle" font-size="13" fill="#fff">${Wt}kg</text></g>
+    <text x="266" y="92" text-anchor="middle" font-size="26">${H.player.emoji||'🧑‍🚀'}</text></g>
+   ${t?`<text x="${Math.max(34,(20+fx)/2)}" y="146" text-anchor="middle" font-size="10" fill="#fff">load arm ${d} m</text><text x="${Math.min(262,(fx+280)/2)}" y="146" text-anchor="middle" font-size="10" fill="#fff">effort arm ${10-d} m</text>`:''}</svg>
   <input type="range" min="0.5" max="9.5" step="0.5" value="${d}" id="cvLv" class="cv-range">
   ${msg||''}<div class="cv-row"><button class="cv-btn" id="cvPush">💪 Push!</button></div>`,{wide:1});
-  sh.querySelector('#cvLv').oninput=e=>{d=+e.target.value;draw(0);};
+  sh.querySelector('#cvLv').oninput=e=>{d=+e.target.value;draw('rest');};
   sh.querySelector('#cvPush').onclick=()=>{const eff=F*(10-d),load=Wt*d;
-   if(eff>=load){draw(-14);setTimeout(()=>solved('lever','The boulder rolled away!'),900);}
-   else draw(4,`<div class="cv-hint">😣 Too heavy! ${t?`Your side: ${F} × ${10-d} = ${fmt(eff)}. Boulder side: ${Wt} × ${d} = ${fmt(load)}. You need your side to be at least as big.`:'Try moving the yellow fulcrum closer to the boulder.'}</div>`);};};
- draw(0);}
+   if(eff>=load){draw('win');setTimeout(()=>solved('lever','The boulder rolled away!'),1500);}
+   else draw('fail',`<div class="cv-hint">😣 Too heavy! Your end barely moves. ${t?`Your side: ${F} × ${10-d} = ${fmt(eff)}. Boulder side: ${Wt} × ${d} = ${fmt(load)}. You need your side to be at least as big.`:'Try sliding the yellow fulcrum closer to the boulder.'}</div>`);};};
+ draw('rest');}
 
 /* 2. Mirror beam */
 function pzMirror(){const t=TIER(),N=[5,6,7][t],K=[2,3,4][t];let P=null;
