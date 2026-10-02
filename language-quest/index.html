@@ -51,6 +51,7 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 #enterBar{position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 18px); transform:translate(-50%,160%); z-index:5; background:var(--card); color:var(--ink); border-radius:22px; padding:12px 16px; box-shadow:0 8px 28px rgba(0,0,0,.35); display:flex; gap:12px; align-items:center; transition:transform .3s; width:min(92vw,460px); font-size:1.1rem}
 #enterBar.show{transform:translate(-50%,0)}
 #enterBar span{color:var(--sky); font-size:1.3rem}
+#meName{max-width:9rem; display:inline-block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; color:var(--sky)}
 #enterBar .btn{flex:none}
 #enterBar{flex-wrap:wrap; justify-content:center; width:max-content; max-width:94vw}
 #enterBar>div{white-space:nowrap; font-weight:800}
@@ -98,7 +99,7 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 <canvas id="game" aria-label="Language Quest world map. Tap to walk."></canvas>
 <div class="hud"><div class="pill">Language Quest</div><div class="pill" id="coinPill">🪙 0</div>
   <button class="pill" id="albumBtn" aria-label="Letter Friends album">📒 <span id="albumN">0</span>/28</button>
-  <button class="pill" id="meBtn" aria-label="My page: my progress, clothes and secret pictures">🙂 Me</button>
+  <button class="pill" id="meBtn" aria-label="My page: my progress, clothes and secret pictures">🙂 <span id="meName">Me</span></button>
   <button class="pill" id="whoBtn" aria-label="Leave and pick another player">👋 Leave</button>
   <button class="pill" id="soundBtn" aria-label="Sound: voice and music volume">🔊</button></div>
 <div id="start"><div class="box"><div style="font-size:3rem">🗺️</div><h2>Language Quest</h2><p>Tap things to hear their names in Arabic.</p>
@@ -116,8 +117,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02s";</script>
-<script src="lq-core.js?v=2026.10.02s"></script>
+<script>window.LQ_VER="2026.10.02t";</script>
+<script src="lq-core.js?v=2026.10.02t"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -951,7 +952,7 @@ document.getElementById("startBtn").onclick=()=>{
   document.getElementById("start").remove();
   LQ.profiles(()=>{ hud(); LQ.mark("Map: signed in"); setTimeout(()=>showZone(biomeAt(player.x,player.y)),400); });
 };
-function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("albumN").textContent=Object.keys(found()).length; }
+function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("meName").textContent=p?p.name:"Me"; /* the top bar shows who is playing */ document.getElementById("albumN").textContent=Object.keys(found()).length; }
 LQ.onChange(hud); hud();
 // "Go" on the Me page for the two places that live on the map
 addEventListener("lq:goto",e=>{ if(e.detail==="album") album(); if(e.detail==="fountain"){ player.x=player.tx=FOUNTAIN.x; player.y=player.ty=FOUNTAIN.y+60; fountain(); } });
