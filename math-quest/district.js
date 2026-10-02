@@ -177,7 +177,10 @@ function frame(now){const cv=document.getElementById('dcv');if(typeof curScreen=
  const bn=D.T[D.hy][D.hx].b;if(bn!==D.last){D.last=bn;const el=document.getElementById('darea');if(el){const B=AREAS[bn];el.textContent=B.zone?`${B.art} ${B.name}`:B.name;}}}
 
 /* ---------- screen + train ---------- */
-function screen(){if(!flag()){go('world');return;}const p=P();if(!D)build();D.path=[];D.after=null;D.moving=false;D.last=null;D.drawX=D.hx;D.drawY=D.hy;
+/* HERE: the hero took the train and is in the district. Until the train home, anything that goes 'back to the World'
+   (the Pet Home, the backpack, a finished battle…) comes back here instead of the village; go() in index.html asks here(). */
+let HERE=false;
+function screen(){if(!flag()){HERE=false;go('world');return;}HERE=true;const p=P();if(!D)build();D.path=[];D.after=null;D.moving=false;D.last=null;D.drawX=D.hx;D.drawY=D.hy;
  D.img=new Image();D.img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{spell:p.spell}));
  app.innerHTML=topbar()+`<div class="world" id="dworld"><canvas id="dcv" style="display:block;touch-action:none"></canvas>
  <div class="wtop"><div class="warea" id="darea"></div><button class="btn small" style="pointer-events:auto" onclick="Discovery.ride('home')">🚂 Number Village</button></div>
@@ -192,14 +195,14 @@ function ride(to){if(!flag())return;try{closeModal();}catch(e){}
  if(!document.getElementById('dCSS')){const s=document.createElement('style');s.id='dCSS';/* out to the district: left to right (engine flipped to lead); home again: right to left */
   s.textContent='@keyframes dTrainR{from{transform:translateX(-110%) scaleX(-1)}to{transform:translateX(110%) scaleX(-1)}}@keyframes dTrainL{from{transform:translateX(110%)}to{transform:translateX(-110%)}}';document.head.appendChild(s);}
  try{SFX.coin();}catch(e){}
- setTimeout(()=>{try{closeModal();}catch(e){}if(going){if(D){D.hx=AREAS.plaza.c[0]-4;D.hy=AREAS.plaza.c[1]+1;}go('district');}else go('world');},1500);}
+ setTimeout(()=>{try{closeModal();}catch(e){}if(going){if(D){D.hx=AREAS.plaza.c[0]-4;D.hy=AREAS.plaza.c[1]+1;}go('district');}else{HERE=false;go('world');}},1500);}
 /* the station on the main map (same pattern as the Food Truck and Dr. Quartz's Lab) */
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[TRAIN_Y]&&W.T[TRAIN_Y][TRAIN_X];if(!t||t.water)return;
  if(flag()){if(!t.npc&&!t.chest&&!t.gate){if(W.hx===TRAIN_X&&W.hy===TRAIN_Y)return;t.npc='train';t.block=true;t.o=null;}}
  else if(t.npc==='train'){delete t.npc;t.block=false;}}catch(e){}}
-window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();},session:()=>syncTile()});
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();},session:()=>{HERE=false;syncTile();}});
 window.addEventListener('resize',()=>{try{if(typeof curScreen!=='undefined'&&curScreen==='district'&&D)resize();}catch(e){}});
 document.addEventListener('keydown',e=>{try{if(typeof curScreen==='undefined'||curScreen!=='district'||!D)return;const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!d)return;e.preventDefault();stepBy(d[0],d[1]);}catch(x){}});
 (function reg(n){if(typeof SCREENS!=='undefined'){SCREENS.district=screen;return;}if((n||0)<3000)setTimeout(()=>reg((n||0)+1),50);})(0);
-window.Discovery={flag,ride,_fizz:fizzOpen,_toss:fizzToss,_album:fizzAlbum,_read:()=>fzSpeak(window.__fzTxt||''),_dbg:{state:()=>D,build,pathTo,useTile,AREAS,SPOTS,COLS,ROWS,FACTS,SETS,fz,card:fizzCard}};
+window.Discovery={flag,ride,here:()=>HERE&&flag(),_leave:()=>{HERE=false;},_fizz:fizzOpen,_toss:fizzToss,_album:fizzAlbum,_read:()=>fzSpeak(window.__fzTxt||''),_dbg:{state:()=>D,build,pathTo,useTile,AREAS,SPOTS,COLS,ROWS,FACTS,SETS,fz,card:fizzCard}};
 })();

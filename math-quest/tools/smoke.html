@@ -29,7 +29,7 @@ W.eval(`window.T={
  ok:(c,m)=>{if(!c)throw new Error(m||'check failed');},
  clone:x=>JSON.parse(JSON.stringify(x)),
  hero:(name,grade,o)=>{const p=newPlayer(name||'Smoke',grade||3);p.id='p'+(name||'Smoke')+Math.random().toString(36).slice(2,6);p.setup=true;p.welcomed=true;p.skillChecked=true;p.tbOn=false;p.xplace=1;p.xp2=1;p.battles=20;p.level=8;p.coins=500;p.pets=PETS.slice(0,6).map(x=>x.id);p.pet=p.pets[0];Object.assign(p,o||{});state.players.push(p);migrate();const q=state.players.find(x=>x.id===p.id);q.care=q.care||{};q.care.intro=1;return q;},
- reset:()=>{try{closeModal();}catch(e){}const ov=document.getElementById('dqOv');if(ov)ov.remove();state.players=[];state.cur=null;state.deleted={};state.ownGroups={};state.gifts={};BASE={};try{MQ_VISIT.reset();}catch(e){}curScreen='profiles';},
+ reset:()=>{try{closeModal();}catch(e){}const ov=document.getElementById('dqOv');if(ov)ov.remove();state.players=[];state.cur=null;state.deleted={};state.ownGroups={};state.gifts={};BASE={};try{MQ_VISIT.reset();}catch(e){}try{Discovery._leave();}catch(e){}curScreen='profiles';},
  answerAsk:(right)=>{const q=Daily._dbg.cur();if(!q)throw new Error('no question card open');String(right===false?q.answer+1:q.answer).split('').forEach(c=>Daily._k(c));Daily._k('go');Daily._next();}
 };`);
 
@@ -183,6 +183,10 @@ const tests=[
    const ok=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const x=c[0]+dx,y=c[1]+dy;return D.T[y]&&D.T[y][x]&&!D.T[y][x].block&&d.pathTo(x,y);});T.ok(ok,'cannot walk to '+d.AREAS[k].name);});
   d.useTile(d.AREAS.bay.c[0],d.AREAS.bay.c[1]);T.ok(/Balance Bay/.test(document.querySelector('#modal').innerText),'Balance Bay sign did not open');closeModal();
   await T.wait(300);T.ok(document.getElementById('dcv').width>0,'district canvas has no size');
+  /* while the hero is in the district, 'back to the World' from another screen comes back here; only the train goes to the village */
+  go('backpack');T.ok(curScreen==='backpack','backpack did not open from the district');go('world');T.ok(curScreen==='district'&&document.getElementById('dcv'),'back to the World left the district');
+  Discovery.ride('home');await T.wait(1700);T.ok(curScreen==='world'&&!Discovery.here(),'the train home did not reach the village');go('backpack');go('world');T.ok(curScreen==='world','the village sent the hero to the district');
+  go('district');await T.wait(100);
   /* Munch-Bot: coin snacks cost 1, 2, 3...; a card resets the price; a full set pays out */
   const f=d.fz(p);f.t=0;f.need=2;p.coins=50;Discovery._fizz();Discovery._toss();T.ok(p.coins===49&&f.t===1,'first toss did not cost 1 coin');Discovery._toss();T.ok(p.coins===47,'second toss did not cost 2 coins');
   await T.wait(1100);T.ok(f.seen.length===1&&f.t===0&&/fact card/i.test(document.querySelector('#modal').innerText),'no fact card after enough tosses');
@@ -211,7 +215,7 @@ const tests=[
   state.cur=p.id;window.MQ_DISTRICT_BETA=true;go('district');await T.wait(100);Music.update();T.ok(['dday','dnight'].includes(Music._state().want),'district default tune is '+Music._state().want);
   Music.menu();T.ok(/Discovery District/.test(document.querySelector('#modal').innerText)&&/Laser Lab/.test(document.querySelector('#modal').innerText),'district choices missing from the Sound menu');
   Music.dset('laser');T.ok(Music._state().want==='laser'&&P().dMusic==='laser','district tune did not change');Music.dset('off');T.ok(!Music._state().want,'district music did not turn off');try{closeModal();}catch(e){}
-  go('world');await T.wait(100);Music.update();T.ok(['meadow','dusk'].includes(Music._state().want),'the district choice changed the village music');Music.menu();T.ok(/Music on the map/.test(document.querySelector('#modal').innerText),'village Sound menu is wrong');try{closeModal();}catch(e){}
+  Discovery._leave();go('world');await T.wait(100);Music.update();T.ok(['meadow','dusk'].includes(Music._state().want),'the district choice changed the village music');Music.menu();T.ok(/Music on the map/.test(document.querySelector('#modal').innerText),'village Sound menu is wrong');try{closeModal();}catch(e){}
  }],
  ['send a visitor: a grown-up can send the Troll, Skyla, Dr. Quartz and Ozzy',async function(){
   T.reset();const p=T.hero('Vis',5,{level:12,battles:1});state.cur=p.id;const html=()=>{const d=document.createElement('div');d.innerHTML=MQ_PARENT.map(f=>{try{return f()||'';}catch(e){return '';}}).join('');return d;};
