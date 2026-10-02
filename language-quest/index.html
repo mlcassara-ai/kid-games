@@ -119,8 +119,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02zb";</script>
-<script src="lq-core.js?v=2026.10.02zb"></script>
+<script>window.LQ_VER="2026.10.02zc";</script>
+<script src="lq-core.js?v=2026.10.02zc"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -399,6 +399,8 @@ let VW=0, VH=0, DPR=1, ZOOM=1;
 function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); VW=innerWidth; VH=innerHeight; cv.width=VW*DPR; cv.height=VH*DPR;
   ZOOM = VW<600 ? 0.8 : 1; }
 addEventListener("resize",resize); resize();
+// start with the camera already on the player in the town square, instead of sliding over from the corner of the map
+cam.x=Math.max(0,Math.min(W-VW/ZOOM,player.x-VW/2/ZOOM)); cam.y=Math.max(0,Math.min(H-VH/ZOOM,player.y-VH/2/ZOOM));
 cam.x=player.x-VW/2/ZOOM; cam.y=player.y-VH/2/ZOOM;
 
 /* ============ voice ============ */
