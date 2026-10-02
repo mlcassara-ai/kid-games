@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.02k';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.02l';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1812,7 +1812,10 @@ function autoPopups(scr){const p=P();if(!p)return;if(!(p.battles>0))return; /* b
  else if(scr==='map'&&goalPrizeDue(p))f=()=>checkGoalPrize(p);
  if(f){autoPopUsed();f();}},700);}
 function enter(p){try{if(state.cur!==p.id&&window.MQ_VISIT)MQ_VISIT.reset();}catch(e){}try{hook('session',p);}catch(e){}AUTO_POP_AT=0;LOGIN_QUIET=Date.now()+30e3;window.visitorQuiet=Math.max(window.visitorQuiet||0,LOGIN_QUIET);if(window.visitorQuiet!==LOGIN_QUIET)LOGIN_QUIET=0;try{liveMark(p.id,true);setTimeout(scheduleSync,50);}catch(e){}
- state.cur=p.id;applyHeroSound(p);save();
+ state.cur=p.id;applyHeroSound(p);
+ /* outfits closed: pay back what this hero's outfits cost, once, when they next come in */
+ let gearBack=0;if(!PET_GEAR_ON&&!p.gearRefund){p.gearRefund=1;gearBack=(p.petGear||[]).reduce((n,id)=>n+((PET_GEAR.find(g=>g.id===id)||{}).price||0),0);if(gearBack){p.coins=(p.coins||0)+gearBack;setTimeout(()=>{try{toast(`👗 Pet outfits are closed for now. You got 🪙 ${gearBack} back for yours!`);}catch(e){}},3500);}}
+ save();
  if(!p.setup){go('create',p.id);return;}
  go('world');
  if(!p.welcomed){autoPopUsed();welcomeIfNew(p);return;}
@@ -3027,7 +3030,7 @@ function rollEggPet(p,legend){
 }
 /* what's inside a Mystery Egg when it isn't a pet: something worth about the same as a found egg */
 function eggGoodie(p){p.pantry=p.pantry||{};p.toys=p.toys||[];p.petGear=p.petGear||[];const r=Math.random();
- const toy=PET_TOYS.filter(t=>!p.toys.includes(t.id)),gear=PET_GEAR.filter(g=>!p.petGear.includes(g.id));
+ const toy=PET_TOYS.filter(t=>!p.toys.includes(t.id)),gear=PET_GEAR_ON?PET_GEAR.filter(g=>!p.petGear.includes(g.id)):[];
  if(r<.35&&toy.length){const t=pick(toy);p.toys.push(t.id);p.coins+=20;return {e:t.e,t:`A new toy: ${t.name}!`,h:`Inside was a <b>${t.e} ${esc(t.name)}</b> for your pets to play with, plus 🪙 20! Find it in the Pet Home.`};}
  if(r<.6&&gear.length){const g=pick(gear);p.petGear.push(g.id);p.coins+=20;return {e:g.e,t:`A pet outfit: ${g.name}!`,h:`Inside was a <b>${g.e} ${esc(g.name)}</b> for a pet to wear, plus 🪙 20! Dress up a pet in the Pet Home.`};}
  if(r>=.85){const sp=[];
@@ -3066,6 +3069,9 @@ const PET_FOODS=[{id:'apple',e:'🍎',name:'Apple',price:10,food:1,xp:2,joy:0},{
  {id:'icecream',e:'🍦',name:'Ice Cream',price:50,food:1,xp:8,joy:2},{id:'cake',e:'🎂',name:'Party Cake',price:90,food:3,xp:15,joy:2}];
 const PET_TOYS=[{id:'ball',e:'⚽',name:'Ball',price:60},{id:'yarn',e:'🧶',name:'Yarn',price:60},{id:'kite',e:'🪁',name:'Kite',price:120},
  {id:'blocks',e:'🧸',name:'Teddy',price:150},{id:'drum',e:'🥁',name:'Drum',price:200},{id:'rocket',e:'🚀',name:'Toy Rocket',price:350}];
+/* Pet outfits are CLOSED for now (Oct 2026): an emoji outfit never sat in the right spot on every pet. Nothing is sold, found
+   or drawn while this is false. Owned outfits stay in the save (p.petGear) and each hero is paid back their price once. */
+const PET_GEAR_ON=false;
 const PET_GEAR=[{id:'bow',e:'🎀',name:'Bow',price:80,pos:'top'},{id:'shades',e:'🕶️',name:'Sunglasses',price:120,pos:'eyes'},
  {id:'tophat',e:'🎩',name:'Top Hat',price:150,pos:'top'},{id:'party',e:'🥳',name:'Party Hat',price:100,pos:'top',show:'🎉'},
  {id:'flower',e:'🌸',name:'Flower',price:90,pos:'top'},{id:'crown',e:'👑',name:'Crown',price:400,pos:'top'}];
@@ -3089,7 +3095,7 @@ function petSays(pd,pet){petMood(pd);
  if(pd.joy===0)return `I'm bored. Can we play? 🥺`;if(pd.joy<=1)return `Play with me!`;
  if(pd.food>=5&&pd.joy>=5)return `Best day EVER! I love you! 💖`;
  return pick([`Let's go fight some monsters!`,`You're the best wizard!`,`I'm ready for math! 🧠`,`Pat me! Pat me!`]);}
-function petAvatar(p,pet,cls){const pd=petData(p,pet.id);const g=PET_GEAR.find(x=>x.id===pd.acc);
+function petAvatar(p,pet,cls){const pd=petData(p,pet.id);const g=PET_GEAR_ON?PET_GEAR.find(x=>x.id===pd.acc):null;
  return `<span class="pav ${cls||''}"><span class="pe">${pet.e}</span>${g?`<span class="pacc ${g.pos}">${g.show||g.e}</span>`:''}</span>`;}
 function pips(n,e){let s='';for(let i=0;i<MOOD_MAX;i++)s+=i<n?e:`<span class="dimbulb">${e}</span>`;return s;}
 function petMovesMax(pd){const st=petStage(pd);return st.n==='Baby'?0:st.n==='Big'?1:st.n==='Grown-up'?2:3;}
@@ -3122,7 +3128,7 @@ SCREENS.pethome=()=>{
    <div class="panel"><h3>🛒 Pet Shop</h3><p class="muted" style="margin-top:0">You have 🪙 ${p.coins}</p>
     <h4>Snacks</h4><div class="items">${PET_FOODS.map(f=>shopItem('food',f,false,false,`+${f.xp} pet XP${f.joy?' · 💖':''}`)).join('')}</div>
     <h4>Toys</h4><div class="items">${PET_TOYS.map(t=>shopItem('toy',t,p.toys.includes(t.id),false)).join('')}</div>
-    <h4>Outfits</h4><p class="muted" style="margin:-4px 0 8px;font-size:14px">👗 These dress your battle buddy. Dress any pet: tap its face in <b>All your pets</b> (Pet Home).</p><div class="items">${PET_GEAR.map(g=>shopItem('gear',g,p.petGear.includes(g.id),pd.acc===g.id)).join('')}${pd.acc?`<button class="item" onclick="petShop('gear','')"><div class="ie">🚫</div><div>Nothing</div><div class="ip">Take off</div></button>`:''}</div>
+    ${PET_GEAR_ON?`<h4>Outfits</h4><p class="muted" style="margin:-4px 0 8px;font-size:14px">👗 These dress your battle buddy. Dress any pet: tap its face in <b>All your pets</b> (Pet Home).</p><div class="items">${PET_GEAR.map(g=>shopItem('gear',g,p.petGear.includes(g.id),pd.acc===g.id)).join('')}${pd.acc?`<button class="item" onclick="petShop('gear','')"><div class="ie">🚫</div><div>Nothing</div><div class="ip">Take off</div></button>`:''}</div>`:''}
    </div>
   </div>
  </div></div>`;
@@ -3149,6 +3155,7 @@ function playPet(id){const p=P(),pet=petOf(p);const t=PET_TOYS.find(x=>x.id===id
 function heldBy(p,id,k){k=k||'pet';if(p.troll&&(p.troll.hoard||[]).some(x=>x.k===k&&x.id===id))return '🧌 Grumbleroot has it';if(p.eagle&&(p.eagle.hoard||[]).some(x=>x.k===k&&x.id===id))return '🦅 In Skyla\'s nest';return '';}
 function petShop(kind,id,sure){const p=P(),pet=petOf(p);const pd=pet&&petData(p,pet.id);
  if(kind==='toy'&&heldBy(p,id,'toy')){toast(`${heldBy(p,id,'toy')}! Win it back instead of buying it again.`);return;}
+ if(kind==='gear'&&!PET_GEAR_ON)return;
  if(kind==='gear'&&(id===''||p.petGear.includes(id))){pd.acc=id||null;save();SFX.tap();goStay('pethome');return;}
  if(kind==='toy'&&p.toys.includes(id)){toast('You already have that toy! Play with it above. 🎾');return;}
  const it=(kind==='food'?PET_FOODS:kind==='toy'?PET_TOYS:PET_GEAR).find(x=>x.id===id);

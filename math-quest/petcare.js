@@ -140,11 +140,12 @@ function hearts(n,e){let s='';for(let i=0;i<5;i++)s+=i<n?e:`<span class="dimbulb
 function chip(p,id){if(atCamp(p,id))return '<span class="pc-chip camp">🎒 At camp</span>';if(id===p.pet)return '<span class="pc-chip buddy">⭐ Buddy</span>';
  const s=stageOf(p,id);const su=sitUntil(p);return s===2?'<span class="pc-chip red">🧳 Packing!</span>':s===1?'<span class="pc-chip yel">😢 Lonely</span>':su&&(pdOf(p,id).sit||0)>=su?'<span class="pc-chip nana">🧶 Nana</span>':special(id)?'<span class="pc-chip">✨ Special</span>':'';}
 /* outfits: every pet can wear any outfit the kid owns (they're just for looks). The pet's face in the list shows it; tap the face to dress up. */
-const gearOf=(p,id)=>{try{const a=pdOf(p,id).acc;return a&&(p.petGear||[]).includes(a)?PET_GEAR.find(g=>g.id===a):null;}catch(e){return null;}};
-function petFace(p,id,camp){const g=gearOf(p,id),has=(p.petGear||[]).length&&typeof PET_GEAR!=='undefined';
+const gearOn=()=>typeof PET_GEAR_ON!=='undefined'&&PET_GEAR_ON; /* outfits are closed for now (see PET_GEAR_ON in index.html) */
+const gearOf=(p,id)=>{try{if(!gearOn())return null;const a=pdOf(p,id).acc;return a&&(p.petGear||[]).includes(a)?PET_GEAR.find(g=>g.id===a):null;}catch(e){return null;}};
+function petFace(p,id,camp){const g=gearOf(p,id),has=gearOn()&&(p.petGear||[]).length&&typeof PET_GEAR!=='undefined';
  const face=`<span class="pav pc-pav"><span class="pe">${pe(id)}</span>${g?`<span class="pacc ${g.pos}">${g.show||g.e}</span>`:''}</span>`;
  return has&&!camp?`<button class="pc-e pc-dress" onclick="PetCare.dress('${id}')" title="Dress up ${nm(id)}" aria-label="Dress up ${nm(id)}">${face}<i class="pc-dr">👗</i></button>`:`<span class="pc-e">${face}</span>`;}
-function dress(id,gid){const p=P();if(!p||!owned(p).includes(id)||rescued(p,id)||atCamp(p,id))return;const gear=PET_GEAR.filter(g=>(p.petGear||[]).includes(g.id));const pd=pdOf(p,id);
+function dress(id,gid){const p=P();if(!gearOn())return;if(!p||!owned(p).includes(id)||rescued(p,id)||atCamp(p,id))return;const gear=PET_GEAR.filter(g=>(p.petGear||[]).includes(g.id));const pd=pdOf(p,id);
  if(gid!==undefined){if(gid===''||gear.some(g=>g.id===gid)){pd.acc=gid||null;save();try{SFX.tap();}catch(e){}}closeModal();refresh(id);if(gid)toast(`${pe(id)} ${petById(id).name} looks great in the ${PET_GEAR.find(g=>g.id===gid).name}!`);return;}
  if(!gear.length){toast('👗 No outfits yet! Get one in the Pet Shop, from an egg or on a camp trip.');return;}
  const cur=gearOf(p,id);

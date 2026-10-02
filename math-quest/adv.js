@@ -189,7 +189,7 @@ function rollItem(p,len,d){const c=wpick(lootCat(len)),T=TRIPS[len];
  if(c==='junk'){const j=pk(JUNK);return {k:'cur',id:j[0],e:j[1],n:j[2],junk:1};}
  if(c==='snack'){const s=len==='short'?pk(PET_FOODS.slice(0,3)):pk(PET_FOODS);return {k:'snack',id:s.id,e:s.e,n:s.name};}
  if(c==='dcur'){const rare=Math.random()<(len==='night'?.2:.1);const pool=d.cur.filter(x=>!!x[3]===rare);const j=pk(pool.length?pool:d.cur);return {k:'cur',id:j[0],e:j[1],n:j[2],rare:!!j[3]};}
- if(c==='toy'){const opts=PET_TOYS.filter(t=>!(p.toys||[]).includes(t.id)&&t.price<=200).map(t=>({k:'toy',id:t.id,e:t.e,n:t.name})).concat(PET_GEAR.filter(g=>!(p.petGear||[]).includes(g.id)&&g.price<=150).map(g=>({k:'gear',id:g.id,e:g.e,n:g.name+' (outfit)'})));
+ if(c==='toy'){const opts=PET_TOYS.filter(t=>!(p.toys||[]).includes(t.id)&&t.price<=200).map(t=>({k:'toy',id:t.id,e:t.e,n:t.name})).concat((typeof PET_GEAR_ON!=='undefined'&&PET_GEAR_ON?PET_GEAR:[]).filter(g=>!(p.petGear||[]).includes(g.id)&&g.price<=150).map(g=>({k:'gear',id:g.id,e:g.e,n:g.name+' (outfit)'})));
   return opts.length?{...pk(opts),rare:1}:{k:'coins',e:'🪙',n:'coins',v:rnd(T.coins[0],T.coins[1])};}
  if(c==='egg')return {k:'egg',e:'🥚',n:'Egg!',rare:1};
  if(c==='map')return {k:'cur',id:'map',e:'🗺️',n:'Treasure Map Piece',rare:1};

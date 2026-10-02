@@ -197,6 +197,13 @@ const tests=[
   {const h=P();h.principalLast=dayKey();h.spinDay=dayKey();h.sci={met:1,rocks:0,trips:0};W=null;} /* Principal Wise, the daily spin and Dr. Quartz's first visit would each go first */
   go('world');try{closeModal();}catch(e){}AUTO_POP_AT=0;window.visitorQuiet=0;await T.until(()=>Fade.active(P())||Fade._dbg.pend()===P().id,8000,'the Grey Goblin to be lined up on the World'); /* lined up = he comes at the next calm moment; other visitors may still go first */}],
 
+['pet outfits: closed, nothing drawn or sold, and paid back once',async function(){
+  T.reset();const p=T.hero('Gear',3,{coins:50});p.petGear=['bow','crown'];petData(p,p.pet).acc='crown';const c0=p.coins;
+  enter(p);try{closeModal();}catch(e){}T.ok(p.coins===c0+480,'outfits were not paid back: '+(p.coins-c0));enter(p);try{closeModal();}catch(e){}T.ok(p.coins===c0+480,'outfits were paid back twice');
+  T.ok(p.petGear.length===2,'owned outfits were removed from the save');
+  go('pethome');try{closeModal();}catch(e){}const t=document.querySelector('#app');T.ok(!t.querySelector('.pacc')&&!/Outfits/.test(t.innerText)&&!t.querySelector('.pc-dress'),'outfits still show in Pet Home');
+  for(let i=0;i<60;i++){const g=eggGoodie(p);T.ok(!/outfit/i.test(g.t||''),'an egg still gave an outfit');}}],
+
 ['save size stays small',async function(){
   T.reset();for(let i=0;i<7;i++){const p=T.hero('Size'+i,3);for(let k=0;k<200;k++)p.missed['q'+k+' + 1']={n:1,a:1,op:'add',last:'2026-10-01',fixed:0,q:{op:'add',L:1,a:k,b:1,answer:k+1,text:'q'+k+' + 1'}};}
   migrate();stampChanges(true);const n=JSON.stringify(cloudPayload()).length;T.ok(n<700000,'family save is '+n+' bytes; the cloud limit is about 1,000,000');}]
