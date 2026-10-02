@@ -101,7 +101,7 @@ function logErr(m,at,p,scr){ p=p||cur(); if(!p) return; const er=p.errs=p.errs||
   if(last&&last.m===msg&&Date.now()-last.t<60000) return;                       // do not pile up a repeating error
   er.push({t:Date.now(),m:msg,at:String(at||"").slice(0,60),s:scr||lastScreen,z:zoneNow(),v:window.LQ_VER||"dev"}); if(er.length>10) er.splice(0,er.length-10); keepDiag(); }
 function mark(scr){ const p=cur(); if(!p) return; lastScreen=String(scr).slice(0,40);
-  const tr=p.trail=p.trail||[]; tr.push({t:Date.now(),s:lastScreen,z:zoneNow(),v:window.LQ_VER||"dev"}); if(tr.length>30) tr.splice(0,tr.length-30); keepDiag();
+  const tr=p.trail=p.trail||[]; tr.push({t:Date.now(),s:lastScreen,z:zoneNow(),v:window.LQ_VER||"dev"}); if(tr.length>30) tr.splice(0,tr.length-30); p.last=Date.now(); p.days=p.days||{}; p.days[today()]=1; keepDiag();
   // freeze check: this note is wiped as soon as the screen finishes drawing; if the page hangs instead, the next visit finds it
   try{ localStorage.setItem(HANG_KEY,JSON.stringify({s:lastScreen,t:Date.now(),id:p.id})); setTimeout(()=>{ try{ localStorage.removeItem(HANG_KEY); }catch(e){} },0); }catch(e){} }
 try{ const h=JSON.parse(localStorage.getItem(HANG_KEY)||"null"); localStorage.removeItem(HANG_KEY);
@@ -120,7 +120,7 @@ const CSS=`
 .lq-pro .lq-pc{flex:0 1 160px;min-width:140px}
 .lq-pc{background:#fff;border:0;border-radius:22px;padding:12px 8px;cursor:pointer;font:inherit;color:#12233D;box-shadow:0 4px 14px rgba(70,50,10,.18);text-align:center}
 .lq-pc svg{width:80px;height:92px}
-.lq-pc .n{font-weight:800;font-size:1.15rem}.lq-pc .s{font-size:.9rem;color:#5A6B82}
+.lq-pc .n{font-weight:800;font-size:1.15rem}.lq-pc .s{font-size:.9rem;color:#5A6B82}.lq-pc .s.now{color:#1F7A68;font-weight:800}
 .lq-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
 .lq-btn{font:inherit;font-weight:800;font-size:1.05rem;border:0;border-radius:14px;padding:10px 18px;min-height:48px;cursor:pointer;background:#1E5AA8;color:#fff}
 .lq-btn.g{background:#2FA894}.lq-btn.gh{background:#EAF2FB;color:#12233D}.lq-btn.r{background:#E0607E}
@@ -164,8 +164,11 @@ let enterCb=null;
 let onProfiles=false;
 function profiles(onEnter){ onProfiles=true;
   if(onEnter) enterCb=onEnter;
+  // who else is playing: a player counts as "playing now" if their save changed in the last few minutes (on any device)
+  const seen=p=>{ const t=Object.keys(p.days||{}).length?p.last:0; if(!t) return `<div class="s">not played yet</div>`; const m=(Date.now()-t)/60000;
+    return m<4?`<div class="s now">🟢 playing now</div>`:`<div class="s">played ${m<60?Math.max(1,Math.round(m))+" min ago":m<1440&&new Date(t).getDate()===new Date().getDate()?Math.round(m/60)+" h ago":agoText(t)}</div>`; };
   const list=state.players.map(p=>`<button class="lq-pc" data-id="${p.id}">${hero(p.color)}<div class="n">${esc(p.name)}</div>
-    <div class="s">🪙 ${p.coins||0} · ${Object.keys(p.letters||{}).length}/28 letters${p.lock?" 🔒":""}</div></button>`).join("");
+    <div class="s">🪙 ${p.coins||0} · ${Object.keys(p.letters||{}).length}/28 letters${p.lock?" 🔒":""}</div>${seen(p)}</button>`).join("");
   overlay(`<h1>Language Quest<small lang="ar">رِحْلَةُ اللُّغَة</small></h1>
     <h2>Who's playing?</h2>
     ${state.players.length?`<div class="lq-pro">${list}</div>`:`<div class="lq-card" style="text-align:center"><div style="font-size:3rem">👋</div><p style="font-size:1.1rem;margin:4px 0">No players yet.</p><p class="lq-small">A grown-up can add players in the Parent Corner.</p></div>`}
@@ -174,6 +177,7 @@ function profiles(onEnter){ onProfiles=true;
   document.querySelectorAll(".lq-pc[data-id]").forEach(b=>b.onclick=()=>choose(b.dataset.id));
   document.getElementById("lqParent").onclick=()=>askPin(parentCorner);
 }
+setInterval(()=>{ if(!onProfiles||document.hidden||!document.querySelector("#lqOv .lq-pro")) return; syncNow().then(()=>{ if(onProfiles&&document.querySelector("#lqOv .lq-pro")) profiles(); }); },30000);
 function choose(id){ const p=state.players.find(x=>x.id===id); if(!p) return; if(p.lock&&p.lock.length) askLock(p); else enter(p); }
 function enter(p){ onProfiles=false; state.cur=p.id; p.last=Date.now(); try{ sessionStorage.setItem("lq.active",p.id); }catch(e){} saveLocal(); closeOverlay(); fire(); if(enterCb) enterCb(p); }
 function askLock(p){ let tries=[]; const pics=[...PICS].sort(()=>Math.random()-.5);
