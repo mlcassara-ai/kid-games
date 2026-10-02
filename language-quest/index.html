@@ -116,8 +116,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02w";</script>
-<script src="lq-core.js?v=2026.10.02w"></script>
+<script>window.LQ_VER="2026.10.02x";</script>
+<script src="lq-core.js?v=2026.10.02x"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -250,8 +250,8 @@ for(let tries=0; tries<20000; tries++){
 }
 
 /* the Alphabet School: added after the scenery is placed so it does not move anything else on the map */
-LANDMARKS.push({id:"abc", x:1160,y:1700, icon:"🏫", en:"Alphabet School", ar:"مَدْرَسَةُ الحُرُوف", desc:"Open now! Start here: meet all 28 letters, hear their names and sounds, and play simple letter games."});
-for(let i=props.length-1;i>=0;i--){ if(Math.hypot(props[i].x-1160,(props[i].y-1700)*1.2)<170) props.splice(i,1); }
+LANDMARKS.push({id:"abc", x:1320,y:1840, icon:"🏫", en:"Alphabet School", ar:"مَدْرَسَةُ الحُرُوف", desc:"Open now! Start here: meet all 28 letters, hear their names and sounds, and play simple letter games."});
+for(let i=props.length-1;i>=0;i--){ if(Math.hypot(props[i].x-1320,(props[i].y-1840)*1.2)<170) props.splice(i,1); }
 /* ============ zone doorways ============ */
 const OPEN={abc:"alphabet/",dunes:"letters/",falls:"falls/",souq:"souq/",harbor:"harbor/"};
 const padOf=l=>({x:l.x,y:l.y+125});
@@ -353,7 +353,7 @@ const TRAILS=[
  [padPt("souq"),[1900,1400],padPt("harbor")],
  [[1000,1580],[900,1740],[900,1900],padPt("dunes")],
  [padPt("dunes"),[1300,2160],[1800,2240],padPt("reeds")],
- [[1150,1580],[1300,1720],padPt("abc")]
+ [[1100,1585],[1150,1790],[1210,1950],padPt("abc")]
 ].map(pts=>{ const out=[pts[0]];
   for(let i=1;i<pts.length;i++){ const [ax,ay]=pts[i-1],[bx,by]=pts[i], len=Math.hypot(bx-ax,by-ay), n=Math.max(1,Math.round(len/150));
     for(let k=1;k<=n;k++){ const t=k/n, w=k<n?(fbm(ax*0.01+k*3.1,by*0.01+k*1.7)-0.5)*90:0; out.push([ax+(bx-ax)*t-(by-ay)/len*w, ay+(by-ay)*t+(bx-ax)/len*w]); } }
