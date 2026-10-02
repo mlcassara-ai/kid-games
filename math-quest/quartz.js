@@ -105,11 +105,12 @@ function rockMineral(p){const CD=window.CAVE_DATA;if(!CD)return 'quartz';const m
 
 /* ---------- the trip ---------- */
 let HOST=null;
-function startTrip(first){const p=P();const s=Q(p);
+/* free: the Lab Key's one free elevator ride a day (lab.js). No rock is spent and there is no rock to identify. */
+function startTrip(first,free){const p=P();const s=Q(p);
  if(DEMO===true)DEMO=JSON.stringify({sci:p.sci||null,cave:p.cave||null,coins:p.coins,daily:p.daily,wkHist:p.wkHist||null});
- if(!first&&s.rocks<=0&&!DEMO){toast('🪨 You need a mystery rock first!');return;}
- if(!first&&!DEMO)s.rocks--;s.met=true;s.trips++;s.last=dayKey();p.wpos={x:W.hx,y:W.hy};p.cave=p.cave||{};save();
- HOST={first,rock:rockMineral(p)};go('cave');}
+ if(!first&&!free&&s.rocks<=0&&!DEMO){toast('🪨 You need a mystery rock first!');return;}
+ if(!first&&!free&&!DEMO)s.rocks--;s.met=true;s.trips++;s.last=dayKey();p.wpos={x:W.hx,y:W.hy};p.cave=p.cave||{};save();
+ HOST={first,rock:free?null:rockMineral(p)};go('cave');}
 function host(p){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{spell:p.spell}));
  const tk='cave#'+Math.floor(((Q(p).trips||1)-1)/5); // Sep 2026: the cave keeps your tunnels between trips (kids read a reset as 'progress lost'); a fresh cave every 5 trips
  return {player:{id:p.id,name:p.name,grade:p.grade||3,emoji:'🧑‍🚀',img:hi},state:p.cave,today:()=>tk,
