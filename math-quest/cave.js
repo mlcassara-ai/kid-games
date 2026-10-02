@@ -1214,8 +1214,10 @@ function leave(){save(true);cardQ.length=0;cancelAnimationFrame(raf);window.remo
    hero falls through the Earth's real layers to the centre (the same layers the Core Probe visits, but this time in person).
    The fall holds at the top of each layer until the kid taps on, so there is time to read. At the centre the Core Keeper, a grumpy
    ball of iron and nickel, asks science questions about the layers (not math), then launches the hero back to camp.
-   First visit: nothing is taken. Later visits: a wrong answer costs one unidentified specimen from the backpack (kept in
-   S.core.keep, at most 6) and a right answer wins one back. Before a kid has the suit, Dr. Quartz only hints (coreHint).
+   Like the Troll and the Eagle: on the first visit he grabs a specimen for each wrong answer but hands everything back at the end
+   (nothing really leaves the backpack). Later visits: a wrong answer costs one unidentified specimen from the backpack (kept in
+   S.core.keep, at most 6) and a right answer wins one back. He is drawn white-hot with a faint yellow tint: nobody has seen the
+   core, but metal at about 5,400 °C would glow nearly white, like the Sun's surface (which is about that hot). Before a kid has the suit, Dr. Quartz only hints (coreHint).
    S.core = {v: visits, keep: [specimens], last}. */
 const CKP_KM=6371,CKP_SUIT=CD.SUITS.findIndex(s=>s.core),CKP_ROW=(CD.LAYERS.find(l=>l.id==='mantle')||{r0:ROWS}).r0+2,CKP_KEEP=6;
 const CKP_L=[
@@ -1231,7 +1233,7 @@ const CKP_L=[
  {n:'Outer core',d0:2890,d1:5150,col:[245,150,30],secs:3.6,liquid:1,
   y:'The outer core is LIQUID metal: a deep, swirling ocean of melted iron!',
   o:'The outer core is liquid iron and nickel. As it swirls, it makes the Earth\'s magnetic field: the reason a compass points north.'},
- {n:'Inner core',d0:5150,d1:CKP_KM,col:[255,226,140],secs:3,solid:1,
+ {n:'Inner core',d0:5150,d1:CKP_KM,col:[255,244,205],secs:3,solid:1,
   y:'The inner core is a giant ball of solid metal, right in the middle of the Earth. It is the hottest place of all!',
   o:'The inner core is a solid ball of iron and nickel, about as hot as the surface of the Sun. It stays solid because the weight of the whole planet squeezes it.'}];
 const CKP_T=[[0,15],[40,500],[660,1600],[2890,3700],[5150,5000],[CKP_KM,5400]];
@@ -1258,7 +1260,7 @@ const CKP_CSS=`#cvCore{position:absolute;inset:0;z-index:80;background:#17110e;c
 #cvCore .ck-layer{position:absolute;left:10px;top:10px;right:40px;font-weight:700;font-size:22px;text-shadow:0 2px 6px rgba(0,0,0,.7)}
 #cvCore .ck-layer small{display:block;font-weight:400;font-size:13px;color:#fff4e6}
 #cvCore .ck-skip{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.55);color:#fff4e6;border:0;border-radius:10px;padding:6px 12px;font:inherit;font-weight:700;cursor:pointer}
-#cvCore .ck-keeper{position:absolute;left:50%;bottom:12%;width:150px;height:150px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7d1,#ffc94a 35%,#e8791d 70%,#8a3a12);box-shadow:0 0 50px 18px rgba(255,190,80,.55);animation:ckBob 2.6s ease-in-out infinite}
+#cvCore .ck-keeper{position:absolute;left:50%;bottom:12%;width:150px;height:150px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 38% 32%,#ffffff,#fffdf0 45%,#fff3c4 75%,#ffd97a);box-shadow:0 0 60px 24px rgba(255,250,225,.75);animation:ckBob 2.6s ease-in-out infinite}
 #cvCore .ck-keeper::before,#cvCore .ck-keeper::after{content:'';position:absolute;top:44%;width:26px;height:20px;background:#2a1408;border-radius:50% 50% 45% 45%}
 #cvCore .ck-keeper::before{left:28%}#cvCore .ck-keeper::after{right:28%}
 #cvCore .ck-brow{position:absolute;top:33%;left:22%;right:22%;height:8px}
@@ -1295,7 +1297,7 @@ function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=c
   <div class="ck-shaft"><canvas></canvas><div class="ck-layer"></div><div class="ck-gauge" aria-hidden="true">${CKP_L.map(L=>`<i style="flex:${L.d1-L.d0} 0 0;background:rgb(${L.col})"></i>`).join('')}</div><div class="ck-mark" aria-hidden="true"></div>
   <div class="ck-keeper" hidden><div class="ck-brow"></div><div class="ck-mouth"></div></div><button class="ck-skip" hidden>Skip the fall ▸▸</button></div><div class="ck-panel" aria-live="polite"></div></div>`;
  root.appendChild(el);
- const q=s=>el.querySelector(s),cv=q('canvas'),cx=cv.getContext('2d'),st={mode:'wait',depth:0,t:0,li:-1,res:[],qs:[],qi:0,took:0,gave:0};let parts=[],raf=0;
+ const q=s=>el.querySelector(s),cv=q('canvas'),cx=cv.getContext('2d'),st={mode:'wait',depth:0,t:0,li:-1,res:[],qs:[],qi:0,took:0,gave:0,lent:[]};let parts=[],raf=0;
  const size=()=>{const r=cv.getBoundingClientRect(),kk=Math.min(2,window.devicePixelRatio||1);cv.width=Math.max(1,r.width*kk);cv.height=Math.max(1,r.height*kk);};
  const readout=d=>{q('[data-r=d]').textContent=fmt(Math.round(d))+' km';q('[data-r=t]').textContent=fmt(Math.round(coreTemp(d)))+' °C';q('[data-r=l]').textContent=fmt(Math.round(CKP_KM-d))+' km';const g=q('.ck-gauge');q('.ck-mark').style.top=(g.offsetTop+g.offsetHeight*d/CKP_KM)+'px';};
  const layerAt=d=>CKP_L.find(L=>d<L.d1)||CKP_L[CKP_L.length-1];
@@ -1318,7 +1320,7 @@ function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=c
   cx.fillStyle='rgba(170,225,255,.28)';cx.strokeStyle='rgba(255,255,255,.9)';cx.lineWidth=u*.08;cx.beginPath();cx.arc(0,-u*.3,u*.8,0,P);cx.fill();cx.stroke();};
  const paint=dt=>{const w=cv.width,h=cv.height,d=st.depth,L=layerAt(d),c=colAt(d);
   const g=cx.createLinearGradient(0,0,0,h);g.addColorStop(0,`rgb(${c.map(v=>Math.round(v*.55))})`);g.addColorStop(1,`rgb(${c})`);cx.fillStyle=g;cx.fillRect(0,0,w,h);
-  if(st.mode==='core'){const rg=cx.createRadialGradient(w/2,h*.75,10,w/2,h*.75,h*.9);rg.addColorStop(0,'rgba(255,250,210,.9)');rg.addColorStop(1,'rgba(255,170,60,0)');cx.fillStyle=rg;cx.fillRect(0,0,w,h);return;}
+  if(st.mode==='core'){const rg=cx.createRadialGradient(w/2,h*.75,10,w/2,h*.75,h*.9);rg.addColorStop(0,'rgba(255,255,245,.95)');rg.addColorStop(1,'rgba(255,225,150,0)');cx.fillStyle=rg;cx.fillRect(0,0,w,h);return;}
   const dir=st.mode==='up'?-1:1,sp=(st.mode==='up'?2.4:1)*h*.9; /* the rock keeps rushing past during a reading pause; only the depth waits */
   if(parts.length<46)parts.push({x:Math.random()*w,y:dir>0?h+20:-20,s:.5+Math.random(),r:4+Math.random()*10});
   parts.forEach(p=>{p.y-=dir*sp*p.s*dt;});parts=parts.filter(p=>p.y>-40&&p.y<h+40);
@@ -1338,8 +1340,8 @@ function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=c
   st.depth=Math.min(CKP_KM,st.depth+(L.d1-L.d0)/L.secs*dt);readout(st.depth);if(st.depth>=CKP_KM)arrive();};
  const arrive=()=>{cancelAnimationFrame(raf);st.mode='core';st.depth=CKP_KM;readout(CKP_KM);paint(0);q('.ck-skip').hidden=true;q('.ck-layer').innerHTML='The centre of the Earth<small>6,371 km down</small>';q('.ck-keeper').hidden=false;sfx('bonk');
   const K='The Core Keeper',nm=esc(H.player.name||'You');
-  const intro=first?(young?[['🙂 '+nm,'Oof! Something big, round and warm caught you.'],[K,'<b>WHO fell into my core?!</b> I am the Core Keeper. I am made of iron, and I have been down here a very long time.'],[K,'Nobody ever visits. Hmph. If you want to go home, answer my questions about what you fell through!']]
-   :[['🙂 '+nm,'Something big, round and glowing catches you before you hit the middle. So THIS is what Dr. Quartz kept hearing!'],[K,'<b>WHO dropped into MY core?!</b> I am the Core Keeper: solid iron and nickel, squeezed by a whole planet and hotter than 5,000 degrees.'],[K,'Nobody ever visits. If you want a push back up, prove you were paying attention on the way down!']])
+  const intro=first?(young?[['🙂 '+nm,'Oof! Something big, round and warm caught you.'],[K,'<b>WHO fell into my core?!</b> I am the Core Keeper. I am made of iron, and I am so hot that I glow white!'],[K,'Nobody ever visits. Hmph. If you want to go home, answer my questions about what you fell through!']]
+   :[['🙂 '+nm,'Something big, round and glowing catches you before you hit the middle. So THIS is what Dr. Quartz kept hearing!'],[K,'<b>WHO dropped into MY core?!</b> I am the Core Keeper: solid iron and nickel, squeezed by a whole planet. I am over 5,000 degrees, so hot that I glow <b>white</b>, like the surface of the Sun.'],[K,'Nobody ever visits. If you want a push back up, prove you were paying attention on the way down!']])
    :[[K,'<b>YOU again!</b> My favourite visitor. I mean… what are you doing in my core?!'],[K,`Same deal as last time. Answer right and up you go. Miss one and I keep a specimen from your backpack for my collection.${k.keep.length?` I am still holding ${k.keep.length} of yours. Answer right to win ${k.keep.length>1?'them':'it'} back!`:''}`]];
   let n=0;const next=()=>{if(n<intro.length){const [who,text]=intro[n++];talk(who,text,'Next ➜',next);}else{st.qs=shuf(CKP_Q.filter(x=>!young||x.young)).slice(0,young?2:3);st.qi=0;ask();}};next();};
  const specName=it=>S.idd[it.id]&&CD.MIN[it.id]?CD.MIN[it.id].n:'a mystery specimen';
@@ -1348,13 +1350,13 @@ function coreFall(){if(coreOn||!root)return;coreOn=true;coreRoll=false;const k=c
   el.querySelectorAll('.ck-opt').forEach(b=>b.onclick=()=>{if(st.res[st.qi]!=null)return;const ok=b.textContent===qq.a[0];st.res[st.qi]=ok;el.querySelectorAll('.ck-opt').forEach(x=>{x.disabled=true;if(x.textContent===qq.a[0])x.classList.add('right');});if(!ok)b.classList.add('wrong');sfx(ok?'find':'bonk');
    let extra='';
    if(ok){S.rp+=3;if(!first&&k.keep.length&&S.pack.length<packMax()){const it=k.keep.pop();S.pack.push(it);st.gave++;extra=` Fine… here is ${esc(specName(it))} back.`;}}
-   else if(first)extra=' I\'ll let that one go, since it\'s your first visit.';
+   else if(first){const it=S.pack.find(p=>p.t==='m'&&!st.lent.includes(p));if(it){st.lent.push(it);extra=` <b>I\'ll keep ${esc(specName(it))} from your backpack! HAR!</b>`;}else extra=' …but I\'ll give you credit for trying.';} /* first visit: only pretend, it never leaves the pack */
    else{const i=k.keep.length<CKP_KEEP?S.pack.findIndex(p=>p.t==='m'):-1;if(i>=0){const it=S.pack.splice(i,1)[0];k.keep.push(it);st.took++;extra=` <b>I\'ll keep ${esc(specName(it))} from your backpack. Win it back next time!</b>`;}else extra=' …but I\'ll give you credit for trying.';}
    save(true);
    q('.ck-after').innerHTML=`<p>${ok?'<b>Hmph. Correct.</b> ':'<b>Not quite.</b> '}${esc(qq.why)}${extra}</p><button class="ck-go">${st.qi+1<n?'Next question ➜':'Done ➜'}</button>`;
    q('.ck-go').onclick=()=>{st.qi++;if(st.qi<n)ask();else outro();};});};
  const outro=()=>{const right=st.res.filter(Boolean).length,n=st.qs.length,K='The Core Keeper';q('.ck-keeper').classList.add('kind');
-  const line=first?'All right, all right. I was only pretending to be grumpy. It gets lonely at the centre of the Earth. Come back and see me!':right===n?'Every one right! You know my planet better than I do. Off you go, clever one.':'You are learning. Come back and you can win your things back.';
+  const line=first?(st.lent.length?`All right, all right… here, have your ${st.lent.length>1?st.lent.length+' specimens':'specimen'} back. `:'All right, all right. ')+'I was only pretending to be grumpy. It gets lonely at the centre of the Earth. But next time, what I take, I KEEP until you win it back!':right===n?'Every one right! You know my planet better than I do. Off you go, clever one.':'You are learning. Come back and you can win your things back.';
   talk(K,`${right} out of ${n}. ${line}`,'Hold on tight ➜',()=>talk(K,'I\'ll give you a push. Up through the outer core, the mantle and the crust: <b>6,371 km</b> to go!','🚀 Launch!',()=>{q('.ck-keeper').hidden=true;st.mode='up';parts=[];sfx('beam');loop();}));};
  const rise=dt=>{st.depth=Math.max(0,st.depth-CKP_KM/3.2*dt);readout(st.depth);q('.ck-layer').innerHTML=`Going up!<small>${layerAt(st.depth).n}</small>`;if(st.depth<=0)done();};
  const done=()=>{cancelAnimationFrame(raf);st.mode='done';const right=st.res.filter(Boolean).length,n=st.qs.length;k.v=(k.v||0)+1;k.last=Date.now();
