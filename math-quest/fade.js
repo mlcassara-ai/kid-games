@@ -1352,9 +1352,9 @@ document.addEventListener('keydown',e=>{try{if(cur()!=='fade'||UI.ph!=='q'||LAY)
 
 /* ---------- Parent Corner: who has beaten the Great Fade, and a Replay button ---------- */
 function parentSection(){try{if(typeof state==='undefined'||!state.players||!state.players.filter(p=>p.setup).length)return '';
- return `<div class="panel"><h3>🌈 The Great Fade (Chapter 1)</h3><p class="muted" style="margin-top:0">A one-time adventure: once a hero reaches level 10, the Grey Goblin steals the colors one time and the kid mixes them back with Prisma. Replay brings him back a few seconds into the hero's next visit to the World or Quest Board. A replay gives coins and a rare paint splotch (no second Chameleon).</p>
- ${state.players.filter(p=>p.setup).map(p=>{const f=p.fade||{};const st=f.a?'🎨 In progress':(f.c||0)>=1?(f.rp?'🔁 Replay coming':'✅ Beaten'):(p.level||1)<MIN_LV?`Unlocks at level ${MIN_LV} (now ${p.level||1})`:'⏳ Coming soon';
-  return `<div class="row" style="justify-content:flex-start;align-items:center;gap:10px;margin:6px 0"><b style="min-width:90px">${E(p.name)}</b><small class="muted">${st}</small>${(f.c||0)>=1&&!f.a&&!f.rp?`<button class="btn small ghost dark" onclick="Fade._replay('${p.id}')">🔁 Replay</button>`:''}</div>`;}).join('')}</div>`;}catch(e){return '';}}
+ return `<div class="panel"><h3>🌈 The Great Fade (Chapter 1)</h3><p class="muted" style="margin-top:0">A one-time adventure: once a hero reaches level 10, the Grey Goblin steals the colors one time and the kid mixes them back with Prisma. It normally comes at a random moment within two weeks; <b>Bring him now</b> makes it happen a few seconds into the hero's next visit to the World or Quest Board. Replay does the same for a hero who already beat him. A replay gives coins and a rare paint splotch (no second Chameleon).</p>
+ ${state.players.filter(p=>p.setup).map(p=>{const f=p.fade||{};const ready=!f.a&&!(f.c||0)&&(p.level||1)>=MIN_LV,soon=ready&&f.w1&&now()>=f.w1+MAX_D*DAY;const st=f.a?'🎨 In progress':(f.c||0)>=1?(f.rp?'🔁 Replay coming':'✅ Beaten'):(p.level||1)<MIN_LV?`Unlocks at level ${MIN_LV} (now ${p.level||1})`:soon?'⚡ Coming on the next visit':'⏳ Coming soon';
+  return `<div class="row" style="justify-content:flex-start;align-items:center;gap:10px;margin:6px 0"><b style="min-width:90px">${E(p.name)}</b><small class="muted">${st}</small>${(f.c||0)>=1&&!f.a&&!f.rp?`<button class="btn small ghost dark" onclick="Fade._replay('${p.id}')">🔁 Replay</button>`:''}${ready&&!soon?`<button class="btn small ghost dark" onclick="Fade._soon('${p.id}')">⚡ Bring him now</button>`:''}</div>`;}).join('')}</div>`;}catch(e){return '';}}
 window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 /* ---------- public API ---------- */
 window.Fade={
@@ -1364,6 +1364,8 @@ window.Fade={
  _lightOK(){const p=me();if(!p||!p.fade.a||UI.ph!=='light')return;solve(p,curPuzzle(p));},
  _wear(el){const p=me();if(!p||!p.look)return;p.look.robe=ROBE.id;sv();snd('tap');if(el)el.outerHTML='<b style="color:#2b8a3e">✓ You\'re wearing it!</b>';},
  _buddy(el){const p=me();if(!p)return;p.pet=CHAM.id;sv();snd('tap');if(el)el.outerHTML='<b style="color:#2b8a3e">✓ Your new buddy!</b>';},
+ /* a grown-up skips the two-week wait: the first Fade becomes due right away (it still waits for a calm moment on the map) */
+ _soon(id){try{const p=state.players.find(x=>x.id===id);if(!p)return;const f=F(p);if(f.a||(f.c||0)>=1)return;f.w1=now()-MAX_D*DAY-1000;f.n=0;save();if(typeof refreshParent==='function')refreshParent(null);else go('parent');toast('⚡ The Grey Goblin is on his way to '+p.name+'!');}catch(e){}},
  _replay(id){try{const p=state.players.find(x=>x.id===id);if(!p)return;F(p).rp=1;save();if(typeof refreshParent==='function')refreshParent(null);else go('parent');toast('🔁 The Grey Goblin will be back for '+p.name+'!');}catch(e){}},
  _next(){UI={key:null};snd('tap');try{window.scrollTo(0,0);}catch(e){}draw();setTimeout(()=>frame(NEW_VIEW.t,NEW_VIEW.b,false),80);},_finish(){const p=me();if(p)finish(p);},_home:home,_back:back,
  _helper(mode){const p=me();if(!p||!p.fade.a)return;UI={key:'help',hm:mode==='stuck'?'stuck':'days',ph:'q',inp:'',miss:0,hint:0,bowl:Z5(),mm:0,fb:''};snd('tap');draw();try{window.scrollTo(0,0);}catch(e){}},

@@ -173,6 +173,12 @@ const tests=[
   T.ok(new Set(d.FACTS.map(x=>x[0])).size===d.FACTS.length&&d.FACTS.every(x=>d.SETS.some(s=>s[0]===x[0][0])),'fact ids are not unique or lack a set');
   closeModal();window.MQ_DISTRICT_BETA=false;go('world');}],
 
+['great fade: a grown-up can bring the Goblin now',async function(){
+  T.reset();const p=T.hero('Fade',5,{level:12,battles:40});state.cur=p.id;const html=()=>{const d=document.createElement('div');d.innerHTML=MQ_PARENT.map(f=>{try{return f()||'';}catch(e){return '';}}).join('');return d.innerText;};
+  T.ok(/Bring him now/.test(html()),'no Bring him now button for a level 10+ hero');T.ok(Fade._dbg.whyNot(p)!=='',"the Fade was already due before the button");
+  Fade._soon(p.id);try{closeModal();}catch(e){}T.ok(Fade._dbg.whyNot(P())==='' ,'the Fade is not due after Bring him now: '+Fade._dbg.whyNot(P()));T.ok(/Coming on the next visit/.test(html()),'status did not change');
+  const q=T.hero('Small',2,{level:3});T.ok(!/Small[^]*Bring him now/.test(html().split('Small')[1]||''),'button offered below level 10');}],
+
 ['save size stays small',async function(){
   T.reset();for(let i=0;i<7;i++){const p=T.hero('Size'+i,3);for(let k=0;k<200;k++)p.missed['q'+k+' + 1']={n:1,a:1,op:'add',last:'2026-10-01',fixed:0,q:{op:'add',L:1,a:k,b:1,answer:k+1,text:'q'+k+' + 1'}};}
   migrate();stampChanges(true);const n=JSON.stringify(cloudPayload()).length;T.ok(n<700000,'family save is '+n+' bytes; the cloud limit is about 1,000,000');}]
