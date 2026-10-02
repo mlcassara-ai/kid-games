@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Language Quest – Alphabet School</title>
+<link rel="icon" type="image/png" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#1E5AA8; --deep:#153F78; --saffron:#F2B134; --mint:#2FA894; --rose:#E0607E;
+  --sand1:#F7DFA8; --sand2:#EBC47C; --card:#FFFFFF; --ink:#12233D; --muted:#5A6B82; --line:#E3D2A8;
+  --font:"Baloo Bhaijaan 2","Geeza Pro","Noto Sans Arabic",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --sand1:#5A4526; --sand2:#43331B; --card:#1D2B45; --ink:#EEF3FA; --muted:#A9B8CC; --line:#3A4B68; } }
+:root[data-theme="dark"]{ --sand1:#5A4526; --sand2:#43331B; --card:#1D2B45; --ink:#EEF3FA; --muted:#A9B8CC; --line:#3A4B68; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%}
+body{margin:0; min-height:100%; background:linear-gradient(180deg,#8FC6F0 0,#CFE6F7 140px,var(--sand1) 141px,var(--sand2) 100%); background-attachment:fixed; color:var(--ink); font-family:var(--font); -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none}
+.wrap{max-width:760px; margin:0 auto; padding:10px 14px 28px}
+.top{display:flex; align-items:center; gap:8px; justify-content:space-between}
+.top h1{font-size:1.3rem; margin:0; font-weight:800; color:#12233D}
+.pill{background:var(--card); color:var(--ink); border:0; border-radius:999px; padding:6px 14px; font:inherit; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,.15); cursor:pointer; min-height:40px}
+.coins{background:var(--saffron); color:#12233D}
+button:focus-visible{outline:3px solid var(--saffron); outline-offset:3px}
+.panel{background:var(--card); border-radius:24px; padding:14px; margin-top:12px; box-shadow:0 4px 16px rgba(70,50,10,.15)}
+h2{margin:4px 0 8px; font-size:1.3rem}
+.muted{color:var(--muted)}
+.camps{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-top:12px}
+.camp{background:var(--card); border:0; border-radius:22px; padding:12px 10px; cursor:pointer; font:inherit; color:var(--ink); text-align:center; box-shadow:0 4px 14px rgba(70,50,10,.15); position:relative}
+.camp .tent{font-size:2.4rem}
+.camp .ls{font-size:1.6rem; direction:rtl; word-spacing:.15rem; line-height:1.5; white-space:nowrap}
+.camp .nm{font-weight:800}
+.camp .st{color:var(--saffron); font-size:1.1rem; min-height:1.4rem}
+.camp.locked{opacity:.55; cursor:not-allowed}
+.camp.locked::after{content:"🔒"; position:absolute; top:8px; right:10px; font-size:1.3rem}
+.crew{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:10px}
+@media (min-width:560px){ .crew{grid-template-columns:repeat(4,1fr)} }
+.mem{background:var(--card); border:3px solid transparent; border-radius:20px; padding:8px; cursor:pointer; font:inherit; color:var(--ink); text-align:center; box-shadow:0 3px 10px rgba(70,50,10,.12)}
+.mem svg{width:84px; height:84px}
+.mem .nm{font-weight:800}
+.mem.done{border-color:var(--mint)}
+.mem.done .nm::after{content:" ✓"; color:var(--mint)}
+.actions{display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+.btn{font:inherit; font-weight:800; font-size:1.05rem; border:0; border-radius:14px; padding:10px 18px; min-height:48px; cursor:pointer; background:var(--sky); color:#fff}
+.btn.ghost{background:var(--line); color:var(--ink)}
+.btn.go{background:var(--mint)}
+.btn.boss{background:var(--rose)}
+.btn[disabled]{opacity:.45; cursor:not-allowed}
+.hero{display:flex; align-items:center; gap:12px}
+.hero svg{width:104px; height:104px; flex:none; cursor:pointer}
+.talk{background:#FFF8E6; color:#12233D; border-radius:18px; padding:10px 14px; font-size:1.05rem; line-height:1.35; position:relative; flex:1}
+.talk::before{content:""; position:absolute; left:-8px; top:26px; border:8px solid transparent; border-right-color:#FFF8E6; border-left:0}
+.talk .ar{font-size:1.5rem}
+.slots{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; direction:rtl; margin:12px 0}
+.slot{background:#FFF8E6; color:#12233D; border-radius:16px; text-align:center; padding:6px 2px; border:2px dashed #D9BF85}
+.slot b{display:block; font-size:2.4rem; font-weight:500; line-height:1.4; min-height:3.3rem; color:var(--sky)}
+.slot span{font-size:.8rem; color:#7A6B45}
+.slot.got{border-style:solid; border-color:var(--mint)}
+.field{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:4px}
+.orb{aspect-ratio:1; border-radius:50%; border:0; cursor:pointer; font-family:var(--font); font-size:2.5rem; line-height:1; color:#12233D;
+  background:radial-gradient(circle at 32% 28%, #fff 0 12%, rgba(255,255,255,.9) 13% 40%, rgba(255,255,255,.62) 70%);
+  box-shadow:inset 0 -6px 12px rgba(160,110,20,.2), 0 4px 10px rgba(120,80,10,.18)}
+.orb.pop{visibility:hidden}
+.orb.nope{background:radial-gradient(circle,#FFD6DE,#F7A8B8)}
+.orb.glow{box-shadow:0 0 0 5px var(--saffron), 0 0 22px var(--saffron)}
+.words{display:grid; gap:10px; margin-top:8px}
+.word{display:flex; align-items:center; gap:12px; background:#FFF8E6; color:#12233D; border-radius:18px; padding:10px 14px; border:3px solid transparent; cursor:pointer; font:inherit; text-align:start}
+.word .em{font-size:2.2rem}
+.word .ar{font-size:2rem; line-height:1.5; direction:rtl}
+.word .info{flex:1}
+.word .where{font-size:.9rem; color:#7A6B45}
+.word .form{font-size:2.1rem; color:var(--sky); min-width:52px; text-align:center}
+.word.heard{border-color:var(--mint)}
+.bossbar{display:flex; align-items:center; gap:10px; margin:8px 0}
+.hp{flex:1; height:16px; background:#F3D6DD; border-radius:999px; overflow:hidden}
+.hp i{display:block; height:100%; background:var(--rose); transition:width .3s}
+.hearts{font-size:1.3rem; min-width:80px; text-align:right}
+.q{font-size:1.2rem; text-align:center; margin:10px 0}
+.q .big{font-size:2.8rem; display:block; line-height:1.4}
+.opts{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+.opt{font-family:var(--font); font-size:2.6rem; min-height:92px; border-radius:20px; border:0; background:#FFF8E6; color:#12233D; cursor:pointer; box-shadow:0 4px 0 #D9BF85}
+.opt.right{background:#C9F0E3; box-shadow:0 4px 0 var(--mint)}
+.opt.wrong{background:#FFD6DE; box-shadow:0 4px 0 var(--rose)}
+.tracewrap{position:relative; margin:10px auto 0; max-width:520px}
+.trace{display:block; width:100%; height:auto; background:#FFF8E6; border-radius:20px; border:2px dashed #D9BF85; touch-action:none; cursor:crosshair}
+.tbase{stroke:#E3D2A8; stroke-width:2; stroke-dasharray:6 6}
+path.tg{fill:none; stroke:#EADBB4; stroke-width:24; stroke-linecap:round; stroke-linejoin:round}
+circle.tg{fill:#EADBB4}
+path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
+.tink{fill:none; stroke:var(--sky); stroke-width:24; stroke-linecap:round; stroke-linejoin:round}
+.tdot{fill:var(--saffron); stroke:#fff; stroke-width:3}
+.tnum{fill:var(--mint); stroke:#fff; stroke-width:2}
+.tnumt{font:800 15px var(--font); fill:#fff; pointer-events:none}
+.tarr{fill:#fff; stroke:#12233D; stroke-width:1.5; stroke-linejoin:round}
+.tdemo{fill:none; stroke:var(--rose); stroke-width:10; stroke-linecap:round; stroke-linejoin:round}
+.tdemod{fill:var(--rose)}
+.tform{position:absolute; top:8px; left:12px; text-align:center; color:#7A6B45; font-size:.8rem; pointer-events:none}
+.tform b{display:block; font-size:1.9rem; font-weight:500; color:#12233D; line-height:1.3}
+.mem[disabled]{opacity:.5; cursor:not-allowed}
+.mem .st{color:var(--saffron); min-height:1.4rem}
+.center{text-align:center}
+#start{position:fixed; inset:0; background:rgba(18,35,61,.55); display:flex; align-items:center; justify-content:center; z-index:10}
+#start .box{background:var(--card); color:var(--ink); border-radius:26px; padding:24px; text-align:center; width:min(88vw,360px)}
+@media (prefers-reduced-motion:no-preference){
+  .orb{animation:bob 3s ease-in-out infinite}
+  .orb:nth-child(2n){animation-delay:-1.2s}.orb:nth-child(3n){animation-delay:-2.1s}
+  .orb.nope,.opt.wrong{animation:shake .35s}
+  .hero svg.happy{animation:hop .5s}
+  .slot.got b{animation:land .4s}
+}
+@keyframes bob{50%{transform:translateY(-6px)}}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes hop{40%{transform:translateY(-14px) rotate(-5deg)}}
+@keyframes land{0%{transform:scale(1.8)}100%{transform:scale(1)}}
+.groups{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-top:12px}
+.big-go{display:block; width:100%; margin-top:12px; font-size:1.2rem}
+.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-top:10px; direction:rtl}
+.lc{background:#FFF8E6; color:#12233D; border:3px solid transparent; border-radius:20px; padding:8px 6px; cursor:pointer; font:inherit; text-align:center}
+.lc .ch{display:block; font-size:3.6rem; line-height:1.35; color:var(--sky); font-weight:700}
+.lc .nm{display:block; font-size:1.35rem; line-height:1.7}
+.lc .en{display:block; font-size:.85rem; color:#7A6B45; direction:ltr}
+.lc .pic{display:block; font-size:1rem; line-height:1.8; direction:rtl}
+.lc.heard{border-color:var(--mint)} .lc.on{border-color:var(--saffron); background:#FFF0C2}
+.song{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; direction:rtl; margin-top:10px}
+.song span{background:#FFF8E6; color:#12233D; border-radius:12px; text-align:center; font-size:2rem; line-height:1.6; border:3px solid transparent}
+.song span.on{border-color:var(--saffron); background:#FFE08A; transform:scale(1.08)}
+.optw{position:relative}
+.opt.word{font-size:1.5rem; line-height:1.8; direction:rtl; text-align:center; width:100%; padding:0 60px}
+.hear{position:absolute; left:10px; top:50%; transform:translateY(-54%); width:48px; height:48px; border-radius:50%; border:0; background:#fff; font-size:1.3rem; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.seq{font-size:2.8rem; direction:rtl; letter-spacing:.6rem; display:block; line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <button class="pill" id="back">← Map</button>
+    <h1>Alphabet School <span id="who" style="font-size:1rem;color:#1E5AA8"></span></h1>
+    <div style="display:flex;gap:6px"><button class="pill" id="snd" aria-label="Sound on or off">🔊</button><div class="pill coins">🪙 <span id="coins">0</span></div></div>
+  </div>
+  <main id="app"></main>
+</div>
+<div id="start"><div class="box"><div style="font-size:3rem">🏫</div><h2>Alphabet School</h2><p class="muted">مَدْرَسَةُ الحُرُوف — meet the 28 letters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
+
+<script>window.LQ_VER="2026.10.02w";</script>
+<script src="../lq-core.js?v=2026.10.02w"></script>
+<script>
+/* ============ the alphabet, at the most basic level ============
+   Each letter on its own (no joined shapes; those are taught in the Letter Dunes): its name, its sound with fatha,
+   and one picture word that starts with it. [letter, name, English name, sound, picture, word, English word]
+   Every Arabic string here is already recorded (they are shared with the Letter Dunes and Sound Falls). */
+const ABC=[
+ ["ا", "أَلِف", "Alif", "أَ", "🦁", "أَسَد", "lion"],
+ ["ب", "بَاء", "Baa", "بَ", "🦆", "بَطَّة", "duck"],
+ ["ت", "تَاء", "Taa", "تَ", "🍎", "تُفَّاحَة", "apple"],
+ ["ث", "ثَاء", "Thaa", "ثَ", "🦊", "ثَعْلَب", "fox"],
+ ["ج", "جِيم", "Jeem", "جَ", "🐪", "جَمَل", "camel"],
+ ["ح", "حَاء", "Haa", "حَ", "🐴", "حِصَان", "horse"],
+ ["خ", "خَاء", "Khaa", "خَ", "🍞", "خُبْز", "bread"],
+ ["د", "دَال", "Daal", "دَ", "🐻", "دُبّ", "bear"],
+ ["ذ", "ذَال", "Dhaal", "ذَ", "🐺", "ذِئْب", "wolf"],
+ ["ر", "رَاء", "Raa", "رَ", "🪶", "رِيشَة", "feather"],
+ ["ز", "زَاي", "Zaay", "زَ", "🦒", "زَرَافَة", "giraffe"],
+ ["س", "سِين", "Seen", "سَ", "🐟", "سَمَكَة", "fish"],
+ ["ش", "شِين", "Sheen", "شَ", "☀️", "شَمْس", "sun"],
+ ["ص", "صَاد", "Saad", "صَ", "🦅", "صَقْر", "falcon"],
+ ["ض", "ضَاد", "Daad", "ضَ", "🐸", "ضِفْدَع", "frog"],
+ ["ط", "طَاء", "Taa (heavy)", "طَ", "✈️", "طَائِرَة", "airplane"],
+ ["ظ", "ظَاء", "Dhaa (heavy)", "ظَ", "✉️", "ظَرْف", "envelope"],
+ ["ع", "عَيْن", "Ayn", "عَ", "👁️", "عَيْن", "eye"],
+ ["غ", "غَيْن", "Ghayn", "غَ", "☁️", "غَيْمَة", "cloud"],
+ ["ف", "فَاء", "Faa", "فَ", "🐘", "فِيل", "elephant"],
+ ["ق", "قَاف", "Qaaf", "قَ", "🌙", "قَمَر", "moon"],
+ ["ك", "كَاف", "Kaaf", "كَ", "🐶", "كَلْب", "dog"],
+ ["ل", "لَام", "Laam", "لَ", "🍋", "لَيْمُون", "lemon"],
+ ["م", "مِيم", "Meem", "مَ", "🍌", "مَوْز", "banana"],
+ ["ن", "نُون", "Noon", "نَ", "🐅", "نَمِر", "tiger"],
+ ["ه", "هَاء", "Haa (soft)", "هَ", "🌙", "هِلَال", "crescent"],
+ ["و", "وَاو", "Waaw", "وَ", "🌹", "وَرْدَة", "rose"],
+ ["ي", "يَاء", "Yaa", "يَ", "✋", "يَد", "hand"]
+];
+const GROUPS=[[0,7],[7,14],[14,21],[21,28]].map(([a,b],i)=>({i,from:a,to:b,letters:ABC.slice(a,b)}));
+const LIKE=[["ب","ت","ث","ن","ي"],["ج","ح","خ"],["د","ذ"],["ر","ز","و"],["س","ش"],["ص","ض"],["ط","ظ"],["ع","غ"],["ف","ق"],["ك","ل"],["م","ه"],["ا","ل"]];
+const IDX={}; ABC.forEach((l,i)=>IDX[l[0]]=i);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ============ save: the signed-in player (shared with the map through lq-core.js) ============
+   p.abc = letters met here (heard), p.abcStars = stars per group of seven */
+const $=id=>document.getElementById(id);
+if(!LQ.player()) location.replace("../");               // nobody signed in: go pick a player on the map
+const save={ get coins(){ const p=LQ.player(); return p?p.coins||0:0; },
+             get met(){ const p=LQ.player(); return p?(p.abc=p.abc||{}):{}; },
+             get stars(){ const p=LQ.player(); return p?(p.abcStars=p.abcStars||{}):{}; } };
+function persist(){ LQ.update(()=>{}); $("coins").textContent=save.coins; const p=LQ.player(); if(p) $("who").textContent=p.name; }
+function addCoins(n){ LQ.addCoins(n); $("coins").textContent=save.coins; }
+LQ.onChange(()=>{ const e=$("coins"); if(e) e.textContent=save.coins; });
+
+/* ============ voice: generated Google voice (Puck) with device fallback ============ */
+const AUDIO_BASE="https://storage.googleapis.com/kid-games-dc068-voices/lq/ar-XA-Chirp3-HD-Puck/";
+function audioKey(t){ let h=0x811c9dc5; for(const b of new TextEncoder().encode(t)){ h^=b; h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,"0"); }
+const audio=new Audio(); audio.preload="auto"; let soundOn=true, sid=0;
+function deviceSay(t){ if(!("speechSynthesis" in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang="ar-SA"; u.rate=0.75;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith("ar")); if(v)u.voice=v; speechSynthesis.speak(u); }
+// then() runs when the clip finishes (or cannot play), unless something else was said in the meantime
+function say(t,then){ const id=++sid; audio.onended=null; if(!soundOn){ if(then) setTimeout(()=>{ if(id===sid) then(); },700); return; }
+  audio.pause(); audio.src=AUDIO_BASE+audioKey(t)+".mp3";
+  const fail=()=>{ if(id!==sid) return; deviceSay(t); if(then) setTimeout(()=>{ if(id===sid) then(); },1800); };
+  audio.onended=()=>{ if(id===sid&&then) then(); }; audio.onerror=fail; const p=audio.play(); if(p&&p.catch) p.catch(fail); }
+function hush(){ sid++; audio.onended=null; audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); }
+$("snd").onclick=e=>{ soundOn=!soundOn; e.target.textContent=soundOn?"🔊":"🔇"; if(!soundOn) hush(); };
+try{ audio.volume=LQ.voiceVol()||1; }catch(e){} if(!LQ.voiceVol()){ soundOn=false; $("snd").textContent="🔇"; }      // voice volume comes from the map's sound menu
+$("back").onclick=()=>{ location.href="../?from=abc"; };
+// the map already said this zone's name on the way in; say it here only when arriving another way
+$("go").onclick=()=>{ let said=false; try{ said=sessionStorage.getItem("lq.said")==="abc"; sessionStorage.removeItem("lq.said"); }catch(e){} if(!said) say("مَدْرَسَةُ الحُرُوف"); $("start").remove(); };
+
+/* ============ screens ============ */
+const stars3=n=>"★".repeat(n)+"☆".repeat(3-n);
+function home(){ LQ.mark("Alphabet School: home"); hush(); const met=save.met, n=Object.keys(met).length;
+  $("app").innerHTML=`<div class="panel"><h2>Welcome to the Alphabet School!</h2>
+    <p class="muted" style="margin:0">Arabic has 28 letters. Meet them seven at a time: hear each name and sound, then play a game. <b>${n} of 28</b> letters met.</p>
+    <button class="btn go big-go" id="song">🎶 Hear the whole alphabet</button></div>
+    <div class="groups">${GROUPS.map(g=>{ const m=g.letters.filter(l=>met[l[0]]).length, st=save.stars[g.i]||0;
+      return `<button class="camp" data-g="${g.i}"><div class="ls" lang="ar" style="white-space:normal;font-size:1.6rem;line-height:1.6">${g.letters.map(l=>l[0]).join(" ")}</div>
+        <div class="nm">Letters ${g.from+1} to ${g.to}</div><div class="st">${st?stars3(st):`<span class="muted" style="font-size:.95rem">${m}/7 met</span>`}</div></button>`; }).join("")}</div>`;
+  $("song").onclick=song; document.querySelectorAll(".camp").forEach(b=>b.onclick=()=>group(+b.dataset.g));
+}
+/* ---- the whole alphabet, read in order with each letter lighting up ---- */
+function song(){ LQ.mark("Alphabet song"); hush(); let stop=false;
+  $("app").innerHTML=`<div class="panel center"><h2>🎶 The Arabic alphabet</h2><p class="muted" style="margin:0">Listen and say each name with me.</p>
+    <div class="song">${ABC.map((l,i)=>`<span data-i="${i}" lang="ar">${l[0]}</span>`).join("")}</div>
+    <p id="now" lang="ar" style="font-size:1.8rem;min-height:3rem;margin:10px 0 0;color:var(--sky)"></p>
+    <div class="actions"><button class="btn ghost" id="again">↻ From the start</button><button class="btn ghost" id="bk">Back</button></div></div>`;
+  const tiles=[...document.querySelectorAll(".song span")];
+  const play=i=>{ if(stop||!$("now")) return; tiles.forEach((t,x)=>t.classList.toggle("on",x===i)); if(i>=ABC.length){ $("now").textContent="أَحْسَنْتَ"; return say("أَحْسَنْتَ"); }
+    $("now").textContent=ABC[i][1]; say(ABC[i][1],()=>setTimeout(()=>play(i+1),250)); };
+  tiles.forEach(t=>t.onclick=()=>{ const i=+t.dataset.i; tiles.forEach((x,j)=>x.classList.toggle("on",j===i)); $("now").textContent=ABC[i][1]; say(ABC[i][1]); });
+  $("again").onclick=()=>{ hush(); play(0); }; $("bk").onclick=()=>{ stop=true; home(); };
+  play(0);
+}
+/* ---- meet seven letters: tap one to hear its name, its sound and a word that starts with it ---- */
+function group(g){ LQ.mark("Letters "+(GROUPS[g].from+1)+"-"+GROUPS[g].to); hush(); const G=GROUPS[g], heard=new Set(G.letters.filter(l=>save.met[l[0]]).map(l=>l[0]));
+  $("app").innerHTML=`<div class="panel"><h2>Letters ${G.from+1} to ${G.to}</h2><p class="muted" style="margin:0">Tap each letter: you will hear its name, its sound and a word that starts with it.</p>
+    <div class="cards">${G.letters.map(l=>`<button class="lc ${heard.has(l[0])?"heard":""}" data-c="${l[0]}"><span class="ch" lang="ar">${l[0]}</span><span class="nm" lang="ar">${l[1]}</span>
+      <span class="en">${l[2]}</span><span class="pic" lang="ar">${l[4]} ${l[5]}</span></button>`).join("")}</div>
+    <div class="actions"><button class="btn ghost" id="bk">All letters</button><button class="btn boss" id="play">🎲 Letter game</button></div></div>`;
+  document.querySelectorAll(".lc").forEach(b=>b.onclick=()=>{ const l=ABC[IDX[b.dataset.c]]; document.querySelectorAll(".lc").forEach(x=>x.classList.toggle("on",x===b));
+    say(l[1],()=>setTimeout(()=>say(l[3],()=>setTimeout(()=>say(l[5],()=>b.classList.remove("on")),300)),300));
+    b.classList.add("heard"); if(!save.met[l[0]]){ LQ.update(p=>{ p.abc=p.abc||{}; p.abc[l[0]]=1; }); addCoins(2); } heard.add(l[0]); });
+  $("bk").onclick=home; $("play").onclick=()=>game(g);
+}
+/* ---- the game: hear a name and find the letter, find the letter that comes next, pick a letter's name ---- */
+function game(g){ LQ.mark("Letter game "+(g+1)); hush(); const G=GROUPS[g]; let hp=6, hearts=3, qn=0, busy=false;
+  const qs=shuffle([...G.letters,...shuffle([...G.letters]).slice(0,3)]).map((l,k)=>({l,type:["hear","next","name"][k%3]}));
+  const twins=ch=>(LIKE.find(f=>f.includes(ch))||[]).filter(x=>x!==ch);
+  const others=(ch,n)=>{ const a=shuffle(twins(ch)).slice(0,2), pool=shuffle(G.letters.map(l=>l[0]).filter(x=>x!==ch&&!a.includes(x))); return [...a,...pool].slice(0,n); };
+  function draw(){
+    if(hp<=0||hearts<=0) return finish();
+    const q=qs[qn%qs.length], l=q.l, ch=l[0], i=IDX[ch]; let type=q.type; if(type==="next"&&i<2) type="hear";
+    let prompt, opts, speak="", word=false;
+    if(type==="hear"){ prompt=`Listen! Which letter is this?<span class="big">🔊</span>`; speak=l[1]; opts=shuffle([ch,...others(ch,3)]); }
+    if(type==="next"){ prompt=`Which letter comes next?<span class="seq" lang="ar">${ABC[i-2][0]} ${ABC[i-1][0]} ؟</span>`; const near=shuffle(ABC.slice(Math.max(0,i-1),i+4).map(x=>x[0]).filter(x=>x!==ch)).slice(0,3); opts=shuffle([ch,...near]); }
+    if(type==="name"){ prompt=`What is this letter called?<span class="big" lang="ar">${ch}</span>`; word=true; opts=shuffle([ch,...others(ch,3)]); }
+    $("app").innerHTML=`<div class="panel"><div class="bossbar"><span style="font-size:2.4rem">🏫</span><div class="hp"><i style="width:${hp/6*100}%"></i></div><div class="hearts">${"❤️".repeat(hearts)}${"🤍".repeat(3-hearts)}</div></div>
+      <div class="q">${prompt}</div>
+      <div class="opts">${opts.map(o=>word?`<div class="optw"><button class="opt word" lang="ar" data-v="${o}">${ABC[IDX[o]][1]}</button><button class="hear" data-v="${o}" aria-label="Hear this name">🔊</button></div>`
+        :`<button class="opt" lang="ar" data-v="${o}">${o}</button>`).join("")}</div>
+      <div class="actions">${speak?`<button class="btn ghost" id="again">🔊 Hear again</button>`:""}<button class="btn ghost" id="run">Back to the letters</button></div></div>`;
+    if(speak){ say(speak); $("again").onclick=()=>say(speak); } $("run").onclick=()=>group(g);
+    document.querySelectorAll(".hear").forEach(b=>b.onclick=()=>{ if(!busy) say(ABC[IDX[b.dataset.v]][1]); });
+    document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy) return; busy=true; const v=b.dataset.v; say(l[1]);
+      if(v===ch){ b.classList.add("right"); hp--; addCoins(3); LQ.record("letters",ch,true); }
+      else { b.classList.add("wrong"); hearts--; LQ.record("letters",ch,false,v); document.querySelector(`.opt[data-v="${ch}"]`).classList.add("right"); }
+      qn++; setTimeout(()=>{ busy=false; draw(); },1100); });
+  }
+  function finish(){
+    if(hearts<=0){ LQ.mark("Letter game "+(g+1)+" lost");
+      $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏫</div><h2>Almost! Let's practise a little more.</h2><p class="muted">Listen to the letters again, then try once more.</p>
+        <div class="actions"><button class="btn boss" id="retry">Try again</button><button class="btn ghost" id="bk">Back to the letters</button></div></div>`;
+      $("retry").onclick=()=>game(g); $("bk").onclick=()=>group(g); return; }
+    const stars=hearts, first=!save.stars[g]; LQ.mark("Letter game "+(g+1)+" won");
+    LQ.update(p=>{ p.abcStars=p.abcStars||{}; p.abcStars[g]=Math.max(p.abcStars[g]||0,stars); p.abc=p.abc||{}; G.letters.forEach(l=>p.abc[l[0]]=1); }); addCoins(first?20:5); persist(); say("أَحْسَنْتَ");
+    $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You know letters ${G.from+1} to ${G.to}!</h2><p style="font-size:2rem;color:var(--saffron);margin:0">${stars3(stars)}</p>
+      <p class="muted">${g<3?"Next, meet the next seven letters.":"You have met all 28 letters. Now try the Letter Dunes, where letters change shape!"}</p>
+      <div class="actions"><button class="btn go" id="next">${g<3?"Next letters":"All letters"}</button><button class="btn ghost" id="stay">Stay here</button></div></div>`;
+    $("next").onclick=()=>g<3?group(g+1):home(); $("stay").onclick=()=>group(g);
+  }
+  draw();
+}
+persist(); home();
+</script>
+</body>
+</html>

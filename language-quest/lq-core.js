@@ -250,9 +250,9 @@ function kidSummary(p){
   const all=L.concat(M,W); const tot=all.reduce((s,e)=>s+e.r+e.w,0), right=all.reduce((s,e)=>s+e.r,0);
   const weak=[...Object.entries(st.letters||{}).filter(([k,e])=>level(e)==="bad").map(([k])=>`<bdi class="lq-ar" lang="ar">${esc(k)}</bdi>`),
               ...Object.entries(st.marks||{}).filter(([k,e])=>level(e)==="bad").map(([k])=>esc(k))].slice(0,6);
-  const caught=Object.keys(p.letters||{}).length, camps=Object.keys(p.camps||{}).length, pools=Object.keys(p.falls||{}).length, friends=Object.keys(p.friends||{}).length, traced=Object.keys(p.trace||{}).length, stalls=Object.keys(p.souq||{}).length, tales=Object.keys(p.harbor||{}).length;
+  const caught=Object.keys(p.letters||{}).length, camps=Object.keys(p.camps||{}).length, pools=Object.keys(p.falls||{}).length, friends=Object.keys(p.friends||{}).length, traced=Object.keys(p.trace||{}).length, stalls=Object.keys(p.souq||{}).length, tales=Object.keys(p.harbor||{}).length, abcN=Object.keys(p.abc||{}).length;
   return `<div class="lq-kid"><h3>${esc(p.name)} <span class="lq-small">🪙 ${p.coins||0} · last played ${agoText(Object.keys(p.days||{}).length?p.last:0)}</span></h3>
-    <div class="lq-small">Letter Dunes <b>${caught}/28</b> letters, <b>${camps}/7</b> camps · Sound Falls <b>${pools}/8</b> pools · Souq <b>${stalls}/5</b> stalls · Story Harbor <b>${tales}/5</b> stories · Letter Friends <b>${friends}/28</b> · Tracing <b>${traced}/28</b> · Overall <b>${tot?Math.round(right/tot*100)+"% right":"no answers yet"}</b></div>
+    <div class="lq-small">Alphabet School <b>${abcN}/28</b> met · Letter Dunes <b>${caught}/28</b> letters, <b>${camps}/7</b> camps · Sound Falls <b>${pools}/8</b> pools · Souq <b>${stalls}/5</b> stalls · Story Harbor <b>${tales}/5</b> stories · Letter Friends <b>${friends}/28</b> · Tracing <b>${traced}/28</b> · Overall <b>${tot?Math.round(right/tot*100)+"% right":"no answers yet"}</b></div>
     <div class="lq-bar"><i style="width:${(caught/28*50+pools/8*50)}%"></i></div>
     <div class="lq-small">Needs help with</div><div class="lq-tags bad">${weak.length?weak.map(x=>`<span>${x}</span>`).join(""):"<span>Nothing flagged yet 👍</span>"}</div>
     <div class="lq-row" style="justify-content:flex-start;margin-top:4px"><button class="lq-btn" data-detail="${p.id}">See details ▶</button></div></div>`;
@@ -270,7 +270,7 @@ function kidDetailFor(p,back,family){ const st=p.stats||{};
   const words=Object.entries(WS).sort((a,b)=>(b[1].w-a[1].w)||(b[1].r-a[1].r));
   const mix=Object.entries(st.mix||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const recent=(st.recent||[]).slice(0,12);
-  const ZN={letters:"Letter Dunes",falls:"Sound Falls",souq:"The Souq",harbor:"Story Harbor",map:"Map","language-quest":"Map"};
+  const ZN={letters:"Letter Dunes",falls:"Sound Falls",souq:"The Souq",harbor:"Story Harbor",alphabet:"Alphabet School",map:"Map","language-quest":"Map"};
   const trail=(p.trail||[]).slice(-15).reverse(), errs=(p.errs||[]).slice().reverse();
   overlay(`<h1>${esc(p.name)}</h1>
     <div class="lq-card"><h2 style="text-align:left;margin-top:0">Letters</h2>
@@ -359,8 +359,8 @@ function drawHero(c,p,o){ o=o||{}; const wear=o.wear||(p&&p.wear)||{}, t=o.time|
 /* ---------------- "Me": the player's own page ---------------- */
 function mePage(){
   const p=cur(); if(!p) return; mark("Me page"); const n=o=>Object.keys(o||{}).length, sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
-  const L=n(p.letters), rows=[["⛺ Letters caught",L,28,"letters/"],["✏️ Letters traced",n(p.trace),28,"letters/"],["💦 Sound Falls pools",n(p.falls),8,"falls/"],["🛍️ Souq stalls",n(p.souq),5,"souq/"],["⛵ Stories finished",n(p.harbor),5,"harbor/"],["📒 Letter Friends",n(p.friends),28,"#album"],["⛲ Sayings found",n(p.well&&p.well.got),26,"#fountain"]];   // last item: where tapping the row goes
-  const stars=sum(p.camps)+sum(p.falls)+sum(p.souq)+sum(p.harbor), days=n(p.days), dr=p.dr||{}, td=dr[today()]||0, best=p.best||{n:0};
+  const L=n(p.letters), rows=[["🏫 Alphabet letters met",n(p.abc),28,"alphabet/"],["⛺ Letters caught",L,28,"letters/"],["✏️ Letters traced",n(p.trace),28,"letters/"],["💦 Sound Falls pools",n(p.falls),8,"falls/"],["🛍️ Souq stalls",n(p.souq),5,"souq/"],["⛵ Stories finished",n(p.harbor),5,"harbor/"],["📒 Letter Friends",n(p.friends),28,"#album"],["⛲ Sayings found",n(p.well&&p.well.got),26,"#fountain"]];   // last item: where tapping the row goes
+  const stars=sum(p.camps)+sum(p.falls)+sum(p.souq)+sum(p.harbor)+sum(p.abcStars), days=n(p.days), dr=p.dr||{}, td=dr[today()]||0, best=p.best||{n:0};
   const right=["letters","marks","words"].reduce((a,k)=>a+Object.values((p.stats||{})[k]||{}).reduce((x,e)=>x+(e.r||0),0),0);
   const week=[]; for(let i=6;i>=0;i--){ const d=new Date(Date.now()-i*864e5); week.push([["Su","Mo","Tu","We","Th","Fr","Sa"][d.getDay()],dr[d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()]||0]); }
   const top=Math.max(1,...week.map(w=>w[1]));
@@ -379,7 +379,7 @@ function mePage(){
   overlay(`<div class="lq-card" style="max-width:520px;margin:10px auto;text-align:center">
     <canvas id="lqMe" width="260" height="300" style="width:130px;height:150px"></canvas>
     <h2 style="margin:0">${esc(p.name)}</h2>
-    <p style="margin:4px 0"><b>🪙 ${p.coins||0}</b> · <b>★ ${stars}</b> of 75 stars · played on <b>${days}</b> day${days===1?"":"s"}</p>
+    <p style="margin:4px 0"><b>🪙 ${p.coins||0}</b> · <b>★ ${stars}</b> of 87 stars · played on <b>${days}</b> day${days===1?"":"s"}</p>
     <p style="margin:6px 0;font-weight:800;color:#1E5AA8">${cheer}</p>
     <p class="lq-small" style="margin:8px 0 0">Tap a row to go straight there.</p>
     <div style="text-align:left">${rows.map(r=>`<button class="lq-goto" data-go="${r[3]}"><div class="lq-small" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${r[0]}</span><span><b>${r[1]} / ${r[2]}</b> <span class="lq-chip">Go ▶</span></span></div><div class="lq-bar"><i style="width:${Math.min(100,r[1]/r[2]*100)}%"></i></div></button>`).join("")}</div>

@@ -9,7 +9,7 @@ Updates version.json plus the LQ_VER line and lq-core.js?v= URL in every page th
 import datetime, json, os, re, sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-PAGES = ["index.html", "letters/index.html", "falls/index.html", "souq/index.html", "harbor/index.html", "teacher/index.html"]
+PAGES = ["index.html", "alphabet/index.html", "letters/index.html", "falls/index.html", "souq/index.html", "harbor/index.html", "teacher/index.html"]
 
 def next_version(cur):
     today = datetime.date.today().strftime("%Y.%m.%d")

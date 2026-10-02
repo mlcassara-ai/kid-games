@@ -19,7 +19,7 @@ Prodigy-style click-to-move world teaching Modern Standard Arabic with full hara
 
 - `index.html` — world map (canvas), zones, Letter Friends quest.
 - `lq-core.js` — shared engine (`window.LQ`): players, picture locks, parent PIN, Parent Corner, Firestore sync, class families, auto-update.
-- `letters/` Letter Dunes, `falls/` Sound Falls, `souq/` the Souq (numbers, counting and the Tailor), `harbor/` Story Harbor (fill-the-blank stories), `teacher/` teacher dashboard, `voices/` voice picker.
+- `alphabet/` Alphabet School (the 28 letters on their own: names, sounds, order), `letters/` Letter Dunes, `falls/` Sound Falls, `souq/` the Souq (numbers, counting and the Tailor), `harbor/` Story Harbor (fill-the-blank stories), `teacher/` teacher dashboard, `voices/` voice picker.
 - `music.js` — the map's background music: three selectable tunes synthesised live with Web Audio (no audio files); loaded by the map only. Voice and music volumes are separate, set from the map's 🔊 menu and remembered on the device.
 - `words.json` — list of every spoken Arabic phrase for audio generation. The game never reads it.
 
@@ -27,7 +27,7 @@ Prodigy-style click-to-move world teaching Modern Standard Arabic with full hara
 
 1. Bump the version (`YYYY.MM.DD` + letter, next letter for same-day releases) to the same string in:
    - `language-quest/version.json`
-   - `window.LQ_VER="…"` and `lq-core.js?v=…` in `index.html`, `letters/index.html`, `falls/index.html`, `souq/index.html`, `harbor/index.html`, `teacher/index.html`
+   - `window.LQ_VER="…"` and `lq-core.js?v=…` in `index.html`, `alphabet/index.html`, `letters/index.html`, `falls/index.html`, `souq/index.html`, `harbor/index.html`, `teacher/index.html`
    `/usr/bin/python3 language-quest/tools/release.py` does all of this in one step; a new zone page must be added to its `PAGES` list.
 2. Test locally: `python3 -m http.server` from the repo root, then `http://localhost:8000/language-quest/`.
 3. Commit and push; confirm Pages serves the new `version.json`.
