@@ -129,8 +129,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛺</div><h2>Letter Dunes</h2><p class="muted">كُثْبَانُ الحُرُوف — catch the letter shapeshifters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02e";</script>
-<script src="../lq-core.js?v=2026.10.02e"></script>
+<script>window.LQ_VER="2026.10.02f";</script>
+<script src="../lq-core.js?v=2026.10.02f"></script>
 <script>
 /* ============ letters data ============
    [letter, name(with harakat), English name, joins-left?, look-alikes, words: [emoji, word, English, position 1=start 2=middle 3=end] ] */
@@ -265,8 +265,11 @@ function catchGame(ch){
   // For non-joiners, alone/start are the same shape and middle/end are the same shape: one bubble fills both slots.
   const uniq=[]; f.forEach((x,i)=>{ const u=uniq.find(v=>v.t===x); if(u) u.idx.push(i); else uniq.push({t:x,idx:[i]}); });
   const items=uniq.map(u=>({t:u.t,real:true,idx:u.idx}));
-  const pool=shuffle([...I.dec]); let k=0;
-  while(items.length<8){ const d=pool[k++%pool.length], df=forms(d), t=df[Math.random()*4|0]; if(items.some(x=>x.t===t)) continue; items.push({t,real:false,d}); }
+  // decoys: shapes of the look-alike letters first; د ذ ز have too few of those to fill the field, so other letters top it up
+  const cand=[], add=d=>forms(d).forEach(t=>{ if(!items.some(x=>x.t===t)&&!cand.some(x=>x.t===t)) cand.push({t,real:false,d}); });
+  I.dec.forEach(add); const alike=shuffle(cand.splice(0));
+  shuffle(L.map(l=>l[0]).filter(x=>x!==ch&&!I.dec.includes(x))).forEach(add);
+  items.push(...[...alike,...cand].slice(0,8-items.length));
   $("field").innerHTML=shuffle(items).map(o=>`<button class="orb ${o.real?"real":""}" lang="ar" data-real="${o.real}" data-idx="${o.real?o.idx.join(","):""}" data-d="${o.d||""}">${o.t}</button>`).join("");
   document.querySelectorAll(".orb").forEach(b=>b.onclick=()=>tapOrb(b,ch));
 }
