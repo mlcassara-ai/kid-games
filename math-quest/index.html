@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.01q';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.01r';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1927,7 +1927,7 @@ SCREENS.skillcheck=()=>{const p=P();if(!SKC)scStart(p);
 SCREENS.map=()=>{
  const p=P();
  const hide=z=>zoneLocked(z,p)&&((z.g5&&(p.grade||0)<4)||(z.event&&!eventOpen()));const shown=ZONES.filter(z=>!hide(z)).sort((a,b)=>zoneLocked(a,p)-zoneLocked(b,p));const nHid=ZONES.length-shown.length;
- app.innerHTML=topbar()+`<div class="page qboard"><div class="zhead"><button class="btn ghost small backbtn" onclick="go('world')">← World</button><h2 class="title">📜 Quest Board</h2><button class="btn ghost small qb-lead" onclick="go('leaders')">🏆 <span>Leaderboard</span></button></div>${window.Daily?Daily.cardHTML(p):''}${bigContinue(p)}${raidCard(P())}${bonusCard(P())}${window.Mastery?Mastery.cardHTML(P()):''}${eventBanner(p)}${questPanel(p,true)}${homeCards(p)}${schoolCards(p)}
+ app.innerHTML=topbar()+`<div class="page qboard"><div class="zhead"><button class="btn ghost small backbtn" onclick="go('world')">← World</button><h2 class="title">📜 Quest Board</h2><button class="btn ghost small qb-lead" onclick="go('leaders')">🏆 <span>Leaderboard</span></button></div>${window.Daily?Daily.cardHTML(p):''}${bigContinue(p)}${raidCard(P())}${bonusCard(P())}${eventBanner(p)}${questPanel(p,true)}${homeCards(p)}${schoolCards(p)}
  ${qbSec('worlds','<h2 class="title" style="margin-top:26px">🔢 Math Worlds</h2>',`<div class="zones">${shown.map(z=>{
   const locked=zoneLocked(z,p);const pr=p.progress[z.id]||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
   return `<button class="zone-card ${z.cls} ${locked?'locked':''}" onclick="${locked?`toast('${z.lockMsg}')`:`go('zone','${z.id}')`}">
@@ -3201,11 +3201,12 @@ const BIOMES={
 const NPCS=[
  /* plaza layout (15x10), grouped by what things are for. The plaza is for places and characters; pure menus live in buttons,
     so the Quest Board and Leaderboard buildings were removed (Oct 2026): the World screen's Quest Board button reaches both.
-    top: learning (Library, Elder Wiz, Lab) between the Builder and the Train (east side, toward Discovery District)
-    middle: fun and friends (Daily Spin, the fountain, Gifts)      bottom: pets and shopping, then food */
- {id:'build',x:16,y:13,e:'🏗️',n:'Builder'},{id:'library',x:19,y:13,e:'📚',n:'Library'},{id:'elder',x:22,y:13,e:'🧙',n:'Elder Wiz'},{id:'lab',x:25,y:13,e:'🔬',n:'Quartz Lab',opt:1},{id:'train',x:28,y:13,e:'🚂',n:'Train',opt:1},
+    top: learning (Fact Gym, Library, Elder Wiz, Lab), then the Train on the east side, toward Discovery District
+    middle: fun and friends (Daily Spin, the fountain, Gifts)      bottom: the Builder, pets and shopping, then food
+    The Fact Gym is the Mastery Map and its Fact Sprints (mastery.js); it replaced the Mastery card on the Quest Board. */
+ {id:'gym',x:16,y:13,e:'🏋️',n:'Fact Gym'},{id:'library',x:19,y:13,e:'📚',n:'Library'},{id:'elder',x:22,y:13,e:'🧙',n:'Elder Wiz'},{id:'lab',x:25,y:13,e:'🔬',n:'Quartz Lab',opt:1},{id:'train',x:28,y:13,e:'🚂',n:'Train',opt:1},
  {id:'spin',x:16,y:17,e:'🎡',n:'Daily Spin'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:28,y:17,e:'📮',n:'Gifts'},
- {id:'pets',x:17,y:20,e:'🧑‍🌾',n:'Pet Keeper'},{id:'shop',x:20,y:20,e:'🏪',n:'Shop'},{id:'cafe',x:24,y:20,e:'🍱',n:'Cafeteria'},{id:'truck',x:27,y:20,e:'🚚',n:'Food Truck',opt:1}]; /* opt: only shown for kids with the Lab Key (lab.js) */
+ {id:'build',x:16,y:20,e:'🏗️',n:'Builder'},{id:'pets',x:19,y:20,e:'🧑‍🌾',n:'Pet Keeper'},{id:'shop',x:22,y:20,e:'🏪',n:'Shop'},{id:'cafe',x:25,y:20,e:'🍱',n:'Cafeteria'},{id:'truck',x:28,y:20,e:'🚚',n:'Food Truck',opt:1}]; /* opt: only shown for kids with the Lab Key (lab.js) */
 let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildWorld(){
@@ -4039,6 +4040,7 @@ function wNpc(id){const p=P();
  if(id==='lab'){if(window.Lab&&Lab.hasKey(p)){p&&(p.wpos={x:W.hx,y:W.hy});go('lab');}return;}
  if(id==='truck'){if(window.Truck&&Truck.flag()){p&&(p.wpos={x:W.hx,y:W.hy});Truck.open('world');}return;}
  if(id==='train'){if(window.Discovery&&Discovery.flag()){p&&(p.wpos={x:W.hx,y:W.hy});Discovery.ride();}return;}
+ if(id==='gym'){if(window.Mastery){p&&(p.wpos={x:W.hx,y:W.hy});Mastery.open('world');}return;}
  if(id==='mail'){if(!showGift())openGift();return;}
  if(id==='fountain'){fountainOpen();return;}
  const ek=npcQuestIdx(p,'elder');
