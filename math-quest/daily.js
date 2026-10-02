@@ -25,7 +25,8 @@ function tad(p){const t=p.tad=p.tad||{};const d=today();
 const zoneOK=(p,z)=>!!z&&z.op!=='mix'&&!z.event&&!zoneLocked(z,p);
 
 /* ---------- questions ---------- */
-const plain=q=>!!q&&!q.tpl&&!q.rev&&typeof q.answer==='number'&&q.answer>=0&&!!q.text;
+/* a saved 'Flip it' problem (□ − □ = 15) has lost its rev flag, so also check the text itself is plain numbers and signs */
+const plain=q=>!!q&&!q.tpl&&!q.rev&&typeof q.answer==='number'&&q.answer>=0&&!!q.text&&/^\d[\d,.]*( [+−×÷\-] \d[\d,.]*)+$/.test(q.text);
 function funQ(p){for(let k=0;k<25;k++){const op=pickOpFair(p);const q=genQ(op,Math.max(1,Math.min(10,lvl(p,op))));if(plain(q))return q;}
  return genQ('add',Math.max(1,Math.min(10,lvl(p,'add'))));}
 function fixList(p){
@@ -134,7 +135,8 @@ function cardHTML(p){try{if(!show(p))return '';css();const t=tad(p);
 function redraw(){try{if(curScreen==='map')goStay('map');}catch(e){}}
 function fix(){const p=P();if(!show(p))return;const t=tad(p);if(t.s!==0)return;const qs=fixList(p);
  series(qs,(i,n)=>({kind:'fix',step:`Fix-it · ${i+1} of ${n}`,emoji:'🔧',title:qs[i]._fix?'You met this one before':'Warm-up',sub:qs[i]._fix?'Take your time. Tap the hint if you want help.':'A quick one to get started.',tries:2,right:qs[i]._fix?'Fixed! +3 🪙':'That\'s it! ⭐',right2:qs[i]._fix?'You got it! It will come back once more to be sure.':'You got it this time! ⭐',onClose:redraw}),
- right=>{t.s=1;t.cur=focus(p);save();try{SFX.win();}catch(e){}redraw();const zn=t.cur?(ZONES.find(z=>z.id===t.cur.zid)||{}).name:'';
+ right=>{const p=P(),t=tad(p); /* fetch the hero again: an online sync during the questions replaces the player object, and progress written to the old one is lost */
+  t.s=1;t.cur=focus(p);save();try{SFX.win();}catch(e){}redraw();const zn=t.cur?(ZONES.find(z=>z.id===t.cur.zid)||{}).name:'';
   modal(`<div class="mcard"><div class="big-emoji">🔧</div><h2>Fix-it done!</h2><p>You got <b>${right} of ${qs.length}</b>. Next up: one battle${zn?` in <b>${esc(zn)}</b>`:''}.${t.cur&&t.cur.owed?' That monster has been waiting for you!':''}</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Later</button><button class="btn green" onclick="closeModal();Daily.battle()">Battle ➜</button></div></div>`);});}
 function battle(){const p=P();const t=tad(p);if(t.s!==1)return;if(!t.cur)t.cur=focus(p);if(!t.cur){t.s=2;save();redraw();return;}save();
  startBattle(t.cur.zid,t.cur.i,null,{short:true});try{if(typeof B!=='undefined'&&B){B.backTo='map';B.backArg=null;}}catch(e){}}
@@ -164,7 +166,7 @@ function trickPanel(){try{const p=P();if(!show(p))return;const pet=petOf(p);if(!
  let top=document.getElementById('phStage');while(top&&top.parentNode!==host)top=top.parentNode;if(top)host.insertBefore(d,top);else host.appendChild(d);}catch(e){}}
 function trick(){const p=P();const pet=petOf(p);if(!pet)return;const t=tad(p);if((t.tr||0)>=TRICKS)return;const name=TRICK_NAMES[((t.stars||0)*3+(t.tr||0)+pet.name.length)%TRICK_NAMES.length];
  ask(funQ(p),{kind:'fun',step:`Trick ${(t.tr||0)+1} of ${TRICKS}`,emoji:pet.e,title:`Teach ${esc(pet.name)}: ${name}!`,sub:`${esc(pet.name)} learns when you answer.`,tries:2,right:`${esc(pet.name)} learned ${name}! 🎉`,wrong:`${esc(pet.name)} will try again later.`,
-  onDone:ok=>{t.tr=(t.tr||0)+1;if(ok){const pd=petMood(petData(p,pet.id));pd.joy=Math.min(MOOD_MAX,pd.joy+1);try{petGain(p,pet,4);}catch(e){}try{questEvent(p,'petcare',1);}catch(e){}}save();if(curScreen==='pethome')goStay('pethome');if(ok)toast(`${pet.e} ${pet.name} learned ${name}! +4 pet XP`);}});}
+  onDone:ok=>{const p=P(),t=tad(p);t.tr=(t.tr||0)+1;if(ok){const pd=petMood(petData(p,pet.id));pd.joy=Math.min(MOOD_MAX,pd.joy+1);try{petGain(p,pet,4);}catch(e){}try{questEvent(p,'petcare',1);}catch(e){}}save();if(curScreen==='pethome')goStay('pethome');if(ok)toast(`${pet.e} ${pet.name} learned ${name}! +4 pet XP`);}});}
 
 /* ---------- PART B: camp packing and tied sacks ---------- */
 function wrapAdv(){const A=window.Adv;if(!A||A.__daily)return;A.__daily=1;
@@ -173,15 +175,15 @@ function wrapAdv(){const A=window.Adv;if(!A||A.__daily)return;A.__daily=1;
   if(a.trip||!crew.length||!show(p)||(!force&&crew.includes(p.pet)))return send0(force);
   const n=a.len==='short'?2:3,qs=Array.from({length:n},()=>funQ(p));
   series(qs,(i,m)=>({kind:'fun',step:`Packing · ${i+1} of ${m}`,emoji:'🎒',title:'Pack the trail bag',sub:'Each right answer packs one more find for the trip home.',tries:1,right:'Packed! 🎒',wrong:'The crew will manage without that one.'}),
-   right=>{a.pack=right+(a.packB?1:0);a.packB=0;save();send0(true);if(a.pack)setTimeout(()=>toast(`🎒 Packed for ${a.trip&&a.trip.pack||right} extra find${(a.trip&&a.trip.pack||right)>1?'s':''}!`),600);});
+   right=>{const a=P().adv;a.pack=right+(a.packB?1:0);a.packB=0;save();send0(true);if(a.pack)setTimeout(()=>toast(`🎒 Packed for ${a.trip&&a.trip.pack||right} extra find${(a.trip&&a.trip.pack||right)>1?'s':''}!`),600);});
  }catch(e){return send0(force);}};
  const res=()=>{try{return P().adv.res||null;}catch(e){return null;}};
  const need=r=>Math.min(SACK_Q,(r.sacks||[]).length);
  A.open=function(i){try{const r=res();if(!r||(r.op||[]).includes(i)||(r.tq||0)>=need(r)||!show(P()))return open0(i);
-  ask(funQ(P()),{kind:'fun',step:'Welcome home',emoji:'🎒',title:'This sack is tied shut!',sub:'Untie it with the right answer.',tries:2,right:'Untied! 🎉',wrong:'The knot came loose anyway.',onDone:()=>{r.tq=(r.tq||0)+1;try{save();}catch(e){}open0(i);}});
+  ask(funQ(P()),{kind:'fun',step:'Welcome home',emoji:'🎒',title:'This sack is tied shut!',sub:'Untie it with the right answer.',tries:2,right:'Untied! 🎉',wrong:'The knot came loose anyway.',onDone:()=>{const r2=res()||r;r2.tq=(r2.tq||0)+1;try{save();}catch(e){}open0(i);}});
  }catch(e){return open0(i);}};
  A.openAll=function(){try{const r=res();if(!r||(r.tq||0)>=need(r)||!show(P()))return all0();
-  ask(funQ(P()),{kind:'fun',step:'Welcome home',emoji:'🎒',title:'The sacks are tied shut!',sub:'One right answer unties them all.',tries:2,right:'Untied! 🎉',wrong:'The knots came loose anyway.',onDone:()=>{r.tq=need(r);try{save();}catch(e){}all0();}});
+  ask(funQ(P()),{kind:'fun',step:'Welcome home',emoji:'🎒',title:'The sacks are tied shut!',sub:'One right answer unties them all.',tries:2,right:'Untied! 🎉',wrong:'The knots came loose anyway.',onDone:()=>{const r2=res()||r;r2.tq=need(r2);try{save();}catch(e){}all0();}});
  }catch(e){return all0();}};}
 
 /* ---------- PART D: Parent Corner ---------- */

@@ -93,10 +93,14 @@ const tests=[
   T.ok(state.ownGroups['DDD-EEE-FFF-22']==='','removed class group came back');T.ok(state.ownGroups['AAA-BBB-CCC-11']==='s1','other class group was lost');}],
 
 ['adventure: fix-it, focus battle, leave, reward',async function(){
-  T.reset();const p=T.hero('Adv',3);state.cur=p.id;p.stats.div={r:10,w:10};p.stats.add={r:30,w:2};
+  T.reset();let p=T.hero('Adv',3);state.cur=p.id;p.stats.div={r:10,w:10};p.stats.add={r:30,w:2};
   p.missed={'8 + 7':{n:2,a:15,op:'add',last:'2026-09-28',fixed:0,q:{op:'add',L:4,a:8,b:7,answer:15,text:'8 + 7'}}};
   go('map');T.ok(document.querySelector('.tad-card'),'Adventure card missing from the Quest Board');
-  Daily.fix();T.answerAsk();T.answerAsk();T.answerAsk();T.ok(p.tad.s===1,'fix-it did not finish');T.ok(p.missed['8 + 7'].fixed===1,'missed problem not marked');closeModal();
+  p.missed['□ − □ = 15']={n:5,a:15,op:'sub',last:'2026-10-01',fixed:0,q:{op:'sub',L:4,answer:15,text:'□ − □ = 15'}};
+  T.ok(!Daily._dbg.fixList(p).some(q=>/□/.test(q.text)),'a Flip-it problem (which needs two numbers) was offered in Fix-it');
+  /* an online sync in the middle of the questions swaps the player for a fresh copy; progress must land on the new one */
+  Daily.fix();T.answerAsk();{const i=state.players.indexOf(p);state.players[i]=T.clone(p);}T.answerAsk();T.answerAsk();
+  p=P();T.ok(p.tad&&p.tad.s===1,'fix-it progress was lost when the hero was refreshed by a sync');T.ok(p.missed['8 + 7'].fixed===1,'missed problem not marked');closeModal();
   T.ok(p.tad.cur&&p.tad.cur.zid==='castle','focus battle is not the weakest skill: '+JSON.stringify(p.tad.cur));
   Daily.battle();await T.until(()=>curScreen==='battle'&&B&&B.q&&!B.busy,10000,'focus battle');T.ok(B.foes.length===1&&B.mmax<110,'focus battle is not shortened');
   fleeBattle();T.ok(/Show me how/.test(document.querySelector('#modal').innerText),'help button missing');doFlee();T.ok(p.tad.owe&&p.tad.owe.zid==='castle','left monster not remembered');
