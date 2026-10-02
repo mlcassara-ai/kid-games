@@ -105,6 +105,19 @@ const tests=[
   T.ok(state.players.length===1,'weaker duplicate came back on the next sync');
   T.ok(state.ownGroups['DDD-EEE-FFF-22']==='','removed class group came back');T.ok(state.ownGroups['AAA-BBB-CCC-11']==='s1','other class group was lost');}],
 
+['sync: an answer given while the save is uploading is not lost',async function(){
+  T.reset();const h=T.hero('Race',3,{coins:100});const real={get:cloudGet,put:cloudPut,code:cloud.code};let store=null,gate=null;
+  cloudGet=async()=>store?T.clone(store):null;
+  cloudPut=(code,obj)=>{const data=JSON.stringify(obj);return (async()=>{if(gate)await gate.p;store=JSON.parse(data);return data;})();};
+  try{cloud.code='SMOKE-TEST-ONLY';cloud.busy=false;BASE={};baseReady=Promise.resolve();
+   await syncNow();T.ok(store&&store.players.find(x=>x.id===h.id).coins===100,'first upload failed');
+   P;const me=()=>state.players.find(x=>x.id===h.id);me().coins=110;stampChanges(false);
+   let open;gate={p:new Promise(r=>{open=r;})};const s2=syncNow();await T.wait(60);me().coins=120;stampChanges(false);open();gate=null;await s2;
+   T.ok(store.players.find(x=>x.id===h.id).coins===110,'the upload did not carry the first change');
+   await syncNow();T.ok(me().coins===120,'an answer given during the upload was thrown away: coins went back to '+me().coins);
+   T.ok(store.players.find(x=>x.id===h.id).coins===120,'the later change never reached the cloud');
+  }finally{cloudGet=real.get;cloudPut=real.put;cloud.code=real.code;clearTimeout(cloud.timer);cloud.busy=false;cloud.again=false;BASE={};}}],
+
 ['adventure: fix-it, focus battle, leave, reward',async function(){
   T.reset();let p=T.hero('Adv',3);state.cur=p.id;p.stats.div={r:10,w:10};p.stats.add={r:30,w:2};
   p.missed={'8 + 7':{n:2,a:15,op:'add',last:'2026-09-28',fixed:0,q:{op:'add',L:4,a:8,b:7,answer:15,text:'8 + 7'}}};

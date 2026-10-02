@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.02j';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.02k';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -5031,12 +5031,15 @@ async function cloudGet(code){
  if(r.status===404)return null;if(!r.ok)throw new Error('get '+r.status);
  const j=await r.json();const s=j.fields&&j.fields.data&&j.fields.data.stringValue;return s?JSON.parse(s):null;
 }
-async function cloudPut(code,obj){
+/* The save is turned into text at the moment of the call, before any waiting, and that exact text is returned.
+   The caller stores it as BASE ("what this device and the cloud last agreed on"). Anything the kid does while the
+   upload is still in the air is NOT in it, so the next sync sees it as a new local change and keeps it. */
+function cloudPut(code,obj){const data=JSON.stringify(obj);return (async()=>{
  const t=await fbToken();
- const body={fields:{data:{stringValue:JSON.stringify(obj)},updated:{integerValue:String(Date.now())},v:{integerValue:'1'}}};
+ const body={fields:{data:{stringValue:data},updated:{integerValue:String(Date.now())},v:{integerValue:'1'}}};
  const r=await fetch(famUrl(code),{method:'PATCH',headers:{Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify(body)});
  if(!r.ok)throw new Error('put '+r.status);
-}
+ return data;})();}
 const cloudPayload=()=>({v:1,live:state.live||{},gifts:state.gifts||{},ownGroups:state.ownGroups||{},players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},upd:Date.now()});
 
 /* each player remembers when it last changed, so the newest copy of each kid wins */
@@ -5050,7 +5053,9 @@ function stampChanges(init){state.players.forEach(p=>{const h=JSON.stringify(p,(
    Only a field BOTH sides changed falls back to "newest device wins". Lists of things with ids (pets, eggs…) merge item by item. */
 let BASE={};let baseReady=null;const BASE_KEY='base';
 function loadBase(){if(!baseReady)baseReady=IDB.getK(BASE_KEY).then(s=>{try{BASE=s?JSON.parse(s):{};}catch(e){BASE={};}if(BASE.__fam&&BASE.__fam!==cloud.code)BASE={};});return baseReady;}
-function saveBase(){const b={__fam:cloud.code};state.players.forEach(p=>{b[p.id]=JSON.parse(JSON.stringify(p));});BASE=b;IDB.putK(BASE_KEY,JSON.stringify(b));}
+/* sent = the exact text cloudPut uploaded. BASE must be that, never the live state: the live state may already hold an answer
+   given during the upload, and calling that 'agreed' made the next sync throw the answer away (progress went back a step). */
+function saveBase(sent){const b={__fam:cloud.code};let list=null;try{list=sent?JSON.parse(sent).players:null;}catch(e){}(list||JSON.parse(JSON.stringify(state.players))).forEach(p=>{if(p&&p.id)b[p.id]=p;});BASE=b;IDB.putK(BASE_KEY,JSON.stringify(b));}
 const _j=v=>v===undefined?'\u0000':JSON.stringify(v);
 const _obj=v=>v&&typeof v==='object'&&!Array.isArray(v);
 const _idList=v=>Array.isArray(v)&&v.length>0&&v.every(x=>_obj(x)&&x.id!=null);
@@ -5104,7 +5109,7 @@ async function syncNow(){
   await loadBase();
   if(remote)changed=mergeStates(remote,false,curScreen==='battle'||curScreen==='create'?state.cur:null);
   liveBeat();
-  await cloudPut(cloud.code,cloudPayload());saveBase();cloud.status='ok';cloud.last=Date.now();}
+  saveBase(await cloudPut(cloud.code,cloudPayload()));cloud.status='ok';cloud.last=Date.now();}
  catch(e){cloud.status='offline';}
  cloud.busy=false;updateCloudBadge();
  if(changed&&['profiles','map','parent','backpack','quests','zone'].includes(curScreen)&&!$('#modal.show')&&!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))){const y=window.scrollY;go(curScreen,curArg);window.scrollTo(0,y);}
@@ -5123,14 +5128,14 @@ function agoText(t){const s=Math.round((Date.now()-t)/1000);return s<60?'just no
 function setFamily(code){cloud.code=code;try{if(code)localStorage.setItem(FAM_KEY,code);else localStorage.removeItem(FAM_KEY);}catch(e){}state.family=code||null;saveLocal();}
 async function createFamily(){
  const code=genCode();
- try{await fbToken();setFamily(code);stampChanges(false);state.players.forEach(p=>{p.upd=p.upd||Date.now();});await cloudPut(code,cloudPayload());saveBase();cloud.status='ok';cloud.last=Date.now();
+ try{await fbToken();setFamily(code);stampChanges(false);state.players.forEach(p=>{p.upd=p.upd||Date.now();});saveBase(await cloudPut(code,cloudPayload()));cloud.status='ok';cloud.last=Date.now();
   refreshParent('cloudbox',true);showFamilyCode();}
  catch(e){setFamily(null);toast("Couldn't reach the online save. Check the internet and try again.");}
 }
 async function joinFamily(raw,fromLink){
  const code=normCode(raw);if(famId(code).length<16){toast('That family code looks too short.');return;}
  try{const remote=await cloudGet(code);if(!remote){toast('No family found with that code. Check the spelling.');return;}
-  snapTake('Before joining a family');setFamily(code);mergeStates(remote,true,null);await cloudPut(code,cloudPayload());saveBase();cloud.status='ok';cloud.last=Date.now();
+  snapTake('Before joining a family');setFamily(code);mergeStates(remote,true,null);saveBase(await cloudPut(code,cloudPayload()));cloud.status='ok';cloud.last=Date.now();
   closeModal();toast('✅ This device is now joined to your family!');
   if(fromLink){history.replaceState(null,'',location.pathname);go('profiles');}else refreshParent('cloudbox',true);}
  catch(e){toast("Couldn't reach the online save. Check the internet and try again.");}
