@@ -119,8 +119,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02z";</script>
-<script src="lq-core.js?v=2026.10.02z"></script>
+<script>window.LQ_VER="2026.10.02za";</script>
+<script src="lq-core.js?v=2026.10.02za"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -554,11 +554,14 @@ function tetaArt(c,t){
   c.strokeStyle="#7A5230"; c.lineWidth=1.6; for(const k of [-6.5,6.5]){ c.beginPath(); c.arc(k,-87,5.2,0,7); c.stroke(); } c.beginPath(); c.moveTo(-1.3,-87); c.lineTo(1.3,-87); c.stroke();   // glasses
 }
 const TETA_IMG=(()=>{ try{ const c=document.createElement("canvas"); c.width=220; c.height=280; const g=c.getContext("2d"); g.translate(110,266); g.scale(2.25,2.25); tetaArt(g,0); return c.toDataURL(); }catch(e){ return ""; } })();
-const tetaPic=TETA_IMG?`<img src="${TETA_IMG}" alt="Teta" style="height:128px;display:block;margin:0 auto">`:`<div class="big">👵</div>`;
+const tetaPic=TETA_IMG?`<img src="${TETA_IMG}" alt="Grandmother" style="height:128px;display:block;margin:0 auto">`:`<div class="big">👵</div>`;
+// a two-line name tag under a character: English on top, the Arabic word below
+function nameTag(x,y,en,ar){ ctx.font='800 15px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w1=ctx.measureText(en).width; ctx.font='500 18px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; const w=Math.max(w1,ctx.measureText(ar).width)+20;
+  ctx.fillStyle="rgba(18,35,61,.78)"; rr(x-w/2,y+6,w,46,12); ctx.fill(); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  ctx.font='800 15px "Baloo Bhaijaan 2",system-ui,sans-serif'; ctx.fillText(en,x,y+23); ctx.direction="rtl"; ctx.font='500 18px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; ctx.fillStyle="#FFE08A"; ctx.fillText(ar,x,y+45); ctx.direction="ltr"; }
 function drawTeta(time){
   const p=LQ.player(), started=p&&p.friendsStarted; shadow(TETA.x,TETA.y,30); ctx.save(); ctx.translate(TETA.x,TETA.y); ctx.scale(1.05,1.05); tetaArt(ctx,time); ctx.restore();
-  ctx.font='800 16px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText("Teta").width+18; ctx.fillStyle="rgba(18,35,61,.75)"; rr(TETA.x-w/2,TETA.y+6,w,22,11); ctx.fill();
-  ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.fillText("Teta",TETA.x,TETA.y+22);
+  nameTag(TETA.x,TETA.y,"Grandmother","الجَدَّة");
   if(!started){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle="#F2B134"; ctx.beginPath(); ctx.arc(TETA.x+38,TETA.y-128-b,17,0,7); ctx.fill(); ctx.fillStyle="#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText("!",TETA.x+38,TETA.y-127-b); }
 }
 function drawFountain(time){
@@ -678,7 +681,7 @@ SPRITE.lamp=p=>{ const {x,y}=p; shadow(x,y,14); rr(x-3,y-78,6,78,3); ink("#4A4E5
 SPRITE.sign=p=>{ const {x,y}=p; ctx.fillStyle="#6B4A2B"; ctx.fillRect(x-4,y-44,8,44); rr(x-66,y-86,132,46,10); ink("#F7E2B5");
   ctx.fillStyle="#12233D"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.font='800 14px "Baloo Bhaijaan 2",system-ui,sans-serif'; ctx.fillText("Town Square",x,y-68);
   ctx.direction="rtl"; ctx.font='500 18px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; ctx.fillStyle="#1E5AA8"; ctx.fillText("سَاحَةُ البَلْدَة",x,y-48); ctx.direction="ltr"; };
-/* Jiddo, the grandfather who gives quests: white keffiyeh with a black band, grey moustache, striped robe, vest and a walking stick.
+/* The Mukhtar (المُخْتَار), the village head who gives quests: white keffiyeh with a black band, grey moustache, striped robe, vest and a walking stick.
    Draws on any 2D context with his feet at (0,0), about 112 units tall. */
 function jiddoArt(c,t){
   const O="rgba(46,36,26,.7)", inked=f=>{ c.fillStyle=f; c.fill(); c.strokeStyle=O; c.lineWidth=2; c.lineJoin="round"; c.lineCap="round"; c.stroke(); };
@@ -702,11 +705,10 @@ function jiddoArt(c,t){
   for(const k of [-1,1]){ c.beginPath(); c.ellipse(k*5,-78.5,6.2,2.8,k*0.25,0,7); inked("#D8D8DE"); }                                          // moustache
 }
 const JIDDO_IMG=(()=>{ try{ const c=document.createElement("canvas"); c.width=220; c.height=280; const g=c.getContext("2d"); g.translate(116,266); g.scale(2.25,2.25); jiddoArt(g,0); return c.toDataURL(); }catch(e){ return ""; } })();
-const jiddoPic=JIDDO_IMG?`<img src="${JIDDO_IMG}" alt="Jiddo" style="height:128px;display:block;margin:0 auto">`:`<div class="big">👴</div>`;
+const jiddoPic=JIDDO_IMG?`<img src="${JIDDO_IMG}" alt="The Mukhtar" style="height:128px;display:block;margin:0 auto">`:`<div class="big">👴</div>`;
 function drawJiddo(time){
   shadow(JIDDO.x,JIDDO.y,30); ctx.save(); ctx.translate(JIDDO.x,JIDDO.y); ctx.scale(1.05,1.05); jiddoArt(ctx,time); ctx.restore();
-  ctx.font='800 16px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText("Jiddo").width+18; ctx.fillStyle="rgba(18,35,61,.75)"; rr(JIDDO.x-w/2,JIDDO.y+6,w,22,11); ctx.fill();
-  ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.fillText("Jiddo",JIDDO.x,JIDDO.y+22);
+  nameTag(JIDDO.x,JIDDO.y,"The Mukhtar","المُخْتَار");
   const st=questState(); if(st==="new"||st==="ready"){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle=st==="ready"?"#2FA894":"#F2B134"; ctx.beginPath(); ctx.arc(JIDDO.x+38,JIDDO.y-128-b,17,0,7); ctx.fill();
     ctx.fillStyle=st==="ready"?"#fff":"#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText(st==="ready"?"✓":"!",JIDDO.x+38,JIDDO.y-127-b); }
 }
@@ -802,7 +804,7 @@ const dayNow=()=>{ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+
 // "new" = Jiddo has a quest to give, "ready" = the quest is done and the reward is waiting, "busy" = in progress, "rest" = done for today
 function questState(){ const p=LQ.player(); if(!p) return ""; const q=p.quest, d=q&&QUESTS.find(x=>x.id===q.id);
   if(!q||!d||(q.paid&&q.day!==dayNow())) return "new"; if(q.paid) return "rest"; return questCount(p,d.m)-q.base>=d.need?"ready":"busy"; }
-function jiddoTalk(){ LQ.mark("Jiddo"); closeCard(); const p=LQ.player(); if(!p) return;
+function jiddoTalk(){ LQ.mark("The Mukhtar"); closeCard(); const p=LQ.player(); if(!p) return;
   if(questState()==="new"){ const prev=p.quest&&p.quest.id, pool=QUESTS.filter(d=>d.id!==prev&&questCount(p,d.m)+d.need<=d.max);
     // a brand-new player's first quest is always the Alphabet School, the place to start
     const d=(!p.quest&&questCount(p,"abc")+7<=28)?QUESTS.find(x=>x.id==="abc"):pool[Math.random()*pool.length|0]||QUESTS[QUESTS.length-1];
@@ -810,32 +812,32 @@ function jiddoTalk(){ LQ.mark("Jiddo"); closeCard(); const p=LQ.player(); if(!p)
   const q=LQ.player().quest, d=QUESTS.find(x=>x.id===q.id), st=questState(), got=Math.min(d.need,questCount(LQ.player(),d.m)-q.base);
   const word=`<div class="arw" lang="ar">${d.kw}</div><p style="margin:0;color:var(--muted)">${d.kwEn}</p>`;
   if(st==="ready"){ LQ.update(x=>{ x.quest.paid=true; x.quest.day=dayNow(); x.coins=(x.coins||0)+d.coins; }); hud(); say("أَحْسَنْتَ");
-    openFm(`${jiddoPic}<h2 style="margin:4px 0">Well done, habibi!</h2>${word}<p>You finished my quest. Here are <b>${d.coins} 🪙</b> for you!</p><p style="color:var(--muted)">Come back tomorrow for a new quest.</p>
-      <div class="row"><button class="btn go" id="jOk">Shukran, Jiddo!</button></div>`); }
+    openFm(`${jiddoPic}<h2 style="margin:4px 0">Well done!</h2>${word}<p>You finished my quest. Here are <b>${d.coins} 🪙</b> for you!</p><p style="color:var(--muted)">Come back tomorrow for a new quest.</p>
+      <div class="row"><button class="btn go" id="jOk">Thank you, Mukhtar!</button></div>`); }
   else if(st==="rest"){ say("أَهْلًا وَسَهْلًا");
-    openFm(`${jiddoPic}<h2 style="margin:4px 0">Ahlan! You did today's quest.</h2><p>Rest, play, and come back tomorrow. I will have a new quest for you.</p><div class="row"><button class="btn go" id="jOk">OK, Jiddo!</button></div>`); }
+    openFm(`${jiddoPic}<h2 style="margin:4px 0">Welcome back! You did today's quest.</h2><p>Rest, play, and come back tomorrow. I will have a new quest for you.</p><div class="row"><button class="btn go" id="jOk">OK, Mukhtar!</button></div>`); }
   else { say(d.kw);
-    openFm(`${jiddoPic}<h2 style="margin:4px 0">Ahlan! I'm Jiddo. I have a quest for you.</h2>${word}<p style="font-size:1.15rem"><b>${d.en}</b></p>
+    openFm(`${jiddoPic}<h2 style="margin:4px 0">Welcome! I am the Mukhtar, <span lang="ar">المُخْتَار</span>. I have a quest for you.</h2>${word}<p style="font-size:1.15rem"><b>${d.en}</b></p>
       <p style="margin:0">Done so far: <b>${got} of ${d.need}</b> · Reward: <b>${d.coins} 🪙</b></p>
       <div class="row"><button class="btn ghost" id="jHear">🔊 Hear the word</button><button class="btn go" id="jOk">I'll do it!</button></div>`);
     document.getElementById("jHear").onclick=()=>say(d.kw); }
   document.getElementById("jOk").onclick=closeFm;
 }
 function hintFor(){ const fd=found(); let best=null,bd=1e9; FRIENDS.forEach(f=>{ if(fd[f.ch]) return; const d=Math.hypot(f.x-player.x,f.y-player.y); if(d<bd){bd=d;best=f;} }); return best; }
-function tetaTalk(){ LQ.mark("Teta");
-  closeCard(); const p=LQ.player(); const n=Object.keys(found()).length; say("أَهْلًا وَسَهْلًا");
+function tetaTalk(){ LQ.mark("Grandmother");
+  closeCard(); const p=LQ.player(); const n=Object.keys(found()).length; say("الجَدَّة");
   if(!p||!p.friendsStarted){
-    openFm(`${tetaPic}<h2 style="margin:4px 0">Ahlan, habibi! I'm Teta.</h2>
+    openFm(`${tetaPic}<h2 style="margin:4px 0">Welcome! I am the grandmother, <span lang="ar">الجَدَّة</span>.</h2>
       <p>My <b>28 animal friends</b> are hiding all over this land, one for every letter of the alphabet. Each friend's name starts with their letter: <b>أَسَد</b> the lion starts with <b>أَلِف</b>!</p>
       <p>Look for animals with a ✨ sparkle. Tap one, say hello, and find the letter their name starts with. Can you find them all?</p>
       <div class="row"><button class="btn go" id="tGo">Let's go! 📒</button></div>`);
     document.getElementById("tGo").onclick=()=>{ LQ.update(q=>{ q.friendsStarted=true; }); album(); }; return; }
-  if(n>=28){ openFm(`${tetaPic}<h2>🎉 You found all 28 friends!</h2><p>Teta is so proud of you. You know every letter of the alphabet!</p><div class="row"><button class="btn go" id="tOk">Shukran, Teta!</button></div>`);
+  if(n>=28){ openFm(`${tetaPic}<h2>🎉 You found all 28 friends!</h2><p>Grandmother is so proud of you. You know every letter of the alphabet!</p><div class="row"><button class="btn go" id="tOk">Thank you, Grandmother!</button></div>`);
     document.getElementById("tOk").onclick=closeFm; return; }
   const h=hintFor(), where=h?BIOMES[biomeAt(h.x,h.y)].en:"";
   openFm(`${tetaPic}<h2 style="margin:4px 0">You've found ${n} of 28 friends!</h2>
     <p>${h?`I think someone is waiting near <b>${where}</b>. Look for the ✨ sparkle!`:""}</p>
-    <div class="row"><button class="btn ghost" id="tAlb">📒 Album</button><button class="btn go" id="tOk">OK, Teta!</button></div>`);
+    <div class="row"><button class="btn ghost" id="tAlb">📒 Album</button><button class="btn go" id="tOk">OK, Grandmother!</button></div>`);
   document.getElementById("tOk").onclick=closeFm; document.getElementById("tAlb").onclick=album;
 }
 function album(){ LQ.mark("Album");
@@ -852,7 +854,7 @@ function album(){ LQ.mark("Album");
     else { say(LNAME[f.ch]); document.getElementById("albHint").innerHTML=`The <b><span lang="ar">${LNAME[f.ch]}</span></b> friend is hiding in <b>${BIOMES[biomeAt(f.x,f.y)].en}</b>.`; } });
 }
 function allFound(){ const p=LQ.player(); if(!p||p.friendsAll) return; LQ.update(q=>{ q.friendsAll=Date.now(); }); LQ.addCoins(100); hud(); say("أَحْسَنْتَ");
-  openFm(`<div class="big">🏆</div><h2>All 28 Letter Friends!</h2><p>You found every friend and know every letter. <b>+100 🪙</b> from Teta!</p><div class="row"><button class="btn go" id="wOk">Yay!</button></div>`);
+  openFm(`<div class="big">🏆</div><h2>All 28 Letter Friends!</h2><p>You found every friend and know every letter. <b>+100 🪙</b> from Grandmother!</p><div class="row"><button class="btn go" id="wOk">Yay!</button></div>`);
   document.getElementById("wOk").onclick=closeFm; }
 /* ---- Wisdom Fountain ---- */
 // Each toss costs one coin more than the last (1, 2, 3...). The fountain answers on a secret toss between

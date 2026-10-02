@@ -13,9 +13,12 @@ PAGES = ["index.html", "alphabet/index.html", "letters/index.html", "falls/index
 
 def next_version(cur):
     today = datetime.date.today().strftime("%Y.%m.%d")
-    if cur.startswith(today) and len(cur) == len(today) + 1 and cur[-1] < "z":
-        return today + chr(ord(cur[-1]) + 1)
     if cur.startswith(today):
+        tail = cur[len(today):]                 # a, b ... z, then za, zb ... zz (still sorts after the earlier ones)
+        if len(tail) == 1:
+            return today + (chr(ord(tail) + 1) if tail < "z" else "za")
+        if len(tail) == 2 and tail[0] == "z" and tail[1] < "z":
+            return today + "z" + chr(ord(tail[1]) + 1)
         sys.exit("can't pick the next version after " + cur + "; pass one explicitly")
     return today + "a"
 
@@ -23,8 +26,8 @@ def main():
     vpath = os.path.join(ROOT, "version.json")
     cur = json.load(open(vpath))["v"]
     new = sys.argv[1] if len(sys.argv) > 1 else next_version(cur)
-    if not re.fullmatch(r"\d{4}\.\d{2}\.\d{2}[a-z]", new):
-        sys.exit("version must look like 2026.10.01a")
+    if not re.fullmatch(r"\d{4}\.\d{2}\.\d{2}(?:[a-z]|z[a-z])", new):
+        sys.exit("version must look like 2026.10.01a (after z comes za, zb...)")
     for page in PAGES:
         path = os.path.join(ROOT, page)
         s = open(path, encoding="utf-8").read()
