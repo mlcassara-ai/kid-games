@@ -98,7 +98,8 @@ const tests=[
 
 ['pets and camp: trick, packing, loot, tied sacks',async function(){
   T.reset();const p=T.hero('Camp',3);state.cur=p.id;go('pethome');try{closeModal();}catch(e){}
-  T.ok(document.getElementById('tadTrick'),'trick panel missing');const pd=petData(p,p.pet),x0=pd.xp;Daily.trick();T.answerAsk();T.ok(pd.xp>x0&&p.tad.tr===1,'trick gave no pet growth');
+  T.ok(document.getElementById('tadTrick'),'trick panel missing');const pd=petData(p,p.pet),x0=pd.xp;Daily.trick();const card=document.getElementById('dqCard');Daily._k('7');T.ok(document.getElementById('dqCard')===card&&document.querySelector('#dqOv .dq-in').textContent==='7','a number press redrew the whole question card');Daily._k('del');
+  T.answerAsk();T.ok(pd.xp>x0&&p.tad.tr===1,'trick gave no pet growth');
   p.adv.crew=[p.pets[1],p.pets[2]];p.adv.len='short';p.adv.trip=null;go('camp');Adv.send();T.answerAsk();T.answerAsk(false);
   await T.until(()=>p.adv.trip,5000,'trip to start');T.ok(p.adv.trip.pack===1,'packing bonus wrong: '+p.adv.trip.pack);
   p.adv.trip.end=Date.now()-1000;const res=Adv._fin();T.ok(res&&res.sacks.length===2,'no sacks came home');

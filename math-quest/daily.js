@@ -67,6 +67,7 @@ function css(){if(document.getElementById('dqCSS'))return;const s=document.creat
 .dq-pad button{border:0;border-radius:14px;background:#f1eefc;font:inherit;font-size:24px;font-weight:700;min-height:54px;color:#241a3d;box-shadow:0 3px 0 #d7cff5}
 .dq-pad button:active{transform:translateY(2px);box-shadow:none}
 .dq-pad .ok{background:#2f9e58;color:#fff;box-shadow:0 3px 0 #1f7a42}.dq-pad .del{background:#ffe3e3;box-shadow:0 3px 0 #f5bcbc}
+.dq-card.still{animation:none}
 .dq-card.shake{animation:shakex .4s}
 .tad-card{background:#fff;color:#241a3d;border-radius:22px;padding:14px 16px;margin:6px 0 14px;box-shadow:0 6px 0 rgba(0,0,0,.18)}
 .tad-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.tad-head h3{margin:0;font-size:20px}
@@ -85,15 +86,18 @@ function ask(q,o){css();shut();const p=P();ST={q,o:o||{},inp:'',left:(o&&o.tries
  const el=document.createElement('div');el.className='dq-ov';el.id='dqOv';document.body.appendChild(el);paint();
  if(youngReader(p)&&voiceOn())setTimeout(()=>{if(ST&&ST.q===q)speakQ(q);},350);}
 function paint(){const el=document.getElementById('dqOv');if(!el||!ST)return;const {q,o}=ST;let hint='';if(ST.hint){try{hint=hintHTML(q)||'';}catch(e){hint='';}}
- el.innerHTML=`<div class="dq-card" id="dqCard"><div class="dq-top"><span>${o.step||''}</span>${o.canClose===false?'':'<button class="dq-x" title="Not now" onclick="Daily._x()">✕</button>'}</div>
+ const still=ST.shown?' still':'';ST.shown=true;
+ el.innerHTML=`<div class="dq-card${still}" id="dqCard"><div class="dq-top"><span>${o.step||''}</span>${o.canClose===false?'':'<button class="dq-x" title="Not now" onclick="Daily._x()">✕</button>'}</div>
  <div class="big-emoji" style="font-size:44px">${o.emoji||'🧭'}</div><h2>${o.title||''}</h2>${o.sub?`<p class="dq-sub">${o.sub}</p>`:''}
  <div class="dq-q"><span>${esc(q.text)} =</span><span class="dq-in">${ST.end?q.answer:(ST.inp||'?')}</span><button class="dq-spk" title="Read it to me" onclick="Daily._say()">🔊</button></div>
  ${hint?`<div class="dq-hint">${hint}</div>`:(ST.end?'':'<div><button class="btn ghost dark small" onclick="Daily._hint()">💡 Show me a hint</button></div>')}<div class="dq-msg ${ST.cls}">${ST.msg}</div>
  ${ST.end?`<div class="row"><button class="btn green big" onclick="Daily._next()">${ST.ok?'Yay! ➜':'Got it ➜'}</button></div>`:
  `<div class="dq-pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="Daily._k('${n}')">${n}</button>`).join('')}<button class="del" onclick="Daily._k('del')">⌫</button><button onclick="Daily._k('0')">0</button><button class="ok" onclick="Daily._k('go')">✓</button></div>`}</div>`;}
+/* a number press only changes the answer box; redrawing the whole card made it flicker */
+function setIn(){const e=document.querySelector('#dqOv .dq-in');if(e)e.textContent=ST.inp||'?';else paint();}
 function key(k){if(!ST||ST.end)return;
- if(k==='del'){ST.inp=ST.inp.slice(0,-1);paint();return;}
- if(k!=='go'){if(ST.inp.length<7)ST.inp+=k;try{SFX.tap();}catch(e){}paint();return;}
+ if(k==='del'){ST.inp=ST.inp.slice(0,-1);setIn();return;}
+ if(k!=='go'){if(ST.inp.length<7)ST.inp+=k;try{SFX.tap();}catch(e){}setIn();return;}
  if(!ST.inp)return;const q=ST.q,v=parseInt(ST.inp,10),ok=v===q.answer||!!(q.alt&&q.alt.includes(v));
  const first=ST.first;if(ST.first){record(P(),q,ok,(performance.now()-ST.t0)/1000,ST.o.kind||'fun');ST.first=false;}
  if(ok){try{SFX.correct();}catch(e){}ST.ok=true;ST.end=true;ST.msg=first?(ST.o.right||'That\'s it! ⭐'):(ST.o.right2||'You got it this time! ⭐');ST.cls='good';paint();return;}

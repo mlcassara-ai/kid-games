@@ -407,7 +407,7 @@ function frame(){
   if(uvOn&&S.y>0){f.fillStyle='rgba(25,0,45,.6)';f.fillRect(0,Math.max(0,T-camY),w,h);}
   f.globalCompositeOperation='destination-out';const rad=(uvOn?lr*.8:lr)*T;const gr=f.createRadialGradient(ppx,ppy,rad*.35,ppx,ppy,rad);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');f.fillStyle=gr;f.beginPath();f.arc(ppx,ppy,rad,0,Math.PI*2);f.fill();
   if(dk>.3&&!uvOn){const L2=rad*1.9,ang=Math.atan2(FACE[1],FACE[0]);const bx=ppx+Math.cos(ang)*L2,by=ppy+Math.sin(ang)*L2;const g3=f.createLinearGradient(ppx,ppy,bx,by);g3.addColorStop(0,'rgba(0,0,0,.95)');g3.addColorStop(1,'rgba(0,0,0,0)');f.fillStyle=g3;f.beginPath();f.moveTo(ppx,ppy);f.lineTo(bx+Math.cos(ang+Math.PI/2)*rad*.9,by+Math.sin(ang+Math.PI/2)*rad*.9);f.lineTo(bx-Math.cos(ang+Math.PI/2)*rad*.9,by-Math.sin(ang+Math.PI/2)*rad*.9);f.closePath();f.fill();}
-  c.drawImage(fog,0,0,w,h);
+  if(fog.width&&fog.height)c.drawImage(fog,0,0,w,h); /* a zero-size canvas (screen not laid out yet) throws */
   // things that glow through the dark: lava, crystals
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=idx(x,y),t=W.g[i];if(t===T_LAVA){const f2=.5+.5*Math.sin(tick*.08+x);c.globalAlpha=.75;c.fillStyle=`rgb(${230+25*f2|0},${80+60*f2|0},20)`;c.fillRect(x*T-camX,y*T-camY,T+1,T+1);c.globalAlpha=1;}
    else if(t===T_AIR&&W.tex[i]%3===0&&!isAir(x,y+1)){const L=layerOf(y);if(L&&(L.id==='crystal'||(L.id==='granite'&&W.tex[i]%9===0)))drawCrystal(c,x*T-camX,y*T-camY,T,W.tex[i],true);}}
@@ -711,15 +711,17 @@ function openPower(){charge();let Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3),
  const draw=()=>{const bm=batMax();const sh=modal(`<h2>⚡ Power Up!</h2><p class="cv-sub">Every right answer adds <b>+${gain()} 🔋</b>. ${S.bat>=bm||!fullIn()?'':'Or just wait — it charges by itself at camp (full in '+fullIn()+').'}</p>
   <div class="cv-meter ok"><i style="width:${S.bat/bm*100}%"></i></div><p class="cv-sub" style="text-align:center">🔋 ${Math.floor(S.bat)} / ${bm}${streak>1?` · 🔥 ${streak} in a row`:''}</p>
   ${S.bat>=bm-.5?`<div class="cv-card"><div class="cv-big">🔋</div><h2>Fully charged!</h2><button class="cv-btn" data-close>Go dig!</button></div>`:powerLeft()<=0?`<div class="cv-card">${guide('Phew — that is all the charge this battery can take on one trip! Finish up here, and bring me another 🪨 <b>mystery rock</b> from Math Quest to come back.')}<button class="cv-btn" data-close>OK</button></div>`:`
-  <div class="cv-mq">${esc(Q.q)}${Q.x?'<small>x = ?</small>':' = ?'}</div><div class="cv-inp">${esc(inp)||'&nbsp;'}</div>${note}
+  <div class="cv-mq">${esc(Q.q)}${Q.x?'<small>x = ?</small>':' = ?'}</div><div class="cv-inp">${esc(inp)||'&nbsp;'}</div><div style="min-height:38px">${note}</div>
   <div class="cv-pad2">${[1,2,3,4,5,6,7,8,9,'±',0,'⌫'].map(k=>`<button data-k="${k}">${k}</button>`).join('')}</div>
   <div class="cv-row"><button class="cv-btn" id="cvChk">✓ Check</button></div>`}`,{wide:0});
-  sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==='⌫')inp=inp.slice(0,-1);else if(k==='±')inp=inp.startsWith('-')?inp.slice(1):'-'+inp;else if(inp.replace('-','').length<5)inp+=k;note='';draw();});
+  sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==='⌫')inp=inp.slice(0,-1);else if(k==='±')inp=inp.startsWith('-')?inp.slice(1):'-'+inp;else if(inp.replace('-','').length<5)inp+=k;upd();});
   const c=sh.querySelector('#cvChk');if(c)c.onclick=check;};
+ /* a number press only changes the answer box; redrawing the whole popup made it jump */
+ const upd=()=>{const e=root.querySelector('.cv-inp');if(e)e.innerHTML=esc(inp)||'&nbsp;';else draw();};
  const check=()=>{if(inp===''||inp==='-')return;if(+inp===Q.a){sfx('right');streak++;const gg=gain();S.bat=Math.min(batMax(),S.bat+gg);if(MQ())S.tripPow=(S.tripPow||0)+gg;S.stats.power=(S.stats.power||0)+1;note=`<div class="cv-ok2">✅ Yes! +${gain()} 🔋</div>`;ev('power',{ok:1});}
   else{sfx('wrong');streak=0;note=`<div class="cv-hint">Not quite — ${esc(Q.q)} ${Q.x?'→ x':''} = <b>${Q.a}</b>. Try the next one!</div>`;ev('power',{ok:0});}
   inp='';Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3);save();hud();draw();};
- const key=e=>{if(!modalOpen()||!root.querySelector('.cv-pad2')){window.removeEventListener('keydown',key);return;}if(/^[0-9]$/.test(e.key)){inp+=e.key;note='';draw();}else if(e.key==='-'){inp=inp.startsWith('-')?inp.slice(1):'-'+inp;draw();}else if(e.key==='Backspace'){inp=inp.slice(0,-1);draw();}else if(e.key==='Enter')check();};
+ const key=e=>{if(!modalOpen()||!root.querySelector('.cv-pad2')){window.removeEventListener('keydown',key);return;}if(/^[0-9]$/.test(e.key)){if(inp.replace('-','').length<5)inp+=e.key;upd();}else if(e.key==='-'){inp=inp.startsWith('-')?inp.slice(1):'-'+inp;upd();}else if(e.key==='Backspace'){inp=inp.slice(0,-1);upd();}else if(e.key==='Enter')check();};
  window.addEventListener('keydown',key);draw();}
 
 /* ---------------- Journal ---------------- */
