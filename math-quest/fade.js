@@ -1333,15 +1333,19 @@ window.MQ_HOOKS.push({
   apply();const p=me();if(name==='backpack'&&p)bagInject(p);setTimeout(()=>{shimmer();chamHue();},60);
   if(READY&&name!=='battle'&&name!=='fade'&&p&&active(p)){READY=false;setTimeout(()=>{if(cur()!=='battle'&&cur()!=='fade')say('🎨 You have enough paint! Visit Prisma\'s mixing table.');},1500);}
   if(REPLAY_AT.includes(name)&&replayWanted(p)&&!PENDR){PEND=p.id;PENDR=true;PEND_AT=now()+2500;}
+  armIfDue(name);
   if(PEND&&name!=='battle')setTimeout(tryFire,PENDR?2700:1200);},
  session(p){PEND=null;PENDF=false;PENDR=false;READY=false;if(FBUSY){FBUSY=false;try{window.trollBusy=false;}catch(e){}}BT={r:0,y:0,b:0};UI={key:null};closeLayer();if(!enabled()){if(OV||HUD)apply();return;}setTimeout(apply,50);
   if(p&&replayWanted(p)){PEND=p.id;PENDR=true;PEND_AT=now()+4000;}
   else{ROLL=LOGIN_P;const wn=p?whyNot(p):'x';ROLL=0;if(p&&!wn){PEND=p.id;PENDF=false;PEND_OK=true;PEND_AT=now()+LOGIN_WAIT;}} /* a kid who has battled before: the Goblin strikes a little after they log in */
   if(p&&active(p)&&helpReady(p)&&p.fade.a.hs!==dnum()){p.fade.a.hs=dnum();setTimeout(()=>say('🎨 Prisma has an easier helper puzzle for you!'),4000);}}
 });
+/* A first Fade that is DUE (the two weeks are up, or a grown-up tapped "Bring him now") starts on the World or Quest Board
+   without waiting for the next login or battle win. ROLL is 0 here, so the random chance plays no part: only a due Fade arms. */
+function armIfDue(name){try{const p=me();if(!p||PEND||!REPLAY_AT.includes(name||cur())||active(p))return;if(whyNot(p))return;PEND=p.id;PENDF=false;PEND_OK=true;PEND_AT=now()+2500;}catch(e){}}
 let WAS_ON=false,READY=false;
 setInterval(()=>{try{if(!enabled()){if(WAS_ON){WAS_ON=false;PEND=null;closeLayer();apply();}return;} /* the event just ended: lift the gray, hide the pot */
- WAS_ON=true;apply();if(PEND)tryFire();}catch(e){}},2000);
+ WAS_ON=true;apply();armIfDue();if(PEND)tryFire();}catch(e){}},2000);
 /* some screens (battles) are entered without go(): notice the switch quickly, so the pot never sits on the battle's keypad */
 let LASTSCR='';setInterval(()=>{try{const s=cur();if(s!==LASTSCR){LASTSCR=s;if(s==='battle')toastOff();if(enabled())apply();}}catch(e){}},250);
 /* the physical keyboard works on the mixing table too */

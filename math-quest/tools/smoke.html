@@ -71,7 +71,7 @@ const tests=[
   const right=()=>{const q=B.q;if(q.rev){B.input=String(q.ex[0][0]);B.input2=String(q.ex[0][1]);}else B.input=String(q.answer);answer();};
   const wrong=()=>{const q=B.q;if(q.rev){B.input='99999';B.input2='99999';}else B.input=String(q.answer+1);answer();};
   const ready=()=>B&&B.q&&!B.busy&&!fbOpen&&!document.querySelector('#modal.show');
-  startBattle('forest',0);await T.until(ready,10000,'first question');
+  startBattle('forest',0);await T.until(ready,10000,'first question');B.mhp=B.mmax=5000;B.foes.forEach(f=>{f.hp=f.max=5000;}); /* a sturdy monster, so the test's right answers cannot end the battle early */
   const r0=p.stats.add.r,q1=B.q;right();
   await T.until(()=>ready()&&B.q!==q1,12000,'second question');T.ok(p.stats.add.r===r0+1,'right answer not counted');
   /* a helped answer: the hit lands, but no streak, coins or stats, and the problem is queued to come back */
@@ -177,7 +177,12 @@ const tests=[
   T.reset();const p=T.hero('Fade',5,{level:12,battles:40});state.cur=p.id;const html=()=>{const d=document.createElement('div');d.innerHTML=MQ_PARENT.map(f=>{try{return f()||'';}catch(e){return '';}}).join('');return d.innerText;};
   T.ok(/Bring him now/.test(html()),'no Bring him now button for a level 10+ hero');T.ok(Fade._dbg.whyNot(p)!=='',"the Fade was already due before the button");
   Fade._soon(p.id);try{closeModal();}catch(e){}T.ok(Fade._dbg.whyNot(P())==='' ,'the Fade is not due after Bring him now: '+Fade._dbg.whyNot(P()));T.ok(/Coming on the next visit/.test(html()),'status did not change');
-  const q=T.hero('Small',2,{level:3});T.ok(!/Small[^]*Bring him now/.test(html().split('Small')[1]||''),'button offered below level 10');}],
+  const q=T.hero('Small',2,{level:3});T.ok(!/Small[^]*Bring him now/.test(html().split('Small')[1]||''),'button offered below level 10');
+  /* the hero is already logged in: just being on the World must be enough for a due Fade to start */
+  document.querySelectorAll('#cvRoot,#isRoot').forEach(e=>e.remove());window.trollBusy=false;window.visitorQuiet=0;AUTO_POP_AT=0;try{MQ_VISIT.reset();}catch(e){}
+  /* no other visitor or daily popup may be in the way (they take turns in the real game) */
+  {const h=P();h.principalLast=dayKey();h.spinDay=dayKey();h.sci={met:1,rocks:0,trips:0};W=null;} /* Principal Wise, the daily spin and Dr. Quartz's first visit would each go first */
+  go('world');try{closeModal();}catch(e){}AUTO_POP_AT=0;window.visitorQuiet=0;await T.until(()=>Fade.active(P())||Fade._dbg.pend()===P().id,8000,'the Grey Goblin to be lined up on the World'); /* lined up = he comes at the next calm moment; other visitors may still go first */}],
 
 ['save size stays small',async function(){
   T.reset();for(let i=0;i<7;i++){const p=T.hero('Size'+i,3);for(let k=0;k<200;k++)p.missed['q'+k+' + 1']={n:1,a:1,op:'add',last:'2026-10-01',fixed:0,q:{op:'add',L:1,a:k,b:1,answer:k+1,text:'q'+k+' + 1'}};}
