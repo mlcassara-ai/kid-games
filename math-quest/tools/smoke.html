@@ -190,14 +190,14 @@ const tests=[
   T.ok(new Set(d.FACTS.map(x=>x[0])).size===d.FACTS.length&&d.FACTS.every(x=>d.SETS.some(s=>s[0]===x[0][0])),'fact ids are not unique or lack a set');
   closeModal();window.MQ_DISTRICT_BETA=false;go('world');}],
 
-['battle pets test: hidden unless switched on for a hero on this device, and saves nothing',async function(){
+['battle pets test: hidden unless switched on for a hero, and saves only the switch',async function(){
   T.reset();window.MQ_BP_BETA=false;try{localStorage.removeItem('mqBpTest');}catch(e){}const p=T.hero('Pets',5),q=T.hero('Other',3);state.cur=p.id;W=null;go('world');await T.wait(150);
   T.ok(W.T[20][28].npc!=='bp','Battle Pets is on the map without the switch');go('bp');T.ok(curScreen!=='bp'||!document.querySelector('#app iframe'),'Battle Pets opened without the switch');
   const before=JSON.stringify(state.players);BattlePets._set(p.id,true);try{closeModal();}catch(e){}go('world');await T.wait(100);
   T.ok(W.T[20][28].npc==='bp','Battle Pets is not on the map after the switch');go('bp');const f=document.querySelector('#app iframe');T.ok(f&&/battle-pets\.html\?embed=1&g=5/.test(f.getAttribute('src')),'Battle Pets frame missing');
   const res=await fetch('battle-pets.html',{cache:'no-store'});T.ok(res.ok,'battle-pets.html is missing');
   state.cur=q.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets shows for a hero who is not in the test');
-  const b0=JSON.parse(before).find(x=>x.id===p.id),added=Object.keys(p).filter(k=>!(k in b0));T.ok(!added.some(k=>/bp|pets?test/i.test(k))&&p.coins===b0.coins&&!/mqBp|bpTest/.test(JSON.stringify(state)),'the Battle Pets test changed saved hero data: '+added.join());
+  const b0=JSON.parse(before).find(x=>x.id===p.id),added=Object.keys(p).filter(k=>!(k in b0));T.ok(added.filter(k=>/bp|pets/i.test(k)).join()==='bpTest'&&p.bpTest===1&&p.coins===b0.coins,'the Battle Pets test changed saved hero data: '+added.join());
   BattlePets._set(p.id,false);try{closeModal();}catch(e){}state.cur=p.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets stayed after switching off');
  }],
  ['send a visitor: a grown-up can send the Troll, Skyla and Dr. Quartz',async function(){
