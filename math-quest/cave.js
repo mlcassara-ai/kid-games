@@ -623,7 +623,7 @@ const TNAME={look:'🔍 Look closely',magnet:'🧲 Magnet',acid:'🧪 Vinegar dr
 function openLab(){
  const list=S.pack.filter(p=>p.t!=='f');
  const cards=list.map(p=>p.t==='g'?`<button class="cv-spec" data-k="g:${S.pack.indexOf(p)}"><span class="cv-big2">🔮</span><b>Geode</b><small>Crack it open!</small></button>`
-  :`<button class="cv-spec" data-k="${p.k}">${rockSVG(p.k,54)}<b>${p.map?'🪨 Your mystery rock':'Mystery #'+(S.pack.indexOf(p)+1)}</b><small>${(p.path||[]).length?(p.path.length+' step'+(p.path.length>1?'s':'')+' done'):'Not tested yet'}</small></button>`).join('');
+  :`<button class="cv-spec" data-k="${p.k}">${rockSVG(p.k,54)}<b>${p.map?'🪨 Rock you brought':'Specimen #'+(S.pack.indexOf(p)+1)}</b><small>${(p.path||[]).length?(p.path.length+' step'+(p.path.length>1?'s':'')+' done'):'Not tested yet'}</small></button>`).join('');
  modal(`<h2>🔬 Field Lab</h2>${guide(list.length?'Pick a specimen and we\'ll figure out what it is together — one test at a time!':'No specimens to study right now. Dig down and look for sparkly 💎 minerals!')}${list.length?`<div class="cv-specs">${cards}</div>`:''}`,{wide:1});
  root.querySelectorAll('.cv-spec').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k.startsWith('g:'))crackGeode(+k.slice(2));else bench(k);});
 }
@@ -650,7 +650,7 @@ function bench(k,st){
   say=st.say||(tested?'Color and shape are good clues, but color can fool you! Let\'s write it down and keep testing.':KHINT.look);}
  else{body=`<div class="cv-kq">${KQ[t]} </div>${tested?`<div class="cv-kres">${kPic(m,t,p)}</div>${['magnet','acid','water'].includes(t)?'<div style="text-align:center"><button class="cv-say cv-replay">↻ Watch again</button></div>':''}${kFb(st,m,t)}<div class="cv-kopts ${opts.length>4?'many':''}">${opts.map((v,i)=>`<button class="cv-kopt ${(st.bad||[]).includes(i)?'bad':''}" data-i="${i}" ${(st.bad||[]).includes(i)?'disabled':''}>${kLabel(t,v)}</button>`).join('')}</div>`:`<button class="cv-btn cv-ktest" id="cvKTest">${KBTN[t]}</button>`}`;
   say=st.say||(tested?'Watch closely! What happened? Pick the answer that matches.':KHINT[t]);}
- modal(`<button class="cv-back" data-back>‹ Lab</button><h2>🗝️ ${p.map?'Your Mystery Rock':'Mystery #'+(S.pack.indexOf(p)+1)}</h2>
+ modal(`<button class="cv-back" data-back>‹ Lab</button><h2>🗝️ ${p.map?'The Rock You Brought':'Specimen #'+(S.pack.indexOf(p)+1)}</h2>
   <div class="cv-key"><div class="cv-kleft"><div class="cv-specimen">${rockSVG(p.k,96)}</div><div class="cv-sus2"><b>Could still be:</b>${C.map(c=>`<span>${gemSVG(CD.MIN[c],22)} ${esc(CD.MIN[c].n)}</span>`).join('')}</div></div>
   <div class="cv-kright">${trail}<div class="cv-kstep now"><span class="cv-kn">${p.path.length+1}</span><div style="flex:1">${body}</div></div>
    <div class="cv-kstep todo"><span class="cv-kn">?</span><div class="cv-kq">🎉 The answer!</div></div></div></div>

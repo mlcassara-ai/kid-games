@@ -142,7 +142,7 @@ function rockHTML(p){const s=Q(p),today=dayKey(),bought=s.lab.rockDay===today,fu
    <button class="btn green big" onclick="Lab.down()">🛗 Ride the elevator down</button>
    <small class="muted">Uses 1 mystery rock. Same cave, same tunnels.</small>
    <div id="lbBuy">${bought?`<button class="btn ghost dark small" disabled>✔ Bought today's rock</button>`:full?`<button class="btn ghost dark small" disabled>Your rock bag is full</button>`:`<button class="btn gold small" onclick="Lab.buy()">Buy 1 rock · 🪙 ${ROCK_PRICE}</button><small class="muted">One a day. You have 🪙 ${p.coins||0}.</small>`}</div>`
-   :`<p style="margin:0 0 6px;font-weight:700;font-size:18px">The elevator needs a 🪨 mystery rock, and you have none.</p>
+   :`<p style="margin:0 0 6px;font-weight:700;font-size:18px">The elevator needs a new 🪨 mystery rock, and you have none.</p>${(()=>{const n=((p.cave&&p.cave.pack)||[]).filter(x=>x&&x.t==='m').length;return n?`<p class="muted" style="margin:0 0 8px">The ${n} rock${n>1?'s':''} in your cave backpack ${n>1?'were':'was'} already used for a trip. ${n>1?'They are':'It is'} waiting in the cave's Field Lab to be identified.</p>`:'';})()}
    ${bought?`<p style="margin:0 0 8px">You already bought today's rock. Find another by <b>winning battles</b>, <b>opening chests</b> or <b>beating bosses</b>, or buy one tomorrow.</p>`
     :`<div id="lbBuy"><p style="margin:0 0 6px"><b>Step 1:</b> get a rock.</p><button class="btn gold big" onclick="Lab.buy()">🪨 Buy a rock · 🪙 ${ROCK_PRICE}</button><small class="muted">One a day. You have 🪙 ${p.coins||0}. You can also find rocks in battles, chests and boss fights.</small></div>`}
    <p style="margin:10px 0 6px"><b>${bought?'Then':'Step 2:'}</b> ride down to the dig site.</p>
