@@ -138,15 +138,20 @@ function mapHTML(p){const D=CD();if(!D)return '';const c=cv(p),m=typeof Quartz!=
 /* ---------- Rock Counter + elevator ---------- */
 function rockHTML(p){const s=Q(p),today=dayKey(),bought=s.lab.rockDay===today,full=s.rocks>=3;
  return `<div class="lb-rocks"><div class="lb-rock-n">🪨 <b>${s.rocks}</b><small>/ 3 rocks</small></div>
-  <div class="lb-rock-act">
-   <button class="btn green big" ${s.rocks>0?'':'disabled'} onclick="Lab.down()">🛗 Ride the elevator down</button>
-   ${s.rocks>0?'<small class="muted">Uses 1 mystery rock. Same cave, same tunnels.</small>':'<small class="muted">No rock? Win battles, open chests and beat bosses to find one!</small>'}
-   <div id="lbBuy">${bought?`<button class="btn ghost dark small" disabled>✔ Bought today's rock</button>`:full?`<button class="btn ghost dark small" disabled>Your rock bag is full</button>`:`<button class="btn gold small" onclick="Lab.buy()">Buy 1 rock · 🪙 ${ROCK_PRICE}</button><small class="muted">One a day. You have 🪙 ${p.coins||0}.</small>`}</div>
+  <div class="lb-rock-act">${s.rocks>0?`
+   <button class="btn green big" onclick="Lab.down()">🛗 Ride the elevator down</button>
+   <small class="muted">Uses 1 mystery rock. Same cave, same tunnels.</small>
+   <div id="lbBuy">${bought?`<button class="btn ghost dark small" disabled>✔ Bought today's rock</button>`:full?`<button class="btn ghost dark small" disabled>Your rock bag is full</button>`:`<button class="btn gold small" onclick="Lab.buy()">Buy 1 rock · 🪙 ${ROCK_PRICE}</button><small class="muted">One a day. You have 🪙 ${p.coins||0}.</small>`}</div>`
+   :`<p style="margin:0 0 6px;font-weight:700;font-size:18px">The elevator needs a 🪨 mystery rock, and you have none.</p>
+   ${bought?`<p style="margin:0 0 8px">You already bought today's rock. Find another by <b>winning battles</b>, <b>opening chests</b> or <b>beating bosses</b>, or buy one tomorrow.</p>`
+    :`<div id="lbBuy"><p style="margin:0 0 6px"><b>Step 1:</b> get a rock.</p><button class="btn gold big" onclick="Lab.buy()">🪨 Buy a rock · 🪙 ${ROCK_PRICE}</button><small class="muted">One a day. You have 🪙 ${p.coins||0}. You can also find rocks in battles, chests and boss fights.</small></div>`}
+   <p style="margin:10px 0 6px"><b>${bought?'Then':'Step 2:'}</b> ride down to the dig site.</p>
+   <button class="btn green big" disabled>🛗 Ride the elevator down</button>`}
   </div></div>`;}
 function buy(confirmNow){const p=P(),s=Q(p);if(s.lab.rockDay===dayKey()||s.rocks>=3)return;
  if((p.coins||0)<ROCK_PRICE){toast(`🪙 You need ${ROCK_PRICE-(p.coins||0)} more coins.`);return;}
  const box=document.getElementById('lbBuy');
- if(!confirmNow&&box){box.innerHTML=`<span style="font-weight:600">Spend 🪙 ${ROCK_PRICE} on a mystery rock?</span><button class="btn gold small" onclick="Lab.buy(1)">Yes, buy it</button><button class="btn ghost dark small" onclick="Lab.draw()">No</button>`;return;}
+ if(!confirmNow&&box){box.innerHTML=`<span style="font-weight:600;display:block;margin-bottom:6px">Spend 🪙 ${ROCK_PRICE} on a mystery rock?</span><button class="btn gold small" onclick="Lab.buy(1)">Yes, buy it</button><button class="btn ghost dark small" onclick="Lab.draw()">No</button>`;return;}
  if(DEMO){toast('🔬 Preview: nothing was bought.');draw();return;}
  p.coins-=ROCK_PRICE;s.rocks++;s.lab.rockDay=dayKey();s.lab.bought=(s.lab.bought||0)+1;save();try{SFX.coin();}catch(e){}toast('🪨 +1 Mystery Rock!');draw();}
 function down(){const p=P(),s=Q(p);if(DEMO){toast('🔬 Preview: the elevator is closed.');return;}if(s.rocks<=0)return;
