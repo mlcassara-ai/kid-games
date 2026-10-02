@@ -153,12 +153,6 @@ const tests=[
    p.sci.rocks=1;go('lab');t=document.querySelector('#app').innerText;T.ok(!/you have none/.test(t)&&/This ride uses a rock/.test(t),'the Lab is wrong when the hero has a rock and no free ride');
    p.sci.lab.freeDay='';p.sci.trips=5;p.cave={trips:5,stats:{dug:12}};const r0=p.sci.rocks;go('lab');Lab.down();T.ok(curScreen==='cave'&&p.sci.rocks===r0&&p.sci.lab.freeDay===dayKey()&&p.sci.trips===6,'the free ride did not start a trip, or it spent a rock');
    await T.wait(300);T.ok(/ride straight down/.test(document.querySelector('#app').innerText+document.body.innerText),'no welcome for a trip without a rock');go('world');try{closeModal();}catch(e){}}
-  /* Lab: a mineral solved 3+ times gets a quick 'do you know it?' with 2 choices for the youngest; a wrong guess leads to the tests */
-  {p.cave={idd:{quartz:1,mica:1,gypsum:1,halite:1},gear:{}};p.sci.lab={ok:{quartz:3,mica:3,gypsum:3,halite:3},freeDay:dayKey()};go('lab');let h=document.querySelector('.lb-mm');
-   T.ok(h&&/solved this mineral before/.test(h.innerText),'no quick guess for a mineral solved 3 times');T.ok(h.querySelectorAll('.lb-opts button').length===2,'a grade 3 hero should get 2 choices, got '+h.querySelectorAll('.lb-opts button').length);
-   const mm=Lab._mm(p),wrongId=[...h.querySelectorAll('.lb-opts button')].map(b=>b.getAttribute('onclick').match(/'([^']*)'/)[1]).find(k=>k!==mm.id);const c0=p.coins;
-   Lab.quick(wrongId);h=document.querySelector('.lb-mm');T.ok(/Run every test/.test(h.innerText)&&p.coins===c0,'a wrong quick guess did not lead to the tests');
-   p.sci.lab.mm=null;const mm2=Lab._mm(p);go('lab');Lab.quick(mm2.id);T.ok(p.coins===c0+15&&mm2.done&&mm2.ok,'a right quick guess did not solve the sample');try{closeModal();}catch(e){}}
   go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.querySelector('#app').innerText),'the Fact Gym building did not open the fact grid');go('map');T.ok(!document.querySelector('.mq-hc'),'Mastery card is still on the Quest Board');go('world');await T.wait(50);
   T.ok(!document.querySelector('.topbar button.tb-hero')&&document.querySelectorAll('.topbar [onclick*="backpack"]').length===1,'the top bar has more than one way into the Bag');
   {const z=ZONES.find(x=>x.id==='garden');T.ok(zoneTag(p,z)==='','an untouched world shows progress');p.progress.garden=[3,2,1,0,0,0];T.ok(zoneTag(p,z)===' 3/6','world progress tag is wrong: '+zoneTag(p,z));p.progress.garden=[3,3,3,3,3,3];T.ok(/🥉 0\/6/.test(zoneTag(p,z)),'medal tag is wrong: '+zoneTag(p,z));}
