@@ -69,7 +69,7 @@ Adaptive math battles plus a village of side activities, for grades 1–12 and a
 - Add-ons are separate `.js` files loaded in order by the `document.write` loader line near the top of `index.html`. A new file must be added to that line.
 - `daily.js` — Today's Adventure, pet tricks, camp packing and tied sacks.
 - `truck.js` — Food Truck; hidden (no opening date) unless the device opened the game with `?truck=1`; `?truck=0` hides it again.
-- `district.js` — Discovery District, a second walkable map reached by train. A walk-around preview only, with its own map drawing; hidden unless the device opened the game once with `?district=1`.
+- `district.js` — Discovery District, a second walkable map reached by train (its techno music lives in `music.js`). A walk-around preview only, with its own map drawing; hidden unless the device opened the game once with `?district=1`.
 - `battlepets.js` + `battle-pets.html` — Battle Pets, a test only. A plaza building opens the prototype page in a frame; playing it reads and writes nothing in a hero's save. Shown only for heroes switched on in Parent Corner (`p.bpTest`, the only thing it saves).
 - `tools/smoke.py` + `tools/smoke.html` — the smoke test.
 

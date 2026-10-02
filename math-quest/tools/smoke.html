@@ -200,6 +200,14 @@ const tests=[
   const b0=JSON.parse(before).find(x=>x.id===p.id),added=Object.keys(p).filter(k=>!(k in b0));T.ok(added.filter(k=>/bp|pets/i.test(k)).join()==='bpTest'&&p.bpTest===1&&p.coins===b0.coins,'the Battle Pets test changed saved hero data: '+added.join());
   BattlePets._set(p.id,false);try{closeModal();}catch(e){}state.cur=p.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets stayed after switching off');
  }],
+ ['music: the login page plays the map tune, Discovery District has its own choices',async function(){
+  T.reset();const p=T.hero('Tune',3);state.musicVol=30;state.cur=null;go('profiles');Music.update();T.ok(['meadow','dusk'].includes(Music._state().want),'no map tune on the login page: '+Music._state().want);
+  state.musicVol=0;Music.update();T.ok(!Music._state().want,'login music ignores the Music slider');state.musicVol=30;
+  state.cur=p.id;window.MQ_DISTRICT_BETA=true;go('district');await T.wait(100);Music.update();T.ok(['dday','dnight'].includes(Music._state().want),'district default tune is '+Music._state().want);
+  Music.menu();T.ok(/Discovery District/.test(document.querySelector('#modal').innerText)&&/Laser Lab/.test(document.querySelector('#modal').innerText),'district choices missing from the Sound menu');
+  Music.dset('laser');T.ok(Music._state().want==='laser'&&P().dMusic==='laser','district tune did not change');Music.dset('off');T.ok(!Music._state().want,'district music did not turn off');try{closeModal();}catch(e){}
+  go('world');await T.wait(100);Music.update();T.ok(['meadow','dusk'].includes(Music._state().want),'the district choice changed the village music');Music.menu();T.ok(/Music on the map/.test(document.querySelector('#modal').innerText),'village Sound menu is wrong');try{closeModal();}catch(e){}
+ }],
  ['send a visitor: a grown-up can send the Troll, Skyla and Dr. Quartz',async function(){
   T.reset();const p=T.hero('Vis',5,{level:12,battles:1});state.cur=p.id;const html=()=>{const d=document.createElement('div');d.innerHTML=MQ_PARENT.map(f=>{try{return f()||'';}catch(e){return '';}}).join('');return d;};
   T.ok(html().querySelectorAll('[onclick*="Troll._bring"]').length===3,'expected three send buttons for one hero');

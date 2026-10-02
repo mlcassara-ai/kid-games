@@ -1,6 +1,7 @@
 /* Map music — soft, wandering piano made live on the device (no audio files).
    Choices (per player, p.music): 'auto' = 🌿 Morning Meadow by day / 🌙 Quiet Dusk in the evening, 'stars' = ✨ Music-Box Stars, 'off'.
-   Plays only on the world map; fades out when a battle or building opens and fades back in on return.
+   Plays on the world map and on the 'Who's playing?' page; fades out when a battle or building opens and fades back in on return.
+   Discovery District has its own techno tunes: day/night by default, plus one alternate (p.dMusic).
    The 🔊 top-bar button opens the Sound menu (sound effects on/off + music choice). */
 (function(){
 'use strict';
@@ -21,6 +22,15 @@ const TRACKS={
  /* Haunted Hollow (Halloween event): FUN Halloween, not sad — a swinging boogie-woogie bass, a bony xylophone tune with a
     bluesy wink, finger-snap clicks, bouncy organ stabs and now and then a silly 'whoo-OOO!' ghost. Original tune. */
  haunt:{name:'🎃 Haunted Hollow',bpm:138,root:53,fun:1,gain:1.2,prog:[0,0,5,0,7,5,0,7],scale:[0,2,3,4,7,9,12,14,15,16,19]},
+ /* Discovery District (the physics side of town): a techno beat — four-on-the-floor kick, clap, off-beat hat and bass, and a
+    filtered synth arpeggio that swells and fades. Day and night versions switch with the clock like the village music,
+    plus one alternate (p.dMusic: 'auto' | 'laser' | 'off'). arp = which chord tone plays on each 16th note (-1 = rest). */
+ dday:{name:'☀️ Daylight Circuit',tech:1,bpm:118,root:57,gain:1.15,oct:12,cut:1500,drive:0,
+  prog:[[0,[0,3,7]],[-4,[-4,0,3]],[3,[3,7,10]],[-2,[-2,2,5]]],arp:[0,-1,1,2,-1,3,2,-1,0,-1,1,2,3,-1,2,1]},
+ dnight:{name:'🌙 Neon Night',tech:1,bpm:104,root:52,gain:1.15,oct:0,cut:800,drive:0,
+  prog:[[0,[0,3,7]],[0,[0,3,7]],[-4,[-4,0,3]],[-2,[-2,2,5]]],arp:[0,-1,-1,2,-1,1,-1,-1,3,-1,2,-1,-1,1,-1,0]},
+ laser:{name:'⚡ Laser Lab',tech:1,bpm:128,root:55,gain:1.15,oct:12,cut:1900,drive:1,
+  prog:[[0,[0,3,7]],[5,[5,8,12]],[-2,[-2,2,5]],[3,[3,7,10]]],arp:[0,1,2,3,2,1,0,1,2,3,2,1,0,3,2,1]},
  magma:{name:'🌋 Magma Deep',bpm:44,root:45,scale:[0,1,5,7,8],prog:[[0,7,12],[1,8,13],[-4,3,8],[0,7,12]],tone:'glass',rest:.6,padVol:.1,octave:12,padCut:380,rumble:.3}};
 const LEVEL=.34; // softer than sound effects
 const DAY_FROM=6,DUSK_FROM=17; // 6am–5pm = Morning Meadow, 5pm–6am = Quiet Dusk
@@ -129,7 +139,17 @@ function schedFun(T,beat){const e8=beat/2;while(nextT<AC.currentTime+1.2){const 
   if(inBar===0&&bar%6===5){const v=Math.floor(bar/6)%4;                              // every few seconds a Halloween friend joins in:
    if(v===0)ghostOoo(t,.035);else if(v===1)monster(t+beat,.05);else if(v===2)howl(t,.04);else growl(t+beat,.06);} // ghost, Frankenstein, werewolf, growl
   step++;if(step%8===0)bar++;nextT+=e8;}}
-function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.fun){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedFun(T,beat);return;}if(T.spook){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedSpook(T,beat);return;}if(T.dark){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedDark(T,beat);return;}
+function schedTech(T,beat){const s16=beat/4;while(nextT<AC.currentTime+1.2){const t=nextT,s=step%16,b=T.prog[bar%T.prog.length],R0=T.root,ch=b[1];
+  const I=.45+.55*Math.pow(Math.sin(Math.PI*((bar%8)+s/16)/8),2);                    // the arpeggio swells and fades over 8 bars
+  if(s%4===0)thump(t,.2);                                                            // four-on-the-floor kick
+  if(s===4||s===12)snap(t,.06);                                                      // clap
+  if(s%4===2){tick(t,.02,5200);pluck(R0-24+b[0],t,.2);}                              // off-beat hat and bass
+  if(T.drive&&s%2===1)tick(t,.008,6400);                                             // busy 16th hats
+  if(T.drive&&s%4===0)pluck(R0-24+b[0],t,.1);
+  const a=T.arp[s];if(a>=0&&bar%8!==7)arpNote(R0+T.oct+[ch[0],ch[1],ch[2],ch[0]+12][a],t,.03+.035*I);  // synth arpeggio; one bar of rest in every eight
+  if(s===0)pad(ch.map(x=>R0+12+x),t,beat*4,.03,T.cut);                               // soft chord underneath
+  step++;if(step%16===0)bar++;nextT+=s16;}}
+function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.tech){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedTech(T,beat);return;}if(T.fun){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedFun(T,beat);return;}if(T.spook){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedSpook(T,beat);return;}if(T.dark){if(nextT<AC.currentTime)nextT=AC.currentTime+.05;schedDark(T,beat);return;}
  if(nextT<AC.currentTime)nextT=AC.currentTime+.05; // after the app was in the background
  while(nextT<AC.currentTime+1.2){const t=nextT,chord=T.prog[bar%T.prog.length],inBar=step%8,quiet=(Math.floor(bar/4)%3===2);
   if(T.drips&&R()<T.drips*.5)drip(t+R()*beat);if(T.shimmer&&R()<T.shimmer*.4)note(T.root+36+T.scale[Math.floor(R()*T.scale.length)],t+R()*beat,beat,.03,'bell');if(T.rumble&&inBar===4&&R()<T.rumble)rumble(t);
@@ -141,6 +161,9 @@ function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.fun){if(nextT<
     if(T.tone==='bell'&&R()<.25)note(T.root+T.octave+deg+12,t+beat*.5,beat,.05,'bell');}}
   step++;if(step%8===0)bar++;nextT+=beat;}}
 function choice(p){return (p&&p.music)||'auto';}
+function dChoice(p){const c=p&&p.dMusic;return c==='off'||c==='laser'?c:'auto';}
+function dTrack(p){const c=dChoice(p);if(c==='off')return null;if(c==='laser')return 'laser';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'dday':'dnight';}
+function inDistrict(){return typeof curScreen!=='undefined'&&curScreen==='district'&&!document.hidden;}
 function trackFor(p){const c=choice(p);if(c==='off')return null;if(c==='stars')return 'stars';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'meadow':'dusk';}
 function mVol(){try{return state.musicVol==null?30:state.musicVol;}catch(e){return 30;}}
 function lvl(){const g=window.volGain?volGain(mVol()):mVol()/70;return LEVEL*g*((cur&&cur.gain)||1);}
@@ -155,6 +178,9 @@ function update(){try{const p=typeof P==='function'&&state&&state.cur?P():null;
  const onMap=typeof curScreen!=='undefined'&&curScreen==='world'&&!document.hidden&&!window.trollBusy&&!document.getElementById('isRoot')&&!document.getElementById('cvRoot');
  const inCave=typeof curScreen!=='undefined'&&curScreen==='cave'&&!document.hidden&&!!document.getElementById('cvRoot')&&window.Cave&&Cave._dbg;
  let id=onMap&&p?trackFor(p):null;
+ /* the 'Who's playing?' page plays the map's time-of-day tune (nobody is logged in there, so no hero's choice applies; the Music slider still does) */
+ if(typeof curScreen!=='undefined'&&curScreen==='profiles'&&!document.hidden)id=trackFor({music:'auto'});
+ if(inDistrict()&&p)id=dTrack(p);
  if(inCave&&p&&p.caveMusic!==false){try{const d=Cave._dbg();const y=d.S.y;if(y===0)id=trackFor({music:'auto'});else{const L=d.layerOf(y);const lid=L&&L.id;id=['magma','mantle'].includes(lid)?'magma':['crystal','granite'].includes(lid)?'crystal':'cave';}}catch(e){id='cave';}}
  const inHaunt=typeof curScreen!=='undefined'&&!document.hidden&&((curScreen==='zone'&&typeof curArg!=='undefined'&&curArg==='haunt')||(curScreen==='battle'&&typeof B!=='undefined'&&B&&B.z&&B.z.id==='haunt'&&!B.over));if(inHaunt&&p&&choice(p)!=='off')id='haunt';
  const inRide=typeof curScreen!=='undefined'&&curScreen==='inner'&&!document.hidden&&!!document.getElementById('isRoot');if(inRide&&p&&choice(p)!=='off')id='inner';
@@ -176,7 +202,7 @@ function vol(k,v,done){v=Math.round(+v/5)*5;const lab=document.getElementById('s
   if(done&&was!==state.sound&&typeof curScreen!=='undefined'&&!['world','battle','cave','inner'].includes(curScreen)){const y=window.scrollY;go(curScreen,curArg);window.scrollTo(0,y);}}
  else{state.musicVol=v;if(AC&&playing){const now=AC.currentTime;master.gain.cancelScheduledValues(now);master.gain.setTargetAtTime(lvl(),now,.15);}if(done)update();}
  if(done){try{window.rememberHeroSound&&rememberHeroSound();}catch(e){}save();}}
-function menu(){modal(`<div class="mcard snd-card">${panel('map')}<div class="row"><button class="btn green big" onclick="closeModal()">Done</button></div></div>`);}
+function menu(){modal(`<div class="mcard snd-card">${panel(inDistrict()?'district':'map')}<div class="row"><button class="btn green big" onclick="closeModal()">Done</button></div></div>`);}
 /* the Sound panel. where='map' (main game) or 'cave' (Dr. Quartz's cave): same sliders, but the music choices match the place you're in */
 function panel(where){const p=typeof P==='function'&&state&&state.cur?P():null;const c=choice(p);
  const opt=(on,click,title,sub)=>`<button class="snd-opt ${on?'on':''}" onclick="${click}"><b>${title}</b><small>${sub}</small></button>`;
@@ -190,6 +216,10 @@ function panel(where){const p=typeof P==='function'&&state&&state.cur?P():null;c
   ${!p?'':where==='cave'?`<div class="snd-lab">Music in the cave${p.name?` for ${esc(p.name)}`:''}</div>
   ${opt(caveOnNow,"Music.caveSet(true)",'⛏️ Cave music','Changes as you dig deeper')}
   ${opt(!caveOnNow,"Music.caveSet(false)",'🔇 No cave music','Quiet cave · the map music is not changed')}`:
+  where==='district'?`<div class="snd-lab">Music in Discovery District${p.name?` for ${esc(p.name)}`:''}</div>
+  ${opt(dChoice(p)==='auto',"Music.dset('auto')",'☀️🌙 Daylight &amp; Neon',`A techno beat that changes with the time of day · now: ${day?'☀️ Daylight Circuit':'🌙 Neon Night'}`)}
+  ${opt(dChoice(p)==='laser',"Music.dset('laser')",'⚡ Laser Lab','Faster and busier, all the time')}
+  ${opt(dChoice(p)==='off',"Music.dset('off')",'🔇 No music','Quiet district · the village music is not changed')}`:
   `<div class="snd-lab">Music on the map${p.name?` for ${esc(p.name)}`:''}</div>
   ${opt(c==='auto',"Music.set('auto')",'🌿🌙 Morning &amp; Dusk',`Changes with the time of day · now: ${day?'🌿 Morning Meadow':'🌙 Quiet Dusk'}`)}
   ${opt(c==='stars',"Music.set('stars')",'✨ Music-Box Stars','Twinkly and magical, all the time')}
@@ -201,6 +231,7 @@ function caveToggle(){const p=P();if(!p)return false;p.caveMusic=p.caveMusic===f
 function caveOn(){try{return P().caveMusic!==false;}catch(e){return true;}}
 function voice(on){const p=P();if(!p)return;p.voice=!!on;save();if(!on)try{speechSynthesis.cancel();}catch(e){}try{window.__cvSndRefresh&&__cvSndRefresh();}catch(e){}if(document.querySelector('#modal.show .snd-card'))menu();}
 function set(v){const p=P();if(!p)return;p.music=v;save();menu();update();}
+function dset(v){const p=P();if(!p)return;p.dMusic=v;save();menu();update();}
 function fx(on){state.sound=!!on;save();menu();try{if(on)SFX.tap();}catch(e){}if(typeof curScreen!=='undefined'&&!['world','battle','cave','inner'].includes(curScreen)){const y=window.scrollY;go(curScreen,curArg);window.scrollTo(0,y);}}
 const st=document.createElement('style');st.textContent=`.snd-card{max-width:440px}.snd-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:6px 0 14px;font-weight:700}
 .snd-lab{font-weight:700;margin:4px 0 8px;text-align:left}.snd-opt{display:block;width:100%;text-align:left;border:3px solid #d0bfff;background:#f8f5ff;border-radius:16px;padding:10px 14px;margin:0 0 8px;font:inherit;cursor:pointer;color:#241a3d}
@@ -208,5 +239,5 @@ const st=document.createElement('style');st.textContent=`.snd-card{max-width:440
 .snd-sl{text-align:left;background:#f8f5ff;border-radius:16px;padding:10px 14px;margin:0 0 10px}.snd-slh{display:flex;justify-content:space-between;font-size:18px}.snd-slh span{font-weight:800;color:#7048e8;font-variant-numeric:tabular-nums}.snd-sl small{color:#6b5fa0;font-size:14px}
 .snd-slr{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:20px}.snd-slr input{flex:1;height:36px;accent-color:#7048e8}`;
 document.head.appendChild(st);
-window.Music={menu,panel,voice,caveSet,muted,set,fx,vol,update,caveToggle,caveOn,trackFor,_state:()=>({playing,cur:cur&&cur.name,want,ac:AC&&AC.state})};
+window.Music={menu,panel,voice,caveSet,muted,set,dset,fx,vol,update,caveToggle,caveOn,trackFor,_state:()=>({playing,cur:cur&&cur.name,want,ac:AC&&AC.state})};
 })();
