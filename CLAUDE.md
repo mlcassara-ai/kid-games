@@ -19,14 +19,14 @@ Prodigy-style click-to-move world teaching Modern Standard Arabic with full hara
 
 - `index.html` — world map (canvas), zones, Letter Friends quest.
 - `lq-core.js` — shared engine (`window.LQ`): players, picture locks, parent PIN, Parent Corner, Firestore sync, class families, auto-update.
-- `letters/` Letter Dunes, `falls/` Sound Falls, `souq/` the Souq (numbers and counting), `teacher/` teacher dashboard, `voices/` voice picker.
+- `letters/` Letter Dunes, `falls/` Sound Falls, `souq/` the Souq (numbers, counting and the Tailor), `harbor/` Story Harbor (fill-the-blank stories), `teacher/` teacher dashboard, `voices/` voice picker.
 - `words.json` — list of every spoken Arabic phrase for audio generation. The game never reads it.
 
 ### Release checklist
 
 1. Bump the version (`YYYY.MM.DD` + letter, next letter for same-day releases) to the same string in:
    - `language-quest/version.json`
-   - `window.LQ_VER="…"` and `lq-core.js?v=…` in `index.html`, `letters/index.html`, `falls/index.html`, `souq/index.html`, `teacher/index.html`
+   - `window.LQ_VER="…"` and `lq-core.js?v=…` in `index.html`, `letters/index.html`, `falls/index.html`, `souq/index.html`, `harbor/index.html`, `teacher/index.html`
    `/usr/bin/python3 language-quest/tools/release.py` does all of this in one step; a new zone page must be added to its `PAGES` list.
 2. Test locally: `python3 -m http.server` from the repo root, then `http://localhost:8000/language-quest/`.
 3. Commit and push; confirm Pages serves the new `version.json`.

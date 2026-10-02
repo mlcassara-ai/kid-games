@@ -1,6 +1,6 @@
 # Language Quest Story Harbor — draft stories for review
 
-For Aroub to review. Nothing here is in the game yet.
+For Aroub to review. These five stories are live in Story Harbor as of version 2026.10.02h; anything she changes can be corrected afterwards.
 
 Each story is five short sentences. In the game, every sentence has one blank, shown with a small picture of the scene. The child hears three choices, each with a picture, and picks the word that fits. The full sentence is then read aloud. In the tables below the missing word is in **bold**, and the correct choice is listed first.
 
@@ -34,7 +34,7 @@ These are our own short retellings of traditional tales. Please mark each senten
 | 2 | مَشَى فَأْرٌ صَغِيرٌ عَلَى **أَنْفِ** الأَسَد. | A little mouse walked on the lion's **nose**. | أَنْف nose · يَد hand · عَيْن eye |
 | 3 | ضَحِكَ الأَسَدُ وَتَرَكَ **الفَأْر**. | The lion laughed and let **the mouse** go. | الفَأْر the mouse · الكَلْب the dog · الحِصَان the horse |
 | 4 | بَعْدَ أَيَّامٍ وَقَعَ الأَسَدُ فِي **شَبَكَة**. | Some days later the lion fell into a **net**. | شَبَكَة a net · بَحْر a sea · قَارِب a boat |
-| 5 | قَطَعَ الفَأْرُ الشَّبَكَةَ **بِأَسْنَانِهِ**. | The mouse cut the net **with his teeth**. | بِأَسْنَانِهِ with his teeth · بِأُذُنَيْهِ with his ears · بِذَيْلِهِ with his tail |
+| 5 | قَطَعَ الفَأْرُ الشَّبَكَةَ **بِأَسْنَانِهِ**. | The mouse cut the net **with his teeth**. | بِأَسْنَانِهِ with his teeth · بِأُذُنَيْهِ with his ears · بِيَدَيْهِ with his hands |
 
 ## 4. الأَرْنَبُ وَالسُّلَحْفَاة — The hare and the tortoise
 

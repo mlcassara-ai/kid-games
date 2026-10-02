@@ -48,8 +48,8 @@ td .ar{font-size:1.25rem}
 </head>
 <body>
 <div class="wrap" id="app"></div>
-<script>window.LQ_VER="2026.10.02g";</script>
-<script src="../lq-core.js?v=2026.10.02g"></script>
+<script>window.LQ_VER="2026.10.02h";</script>
+<script src="../lq-core.js?v=2026.10.02h"></script>
 <script>
 const $=id=>document.getElementById(id), esc=LQ.esc, API=LQ.cloudApi;
 const TKEY="languagequest.teacher";
@@ -113,7 +113,7 @@ function statsOf(p){ const st=p.stats||{}; const all=[].concat(Object.values(st.
   const weak=[...Object.entries(st.letters||{}).filter(([k,e])=>e.r+e.w>=3&&acc(e)<0.6).map(([k])=>`<span class="tag ar" lang="ar">${esc(k)}</span>`),
               ...Object.entries(st.marks||{}).filter(([k,e])=>e.r+e.w>=3&&acc(e)<0.6).map(([k])=>`<span class="tag">${esc(k)}</span>`)].slice(0,5);
   const days=Object.keys(p.days||{}).length; const last=days&&p.last?Math.round((Date.now()-p.last)/86400000):null;
-  return {friends:Object.keys(p.friends||{}).length, traced:Object.keys(p.trace||{}).length, stalls:Object.keys(p.souq||{}).length, letters:Object.keys(p.letters||{}).length, camps:Object.keys(p.camps||{}).length, pools:Object.keys(p.falls||{}).length,
+  return {friends:Object.keys(p.friends||{}).length, traced:Object.keys(p.trace||{}).length, stalls:Object.keys(p.souq||{}).length, tales:Object.keys(p.harbor||{}).length, letters:Object.keys(p.letters||{}).length, camps:Object.keys(p.camps||{}).length, pools:Object.keys(p.falls||{}).length,
           pct:tot?Math.round(right/tot*100):null, weak, last:last===null?"never":last===0?"today":last===1?"yesterday":last+" days ago"}; }
 async function dashboard(refresh){
   if(refresh||!Object.keys(fams).length&&(cls.families||[]).length){ shell(`<div class="card" style="text-align:center">Loading students…</div>`); try{ await loadFamilies(); }catch(e){} }
@@ -124,9 +124,9 @@ async function dashboard(refresh){
   shell(`<div class="row" style="justify-content:space-between"><h1>🍎 ${esc(cls.name)}<small>${esc(cls.teacher||"")} · ${students.length} student${students.length===1?"":"s"} in ${(cls.families||[]).length} famil${(cls.families||[]).length===1?"y":"ies"}</small></h1>
       <div class="row"><button class="btn gh" id="rf">↻ Refresh</button><button class="btn gh" id="tk">🔑 Teacher key</button></div></div>
     <div class="card"><h2>How the class is doing</h2>
-      ${students.length?`<div class="tbl"><table><thead><tr><th>Student</th><th>Letters</th><th>Camps</th><th>Sound Falls</th><th>Souq</th><th>Friends</th><th>Tracing</th><th>Right</th><th>Needs help</th><th>Last played</th><th></th></tr></thead><tbody>
+      ${students.length?`<div class="tbl"><table><thead><tr><th>Student</th><th>Letters</th><th>Camps</th><th>Sound Falls</th><th>Souq</th><th>Stories</th><th>Friends</th><th>Tracing</th><th>Right</th><th>Needs help</th><th>Last played</th><th></th></tr></thead><tbody>
       ${students.map(({p,f},i)=>{ const s=statsOf(p); return `<tr><td><span class="dot" style="background:${esc(p.color)}"></span> <b>${esc(p.name)}</b><div class="small muted">${esc(f.label)}</div></td>
-        <td>${s.letters}/28</td><td>${s.camps}/7</td><td>${s.pools}/8</td><td>${s.stalls}/5</td><td>${s.friends}/28</td><td>${s.traced}/28</td><td>${s.pct===null?"—":s.pct+"%"}</td><td>${s.weak.join("")||'<span class="muted small">—</span>'}</td><td class="small">${s.last}</td>
+        <td>${s.letters}/28</td><td>${s.camps}/7</td><td>${s.pools}/8</td><td>${s.stalls}/5</td><td>${s.tales}/5</td><td>${s.friends}/28</td><td>${s.traced}/28</td><td>${s.pct===null?"—":s.pct+"%"}</td><td>${s.weak.join("")||'<span class="muted small">—</span>'}</td><td class="small">${s.last}</td>
         <td><button class="btn gh" data-det="${i}">Details</button></td></tr>`; }).join("")}</tbody></table></div>`:`<p class="muted">No students yet. Add your first family below.</p>`}
       ${topMix.length?`<h2 style="margin-top:14px">Class mix-ups</h2><div>${topMix.map(([k,n])=>{ const [a,b]=k.split("→"); return `<span class="tag">wanted ${ar(a)}, picked ${ar(b)} (${n}×)</span>`; }).join("")}</div>`:""}
       <div class="status" style="margin-top:8px">Progress updates when the families' devices go online. Tap Refresh to pull the latest.</div></div>

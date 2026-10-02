@@ -104,8 +104,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02g";</script>
-<script src="lq-core.js?v=2026.10.02g"></script>
+<script>window.LQ_VER="2026.10.02h";</script>
+<script src="lq-core.js?v=2026.10.02h"></script>
 <script>
 /* ============ world setup ============ */
 const W=3200, H=2400;
@@ -202,7 +202,7 @@ const LANDMARKS=[
  {id:"falls", x:2380,y:640,  icon:"💦", en:"Sound Falls", ar:"شَلَّالُ الأَصْوَات", desc:"Open now! Vowel marks make letters sing: بَ ... بِ ... بُ — then join sounds into words."},
  {id:"tower", x:1640,y:640,  icon:"🏰", en:"Spelling Tower", ar:"بُرْجُ التَّهْجِئَة", desc:"Spell words to climb. Every floor gets a little harder."},
  {id:"arena", x:1450,y:250,  icon:"🏟️", en:"Frost Arena", ar:"سَاحَةُ الجَلِيد", desc:"Spell words correctly to beat the snow monsters!"},
- {id:"harbor",x:2640,y:1420, icon:"⛵", en:"Story Harbor", ar:"مِينَاءُ القِصَص", desc:"Read short stories aloud together. Coming in part two."},
+ {id:"harbor",x:2640,y:1420, icon:"⛵", en:"Story Harbor", ar:"مِينَاءُ القِصَص", desc:"Open now! Old stories with missing words: listen, pick the right word and keep the story."},
  {id:"reeds", x:2180,y:2080, icon:"🛖", en:"Reed Village", ar:"قَرْيَةُ القَصَب", desc:"Build sentences word by word. Coming in part two."}
 ];
 
@@ -237,7 +237,7 @@ for(let tries=0; tries<20000; tries++){
 }
 
 /* ============ zone doorways ============ */
-const OPEN={dunes:"letters/",falls:"falls/",souq:"souq/"};
+const OPEN={dunes:"letters/",falls:"falls/",souq:"souq/",harbor:"harbor/"};
 const padOf=l=>({x:l.x,y:l.y+125});
 let entering=null;
 function startEnter(l){
