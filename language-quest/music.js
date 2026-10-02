@@ -1,4 +1,4 @@
-/* Map music for Language Quest: three bright Arabic-style tunes, each made live on the device with Web Audio (no audio
+/* Map music for Language Quest: three bright Arabic-style tunes plus one playful children's tune, each made live on the device with Web Audio (no audio
    files), so none of them repeats exactly. Each has a lead instrument, a plucked bass and a soft hand drum; there is no held
    background tone. The .5 steps in the scales are quarter tones. Plays on the world map only.
    Volume and tune are remembered on the device. window.LQMusic = { start, setVol, vol, tracks, track, setTrack, duck, mute }. */
@@ -17,7 +17,12 @@ const TRACKS=[
  // maqam Nahawand on G, flute-like ney lead over an oud pattern, saidi drum
  {id:"breeze", name:"Evening Breeze", bpm:84, base:67, scale:[0,2,3,5,7,8,10], lead:"ney", bass:[43,50,43,48],
   drum:[[0,"d"],[1,"t"],[3,"d"],[4,"d"],[6,"t"]], rest:0.12, arp:[0,4,7,4],
-  rhythms:[[4,4],[2,2,4],[3,1,4],[2,6],[4,2,2],[6,2],[2,2,2,2]]}
+  rhythms:[[4,4],[2,2,4],[3,1,4],[2,6],[4,2,2],[6,2],[2,2,2,2]]},
+ // a children's tune: maqam Ajam (the plain major scale) on C, a music-box lead and a bouncy bass.
+ // "motif" makes it singable: a short phrase is played, repeated, answered and played again, like a nursery rhyme.
+ {id:"play", name:"Playtime", bpm:112, base:72, scale:[0,2,4,5,7,9,11], lead:"bell", bass:[48,55,53,55],
+  drum:[[0,"d"],[2,"t"],[4,"d"],[6,"t"]], rest:0, motif:true,
+  rhythms:[[2,2,2,2],[1,1,2,2,2],[2,1,1,2,2],[2,2,4],[1,1,1,1,2,2],[2,2,1,1,2]]}
 ];
 let vol=0.6; try{ const v=parseFloat(localStorage.getItem(KEY)); if(!isNaN(v)) vol=Math.max(0,Math.min(1,v)); }catch(e){}
 let T=TRACKS[0]; try{ T=TRACKS.find(t=>t.id===localStorage.getItem(TKEY))||T; }catch(e){}
@@ -45,7 +50,11 @@ function ney(t,m,v,len){                                   // breathy flute: slo
   const s=ctx.createBufferSource(), f=ctx.createBiquadFilter(), ng=ctx.createGain(); s.buffer=noise; s.loop=true; f.type="bandpass"; f.frequency.value=hz(m)*2; f.Q.value=4;
   ng.gain.setValueAtTime(v*0.12,t); ng.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(len,0.25)); s.connect(f); f.connect(ng); ng.connect(duckG); s.start(t); s.stop(t+len);
 }
-const LEAD={oud,qanun,ney};
+const bell=(t,m,v,len)=>voice(t,m,v*0.9,Math.max(0.6,Math.min(len,1.2)),[["sine",0,1],["sine",1200,0.35],["sine",1902,0.12],["triangle",0,0.2]],6000,2200,0.003);
+const LEAD={oud,qanun,ney,bell};
+// a short singable phrase for the children's tune: small steps, staying inside one octave
+let motif=null;
+const phrase=()=>{ let d=pick([0,2,4]); return pick(T.rhythms).map(len=>{ const n={len,deg:d}; d=Math.max(0,Math.min(7,d+pick([-2,-1,-1,1,1,1,2,0]))); return n; }); };
 function dum(t,v){ const o=ctx.createOscillator(), g=ctx.createGain(); o.type="sine"; o.frequency.setValueAtTime(120,t); o.frequency.exponentialRampToValueAtTime(58,t+0.18);
   g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.32); o.connect(g); g.connect(duckG); o.start(t); o.stop(t+0.35); }
 function tek(t,v){ const s=ctx.createBufferSource(), f=ctx.createBiquadFilter(), g=ctx.createGain(); s.buffer=noise; f.type="bandpass"; f.frequency.value=2600; f.Q.value=1.5;
@@ -58,7 +67,11 @@ function playBar(t){
   oud(t,T.bass[bar%4],0.16,0.7); oud(t+4*E,T.bass[(bar+1)%4],0.11,0.6);                        // plucked bass, no held tone
   if(T.arp) T.arp.forEach((st,i)=>oud(t+(i*2+1)*E,T.bass[bar%4]+12+st,0.07,0.5));                // light oud pattern under the flute
   if(T.chords&&bar%2===0) [0,2,4].forEach((d,i)=>qanun(t+i*0.03,pitch(d)-12,0.07,0.8));          // a soft strum to open the bar
-  if(!quiet){ let at=0; const r=home?pick([[2,2,4],[2,6],[1,1,2,4]]):pick(T.rhythms);
+  if(T.motif){ if(!motif||bar%16===0) motif={A:phrase(),B:phrase()};          // phrase, phrase again, an answer, phrase home
+    const which=bar%4, notes=(which===2?motif.B:motif.A).map(n=>({len:n.len,deg:n.deg})); if(which===1) notes[notes.length-1].deg=4; if(which===3) notes[notes.length-1].deg=0;
+    let at=0; notes.forEach(n=>{ play(t+at*E,pitch(n.deg),0.2,n.len*E*1.4); at+=n.len; }); if(which===3) play(t+at*E-notes[notes.length-1].len*E,pitch(7),0.1,0.9);
+    oud(t+2*E,T.bass[bar%4]+12,0.07,0.3); oud(t+6*E,T.bass[(bar+1)%4]+12,0.07,0.3); }
+  else if(!quiet){ let at=0; const r=home?pick([[2,2,4],[2,6],[1,1,2,4]]):pick(T.rhythms);
     r.forEach((len,i)=>{ const last=i===r.length-1;
       deg=home&&last?(deg>3?7:0):Math.max(-1,Math.min(11,deg+pick([-2,-1,-1,0,1,1,1,2,2])));
       const m=pitch(deg), start=t+at*E;
@@ -86,7 +99,7 @@ document.addEventListener("visibilitychange",()=>{ if(!ctx) return; if(document.
 window.LQMusic={ start, vol:()=>vol,
   setVol(v){ vol=Math.max(0,Math.min(1,+v||0)); try{ localStorage.setItem(KEY,String(vol)); }catch(e){} vol?start():stop(); },
   tracks:()=>TRACKS.map(t=>({id:t.id,name:t.name})), track:()=>T.id,
-  setTrack(id){ const t=TRACKS.find(x=>x.id===id); if(!t) return; T=t; deg=0; bar=0; try{ localStorage.setItem(TKEY,id); }catch(e){} if(ctx) barAt=ctx.currentTime+0.25; start(); },
+  setTrack(id){ const t=TRACKS.find(x=>x.id===id); if(!t) return; T=t; deg=0; bar=0; motif=null; try{ localStorage.setItem(TKEY,id); }catch(e){} if(ctx) barAt=ctx.currentTime+0.25; start(); },
   mute(v){ muted=!!v; muted?stop():start(); },                                   // follows the map's main sound setting
   duck(v){ if(duckG) duckG.gain.setTargetAtTime(v?0.22:1,ctx.currentTime,0.12); }   // drop under the spoken Arabic
 };

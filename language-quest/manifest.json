@@ -1,0 +1,13 @@
+{
+  "name": "Language Quest",
+  "short_name": "Language Quest",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#8FC6F0",
+  "theme_color": "#1E5AA8",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
