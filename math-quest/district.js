@@ -19,7 +19,7 @@ const AREAS={
 const SPOTS=[{id:'fizz',x:22,y:14,e:'🤖',n:'Munch-Bot'},{id:'train',x:17,y:14,e:'🚂',n:'Train to Number Village'},{id:'board',x:27,y:14,e:'📜',n:'District Board'},{id:'scope',x:22,y:11,e:'🔭',n:''}];
 const LAKES=[[41,26,5.6],[4,25,3.4],[30,12,1.5]];
 const BAY_STOPS=[['Wobble Crab','Which side is heavier?'],['Tippy Gull','Make it level'],['See-Saw Seal','Find the weight'],['Heavy Hermit','Find the distance'],['Pulley Pelican','Levers and pulleys'],['Captain Counterweight (boss)','Everything, mixed']];
-const TRAIN_X=28,TRAIN_Y=15; /* the station tile on the main map (right side of the village plaza) */
+const TRAIN_X=28,TRAIN_Y=13; /* the station tile on the main map (top-right of the village plaza, the side toward the district) */
 let D=null;
 function flag(){if(window.MQ_DISTRICT_BETA===true)return true;try{if(/[?&]district=1(&|$)/.test(location.search))localStorage.setItem('mqDistrictBeta','1');return localStorage.getItem('mqDistrictBeta')==='1';}catch(e){return false;}}
 function rng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}

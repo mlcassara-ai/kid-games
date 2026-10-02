@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.01o';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.01p';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1940,7 +1940,7 @@ SCREENS.map=()=>{
 function homeCards(p){const pet=petOf(p);let petLine='';const awayP=!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)?PETS.find(x=>x.id===p.pet):null;
  if(pet){const pd=petMood(petData(p,pet.id));petLine=pd.food<=1?`${esc(pet.name)} is hungry!`:pd.joy<=1?`${esc(pet.name)} wants to play!`:`${pips(pd.food,'🍗')} ${pips(pd.joy,'💖')}`;}
  return `<div class="homecards"><button class="hcard" onclick="go('pethome')">${pet?petAvatar(p,pet):awayP?`<span class="pav"><span class="pe">${awayP.e}</span></span>`:'<span class="pav"><span class="pe">🥚</span></span>'}<div><b>Pet Home${pet?` · ${esc(pet.name)}`:''}</b><small>${pet?petLine:awayP?`🎒 ${esc(awayP.name)} is on an adventure!`:'Hatch a pet to start!'}</small></div></button>
- <button class="hcard ${spinReady(p)?'glow':''}" onclick="openSpin()"><span class="pav"><span class="pe">🎡</span></span><div><b>Daily Spin</b><small>${spinReady(p)?'Ready! Tap to spin':'Come back tomorrow'}</small></div></button>${window.Adv&&p.pets.length?Adv.homeCard(p):''}${window.PetCare&&p.pets.length?PetCare.homeCard(p):''}${window.Truck?Truck.cardHTML(p):''}</div>`;}
+ ${window.Adv&&p.pets.length?Adv.homeCard(p):''}${window.PetCare&&p.pets.length?PetCare.homeCard(p):''}${window.Truck?Truck.cardHTML(p):''}</div>`;}
 
 /* ---------- zone ---------- */
 SCREENS.zone=zid=>{
@@ -3199,10 +3199,13 @@ const BIOMES={
  fair:{c:[46,24],g:'#d3f9d8',g2:'#c3f0cc',zone:'fair',bl:['🏪','🌳'],de:['🥫','🏷️']},
  haunt:{c:[14,24],g:'#5a4a7e',g2:'#524373',zone:'haunt',overlay:true,rad:3.2,bl:['🪦'],de:['🎃','🕸️']}};
 const NPCS=[
- /* plaza layout (15x10, fountain in the middle): a top row, a bottom row and the two sides, three tiles apart */
- {id:'school',x:16,y:13,e:'🌀',n:'Quest Board'},{id:'elder',x:19,y:13,e:'🧙',n:'Elder Wiz'},{id:'mail',x:22,y:13,e:'📮',n:'Gifts'},{id:'pets',x:25,y:13,e:'🧑‍🌾',n:'Pet Keeper'},{id:'shop',x:28,y:13,e:'🏪',n:'Shop'},
- {id:'lab',x:16,y:17,e:'🔬',n:'Quartz Lab',opt:1},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'build',x:28,y:17,e:'🏗️',n:'Builder'},{id:'train',x:28,y:15,e:'🚂',n:'Train',opt:1},
- {id:'spin',x:16,y:20,e:'🎡',n:'Daily Spin'},{id:'cafe',x:19,y:20,e:'🍱',n:'Cafeteria'},{id:'truck',x:22,y:20,e:'🚚',n:'Food Truck',opt:1},{id:'library',x:25,y:20,e:'📚',n:'Library'},{id:'board',x:28,y:20,e:'📜',n:'Leaderboard'}]; /* opt: only shown for kids with the Lab Key (lab.js) */
+ /* plaza layout (15x10), grouped by what things are for. The plaza is for places and characters; pure menus live in buttons,
+    so the Quest Board and Leaderboard buildings were removed (Oct 2026): the World screen's Quest Board button reaches both.
+    top: learning (Library, Elder Wiz, Lab) between the Builder and the Train (east side, toward Discovery District)
+    middle: fun and friends (Daily Spin, the fountain, Gifts)      bottom: pets and shopping, then food */
+ {id:'build',x:16,y:13,e:'🏗️',n:'Builder'},{id:'library',x:19,y:13,e:'📚',n:'Library'},{id:'elder',x:22,y:13,e:'🧙',n:'Elder Wiz'},{id:'lab',x:25,y:13,e:'🔬',n:'Quartz Lab',opt:1},{id:'train',x:28,y:13,e:'🚂',n:'Train',opt:1},
+ {id:'spin',x:16,y:17,e:'🎡',n:'Daily Spin'},{id:'fountain',x:22,y:17,e:'⛲',n:''},{id:'mail',x:28,y:17,e:'📮',n:'Gifts'},
+ {id:'pets',x:17,y:20,e:'🧑‍🌾',n:'Pet Keeper'},{id:'shop',x:20,y:20,e:'🏪',n:'Shop'},{id:'cafe',x:24,y:20,e:'🍱',n:'Cafeteria'},{id:'truck',x:27,y:20,e:'🚚',n:'Food Truck',opt:1}]; /* opt: only shown for kids with the Lab Key (lab.js) */
 let W=null;
 function wrng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildWorld(){
@@ -3891,7 +3894,7 @@ const VIL_MAX=10;const PLAZA_NAMES=['🌷 Flowers','🏮 Lanterns','🌳 Trees',
 const vStars=l=>`${'★'.repeat(Math.min(5,l))}${'☆'.repeat(Math.max(0,5-l))}${l>5?' '+'🌟'.repeat(l-5):''} <small>Lv ${l}/${VIL_MAX}</small>`;
 const vLv=(p,id)=>((p&&p.vil)||{})[id]||0;
 const libPerDay=p=>2+(vLv(p,'library')>=3?1:0)+(vLv(p,'library')>=5?1:0)+(vLv(p,'library')>=8?1:0);
-const PLAZA_DECOR=[[['🌷',15,12],['🌷',29,12],['🌷',15,21],['🌷',29,21]],[['🏮',20,17],['🏮',24,17]],[['🌳',18,15],['🌳',26,19]],[['🗿',22,15]],[['🌈',21,12],['🎆',23,12]],[['🎈',20,15],['🎈',24,15]],[['🎠',18,19]],[['🦄',26,15]],[['🎪',24,19]],[['🏰',20,19]]];
+const PLAZA_DECOR=[[['🌷',15,12],['🌷',29,12],['🌷',15,21],['🌷',29,21]],[['🏮',20,17],['🏮',24,17]],[['🌳',18,15],['🌳',26,19]],[['🗿',22,15]],[['🌈',21,12],['🎆',23,12]],[['🎈',20,15],['🎈',24,15]],[['🎠',18,18]],[['🦄',26,15]],[['🎪',26,17]],[['🏰',18,16]]];
 function plazaDecor(x,y){const l=vLv(P(),'plaza');for(let i=0;i<l;i++)for(const [e,dx,dy] of PLAZA_DECOR[i])if(dx===x&&dy===y)return e;return null;}
 function vilUp(id){const p=P();const b=VIL.find(v=>v.id===id);const l=vLv(p,id);if(l>=VIL_MAX)return;const c=b.cost[l];if(p.coins<c){toast(`You need ${c-p.coins} more coins.`);return;}
  p.coins-=c;p.vil=p.vil||{};p.vil[id]=l+1;questEvent(p,'build',1);save();SFX.level();
