@@ -61,17 +61,21 @@ CD.SUITS=[
  {n:'Magma Armor',e:'🔥',t:1400,c:5000,r:160},
  /* the sixth suit is the way in to the Core Keeper (cave.js): owning it lets the Mantle floor crack */
  {n:'Core Suit',e:'🧑‍🚀',t:6000,c:9000,r:250,core:1,why:'Dr. Quartz says: "This is the one invention of mine that could never work in real life. No suit could. But in Math Quest we can pretend!"'}];
-/* Solar panels at camp (Oct 2026). In Math Quest the battery never charges by itself (math Power Ups are the way); panels are an
-   extra the kid buys step by step. They charge only while the hero stands at camp and only in daylight (the device's clock).
-   Real units so the numbers can be taught: 1 battery energy point = WH_PER_ENERGY watt-hours, so the starting 60-point battery
-   holds 120 Wh. Time to fill = battery Wh ÷ panel watts: 1 small panel (10 W) takes 12 hours, 4 high-power panels (720 W) about
-   10 minutes. Each step swaps in more AND better panels, which is how a real array grows that fast. */
+/* Solar panels at camp (Oct 2026). In Math Quest the helmet battery never charges by itself (math Power Ups are the way). Panels fill
+   a Camp Battery Bank at their real rate in daylight (the device's clock), even while the game is closed; at camp the kid plugs in
+   to move stored energy into the helmet (cave.js, plugIn). Real units: 1 battery energy point = WH_PER_ENERGY watt-hours, so the
+   starting 60-point helmet battery holds 120 Wh and the starting bank 240 Wh. Time to fill = Wh ÷ watts: 1 small panel (10 W) fills
+   the starting bank in 24 hours of daylight (two days), 4 high-power panels (720 W) in 20 minutes. Each step swaps in more AND
+   better panels, which is how a real array grows that fast. */
 CD.WH_PER_ENERGY=2;
 CD.SOLAR=[{e:'🌑',n:'No solar panels',w:0,c:0},
- {e:'☀️',n:'1 Small Solar Panel',panels:1,each:10,w:10,c:1500,r:40,why:'Solar panels turn sunlight straight into electricity. A small panel is slow: it takes a whole day to fill your battery.'},
+ {e:'☀️',n:'1 Small Solar Panel',panels:1,each:10,w:10,c:1500,r:40,why:'Solar panels turn sunlight straight into electricity. A small panel is slow: it takes two days of daylight to fill your camp battery bank.'},
  {e:'☀️',n:'2 Medium Solar Panels',panels:2,each:20,w:40,c:2500,r:70,why:'Two bigger panels catch more sunlight, so they make more electricity.'},
  {e:'☀️',n:'3 Large Solar Panels',panels:3,each:50,w:150,c:4000,r:110,why:'Three large panels: now it really adds up.'},
- {e:'🌞',n:'4 High-Power Solar Panels',panels:4,each:180,w:720,c:6000,r:160,why:'A full array of the best panels. About ten minutes of daylight fills your starting battery.'}];
+ {e:'🌞',n:'4 High-Power Solar Panels',panels:4,each:180,w:720,c:6000,r:160,why:'A full array of the best panels. About twenty minutes of daylight fills your starting camp bank.'}];
+CD.BANK=[{e:'🔋',n:'Camp Battery Bank',wh:240,c:0},
+ {e:'🔋',n:'Big Camp Bank',wh:600,c:2000,r:60,why:'A bigger bank stores more sunshine for later.'},
+ {e:'🔋',n:'Mega Camp Bank',wh:1200,c:4500,r:120,why:'Enough stored sunshine for many charges.'}];
 CD.BATT=[{v:60,c:0},{v:100,c:150},{v:160,c:400},{v:250,c:900},{v:400,c:2000}];
 CD.PACK=[{v:8,c:0},{v:12,c:100},{v:18,c:350},{v:25,c:800},{v:35,c:1600}];
 CD.LAMP=[{v:3,c:0},{v:4,c:120},{v:5,c:400},{v:6,c:900}];

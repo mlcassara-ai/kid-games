@@ -227,13 +227,20 @@ const tests=[
   const c0=P().coins;await run(false);T.ok(S.core.v===3&&S.core.keep.length===0&&S.pack.some(x=>x.k==='ck1')&&S.rp>=rp0+9,'right answers did not win the specimen back');T.ok(P().coins>=c0+50,'no coins for a perfect score');
   /* critters are looked at, not collected: a known one stays in the cave and says hello again once per dive */
   {S.crit.ant=1;S.x=4;S.y=0;const j=d.idx(5,1);d.W.items.set(j,{t:'c',id:'ant'});d.step(0,1);await T.wait(350);if(S.y===1){T.ok(d.W.items.has(j),'a critter was taken out of the cave');T.ok(/Hello again/.test(document.querySelector('#cvMod').innerText),'no Hello again card for a known critter');}try{d.closeModal();}catch(e){}}
-  /* solar panels: only at camp, only in daylight; one panel takes a whole day, four about ten minutes; none without panels */
-  {try{d.closeModal();}catch(e){}const bm=d.batMax();S.x=4;S.y=0;S.gear.solar=0;S.bat=10;S.tripSol=0;d.solarTick();T.ok(S.bat===10&&d.solarState()==='','charged without a solar array');
-   S.gear.solar=1;S.y=5;d.solarTick();T.ok(S.bat===10&&d.solarState()==='under','solar charged underground');S.y=0;
-   if(d.sunUp()){d.solarTick();const one=S.bat-10;const E=CAVE_DATA.WH_PER_ENERGY;T.ok(Math.abs(one-10/E/3600)<1e-9,'one 10 W panel charged the wrong amount: '+one);T.ok(60*E/10===12&&Math.round(60*E/720*60)===10,'starting battery: one panel should take 12 hours and four about 10 minutes');S.gear.solar=4;d.solarTick();T.ok(Math.abs(S.bat-10-one-720/E/3600)<1e-9,'four panels charged the wrong amount');S.bat=bm-.001;d.solarTick();T.ok(S.bat<=bm,'solar overfilled the battery');}
-   else{d.solarTick();T.ok(S.bat===10&&d.solarState()==='night','solar charged at night');}
-   T.ok(CAVE_DATA.SOLAR.length===5&&CAVE_DATA.SOLAR[1].c>=1000&&CAVE_DATA.SOLAR.every(s=>!s.w||s.panels*s.each>=s.w*.95&&s.panels*s.each<=s.w*1.05),'solar panels are missing, too cheap, or their watts do not add up');
-   d.openGear();T.ok(/How solar charging works/.test(document.querySelector('#cvMod').innerText)&&/Wh/.test(document.querySelector('#cvMod').innerText),'Gear shop does not show solar watts and battery size');const root_=document.querySelector('#cvSolInfo');root_.click();T.ok(/battery ÷ power/.test(document.querySelector('#cvMod').innerText),'How solar charging works card missing');try{d.closeModal();d.closeModal();}catch(e){}}
+  /* solar: panels fill a camp bank at their real rate in daylight hours (even while away); plugging in at camp moves it to the helmet */
+  {try{d.closeModal();}catch(e){}const E=CAVE_DATA.WH_PER_ENERGY,at=(dd,h)=>new Date(2026,0,dd,h,0,0).getTime();
+   T.ok(d.dayMins(at(1,6),at(1,20))===720&&d.dayMins(at(1,18),at(2,8))===120&&d.dayMins(at(1,20),at(2,6))===0&&d.dayMins(at(1,7),at(4,7))===2160,'daylight minutes are counted wrong');
+   S.x=4;S.y=0;S.gear.solar=0;S.bankWh=0;S.bankT=0;d.bankTick();T.ok(!S.bankWh&&d.bankMax()===0,'a bank filled without panels');
+   S.gear.solar=1;S.gear.bank=0;S.bankWh=0;S.bankT=Date.now()-3*864e5;d.bankTick();const dm=d.dayMins(Date.now()-3*864e5,Date.now());T.ok(Math.abs(S.bankWh-Math.min(240,10*dm/60))<.01,'the bank did not fill at 10 W per daylight hour while away: '+S.bankWh);
+   T.ok(240/10===24&&Math.round(240/720*60)===20,'starting bank: one panel should take 24 daylight hours, four about 20 minutes');
+   const bm=d.batMax();S.bankWh=50;S.bat=10;S.bankT=Date.now();S.y=5;T.ok(d.plugIn()===0&&S.bat===10,'plugged in underground');S.y=0;
+   const got=d.plugIn();T.ok(Math.abs(got-50)<.01&&Math.abs(S.bat-(10+50/E))<.01&&S.bankWh<.01,'plugging in moved the wrong amount: '+got+' '+S.bat);
+   S.bankWh=200;S.bat=bm-1;d.plugIn();T.ok(S.bat===bm&&Math.abs(S.bankWh-(200-E))<.01,'plugging in overfilled the helmet or took too much');
+   S.bankWh=1e6;S.bankT=Date.now()-864e5;d.bankTick();T.ok(S.bankWh<=240,'the bank went over its size');
+   T.ok(CAVE_DATA.SOLAR.length===5&&CAVE_DATA.SOLAR[1].c>=1000&&CAVE_DATA.SOLAR.every(s=>!s.w||s.panels*s.each>=s.w*.95&&s.panels*s.each<=s.w*1.05)&&CAVE_DATA.BANK[0].wh===240,'solar panels or bank are missing, too cheap, or their numbers do not add up');
+   S.bat=10;S.bankWh=30;d.openGear();const gt=document.querySelector('#cvMod').innerText;T.ok(/How solar charging works/.test(gt)&&/camp bank/.test(gt)&&/Camp Battery Bank/.test(gt),'Gear shop does not show the panels and the bank');
+   document.querySelector('#cvSolInfo').click();T.ok(/bank ÷ power/.test(document.querySelector('#cvMod').innerText),'How solar charging works card missing');try{d.closeModal();d.closeModal();}catch(e){}
+   S.y=0;S.bat=10;S.bankWh=30;S.bankT=Date.now();d.openPower();const pg=document.querySelector('#cvPlug');T.ok(pg&&/Camp battery bank/.test(document.querySelector('#cvMod').innerText),'no Plug in button in Power Up at camp');if(pg){pg.click();T.ok(S.bankWh<.01&&Math.abs(S.bat-(10+30/E))<.01,'the Plug in button did not charge the helmet: '+S.bat+' '+S.bankWh);}try{d.closeModal();}catch(e){}}
   S.x=4;S.y=0;try{Cave.leave();}catch(e){}
  }],
  ['music: the login page plays the map tune, Discovery District has its own choices',async function(){

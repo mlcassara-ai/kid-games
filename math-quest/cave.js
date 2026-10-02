@@ -72,7 +72,7 @@ const txt=o=>{const t=TIER();return (t>0&&o.o?o.o:o.y)+(t>1&&o.hs?`<div class="c
 
 /* ---------------- state ---------------- */
 function initState(){
- S.v=1;S.gear=Object.assign({drill:0,suit:0,bat:0,pack:0,lamp:0,uv:0,chg:0,solar:0},S.gear||{});
+ S.v=1;S.gear=Object.assign({drill:0,suit:0,bat:0,pack:0,lamp:0,uv:0,chg:0,solar:0,bank:0},S.gear||{});
  ['gates','found','idd','fos','ex','crit','geo','seen','stats'].forEach(k=>S[k]=S[k]||{});
  S.pack=S.pack||[];S.rp=S.rp||0;S.maxRow=S.maxRow||0;S.probe=S.probe||{rank:0,best:0,wins:0,day:'',runs:0};
  S.stats.dug=S.stats.dug||0;S.dive=S.dive||{c:0,f:0,cr:0,d:0,ch:0};
@@ -479,7 +479,7 @@ function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(
  }else if(S.y>0){a+=`<button class="cv-act" data-a="home">🏠<span>Camp</span></button>`;if(S.gear.uv)a+=`<button class="cv-act ${uvOn?'on':''}" data-a="uv">🔦<span>UV ${uvOn?'on':'off'}</span></button>`;}
  const acts=q('#cvActs');if(acts.dataset.h!==a){acts.innerHTML=a;acts.dataset.h=a;acts.querySelectorAll('button').forEach(b=>b.onclick=()=>act(b.dataset.a));}
 }
-function hudBat(){if(!root)return;const q=s=>root.querySelector(s);const bm=batMax();q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';const f=S.y===0&&S.bat<bm?fullIn():'';const sol=solarState()==='on';q('#cvBatT').textContent=`${f?'🔌':sol?'☀️':'🔋'} ${Math.floor(S.bat)}/${bm}${f?' · '+f:''}`;q('#cvBatT').parentNode.title=f?'Charging — full in '+f:'Battery';}
+function hudBat(){if(!root)return;const q=s=>root.querySelector(s);const bm=batMax();q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';const f=S.y===0&&S.bat<bm?fullIn():'';q('#cvBatT').textContent=`${f?'🔌':'🔋'} ${Math.floor(S.bat)}/${bm}${f?' · '+f:''}`;q('#cvBatT').parentNode.title=f?'Charging — full in '+f:'Battery';}
 function act(a){if(S.y===0&&!S.tapHint){S.tapHint=1;save();}({tip:()=>tipCard(),power:openPower,lab:openLab,gear:openGear,museum:openMuseum,garden:openGarden,journal:openJournal,elev:openElevator,probe:openProbe,home:()=>beamHome(),uv:()=>{uvOn=!uvOn;sfx('uvon');hud();say(uvOn?'🔦 UV lamp ON — fluorescent minerals glow! (Your normal light is dimmer.)':'🔦 UV lamp off.',2200);}})[a]();}
 
 /* gates deeper down stay sealed until you have enough Boss Medals from Math Quest */
@@ -726,31 +726,54 @@ function openGear(){const t=TIER();
   ${rowH('pack',CD.PACK.map((b,i)=>({...b,e:'🎒',n:['Backpack','Big Backpack','Explorer Pack','Expedition Pack','Mega Pack'][i]})),{},b=>`holds ${b.v} finds`)}
   ${rowH('lamp',CD.LAMP.map((b,i)=>({...b,e:'🔦',n:['Head Lamp','Bright Lamp','Super Lamp','Mega Lamp'][i]})),{},b=>`lights ${b.v} tiles around you`)}
   ${H.noRecharge?'':rowH('chg',CHG,{},c=>`charges ${c.v} energy per minute at camp`)}
-  ${rowH('solar',CD.SOLAR,{},s=>s.w?`${s.panels} × ${s.each} W = <b>${s.w} W</b> · fills your ${fmt(batWh())} Wh battery in about ${fillStr(s.w)} at camp, in daylight`:'charges your battery at camp in the daytime')}
+  ${rowH('solar',CD.SOLAR,{},s=>s.w?`${s.panels} × ${s.each} W = <b>${s.w} W</b> · fills your ${fmt(bankMax()||CD.BANK[0].wh)} Wh camp bank in about ${sunTime(bankMax()||CD.BANK[0].wh,s.w)}`:'solar panels fill a camp battery bank in the daytime, even while you are away')}
+  ${S.gear.solar?rowH('bank',CD.BANK,{},b=>`stores <b>${fmt(b.wh)} Wh</b> of sunshine: about ${fmt(Math.round(b.wh/batWh()*10)/10)} full helmet charges`):''}
   <button class="cv-btn sm" id="cvSolInfo">☀️ How solar charging works</button>
   ${rowH('uv',[{e:'🔦',n:'No UV lamp',c:0},{e:'🟣',n:'UV Lamp',c:CD.UV.c,r:CD.UV.r,why:'Ultraviolet light is invisible to us, but it makes some minerals glow (fluorescence).'}],{},u=>u.c?'shows glowing minerals + UV lab test':'—')}`,{wide:1});
  root.querySelectorAll('.cv-buy').forEach(b=>b.onclick=()=>buy(b.dataset.k));const si=root.querySelector('#cvSolInfo');if(si)si.onclick=()=>{solarInfo();onClose=openGear;};}
-function gearArr(k){return {solar:CD.SOLAR,chg:CHG,drill:CD.DRILLS,suit:CD.SUITS,bat:CD.BATT,pack:CD.PACK,lamp:CD.LAMP,uv:[{},{c:CD.UV.c,r:CD.UV.r}]}[k];}
+function gearArr(k){return {solar:CD.SOLAR,bank:CD.BANK,chg:CHG,drill:CD.DRILLS,suit:CD.SUITS,bat:CD.BATT,pack:CD.PACK,lamp:CD.LAMP,uv:[{},{c:CD.UV.c,r:CD.UV.r}]}[k];}
 function canBuy(nx){return H.coins()>=nx.c&&S.rp>=(nx.r||0)&&(!nx.need||S.idd[nx.need]);}
-function buy(k){const arr=gearArr(k),nx=arr[S.gear[k]+1];if(!nx||!canBuy(nx))return;if(!H.spend(nx.c))return;sfx('buy');S.rp-=nx.r||0;S.gear[k]++;if(k==='bat')S.bat=batMax();save(true);ev('gear',{k,lv:S.gear[k]});if(k==='solar'&&S.gear.solar===1){solarCard();return;}if(k==='solar'){const s=CD.SOLAR[S.gear.solar];openGear();say(`☀️ ${s.n} installed! ${s.w} W: your battery fills in about ${fillStr(s.w)}.`,3500);return;}openGear();say('✅ Upgraded!',1500);}
-/* ---------------- Solar array ---------------- */
-const sunUp=()=>{const h=new Date().getHours();return h>=7&&h<19;}; /* daylight by the device's own clock, roughly 7 am to 7 pm */
+function buy(k){const arr=gearArr(k),nx=arr[S.gear[k]+1];if(!nx||!canBuy(nx))return;if(!H.spend(nx.c))return;sfx('buy');S.rp-=nx.r||0;S.gear[k]++;if(k==='bat')S.bat=batMax();save(true);ev('gear',{k,lv:S.gear[k]});if(k==='solar'&&S.gear.solar===1){solarCard();return;}if(k==='solar'){bankTick();const s=CD.SOLAR[S.gear.solar];openGear();say(`☀️ ${s.n} installed! ${s.w} W: your camp bank fills in about ${sunTime(bankMax(),s.w)}.`,3500);return;}
+ if(k==='bank'){bankTick();openGear();say(`🔋 ${CD.BANK[S.gear.bank].n}: it can store ${fmt(bankMax())} Wh now.`,3000);return;}openGear();say('✅ Upgraded!',1500);}
+/* ---------------- Solar panels + camp battery bank ----------------
+   The panels never charge the helmet directly. They fill a Camp Battery Bank at the panels' real rate (watts × hours of daylight),
+   by the device's clock from 7 am to 7 pm, including while the game is closed: the bank catches up from S.bankT on the next look.
+   At camp the kid taps 🔌 Plug in (in the ⚡ Power Up card) to move stored energy into the helmet battery straight away.
+   An empty bank refills only as the sun allows. Math Power Ups stay the main way to charge on a dive.
+   S.bankWh = watt-hours stored, S.bankT = when the bank was last brought up to date (ms). */
+const DAY_ON=7,DAY_OFF=19; /* daylight hours, by the device's clock */
+const sunUp=()=>{const h=new Date().getHours();return h>=DAY_ON&&h<DAY_OFF;};
 const batWh=()=>batMax()*CD.WH_PER_ENERGY;
-function solarRate(){const w=(CD.SOLAR[S.gear.solar||0]||{}).w||0;return w/CD.WH_PER_ENERGY/60;} /* energy points per minute: watts ÷ Wh-per-point ÷ 60 */
-function fillStr(w){const m=batWh()/w*60;return m>=90?`${fmt(Math.round(m/60*10)/10)} hours`:`${Math.max(1,Math.round(m))} minutes`;}
-/* the numbers behind it: power (watts) vs. energy stored (watt-hours), and the time each step of panels takes to fill this battery */
-function solarInfo(){const t=TIER(),wh=batWh();modal(`<div class="cv-card"><div class="cv-big">☀️</div><h2>How solar charging works</h2>
+const solarW=()=>(CD.SOLAR[S.gear.solar||0]||{}).w||0;
+const bankMax=()=>S.gear.solar?((CD.BANK[S.gear.bank||0]||CD.BANK[0]).wh):0;
+/* minutes of daylight between two moments (ms), day by day; at most 60 days are counted */
+function dayMins(a,b){if(!(b>a))return 0;a=Math.max(a,b-60*864e5);let m=0;const d=new Date(a);d.setHours(0,0,0,0);
+ for(let t=d.getTime();t<b;){const day=new Date(t),on=new Date(day),off=new Date(day);on.setHours(DAY_ON,0,0,0);off.setHours(DAY_OFF,0,0,0);
+  const s=Math.max(a,on.getTime()),e=Math.min(b,off.getTime());if(e>s)m+=(e-s)/60000;day.setDate(day.getDate()+1);t=day.getTime();}
+ return m;}
+function bankTick(){try{if(!S||!S.gear||!S.gear.solar)return;const t=Date.now();if(!S.bankT){S.bankT=t;S.bankWh=S.bankWh||0;return;}
+ const add=solarW()*dayMins(S.bankT,t)/60;S.bankT=t;if(add>0){S.bankWh=Math.min(bankMax(),(S.bankWh||0)+add);}}catch(e){}}
+setInterval(()=>{if(root&&S){const was=Math.floor(S.bankWh||0);bankTick();if(Math.floor(S.bankWh||0)!==was)save();}},5000);
+/* how long the panels need to fill this many watt-hours, counted in daylight (12 hours of daylight per day) */
+function sunTime(wh,w){if(!w)return '';const m=wh/w*60;return m>=36*60?`${fmt(Math.round(m/720*10)/10)} days of daylight`:m>=90?`${fmt(Math.round(m/60*10)/10)} hours of daylight`:`${Math.max(1,Math.round(m))} minutes of daylight`;}
+function bankFullIn(){const need=bankMax()-(S.bankWh||0),w=solarW();return need>0.5&&w?sunTime(need,w):'';}
+/* 🔌 Plug in: move stored energy into the helmet battery (camp only) */
+function plugIn(){bankTick();if(S.y!==0||!S.gear.solar)return 0;const need=(batMax()-S.bat)*CD.WH_PER_ENERGY,wh=Math.min(S.bankWh||0,need);if(wh<=0)return 0;
+ S.bankWh-=wh;S.bat=Math.min(batMax(),S.bat+wh/CD.WH_PER_ENERGY);sfx('buy');hudBat();save(true);return wh;}
+function bankHTML(){if(!S.gear.solar)return '';bankTick();const bm=bankMax(),wh=S.bankWh||0,need=(batMax()-S.bat)*CD.WH_PER_ENERGY,can=S.y===0&&wh>=1&&need>=1,fi=bankFullIn();
+ return `<div class="cv-hint" style="text-align:left">☀️ <b>Camp battery bank:</b> ${fmt(Math.floor(wh))} / ${fmt(bm)} Wh${fi?` · full in about ${fi}`:' · full'}${sunUp()?'':' · 🌙 no sunlight now'}
+  ${S.y!==0?'<br><small>You can plug in when you are back at camp.</small>':can?`<br><button class="cv-btn sm" id="cvPlug">🔌 Plug in (+${fmt(Math.min(wh,need))} Wh)</button>`:wh<1?'<br><small>The bank is empty. The sun will fill it again.</small>':''}</div>`;}
+function solarLine(){if(!S.gear.solar)return '';bankTick();const wh=Math.floor(S.bankWh||0);return wh>=1?`☀️ Your camp bank has ${fmt(wh)} Wh stored: tap ⚡ Power Up to plug in.`:sunUp()?'☀️ Your camp bank is empty. The sun is filling it.':'🌙 Your camp bank is empty, and there is no sunlight to fill it right now.';}
+/* the numbers behind it: power (watts) vs. energy stored (watt-hours), with real times for each step of panels */
+function solarInfo(){const t=TIER(),bw=bankMax()||CD.BANK[0].wh;modal(`<div class="cv-card"><div class="cv-big">☀️</div><h2>How solar charging works</h2>
   <p>A panel's <b>power</b> is measured in <b>watts (W)</b>: how fast it makes electricity. A battery's <b>size</b> is measured in <b>watt-hours (Wh)</b>: how much it can hold.</p>
-  <p>Your battery holds <b>${fmt(wh)} Wh</b>. To find how long it takes to fill: <b>battery ÷ power</b>. With one 10 W panel: ${fmt(wh)} ÷ 10 = <b>${fmt(wh/10)} hours</b>.</p>
-  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums"><tr><th>Panels</th><th>Each</th><th>Total power</th><th>Fills your battery in</th></tr>${CD.SOLAR.filter(s=>s.w).map((s,i)=>`<tr style="${i+1===S.gear.solar?'font-weight:700;background:#fff3bf':''}"><td>${s.panels}</td><td>${s.each} W</td><td>${s.w} W</td><td>about ${fillStr(s.w)}</td></tr>`).join('')}</table></div>
-  ${t?`<p class="cv-sub">Why does each step jump so much? You get more panels AND better ones. Real solar farms grow the same way: more panels, and newer panels that turn more of the sunlight into electricity. A bigger battery holds more, so it also takes longer to fill.</p>`:''}
-  <p class="cv-sub">Panels only work in daylight, and only at camp: there's no sunlight underground.</p><button class="cv-btn" data-close>Got it!</button></div>`);}
-function solarState(){if(!solarRate())return '';if(S.y!==0)return 'under';if(!sunUp())return 'night';if(S.bat>=batMax()-.01)return 'full';return 'on';}
-function solarTick(){try{if(!root||!S||coreOn||solarState()!=='on')return;const add=Math.min(batMax()-S.bat,solarRate()/60);if(add<=0)return;S.bat+=add;S.tripSol=(S.tripSol||0)+add;hudBat();save();}catch(e){}}
-setInterval(solarTick,1000);
-function solarLine(){const st=solarState();return st==='on'?'☀️ Your solar array is charging the battery.':st==='night'?'🌙 No sunlight, so your solar array can\'t charge right now. Try ⚡ Power Up!':'';}
-function solarCard(){const t=TIER();modal(`<div class="cv-card"><div class="cv-big">☀️</div><h2>Solar panel installed!</h2><p>Solar panels turn <b>sunlight</b> straight into <b>electricity</b>. Your panel sits on the surface by camp, so it charges your helmet battery while you are at camp, in the daytime.</p>
-  <p>It can't work underground or at night, because there is no sunlight to catch. Your small panel makes <b>10 watts</b> and your battery holds <b>${fmt(batWh())} watt-hours</b>, so it takes about <b>${fillStr(10)}</b> to fill. Add more panels to charge faster. ⚡ <b>Power Up</b> is always quick!</p>${t?`<p class="cv-sub">How it works: each panel is made of silicon cells. Sunlight knocks tiny particles called electrons loose in the silicon, and that flow of electrons is electricity. Most panels turn about a fifth of the sunlight that hits them into electricity.</p>`:''}<button class="cv-btn" data-close>Cool!</button></div>`);onClose=openGear;}
+  <p>Your panels fill your <b>camp battery bank</b> (${fmt(bw)} Wh) whenever the sun is up, even while you are away. Then you <b>plug in</b> at camp to charge your helmet battery (${fmt(batWh())} Wh) in a flash.</p>
+  <p>How long to fill the bank? <b>bank ÷ power</b>. With one 10 W panel: ${fmt(bw)} ÷ 10 = <b>${fmt(bw/10)} hours of daylight</b>.</p>
+  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums"><tr><th>Panels</th><th>Each</th><th>Total power</th><th>Fills your bank in</th></tr>${CD.SOLAR.filter(s=>s.w).map((s,i)=>`<tr style="${i+1===S.gear.solar?'font-weight:700;background:#fff3bf':''}"><td>${s.panels}</td><td>${s.each} W</td><td>${s.w} W</td><td>about ${sunTime(bw,s.w)}</td></tr>`).join('')}</table></div>
+  <p class="cv-sub">Why a battery bank? Panels only work while the sun is up, so homes with solar panels store the energy in batteries to use later, even at night. Here the game counts full power from ${DAY_ON} am to ${DAY_OFF-12} pm. Real panels make less on cloudy days and in the early morning or evening.</p>
+  ${t?`<p class="cv-sub">Why does each step jump so much? You get more panels AND better ones. Real solar farms grow the same way: more panels, and newer panels that turn more of the sunlight into electricity.</p>`:''}<button class="cv-btn" data-close>Got it!</button></div>`);}
+function solarCard(){const t=TIER();S.bankT=Date.now();S.bankWh=S.bankWh||0;save(true);modal(`<div class="cv-card"><div class="cv-big">☀️</div><h2>Solar panel installed!</h2><p>Solar panels turn <b>sunlight</b> straight into <b>electricity</b>. Your panel fills a <b>camp battery bank</b> (${fmt(bankMax())} Wh) whenever the sun is up, even while you are away from the game.</p>
+  <p>Back at camp, open ⚡ <b>Power Up</b> and tap <b>🔌 Plug in</b> to charge your helmet straight from the bank. One small panel makes <b>10 watts</b>, so it takes about <b>${sunTime(bankMax(),10)}</b> to fill the bank. Add more panels to fill it faster.</p>${t?`<p class="cv-sub">How a panel works: it is made of silicon cells. Sunlight knocks tiny particles called electrons loose in the silicon, and that flow of electrons is electricity. Most panels turn about a fifth of the sunlight that hits them into electricity.</p>`:''}<button class="cv-btn" data-close>Cool!</button></div>`);onClose=openGear;}
 
 /* ---------------- ⚡ Power Up with math ---------------- */
 function mathQ(g){const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),p=Math.random();
@@ -763,12 +786,13 @@ function mathQ(g){const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),p=Math.rand
 function powerLeft(){return MQ()?Math.max(0,batMax()-(S.tripPow||0)):Infinity;}
 function openPower(){charge();let Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3),inp='',streak=0,note='';
  const gain=()=>Math.max(1,Math.min(powerLeft(),Math.max(4,Math.round(batMax()*.06))));
- const draw=()=>{const bm=batMax();const sh=modal(`<h2>⚡ Power Up!</h2><p class="cv-sub">Every right answer adds <b>+${gain()} 🔋</b>. ${S.bat>=bm||!fullIn()?'':'Or just wait — it charges by itself at camp (full in '+fullIn()+').'}</p>
+ const draw=()=>{const bm=batMax();const sh=modal(`<h2>⚡ Power Up!</h2><p class="cv-sub">Every right answer adds <b>+${gain()} 🔋</b>. ${S.bat>=bm||!fullIn()?'':'Or just wait — it charges by itself at camp (full in '+fullIn()+').'}</p>${bankHTML()}
   <div class="cv-meter ok"><i style="width:${S.bat/bm*100}%"></i></div><p class="cv-sub" style="text-align:center">🔋 ${Math.floor(S.bat)} / ${bm}${streak>1?` · 🔥 ${streak} in a row`:''}</p>
   ${S.bat>=bm-.5?`<div class="cv-card"><div class="cv-big">🔋</div><h2>Fully charged!</h2><button class="cv-btn" data-close>Go dig!</button></div>`:powerLeft()<=0?`<div class="cv-card">${guide('Phew — that is all the charge this battery can take on one trip! Finish up here, and bring me another 🪨 <b>mystery rock</b> from Math Quest to come back.')}<button class="cv-btn" data-close>OK</button></div>`:`
   <div class="cv-mq">${esc(Q.q)}${Q.x?'<small>x = ?</small>':' = ?'}</div><div class="cv-inp">${esc(inp)||'&nbsp;'}</div><div style="min-height:38px">${note}</div>
   <div class="cv-pad2">${[1,2,3,4,5,6,7,8,9,'±',0,'⌫'].map(k=>`<button data-k="${k}">${k}</button>`).join('')}</div>
   <div class="cv-row"><button class="cv-btn" id="cvChk">✓ Check</button></div>`}`,{wide:0});
+  {const pg=sh.querySelector('#cvPlug');if(pg)pg.onclick=()=>{plugIn();draw();};}
   sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==='⌫')inp=inp.slice(0,-1);else if(k==='±')inp=inp.startsWith('-')?inp.slice(1):'-'+inp;else if(inp.replace('-','').length<5)inp+=k;upd();});
   const c=sh.querySelector('#cvChk');if(c)c.onclick=check;};
  /* a number press only changes the answer box; redrawing the whole popup made it jump */
@@ -1427,5 +1451,5 @@ let coreDbg=null;
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={mathQ,open,leave,summary,coreHint,_dbg:()=>({S,W,H,coreFall,coreDue,core:()=>coreDbg,solarTick,solarState,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
+window.Cave={mathQ,open,leave,summary,coreHint,_dbg:()=>({S,W,H,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
 })();
