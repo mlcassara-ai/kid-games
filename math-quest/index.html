@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.02d';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.02e';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -5072,11 +5072,17 @@ function mergePlayer(b,l,r,preferL){
  const lt=l.tb||{},rt=r.tb||{};if((lt.ps||0)!==(rt.ps||0))m.tb=JSON.parse(JSON.stringify((lt.ps||0)>(rt.ps||0)?l.tb:r.tb));
  m.upd=Math.max(l.upd||0,r.upd||0);return m;
 }
+/* Write a merged player back INTO the object this device already holds (and into its nested objects), instead of swapping in
+   a new one. Code that is in the middle of something (a cave trip, a question popup, Dr. Quartz handing over the Lab Key)
+   keeps working on the same hero, so what it writes next is not thrown away. The merged values are exactly the same. */
+function adoptInto(t,s){if(t===s||!_obj(t)||!_obj(s))return s;
+ Object.keys(t).forEach(k=>{if(!(k in s))delete t[k];});
+ Object.keys(s).forEach(k=>{const a=t[k],b=s[k];if(a!==b&&_obj(a)&&_obj(b))adoptInto(a,b);else t[k]=b;});return t;}
 function mergeStates(remote,joining,keepId){
  const del=Object.assign({},remote.deleted||{},state.deleted||{});
  const map=new Map(),order=[];
  (remote.players||[]).forEach(p=>{map.set(p.id,p);order.push(p.id);});
- state.players.forEach(p=>{const r=map.get(p.id);if(!r){map.set(p.id,p);order.push(p.id);}else map.set(p.id,mergePlayer(BASE[p.id],p,r,p.id===keepId||(p.upd||0)>(r.upd||0)));});
+ state.players.forEach(p=>{const r=map.get(p.id);if(!r){map.set(p.id,p);order.push(p.id);}else map.set(p.id,adoptInto(p,mergePlayer(BASE[p.id],p,r,p.id===keepId||(p.upd||0)>(r.upd||0))));});
  let list=order.map(id=>map.get(id)).filter(p=>!(del[p.id]&&del[p.id]>=(p.upd||0)));
  if(joining){const score=p=>(p.setup?1e9:0)+(p.level||1)*1e5+(p.battles||0)*10+((p.upd||0)/1e13);const best={};
   list.forEach(p=>{const k=(p.name||'').trim().toLowerCase();if(!best[k]||score(p)>score(best[k]))best[k]=p;});/* the weaker same-name hero is removed for good (recorded as deleted), so it cannot come back on the next sync */

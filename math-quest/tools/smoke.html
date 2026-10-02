@@ -91,6 +91,12 @@ const tests=[
   p.coins=base.coins+40;p.upd=Date.now();const r=T.clone(base);r.grade=4;r.upd=Date.now()-5000;
   mergeStates({v:1,players:[r],deleted:{},gifts:{},ownGroups:{},live:{}},false,null);
   const m=state.players.find(x=>x.id===p.id);T.ok(m.coins===base.coins+40,'local coins lost in merge');T.ok(m.grade===4,'remote grade change lost in merge');
+  /* a merge must keep the very same hero object (and its inner objects), so work in progress is not written to a discarded copy */
+  {T.reset();const h=T.hero('Keep',3);h.sci={rocks:1,trips:5};const sci0=h.sci,b0=T.clone(h);BASE[h.id]=T.clone(b0);h.coins+=7;h.sci.trips=6;h.upd=Date.now();
+   const rem=T.clone(b0);rem.grade=5;rem.sci.rocks=2;rem.upd=Date.now()-4000;mergeStates({v:1,players:[rem],deleted:{},gifts:{},ownGroups:{},live:{}},false,null);
+   T.ok(state.players.find(x=>x.id===h.id)===h,'the merge replaced the hero object');T.ok(h.sci===sci0,'the merge replaced an inner object');
+   T.ok(h.grade===5&&h.sci.rocks===2&&h.sci.trips===6&&h.coins===b0.coins+7,'merged values are wrong: '+JSON.stringify([h.grade,h.sci,h.coins]));
+   h.sci.key=1;T.ok(P()===null||true);T.ok(state.players.find(x=>x.id===h.id).sci.key===1,'a write after the merge was lost');}
   T.reset();const weak=T.hero('Mika',3,{level:2,battles:3});const strong=T.clone(weak);strong.id='pCloudStrong';strong.level=9;strong.battles=80;
   const cloud={v:1,players:[strong],deleted:{},gifts:{},ownGroups:{'AAA-BBB-CCC-11':'s1','DDD-EEE-FFF-22':''},live:{}};
   state.ownGroups={'DDD-EEE-FFF-22':'s2'};mergeStates(T.clone(cloud),true,null);

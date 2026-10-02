@@ -22,7 +22,8 @@ let TAB='min',MM=null,FB='';
 
 /* ---------- the key: called by Dr. Quartz at the end of a cave trip ---------- */
 function keyDue(p){const s=Q(p);return !s.key&&s.trips>=KEY_TRIPS;}
-function giveKey(p,done){css();const s=Q(p);s.key=1;s.keyAt=Date.now();save();try{SFX.level();}catch(e){}
+function giveKey(p,done){css();try{const cur=P();if(cur&&p&&cur.id===p.id)p=cur;}catch(e){} /* always the live hero, never a copy held since before the trip */
+ const s=Q(p);s.key=1;s.keyAt=Date.now();save();try{SFX.level();}catch(e){}
  /* 🚪 visitor queue: normally Dr. Quartz already holds the slot for his after-trip cards; otherwise the key card takes its own turn while open */
  try{const v=window.MQ_VISIT;if(v&&typeof v.claim==='function'&&v.who()!=='quartz'&&v.claim('lab',10*60e3))v.watch('lab',()=>!!document.querySelector('#modal.show .lb-key'));}catch(e){}
  const pages=[`${first(p)}, that was trip number <b>${s.trips}</b>! You're a real explorer now. 🧭`,
@@ -215,6 +216,8 @@ let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElem
 /* ---------- wiring ---------- */
 setInterval(syncTile,500);
 (function reg(){if(typeof SCREENS!=='undefined'){SCREENS.lab=()=>open();}else setTimeout(reg,30);})();
-window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')setTimeout(syncTile,0);}});
+/* a key that is due but was never saved (it could be lost to an online sync before Oct 2 2026) is handed over again on the map */
+function keyCatchUp(){try{const p=P();if(!p||DEMO||!keyDue(p)||curScreen!=='world'||document.querySelector('#modal.show'))return;if(window.MQ_VISIT&&MQ_VISIT.busy('labkey'))return;giveKey(p,()=>{});}catch(e){}}
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world'){setTimeout(syncTile,0);setTimeout(keyCatchUp,2500);}}});
 window.Lab={open,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
 })();
