@@ -213,7 +213,7 @@ const tests=[
   Music.dset('laser');T.ok(Music._state().want==='laser'&&P().dMusic==='laser','district tune did not change');Music.dset('off');T.ok(!Music._state().want,'district music did not turn off');try{closeModal();}catch(e){}
   go('world');await T.wait(100);Music.update();T.ok(['meadow','dusk'].includes(Music._state().want),'the district choice changed the village music');Music.menu();T.ok(/Music on the map/.test(document.querySelector('#modal').innerText),'village Sound menu is wrong');try{closeModal();}catch(e){}
  }],
- ['send a visitor: a grown-up can send the Troll, Skyla and Dr. Quartz',async function(){
+ ['send a visitor: a grown-up can send the Troll, Skyla, Dr. Quartz and Ozzy',async function(){
   T.reset();const p=T.hero('Vis',5,{level:12,battles:1});state.cur=p.id;const html=()=>{const d=document.createElement('div');d.innerHTML=MQ_PARENT.map(f=>{try{return f()||'';}catch(e){return '';}}).join('');return d;};
   T.ok(html().querySelectorAll('[onclick*="Troll._bring"]').length===3,'expected three send buttons for one hero');
   window.trollBusy=false;try{MQ_VISIT.reset();}catch(e){}const plain={b:'forest'},sky={b:'farm'};let who='';
@@ -224,6 +224,8 @@ const tests=[
   T.ok(Quartz._coming(p)===false,'Dr. Quartz already due for a new hero');Troll._bring(p.id,'quartz');T.ok(Quartz._coming(p)&&p.sci.call===1&&!p.sci.rocks,'Dr. Quartz not called for a hero who has not met him');
   p.sci.met=true;p.sci.rocks=0;p.sci.snooze=Date.now()+9e6;T.ok(!Quartz._coming(p));Troll._bring(p.id,'quartz');T.ok(Quartz._coming(p)&&p.sci.rocks===1,'Dr. Quartz did not bring a rock');
   p.sci.rocks=3;Troll._bring(p.id,'quartz');T.ok(p.sci.rocks===3,'rocks changed for a hero who had some');
+  {const s=Inner.S(p);s.tix=[];T.ok(/Ozzy: no ticket yet/.test(html().innerText),'Ozzy offered without a ticket');Troll._bring(p.id,'ozzy');T.ok(!Inner._coming(p),'Ozzy sent without a ticket');
+   s.tix=[{s:Inner.ORDER[0],seen:0}];s.after=(p.battles||0)+3;s.snooze=Date.now()+9e6;T.ok(!Inner._coming(p)&&html().querySelector('[onclick*="ozzy"]'),'no Ozzy button for a hero with a ticket');Troll._bring(p.id,'ozzy');T.ok(Inner._coming(p)&&s.tix.length===1,'Ozzy was not sent');s.tix=[];}
  }],
  ['great fade: a grown-up can bring the Goblin now',async function(){
   T.reset();const p=T.hero('Fade',5,{level:12,battles:40});state.cur=p.id;const html=()=>{const d=document.createElement('div');d.innerHTML=MQ_PARENT.map(f=>{try{return f()||'';}catch(e){return '';}}).join('');return d.innerText;};

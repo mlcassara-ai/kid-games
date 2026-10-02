@@ -665,5 +665,8 @@ const st=document.createElement('style');st.textContent=`
 @media(max-width:600px){#isRoot .is-brow{display:grid;grid-template-columns:1fr 1fr;gap:8px}#isRoot .is-brow .is-tray,#isRoot .is-brow .is-recipe{min-width:0;padding:8px}#isRoot .is-brow .is-area{grid-column:1/3;order:3;justify-self:center}#isRoot .is-recipe .f{font-size:26px}#isRoot .is-recipe li{font-size:14px}#isRoot .is-tray .atoms{grid-template-columns:repeat(2,54px);gap:6px}#isRoot .is-atom{width:54px;height:54px;font-size:19px}#isRoot .is-nar{flex-wrap:wrap}#isRoot .is-nar .who,#isRoot .is-nar .who svg{width:40px;height:40px}#isRoot .is-nar .is-btn{width:100%}#isRoot .is-meter{min-width:0;font-size:14px;top:56px}#isRoot .is-meter div{font-size:14px}.is-agrid{grid-template-columns:1fr 1fr}}`;
 document.head.appendChild(st);
 
-window.Inner={open,award,ticketLine,fullLine,isFull,bagHTML,album:albumModal,meet,draw:drawMob,S,pickRide,ORDER,TIX_MAX,WAIT_BATTLES,_demo:()=>{DEMO=true;},_state:()=>({R,DEMO,busy,root:!!root}),_next:next,_spawn:spawn,_fit:fitMol};
+/* Parent Corner 'Send a visitor': Ozzy stops waiting for more battles and comes on the hero's next visit to the World map (a ticket is still needed) */
+function bring(p){const s=S(p);if(!s.tix.length)return false;s.after=0;s.snooze=0;s.decl=0;return true;}
+function coming(p){const s=(p&&p.inner)?S(p):null;return !!s&&s.tix.length>0&&(p.battles||0)>=(s.after||0)&&Date.now()>(s.snooze||0);}
+window.Inner={_bring:bring,_coming:coming,open,award,ticketLine,fullLine,isFull,bagHTML,album:albumModal,meet,draw:drawMob,S,pickRide,ORDER,TIX_MAX,WAIT_BATTLES,_demo:()=>{DEMO=true;},_state:()=>({R,DEMO,busy,root:!!root}),_next:next,_spawn:spawn,_fit:fitMol};
 })();
