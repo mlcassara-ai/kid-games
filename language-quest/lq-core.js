@@ -142,6 +142,10 @@ const CSS=`
 .lq-tags.bad span{background:#FFE3E8}.lq-tags.good span{background:#DDF5EC}
 .lq-ar{font-size:1.35rem}
 .lq-small{font-size:.9rem;color:#5A6B82}
+.lq-top{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:760px;margin:0 auto}
+.lq-top b{font-size:1.3rem;font-weight:800}.lq-top b span{font-size:1rem;color:#1E5AA8}
+.lq-pill{background:#fff;color:#12233D;border:0;border-radius:999px;padding:6px 14px;font:inherit;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer;min-height:40px;display:inline-flex;align-items:center}
+.lq-coin{background:#F2B134;cursor:default}
 .lq-goto{display:block;width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left;padding:6px 6px 0;margin:2px 0;border-radius:12px;cursor:pointer}
 .lq-goto:hover,.lq-goto:focus-visible{background:#EEF4FB}
 .lq-chip{display:inline-block;background:#1E5AA8;color:#fff;border-radius:999px;padding:1px 9px;font-size:.8rem;font-weight:800;margin-left:6px}
@@ -376,9 +380,10 @@ function mePage(){
     :n(p.harbor)<5?"A new story is waiting at Story Harbor."
     :n(p.friends)<28?`${28-n(p.friends)} Letter Friends are still hiding on the map.`
     :"You have done everything! Play again to earn more stars.";
-  overlay(`<div class="lq-card" style="max-width:520px;margin:10px auto;text-align:center">
+  overlay(`<div class="lq-top"><button class="lq-pill" id="lqMeOk">← Map</button><b>My page <span>${esc(p.name)}</span></b><span class="lq-pill lq-coin">🪙 ${p.coins||0}</span></div>
+    <div class="lq-card" style="max-width:520px;margin:10px auto;text-align:center">
     <canvas id="lqMe" width="260" height="300" style="width:130px;height:150px"></canvas>
-    <div class="lq-row" style="flex-wrap:wrap;margin:0 0 10px"><button class="lq-btn" id="lqMeWear">🧵 Colours and clothes</button><button class="lq-btn gh" id="lqMeLock">🔒 My secret pictures</button><button class="lq-btn g" id="lqMeOk">Back to the game</button></div>
+    <div class="lq-row" style="flex-wrap:wrap;margin:0 0 10px"><button class="lq-btn" id="lqMeWear">🧵 Colours and clothes</button><button class="lq-btn gh" id="lqMeLock">🔒 My secret pictures</button></div>
     <h2 style="margin:0">${esc(p.name)}</h2>
     <p style="margin:4px 0"><b>🪙 ${p.coins||0}</b> · <b>★ ${stars}</b> of 87 stars · played on <b>${days}</b> day${days===1?"":"s"}</p>
     <p style="margin:6px 0;font-weight:800;color:#1E5AA8">${cheer}</p>
