@@ -197,20 +197,25 @@ const tests=[
   T.ok(new Set(d.FACTS.map(x=>x[0])).size===d.FACTS.length&&d.FACTS.every(x=>d.SETS.some(s=>s[0]===x[0][0])),'fact ids are not unique or lack a set');
   closeModal();delete window.MQ_DISTRICT_BETA;go('world');}],
 
-['battle pets test: hidden unless switched on for a hero; saves only the switch and a play log',async function(){
-  T.reset();window.MQ_BP_BETA=false;try{localStorage.removeItem('mqBpTest');}catch(e){}const p=T.hero('Pets',5),q=T.hero('Other',3);state.cur=p.id;W=null;go('world');await T.wait(150);
-  T.ok(W.T[20][28].npc!=='bp','Battle Pets is on the map without the switch');go('bp');T.ok(curScreen!=='bp'||!document.querySelector('#app iframe'),'Battle Pets opened without the switch');
-  const before=JSON.stringify(state.players);BattlePets._set(p.id,true);try{closeModal();}catch(e){}go('world');await T.wait(100);
-  T.ok(W.T[20][28].npc==='bp','Battle Pets is not on the map after the switch');go('bp');const f=document.querySelector('#app iframe');T.ok(f&&/battle-pets\.html\?embed=1&g=5/.test(f.getAttribute('src')),'Battle Pets frame missing');
-  const res=await fetch('battle-pets.html',{cache:'no-store'});T.ok(res.ok,'battle-pets.html is missing');
-  state.cur=q.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets shows for a hero who is not in the test');
-  const b0=JSON.parse(before).find(x=>x.id===p.id),added=Object.keys(p).filter(k=>!(k in b0));T.ok(added.filter(k=>/bp|pets/i.test(k)).join()==='bpTest'&&p.bpTest===1&&p.coins===b0.coins,'the Battle Pets test changed saved hero data: '+added.join());
-  /* the play log: the page reports a start and an end; only counted for a hero in the test who is on the Battle Pets screen */
-  state.cur=p.id;go('bp');const say=m=>window.postMessage(Object.assign({mq:'bp'},m),location.origin);say({ev:'start',stage:1});say({ev:'end',stage:1,win:1,secs:95,asked:20,right:18,sent:9,cast:0,house:62,log:0});say({ev:'start',stage:3});await T.wait(80);
-  T.ok(P().bp&&P().bp.s===2&&P().bp.m.length===1&&P().bp.m[0][2]===1&&P().bp.m[0][3]===95,'play log not recorded: '+JSON.stringify(P().bp));const st=BattlePets.stats(P());T.ok(st.wins===1&&st.started===2&&st.winSecs===95&&st.houseLeft===62,'play log summary wrong');
-  for(let i=0;i<50;i++)say({ev:'end',stage:5,win:0,secs:60});await T.wait(80);T.ok(P().bp.m.length===40,'play log is not capped');T.ok(P().coins===b0.coins,'the play log changed coins');
-  go('world');await T.wait(50);say({ev:'end',stage:1,win:1,secs:5});await T.wait(60);T.ok(P().bp.m[39][1]===5,'a match was logged away from the Battle Pets screen');
-  BattlePets._set(p.id,false);try{closeModal();}catch(e){}state.cur=p.id;go('world');await T.wait(100);T.ok(W.T[20][28].npc!=='bp','Battle Pets stayed after switching off');
+['battle pets demo: on the plaza for every hero; stages, team, a real battle with math, rewards and the play log',async function(){
+  T.reset();delete window.MQ_BP_BETA;const p=T.hero('Pets',5);state.cur=p.id;W=null;go('world');await T.wait(150);
+  T.ok(W.T[20][28].npc==='bp','the Battle Pets building is not on the plaza');
+  go('bp');const txt=document.querySelector('#app').innerText;T.ok(/Fossil Stage/.test(txt)&&/Addition Forest/.test(txt)&&BattlePets.stages().length>=3,'stages missing');
+  T.ok([...document.querySelectorAll('.bp2-crowns button')].some(b=>b.disabled),'crown 2 is open before crown 1 is beaten');
+  BattlePets._pick('forest',1);T.ok(document.querySelectorAll('.bp2-slot').length===Math.min(5,3+Math.floor((P().level||1)/10))&&document.querySelectorAll('.bp2-slot.full').length>=1,'team picker did not fill the team');
+  const D=BattlePets._dbg;BattlePets._start();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpQ').textContent.length>0,'the battle did not start');
+  T.ok(G.team.every(s=>P().pets.includes(s.pet.id)),'the team is not the hero\'s own pets');
+  const t0=G.treats;String(G.q.answer).split('').forEach(k=>BattlePets._key(k));BattlePets._key('go');T.ok(G.treats>=t0+4&&G.right===1&&G.charge>0,'a right answer gave no treats or charge');
+  BattlePets._key('9');BattlePets._key('9');BattlePets._key('9');BattlePets._key('9');BattlePets._key('9');BattlePets._key('go');T.ok(G.asked===2&&G.treats>=t0+4,'a wrong answer took treats away');
+  G.treats=50;const sent0=G.sent;BattlePets._send(0);T.ok(G.sent===sent0+1&&G.pets.length===1,'a pet could not be sent');
+  const kl=G.kl;BattlePets._kit();T.ok(G.kl===kl+1,'the Treat Kitchen did not upgrade');
+  G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1,'Pet Pounce did not fire');
+  for(let i=0;i<40;i++)D.step(.05);G.denHP=1;G.pets.forEach(u=>u.x=8);D.step(.1);T.ok(G.boss,'the boss did not come out');G.denHP=0;D.step(.05);T.ok(G.over&&G.win,'the den fell but the battle did not end');
+  const pet0=G.team[0].pet.id,xp0=petData(P(),pet0).xp;D.finish();await T.wait(50);
+  T.ok(P().bp2.c.forest===1&&petData(P(),pet0).xp>xp0&&P().bp.m.length===1&&P().bp.m[0][2]===1,'the win was not saved, or gave no pet XP');
+  T.ok(JSON.stringify(P().bp2).length<200&&JSON.stringify(P().bp).length<400,'Battle Pets data is too big');BattlePets._back();
+  /* switching heroes ends a battle in progress */
+  BattlePets._pick('forest',1);BattlePets._start();const q2=T.hero('Other',3);state.cur=q2.id;go('world');await T.wait(50);T.ok(!document.querySelector('.bp2-over'),'a results card was left on screen');
  }],
  ['core keeper: needs the Core Suit; hints before it; fall, questions and launch home (plus critters and the solar array)',async function(){
   T.reset();const p=T.hero('Core',5);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;p.sci.met=true;p.sci.rocks=0;p.sci.trips=5;p.sci.lab={ok:{},freeDay:''};p.cave={trips:5,stats:{dug:12}};
