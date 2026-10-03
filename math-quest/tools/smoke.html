@@ -275,7 +275,8 @@ const tests=[
     for(let i=0;i<5;i++)await ans(true);T.ok(P().phys[z.id][0]===3&&P().coins===c0+30,z.id+': all right did not give 3 stars and 30 coins: '+P().phys[z.id][0]+' '+(P().coins-c0));
     T.ok(/Stop cleared/.test(document.querySelector('#app').innerText),z.id+': no results card');
     Physics.play(z.id,1);for(let i=0;i<5;i++)await ans(false);T.ok(P().phys[z.id][1]===0,z.id+': all wrong still passed');
-    Physics.play(z.id,1);for(let i=0;i<5;i++)await ans(i<3);T.ok(P().phys[z.id][1]===1,z.id+': 3 of 5 did not give 1 star');}
+    const need=Physics.passMark(Physics.tierOf(P()),1);Physics.play(z.id,1);for(let i=0;i<5;i++)await ans(i<need-1);T.ok(P().phys[z.id][1]===0,z.id+': one short of the pass mark still passed');
+    Physics.play(z.id,1);for(let i=0;i<5;i++)await ans(i<need);T.ok(P().phys[z.id][1]===(need===4?2:1),z.id+': the pass mark did not pass ('+need+')');}
    /* an online sync replaces the hero object in the middle of a stop: the result must land on the new one */
    Physics.play('bay',2);for(let i=0;i<4;i++)await ans(true);const old=P(),copy=JSON.parse(JSON.stringify(old));state.players=state.players.map(x=>x.id===old.id?copy:x);await ans(true);
    T.ok(P()===copy&&P().phys.bay[2]===3,'a stop finished after a sync was lost');

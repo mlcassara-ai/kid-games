@@ -1,7 +1,9 @@
 /* ================= Discovery District: the five physics zones (Oct 2026) =================
    Each zone is a path of 6 stops (the last is the boss). A stop is 5 rounds (the boss 6). Every round shows a picture, asks one
    question, and then "tests it": the picture moves to show what really happens (the seesaw tips, the boat sinks, the bulb lights).
-   Two tries per round; only first tries count for stars. 3 stars = all first try, 2 = all but one, 1 = at least 3 (passes the stop).
+   Two tries per round; only first tries count for stars. 3 stars = all first try, 2 = all but one, 1 = the pass mark.
+   Pass mark (right on the first try): grades 1-4 need 3 of 5 (boss 4 of 6); grade 5 and up need 4 of 5 (boss 5 of 6). Tuned by simulation
+   against the two real players' accuracy (Oct 2026): at 3 of 5 the grade-5 player cleared 98% of stops first time, too easy.
    Numbers follow the hero's grade: tier 0 = grades 1-2, 1 = grades 3-4, 2 = grades 5-6, 3 = grade 7 and up (and grown-ups).
    Saved in p.phys = {bay:[stars per stop], mountain:[…], …} (small). Right and wrong answers count in p.daily like the rest of the game.
    Coins: the first pass of a stop pays 20 + 5 per stop number (the boss 100 and the zone badge); replaying for more stars pays 5 per new star.
@@ -32,6 +34,7 @@ const fmtN=n=>String(Math.round(n*1000)/1000);
 function tierOf(p){if(!p)return 1;if(p.adult)return 3;const g=+p.grade||3;return g<=2?0:g<=4?1:g<=6?2:3;}
 function data(p){p.phys=p.phys||{};ZONES_P.forEach(z=>{const a=p.phys[z.id];if(!Array.isArray(a))p.phys[z.id]=[0,0,0,0,0,0];});return p.phys;}
 const zoneStars=(p,zid)=>((p.phys&&p.phys[zid])||[]).reduce((a,b)=>a+(b||0),0);
+const passMark=(t,stop)=>stop===5?(t<=1?4:5):(t<=1?3:4);
 const unlocked=(p,zid,i)=>i===0||(((p.phys&&p.phys[zid])||[])[i-1]||0)>=1;
 /* choices: the right one plus distinct wrong ones, shuffled */
 function opts(right,wrongs){const out=[String(right)];wrongs.forEach(w=>{w=String(w);if(!out.includes(w))out.push(w);});return shuf(out);}
@@ -133,7 +136,8 @@ function genCan(stop,t){const k=stop;
   const n1=ri(2,4),m=ri(2,3),n2=n1*m;return {sc:{waves:[{l:'A',a:22,n:n1},{l:'B',a:22,n:n2,win:true}]},scene:canScene,q:`Both pictures show the same tiny slice of time. A makes ${n1} waves and B makes ${n2}. How many times higher is B's frequency?`,kind:'num',answer:m,unit:'times',explain:`${n2} ÷ ${n1} = ${m}. Frequency means waves per second, and higher frequency sounds higher.`};}
  if(k===2){ /* echo; sound in air ≈ 340 m/s */
   if(t===0){const near_=ri(2,4)*20,far_=near_*ri(2,3),last=Math.random()<.5;return {sc:{echo:last?far_:near_,t:'?'},scene:canScene,q:`One cliff is ${near_} m away and another is ${far_} m away. Which echo comes back ${last?'last':'first'}?`,kind:'choice',choices:['The near cliff','The far cliff'],answer:last?'The far cliff':'The near cliff',explain:last?`Sound has a longer trip to the far cliff and back, so its echo comes last.`:`Sound has a shorter trip to the near cliff and back, so its echo comes first.`};}
-  if(t===1){const s=ri(1,3);return {sc:{echo:340*s,t:s,dist:340*s},scene:canScene,q:`Sound travels about 340 meters every second. How far does it travel in ${s} second${s>1?'s':''}?`,kind:'num',answer:340*s,unit:'m',explain:`340 × ${s} = ${340*s} meters.`};}
+  if(t===1){if(Math.random()<.5){const d=ri(1,10)*50;return {sc:{echo:d,t:'?',dist:d},scene:canScene,q:`The cliff is ${d} m away. Your shout goes to the cliff and bounces back to you. How far does the sound travel in all?`,kind:'num',answer:2*d,unit:'m',explain:`There (${d} m) and back (${d} m): ${d} + ${d} = ${2*d} meters. That's why an echo takes a moment.`};}
+   const s=ri(1,3);return {sc:{echo:340*s,t:s,dist:340*s},scene:canScene,q:`Sound travels about 340 meters every second. How far does it travel in ${s} second${s>1?'s':''}?`,kind:'num',answer:340*s,unit:'m',explain:`340 × ${s} = ${340*s} meters.`};}
   const s=ri(1,6)*(t>2?1:1);const dist=340*s/2;return {sc:{echo:dist,t:s,dist},scene:canScene,q:`You shout and hear the echo after ${s} second${s>1?'s':''}. Sound goes about 340 m each second. How far away is the cliff?`,kind:'num',answer:dist,unit:'m',
    explain:`In ${s} s the sound goes 340 × ${s} = ${340*s} m. But that's there AND back, so the cliff is ${340*s} ÷ 2 = ${dist} m away.`};}
  if(k===3){ /* thunder: about 3 seconds per kilometer */
@@ -165,7 +169,8 @@ function genCity(stop,t){const k=stop;
   return {sc:{bats:1,bulbs:kind==='ok2'?2:1,gap:kind==='gap',sw:kind==='open'?'open':kind==='ok'?'closed':null,lit},scene:cityScene,q:`Will the bulb${kind==='ok2'?'s':''} light up?`,kind:'choice',choices:['Yes','No'],answer:lit?'Yes':'No',
    explain:lit?`The wire makes a full loop from the battery, through the bulb and back. Electricity can flow!`:kind==='gap'?`There's a gap in the wire, so the loop is broken. No loop, no light.`:`The switch is off, which opens a gap in the loop. No loop, no light.`};}
  if(k===1){if(t===0){const a=ri(1,3),b=a+ri(1,2);const first=Math.random()<.5;return {sc:{bats:first?b:a,bulbs:1,lit:true},scene:cityScene,q:`Flashlight A has ${first?b:a} batteries in a row. Flashlight B has ${first?a:b}. Which one shines brighter?`,kind:'choice',choices:['A','B'],answer:first?'A':'B',explain:`Batteries in a row add their push (voltage), so more batteries make the bulb brighter.`};}
-  const n=t===1?one([2,4,6,8]):ri(1,8);return {sc:{bats:n,bulbs:1,lit:true,label:'each battery ≈ 1.5 volts'},scene:cityScene,q:`Each battery gives about 1.5 volts. How many volts do ${n} batteries in a row give?`,kind:'num',answer:n*1.5,unit:'volts',explain:`${n} × 1.5 = ${fmtN(n*1.5)} volts. Batteries in a row add up.`};}
+  if(t===1){const n=one([2,4,6,8]);return {sc:{bats:n,bulbs:1,lit:true,label:'every 2 batteries ≈ 3 volts'},scene:cityScene,q:`Each battery gives about 1.5 volts, so every 2 batteries in a row give about 3 volts. How many volts do ${n} batteries in a row give?`,kind:'num',answer:n*1.5,unit:'volts',explain:`${n} batteries make ${n/2} pairs. ${n/2} × 3 = ${n*1.5} volts. Batteries in a row add up.`};}
+  const n=ri(1,8);return {sc:{bats:n,bulbs:1,lit:true,label:'each battery ≈ 1.5 volts'},scene:cityScene,q:`Each battery gives about 1.5 volts. How many volts do ${n} batteries in a row give?`,kind:'num',answer:n*1.5,unit:'volts',explain:`${n} × 1.5 = ${fmtN(n*1.5)} volts. Batteries in a row add up.`};}
  if(k===2){const par=t>=2&&Math.random()<.4,swap=Math.random()<.5,dimQ=Math.random()<.5,S1=swap?'B':'A',S2=swap?'A':'B';
   if(par)return {sc:{par:true,swap},scene:cityPair,q:`Each circuit has one battery. Which bulbs glow brighter: ${S1}'s single bulb, or each of ${S2}'s two bulbs side by side?`,kind:'choice',choices:['A','B','The same'],answer:'The same',explain:`Side by side (in parallel), each bulb has its own path and gets the battery's full push, so each glows as brightly as ${S1}'s bulb. The battery runs down faster, though.`};
   return {sc:{par:false,swap},scene:cityPair,q:`Each circuit has one battery. Which glows ${dimQ?'dimmer':'brighter'}: ${S1}'s single bulb, or one of ${S2}'s two bulbs in a row?`,kind:'choice',choices:['A','B','The same'],answer:dimQ?S2:S1,explain:`Bulbs in a row share the battery's push, so each of ${S2}'s bulbs gets less and glows dimmer than ${S1}'s.`};}
@@ -231,7 +236,7 @@ function head(title,back){return topbar()+`<div class="page"><div class="zhead">
 function zoneScreen(zid){const p=P(),z=ZBY[zid];if(!p||!z){go('district');return;}css();data(p);RUN=null;const st=p.phys[zid];
  app.innerHTML=head(`${z.art} ${esc(z.name)}`,"go('district')")+`<p class="muted" style="text-align:center;margin:-4px 0 12px">${esc(z.about)} · ⭐ ${zoneStars(p,zid)} / 18</p><div class="ph-path">${z.stops.map((s,i)=>{const ok=unlocked(p,zid,i),n=st[i]||0;
   return `<button class="ph-stop ${ok?'':'lock'}" ${ok?`onclick="Physics.play('${zid}',${i})"`:''}><span class="e">${ok?s[0]:'🔒'}</span><span><b>${i+1}. ${esc(s[1])}</b><small>${esc(s[2])}${ok?'':' · beat the stop before to open'}</small></span><span class="st">${n?'⭐'.repeat(n)+'☆'.repeat(3-n):ok?'☆☆☆':''}</span></button>`;}).join('')}</div>
-  <p class="muted" style="text-align:center;margin-top:12px">Each stop has ${ROUNDS} questions (the boss has ${BOSS_ROUNDS}). Get at least 3 right on the first try to open the next stop.</p></div>`;}
+  <p class="muted" style="text-align:center;margin-top:12px">Each stop has ${ROUNDS} questions (the boss has ${BOSS_ROUNDS}). Get at least ${passMark(tierOf(p),0)} right on the first try to open the next stop (the boss needs ${passMark(tierOf(p),5)}).</p></div>`;}
 function play(zid,stop){const p=P();if(!p||!ZBY[zid]||!unlocked(p,zid,stop))return;css();const t=tierOf(p),n=stop===5?BOSS_ROUNDS:ROUNDS;
  const rounds=[];for(let i=0;i<n;i++){let r=makeRound(zid,stop,t),g=0;while(r&&rounds.some(x=>x.q===r.q)&&g++<8)r=makeRound(zid,stop,t);if(r)rounds.push(r);}
  RUN={zid,stop,t,rounds,i:0,tries:0,first:[],inp:'',done:false};go('phys',zid+':'+stop);}
@@ -259,20 +264,20 @@ function answer(v){const R=RUN;if(!R||R.phase==='a')return;const r=R.rounds[R.i]
  if(r.kind==='choice'){const b=[...app.querySelectorAll('.ph-ch button')].find(x=>x.dataset.c===String(v));if(b){b.classList.add('wrong');b.disabled=true;}}}
 function next(){const R=RUN;if(!R)return;R.i++;R.tries=0;R.inp='';R.phase='q';R.fb='';R.picked=null;R.spoke=0;if(R.i>=R.rounds.length){finish();return;}drawPlay();}
 function finish(){const R=RUN;if(!R||R.done)return;R.done=true;const p=P();data(p);const z=ZBY[R.zid],n=R.rounds.length,right=R.first.filter(Boolean).length;
- const stars=right>=n?3:right>=n-1?2:right>=3?1:0;const old=p.phys[R.zid][R.stop]||0;let coins=0,badge=false;
+ const need=passMark(R.t,R.stop),stars=right>=n?3:right>=n-1?2:right>=need?1:0;const old=p.phys[R.zid][R.stop]||0;let coins=0,badge=false;
  if(stars>old){if(!old&&stars>=1){coins+=R.stop===5?COIN_BOSS:COIN_BASE+COIN_STEP*R.stop;if(R.stop===5)badge=true;}coins+=COIN_STAR*(stars-Math.max(old,stars>=1&&!old?1:old));p.phys[R.zid][R.stop]=stars;}
  if(coins>0)p.coins=(p.coins||0)+coins;save();try{SFX[stars?'win':'wrong']();}catch(e){}
  const nxt=R.stop<5&&stars>=1?R.stop+1:null;
  app.innerHTML=head(`${z.art} ${esc(z.name)}`,`Physics.zone('${R.zid}')`)+`<div class="ph-play" style="text-align:center"><div style="font-size:64px">${stars?(badge?'🏅':z.stops[R.stop][0]):'💪'}</div>
   <h2>${stars?(badge?`You beat ${esc(z.stops[5][1])}!`:'Stop cleared!'):'So close!'}</h2><p style="font-size:20px">${right} of ${n} right on the first try</p><p style="font-size:30px;margin:4px 0">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</p>
-  ${coins?`<p><b>+${coins} 🪙</b>${badge?` and the <b>${esc(z.name)} badge</b>!`:''}</p>`:stars&&stars<=old?'<p class="muted">You already had these stars. Go for 3!</p>':''}${stars?'':'<p>Get at least 3 right on the first try to open the next stop. Try again: the questions change each time!</p>'}
+  ${coins?`<p><b>+${coins} 🪙</b>${badge?` and the <b>${esc(z.name)} badge</b>!`:''}</p>`:stars&&stars<=old?'<p class="muted">You already had these stars. Go for 3!</p>':''}${stars?'':`<p>Get at least ${need} right on the first try to ${R.stop===5?'win the badge':'open the next stop'}. Try again: the questions change each time!</p>`}
   <div class="ph-row">${nxt!=null?`<button class="btn green big" onclick="Physics.play('${R.zid}',${nxt})">Next stop ➜</button>`:''}<button class="btn ${nxt!=null?'ghost dark':'green big'}" onclick="Physics.play('${R.zid}',${R.stop})">${stars?'Play again':'Try again'}</button><button class="btn ghost dark" onclick="Physics.zone('${R.zid}')">Back to the path</button></div></div></div>`;}
 function screen(arg){const a=String(arg||'');if(a.includes(':')){if(!RUN){const [z,s]=a.split(':');zoneScreen(z);return;}drawPlay();return;}zoneScreen(a||'bay');}
 /* the District Board and signs ask these */
 function summary(p){data(p);return ZONES_P.map(z=>({id:z.id,name:z.name,art:z.art,about:z.about,stars:zoneStars(p,z.id),badge:(p.phys[z.id][5]||0)>=1,next:(z.stops[p.phys[z.id].findIndex(x=>!x)]||[])[1]||''}));}
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({session:()=>{RUN=null;}}); /* a stop in progress never carries over to another hero */
 (function reg(n){if(typeof SCREENS!=='undefined'){SCREENS.phys=screen;return;}if((n||0)<3000)setTimeout(()=>reg((n||0)+1),50);})(0);
-window.Physics={zone:zid=>{RUN=null;go('phys',zid);},play,summary,ZONES:ZONES_P,tierOf,
+window.Physics={passMark,zone:zid=>{RUN=null;go('phys',zid);},play,summary,ZONES:ZONES_P,tierOf,
  _say:()=>{try{const r=RUN&&RUN.rounds[RUN.i];if(r)speakToggle(()=>say(speakable(r.q),.9));}catch(e){}},_next:next,
  _dbg:{run:()=>RUN,answer,key,makeRound,GEN,data,finish}};
 })();
