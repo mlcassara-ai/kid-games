@@ -203,7 +203,7 @@ const tests=[
   go('bp');const txt=document.querySelector('#app').innerText;T.ok(/Fossil Stage/.test(txt)&&/Addition Forest/.test(txt)&&BattlePets.stages().length>=3,'stages missing');
   T.ok([...document.querySelectorAll('.bp2-crowns button')].some(b=>b.disabled),'crown 2 is open before crown 1 is beaten');
   BattlePets._pick('forest',1);T.ok(document.querySelectorAll('.bp2-slot').length===Math.min(5,3+Math.floor((P().level||1)/10))&&document.querySelectorAll('.bp2-slot.full').length>=1,'team picker did not fill the team');
-  const D=BattlePets._dbg;BattlePets._start();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpScroll'),'the battle did not start');
+  const D=BattlePets._dbg;BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpScroll'),'the battle did not start');
   {const sc=document.getElementById('bpScroll');T.ok(sc.scrollWidth>sc.clientWidth+100,'the battlefield is not wider than the screen');}
   T.ok(G.team.every(s=>P().pets.includes(s.pet.id)),'the team is not the hero\'s own pets');
   Music.update();T.ok(Music._state().want==='petBattle','the Pet Battle music is not chosen in a fight');{const r=await fetch('audio/pet-battle-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/pet-battle-studio.mp3 is missing');}
@@ -224,13 +224,21 @@ const tests=[
   /* 🧌 the mega troll: a long wait before he comes, one at a time, a big cooldown, then he stomps home */
   G.treats=50;G.trollAt=G.t+5;T.ok(!D.callTroll()&&document.getElementById('bpTroll'),'the troll came before his wait was over, or has no button');
   G.trollAt=0;BattlePets._troll();const tr=G.pets.find(u=>u.mega&&!u.gone);T.ok(tr&&G.trollAt>=G.t+90&&G.trolls===1,'the troll did not come, or his cooldown is short');
+  {D._spawn('flying');const fz=G.foes[G.foes.length-1];fz.x=tr.x-4;tr.stun=0;tr.stompAt=0;tr.poundAt=0;for(let i=0;i<14;i++)D.step(.05);T.ok(fz.x<tr.x-5||fz.gone,'the troll\'s roar did not blow a flyer back');fz.gone=true;}
   G.treats=50;G.trollAt=0;T.ok(!D.callTroll(),'a second troll came while the first was out');tr.leave=G.t;D.step(.05);T.ok(tr.gone&&tr.left,'the troll did not go home');G.trollAt=G.t+50;
-  /* the camera glides to where the two sides meet */
-  {const sc=document.getElementById('bpScroll');sc.scrollLeft=0;D._spawn('basic');const cf=G.foes[G.foes.length-1];cf.x=80;const l0=sc.scrollLeft;for(let i=0;i<5;i++)BattlePets._cam();T.ok(sc.scrollLeft>l0,'the camera did not follow the fight');cf.gone=true;D.step(.05);}
+  /* the camera follows our lead pet (with no pets out it rests on the Pet House) */
+  {const sc=document.getElementById('bpScroll');sc.scrollLeft=0;G.pets.forEach(u=>u.gone=true);D.step(.05);T.ok(D.leadX()>=90,'with no pets out the camera does not rest on the Pet House');const l0=sc.scrollLeft;for(let i=0;i<5;i++)BattlePets._cam();T.ok(sc.scrollLeft>l0,'the camera did not move to the lead pet');}
+  /* the scenery: a world for the stage, drawn bases, the Goblin drains the colour */
+  T.ok(document.querySelector('#bpField .bps-scene .bps-far svg')&&document.querySelector('#bpHouseB svg')&&document.querySelector('#bpDenB svg'),'the battle scenery or the drawn bases are missing');
+  T.ok(BPScene.themeOf({op:'mul'})==='volcano'&&BPScene.themeOf({id:'fossil'})==='fossil','the worlds are not matched to the stages');
+  /* warn before a battle when flyers are coming and nobody can reach them */
+  {const S0=BattlePets.stages()[1],t=D.autoPick(P(),S0);T.ok(t.length>=1&&t.length<=Math.min(5,3+Math.floor((P().level||1)/10))&&t.every(id=>P().pets.includes(id))&&new Set(t).size===t.length,'Pick for me built a bad team');}
+  {const wall=PETS.find(x=>x.perk==='shield'),hop=PETS.find(x=>x.perk==='lucky'),S0=BattlePets.stages()[1];T.ok(D.flyRisk(S0,[wall])&&!D.flyRisk(S0,[wall,hop]),'the flyer warning check is wrong');}
   G.treats=50;G.team.forEach(t=>t.ready=0);const sent0=G.sent;BattlePets._send(0);T.ok(G.sent===sent0+1&&G.pets.filter(u=>!u.gone).length===1,'a pet could not be sent');
   const kl=G.kl;BattlePets._kit();T.ok(G.kl===kl+1,'the Treat Kitchen did not upgrade');
-  {D._spawn('basic');const pf=G.foes[G.foes.length-1];pf.x=50;const ph=pf.hp;G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1&&G.wave,'Pet Pounce did not fire');
-   T.ok(pf.x===50,'the pounce hit a critter before the paw reached it');for(let i=0;i<30&&G.wave;i++)D.step(.05);T.ok(!G.wave&&pf.x<50&&pf.hp<ph,'the pounce paw did not sweep the lane and smack the critter');pf.gone=true;}
+  {D._spawn('basic');const pf=G.foes[G.foes.length-1];pf.x=50;const ph=pf.hp;G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1&&G.slam&&Math.abs(G.slam.x-50)<.01,'Pet Pounce did not aim at the lead critter');
+   T.ok(pf.x===50,'the paw hit before it came down');for(let i=0;i<30&&G.slam;i++)D.step(.05);T.ok(!G.slam&&pf.x<50&&pf.hp<ph,'the paw did not slam the lead critter');pf.gone=true;}
+  {const st=BattlePets.stages(),tr=id=>(st.find(s=>s.id===id)||{crit:[]}).crit;T.ok(tr('caves').every(c=>c[2]!=='flying'||c[1]==='🦇')&&!tr('volcano').some(c=>c[2]==='flying')&&tr('forest').some(c=>c[1]==='🐝'&&c[2]==='flying'),'a critter that cannot really fly is flying');}
   {const r=G.team[0].R;T.ok(D.petSpd(r,1)>D.petSpd(r,2)&&D.petSpd(r,1)<r.spd,'stronger pets do not walk slower');}
   for(let i=0;i<40;i++)D.step(.05);G.denHP=1;G.pets.forEach(u=>u.x=8);D.step(.1);T.ok(G.boss,'the boss did not come out');T.ok(G.foes.some(f=>f.boss&&f.name==='Grey Goblin'),'the boss is not the Grey Goblin');G.denHP=0;D.step(.05);T.ok(G.over&&G.win,'the den fell but the battle did not end');
   Music.update();T.ok(Music._state().want===null,'battle music still playing after the battle ended');
@@ -238,7 +246,7 @@ const tests=[
   T.ok(P().bp2.c.forest===1&&petData(P(),pet0).xp>xp0&&P().bp.m.length===1&&P().bp.m[0][2]===1,'the win was not saved, or gave no pet XP');
   T.ok(JSON.stringify(P().bp2).length<200&&JSON.stringify(P().bp).length<400,'Battle Pets data is too big');BattlePets._back();
   /* switching heroes ends a battle in progress */
-  BattlePets._pick('forest',1);BattlePets._start();const q2=T.hero('Other',3);state.cur=q2.id;go('world');await T.wait(50);T.ok(!document.querySelector('.bp2-over'),'a results card was left on screen');
+  BattlePets._pick('forest',1);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();const q2=T.hero('Other',3);state.cur=q2.id;go('world');await T.wait(50);T.ok(!document.querySelector('.bp2-over'),'a results card was left on screen');
  }],
  ['core keeper: needs the Core Suit; hints before it; fall, questions and launch home (plus critters and the solar array)',async function(){
   T.reset();const p=T.hero('Core',5);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;p.sci.met=true;p.sci.rocks=0;p.sci.trips=5;p.sci.lab={ok:{},freeDay:''};p.cave={trips:5,stats:{dug:12}};

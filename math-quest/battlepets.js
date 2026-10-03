@@ -44,9 +44,10 @@ const roleOf=pet=>ROLE[pet&&pet.perk]||ROLE.shield;
 const petSpd=(R,m)=>R.spd*TUNE.petSpd/(1+.5*(m-1));
 /* 🧌 the mega: Grumbleroot the Troll (testing: every hero, every crown; how to earn him is still to be decided).
    Huge, slow and tough (the real Grumbleroot from the troll's cave, with a club); hits a whole group and cracks armour. Every few seconds he
-   raises his club and POUNDS the ground: it hurts and knocks back every critter near him. Can't reach flyers. He stays about 28 seconds
+   takes a big breath and ROARS: the blast hurts and throws back every critter in front of him, flyers too (his club can't reach flyers).
+   When called he LEAPS from the Pet House to land just behind the lead pet, then walks slowly. He stays about 28 seconds
    once he reaches the fight (50 at most), then stomps home. A big wait: 40 s before the first call, 100 s between calls. */
-const TROLL={id:'troll',n:'Grumbleroot',e:'🧌',cost:16,first:40,cd:100,life:28,maxLife:50,hp:500,atk:30,rng:3.6,spd:2.6,area:true,armor:2,pound:3.2,wind:.5,reach:7,tip:'Mega troll: huge and slow; his club pound knocks critters back'};
+const TROLL={id:'troll',n:'Grumbleroot',e:'🧌',cost:16,first:40,cd:100,life:28,maxLife:50,hp:500,atk:30,rng:3.6,spd:2.6,area:true,armor:2,pound:3.6,wind:.45,reach:12,tip:'Mega troll: huge and slow; his ROAR blasts critters back'};
 function powerOf(p,pet){const pd=petData(p,pet.id),st=petStage(pd),si=Math.max(0,PET_STAGES.indexOf(st));const tm=((typeof PET_TIERS!=='undefined'&&PET_TIERS[pet.tier])||{mult:1}).mult||1;
  let ml=0;try{ml=petLv(pd)||0;}catch(e){}return Math.min(2.6,tm*(1+.2*si+.04*ml));}
 
@@ -55,10 +56,14 @@ const TRAIT={
  basic:{hp:30,atk:5,spd:4,rng:1.8},
  swarm:{hp:10,atk:2,spd:6,rng:1.6,group:3,tag:'swarm'},
  flying:{hp:24,atk:4,spd:5,rng:1.8,fly:true,tag:'flying'},
- armored:{hp:70,atk:6,spd:2.5,rng:2,armor:true,tag:'armoured'},
+ armored:{hp:58,atk:6,spd:2.5,rng:2,armor:true,tag:'armoured'},
  speedy:{hp:18,atk:4,spd:9,rng:1.6,tag:'speedy'},
  boss:{hp:420,atk:14,spd:2.2,rng:3.2,boss:true,tag:'boss'}};
 const TRAIT_ORDER=['basic','swarm','flying','armored','speedy'];
+/* a critter's type comes from what it really is: only animals that really fly can fly (a bee, a bat, a bird), shells and armour
+   are armoured, wolves, lizards and snakes are speedy, bugs, spiders, sparks and skeleton gangs come in swarms */
+const T_FLY=['🐝','🦇','🦅','🐦','🦉','🦜','🪿'],T_ARM=['🐌','🦀','🦂','🐢','🤖','🗿','⛄','🦞','🪲'],T_FAST=['🐺','🦎','🐍','🐇','🐰','🦊'],T_SWARM=['🐛','🕷️','🔥','💀','🐜','🐟'];
+const traitOf=e=>T_FLY.includes(e)?'flying':T_ARM.includes(e)?'armored':T_FAST.includes(e)?'speedy':T_SWARM.includes(e)?'swarm':'basic';
 /* the critters' boss on every stage: the Grey Goblin from the Great Fade (fade.js draws him) */
 const GOBLIN=['Grey Goblin','👺'];
 const goblinArt=w=>window.MQ_GOBLIN_SVG?`<span class="bp2-gob" style="width:${w}px">${window.MQ_GOBLIN_SVG()}</span>`:GOBLIN[1];
@@ -68,18 +73,19 @@ function stages(){const out=[{id:'fossil',name:'Fossil Stage',art:'🦴',op:null
   note:'Pretend! Real skeletons don\'t walk. Real fossils are bones turned to stone over millions of years.'}];
  (typeof ZONES!=='undefined'?ZONES:[]).forEach(z=>{if(!OPN[z.op]||out.some(s=>s.op===z.op)||!z.mons||z.mons.length<6)return;
   out.push({id:z.id,name:z.name,art:z.art||'⭐',op:z.op,where:`${z.name}, after beating ${z.mons[5][0]}`,bg:{add:['#d8f5c9','#a6dc8a'],sub:['#d9d2f0','#a99fd1'],mul:['#ffd8b8','#f0a070'],div:['#dfe3ea','#aab3c2']}[z.op],
-   crit:z.mons.slice(0,5).map((m,i)=>[m[0],m[1],TRAIT_ORDER[i]]),boss:GOBLIN});});
+   crit:z.mons.slice(0,5).map(m=>[m[0],m[1],traitOf(m[1])]),boss:GOBLIN});});
  return out;}
-const CROWN={hp:[1,1.35,1.7],atk:[1,1.175,1.28],gap:[1,.85,.72],den:[1,1.3,1.6]};
+const CROWN={hp:[1,1.6,1.9],atk:[1,1.3,1.36],gap:[1,.85,.72],den:[1,1.3,1.6]};
 /* balance knobs, tuned by simulation (Oct 2026) against Battle Cats-style targets and players like the two real kids, after pets were
    made to walk slower (bigger = slower) and to fight at touching distance, with flyers drifting over pets that can't reach them:
-   - doing nothing always loses; crown 1 is a sure win in about 3 minutes; crown 2 is a close fight (a grade-3 player wins about a third
-     of the time without 🧱 Rebuild and about half with it); crown 3 is a stretch goal (a grade-5 player about 1 in 4).
+   - doing nothing always loses; crown 1 is a sure win in about 3 minutes; crown 2 is a close fight (in the forest a grade-3 player wins
+     about half the time); crown 3 is a stretch goal (a grade-5 player about 1 in 3). Worlds with armoured critters (the caves) are harder,
+     and only worlds with real flying animals have flyers.
    - treats trickle in (the Kitchen adds more), Pounce charges in about 30 s, the Grey Goblin boss is the big push,
      critters spawn faster while the boss is out and slower once it is down; after 4 minutes they tire (no endless tug-of-war).
    - bricks: 20 per battle, each +10% of the house = exactly two full rebuilds. */
 const TUNE={trickle:.73,trickleKl:.31,charge:3.3,den:400,hp:1.15,atk:1.81,gap:3.79,bricks:20,brick:.1,repairAt:.5,house:480,siege:.58,foeCap:12,
- petHp:.66,bossHp:.68,bossAtk:1.62,bossSiege:.81,rage:.87,calm:1.78,tired:240,petSpd:.75,waveSpd:110};
+ petHp:.66,bossHp:.68,bossAtk:1.62,bossSiege:.81,rage:.87,calm:1.78,tired:240,petSpd:.75,slamWait:.6,slamR:9};
 
 /* ---------- saved progress ---------- */
 function prog(p){p.bp2=p.bp2||{c:{},team:[]};p.bp2.c=p.bp2.c||{};if(!Array.isArray(p.bp2.team))p.bp2.team=[];return p.bp2;}
@@ -106,7 +112,8 @@ function send(i){const s=G&&!G.over&&G.team[i];if(!s||G.treats<s.R.cost||s.ready
  G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m*TUNE.petHp,max:R.hp*m*TUNE.petHp,atk:R.atk*m,rng:R.rng,spd:petSpd(R,m),kb:0,stun:0,id:Math.random()});fx('send');return true;}
 const trollOut=()=>!!G&&G.pets.some(u=>u.mega&&!u.gone);
 function callTroll(){if(!G||G.over||G.t<G.trollAt||G.treats<TROLL.cost||trollOut())return false;G.treats-=TROLL.cost;G.trollAt=G.t+TROLL.cd;G.trolls++;
- const m=1+.35*G.c;G.pets.push({side:'p',mega:true,pet:{id:'troll',e:TROLL.e,name:TROLL.n},R:TROLL,x:HOUSE_X-2,hp:TROLL.hp*m,max:TROLL.hp*m,atk:TROLL.atk*m,rng:TROLL.rng,spd:TROLL.spd,kb:0,stun:0,leave:G.t+TROLL.maxLife,stompAt:0,poundAt:0,id:Math.random()});fx('troll');return true;}
+ const m=1+.35*G.c;const lead=G.pets.filter(u=>!u.gone&&!u.mega),to=lead.length?Math.min(HOUSE_X-2,Math.min(...lead.map(u=>u.x))+2.5):HOUSE_X-2;
+ G.pets.push({side:'p',mega:true,leapT:G.t,stun:G.t+.95,pet:{id:'troll',e:TROLL.e,name:TROLL.n},R:TROLL,x:to,hp:TROLL.hp*m,max:TROLL.hp*m,atk:TROLL.atk*m,rng:TROLL.rng,spd:TROLL.spd,kb:0,leave:G.t+TROLL.maxLife,stompAt:0,poundAt:0,id:Math.random()});fx('troll');return true;}
 /* the giant pounce paw */
 const PAW='<svg class="paw" viewBox="0 0 200 200" aria-hidden="true"><g fill="#ffb627" stroke="#fff" stroke-width="7"><ellipse cx="100" cy="128" rx="54" ry="46"/><ellipse cx="42" cy="78" rx="20" ry="27" transform="rotate(-24 42 78)"/>'+
  '<ellipse cx="80" cy="48" rx="21" ry="28" transform="rotate(-8 80 48)"/><ellipse cx="122" cy="48" rx="21" ry="28" transform="rotate(8 122 48)"/><ellipse cx="160" cy="78" rx="20" ry="27" transform="rotate(24 160 78)"/></g>'+
@@ -118,8 +125,8 @@ const CLUB='<rect x="-10" y="-175" width="20" height="190" rx="9" fill="#6b4423"
 function trollArt(w){const t=window.MQ_TROLL_SVG;if(!t)return `<span style="font-size:${Math.round(w*.75)}px;line-height:1">${TROLL.e}</span>`;
  const inner=t.replace(/<svg class="tr-troll"[^>]*>/,'<svg x="0" y="0" width="420" height="540" viewBox="0 0 420 540">');
  return `<svg class="bp2-trollsvg" viewBox="-190 -60 640 600" width="${w}" height="${Math.round(w*600/640)}" aria-hidden="true"><g transform="translate(66,494)"><g class="bp2-club">${CLUB}</g></g>${inner}</svg>`;}
-/* the club pound lands half a second after he raises it: it hurts and knocks back every critter within reach */
-function pound(u,foes){u.poundAt=0;u.stompAt=G.t+TROLL.pound;foes.forEach(f=>{if(f.gone||Math.abs(u.x-f.x)>TROLL.reach)return;if(f.fly&&!TROLL.fly)return;f.hp-=u.atk*(f.boss?.8:1.6);knock(f,-(f.boss?2:6));f.stun=G.t+.6;});fx('stomp');}
+/* the roar comes half a second after he breathes in: it hurts a little and blasts back every critter in front of him (flyers too) */
+function pound(u,foes){u.poundAt=0;u.stompAt=G.t+TROLL.pound;foes.forEach(f=>{if(f.gone||u.x-f.x>TROLL.reach||f.x-u.x>2)return;f.hp-=u.atk*(f.boss?.4:.8);knock(f,-(f.boss?2.5:8));f.stun=G.t+.9;});fx('roar');}
 /* every push in the battle goes through here, so the screen can show the flight (the troll is hard to move) */
 function knock(u,dx){if(u.mega)dx*=.4;u.x=Math.max(DEN_X+2,Math.min(HOUSE_X-2,u.x+dx));u.kbT=G.t;}
 /* 🧱 Rebuild: math mends the Pet House, from half health down, with a limited pile of bricks */
@@ -129,18 +136,18 @@ function closeFix(){if(G)G.fixing=false;}
 function answer(ok){if(!G||G.over||!G.fixing||G.bricks<=0)return 0;G.asked++;if(!ok){G.streak=0;return 0;}
  G.right++;G.streak++;G.bricks--;const add=Math.min(G.houseMax-G.houseHP,G.houseMax*TUNE.brick);G.houseHP+=add;fx('brick');
  if(G.bricks<=0||G.houseHP>=G.houseMax-.01)G.fixing=false;return add;}
-/* Pet Pounce (like the Cat Cannon): a giant paw sweeps the whole lane from the Pet House to the den in under a second,
-   smacking every critter back as it passes (hurt, knocked back, stunned) */
-function pounce(){if(!G||G.over||G.charge<100||G.wave)return false;G.charge=0;G.pounces++;G.wave={x:HOUSE_X,n:G.pounces};fx('pounce');return true;}
-function sweep(dt){const w=G.wave;if(!w)return;w.x-=TUNE.waveSpd*dt;
- G.foes.forEach(f=>{if(f.gone||f.pw===w.n||f.x<w.x)return;f.pw=w.n;knock(f,-(f.boss?6:12));f.hp-=f.boss?60:25;f.stun=G.t+1.2;f.pawT=G.t;});
- if(w.x<=DEN_X){G.wave=null;}}
+/* Pet Pounce (like the Cat Cannon): a giant paw drops out of the sky onto the critters' lead (the one closest to the Pet House).
+   Its shadow grows for a moment, then it SLAMS: every critter near that spot (flyers too) is hurt, knocked back and stunned. */
+function pounce(){if(!G||G.over||G.charge<100||G.slam)return false;const live=G.foes.filter(f=>!f.gone);if(!live.length)return false;
+ const lead=live.reduce((a,b)=>b.x>a.x?b:a);G.charge=0;G.pounces++;G.slam={x:lead.x,at:G.t+TUNE.slamWait,n:G.pounces};G.camAt={x:lead.x,until:G.t+TUNE.slamWait+1};fx('pounce');return true;}
+function slam(){const s=G.slam;if(!s||G.t<s.at)return;G.slam=null;G.slamX=s.x;
+ G.foes.forEach(f=>{if(f.gone||Math.abs(f.x-s.x)>TUNE.slamR)return;knock(f,-(f.boss?6:12));f.hp-=f.boss?90:45;f.stun=G.t+1.4;f.pawT=G.t;});fx('slam');}
 function spawn(kind){const S=G.stage,c=G.c;let def,name,e;
- if(kind==='boss'){def=TRAIT.boss;name=S.boss[0];e=S.boss[1];}else{const pick=S.crit.find(x=>x[2]===kind)||S.crit[0];def=TRAIT[pick[2]];name=pick[0];e=pick[1];}
+ if(kind==='boss'){def=TRAIT.boss;name=S.boss[0];e=S.boss[1];}else{const opts=S.crit.filter(x=>x[2]===kind),pick=opts.length?choose(opts):S.crit[0];def=TRAIT[pick[2]];name=pick[0];e=pick[1];}
  const n=def.group||1,bh=def.boss?TUNE.bossHp:1,ba=def.boss?TUNE.bossAtk:1;for(let i=0;i<n;i++)G.foes.push({side:'c',name,e,trait:def.tag||'',x:DEN_X+2+i*1.3,hp:def.hp*CROWN.hp[c]*TUNE.hp*bh,max:def.hp*CROWN.hp[c]*TUNE.hp*bh,atk:def.atk*CROWN.atk[c]*TUNE.atk*ba,rng:def.rng,spd:def.spd*(1+.08*c),fly:!!def.fly,armor:!!def.armor,boss:!!def.boss,kb:0,stun:0,id:Math.random()});}
-function nextKind(){const t=G.t,w={basic:4,swarm:t>8?2:0,speedy:t>15?2:0,flying:t>20?2:0,armored:t>30?2:0};const tot=Object.values(w).reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(const k in w){r-=w[k];if(r<=0)return k;}return 'basic';}
+function nextKind(){const t=G.t,has=k=>G.stage.crit.some(c=>c[2]===k),w={basic:has('basic')?4:2,swarm:t>8&&has('swarm')?2:0,speedy:t>15&&has('speedy')?2:0,flying:t>20&&has('flying')?2:0,armored:t>30&&has('armored')?2:0};const tot=Object.values(w).reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(const k in w){r-=w[k];if(r<=0)return k;}return 'basic';}
 function step(dt){if(!G||G.over)return;G.t+=dt;
- G.treats=Math.min(treatCap(),G.treats+treatRate()*dt);if(!G.wave)G.charge=Math.min(100,G.charge+TUNE.charge*dt);sweep(dt);
+ G.treats=Math.min(treatCap(),G.treats+treatRate()*dt);if(!G.slam)G.charge=Math.min(100,G.charge+TUNE.charge*dt);slam();
  if(G.t>=G.spawnAt&&G.foes.filter(f=>!f.gone).length<TUNE.foeCap){spawn(nextKind());G.gap=Math.max(1.6,G.gap*.97);G.spawnAt=G.t+G.gap*(G.boss&&!G.bossDown?TUNE.rage:G.bossDown?TUNE.calm:1)*(G.t>TUNE.tired?1.7:1)*(.8+Math.random()*.4);} /* after 4 minutes the critters get sleepy, so no battle drags on forever */
  if(!G.tiredSaid&&G.t>TUNE.tired){G.tiredSaid=true;fx('tired');}
  if(!G.boss&&G.denHP<=G.denMax*.5){G.boss=true;spawn('boss');G.pets.forEach(p=>{if(p.gone)return;knock(p,12);p.stun=G.t+.8;});fx('boss');} /* the boss's shockwave */
@@ -149,9 +156,10 @@ function step(dt){if(!G||G.over)return;G.t+=dt;
  pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx('trollbye');return;}if(u.stun>G.t)return;u.mv=false;const R=u.R;const reach=f=>(!f.fly||R.fly)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
   if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];u.fight=true;hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});
    if(Math.random()<.18*dt)knock(hit[0],-(1.5+Math.random()*1.5)*(hit[0].boss?.3:1)); /* now and then a hit shoves the critter back a little */
-   if(u.mega){if(!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+TROLL.life);}if(!u.poundAt&&G.t>=u.stompAt){u.poundAt=G.t+TROLL.wind;u.windT=G.t;}}}
+   if(u.mega&&!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+TROLL.life);}}
   else if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*dt*(G.bossDown||!G.boss?1:.5)*(G.t>TUNE.tired?1.6:1);}
   else{u.x-=u.spd*.8*dt;u.mv=true;}
+  if(u.mega&&!u.poundAt&&G.t>=u.stompAt&&foes.some(f=>!f.gone&&u.x-f.x>=-2&&u.x-f.x<=6)){u.poundAt=G.t+TROLL.wind;u.windT=G.t;} /* he roars at any critter right in front of him, flyers too */
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
  /* flyers drift over pets that can't reach them (like Battle Cats' floating enemies) and go for the Pet House */
  foes.forEach(f=>{if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>(!f.fly||u.R.fly)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
@@ -181,6 +189,8 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-pet{font:inherit;border:3px solid #e9e4ff;background:#fff;border-radius:14px;padding:8px 4px;text-align:center;cursor:pointer;color:#2b2340}
 .bp2-pet.in{border-color:#40c057;background:#ebfbee}.bp2-pet .pe{font-size:32px;display:block}.bp2-pet small{display:block;color:#6b6490;font-size:12px}
 .bp2-slots{display:flex;gap:8px;flex-wrap:wrap}.bp2-slot{font:inherit;width:72px;height:72px;border-radius:14px;border:3px dashed #b197fc;background:#f8f5ff;font-size:34px;cursor:pointer}
+.bp2-filt{font:inherit;font-weight:800;border:2px solid #f2b705;background:#fff9db;color:#2b2340;border-radius:20px;padding:6px 12px;min-height:40px;cursor:pointer}.bp2-filt.on{background:#f2b705}
+.bp2-pet{position:relative}.bp2-flyb{position:absolute;top:4px;right:4px;font-size:11px;font-weight:800;background:#fff3bf;border-radius:8px;padding:1px 4px}
 .bp2-slot.full{border-style:solid;border-color:#40c057;background:#ebfbee}
 .bp2-hud{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}.bp2-bar{flex:1;height:12px;background:#eee;border-radius:6px;overflow:hidden}.bp2-bar i{display:block;height:100%}
 .bp2-scroll{overflow-x:auto;overflow-y:hidden;border-radius:16px;border:3px solid #2b2340;-webkit-overflow-scrolling:touch;cursor:grab;touch-action:pan-x;scrollbar-width:thin;overscroll-behavior-x:contain}
@@ -205,11 +215,21 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 @keyframes bp2smoke{0%{opacity:0;scale:.45;translate:0 0}15%{opacity:var(--op,.75)}100%{opacity:0;scale:2.3;translate:var(--dx,0px) calc(-1 * var(--rise,120px))}}
 .bp2-pt.ember{width:6px;height:6px;border-radius:50%;background:#ff922b;box-shadow:0 0 6px #ff6b00;animation:bp2smoke 1.2s ease-out forwards;z-index:2}
 .bp2-tc.mega .bp2-trollsvg{margin:0 auto}
+.bp2-trollsvg .tr-mopen{display:none}.bp2-trollsvg .tr-mclosed{display:inline}.bp2-trollsvg .tr-brow-angry{display:inline}.bp2-trollsvg .tr-brow-kind{display:none}.bp2-trollsvg .tr-drool{display:none}
+.bp2-ent.roar .bp2-trollsvg .tr-mopen{display:inline}.bp2-ent.roar .bp2-trollsvg .tr-mclosed{display:none}
+.bp2-ent.mega.roar .e{animation:bp2roar 1.15s ease-in-out}
+.bp2-ent.leap{transition:left .9s cubic-bezier(.3,.1,.5,1)}.bp2-ent.leap .e{animation:bp2leap .9s ease-in-out}
+@keyframes bp2leap{0%{translate:0 0;rotate:0deg}15%{translate:0 6px}50%{translate:0 -170px;rotate:-12deg}90%{translate:0 0;rotate:4deg}100%{translate:0 0;rotate:0deg}}
+@keyframes bp2roar{0%{translate:0 0;rotate:0deg;scale:1}35%{translate:5px -5px;rotate:4deg;scale:1.02}45%{translate:-8px 0;rotate:-8deg;scale:1.1}55%{translate:-6px 1px;rotate:-7deg;scale:1.1}65%{translate:-9px -1px;rotate:-8deg;scale:1.1}85%{translate:-6px 0;rotate:-6deg;scale:1.08}100%{translate:0 0;rotate:0deg;scale:1}}
+.bp2-pt.sound{width:50px;height:120px;border-radius:50%;border:7px solid transparent;border-left-color:rgba(255,255,255,.95);box-shadow:-4px 0 10px -4px rgba(255,255,255,.8);animation:bp2sound .85s ease-out forwards;z-index:5}
+@keyframes bp2sound{from{opacity:1;translate:0 0;scale:.5}to{opacity:0;translate:-300px 0;scale:1.9}}
+.bp2-pt.word{font-size:28px;font-weight:900;color:#fff;-webkit-text-stroke:2px #5c3d1e;letter-spacing:1px;white-space:nowrap;animation:bp2word 1.1s ease-out forwards;z-index:7}
+@keyframes bp2word{0%{opacity:0;scale:.4;rotate:-12deg}20%{opacity:1;scale:1.25;rotate:-6deg}70%{opacity:1;scale:1.1}100%{opacity:0;scale:1;translate:0 -24px}}
 .bp2-gob{display:block;line-height:0}.bp2-gob svg{width:100%;height:auto;display:block;overflow:visible}.bp2-ent.boss .e:has(.bp2-gob){font-size:0}
-.bp2-wave{position:absolute;top:0;bottom:0;width:0;z-index:5;pointer-events:none;display:none}
-.bp2-wave .band{position:absolute;left:-10px;top:0;bottom:0;width:190px;background:linear-gradient(90deg,rgba(255,236,150,.95),rgba(255,190,60,.55) 35%,rgba(255,170,40,0));filter:blur(3px)}
-.bp2-wave .paw{position:absolute;left:-120px;bottom:6%;width:210px;height:210px;filter:drop-shadow(0 0 14px #ffd43b) drop-shadow(0 6px 6px rgba(0,0,0,.35));animation:bp2swipe .18s ease-in-out infinite alternate}
-@keyframes bp2swipe{from{rotate:-14deg;translate:0 -6px}to{rotate:8deg;translate:0 6px}}
+.bp2-sky{position:absolute;bottom:14px;width:230px;height:230px;transform:translateX(-50%);z-index:8;pointer-events:none;animation:bp2drop 1.35s cubic-bezier(.55,0,.85,.6) forwards;filter:drop-shadow(0 0 16px #ffd43b) drop-shadow(0 8px 8px rgba(0,0,0,.4))}.bp2-sky svg{width:100%;height:100%}
+@keyframes bp2drop{0%{transform:translate(-50%,-520px) scale(.7) rotate(-10deg);opacity:.9}44%{transform:translate(-50%,0) scale(1.15) rotate(0deg);opacity:1}50%{transform:translate(-50%,6px) scale(1.3,.8)}62%{transform:translate(-50%,0) scale(1.12)}82%{transform:translate(-50%,0) scale(1.12);opacity:1}100%{transform:translate(-50%,-90px) scale(1);opacity:0}}
+.bp2-pshadow{position:absolute;bottom:10px;width:200px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);transform:translateX(-50%);z-index:1;pointer-events:none;animation:bp2shadow 1.35s ease-in forwards}
+@keyframes bp2shadow{0%{transform:translateX(-50%) scale(.15);opacity:.2}44%{transform:translateX(-50%) scale(1);opacity:.7}80%{opacity:.6}100%{transform:translateX(-50%) scale(.6);opacity:0}}
 .bp2-blast{position:absolute;inset:0;background:radial-gradient(circle at var(--bx,90%) 70%,rgba(255,255,255,.95),rgba(255,236,150,.6) 30%,rgba(255,255,255,0) 70%);pointer-events:none;z-index:6;animation:bp2blast .5s ease-out forwards}
 @keyframes bp2blast{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
 .bp2-ent.cheer .e{animation:bp2cheer .3s ease-in-out 4 alternate !important}@keyframes bp2cheer{from{translate:0 0}to{translate:0 -20px}}
@@ -233,7 +253,7 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-ent .hb{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:2px;overflow:hidden}.bp2-ent .hb i{display:block;height:100%;background:#40c057}.bp2-ent.foe .hb i{background:#e8590c}
 .bp2-ent.walk .e{animation:bp2hop .45s ease-in-out infinite}@keyframes bp2hop{50%{translate:0 -6px}}
 .bp2-ent .tag{font-size:10px;font-weight:700;background:rgba(255,255,255,.8);border-radius:6px;padding:0 4px;margin-top:1px}
-.bp2-base{position:absolute;bottom:20px;font-size:72px;transform:translateX(-50%);transition:filter .3s}
+.bp2-base{position:absolute;bottom:16px;font-size:72px;line-height:1;transform:translateX(-50%);z-index:1}.bp2-base:has(svg){line-height:0}
 .bp2-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .bp2-meter{flex:1;min-width:160px;height:22px;background:#fff3bf;border-radius:11px;overflow:hidden;position:relative;border:2px solid #f2b705}.bp2-meter i{display:block;height:100%;background:#f2b705}.bp2-meter span{position:absolute;inset:0;text-align:center;font-weight:800;font-size:13px;line-height:18px}
 .bp2-btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:8px 12px;min-height:44px;cursor:pointer;background:#7048e8;color:#fff}.bp2-btn:disabled{opacity:.45;cursor:default}.bp2-btn.gold{background:#f08c00}
@@ -258,17 +278,32 @@ function teamView(p){const S=stages().find(s=>s.id===VIEW.id);if(!S){VIEW={k:'st
  app.innerHTML=head(`${S.art} ${esc(S.name)} ${'👑'.repeat(VIEW.crown)}`,"BattlePets._back()")+`<div class="bp2"><div class="bp2-card"><b>Build your team</b> (up to ${n}). Tap a pet to add it, tap a team spot to take it out.
   <div class="muted" style="font-size:13px;margin:4px 0 8px">Critters here: ${S.crit.map(c=>`${c[1]} ${esc(c[0])} <i>(${TRAIT[c[2]].tag||'plain'})</i>`).join(' · ')}</div>
   <div class="bp2-slots">${Array.from({length:n},(_,i)=>{const id=team[i],pet=id&&PETS.find(x=>x.id===id);return `<button class="bp2-slot ${pet?'full':''}" onclick="BattlePets._out(${i})" aria-label="${pet?'Take '+esc(pet.name)+' out':'Empty spot'}">${pet?pet.e:''}</button>`;}).join('')}
-  <button class="bp2-btn gold" style="margin-left:auto" ${team.length?'':'disabled'} onclick="BattlePets._start()">Start! ▶</button></div></div>
-  <div class="bp2-card"><div class="bp2-pets">${av.map(pet=>{const R=roleOf(pet),inT=team.includes(pet.id);return `<button class="bp2-pet ${inT?'in':''}" onclick="BattlePets._in('${pet.id}')"><span class="pe">${pet.e}</span><b>${esc(pet.name)}</b><small>${R.e} ${R.n} · 🍖 ${R.cost}</small><small>Power ${powerOf(p,pet).toFixed(1)}×</small><small>${esc(R.tip)}</small></button>`;}).join('')||'<p>You have no pets at home right now. Pets at camp or the Pet Rescue can\'t battle.</p>'}</div></div></div></div>`;}
+  <button class="bp2-btn" style="margin-left:auto" onclick="BattlePets._auto()" ${av.length?'':'disabled'}>🎲 Pick for me</button><button class="bp2-btn gold" ${team.length?'':'disabled'} onclick="BattlePets._start()">Start! ▶</button></div></div>
+  <div class="bp2-card"><div class="bp2-row" style="margin-bottom:8px"><button class="bp2-filt ${VIEW.fly?'on':''}" onclick="BattlePets._flyFilter()" aria-pressed="${VIEW.fly?'true':'false'}">🐝 Stops flyers${VIEW.fly?' ✓':''}</button><small class="muted">${VIEW.fly?'Showing only pets that can reach flying critters.':'Tap to see which pets can reach flying critters.'}</small></div>
+  <div class="bp2-pets">${av.filter(pet=>!VIEW.fly||roleOf(pet).fly).map(pet=>{const R=roleOf(pet),inT=team.includes(pet.id);return `<button class="bp2-pet ${inT?'in':''}" onclick="BattlePets._in('${pet.id}')">${R.fly?'<span class="bp2-flyb" title="Can reach flying critters">🐝✓</span>':''}<span class="pe">${pet.e}</span><b>${esc(pet.name)}</b><small>${R.e} ${R.n} · 🍖 ${R.cost}</small><small>Power ${powerOf(p,pet).toFixed(1)}×</small><small>${esc(R.tip)}</small></button>`;}).join('')||(VIEW.fly?'<p>None of your pets at home can reach flyers yet. Pets with the ⭐ Lucky or 📈 XP skill can (they fight as Jumpers 🦘 and Archers 🏹).</p>':'<p>You have no pets at home right now. Pets at camp or the Pet Rescue can\'t battle.</p>')}</div></div></div></div>`;}
+/* 🎲 Pick for me: a good-enough team, not the best one. It covers what this stage needs (a Wall to hold the line, a flyer-catcher when
+   flyers come, a Brawler for armour, a Stomper for swarms), choosing middle-strength pets with some luck, then fills the rest the same way. */
+function autoPick(p,S){const av=available(p),n=slots(p),need=[],has=k=>S.crit.some(c=>c[2]===k),team=[];
+ need.push(R=>R.id==='wall');if(has('flying'))need.push(R=>!!R.fly);if(has('armored'))need.push(R=>R.id==='brawler');if(has('swarm'))need.push(R=>R.id==='stomper');
+ const mid=list=>{if(!list.length)return null;const sorted=list.slice().sort((a,b)=>powerOf(p,a)-powerOf(p,b));const lo=Math.floor(sorted.length*.25),hi=Math.max(lo+1,Math.ceil(sorted.length*.75));return choose(sorted.slice(lo,hi));};
+ need.forEach(ok=>{if(team.length>=n)return;const pet=mid(av.filter(x=>!team.includes(x)&&ok(roleOf(x))));if(pet)team.push(pet);});
+ while(team.length<n){const pet=mid(av.filter(x=>!team.includes(x)));if(!pet)break;team.push(pet);}
+ return team.map(x=>x.id);}
+/* before a battle: warn when flying critters are coming and nobody on the team can reach them */
+const flyRisk=(S,team)=>S.crit.some(c=>TRAIT[c[2]]&&TRAIT[c[2]].fly)&&!team.some(pet=>roleOf(pet).fly);
+function flyWarn(){const ov=document.createElement('div');ov.className='bp2-over';ov.id='bpFlyW';ov.innerHTML=`<div class="bp2-card"><div style="font-size:48px">🐝</div><h2>Flying critters are coming!</h2>
+  <p>Nobody on your team can reach them, so they'll fly right over your pets to your Pet House.</p><p class="muted">Jumpers 🦘 and Archers 🏹 can stop flyers.</p>
+  <div class="row"><button class="btn green" onclick="BattlePets._flyFix()">🐝 Show pets that stop flyers</button><button class="btn ghost dark" onclick="BattlePets._flyGo()">Start anyway</button></div></div>`;document.body.appendChild(ov);}
 function teamIn(id){const p=me();if(!p||VIEW.k!=='team')return;const t=VIEW.team;if(t.includes(id)){t.splice(t.indexOf(id),1);}else if(t.length<slots(p))t.push(id);else{toast('Your team is full. Tap a team spot to take a pet out first.');return;}screen();}
 function teamOut(i){if(VIEW.k!=='team')return;VIEW.team.splice(i,1);screen();}
 function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;const S=stages().find(s=>s.id===VIEW.id);const team=VIEW.team.map(id=>PETS.find(x=>x.id===id)).filter(Boolean);
+ if(!VIEW.flyOk&&flyRisk(S,team)){if(!document.getElementById('bpFlyW'))flyWarn();return;}
  prog(p).team=VIEW.team.slice();const b=p.bp=p.bp||{s:0,m:[]};b.s=(b.s||0)+1;save();
  newBattle(p,S,VIEW.crown,team);G.q=makeQ(p,S.op);VIEW={k:'fight',id:S.id,crown:G.crown};screen();}
 function fightView(p){const S=G.stage;
  app.innerHTML=head(`${S.art} ${esc(S.name)} ${'👑'.repeat(G.crown)}`,"BattlePets._quit()")+`<div class="bp2 wide">
   <div class="bp2-hud"><span>🏚️</span><div class="bp2-bar"><i id="bpDen" style="background:#e8590c"></i></div><span id="bpT" style="min-width:48px;text-align:center"></span><div class="bp2-bar"><i id="bpHouse" style="background:#40c057"></i></div><span>🏡</span></div>
-  <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">🏚️</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">🏡</span><div class="bp2-wave" id="bpWave"><div class="band"></div>${PAW}</div></div></div>
+  <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">${window.BPScene?BPScene.base('den',S):'🏚️'}</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">${window.BPScene?BPScene.base('house',S):'🏡'}</span></div></div>
   <div class="bp2-mini" id="bpMini" aria-label="Map of the battlefield: tap to look there"><span class="vw" id="bpVw"></span></div>
   <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button><button class="bp2-btn fix" id="bpFix" onclick="BattlePets._fix()"></button></div>
   <div class="bp2-team six">${G.team.map((s,i)=>`<button class="bp2-tc" id="bpTc${i}" onclick="BattlePets._send(${i})"><span class="pe">${s.pet.e}</span><small>${s.R.e} ${s.R.n}<span class="bp2-key">${i+1}</span></small><small>🍖 ${s.R.cost}</small><span class="cd" id="bpCd${i}"></span></button>`).join('')}
@@ -277,19 +312,24 @@ function fightView(p){const S=G.stage;
    <div class="bp2-q"><span id="bpQ"></span><span class="box" id="bpIn">&nbsp;</span><button class="btn small ghost dark" onclick="BattlePets._say()" aria-label="Read it to me">🔊</button></div><div class="bp2-msg" id="bpMsg"></div>
    <div class="bp2-pad">${['1','2','3','4','5','6','7','8','9','0','.','⌫'].map(k=>`<button onclick="BattlePets._key('${k}')">${k}</button>`).join('')}<button class="go" style="grid-column:1/-1" onclick="BattlePets._key('go')">✓ Check <span class="bp2-key">Enter</span></button></div></div>
   ${S.note?`<p class="muted" style="font-size:12px;margin:0">${esc(S.note)}</p>`:''}</div></div>`;
- const sc=document.getElementById('bpScroll');sc.scrollLeft=sc.scrollWidth;panSetup(sc);
+ const sc=document.getElementById('bpScroll');sc.scrollLeft=sc.scrollWidth;panSetup(sc);scene();
  document.getElementById('bpMini').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();lookAt((e.clientX-r.left)/r.width*100);});
  G.shown=false;draw();startLoop();}
 /* looking around the wide battlefield: swipe (touch scrolls natively), drag with the mouse, the mouse wheel, the arrow keys or the little map */
-/* the camera glides to where the two sides meet; when the kid looks around by hand it waits 5 seconds, then glides back */
+/* the camera follows our lead pet; when the kid looks around by hand it waits 5 seconds, then glides back */
 let CAM_HOLD=0;const holdCam=()=>{CAM_HOLD=performance.now()+5000;};
-function camera(){const sc=document.getElementById('bpScroll');if(!sc||!G)return;if(G.wave){const t=Math.max(0,G.wave.x/100*sc.scrollWidth-sc.clientWidth*.55);sc.scrollLeft+=(t-sc.scrollLeft)*.35;return;}if(performance.now()<CAM_HOLD)return;const x=frontX();
- const tgt=Math.max(0,Math.min(sc.scrollWidth-sc.clientWidth,x/100*sc.scrollWidth-sc.clientWidth/2)),d=tgt-sc.scrollLeft;if(Math.abs(d)>3)sc.scrollLeft+=Math.sign(d)*Math.max(1.5,Math.abs(d)*.07);}
+function camera(){const sc=document.getElementById('bpScroll');if(!sc||!G)return;if(G.camAt&&G.t<G.camAt.until){const t=Math.max(0,G.camAt.x/100*sc.scrollWidth-sc.clientWidth*.5);sc.scrollLeft+=(t-sc.scrollLeft)*.3;return;}if(performance.now()<CAM_HOLD)return;const x=leadX();
+ const tgt=Math.max(0,Math.min(sc.scrollWidth-sc.clientWidth,x/100*sc.scrollWidth-sc.clientWidth*.6)),d=tgt-sc.scrollLeft;if(Math.abs(d)>3)sc.scrollLeft+=Math.sign(d)*Math.max(1.5,Math.abs(d)*(Math.abs(d)>sc.clientWidth*.5?.16:.08));}
+/* the camera rides with our lead pet (the one furthest forward); with no pets out it rests on the Pet House */
+function leadX(){const P2=G.pets.filter(u=>!u.gone);return P2.length?Math.min(...P2.map(u=>u.x)):HOUSE_X;}
 function frontX(){const P2=G.pets.filter(u=>!u.gone),F=G.foes.filter(f=>!f.gone);const pf=P2.length?Math.min(...P2.map(u=>u.x)):null,ff=F.length?Math.max(...F.map(f=>f.x)):null;
  if(pf!==null&&ff!==null)return (pf+ff)/2;if(pf!==null)return pf;if(ff!==null)return ff;return HOUSE_X;}
 function lookAt(pct){holdCam();const sc=document.getElementById('bpScroll');if(!sc)return;sc.scrollTo({left:pct/100*sc.scrollWidth-sc.clientWidth/2,behavior:'smooth'});}
 function panBy(px){holdCam();const sc=document.getElementById('bpScroll');if(sc)sc.scrollBy({left:px,behavior:'smooth'});}
-function panSetup(sc){let d=null;
+/* the scenery (bpscene.js): built for this stage and crown, re-built when the screen changes size, slid by the scroll */
+function scene(){try{const f=document.getElementById('bpField'),sc=document.getElementById('bpScroll');if(!window.BPScene||!f||!sc||!G)return;BPScene.build(f,sc,G.stage,G.crown);if(G.boss&&!G.bossDown)BPScene.grey(true);}catch(e){}}
+let RSZ=0;window.addEventListener('resize',()=>{clearTimeout(RSZ);RSZ=setTimeout(()=>{if(typeof curScreen!=='undefined'&&curScreen==='bp'&&VIEW.k==='fight')scene();},250);});
+function panSetup(sc){let d=null;sc.addEventListener('scroll',()=>{try{if(window.BPScene)BPScene.parallax(sc);}catch(e){}},{passive:true});
  sc.addEventListener('pointerdown',holdCam);sc.addEventListener('touchstart',holdCam,{passive:true});sc.addEventListener('touchmove',holdCam,{passive:true});
  sc.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0)return;d={x:e.clientX,l:sc.scrollLeft};sc.classList.add('drag');});
  window.addEventListener('pointermove',e=>{if(!d)return;holdCam();sc.scrollLeft=d.l-(e.clientX-d.x);});
@@ -320,26 +360,30 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
   const now=performance.now();if(u.kbT!==u.kbSeen){u.kbSeen=u.kbT;u.kbUntil=now+420;u.el.classList.remove('kb');void u.el.offsetWidth;u.el.classList.add('kb');puff(u.x,'dust');}
   if(u.kbUntil&&now>u.kbUntil){u.kbUntil=0;u.el.classList.remove('kb');puff(u.x,'dust');}
   if(u.lastHp!==undefined&&u.hp<u.lastHp){u.hurtAcc=(u.hurtAcc||0)+u.lastHp-u.hp;if(u.hurtAcc>u.max*.07){u.hurtAcc=0;u.hurtUntil=now+120;}}u.lastHp=u.hp;u.el.classList.toggle('hurt',(u.hurtUntil||0)>now);
-  if(u.mega&&u.windT!==u.windSeen){u.windSeen=u.windT;u.el.classList.remove('pound');void u.el.offsetWidth;u.el.classList.add('pound');}
-  u.el.style.left=u.x+'%';u.el.classList.toggle('walk',!!u.mv&&!u.fight);u.el.classList.toggle('fight',!!u.fight);if(u.mega)u.el.classList.add('mega');u.el.querySelector('.hb i').style.width=Math.max(0,u.hp/u.max*100)+'%';});
+  if(u.mega&&u.leapT!==undefined&&!u.leapSeen){u.leapSeen=1;u.el.style.left=HOUSE_X+'%';void u.el.offsetWidth;u.el.classList.add('leap');setTimeout(()=>{try{u.el.classList.remove('leap');puffAny(u.x,'ring');puffAny(u.x-1,'dust');puffAny(u.x+1,'dust');shake();tone(55,.35,'sine',.14);}catch(e){}},900);}
+  if(u.mega&&u.windT!==u.windSeen){u.windSeen=u.windT;u.el.classList.remove('roar');void u.el.offsetWidth;u.el.classList.add('roar');}
+  u.el.style.left=u.x+'%';u.el.classList.toggle('walk',!!u.mv&&!u.fight);if(u.mv&&!u.fly&&window.BPScene&&Math.random()<.025)BPScene.scuff(u.x);u.el.classList.toggle('fight',!!u.fight);if(u.mega)u.el.classList.add('mega');u.el.querySelector('.hb i').style.width=Math.max(0,u.hp/u.max*100)+'%';});
  G.pets=G.pets.filter(u=>!(u.gone&&u.dead));G.foes=G.foes.filter(u=>!(u.gone&&u.dead));
- clash();baseSmoke();waveFx();camera();
+ clash();baseSmoke();pawHits();camera();flyHint();
  {const tb=document.getElementById('bpTroll'),tc=document.getElementById('bpTrollCd');if(tb&&tc){const out=trollOut(),wait=Math.max(0,G.trollAt-G.t),span=G.trolls?TROLL.cd:TROLL.first;
   tc.style.height=(out?100:wait/span*100)+'%';tb.classList.toggle('poor',G.treats<TROLL.cost||out||wait>0);tb.title=out?`${TROLL.n} is stomping!`:wait>0?`${TROLL.n} is coming in ${Math.ceil(wait)} s`:`Call ${TROLL.n}!`;}}
  const q=id=>document.getElementById(id);q('bpDen').style.width=(G.denHP/G.denMax*100)+'%';q('bpHouse').style.width=(G.houseHP/G.houseMax*100)+'%';q('bpT').textContent=Math.floor(G.t)+'s';
  q('bpTreat').style.width=(G.treats/treatCap()*100)+'%';q('bpTreatT').textContent=`🍖 ${Math.floor(G.treats)} / ${treatCap()}`;
  const fb=q('bpFix'),fp=q('bpFixP'),cf=canFix();fb.innerHTML=`🧱 Rebuild <span class="bp2-key">R</span><br><small>${G.bricks} brick${G.bricks===1?'':'s'}</small>`;fb.disabled=!G.fixing&&!cf;fb.classList.toggle('hot',cf&&!G.fixing);
  if(fp){if(G.fixing!==G.shown){G.shown=G.fixing;fp.style.display=G.fixing?'':'none';if(G.fixing){showQ(false);try{fp.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(e){}}}const bk=q('bpBricks');if(bk)bk.textContent=`🧱 × ${G.bricks}`;}
- const hb=q('bpHouseB');if(hb)hb.style.filter=G.houseHP<G.houseMax*.3?'grayscale(.6) brightness(.8)':'';const db=q('bpDenB');if(db)db.style.filter=G.denHP<G.denMax*.3?'grayscale(.6) brightness(.8)':'';
+ if(window.BPScene){BPScene.baseState(q('bpHouseB'),G.houseHP/G.houseMax);BPScene.baseState(q('bpDenB'),G.denHP/G.denMax);if(G.boss&&!G.bossDown)BPScene.grey(true);}
  miniMap();
  const kb=q('bpKit');kb.textContent=G.kl>=4?'🍳 Kitchen max':`🍳 Kitchen ${G.kl+1}→${G.kl+2} · 🍖${kitchenCost()}`;kb.disabled=G.kl>=4||G.treats<kitchenCost();
  const pb=q('bpPounce');pb.textContent=G.charge>=100?'🐾 POUNCE!':`🐾 ${Math.floor(G.charge)}%`;pb.disabled=G.charge<100;
  G.team.forEach((s,i)=>{const c=q('bpCd'+i),b=q('bpTc'+i);if(!c)return;const left=Math.max(0,s.ready-G.t);c.style.height=(left/s.R.cd*100)+'%';b.classList.toggle('poor',G.treats<s.R.cost);});
- while(G.fx.length){const k=G.fx.shift();try{if(k==='send')tone(440,.1,'square',.03);else if(k==='poof')tone(300,.12,'triangle',.04);else if(k==='pounce'){[392,523,659,784,1047].forEach((h,j)=>tone(h,.14,'triangle',.07,j*.05));tone(90,.5,'sawtooth',.05,.05);shake();flash('🐾 PET POUNCE!',true);
-    const fl=document.getElementById('bpField');if(fl){const b=document.createElement('div');b.className='bp2-blast';b.style.setProperty('--bx',HOUSE_X+'%');fl.appendChild(b);setTimeout(()=>b.remove(),600);}
-    G.pets.forEach(u=>{if(u.el&&!u.gone&&!u.mega){u.el.classList.add('cheer');setTimeout(()=>{try{u.el.classList.remove('cheer');}catch(e){}},1300);}});}else if(k==='boss'){shake();tone(110,.6,'sawtooth',.06);flash(`The ${G.stage.boss[0]} bursts out!`);}else if(k==='bossdown')toast('The boss is down! Knock over the den!');else if(k==='kitchen')SFX.coin();else if(k==='brick')tone(660,.08,'square',.04);else if(k==='standH'){shake();flash('🏡 LAST STAND! Critters thrown back!');[392,523,659].forEach((h,j)=>tone(h,.15,'square',.06,j*.08));}else if(k==='standD')flash('🏚️ The den shakes your pets back!');else if(k==='tired')toast('😴 The critters are getting sleepy. Push now!');
+ while(G.fx.length){const k=G.fx.shift();try{if(k==='send')tone(440,.1,'square',.03);else if(k==='poof')tone(300,.12,'triangle',.04);else if(k==='pounce'){const x=G.slam?G.slam.x:50;[392,523,659,784].forEach((h,j)=>tone(h,.12,'triangle',.06,j*.06));flash('🐾 PET POUNCE!',true);
+    const fl=document.getElementById('bpField');if(fl){const sh=document.createElement('div');sh.className='bp2-pshadow';sh.style.left=x+'%';const pw=document.createElement('div');pw.className='bp2-sky';pw.style.left=x+'%';pw.innerHTML=PAW;fl.appendChild(sh);fl.appendChild(pw);setTimeout(()=>{sh.remove();pw.remove();},1450);}
+    G.pets.forEach(u=>{if(u.el&&!u.gone&&!u.mega){u.el.classList.add('cheer');setTimeout(()=>{try{u.el.classList.remove('cheer');}catch(e){}},1300);}});}
+   else if(k==='slam'){const x=G.slamX;shake();setTimeout(shake,180);tone(48,.6,'sine',.22);tone(90,.25,'square',.08);tone(1400,.18,'triangle',.03,.02);
+    puffAny(x,'ring');setTimeout(()=>puffAny(x,'ring'),120);for(let i=0;i<6;i++)puffAny(x+(Math.random()*8-4),'dust');
+    const fl=document.getElementById('bpField');if(fl){const b=document.createElement('div');b.className='bp2-blast';b.style.setProperty('--bx',x+'%');fl.appendChild(b);setTimeout(()=>b.remove(),600);}}else if(k==='boss'){shake();if(window.BPScene)BPScene.grey(true);tone(110,.6,'sawtooth',.06);flash(`The ${G.stage.boss[0]} bursts out!`);}else if(k==='bossdown'){if(window.BPScene)BPScene.rainbow();flash('🌈 The colors are back! Knock over the den!');}else if(k==='kitchen')SFX.coin();else if(k==='brick')tone(660,.08,'square',.04);else if(k==='standH'){shake();flash('🏡 LAST STAND! Critters thrown back!');[392,523,659].forEach((h,j)=>tone(h,.15,'square',.06,j*.08));}else if(k==='standD')flash('🏚️ The den shakes your pets back!');else if(k==='tired')toast('😴 The critters are getting sleepy. Push now!');
    else if(k==='troll'){shake();flash(`🧌 ${TROLL.n} stomps in!`);tone(70,.5,'sawtooth',.08);tone(55,.6,'square',.05,.2);}
-   else if(k==='stomp'){const t=G.pets.find(u=>u.mega&&!u.gone);if(t){puff(t.x-5,'ring');puff(t.x-6,'dust');puff(t.x-4,'dust');puff(t.x-2,'dust');puff(t.x-5,'star');}shake();tone(60,.25,'sine',.12);}
+   else if(k==='roar'){const t=G.pets.find(u=>u.mega&&!u.gone);if(t){[0,110,220,330].forEach(ms=>setTimeout(()=>puffAny(t.x-1.6,'sound',78),ms));puffAny(t.x-2.5,'word',150);puffAny(t.x-3,'dust');puffAny(t.x-5,'dust');}shake();setTimeout(shake,250);roarSound();}
    else if(k==='trollbye')toast(`🧌 ${TROLL.n} stomps home. He'll be back!`);
    else if(k==='bossHit'){shake();tone(90,.18,'sawtooth',.04);}}catch(e){}}}
 /* effects: little dust clouds, smoke and hit stars, kept to a handful at a time so older iPads stay smooth */
@@ -348,24 +392,35 @@ function puff(x,kind){if(PTS>=36)return;const f=document.getElementById('bpField
  if(kind==='star')d.textContent=Math.random()<.5?'💥':'✨';if(kind==='dust')d.style.setProperty('--dx',(Math.random()*24-12)+'px');PTS++;f.appendChild(d);
  const done=()=>{if(d.parentNode){d.remove();PTS--;}};d.addEventListener('animationend',done);setTimeout(done,900);}
 function clash(){const now=performance.now();if(now<CLASH)return;CLASH=now+170;const fighters=G.pets.concat(G.foes).filter(u=>!u.gone&&u.fight);if(!fighters.length)return;
- const u=fighters[Math.floor(Math.random()*fighters.length)];const x=u.x+(u.side==='p'?-2:2)+(Math.random()*2-1);puff(x,'dust');if(Math.random()<.22)puff(x,'star');}
+ const u=fighters[Math.floor(Math.random()*fighters.length)];const x=u.x+(u.side==='p'?-2:2)+(Math.random()*2-1);puff(x,'dust');if(window.BPScene&&Math.random()<.4)BPScene.scuff(x);if(Math.random()<.22)puff(x,'star');}
 /* a hurt base smokes: from 25% damage, more and darker smoke the more it is hurt, with embers near the end */
 let WSEEN=0;
-function waveFx(){const el=document.getElementById('bpWave');if(!el)return;const w=G.wave;el.style.display=w?'block':'none';if(!w)return;el.style.left=w.x+'%';
- if(Math.random()<.7)puffAny(w.x+1+Math.random()*2,'dust');if(Math.random()<.5){puffAny(w.x+2,'streak',30+Math.random()*120);}
- G.foes.forEach(f=>{if(f.pawT&&f.pawT!==f.pawSeen&&!f.gone){f.pawSeen=f.pawT;puffAny(f.x,'star',60);puffAny(f.x,'dust');try{tone(520+Math.random()*200,.07,'square',.05);}catch(e){}}});}
+/* stars on every critter the paw hit */
+function pawHits(){G.foes.forEach(f=>{if(f.pawT&&f.pawT!==f.pawSeen&&!f.gone){f.pawSeen=f.pawT;puffAny(f.x,'star',60);puffAny(f.x,'dust');}});}
 /* effects that must show even when the screen is busy (the pounce) */
 function puffAny(x,kind,y){const f=document.getElementById('bpField');if(!f||PTS>60)return;const d=document.createElement('div');d.className='bp2-pt '+kind;d.style.left=x+'%';if(y!==undefined)d.style.bottom=y+'px';
- if(kind==='star')d.textContent=Math.random()<.5?'💥':'⭐';if(kind==='dust')d.style.setProperty('--dx',(Math.random()*30)+'px');PTS++;f.appendChild(d);
+ if(kind==='star')d.textContent=Math.random()<.5?'💥':'⭐';if(kind==='word')d.textContent='RRROOAAARR!';if(kind==='dust')d.style.setProperty('--dx',(Math.random()*30)+'px');PTS++;f.appendChild(d);
  const done=()=>{if(d.parentNode){d.remove();PTS--;}};d.addEventListener('animationend',done);setTimeout(done,900);}
+/* Grumbleroot's roar, made live: a growl that falls in pitch, rough breath noise and a deep rumble */
+function roarSound(){try{if(typeof state!=='undefined'&&!state.sound)return;const ctx=AC||(AC=new(window.AudioContext||window.webkitAudioContext)());const out=fxOut(ctx),t=ctx.currentTime;
+ const nb=ctx.createBuffer(1,ctx.sampleRate*1.3,ctx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+ const n=ctx.createBufferSource(),bp=ctx.createBiquadFilter(),ng=ctx.createGain();n.buffer=nb;bp.type='bandpass';bp.Q.value=1.1;bp.frequency.setValueAtTime(900,t);bp.frequency.exponentialRampToValueAtTime(220,t+1.15);
+ ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.55,t+.08);ng.gain.setValueAtTime(.5,t+.7);ng.gain.exponentialRampToValueAtTime(.0001,t+1.25);n.connect(bp);bp.connect(ng);ng.connect(out);n.start(t);n.stop(t+1.3);
+ const o=ctx.createOscillator(),lp=ctx.createBiquadFilter(),og=ctx.createGain(),lfo=ctx.createOscillator(),lg=ctx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(62,t+1.15);
+ lp.type='lowpass';lp.frequency.value=950;og.gain.setValueAtTime(.0001,t);og.gain.exponentialRampToValueAtTime(.28,t+.07);og.gain.setValueAtTime(.26,t+.75);og.gain.exponentialRampToValueAtTime(.0001,t+1.2);
+ lfo.frequency.value=21;lg.gain.value=.12;lfo.connect(lg);lg.connect(og.gain);o.connect(lp);lp.connect(og);og.connect(out);o.start(t);lfo.start(t);o.stop(t+1.25);lfo.stop(t+1.25);
+ const sub=ctx.createOscillator(),sg=ctx.createGain();sub.frequency.setValueAtTime(70,t);sub.frequency.exponentialRampToValueAtTime(40,t+1.1);sg.gain.setValueAtTime(.35,t);sg.gain.exponentialRampToValueAtTime(.0001,t+1.2);sub.connect(sg);sg.connect(out);sub.start(t);sub.stop(t+1.25);}catch(e){}}
 const SMKT={};let SMKN=0;
-function baseSmoke(){const now=performance.now();[['h',G.houseHP/G.houseMax,HOUSE_X],['d',G.denHP/G.denMax,DEN_X]].forEach(([k,hp,x])=>{const dmg=1-hp;if(dmg<.25||now<(SMKT[k]||0))return;
- const I=Math.min(1,(dmg-.25)/.7);SMKT[k]=now+1000/(1.2+11*I);smoke(x,I);if(I>.55&&Math.random()<I*.5)smoke(x,I,true);});}
-function smoke(x,I,ember){if(SMKN>=44)return;const f=document.getElementById('bpField');if(!f)return;const d=document.createElement('div'),sz=Math.round(22+30*I*(.7+Math.random()*.6)),g=Math.round(205-150*I);
- d.className='bp2-pt '+(ember?'ember':'smoke');d.style.left=(x+(Math.random()*3-1.5))+'%';d.style.bottom=(58+Math.random()*30)+'px';
+function baseSmoke(){const now=performance.now();[['h',G.houseHP/G.houseMax,HOUSE_X],['d',G.denHP/G.denMax,DEN_X]].forEach(([k,hp,x0])=>{const top=k==='h'&&Math.random()<.55,x=top?x0+1.2:x0+(Math.random()*3-1.5),y=top?116:52+Math.random()*50;const dmg=1-hp;if(dmg<.25||now<(SMKT[k]||0))return;
+ const I=Math.min(1,(dmg-.25)/.7);SMKT[k]=now+1000/(1.2+11*I);smoke(x,I,false,y);if(I>.55&&Math.random()<I*.5)smoke(x,I,true,y);});}
+function smoke(x,I,ember,y){if(SMKN>=44)return;const f=document.getElementById('bpField');if(!f)return;const d=document.createElement('div'),sz=Math.round(22+30*I*(.7+Math.random()*.6)),g=Math.round(205-150*I);
+ d.className='bp2-pt '+(ember?'ember':'smoke');d.style.left=(x+(Math.random()*1.2-.6))+'%';d.style.bottom=(y||70)+'px';
  if(!ember){d.style.width=d.style.height=sz+'px';d.style.background=`rgb(${g},${g},${g+6})`;d.style.setProperty('--op',(.55+.35*I).toFixed(2));d.style.setProperty('--dur',(1.7+1.1*I).toFixed(2)+'s');}
  d.style.setProperty('--dx',(Math.random()*60-30)+'px');d.style.setProperty('--rise',Math.round(100+80*I)+'px');SMKN++;f.appendChild(d);
  const done=()=>{if(d.parentNode){d.remove();SMKN--;}};d.addEventListener('animationend',done);setTimeout(done,3200);}
+/* the first time a flyer slips past the front line, say how to stop it */
+function flyHint(){if(G.flyHint)return;const P2=G.pets.filter(u=>!u.gone&&!u.mega);if(!P2.length)return;const front=Math.min(...P2.map(u=>u.x));
+ if(G.foes.some(f=>!f.gone&&f.fly&&f.x>front+3)){G.flyHint=true;toast(G.team.some(s=>s.R.fly)?'🐝 Flyers float over pets that can\'t reach them! Send your Jumper 🦘 or Archer 🏹.':'🐝 Flyers float over pets that can\'t reach them! Next time, bring a Jumper 🦘 or an Archer 🏹.');}}
 function shake(){const sc=document.getElementById('bpScroll');if(!sc)return;sc.classList.remove('shake');void sc.offsetWidth;sc.classList.add('shake');}
 function flash(t,big){const f=document.getElementById('bpScroll');if(!f)return;const d=document.createElement('div');d.className='bp2-flash'+(big?' bp2-pounce-t':'');d.textContent=t;d.style.position='fixed';d.style.top='40%';document.body.appendChild(d);setTimeout(()=>d.remove(),1700);}
 let MINI=0;function miniMap(){if(++MINI%4)return;const m=document.getElementById('bpMini'),sc=document.getElementById('bpScroll');if(!m||!sc||!G)return;
@@ -393,7 +448,7 @@ function quit(){if(G&&!G.over&&G.t>3){if(!document.getElementById('bpQuit')){con
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[BP_Y]&&W.T[BP_Y][BP_X];if(!t||t.water)return;
  if(on(me())){if(t.npc!=='bp'&&!t.npc&&!t.chest){if(W.hx===BP_X&&W.hy===BP_Y)return;t.npc='bp';t.block=true;t.o=null;}}
  else if(t.npc==='bp'){delete t.npc;t.block=false;}}catch(e){}}
-window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();if(s!=='bp'){stopLoop();document.querySelectorAll('.bp2-over').forEach(x=>x.remove());}},session:()=>{G=null;VIEW={k:'stages'};syncTile();}});
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();if(s!=='bp'){stopLoop();document.querySelectorAll('.bp2-over').forEach(x=>x.remove());try{if(window.BPScene)BPScene.stop();}catch(e){}}},session:()=>{G=null;VIEW={k:'stages'};syncTile();}});
 
 /* ---------- Parent Corner: the play log ---------- */
 function stats(p){const b=(p&&p.bp)||{},m=b.m||[];const w=m.filter(x=>x[2]).length,days=new Set(m.map(x=>new Date(x[0]*1000).toDateString())).size;
@@ -408,7 +463,7 @@ window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 
 (function reg(){if(typeof SCREENS!=='undefined'){SCREENS.bp=()=>screen();}else setTimeout(reg,30);})();
 window.BattlePets={on,stats,stages,
- _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>{if(send(i))draw();},_kit:()=>{if(upgradeKitchen())draw();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();},_key:key,_again:again,_back:backTo,_quit:quit,
+ _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>{if(send(i))draw();},_kit:()=>{if(upgradeKitchen())draw();},_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S);try{SFX.tap();}catch(e){}screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))toast('No critters to pounce on yet!');},_key:key,_again:again,_back:backTo,_quit:quit,
  _say:()=>{try{if(G&&G.q)speakToggle(()=>say(speakable(qText(G.q)),.9));}catch(e){}},_sync:syncTile,
- _dbg:{TUNE,CROWN,TROLL,petSpd,G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
+ _dbg:{TUNE,CROWN,TROLL,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
 })();
