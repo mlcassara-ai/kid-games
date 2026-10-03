@@ -122,8 +122,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02zh";</script>
-<script src="lq-core.js?v=2026.10.02zh"></script>
+<script>window.LQ_VER="2026.10.02zi";</script>
+<script src="lq-core.js?v=2026.10.02zi"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -773,7 +773,7 @@ fm.addEventListener("pointerup",e=>{ if(e.target===fm) closeFm(); });
 function distractors(ch){ const g=(LIKE.find(x=>x.includes(ch))||[]).filter(x=>x!==ch); const pool=[...g]; const all=Object.keys(LNAME).filter(x=>x!==ch&&!g.includes(x));
   while(pool.length<2) pool.push(all.splice(Math.random()*all.length|0,1)[0]); return pool.sort(()=>Math.random()-.5).slice(0,2); }
 // big "hear it again" buttons for a found friend: the animal's name, and the letter it starts with
-const hearRow=f=>`<div class="hearrow"><button class="btn ghost" id="fHearName">🔊 <span lang="ar">${f.ar}</span></button><button class="btn ghost" id="fHearLetter">🔊 <span lang="ar">${f.ch}</span> <span lang="ar">${LNAME[f.ch]}</span></button></div>
+const hearRow=f=>`<div class="hearrow"><button class="btn ghost" id="fHearName">🔊 <span lang="ar">${f.ar}</span></button><button class="btn ghost" id="fHearLetter">🔊 <span lang="ar" style="font-size:1.9rem">${f.ch}</span></button></div>
   <p style="margin:4px 0 0;color:var(--muted);font-size:.95rem">Tap to hear them again as many times as you like.</p>`;
 function wireHear(f){ const n=document.getElementById("fHearName"), l=document.getElementById("fHearLetter"); if(n) n.onclick=()=>say(f.ar); if(l) l.onclick=()=>say(LNAME[f.ch]);
   fmBox.querySelectorAll(".big,.ltr").forEach(e=>{ e.style.cursor="pointer"; e.onclick=()=>say(e.classList.contains("ltr")?LNAME[f.ch]:f.ar); }); }
