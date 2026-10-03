@@ -69,7 +69,7 @@ function genBay(stop,t){const k=stop;
     explain:`Left: ${L.join(' + ')} = ${lt} kg. Right: ${R.join(' + ')} = ${rt} kg. ${ans==='Balanced'?'The same, so it stays level.':`The ${ans.toLowerCase()} side is heavier, so it tips down.`}`};}
   const wl=ri(2,t>2?12:8),dl=ri(1,5),wr=ri(2,t>2?12:8);let dr=ri(1,5);if(Math.random()<.25){const tq=wl*dl;const ds=[1,2,3,4,5].filter(d=>tq%d===0&&tq/d>=1&&tq/d<=15);if(ds.length){dr=one(ds);}}
   const wr2=Math.random()<.25?(wl*dl)/dr:wr;const W2=Number.isInteger(wr2)?wr2:wr;const lt=wl*dl,rt=W2*dr;const ans=lt===rt?'Balanced':lt>rt?'Left':'Right';
-  return {sc:{L:[[wl,dl]],R:[[W2,dr]],q:null},scene:bayScene,q:`A block farther from the middle pushes harder. Which side tips down?`,kind:'choice',choices:['Left','Balanced','Right'],answer:ans,
+  return {sc:{L:[[wl,dl]],R:[[W2,dr]],q:null},scene:bayScene,q:`A block farther from the middle has more turning power. Which side tips down?`,kind:'choice',choices:['Left','Balanced','Right'],answer:ans,
    explain:`Turning power = weight × distance. Left: ${wl} × ${dl} = ${lt}. Right: ${W2} × ${dr} = ${rt}. ${ans==='Balanced'?'Equal, so it balances!':`${ans} is bigger, so the ${ans.toLowerCase()} side goes down.`}`};}
  if(k===1){ /* make it level: pick the block for the empty spot */
   if(t<=1){const L=Array.from({length:t?2:1},()=>ri(1,t?8:5)),tot=L.reduce((a,b)=>a+b,0);const pos=3;
@@ -89,7 +89,7 @@ function genBay(stop,t){const k=stop;
    explain:`Left: ${wl} × ${dl} = ${wl*dl}. Right: ${wr} × ? = ${wl*dl}, so ? = ${wl*dl} ÷ ${wr} = ${dr}.`};}
  if(k===4){ /* pulleys */
   const n=t===0?2:ri(2,t>1?6:4),per=ri(t===0?2:3,t>1?25:10),kg=n*per;
-  return {sc:{n,kg},scene:pulleyScene,q:`${n} ropes share the weight of a crate that weighs ${kg} kg. How much does each rope hold up?`,kind:'num',answer:per,unit:'kg',explain:`${kg} ÷ ${n} = ${per} kg. More ropes = less work for each one. That's why pulleys make lifting easier.`};}
+  return {sc:{n,kg},scene:pulleyScene,q:`${n} ropes share the weight of a crate that weighs ${kg} kg. How much does each rope hold up?`,kind:'num',answer:per,unit:'kg',explain:`${kg} ÷ ${n} = ${per} kg. More ropes = less pull on each one. You pull farther, but it feels lighter. That's why pulleys make lifting easier.`};}
  return null;}
 
 /* ---------- Motion Mountain ---------- */
@@ -172,9 +172,9 @@ function genCity(stop,t){const k=stop;
   if(t===1){const n=one([2,4,6,8]);return {sc:{bats:n,bulbs:1,lit:true,label:'every 2 batteries ≈ 3 volts'},scene:cityScene,q:`Each battery gives about 1.5 volts, so every 2 batteries in a row give about 3 volts. How many volts do ${n} batteries in a row give?`,kind:'num',answer:n*1.5,unit:'volts',explain:`${n} batteries make ${n/2} pairs. ${n/2} × 3 = ${n*1.5} volts. Batteries in a row add up.`};}
   const n=ri(1,8);return {sc:{bats:n,bulbs:1,lit:true,label:'each battery ≈ 1.5 volts'},scene:cityScene,q:`Each battery gives about 1.5 volts. How many volts do ${n} batteries in a row give?`,kind:'num',answer:n*1.5,unit:'volts',explain:`${n} × 1.5 = ${fmtN(n*1.5)} volts. Batteries in a row add up.`};}
  if(k===2){const par=t>=2&&Math.random()<.4,swap=Math.random()<.5,dimQ=Math.random()<.5,S1=swap?'B':'A',S2=swap?'A':'B';
-  if(par)return {sc:{par:true,swap},scene:cityPair,q:`Each circuit has one battery. Which bulbs glow brighter: ${S1}'s single bulb, or each of ${S2}'s two bulbs side by side?`,kind:'choice',choices:['A','B','The same'],answer:'The same',explain:`Side by side (in parallel), each bulb has its own path and gets the battery's full push, so each glows as brightly as ${S1}'s bulb. The battery runs down faster, though.`};
+  if(par)return {sc:{par:true,swap},scene:cityPair,q:`Each circuit has one battery. Which bulbs glow brighter: ${S1}'s single bulb, or each of ${S2}'s two bulbs side by side?`,kind:'choice',choices:['A','B','The same'],answer:'The same',explain:`Side by side (in parallel), each bulb has its own path and gets the battery's full push, so each glows about as brightly as ${S1}'s bulb. The battery runs down faster, though.`};
   return {sc:{par:false,swap},scene:cityPair,q:`Each circuit has one battery. Which glows ${dimQ?'dimmer':'brighter'}: ${S1}'s single bulb, or one of ${S2}'s two bulbs in a row?`,kind:'choice',choices:['A','B','The same'],answer:dimQ?S2:S1,explain:`Bulbs in a row share the battery's push, so each of ${S2}'s bulbs gets less and glows dimmer than ${S1}'s.`};}
- if(k===3){if(t<2){const o=one([['🔑','a metal key',1],['📎','a metal paper clip',1],['🥄','a metal spoon',1],['🪙','a coin',1],['🧽','a sponge',0],['🥢','a wooden chopstick',0],['🎈','a rubber balloon',0],['🧦','a sock',0],['📏','a plastic ruler',0]]);
+ if(k===3){if(t<2){const o=one([['🔑','a metal key',1],['📎','a metal paper clip',1],['🥄','a metal spoon',1],['🪙','a coin',1],['🧽','a dry sponge',0],['🥢','a wooden chopstick',0],['🎈','a rubber balloon',0],['🧦','a dry sock',0],['📏','a plastic ruler',0]]);
    return {sc:{bats:1,bulbs:1,gap:true,bridge:o[0],lit:!!o[2],label:`${o[1]} across the gap`},scene:cityScene,q:`There's a gap in the wire. If you lay ${o[1]} across the gap, will the bulb light?`,kind:'choice',choices:['Yes','No'],answer:o[2]?'Yes':'No',
     explain:o[2]?`Metal lets electricity through (it's a conductor), so it closes the loop.`:`${o[1][0].toUpperCase()+o[1].slice(1)} doesn't let electricity through (it's an insulator), so the loop stays broken.`};}
   const R=one([2,3,4,5,6,10]),I=ri(1,t>2?6:4),V=R*I;const ask=one(t>2?['I','V','R']:['I','V']);

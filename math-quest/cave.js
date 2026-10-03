@@ -770,7 +770,7 @@ function solarInfo(){const t=TIER(),bw=bankMax()||CD.BANK[0].wh;modal(`<div clas
   <p>Your panels fill your <b>camp battery bank</b> (${fmt(bw)} Wh) whenever the sun is up, even while you are away. Then you <b>plug in</b> at camp to charge your helmet battery (${fmt(batWh())} Wh) in a flash.</p>
   <p>How long to fill the bank? <b>bank ÷ power</b>. With one 10 W panel: ${fmt(bw)} ÷ 10 = <b>${fmt(bw/10)} hours of daylight</b>.</p>
   <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums"><tr><th>Panels</th><th>Each</th><th>Total power</th><th>Fills your bank in</th></tr>${CD.SOLAR.filter(s=>s.w).map((s,i)=>`<tr style="${i+1===S.gear.solar?'font-weight:700;background:#fff3bf':''}"><td>${s.panels}</td><td>${s.each} W</td><td>${s.w} W</td><td>about ${sunTime(bw,s.w)}</td></tr>`).join('')}</table></div>
-  <p class="cv-sub">Why a battery bank? Panels only work while the sun is up, so homes with solar panels store the energy in batteries to use later, even at night. Here the game counts full power from ${DAY_ON} am to ${DAY_OFF-12} pm. Real panels make less on cloudy days and in the early morning or evening.</p>
+  <p class="cv-sub">Why a battery bank? Panels only work while the sun is up, so some homes with solar panels store the energy in batteries to use later, even at night. Here the game counts full power from ${DAY_ON} am to ${DAY_OFF-12} pm. Real panels make less on cloudy days and in the early morning or evening.</p>
   ${t?`<p class="cv-sub">Why does each step jump so much? You get more panels AND better ones. Real solar farms grow the same way: more panels, and newer panels that turn more of the sunlight into electricity.</p>`:''}<button class="cv-btn" data-close>Got it!</button></div>`);}
 function solarCard(){const t=TIER();S.bankT=Date.now();S.bankWh=S.bankWh||0;save(true);modal(`<div class="cv-card"><div class="cv-big">☀️</div><h2>Solar panel installed!</h2><p>Solar panels turn <b>sunlight</b> straight into <b>electricity</b>. Your panel fills a <b>camp battery bank</b> (${fmt(bankMax())} Wh) whenever the sun is up, even while you are away from the game.</p>
   <p>Back at camp, open ⚡ <b>Power Up</b> and tap <b>🔌 Plug in</b> to charge your helmet straight from the bank. One small panel makes <b>10 watts</b>, so it takes about <b>${sunTime(bankMax(),10)}</b> to fill the bank. Add more panels to fill it faster.</p>${t?`<p class="cv-sub">How a panel works: it is made of silicon cells. Sunlight knocks tiny particles called electrons loose in the silicon, and that flow of electrons is electricity. Most panels turn about a fifth of the sunlight that hits them into electricity.</p>`:''}<button class="cv-btn" data-close>Cool!</button></div>`);onClose=openGear;}
@@ -1277,28 +1277,28 @@ const CKP_L=[
   o:'The mantle is hot, solid rock that still flows, very slowly, a few centimetres a year. That slow flow is what moves the continents.',
   y2:'Diamonds are made down here in the mantle, by squeezing and heat!',
   o2:'Diamonds form here in the upper mantle, about 150 to 200 km down, where carbon is squeezed and heated. Volcanoes carry them up to the surface.',
-  h:'The mantle is solid, but over millions of years it flows by convection: hot rock rises and cooler rock sinks. That slow churning drags the plates of the crust around. This is plate tectonics.'},
+  h:'The mantle is solid, but over millions of years it flows by convection: hot rock rises and cooler rock sinks. That slow churning moves the plates of the crust around. This is plate tectonics.'},
  {n:'Lower mantle',d0:660,d1:2890,col:[214,84,24],secs:3.6,
   y:'Still the mantle! It is the biggest part of the Earth. Most of our planet is mantle.',
-  o:'Upper and lower mantle together make up about 84% of the Earth by volume. Down here it is over 3,000 °C, but the huge pressure keeps the rock solid.',
+  o:'Upper and lower mantle together make up about 84% of the Earth by volume. Down here it heats up from about 1,600 °C to over 3,500 °C, but the huge pressure keeps the rock solid.',
   y2:'Hot rock down here rises very, very slowly, like a lava lamp in super slow motion.',
-  o2:'Heat from the core makes mantle rock rise very slowly, cool, and sink again, like a lava lamp in extreme slow motion. One loop takes many millions of years.',
+  o2:'Heat from deep inside the Earth makes mantle rock rise very slowly, cool, and sink again, like a lava lamp in extreme slow motion. One loop takes many millions of years.',
   h:'The lower mantle is mostly a mineral called bridgmanite. It is the most common mineral in the whole Earth, yet almost nobody has ever held a piece, because it is only stable under enormous pressure.'},
  {n:'Outer core',d0:2890,d1:5150,col:[245,150,30],secs:3.6,liquid:1,
   y:'The outer core is LIQUID metal: a deep, swirling ocean of melted iron!',
   o:'The outer core is liquid iron and nickel. Its swirling makes the Earth\'s magnetic field, which is why a compass points north. We know it is liquid because some earthquake waves cannot pass through liquid, and they stop here.',
   y2:'The swirling metal here turns the whole Earth into a giant magnet. That is why a compass works!',
   o2:'The magnetic field made here works like a shield. It steers harmful particles from the Sun away from our air.',
-  h:'Earthquake S-waves cannot pass through liquid, so they vanish at the outer core and leave a "shadow" on the far side of the planet. That shadow is how scientists proved, in the early 1900s, that the outer core is liquid.',
+  h:'Earthquake S-waves cannot pass through liquid, so they vanish at the outer core and leave a "shadow" on the far side of the planet. That shadow is how scientists proved, in 1926, that the outer core is liquid.',
   guess:{q:'It is over 3,700 °C here. What do you think this layer is like?',a:'Liquid metal',b:'Solid rock',yes:'Good thinking!',no:'Surprise: it is liquid!'}},
  {n:'Inner core',d0:5150,d1:CKP_KM,col:[255,244,205],secs:3,solid:1,
   y:'The inner core is a giant ball of solid metal, right in the middle of the Earth. It is the hottest place of all!',
   o:'The inner core is a solid ball of iron and nickel, about as hot as the surface of the Sun. It stays solid because the weight of the whole planet squeezes it.',
-  y2:'The inner core is a metal ball a bit smaller than the Moon.',
-  o2:'The inner core is a metal ball about 2,440 km across, a bit smaller than the Moon. It grows by about a millimetre a year as the liquid metal around it slowly freezes.',
+  y2:'The inner core is a metal ball about two-thirds as wide as the Moon.',
+  o2:'The inner core is a metal ball about 2,440 km across, about two-thirds as wide as the Moon. It grows by about a millimetre a year as the liquid metal around it slowly freezes.',
   h:'The solid inner core was discovered in 1936 by Inge Lehmann, a Danish scientist, who noticed earthquake waves bouncing off something inside the liquid core. The pressure here is about 3.6 million times the air pressure at the surface.',
   guess:{q:'The very centre is even hotter than the liquid layer above. Liquid or solid?',a:'Solid',b:'Liquid',yes:'Yes! Hotter, but solid.',no:'Surprise: it is solid!'}}];
-const CKP_T=[[0,15],[40,500],[660,1600],[2890,3700],[5150,5000],[CKP_KM,5400]];
+const CKP_T=[[0,15],[40,500],[660,1600],[2890,3700],[5150,5300],[CKP_KM,5400]];
 const coreTemp=d=>{for(let i=1;i<CKP_T.length;i++)if(d<=CKP_T[i][0]){const a=CKP_T[i-1],b=CKP_T[i];return a[1]+(b[1]-a[1])*(d-a[0])/(b[0]-a[0]);}return 5400;};
 /* a[0] is the right answer; the choices are shuffled when shown. young = the short list for grades 1–2; hard = grades 6 and up only
    (their answers are taught in the 'h' facts those grades read on the way down) */
@@ -1312,7 +1312,7 @@ const CKP_Q=[
  {q:'Nobody has ever seen the core. How do scientists know what is inside the Earth?',a:['By studying earthquake waves','By digging a hole to the centre','By looking through a telescope'],why:'Earthquake waves bend, bounce and stop as they pass through the layers. Scientists read those waves like an X-ray of the planet.'},
  {q:'Which earthquake waves cannot travel through liquid?',a:['S-waves','P-waves','Radio waves'],hard:1,why:'S-waves stop at the liquid outer core. That is how we know it is liquid.'},
  {q:'Who discovered the Earth\'s solid inner core, in 1936?',a:['Inge Lehmann','Isaac Newton','Marie Curie'],hard:1,why:'Inge Lehmann spotted earthquake waves bouncing off a solid ball inside the liquid core.'},
- {q:'What slow movement in the mantle drags the plates of the crust around?',a:['Convection','Evaporation','Magnetism'],hard:1,why:'Hot rock rises and cooler rock sinks. That slow loop is convection.'},
+ {q:'What slow movement in the mantle helps move the plates of the crust around?',a:['Convection','Evaporation','Magnetism'],hard:1,why:'Hot rock rises and cooler rock sinks. That slow loop is convection.'},
  {q:'About how far is it from the ground to the centre of the Earth?',a:['About 6,400 km','About 64 km','About 640,000 km'],why:'It is about 6,371 km straight down.'}];
 const CKP_CSS=`#cvCore{position:absolute;inset:0;z-index:80;background:#17110e;color:#fff4e6;display:flex;justify-content:center;overflow:auto;font-size:16px;line-height:1.4}
 #cvCore .ck{width:100%;max-width:560px;padding:10px 14px;display:flex;flex-direction:column;gap:8px}

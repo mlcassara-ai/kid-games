@@ -91,10 +91,10 @@ const FACTS=[
  ['b6','You blink more than 10,000 times a day.'],
  ['w1','A fluffy white cloud can weigh as much as 100 elephants.'],
  ['w2','Lightning is about five times hotter than the surface of the Sun.'],
- ['w3','Honey never spoils. Honey found in ancient Egyptian tombs was still good to eat.'],
+ ['w3','Honey almost never goes bad. Pots of honey thousands of years old have been found in ancient Egyptian tombs, still preserved!'],
  ['w4','Bananas are a tiny bit radioactive, and totally safe to eat.'],
  ['w5','Sound travels about four times faster in water than in air.'],
- ['w6','The Eiffel Tower gets about 15 centimeters taller in summer, because metal grows when it is hot.']];
+ ['w6','The Eiffel Tower can grow up to about 15 centimeters taller on a hot summer day, because metal grows when it is hot.']];
 const SET_COINS=100,ALL_COINS=300,REPEAT_COINS=5;
 const rndN=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 function fz(p){p.fizz=p.fizz||{t:0,need:rndN(1,15),seen:[],sets:[]};const f=p.fizz;if(!Array.isArray(f.seen))f.seen=[];if(!Array.isArray(f.sets))f.sets=[];if(!(f.need>=1&&f.need<=15))f.need=rndN(1,15);return f;}
