@@ -34,6 +34,8 @@ def main():
             print("   miss  %s  %-8s wanted %s, picked %s" % (when(e.get("t")), e.get("z"), e.get("a"), e.get("b")))
         for e in (p.get("trail") or [])[-15:]:
             print("   went  %s  %-8s %s  (%s)" % (when(e.get("t")), e.get("z"), e.get("s"), e.get("v")))
+        for e in p.get("reports") or []:
+            print("   REPORT %s  %s on \"%s\" (%s): %s" % (when(e.get("t")), "idea" if e.get("k") == "idea" else "problem", e.get("s") or e.get("z"), e.get("v"), e.get("m")))
         for e in p.get("errs") or []:
             print("   PROBLEM %s  %-8s on \"%s\": %s %s (%s)" % (when(e.get("t")), e.get("z"), e.get("s"), e.get("m"), e.get("at"), e.get("v")))
 

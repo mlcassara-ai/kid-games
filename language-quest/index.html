@@ -122,8 +122,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02zk";</script>
-<script src="lq-core.js?v=2026.10.02zk"></script>
+<script>window.LQ_VER="2026.10.03a";</script>
+<script src="lq-core.js?v=2026.10.03a"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -1082,7 +1082,7 @@ document.getElementById("startBtn").onclick=()=>{
   document.getElementById("start").remove();
   LQ.profiles(()=>{ hud(); LQ.mark("Map: signed in"); setTimeout(()=>showZone(biomeAt(player.x,player.y)),400); });
 };
-function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("meName").textContent=p?p.name:"Me"; document.getElementById("meBtn").style.visibility=document.getElementById("whoBtn").style.visibility=p?"visible":"hidden"; /* the top bar shows who is playing */ }
+function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("meName").textContent=p?p.name:"Me"; document.getElementById("meBtn").style.visibility=document.getElementById("whoBtn").style.visibility=p?"visible":"hidden"; const rb=document.getElementById("lqReport"); if(rb) rb.style.visibility=p?"visible":"hidden"; /* the top bar shows who is playing */ }
 LQ.onChange(hud); hud();
 // "Go" on the Me page for the two places that live on the map
 addEventListener("lq:goto",e=>{ if(e.detail==="album") album(); if(e.detail==="basket") basketAlbum(); if(e.detail==="fountain"){ player.x=player.tx=FOUNTAIN.x; player.y=player.ty=FOUNTAIN.y+60; fountain(); } });

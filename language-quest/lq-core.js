@@ -142,6 +142,8 @@ const CSS=`
 .lq-tags.bad span{background:#FFE3E8}.lq-tags.good span{background:#DDF5EC}
 .lq-ar{font-size:1.35rem}
 .lq-small{font-size:.9rem;color:#5A6B82}
+.lq-kind{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 10px;font-weight:700}.lq-kind label{display:flex;gap:6px;align-items:center;cursor:pointer}.lq-kind input{width:20px;height:20px}
+#lqRep{width:100%;box-sizing:border-box;font:inherit;font-size:1.05rem;border:2px solid #D9E2EC;border-radius:14px;padding:10px;resize:vertical}
 .lq-top{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:760px;margin:0 auto}
 .lq-top b{font-size:1.3rem;font-weight:800}.lq-top b span{font-size:1rem;color:#1E5AA8}
 .lq-pill{background:#fff;color:#12233D;border:0;border-radius:999px;padding:6px 14px;font:inherit;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer;min-height:40px;display:inline-flex;align-items:center}
@@ -288,6 +290,7 @@ function kidDetailFor(p,back,family){ const st=p.stats||{};
       ${mix.length?`<div class="lq-tags bad">${mix.map(([k,n])=>{ const [a,b]=k.split("→"); const ar=t=>/[\u0600-\u06FF]/.test(t)?`<bdi class="lq-ar" lang="ar">${esc(t)}</bdi>`:`<b>${esc(t)}</b>`; return `<span>wanted ${ar(a)}, picked ${ar(b)} <span dir="ltr">(${n}×)</span></span>`; }).join("")}</div>`:`<p class="lq-small">No mix-ups yet.</p>`}</div>
     <div class="lq-card"><h2 style="text-align:left;margin-top:0">Most recent mistakes</h2>
       ${recent.length?recent.map(r=>`<div class="lq-small" style="margin:3px 0">${agoText(r.t)} · ${ZN[r.z]||esc(r.z)} · wanted <bdi style="font-size:1.15rem">${esc(r.a)}</bdi>${r.b?` · picked <bdi style="font-size:1.15rem">${esc(r.b)}</bdi>`:""}</div>`).join(""):`<p class="lq-small">None yet.</p>`}</div>
+    ${(p.reports||[]).length?`<div class="lq-card"><h2 style="text-align:left;margin-top:0">🐞 Reports and suggestions</h2>${(p.reports||[]).slice().reverse().map(r=>`<div style="margin:6px 0;padding:8px 10px;background:#F6F8FB;border-radius:12px"><div class="lq-small">${r.k==="idea"?"💡 Suggestion":"🐞 Problem"} · ${agoText(r.t)} · ${esc(r.s||r.z||"")} · ${esc(r.v||"")}</div><div>${esc(r.m)}</div></div>`).join("")}</div>`:""}
     <div class="lq-card"><h2 style="text-align:left;margin-top:0">Where they have been</h2>
       <p class="lq-small" style="margin:0 0 6px">The last screens opened, newest first. Useful if someone says they got stuck.</p>
       ${trail.length?trail.map(r=>`<div class="lq-small" style="margin:3px 0">${agoText(r.t)} · ${ZN[r.z]||esc(r.z)} · <bdi>${esc(r.s)}</bdi></div>`).join(""):`<p class="lq-small">Nothing recorded yet.</p>`}
@@ -349,7 +352,33 @@ function readHelp(){ if(!("speechSynthesis" in window)) return;
 function addHelpButton(){ if(document.getElementById("lqHelp")) return; const snd=document.getElementById("snd")||document.getElementById("soundBtn"); if(!snd) return;
   const b=document.createElement("button"); b.id="lqHelp"; b.className="pill"; b.type="button"; b.innerHTML='❓ <span class="lbl">Help</span>'; b.setAttribute("aria-label","Read the instructions aloud");
   b.onclick=e=>{ e.stopPropagation(); readHelp(); }; snd.parentNode.insertBefore(b,snd); }
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",addHelpButton); else addHelpButton();
+/* ---------------- 🐞 report a problem or a suggestion (beta testing) ----------------
+   Saved in the signed-in player's own save (p.reports, the last 30), with the screen and version it came from, so it syncs
+   with the family and can be read in the Parent Corner or with tools/peek.py. Nothing is sent anywhere else. */
+function reportForm(){ const p=cur(); if(!p) return;
+  overlay(`<div class="lq-card" style="max-width:520px;margin:20px auto">
+    <h2 style="margin-top:0">🐞 Tell us what you found</h2>
+    <p class="lq-small" style="margin:0 0 10px">Language Quest is still being tested. Everything you send helps make it better.</p>
+    <div class="lq-kind"><label><input type="radio" name="lqk" value="problem" checked> 🐞 Something is wrong</label><label><input type="radio" name="lqk" value="idea"> 💡 A suggestion</label></div>
+    <textarea id="lqRep" maxlength="600" rows="5" placeholder="What happened, or what would make it better?"></textarea>
+    <div class="lq-small" style="margin-top:4px">We also save which screen you were on (${esc(lastScreen||"the map")}) and the game version.</div>
+    <div id="lqRepErr" style="color:#C2476A;font-weight:700;min-height:1.2rem;margin-top:4px"></div>
+    <div class="lq-row"><button class="lq-btn gh" id="lqRepNo">Cancel</button><button class="lq-btn g" id="lqRepOk">Send ✓</button></div></div>`);
+  const box=document.getElementById("lqRep"); setTimeout(()=>box.focus(),50);
+  document.getElementById("lqRepNo").onclick=()=>{ closeOverlay(); fire(); };
+  document.getElementById("lqRepOk").onclick=()=>{ const m=box.value.trim(); if(m.length<3){ document.getElementById("lqRepErr").textContent="Please write a few words first."; box.focus(); return; }
+    const k=(document.querySelector('input[name="lqk"]:checked')||{}).value||"problem";
+    const q=cur(); if(!q) return; const r=q.reports=q.reports||[]; r.push({t:Date.now(),k,m:m.slice(0,600),s:lastScreen,z:zoneNow(),v:window.LQ_VER||"dev"}); if(r.length>30) r.splice(0,r.length-30);
+    save(); syncNow();
+    overlay(`<div class="lq-card" style="max-width:420px;margin:30px auto;text-align:center"><div style="font-size:3rem">🙏</div><h2>Thank you!</h2><p>We saved your ${k==="idea"?"suggestion":"report"}.</p>
+      <div class="lq-row"><button class="lq-btn g" id="lqRepDone">Back to the game</button></div></div>`);
+    document.getElementById("lqRepDone").onclick=()=>{ closeOverlay(); fire(); }; };
+}
+function addReportButton(){ if(document.getElementById("lqReport")) return; const help=document.getElementById("lqHelp"); if(!help) return;
+  const b=document.createElement("button"); b.id="lqReport"; b.className="pill"; b.type="button"; b.innerHTML='🐞 <span class="lbl">Report</span>'; b.setAttribute("aria-label","Report a problem or a suggestion");
+  b.onclick=e=>{ e.stopPropagation(); if(cur()) reportForm(); }; help.parentNode.insertBefore(b,help); }
+function addTopButtons(){ addHelpButton(); addReportButton(); }
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",addTopButtons); else addTopButtons();
 /* ---------------- drawn hero + costumes ----------------
    drawHero paints the player on any 2D canvas with the feet at (0,0), about 100 units tall, wearing p.wear.
    WEAR ids are saved in each player's wardrobe (p.own, p.wear), so never reuse or rename them. */
