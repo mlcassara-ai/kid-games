@@ -34,6 +34,7 @@ const TRACKS={
  /* EXPERIMENT (Oct 2026): a recorded track instead of live notes. The owner made it in Suno (his Pro licence) from a 5-minute render of
     Neon Night. It plays through an <audio> element routed into Web Audio so the Music slider still sets its loudness, and it loops. */
  neonStudio:{name:'🎧 Neon Night (studio)',file:'audio/neon-night-studio.mp3'},
+ starsStudio:{name:'🎧 Music-Box Stars (studio)',file:'audio/music-box-stars-studio.mp3'}, /* the owner's Suno version of Music-Box Stars, a map music choice */
  magma:{name:'🌋 Magma Deep',bpm:44,root:45,scale:[0,1,5,7,8],prog:[[0,7,12],[1,8,13],[-4,3,8],[0,7,12]],tone:'glass',rest:.6,padVol:.1,octave:12,padCut:380,rumble:.3}};
 const LEVEL=.34; // softer than sound effects
 const DAY_FROM=6,DUSK_FROM=17; // 6am–5pm = Morning Meadow, 5pm–6am = Quiet Dusk
@@ -167,7 +168,7 @@ function choice(p){return (p&&p.music)||'auto';}
 function dChoice(p){const c=p&&p.dMusic;return c==='off'||c==='laser'||c==='studio'?c:'auto';}
 function dTrack(p){const c=dChoice(p);if(c==='off')return null;if(c==='laser')return 'laser';if(c==='studio')return 'neonStudio';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'dday':'dnight';}
 function inDistrict(){return typeof curScreen!=='undefined'&&curScreen==='district'&&!document.hidden;}
-function trackFor(p){const c=choice(p);if(c==='off')return null;if(c==='stars')return 'stars';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'meadow':'dusk';}
+function trackFor(p){const c=choice(p);if(c==='off')return null;if(c==='stars')return 'stars';if(c==='starsStudio')return 'starsStudio';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'meadow':'dusk';}
 function mVol(){try{return state.musicVol==null?30:state.musicVol;}catch(e){return 30;}}
 function lvl(){const g=window.volGain?volGain(mVol()):mVol()/70;return LEVEL*g*((cur&&cur.gain)||1);}
 function fadeTo(v,s){if(!AC)return;const now=AC.currentTime;master.gain.cancelScheduledValues(now);master.gain.setValueAtTime(master.gain.value,now);master.gain.linearRampToValueAtTime(v,now+s);}
@@ -237,6 +238,7 @@ function panel(where){const p=typeof P==='function'&&state&&state.cur?P():null;c
   `<div class="snd-lab">Music on the map${p.name?` for ${esc(p.name)}`:''}</div>
   ${opt(c==='auto',"Music.set('auto')",'🌿🌙 Morning &amp; Dusk',`Changes with the time of day · now: ${day?'🌿 Morning Meadow':'🌙 Quiet Dusk'}`)}
   ${opt(c==='stars',"Music.set('stars')",'✨ Music-Box Stars','Twinkly and magical, all the time')}
+  ${opt(c==='starsStudio',"Music.set('starsStudio')",'🎧 Music-Box Stars (studio)','New: a recorded version, made in Suno')}
   ${opt(c==='off',"Music.set('off')",'🔇 No music','Quiet map')}`}`;}
 function caveSet(on){const p=P();if(!p)return;p.caveMusic=!!on;save();update();try{window.__cvSndRefresh&&__cvSndRefresh();}catch(e){}}
 function muted(where){const p=typeof P==='function'&&state&&state.cur?P():null;const fxOff=state.sound===false;const mOff=mVol()<=0||!p||(where==='cave'?p.caveMusic===false:choice(p)==='off');return fxOff&&mOff;}
