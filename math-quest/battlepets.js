@@ -40,6 +40,10 @@ const ROLE={
  xp:{id:'archer',n:'Archer',e:'🏹',cost:4,cd:5,hp:22,atk:6,rng:11,spd:4,fly:true,tip:'Long range; reaches flyers'},
  coins:{id:'stomper',n:'Stomper',e:'🌀',cost:5,cd:6,hp:40,atk:6,rng:2.6,spd:3.5,area:true,tip:'Hits a whole group'}};
 const roleOf=pet=>ROLE[pet&&pet.perk]||ROLE.shield;
+/* pets that really fly (and the winged dragons) cruise through the air and can reach flying critters; they swoop down to hit ground ones */
+const PET_FLY=['duck','owl','parrot','bee','flamingo','peacock','eagle','butterfly','dragon','skydragon'];
+const flies=pet=>!!pet&&PET_FLY.includes(pet.id);
+const reachesFly=pet=>!!pet&&(roleOf(pet).fly||flies(pet));
 /* walking speed: every pet walks slower than its role's top speed, and the stronger (bigger) it is, the slower it goes */
 const petSpd=(R,m)=>R.spd*TUNE.petSpd/(1+.5*(m-1));
 /* 🧌 the mega: Grumbleroot the Troll (testing: every hero, every crown; how to earn him is still to be decided).
@@ -109,7 +113,7 @@ const treatCap=()=>12+6*G.kl,treatRate=()=>TUNE.trickle+TUNE.trickleKl*G.kl,kitc
 function upgradeKitchen(){if(!G||G.over||G.kl>=4||G.treats<kitchenCost())return false;G.treats-=kitchenCost();G.kl++;G.treats=Math.min(G.treats,treatCap());fx('kitchen');return true;}
 function send(i){const s=G&&!G.over&&G.team[i];if(!s||G.treats<s.R.cost||s.ready>G.t||G.pets.filter(x=>!x.gone&&!x.mega).length>=MAX_OUT)return false;
  G.treats-=s.R.cost;s.ready=G.t+s.R.cd;G.sent++;const R=s.R,m=s.m;
- G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m*TUNE.petHp,max:R.hp*m*TUNE.petHp,atk:R.atk*m,rng:R.rng,spd:petSpd(R,m),kb:0,stun:0,id:Math.random()});fx('send');return true;}
+ G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m*TUNE.petHp,max:R.hp*m*TUNE.petHp,atk:R.atk*m,rng:R.rng,spd:petSpd(R,m),kb:0,stun:0,flyer:flies(s.pet),id:Math.random()});fx('send');return true;}
 const trollOut=()=>!!G&&G.pets.some(u=>u.mega&&!u.gone);
 function callTroll(){if(!G||G.over||G.t<G.trollAt||G.treats<TROLL.cost||trollOut())return false;G.treats-=TROLL.cost;G.trollAt=G.t+TROLL.cd;G.trolls++;
  const m=1+.35*G.c;const lead=G.pets.filter(u=>!u.gone&&!u.mega),to=lead.length?Math.min(HOUSE_X-2,Math.min(...lead.map(u=>u.x))+2.5):HOUSE_X-2;
@@ -144,7 +148,7 @@ function slam(){const s=G.slam;if(!s||G.t<s.at)return;G.slam=null;G.slamX=s.x;
  G.foes.forEach(f=>{if(f.gone||Math.abs(f.x-s.x)>TUNE.slamR)return;knock(f,-(f.boss?6:12));f.hp-=f.boss?90:45;f.stun=G.t+1.4;f.pawT=G.t;});fx('slam');}
 function spawn(kind){const S=G.stage,c=G.c;let def,name,e;
  if(kind==='boss'){def=TRAIT.boss;name=S.boss[0];e=S.boss[1];}else{const opts=S.crit.filter(x=>x[2]===kind),pick=opts.length?choose(opts):S.crit[0];def=TRAIT[pick[2]];name=pick[0];e=pick[1];}
- const n=def.group||1,bh=def.boss?TUNE.bossHp:1,ba=def.boss?TUNE.bossAtk:1;for(let i=0;i<n;i++)G.foes.push({side:'c',name,e,trait:def.tag||'',x:DEN_X+2+i*1.3,hp:def.hp*CROWN.hp[c]*TUNE.hp*bh,max:def.hp*CROWN.hp[c]*TUNE.hp*bh,atk:def.atk*CROWN.atk[c]*TUNE.atk*ba,rng:def.rng,spd:def.spd*(1+.08*c),fly:!!def.fly,armor:!!def.armor,boss:!!def.boss,kb:0,stun:0,id:Math.random()});}
+ const n=def.group||1,bh=def.boss?TUNE.bossHp:1,ba=def.boss?TUNE.bossAtk:1;for(let i=0;i<n;i++)G.foes.push({side:'c',name,e,trait:def.tag||'',notag:i>0,x:DEN_X+2+i*1.3,hp:def.hp*CROWN.hp[c]*TUNE.hp*bh,max:def.hp*CROWN.hp[c]*TUNE.hp*bh,atk:def.atk*CROWN.atk[c]*TUNE.atk*ba,rng:def.rng,spd:def.spd*(1+.08*c),fly:!!def.fly,armor:!!def.armor,boss:!!def.boss,kb:0,stun:0,id:Math.random()});}
 function nextKind(){const t=G.t,has=k=>G.stage.crit.some(c=>c[2]===k),w={basic:has('basic')?4:2,swarm:t>8&&has('swarm')?2:0,speedy:t>15&&has('speedy')?2:0,flying:t>20&&has('flying')?2:0,armored:t>30&&has('armored')?2:0};const tot=Object.values(w).reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(const k in w){r-=w[k];if(r<=0)return k;}return 'basic';}
 function step(dt){if(!G||G.over)return;G.t+=dt;
  G.treats=Math.min(treatCap(),G.treats+treatRate()*dt);if(!G.slam)G.charge=Math.min(100,G.charge+TUNE.charge*dt);slam();
@@ -153,8 +157,8 @@ function step(dt){if(!G||G.over)return;G.t+=dt;
  if(!G.boss&&G.denHP<=G.denMax*.5){G.boss=true;spawn('boss');G.pets.forEach(p=>{if(p.gone)return;knock(p,12);p.stun=G.t+.8;});fx('boss');} /* the boss's shockwave */
  const pets=G.pets.filter(x=>!x.gone),foes=G.foes.filter(x=>!x.gone);
  G.pets.forEach(u=>{u.fight=false;});G.foes.forEach(f=>{f.fight=false;});
- pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx('trollbye');return;}if(u.stun>G.t)return;u.mv=false;const R=u.R;const reach=f=>(!f.fly||R.fly)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
-  if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];u.fight=true;hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});
+ pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx('trollbye');return;}if(u.stun>G.t)return;u.mv=false;const R=u.R;const reach=f=>(!f.fly||R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
+  if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];u.fight=true;u.tgFly=!!hit[0].fly;hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});
    if(Math.random()<.18*dt)knock(hit[0],-(1.5+Math.random()*1.5)*(hit[0].boss?.3:1)); /* now and then a hit shoves the critter back a little */
    if(u.mega&&!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+TROLL.life);}}
   else if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*dt*(G.bossDown||!G.boss?1:.5)*(G.t>TUNE.tired?1.6:1);}
@@ -162,7 +166,7 @@ function step(dt){if(!G||G.over)return;G.t+=dt;
   if(u.mega&&!u.poundAt&&G.t>=u.stompAt&&foes.some(f=>!f.gone&&u.x-f.x>=-2&&u.x-f.x<=6)){u.poundAt=G.t+TROLL.wind;u.windT=G.t;} /* he roars at any critter right in front of him, flyers too */
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
  /* flyers drift over pets that can't reach them (like Battle Cats' floating enemies) and go for the Pet House */
- foes.forEach(f=>{if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>(!f.fly||u.R.fly)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
+ foes.forEach(f=>{if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>(!f.fly||u.R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
   if(tg.length){const u=tg.reduce((a,b)=>b.x<a.x?b:a);u.hp-=f.atk*dt;f.fight=true;if(Math.random()<.18*dt)knock(u,1.5+Math.random()*1.5);if(f.boss&&G.t>=(G.bossShake||0)){G.bossShake=G.t+1.4;fx('bossHit');}}
   else if(HOUSE_X-f.x<=f.rng&&(f.fight=true))G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;
   else{f.x+=f.spd*.8*dt;f.mv=true;}});
@@ -231,7 +235,7 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-songs button.on{border-color:#7048e8;background:#f3f0ff}.bp2-songs small{display:block;color:#6b6490;font-size:12px}
 @keyframes bp2lungeL{0%,100%{translate:0 0}30%{translate:-8px -5px}45%{translate:-11px 0}}@keyframes bp2lungeR{0%,100%{translate:0 0}30%{translate:8px -5px}45%{translate:11px 0}}
 .bp2-ent.hurt .e{filter:brightness(2.4) saturate(.2)}
-.bp2-ent.kb{transition:left .38s cubic-bezier(.2,.7,.3,1)}.bp2-ent.kb .e{animation:bp2arc .42s ease-out}
+.bp2-ent.kb{transition:left .38s cubic-bezier(.2,.7,.3,1),bottom .45s ease}.bp2-ent.pet{transition:opacity .4s,bottom .45s ease}.bp2-ent.kb .e{animation:bp2arc .42s ease-out}
 @keyframes bp2arc{0%{translate:0 0;rotate:0deg}45%{translate:0 -22px;rotate:-14deg}100%{translate:0 0;rotate:0deg}}
 .bp2-ent.mega .e{font-size:0;line-height:0}.bp2-ent.mega.fight .e{animation:none}.bp2-trollsvg{display:block;overflow:visible}
 .bp2-club{transform:rotate(-24deg)}.bp2-ent.pound .bp2-club{animation:bp2pound .9s ease-in-out}.bp2-ent.mega.pound .e{animation:bp2squash .9s ease-in-out}
@@ -320,19 +324,19 @@ function teamView(p){const S=stages().find(s=>s.id===VIEW.id);if(!S){VIEW={k:'st
   <div class="bp2-slots">${Array.from({length:n},(_,i)=>{const id=team[i],pet=id&&PETS.find(x=>x.id===id);return `<button class="bp2-slot ${pet?'full':''}" onclick="BattlePets._out(${i})" aria-label="${pet?'Take '+esc(pet.name)+' out':'Empty spot'}">${pet?pet.e:''}</button>`;}).join('')}
   <button class="bp2-btn" style="margin-left:auto" onclick="BattlePets._auto()" ${av.length?'':'disabled'}>🎲 Pick for me</button><button class="bp2-btn gold" ${team.length?'':'disabled'} onclick="BattlePets._start()">Start! ▶</button></div></div>
   <div class="bp2-card"><div class="bp2-row" style="margin-bottom:8px"><button class="bp2-filt ${VIEW.fly?'on':''}" onclick="BattlePets._flyFilter()" aria-pressed="${VIEW.fly?'true':'false'}">🐝 Stops flyers${VIEW.fly?' ✓':''}</button><small class="muted">${VIEW.fly?'Showing only pets that can reach flying critters.':'Tap to see which pets can reach flying critters.'}</small></div>
-  <div class="bp2-pets">${av.filter(pet=>!VIEW.fly||roleOf(pet).fly).map(pet=>{const R=roleOf(pet),inT=team.includes(pet.id);return `<button class="bp2-pet ${inT?'in':''}" onclick="BattlePets._in('${pet.id}')">${R.fly?'<span class="bp2-flyb" title="Can reach flying critters">🐝✓</span>':''}<span class="pe">${pet.e}</span><b>${esc(pet.name)}</b><small>${R.e} ${R.n} · 🍖 ${R.cost}</small><small>Power ${powerOf(p,pet).toFixed(1)}×</small><small>${esc(R.tip)}</small></button>`;}).join('')||(VIEW.fly?'<p>None of your pets at home can reach flyers yet. Pets with the ⭐ Lucky or 📈 XP skill can (they fight as Jumpers 🦘 and Archers 🏹).</p>':'<p>You have no pets at home right now. Pets at camp or the Pet Rescue can\'t battle.</p>')}</div></div></div></div>`;}
+  <div class="bp2-pets">${av.filter(pet=>!VIEW.fly||reachesFly(pet)).map(pet=>{const R=roleOf(pet),inT=team.includes(pet.id);return `<button class="bp2-pet ${inT?'in':''}" onclick="BattlePets._in('${pet.id}')">${reachesFly(pet)?'<span class="bp2-flyb" title="Can reach flying critters">🐝✓</span>':''}<span class="pe">${pet.e}</span><b>${esc(pet.name)}</b><small>${R.e} ${R.n} · 🍖 ${R.cost}</small><small>Power ${powerOf(p,pet).toFixed(1)}×</small><small>${esc(R.tip)}</small></button>`;}).join('')||(VIEW.fly?'<p>None of your pets at home can reach flyers yet. Flying pets can, and so can pets with the ⭐ Lucky or 📈 XP skill (they fight as Jumpers 🦘 and Archers 🏹).</p>':'<p>You have no pets at home right now. Pets at camp or the Pet Rescue can\'t battle.</p>')}</div></div></div></div>`;}
 /* 🎲 Pick for me: a good-enough team, not the best one. It covers what this stage needs (a Wall to hold the line, a flyer-catcher when
    flyers come, a Brawler for armour, a Stomper for swarms), choosing middle-strength pets with some luck, then fills the rest the same way. */
 function autoPick(p,S){const av=available(p),n=slots(p),need=[],has=k=>S.crit.some(c=>c[2]===k),team=[];
- need.push(R=>R.id==='wall');if(has('flying'))need.push(R=>!!R.fly);if(has('armored'))need.push(R=>R.id==='brawler');if(has('swarm'))need.push(R=>R.id==='stomper');
+ need.push(x=>roleOf(x).id==='wall');if(has('flying'))need.push(reachesFly);if(has('armored'))need.push(x=>roleOf(x).id==='brawler');if(has('swarm'))need.push(x=>roleOf(x).id==='stomper');
  const mid=list=>{if(!list.length)return null;const sorted=list.slice().sort((a,b)=>powerOf(p,a)-powerOf(p,b));const lo=Math.floor(sorted.length*.25),hi=Math.max(lo+1,Math.ceil(sorted.length*.75));return choose(sorted.slice(lo,hi));};
- need.forEach(ok=>{if(team.length>=n)return;const pet=mid(av.filter(x=>!team.includes(x)&&ok(roleOf(x))));if(pet)team.push(pet);});
+ need.forEach(ok=>{if(team.length>=n)return;const pet=mid(av.filter(x=>!team.includes(x)&&ok(x)));if(pet)team.push(pet);});
  while(team.length<n){const pet=mid(av.filter(x=>!team.includes(x)));if(!pet)break;team.push(pet);}
  return team.map(x=>x.id);}
 /* before a battle: warn when flying critters are coming and nobody on the team can reach them */
-const flyRisk=(S,team)=>S.crit.some(c=>TRAIT[c[2]]&&TRAIT[c[2]].fly)&&!team.some(pet=>roleOf(pet).fly);
+const flyRisk=(S,team)=>S.crit.some(c=>TRAIT[c[2]]&&TRAIT[c[2]].fly)&&!team.some(reachesFly);
 function flyWarn(){const ov=document.createElement('div');ov.className='bp2-over';ov.id='bpFlyW';ov.innerHTML=`<div class="bp2-card"><div style="font-size:48px">🐝</div><h2>Flying critters are coming!</h2>
-  <p>Nobody on your team can reach them, so they'll fly right over your pets to your Pet House.</p><p class="muted">Jumpers 🦘 and Archers 🏹 can stop flyers.</p>
+  <p>Nobody on your team can reach them, so they'll fly right over your pets to your Pet House.</p><p class="muted">Flying pets 🪽, Jumpers 🦘 and Archers 🏹 can stop flyers.</p>
   <div class="row"><button class="btn green" onclick="BattlePets._flyFix()">🐝 Show pets that stop flyers</button><button class="btn ghost dark" onclick="BattlePets._flyGo()">Start anyway</button></div></div>`;document.body.appendChild(ov);}
 function teamIn(id){const p=me();if(!p||VIEW.k!=='team')return;const t=VIEW.team;if(t.includes(id)){t.splice(t.indexOf(id),1);}else if(t.length<slots(p))t.push(id);else{notice(`🐾 Team full! (${slots(p)} pets)`,'Tap a pet in your team to take it out first.');return;}screen();}
 function teamOut(i){if(VIEW.k!=='team')return;VIEW.team.splice(i,1);screen();}
@@ -400,14 +404,14 @@ function onKey(e){try{if(document.getElementById('bpSnd')&&(e.key==='Escape'||e.
 window.addEventListener('keydown',onKey,true);
 /* draw: one element per unit, moved every frame */
 function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)return;const all=G.pets.concat(G.foes);
- all.forEach(u=>{if(!u.el){u.el=document.createElement('div');u.el.className=`bp2-ent ${u.side==='p'?'pet r-'+((u.R&&u.R.id)||'x'):'foe t-'+(u.trait||'basic')}${u.boss?' boss':''}${u.fly?' fly':''}`;u.el.style.setProperty('--d',(-Math.random()*.9).toFixed(2)+'s');u.el.innerHTML=`<div class="hb"><i></i></div><span class="e">${u.mega?trollArt(130):u.boss?goblinArt(118):u.side==='p'?u.pet.e:u.e}</span>${u.side==='c'&&u.trait&&u.trait!=='boss'?`<span class="tag">${u.trait}</span>`:''}`;f.appendChild(u.el);}
+ all.forEach(u=>{if(!u.el){u.el=document.createElement('div');u.el.className=`bp2-ent ${u.side==='p'?'pet r-'+((u.R&&u.R.id)||'x'):'foe t-'+(u.trait||'basic')}${u.boss?' boss':''}${u.fly?' fly':''}`;u.el.style.setProperty('--d',(-Math.random()*.9).toFixed(2)+'s');u.el.innerHTML=`<div class="hb"><i></i></div><span class="e">${u.mega?trollArt(130):u.boss?goblinArt(118):u.side==='p'?u.pet.e:u.e}</span>${u.side==='c'&&u.trait&&u.trait!=='boss'&&!u.notag?`<span class="tag">${u.trait}</span>`:''}`;f.appendChild(u.el);}
   if(u.gone){if(!u.dead){u.dead=1;if(!u.left)u.el.classList.add('ko');else u.el.style.opacity=0;const e=u.el;setTimeout(()=>e.remove(),450);if(!u.left){puff(u.x,'poof');if(Math.random()<.6)puff(u.x+(Math.random()*2-1),'dust');}}return;}
   const now=performance.now();if(u.kbT!==u.kbSeen){u.kbSeen=u.kbT;u.kbUntil=now+420;u.el.classList.remove('kb');void u.el.offsetWidth;u.el.classList.add('kb');puff(u.x,'dust');}
   if(u.kbUntil&&now>u.kbUntil){u.kbUntil=0;u.el.classList.remove('kb');puff(u.x,'dust');}
   if(u.lastHp!==undefined&&u.hp<u.lastHp){u.hurtAcc=(u.hurtAcc||0)+u.lastHp-u.hp;if(u.hurtAcc>u.max*.07){u.hurtAcc=0;u.hurtUntil=now+120;}}u.lastHp=u.hp;u.el.classList.toggle('hurt',(u.hurtUntil||0)>now);
   if(u.mega&&u.leapT!==undefined&&!u.leapSeen){u.leapSeen=1;u.el.style.left=HOUSE_X+'%';void u.el.offsetWidth;u.el.classList.add('leap');setTimeout(()=>{try{u.el.classList.remove('leap');puffAny(u.x,'ring');puffAny(u.x-1,'dust');puffAny(u.x+1,'dust');shake();tone(55,.35,'sine',.14);}catch(e){}},900);}
   if(u.mega&&u.windT!==u.windSeen){u.windSeen=u.windT;u.el.classList.remove('roar');void u.el.offsetWidth;u.el.classList.add('roar');}
-  u.el.style.left=u.x+'%';u.el.classList.toggle('walk',!!u.mv&&!u.fight);if(u.mv&&!u.fly&&window.BPScene&&Math.random()<.025)BPScene.scuff(u.x);u.el.classList.toggle('fight',!!u.fight);u.el.classList.toggle('stun',!!(u.stun>G.t&&!u.mega&&!(u.leapT!==undefined&&G.t-u.leapT<1)));
+  u.el.style.left=u.x+'%';u.el.classList.toggle('walk',!!u.mv&&!u.fight);if(u.mv&&!u.fly&&window.BPScene&&Math.random()<.025)BPScene.scuff(u.x);u.el.classList.toggle('fight',!!u.fight);if(u.flyer)u.el.classList.toggle('fly',!(u.fight&&!u.tgFly));u.el.classList.toggle('stun',!!(u.stun>G.t&&!u.mega&&!(u.leapT!==undefined&&G.t-u.leapT<1)));
   if(u.fight&&!u.mega&&now>(u.fxAt||0)){u.fxAt=now+900;if(u.R&&u.R.id==='archer')arrow(u);else if(u.R&&u.R.id==='medic')puffAny(u.x,'heal',70);}if(u.mega)u.el.classList.add('mega');u.el.querySelector('.hb i').style.width=Math.max(0,u.hp/u.max*100)+'%';});
  G.pets=G.pets.filter(u=>!(u.gone&&u.dead));G.foes=G.foes.filter(u=>!(u.gone&&u.dead));
  clash();baseSmoke();pawHits();camera();flyHint();
@@ -466,9 +470,9 @@ function smoke(x,I,ember,y){if(SMKN>=44)return;const f=document.getElementById('
  const done=()=>{if(d.parentNode){d.remove();SMKN--;}};d.addEventListener('animationend',done);setTimeout(done,3200);}
 /* the first time a flyer slips past the front line, say how to stop it */
 function flyHint(){if(G.flyHint)return;const P2=G.pets.filter(u=>!u.gone&&!u.mega);if(!P2.length)return;const front=Math.min(...P2.map(u=>u.x));
- if(G.foes.some(f=>!f.gone&&f.fly&&f.x>front+3)){G.flyHint=true;topNote(G.team.some(s=>s.R.fly)?'🐝 Flyers float over pets that can\'t reach them! Send your Jumper 🦘 or Archer 🏹.':'🐝 Flyers float over pets that can\'t reach them! Next time, bring a Jumper 🦘 or an Archer 🏹.');}}
+ if(G.foes.some(f=>!f.gone&&f.fly&&f.x>front+3)){G.flyHint=true;topNote(G.team.some(s=>s.R.fly||flies(s.pet))?'🐝 Flyers float over pets that can\'t reach them! Send a flying pet 🪽, a Jumper 🦘 or an Archer 🏹.':'🐝 Flyers float over pets that can\'t reach them! Next time, bring a flying pet 🪽, a Jumper 🦘 or an Archer 🏹.');}}
 /* an Archer's arrow flies to the critter it is shooting */
-function arrow(u){const f=document.getElementById('bpField');if(!f)return;const tg=G.foes.filter(x=>!x.gone&&(!x.fly||u.R.fly)&&u.x-x.x>=-1&&u.x-x.x<=u.rng);if(!tg.length)return;const t=tg.reduce((a,b)=>b.x>a.x?b:a);
+function arrow(u){const f=document.getElementById('bpField');if(!f)return;const tg=G.foes.filter(x=>!x.gone&&(!x.fly||u.R.fly||u.flyer)&&u.x-x.x>=-1&&u.x-x.x<=u.rng);if(!tg.length)return;const t=tg.reduce((a,b)=>b.x>a.x?b:a);
  const px=(u.x-t.x)/100*f.clientWidth;if(px<30)return;const a=document.createElement('div');a.className='bp2-arrow';a.style.left=u.x+'%';a.style.bottom=(t.fly?'48%':'54px');a.style.setProperty('--px',(-px)+'px');f.appendChild(a);setTimeout(()=>a.remove(),500);}
 function shake(){const sc=document.getElementById('bpScroll');if(!sc)return;sc.classList.remove('shake');void sc.offsetWidth;sc.classList.add('shake');}
 /* 🔊 during a battle: the game pauses while the kid sets the sound-effects and music volume and picks the battle song.

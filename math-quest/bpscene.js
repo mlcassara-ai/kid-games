@@ -72,7 +72,7 @@ function mid(t,w,h,r){const C=COL[t];let s='';
    for(let i=0;i<7;i++){const rx=-90+i*26;g+=`<path d="M${rx} ${f1(-40+Math.abs(i-3)*3)} q8 ${f1(26+i)} 0 ${f1(40-Math.abs(i-3)*4)}"/>`;}
    g+=`<path d="M140 -6 q30 -14 46 4 q-6 18 -40 12z" fill="#f3ead2" stroke-width="4"/><circle cx="168" cy="-4" r="4" fill="#6b4a2b" stroke="none"/></g>`;return g;};
   s+=sk(w*.3,h*.75,.9)+sk(w*.7,h*.76,.7);
-  for(let x=200+r()*200;x<w;x+=420+r()*200)s+=`<line x1="${f1(x)}" y1="${f1(h*.75)}" x2="${f1(x)}" y2="${f1(h*.75-40)}" stroke="#6b4a2b" stroke-width="3"/><path class="bps-flag" style="transform-origin:${f1(x)}px ${f1(h*.75-40)}px" d="M${f1(x)} ${f1(h*.75-40)} l20 6 l-20 6z" fill="#e03131"/>`;
+  for(let x=200+r()*200;x<w;x+=420+r()*200)s+=`<line x1="${f1(x)}" y1="${f1(h*.75)}" x2="${f1(x)}" y2="${f1(h*.75-40)}" stroke="#6b4a2b" stroke-width="3"/><path class="bps-flag" d="M${f1(x)} ${f1(h*.75-40)} l20 6 l-20 6z" fill="#e03131"/>`;
   s+=`<path d="M${f1(w*.52)} ${f1(h*.76)} l30 -38 l30 38z" fill="#f08c00"/><path d="M${f1(w*.52+30)} ${f1(h*.76)} l-9 0 l9 -20 l9 20z" fill="#7a4a10"/>`;}
  return s;}
 function ground(t,w,h,r){const C=COL[t];const g0=h-60,l0=h-46;let s=hill(w,h,g0,4,90,r,C.grass2)+hill(w,h,g0+6,3,70,r,C.grass)+`<rect x="0" y="${l0}" width="${w}" height="${h-l0}" fill="${C.lane}"/><rect x="0" y="${l0}" width="${w}" height="4" fill="${C.lane2}"/>`;
