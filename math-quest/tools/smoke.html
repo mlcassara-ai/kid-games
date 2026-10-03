@@ -197,7 +197,7 @@ const tests=[
   T.ok(new Set(d.FACTS.map(x=>x[0])).size===d.FACTS.length&&d.FACTS.every(x=>d.SETS.some(s=>s[0]===x[0][0])),'fact ids are not unique or lack a set');
   closeModal();delete window.MQ_DISTRICT_BETA;go('world');}],
 
-['battle pets demo: on the plaza for every hero; stages, team, a wide scrolling battle, 🧱 Rebuild math (keyboard too), last stand, rewards and the play log',async function(){
+['battle pets demo: on the plaza for every hero; stages, team, a wide battle that follows the fight, 🧱 Rebuild math (keyboard too), last stand, the mega troll, rewards and the play log',async function(){
   T.reset();delete window.MQ_BP_BETA;const p=T.hero('Pets',5);state.cur=p.id;W=null;go('world');await T.wait(150);
   T.ok(W.T[20][28].npc==='bp','the Battle Pets building is not on the plaza');
   go('bp');const txt=document.querySelector('#app').innerText;T.ok(/Fossil Stage/.test(txt)&&/Addition Forest/.test(txt)&&BattlePets.stages().length>=3,'stages missing');
@@ -221,6 +221,12 @@ const tests=[
   /* last stand: the first time the Pet House drops to 25%, the critters are thrown back (once) */
   G.pets.forEach(u=>u.gone=true);D.step(.05);G.houseHP=G.houseMax*.3;D._spawn('basic');const f0=G.foes[G.foes.length-1];f0.x=90;G.houseHP=G.houseMax*.2;D.step(.05);
   T.ok(G.lsH&&f0.x<90-(90-8)*.45,'the last stand did not throw the critters back');G.houseHP=G.houseMax;G.foes.forEach(f=>f.gone=true);D.step(.05);
+  /* 🧌 the mega troll: a long wait before he comes, one at a time, a big cooldown, then he stomps home */
+  G.treats=50;G.trollAt=G.t+5;T.ok(!D.callTroll()&&document.getElementById('bpTroll'),'the troll came before his wait was over, or has no button');
+  G.trollAt=0;BattlePets._troll();const tr=G.pets.find(u=>u.mega&&!u.gone);T.ok(tr&&G.trollAt>=G.t+90&&G.trolls===1,'the troll did not come, or his cooldown is short');
+  G.treats=50;G.trollAt=0;T.ok(!D.callTroll(),'a second troll came while the first was out');tr.leave=G.t;D.step(.05);T.ok(tr.gone&&tr.left,'the troll did not go home');G.trollAt=G.t+50;
+  /* the camera glides to where the two sides meet */
+  {const sc=document.getElementById('bpScroll');sc.scrollLeft=0;D._spawn('basic');const cf=G.foes[G.foes.length-1];cf.x=80;const l0=sc.scrollLeft;for(let i=0;i<5;i++)BattlePets._cam();T.ok(sc.scrollLeft>l0,'the camera did not follow the fight');cf.gone=true;D.step(.05);}
   G.treats=50;G.team.forEach(t=>t.ready=0);const sent0=G.sent;BattlePets._send(0);T.ok(G.sent===sent0+1&&G.pets.filter(u=>!u.gone).length===1,'a pet could not be sent');
   const kl=G.kl;BattlePets._kit();T.ok(G.kl===kl+1,'the Treat Kitchen did not upgrade');
   G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1,'Pet Pounce did not fire');
