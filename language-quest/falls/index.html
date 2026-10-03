@@ -102,8 +102,8 @@ h2{margin:4px 0 8px; font-size:1.3rem}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">💦</div><h2>Sound Falls</h2><p class="muted" lang="ar">شَلَّالُ الأَصْوَات</p><p class="muted">Add a little mark to a letter and it starts to sing!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02zj";</script>
-<script src="../lq-core.js?v=2026.10.02zj"></script>
+<script>window.LQ_VER="2026.10.02zk";</script>
+<script src="../lq-core.js?v=2026.10.02zk"></script>
 <script>
 const $=id=>document.getElementById(id);
 if(!LQ.player()) location.replace("../");
@@ -238,7 +238,7 @@ function challenge(i){ LQ.mark("Pool "+(i+1)+" challenge");
       else { b.classList.add("wrong"); hearts--; document.querySelectorAll(".opt").forEach((x,k)=>{ if(q.opts[k].ok) x.classList.add("right"); });
         if(o.m!==q.m) LQ.record("marks",MARKS[q.m].name,false,MARKS[o.m].name); else LQ.record("letters",q.c,false,o.c);
         setTimeout(()=>say(q.speak),300); }
-      setTimeout(()=>{ busy=false; draw(); },o.ok?900:1700); });
+      LQ.nextButton(()=>{ busy=false; draw(); }); });
   }
   function win(){ finish(i,hearts); }
   function lose(){ $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🌊</div><h2>The waterfall splashed you!</h2>
@@ -274,7 +274,7 @@ function blendLesson(i){ LQ.mark("Word River lesson");
     $("hear").onclick=()=>say(word); $("bk").onclick=home; setTimeout(()=>say(word),250);
     document.querySelectorAll(".tile").forEach(b=>b.onclick=()=>{ const o=pool[+b.dataset.j];
       if(o.k===pos){ b.classList.add("used"); pos++; const part=tiles.slice(0,pos).join(""); $("bw").textContent=part; say(pos===tiles.length?word:part);
-        if(pos===tiles.length){ $("bw").classList.add("win"); addCoins(4); LQ.record("words",word,true); setTimeout(()=>{ w++; next(); },1600); } }
+        if(pos===tiles.length){ $("bw").classList.add("win"); addCoins(4); LQ.record("words",word,true); LQ.nextButton(()=>{ w++; next(); }); } }
       else { b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); say(o.t); LQ.record("words",word,false); } });
   }
   next();
@@ -303,7 +303,7 @@ function blendChallenge(i){ LQ.mark("Word River challenge");
     document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy) return; busy=true; const o=opts[+b.dataset.k];
       if(o.ok){ b.classList.add("right"); hp--; addCoins(3); LQ.record("words",word,true); }
       else { b.classList.add("wrong"); hearts--; document.querySelectorAll(".opt").forEach((x,k)=>{ if(opts[k].ok) x.classList.add("right"); }); LQ.record("words",word,false); }
-      setTimeout(()=>{ busy=false; draw(); },o.ok?900:1600); });
+      LQ.nextButton(()=>{ busy=false; draw(); }); });
   }
   draw();
 }

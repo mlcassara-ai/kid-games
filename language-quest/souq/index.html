@@ -157,8 +157,8 @@ h3{margin:14px 0 8px; font-size:1.1rem}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🛍️</div><h2>The Souq</h2><p class="muted">السُّوق — count with the shopkeepers!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02zj";</script>
-<script src="../lq-core.js?v=2026.10.02zj"></script>
+<script>window.LQ_VER="2026.10.02zk";</script>
+<script src="../lq-core.js?v=2026.10.02zk"></script>
 <script>
 /* ============ numbers data ============
    Counting words in the form used when counting aloud. STALLS: [name, what it covers, kind, the numbers taught].
@@ -287,7 +287,7 @@ function shop(i){ LQ.mark("Stall "+(i+1)+" challenge");
     document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy)return; busy=true; const v=+b.dataset.v; say(WORD[n]);
       if(v===n){ b.classList.add("right"); hp--; addCoins(4); LQ.record("words",WORD[n],true); }
       else { b.classList.add("wrong"); hearts--; LQ.record("words",WORD[n],false,WORD[v]); document.querySelector(`.opt[data-v="${n}"]`).classList.add("right"); }
-      qn++; setTimeout(()=>{ busy=false; draw(); },1100); });
+      qn++; LQ.nextButton(()=>{ busy=false; draw(); }); });
   }
   draw();
 }
@@ -309,7 +309,7 @@ function baskets(i){ LQ.mark("Basket challenge");
       if(inB===n){ B.style.borderColor="var(--mint)"; hp--; addCoins(4); LQ.record("words",WORD[n],true); say("مُمْتَاز"); }
       else { B.style.borderColor="var(--rose)"; hearts--; LQ.record("words",WORD[n],false,WORD[inB]||""); say(WORD[n]);
         $("app").querySelector(".q").innerHTML=`You put <b>${inB}</b>. <span lang="ar">${WORD[n]}</span> is <b>${ar(n)}</b> (${n}).`; }
-      qn++; setTimeout(()=>{ busy=false; draw(); },inB===n?1100:2200); };
+      qn++; LQ.nextButton(()=>{ busy=false; draw(); }); };
   }
   draw();
 }

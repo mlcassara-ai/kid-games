@@ -423,6 +423,9 @@ function mePage(){
 }
 window.LQ={
   player:cur, profiles, me:mePage, mark,
+  /* after an answer, wait for the child to tap Next instead of moving on by itself (added to the screen's row of buttons) */
+  nextButton(go,label){ const app=document.getElementById("app"); if(!app) return go(); const row=app.querySelector(".actions"), b=document.createElement("button");
+    b.className="btn go"; b.type="button"; b.textContent=label||"Next ▶"; b.onclick=()=>{ b.remove(); go(); }; (row||app).appendChild(b); return b; },
   /* how loud the spoken Arabic is, 0 to 1, remembered on the device (set from the map's sound menu) */
   voiceVol(){ try{ const v=parseFloat(localStorage.getItem("languagequest.voice")); return isNaN(v)?1:Math.max(0,Math.min(1,v)); }catch(e){ return 1; } },
   setVoiceVol(v){ try{ localStorage.setItem("languagequest.voice",String(Math.max(0,Math.min(1,+v||0)))); }catch(e){} }, drawHero, WEAR, COLOR_NAMES, COLOR_EN,

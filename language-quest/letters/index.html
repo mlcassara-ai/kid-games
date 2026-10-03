@@ -131,8 +131,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛺</div><h2>Letter Dunes</h2><p class="muted">كُثْبَانُ الحُرُوف — catch the letter shapeshifters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02zj";</script>
-<script src="../lq-core.js?v=2026.10.02zj"></script>
+<script>window.LQ_VER="2026.10.02zk";</script>
+<script src="../lq-core.js?v=2026.10.02zk"></script>
 <script>
 /* ============ letters data ============
    [letter, name(with harakat), English name, joins-left?, look-alikes, words: [emoji, word, English, position 1=start 2=middle 3=end] ] */
@@ -327,7 +327,7 @@ function boss(c){ LQ.mark("Sand monster, camp "+(c+1));
     document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy)return; busy=true;
       if(b.dataset.ok==="true"){ b.classList.add("right"); hp--; qn++; addCoins(4); LQ.record("letters",q.ch,true); }
       else { b.classList.add("wrong"); hearts--; LQ.record("letters",q.ch,false,b.textContent.replace(/\u0640/g,"")); document.querySelector('.opt[data-ok="true"]').classList.add("right"); qn++; }
-      setTimeout(()=>{ busy=false; draw(); },900); });
+      LQ.nextButton(()=>{ busy=false; draw(); }); });
   }
   function win(){ LQ.mark("Sand monster beaten"); const stars=hearts===3?3:hearts===2?2:1; const first=!save.camps[c]; LQ.update(p=>{ p.camps=p.camps||{}; p.camps[c]=Math.max(p.camps[c]||0,stars); }); addCoins(first?30:10); persist();
     say("مُمْتَاز");
