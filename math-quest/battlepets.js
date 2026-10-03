@@ -1,13 +1,15 @@
 /* ================= Battle Pets (DEMO, Oct 2026) =================
-   A Battle Cats-style lane battle fuelled by math, played with the hero's REAL pets. Opened from the 🐾 building on the village plaza
+   A Battle Cats-style lane battle played with the hero's REAL pets. Opened from the 🐾 building on the village plaza
    (demo access for every hero). In the full game each stage will be a hidden bonus level: a math world's stage opens after beating
    that world's boss, and the Fossil Stage opens when the Museum's dinosaurs are complete.
    HOW IT PLAYS
    - Lane: the Pet House on the right, the critter den on the left. Pets walk left, critters walk right; each stops at its range and attacks.
-   - Treats: trickle in slowly; every right answer adds a burst (+1 more per answer in a row, up to +3). Each pet costs treats and then
-     needs time before it can be sent again.
+   - Treats come in on their own (like Battle Cats' money). Each pet costs treats and then needs time before it can be sent again.
+   - The lane is wider than the screen: swipe it, drag it with the mouse, use the arrow keys, or tap the little map under it.
    - Treat Kitchen: spend treats now to make treats come faster and hold more (the one big money decision, like Battle Cats' Worker Cat).
-   - Pet Pounce: right answers charge it; when full it knocks every critter back and hurts them (like the Cat Cannon).
+   - Pet Pounce: charges over time; when full it knocks every critter back and hurts them (like the Cat Cannon).
+   - Math = 🧱 Rebuild. When the Pet House is down to half, the kid can open the Rebuild panel: every right answer lays one brick
+     (+10% of the house). There are 20 bricks per battle, enough to rebuild the house twice from nothing. The battle keeps going.
    - Roles come from each pet's perk: shield = Wall (cheap, tough), power = Brawler (big hits, cracks armour), heal = Medic,
      lucky = Jumper (reaches flyers, lucky hits), xp = Archer (long range, reaches flyers), coins = Stomper (hits a whole group).
      Rarity and the pet's growth (Baby to Mighty, plus Mighty levels) make it stronger.
@@ -15,7 +17,8 @@
      speedy. When the den drops to half, the boss bursts out with a shockwave that knocks your pets back.
    - Crowns: each stage can be beaten at 1, 2 and 3 crowns (tougher critters, faster waves).
    - Math: the stage's own skill (Addition Forest = addition…) at the hero's own level; the Fossil Stage mixes skills.
-   A wrong answer never takes anything away: it just doesn't add treats or charge.
+   A wrong answer never takes anything away: it just doesn't lay a brick.
+   - Keyboard: 1–5 send pets, K kitchen, Space pounce, R rebuild, arrows scroll; while rebuilding, type the answer and press Enter (Esc closes).
    SAVED: p.bp2 = {c:{stage: crowns beaten}, team:[pet ids]} and the play log p.bp (last 40 matches, for Parent Corner).
    Rewards feed the pets: pet XP for the team (a win gives more), and a snack the first time each crown is beaten.
    Uses Math Quest globals: P, state, save, go, topbar, toast, esc, SFX, tone, PETS, PET_TIERS, PERKS, petData, petStage, PET_STAGES, petLv,
@@ -57,11 +60,16 @@ function stages(){const out=[{id:'fossil',name:'Fossil Stage',art:'🦴',op:null
   out.push({id:z.id,name:z.name,art:z.art||'⭐',op:z.op,where:`${z.name}, after beating ${z.mons[5][0]}`,bg:{add:['#d8f5c9','#a6dc8a'],sub:['#d9d2f0','#a99fd1'],mul:['#ffd8b8','#f0a070'],div:['#dfe3ea','#aab3c2']}[z.op],
    crit:z.mons.slice(0,5).map((m,i)=>[m[0],m[1],TRAIT_ORDER[i]]),boss:z.mons[5]});});
  return out;}
-const CROWN={hp:[1,1.5,2.6],atk:[1,1.25,1.6],gap:[1,.85,.72],den:[1,1.3,1.65]};
-/* balance knobs, tuned by simulation against the two real players (Oct 2026): with these, tapping pets without answering
-   never wins; a one-role team loses (counters matter); a grade-3 player wins crown 1 always and crown 2 about 3 times in 4;
-   crown 3 is a stretch goal (the grade-5 player wins it about 30% with Kitchen upgrades, 10% without). */
-const TUNE={trickle:.1,trickleKl:.18,ans:4,den:600,hp:2,atk:1.3,gap:4.2};
+const CROWN={hp:[1,1.6,2.1],atk:[1,1.3,1.44],gap:[1,.85,.72],den:[1,1.1,1.25]};
+/* balance knobs, tuned by simulation (Oct 2026) against Battle Cats-style targets and players like the two real kids:
+   - doing nothing always loses; crown 1 is a sure win in about 1.5 minutes; crown 2 is a close fight of about 4 minutes in which
+     the Pet House usually gets badly hurt, so 🧱 Rebuild matters (a grade-3 player: about 40% without math, 80% with it);
+     crown 3 is a stretch goal (a grade-5 player about 1 in 3).
+   - treats trickle in (the Kitchen adds more), Pounce charges in about 30 s, the boss is the big push (hits pets and the house hard),
+     critters spawn faster while the boss is out and slower once it is down; after 4 minutes they tire (no endless tug-of-war).
+   - bricks: 13 per battle, each +2/13 of the house = exactly two full rebuilds. */
+const TUNE={trickle:.81,trickleKl:.2,charge:3.3,den:545,hp:1.4,atk:1.45,gap:4.2,bricks:13,brick:2/13,repairAt:.5,house:280,siege:.55,foeCap:11,
+ petHp:1,bossHp:1.07,bossAtk:2.19,bossSiege:1.71,rage:.82,calm:2.5,tired:240};
 
 /* ---------- saved progress ---------- */
 function prog(p){p.bp2=p.bp2||{c:{},team:[]};p.bp2.c=p.bp2.c||{};if(!Array.isArray(p.bp2.team))p.bp2.team=[];return p.bp2;}
@@ -78,46 +86,56 @@ const qText=q=>q.prompt?String(q.prompt):`${q.text} = ?`;
 /* ================= the battle engine (pure state; the screen only draws it) ================= */
 let G=null,SIM=false;
 function newBattle(p,stage,crown,team){const c=crown-1;
- G={t:0,stage,crown,c,treats:4,kl:0,charge:0,streak:0,house:100,den:100,denMax:TUNE.den*CROWN.den[c],houseMax:300,pets:[],foes:[],spawnAt:4,gap:TUNE.gap*CROWN.gap[c],boss:false,bossDown:false,over:false,win:false,
+ G={t:0,stage,crown,c,treats:4,kl:0,charge:0,streak:0,bricks:TUNE.bricks,fixing:false,house:100,den:100,denMax:TUNE.den*CROWN.den[c],houseMax:TUNE.house,pets:[],foes:[],spawnAt:4,gap:TUNE.gap*CROWN.gap[c],boss:false,bossDown:false,over:false,win:false,
   team:team.map(pet=>{const R=roleOf(pet),m=powerOf(p,pet);return {pet,R,m,ready:0};}),asked:0,right:0,sent:0,pounces:0,q:null,inp:'',fx:[]};
  G.denHP=G.denMax;G.houseHP=G.houseMax;return G;}
 const treatCap=()=>12+6*G.kl,treatRate=()=>TUNE.trickle+TUNE.trickleKl*G.kl,kitchenCost=()=>8+6*G.kl;
 function upgradeKitchen(){if(!G||G.over||G.kl>=4||G.treats<kitchenCost())return false;G.treats-=kitchenCost();G.kl++;G.treats=Math.min(G.treats,treatCap());fx('kitchen');return true;}
 function send(i){const s=G&&!G.over&&G.team[i];if(!s||G.treats<s.R.cost||s.ready>G.t||G.pets.filter(x=>!x.gone).length>=MAX_OUT)return false;
  G.treats-=s.R.cost;s.ready=G.t+s.R.cd;G.sent++;const R=s.R,m=s.m;
- G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m,max:R.hp*m,atk:R.atk*m,rng:R.rng,spd:R.spd,kb:0,stun:0,id:Math.random()});fx('send');return true;}
-function answer(ok){if(!G||G.over)return;G.asked++;if(ok){G.right++;G.streak++;G.treats=Math.min(treatCap(),G.treats+TUNE.ans+Math.min(3,G.streak-1));G.charge=Math.min(100,G.charge+(G.streak>=3?35:25));}else G.streak=0;}
+ G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m*TUNE.petHp,max:R.hp*m*TUNE.petHp,atk:R.atk*m,rng:R.rng,spd:R.spd,kb:0,stun:0,id:Math.random()});fx('send');return true;}
+/* 🧱 Rebuild: math mends the Pet House, from half health down, with a limited pile of bricks */
+const canFix=()=>!!G&&!G.over&&G.bricks>0&&G.houseHP<=G.houseMax*TUNE.repairAt;
+function openFix(){if(!G||G.over||G.fixing||!canFix())return false;G.fixing=true;return true;}
+function closeFix(){if(G)G.fixing=false;}
+function answer(ok){if(!G||G.over||!G.fixing||G.bricks<=0)return 0;G.asked++;if(!ok){G.streak=0;return 0;}
+ G.right++;G.streak++;G.bricks--;const add=Math.min(G.houseMax-G.houseHP,G.houseMax*TUNE.brick);G.houseHP+=add;fx('brick');
+ if(G.bricks<=0||G.houseHP>=G.houseMax-.01)G.fixing=false;return add;}
 function pounce(){if(!G||G.over||G.charge<100)return false;G.charge=0;G.pounces++;G.foes.forEach(f=>{if(f.gone)return;f.x=Math.max(DEN_X+2,f.x-(f.boss?6:12));f.hp-=f.boss?60:25;f.stun=G.t+1.2;});fx('pounce');return true;}
 function spawn(kind){const S=G.stage,c=G.c;let def,name,e;
  if(kind==='boss'){def=TRAIT.boss;name=S.boss[0];e=S.boss[1];}else{const pick=S.crit.find(x=>x[2]===kind)||S.crit[0];def=TRAIT[pick[2]];name=pick[0];e=pick[1];}
- const n=def.group||1;for(let i=0;i<n;i++)G.foes.push({side:'c',name,e,trait:def.tag||'',x:DEN_X+2+i*2.5,hp:def.hp*CROWN.hp[c]*TUNE.hp,max:def.hp*CROWN.hp[c]*TUNE.hp,atk:def.atk*CROWN.atk[c]*TUNE.atk,rng:def.rng,spd:def.spd*(1+.08*c),fly:!!def.fly,armor:!!def.armor,boss:!!def.boss,kb:0,stun:0,id:Math.random()});}
+ const n=def.group||1,bh=def.boss?TUNE.bossHp:1,ba=def.boss?TUNE.bossAtk:1;for(let i=0;i<n;i++)G.foes.push({side:'c',name,e,trait:def.tag||'',x:DEN_X+2+i*2.5,hp:def.hp*CROWN.hp[c]*TUNE.hp*bh,max:def.hp*CROWN.hp[c]*TUNE.hp*bh,atk:def.atk*CROWN.atk[c]*TUNE.atk*ba,rng:def.rng,spd:def.spd*(1+.08*c),fly:!!def.fly,armor:!!def.armor,boss:!!def.boss,kb:0,stun:0,id:Math.random()});}
 function nextKind(){const t=G.t,w={basic:4,swarm:t>8?2:0,speedy:t>15?2:0,flying:t>20?2:0,armored:t>30?2:0};const tot=Object.values(w).reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(const k in w){r-=w[k];if(r<=0)return k;}return 'basic';}
 function step(dt){if(!G||G.over)return;G.t+=dt;
- G.treats=Math.min(treatCap(),G.treats+treatRate()*dt);
- if(G.t>=G.spawnAt){spawn(nextKind());G.gap=Math.max(1.6,G.gap*.97);G.spawnAt=G.t+G.gap*(.8+Math.random()*.4);}
+ G.treats=Math.min(treatCap(),G.treats+treatRate()*dt);G.charge=Math.min(100,G.charge+TUNE.charge*dt);
+ if(G.t>=G.spawnAt&&G.foes.filter(f=>!f.gone).length<TUNE.foeCap){spawn(nextKind());G.gap=Math.max(1.6,G.gap*.97);G.spawnAt=G.t+G.gap*(G.boss&&!G.bossDown?TUNE.rage:G.bossDown?TUNE.calm:1)*(G.t>TUNE.tired?1.7:1)*(.8+Math.random()*.4);} /* after 4 minutes the critters get sleepy, so no battle drags on forever */
+ if(!G.tiredSaid&&G.t>TUNE.tired){G.tiredSaid=true;fx('tired');}
  if(!G.boss&&G.denHP<=G.denMax*.5){G.boss=true;spawn('boss');G.pets.forEach(p=>{if(p.gone)return;p.x=Math.min(HOUSE_X-2,p.x+12);p.stun=G.t+.8;});fx('boss');} /* the boss's shockwave */
  const pets=G.pets.filter(x=>!x.gone),foes=G.foes.filter(x=>!x.gone);
  pets.forEach(u=>{if(u.stun>G.t)return;u.mv=false;const R=u.R;const reach=f=>(!f.fly||R.fly)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
   if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});}
-  else if(u.x-DEN_X<=u.rng){G.denHP-=u.atk*dt*(G.bossDown||!G.boss?1:.5);}
+  else if(u.x-DEN_X<=u.rng){G.denHP-=u.atk*dt*(G.bossDown||!G.boss?1:.5)*(G.t>TUNE.tired?1.6:1);}
   else{u.x-=u.spd*.8*dt;u.mv=true;}
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
  foes.forEach(f=>{if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>u.x-f.x>=-1&&u.x-f.x<=f.rng);
   if(tg.length){const u=tg.reduce((a,b)=>b.x<a.x?b:a);u.hp-=f.atk*dt;}
-  else if(HOUSE_X-f.x<=f.rng)G.houseHP-=f.atk*dt;
+  else if(HOUSE_X-f.x<=f.rng)G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;
   else{f.x+=f.spd*.8*dt;f.mv=true;}});
  /* knock-back each time a unit loses another third of its health */
  const bump=(u,dir)=>{const k=Math.floor((1-u.hp/u.max)*3);if(u.hp<=0||k<=u.kb)return;u.kb=k;u.stun=G.t+.4;u.x=Math.max(DEN_X+2,Math.min(HOUSE_X-2,u.x+dir*(u.boss?2:5)));};
  pets.forEach(u=>bump(u,1));foes.forEach(f=>bump(f,-1));
  G.foes.forEach(f=>{if(!f.gone&&f.hp<=0){f.gone=true;if(f.boss){G.bossDown=true;fx('bossdown');}else fx('poof');}});
  G.pets.forEach(u=>{if(!u.gone&&u.hp<=0){u.gone=true;fx('sleepy');}});
+ /* last stand: the first time a base drops to 25%, every attacker near it is thrown 50–90% of the way back home (once per base) */
+ if(!G.lsH&&G.houseHP>0&&G.houseHP<=G.houseMax*.25){G.lsH=true;G.foes.forEach(f=>{if(f.gone)return;f.x-=(f.x-DEN_X-2)*(.5+Math.random()*.4);f.stun=G.t+1;});fx('standH');}
+ if(!G.lsD&&G.denHP>0&&G.denHP<=G.denMax*.25){G.lsD=true;G.pets.forEach(u=>{if(u.gone)return;u.x+=(HOUSE_X-2-u.x)*(.5+Math.random()*.4);u.stun=G.t+1;});fx('standD');}
  if(G.denHP<=0){G.denHP=0;G.over=true;G.win=true;}else if(G.houseHP<=0){G.houseHP=0;G.over=true;G.win=false;}}
 function fx(k){if(SIM||!G)return;G.fx.push(k);}
 
 /* ================= the screens ================= */
 let VIEW={k:'stages'},RAF=0,LAST=0;
 function css(){if(document.getElementById('bp2CSS'))return;const s=document.createElement('style');s.id='bp2CSS';s.textContent=`
-.bp2{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.bp2{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px}.bp2.wide{max-width:1180px}
 .bp2-card{background:#fff;border-radius:18px;padding:12px 14px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
 .bp2-stage{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.bp2-stage .e{font-size:40px}.bp2-stage b{font-size:19px;display:block}.bp2-stage small{color:#6b6490}
 .bp2-crowns{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}.bp2-crowns button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:8px 10px;background:#f1ecff;color:#2b2340;min-height:44px;cursor:pointer}
@@ -128,13 +146,21 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-slots{display:flex;gap:8px;flex-wrap:wrap}.bp2-slot{font:inherit;width:72px;height:72px;border-radius:14px;border:3px dashed #b197fc;background:#f8f5ff;font-size:34px;cursor:pointer}
 .bp2-slot.full{border-style:solid;border-color:#40c057;background:#ebfbee}
 .bp2-hud{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}.bp2-bar{flex:1;height:12px;background:#eee;border-radius:6px;overflow:hidden}.bp2-bar i{display:block;height:100%}
-.bp2-field{position:relative;height:210px;border-radius:16px;overflow:hidden;border:3px solid #2b2340}
+.bp2-scroll{overflow-x:auto;overflow-y:hidden;border-radius:16px;border:3px solid #2b2340;-webkit-overflow-scrolling:touch;cursor:grab;touch-action:pan-x;scrollbar-width:thin;overscroll-behavior-x:contain}
+.bp2-scroll.drag{cursor:grabbing}.bp2-scroll.drag *{user-select:none}
+.bp2-field{position:relative;height:clamp(260px,46vh,420px);width:2200px;overflow:hidden}
+.bp2-mini{position:relative;height:18px;background:#e9e4ff;border-radius:9px;cursor:pointer;overflow:hidden}.bp2-mini .vw{position:absolute;top:0;bottom:0;border:2px solid #7048e8;border-radius:9px;background:rgba(112,72,232,.12)}
+.bp2-mini i{position:absolute;top:5px;width:8px;height:8px;border-radius:50%;margin-left:-4px}.bp2-mini i.p{background:#2f9e44}.bp2-mini i.c{background:#e8590c}.bp2-mini i.b{background:#c92a2a;width:12px;height:12px;top:3px;margin-left:-6px}
+.bp2-fix{border:3px solid #f08c00;background:#fff9db}.bp2-btn.fix{background:#e8590c}.bp2-btn.fix.hot{animation:bp2pulse .8s ease-in-out infinite}@keyframes bp2pulse{50%{transform:scale(1.08);box-shadow:0 0 0 6px rgba(232,89,12,.3)}}
+.bp2-bricks{letter-spacing:1px;font-size:15px}.bp2-key{display:inline-block;font-size:10px;font-weight:800;background:#2b2340;color:#fff;border-radius:5px;padding:0 4px;margin-left:3px;vertical-align:middle}
+.bp2-flash{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);font-size:26px;font-weight:900;color:#fff;text-shadow:0 2px 6px #000;pointer-events:none;animation:bp2fl 1.6s ease-out forwards;white-space:nowrap}@keyframes bp2fl{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1}100%{opacity:0}}
+@media (hover:none){.bp2-key{display:none}}
 .bp2-ent{position:absolute;bottom:28px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;transition:opacity .4s}
-.bp2-ent .e{font-size:30px;line-height:1;display:inline-block}.bp2-ent.foe .e{transform:scaleX(-1)}.bp2-ent.boss .e{font-size:54px}.bp2-ent.fly{bottom:110px}
-.bp2-ent .hb{width:28px;height:4px;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:2px;overflow:hidden}.bp2-ent .hb i{display:block;height:100%;background:#40c057}.bp2-ent.foe .hb i{background:#e8590c}
+.bp2-ent .e{font-size:40px;line-height:1;display:inline-block}.bp2-ent.foe .e{transform:scaleX(-1)}.bp2-ent.boss .e{font-size:76px}.bp2-ent.fly{bottom:46%}
+.bp2-ent .hb{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:2px;overflow:hidden}.bp2-ent .hb i{display:block;height:100%;background:#40c057}.bp2-ent.foe .hb i{background:#e8590c}
 .bp2-ent.walk .e{animation:bp2hop .45s ease-in-out infinite}@keyframes bp2hop{50%{translate:0 -6px}}
 .bp2-ent .tag{font-size:10px;font-weight:700;background:rgba(255,255,255,.8);border-radius:6px;padding:0 4px;margin-top:1px}
-.bp2-base{position:absolute;bottom:22px;font-size:46px;transform:translateX(-50%)}
+.bp2-base{position:absolute;bottom:20px;font-size:72px;transform:translateX(-50%);transition:filter .3s}
 .bp2-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .bp2-meter{flex:1;min-width:160px;height:22px;background:#fff3bf;border-radius:11px;overflow:hidden;position:relative;border:2px solid #f2b705}.bp2-meter i{display:block;height:100%;background:#f2b705}.bp2-meter span{position:absolute;inset:0;text-align:center;font-weight:800;font-size:13px;line-height:18px}
 .bp2-btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:8px 12px;min-height:44px;cursor:pointer;background:#7048e8;color:#fff}.bp2-btn:disabled{opacity:.45;cursor:default}.bp2-btn.gold{background:#f08c00}
@@ -149,7 +175,7 @@ function screen(){stopLoop();const p=me();if(!p||!on(p)){go('world');return;}css
  if(VIEW.k==='team')return teamView(p);if(VIEW.k==='fight'&&G)return fightView(p);VIEW={k:'stages'};stageView(p);}
 function stageView(p){const pr=prog(p),S=stages();
  app.innerHTML=head('🐾 Battle Pets <small style="font-size:13px;font-weight:600">demo</small>',"go('world')")+`<div class="bp2">
-  <div class="bp2-card"><b>How to play:</b> send your pets to knock down the critter den before the critters reach your Pet House. Every right answer gives <b>treats</b> to send more pets and charges your <b>🐾 Pet Pounce</b>. Spend treats on the <b>🍳 Treat Kitchen</b> to earn them faster!<br><small class="muted">Demo: in the full game each stage is a hidden bonus level you unlock.</small></div>
+  <div class="bp2-card"><b>How to play:</b> send your pets to knock down the critter den before the critters reach your Pet House. <b>Treats</b> come in by themselves: spend them to send pets, or on the <b>🍳 Treat Kitchen</b> to earn them faster. <b>🐾 Pet Pounce</b> charges up over time. When the critters smash your Pet House below half, tap <b>🧱 Rebuild</b> and answer math: every right answer lays a brick. You have enough bricks to rebuild the whole house twice!<br><small class="muted">Swipe or drag the battlefield to look around. On a computer: 1–5 send pets, K kitchen, Space pounce, R rebuild, ← → scroll.</small><br><small class="muted">Demo: in the full game each stage is a hidden bonus level you unlock.</small></div>
   ${S.map(s=>{const done=pr.c[s.id]||0;return `<div class="bp2-card bp2-stage"><span class="e">${s.art}</span><span><b>${esc(s.name)}</b><small>${s.op?OPN[s.op]+' at your level':'Mixed math at your level'} · boss: ${s.boss[1]} ${esc(s.boss[0])}<br>Full game: opens in ${esc(s.where)}</small></span>
    <span class="bp2-crowns">${[1,2,3].map(c=>`<button class="${done>=c?'done':''}" ${c>done+1?'disabled':''} onclick="BattlePets._pick('${s.id}',${c})">${'👑'.repeat(c)}${done>=c?' ✓':''}</button>`).join('')}</span></div>`;}).join('')}</div></div>`;}
 function pickStage(id,crown){const p=me();if(!p)return;const pr=prog(p);if(crown>(pr.c[id]||0)+1)return;VIEW={k:'team',id,crown};
@@ -167,22 +193,45 @@ function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;c
  prog(p).team=VIEW.team.slice();const b=p.bp=p.bp||{s:0,m:[]};b.s=(b.s||0)+1;save();
  newBattle(p,S,VIEW.crown,team);G.q=makeQ(p,S.op);VIEW={k:'fight',id:S.id,crown:G.crown};screen();}
 function fightView(p){const S=G.stage;
- app.innerHTML=head(`${S.art} ${esc(S.name)} ${'👑'.repeat(G.crown)}`,"BattlePets._quit()")+`<div class="bp2">
+ app.innerHTML=head(`${S.art} ${esc(S.name)} ${'👑'.repeat(G.crown)}`,"BattlePets._quit()")+`<div class="bp2 wide">
   <div class="bp2-hud"><span>🏚️</span><div class="bp2-bar"><i id="bpDen" style="background:#e8590c"></i></div><span id="bpT" style="min-width:48px;text-align:center"></span><div class="bp2-bar"><i id="bpHouse" style="background:#40c057"></i></div><span>🏡</span></div>
-  <div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" style="left:${DEN_X}%">🏚️</span><span class="bp2-base" style="left:${HOUSE_X}%">🏡</span></div>
-  <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button></div>
-  <div class="bp2-team">${G.team.map((s,i)=>`<button class="bp2-tc" id="bpTc${i}" onclick="BattlePets._send(${i})"><span class="pe">${s.pet.e}</span><small>${s.R.e} ${s.R.n}</small><small>🍖 ${s.R.cost}</small><span class="cd" id="bpCd${i}"></span></button>`).join('')}</div>
-  <div class="bp2-card"><div class="bp2-q"><span id="bpQ"></span><span class="box" id="bpIn">&nbsp;</span><button class="btn small ghost dark" onclick="BattlePets._say()" aria-label="Read it to me">🔊</button></div><div class="bp2-msg" id="bpMsg"></div>
-   <div class="bp2-pad">${['1','2','3','4','5','6','7','8','9','0','.','⌫'].map(k=>`<button onclick="BattlePets._key('${k}')">${k}</button>`).join('')}<button class="go" style="grid-column:1/-1" onclick="BattlePets._key('go')">✓ Check</button></div>
-   ${S.note?`<p class="muted" style="font-size:12px;margin:6px 0 0">${esc(S.note)}</p>`:''}</div></div></div>`;
- showQ(true);draw();startLoop();}
-function showQ(fresh){const el=document.getElementById('bpQ');if(!el||!G)return;el.innerHTML=esc(qText(G.q));const b=document.getElementById('bpIn');if(b)b.innerHTML=esc(G.inp)||'&nbsp;';
+  <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">🏚️</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">🏡</span></div></div>
+  <div class="bp2-mini" id="bpMini" aria-label="Map of the battlefield: tap to look there"><span class="vw" id="bpVw"></span></div>
+  <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button><button class="bp2-btn fix" id="bpFix" onclick="BattlePets._fix()"></button></div>
+  <div class="bp2-team">${G.team.map((s,i)=>`<button class="bp2-tc" id="bpTc${i}" onclick="BattlePets._send(${i})"><span class="pe">${s.pet.e}</span><small>${s.R.e} ${s.R.n}<span class="bp2-key">${i+1}</span></small><small>🍖 ${s.R.cost}</small><span class="cd" id="bpCd${i}"></span></button>`).join('')}</div>
+  <div class="bp2-card bp2-fix" id="bpFixP" style="display:none"><div class="bp2-row" style="justify-content:space-between"><b>🧱 Rebuild the Pet House</b><span class="bp2-bricks" id="bpBricks"></span><button class="btn small ghost dark" onclick="BattlePets._fixDone()">Done <span class="bp2-key">Esc</span></button></div>
+   <div class="bp2-q"><span id="bpQ"></span><span class="box" id="bpIn">&nbsp;</span><button class="btn small ghost dark" onclick="BattlePets._say()" aria-label="Read it to me">🔊</button></div><div class="bp2-msg" id="bpMsg"></div>
+   <div class="bp2-pad">${['1','2','3','4','5','6','7','8','9','0','.','⌫'].map(k=>`<button onclick="BattlePets._key('${k}')">${k}</button>`).join('')}<button class="go" style="grid-column:1/-1" onclick="BattlePets._key('go')">✓ Check <span class="bp2-key">Enter</span></button></div></div>
+  ${S.note?`<p class="muted" style="font-size:12px;margin:0">${esc(S.note)}</p>`:''}</div></div>`;
+ const sc=document.getElementById('bpScroll');sc.scrollLeft=sc.scrollWidth;panSetup(sc);
+ document.getElementById('bpMini').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();lookAt((e.clientX-r.left)/r.width*100);});
+ G.shown=false;draw();startLoop();}
+/* looking around the wide battlefield: swipe (touch scrolls natively), drag with the mouse, the mouse wheel, the arrow keys or the little map */
+function lookAt(pct){const sc=document.getElementById('bpScroll');if(!sc)return;sc.scrollTo({left:pct/100*sc.scrollWidth-sc.clientWidth/2,behavior:'smooth'});}
+function panBy(px){const sc=document.getElementById('bpScroll');if(sc)sc.scrollBy({left:px,behavior:'smooth'});}
+function panSetup(sc){let d=null;
+ sc.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0)return;d={x:e.clientX,l:sc.scrollLeft};sc.classList.add('drag');});
+ window.addEventListener('pointermove',e=>{if(!d)return;sc.scrollLeft=d.l-(e.clientX-d.x);});
+ window.addEventListener('pointerup',()=>{if(d){d=null;sc.classList.remove('drag');}});
+ sc.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){sc.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});}
+function showQ(fresh){const el=document.getElementById('bpQ');if(!el||!G||!G.q)return;el.innerHTML=esc(qText(G.q));const b=document.getElementById('bpIn');if(b)b.innerHTML=esc(G.inp)||'&nbsp;';
  if(fresh){try{const p=me();if(p&&!p.adult&&(+p.grade||3)<=2&&voiceOn())say(speakable(qText(G.q)),.9);}catch(e){}}}
-function key(k){if(!G||G.over)return;if(k==='go'){if(G.inp===''||G.inp==='.')return;const ok=Math.abs(parseFloat(G.inp)-G.q.answer)<1e-6;answer(ok);
+function fixOpen(){if(!G||G.over)return;if(G.fixing){return;}if(!openFix()){toast(G.bricks<=0?'No bricks left!':'You can rebuild when your Pet House drops below half.');return;}
+ G.q=makeQ(me(),G.stage.op);G.inp='';const m=document.getElementById('bpMsg');if(m)m.textContent='Every right answer lays a brick: +'+Math.round(TUNE.brick*100)+'% for your Pet House.';draw();showQ(true);}
+function fixDone(){closeFix();draw();}
+function key(k){if(!G||G.over||!G.fixing)return;if(k==='go'){if(G.inp===''||G.inp==='.')return;const ok=Math.abs(parseFloat(G.inp)-G.q.answer)<1e-6;const add=answer(ok);
   try{const p=me(),dk=dayKey();p.daily=p.daily||{};p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;}catch(e){}
-  const m=document.getElementById('bpMsg');if(m)m.innerHTML=ok?`✅ +${TUNE.ans+Math.min(3,G.streak-1)} 🍖${G.streak>=3?` · 🔥 ${G.streak} in a row!`:''}`:`The answer was <b>${esc(String(G.q.answer))}</b>. Keep going!`;
-  try{SFX[ok?'correct':'wrong']();}catch(e){}G.q=makeQ(me(),G.stage.op);G.inp='';showQ(true);return;}
+  const m=document.getElementById('bpMsg');if(m)m.innerHTML=ok?`✅ 🧱 +${Math.round(add/G.houseMax*100)}% Pet House${G.streak>=3?` · 🔥 ${G.streak} in a row!`:''}${G.fixing?'':G.bricks<=0?' · That was your last brick!':' · Your Pet House is good as new!'}`:`The answer was <b>${esc(String(G.q.answer))}</b>. No brick lost. Try this one!`;
+  try{SFX[ok?'correct':'wrong']();}catch(e){}G.q=makeQ(me(),G.stage.op);G.inp='';showQ(true);draw();return;}
  if(k==='⌫')G.inp=G.inp.slice(0,-1);else if(k==='.'){if(!G.inp.includes('.'))G.inp+=G.inp?'.':'0.';}else if(G.inp.length<7)G.inp+=k;showQ(false);}
+/* the keyboard (computers): while rebuilding, keys type the answer; otherwise they play */
+function onKey(e){try{if(typeof curScreen==='undefined'||curScreen!=='bp'||VIEW.k!=='fight'||!G||G.over||document.querySelector('.bp2-over')||document.querySelector('#modal.show'))return;
+ const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))return;const k=e.key;let used=true;
+ if(k==='ArrowLeft')panBy(-320);else if(k==='ArrowRight')panBy(320);
+ else if(G.fixing){if(/^[0-9]$/.test(k))key(k);else if(k==='.'||k===',')key('.');else if(k==='Backspace')key('⌫');else if(k==='Enter')key('go');else if(k==='Escape')fixDone();else used=false;}
+ else if(/^[1-5]$/.test(k)){if(send(+k-1))draw();}else if(k==='k'||k==='K'){if(upgradeKitchen())draw();}else if(k===' '||k==='p'||k==='P'){if(pounce())draw();}else if(k==='r'||k==='R')fixOpen();else used=false;
+ if(used){e.preventDefault();e.stopPropagation();}}catch(x){}}
+window.addEventListener('keydown',onKey,true);
 /* draw: one element per unit, moved every frame */
 function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)return;const all=G.pets.concat(G.foes);
  all.forEach(u=>{if(!u.el){u.el=document.createElement('div');u.el.className=`bp2-ent ${u.side==='p'?'pet':'foe'}${u.boss?' boss':''}${u.fly?' fly':''}`;u.el.innerHTML=`<div class="hb"><i></i></div><span class="e">${u.side==='p'?u.pet.e:u.e}</span>${u.side==='c'&&u.trait&&u.trait!=='boss'?`<span class="tag">${u.trait}</span>`:''}`;f.appendChild(u.el);}
@@ -191,10 +240,18 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
  G.pets=G.pets.filter(u=>!(u.gone&&u.dead));G.foes=G.foes.filter(u=>!(u.gone&&u.dead));
  const q=id=>document.getElementById(id);q('bpDen').style.width=(G.denHP/G.denMax*100)+'%';q('bpHouse').style.width=(G.houseHP/G.houseMax*100)+'%';q('bpT').textContent=Math.floor(G.t)+'s';
  q('bpTreat').style.width=(G.treats/treatCap()*100)+'%';q('bpTreatT').textContent=`🍖 ${Math.floor(G.treats)} / ${treatCap()}`;
+ const fb=q('bpFix'),fp=q('bpFixP'),cf=canFix();fb.innerHTML=`🧱 Rebuild <span class="bp2-key">R</span><br><small>${G.bricks} brick${G.bricks===1?'':'s'}</small>`;fb.disabled=!G.fixing&&!cf;fb.classList.toggle('hot',cf&&!G.fixing);
+ if(fp){if(G.fixing!==G.shown){G.shown=G.fixing;fp.style.display=G.fixing?'':'none';if(G.fixing){showQ(false);try{fp.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(e){}}}const bk=q('bpBricks');if(bk)bk.textContent=`🧱 × ${G.bricks}`;}
+ const hb=q('bpHouseB');if(hb)hb.style.filter=G.houseHP<G.houseMax*.3?'grayscale(.6) brightness(.8)':'';const db=q('bpDenB');if(db)db.style.filter=G.denHP<G.denMax*.3?'grayscale(.6) brightness(.8)':'';
+ miniMap();
  const kb=q('bpKit');kb.textContent=G.kl>=4?'🍳 Kitchen max':`🍳 Kitchen ${G.kl+1}→${G.kl+2} · 🍖${kitchenCost()}`;kb.disabled=G.kl>=4||G.treats<kitchenCost();
  const pb=q('bpPounce');pb.textContent=G.charge>=100?'🐾 POUNCE!':`🐾 ${Math.floor(G.charge)}%`;pb.disabled=G.charge<100;
  G.team.forEach((s,i)=>{const c=q('bpCd'+i),b=q('bpTc'+i);if(!c)return;const left=Math.max(0,s.ready-G.t);c.style.height=(left/s.R.cd*100)+'%';b.classList.toggle('poor',G.treats<s.R.cost);});
- while(G.fx.length){const k=G.fx.shift();try{if(k==='send')tone(440,.1,'square',.03);else if(k==='poof')tone(300,.12,'triangle',.04);else if(k==='pounce'){[523,659,784].forEach((h,j)=>tone(h,.12,'triangle',.06,j*.06));}else if(k==='boss'){tone(110,.6,'sawtooth',.06);toast(`${G.stage.boss[1]} ${G.stage.boss[0]} bursts out!`);}else if(k==='bossdown')toast('The boss is down! Knock over the den!');else if(k==='kitchen')SFX.coin();}catch(e){}}}
+ while(G.fx.length){const k=G.fx.shift();try{if(k==='send')tone(440,.1,'square',.03);else if(k==='poof')tone(300,.12,'triangle',.04);else if(k==='pounce'){[523,659,784].forEach((h,j)=>tone(h,.12,'triangle',.06,j*.06));}else if(k==='boss'){tone(110,.6,'sawtooth',.06);toast(`${G.stage.boss[1]} ${G.stage.boss[0]} bursts out!`);}else if(k==='bossdown')toast('The boss is down! Knock over the den!');else if(k==='kitchen')SFX.coin();else if(k==='brick')tone(660,.08,'square',.04);else if(k==='standH'){flash('🏡 LAST STAND! Critters thrown back!');[392,523,659].forEach((h,j)=>tone(h,.15,'square',.06,j*.08));}else if(k==='standD')flash('🏚️ The den shakes your pets back!');else if(k==='tired')toast('😴 The critters are getting sleepy. Push now!');}catch(e){}}}
+function flash(t){const f=document.getElementById('bpScroll');if(!f)return;const d=document.createElement('div');d.className='bp2-flash';d.textContent=t;d.style.position='fixed';d.style.top='40%';document.body.appendChild(d);setTimeout(()=>d.remove(),1700);}
+let MINI=0;function miniMap(){if(++MINI%4)return;const m=document.getElementById('bpMini'),sc=document.getElementById('bpScroll');if(!m||!sc||!G)return;
+ const vw=document.getElementById('bpVw');if(vw){vw.style.left=(sc.scrollLeft/sc.scrollWidth*100)+'%';vw.style.width=(sc.clientWidth/sc.scrollWidth*100)+'%';}
+ m.querySelectorAll('i').forEach(x=>x.remove());let h='';G.pets.forEach(u=>{if(!u.gone)h+=`<i class="p" style="left:${u.x}%"></i>`;});G.foes.forEach(f=>{if(!f.gone)h+=`<i class="${f.boss?'b':'c'}" style="left:${f.x}%"></i>`;});m.insertAdjacentHTML('beforeend',h);}
 function loop(now){if(VIEW.k!=='fight'||!G||typeof curScreen==='undefined'||curScreen!=='bp'){stopLoop();return;}const dt=Math.min(.05,(now-LAST)/1000);LAST=now;if(!document.hidden)step(dt);draw();if(G.over){stopLoop();finish();return;}RAF=requestAnimationFrame(loop);}
 function startLoop(){stopLoop();LAST=performance.now();RAF=requestAnimationFrame(loop);}
 function stopLoop(){if(RAF)cancelAnimationFrame(RAF);RAF=0;}
@@ -206,7 +263,7 @@ function finish(){if(!G||G.done)return;G.done=true;const p=me();if(!p)return;con
  b.m.push([Math.floor(Date.now()/1000),stages().findIndex(s=>s.id===S.id)*10+G.crown,G.win?1:0,n(G.t),n(G.asked),n(G.right),n(G.sent),n(G.pounces),n(G.houseHP/G.houseMax*100),n(G.denHP/G.denMax*100)]);if(b.m.length>LOG_MAX)b.m=b.m.slice(-LOG_MAX);
  save();try{SFX[G.win?'win':'wrong']();}catch(e){}
  const ov=document.createElement('div');ov.className='bp2-over';ov.innerHTML=`<div class="bp2-card"><div style="font-size:60px">${G.win?'🎉':'💤'}</div><h2>${G.win?`${esc(S.name)} ${'👑'.repeat(G.crown)} beaten!`:'Your pets need a rest'}</h2>
-  <p>${G.right} of ${G.asked} answers right · ${Math.floor(G.t)} seconds</p><p><b>+${xp} pet XP</b> for each pet on your team${snack?` and a <b>${snack}</b> for your pantry`:''}.</p>${G.win?'':'<p class="muted">Nothing is lost. Try a different team, upgrade the kitchen early, or save your Pounce for the boss!</p>'}
+  <p>${Math.floor(G.t)} seconds${G.asked?` · 🧱 ${G.right} brick${G.right===1?'':'s'} laid (${G.right} of ${G.asked} answers right)`:''}</p><p><b>+${xp} pet XP</b> for each pet on your team${snack?` and a <b>${snack}</b> for your pantry`:''}.</p>${G.win?'':'<p class="muted">Nothing is lost. Try a different team, upgrade the kitchen early, save your Pounce for the boss, and tap 🧱 Rebuild when your Pet House gets low!</p>'}
   <div class="row"><button class="btn green big" onclick="BattlePets._again()">${G.win&&G.crown<3?'Next crown ➜':'Play again'}</button><button class="btn ghost dark" onclick="BattlePets._back()">Stages</button></div></div>`;
  document.body.appendChild(ov);}
 function again(){const g=G;document.querySelectorAll('.bp2-over').forEach(x=>x.remove());if(!g)return backTo();const p=me(),pr=prog(p);const c=g.win&&g.crown<3?g.crown+1:g.crown;pickStage(g.stage.id,Math.min(c,(pr.c[g.stage.id]||0)+1));}
@@ -232,7 +289,7 @@ window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 
 (function reg(){if(typeof SCREENS!=='undefined'){SCREENS.bp=()=>screen();}else setTimeout(reg,30);})();
 window.BattlePets={on,stats,stages,
- _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>{if(send(i))draw();},_kit:()=>{if(upgradeKitchen())draw();},_pounce:()=>{if(pounce())draw();},_key:key,_again:again,_back:backTo,_quit:quit,
+ _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>{if(send(i))draw();},_kit:()=>{if(upgradeKitchen())draw();},_fix:fixOpen,_fixDone:fixDone,_pounce:()=>{if(pounce())draw();},_key:key,_again:again,_back:backTo,_quit:quit,
  _say:()=>{try{if(G&&G.q)speakToggle(()=>say(speakable(qText(G.q)),.9));}catch(e){}},_sync:syncTile,
- _dbg:{TUNE,G:()=>G,newBattle,step,send,answer,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
+ _dbg:{TUNE,CROWN,G:()=>G,newBattle,step,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
 })();

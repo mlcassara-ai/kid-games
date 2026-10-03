@@ -197,18 +197,31 @@ const tests=[
   T.ok(new Set(d.FACTS.map(x=>x[0])).size===d.FACTS.length&&d.FACTS.every(x=>d.SETS.some(s=>s[0]===x[0][0])),'fact ids are not unique or lack a set');
   closeModal();delete window.MQ_DISTRICT_BETA;go('world');}],
 
-['battle pets demo: on the plaza for every hero; stages, team, a real battle with math, rewards and the play log',async function(){
+['battle pets demo: on the plaza for every hero; stages, team, a wide scrolling battle, 🧱 Rebuild math (keyboard too), last stand, rewards and the play log',async function(){
   T.reset();delete window.MQ_BP_BETA;const p=T.hero('Pets',5);state.cur=p.id;W=null;go('world');await T.wait(150);
   T.ok(W.T[20][28].npc==='bp','the Battle Pets building is not on the plaza');
   go('bp');const txt=document.querySelector('#app').innerText;T.ok(/Fossil Stage/.test(txt)&&/Addition Forest/.test(txt)&&BattlePets.stages().length>=3,'stages missing');
   T.ok([...document.querySelectorAll('.bp2-crowns button')].some(b=>b.disabled),'crown 2 is open before crown 1 is beaten');
   BattlePets._pick('forest',1);T.ok(document.querySelectorAll('.bp2-slot').length===Math.min(5,3+Math.floor((P().level||1)/10))&&document.querySelectorAll('.bp2-slot.full').length>=1,'team picker did not fill the team');
-  const D=BattlePets._dbg;BattlePets._start();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpQ').textContent.length>0,'the battle did not start');
+  const D=BattlePets._dbg;BattlePets._start();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpScroll'),'the battle did not start');
+  {const sc=document.getElementById('bpScroll');T.ok(sc.scrollWidth>sc.clientWidth+100,'the battlefield is not wider than the screen');}
   T.ok(G.team.every(s=>P().pets.includes(s.pet.id)),'the team is not the hero\'s own pets');
   Music.update();T.ok(Music._state().want==='petBattle','the Pet Battle music is not chosen in a fight');{const r=await fetch('audio/pet-battle-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/pet-battle-studio.mp3 is missing');}
-  const t0=G.treats;String(G.q.answer).split('').forEach(k=>BattlePets._key(k));BattlePets._key('go');T.ok(G.treats>=t0+4&&G.right===1&&G.charge>0,'a right answer gave no treats or charge');
-  BattlePets._key('9');BattlePets._key('9');BattlePets._key('9');BattlePets._key('9');BattlePets._key('9');BattlePets._key('go');T.ok(G.asked===2&&G.treats>=t0+4,'a wrong answer took treats away');
-  G.treats=50;const sent0=G.sent;BattlePets._send(0);T.ok(G.sent===sent0+1&&G.pets.length===1,'a pet could not be sent');
+  {const t0=G.treats;G.treats=0;D.step(1);T.ok(G.treats>0&&G.charge>0,'treats and Pounce do not fill up by themselves');}
+  /* 🧱 Rebuild: math mends the Pet House below half, with a limited pile of bricks */
+  T.ok(!G.fixing&&document.getElementById('bpFixP').style.display==='none','the Rebuild panel is open at the start');
+  BattlePets._fix();T.ok(!G.fixing,'Rebuild opened while the Pet House was fine');
+  G.houseHP=G.houseMax*.4;BattlePets._fix();await T.wait(80);T.ok(G.fixing&&G.q,'Rebuild did not open below half');
+  const h0=G.houseHP,b0=G.bricks;String(G.q.answer).split('').forEach(k=>BattlePets._key(k));BattlePets._key('go');T.ok(G.houseHP>h0&&G.bricks===b0-1&&G.right===1,'a right answer did not lay a brick');
+  const h1=G.houseHP;'99999'.split('').forEach(k=>BattlePets._key(k));BattlePets._key('go');T.ok(G.asked===2&&G.bricks===b0-1&&G.houseHP>=h1,'a wrong answer took something away');
+  {const kd=k=>window.dispatchEvent(new KeyboardEvent('keydown',{key:k,bubbles:true,cancelable:true}));String(G.q.answer).split('').forEach(kd);kd('Enter');T.ok(G.right===2,'typing the answer on the keyboard did not work');
+   kd('Escape');T.ok(!G.fixing,'Esc did not close the Rebuild panel');G.treats=50;const s0=G.sent;kd('1');T.ok(G.sent===s0+1,'the 1 key did not send a pet');kd('r');T.ok(!G.fixing,'R opened Rebuild while the house was above half');G.houseHP=G.houseMax*.4;kd('r');T.ok(G.fixing,'the R key did not open Rebuild');}
+  G.bricks=1;G.houseHP=G.houseMax*.3;String(G.q.answer).split('').forEach(k=>BattlePets._key(k));BattlePets._key('go');T.ok(G.bricks===0&&!G.fixing,'the last brick did not close Rebuild');
+  BattlePets._fix();T.ok(!G.fixing,'Rebuild opened with no bricks left');T.ok(D.TUNE.bricks*D.TUNE.brick>1.99&&D.TUNE.bricks*D.TUNE.brick<2.01,'the bricks are not exactly two full rebuilds');
+  /* last stand: the first time the Pet House drops to 25%, the critters are thrown back (once) */
+  G.pets.forEach(u=>u.gone=true);D.step(.05);G.houseHP=G.houseMax*.3;D._spawn('basic');const f0=G.foes[G.foes.length-1];f0.x=90;G.houseHP=G.houseMax*.2;D.step(.05);
+  T.ok(G.lsH&&f0.x<90-(90-8)*.45,'the last stand did not throw the critters back');G.houseHP=G.houseMax;G.foes.forEach(f=>f.gone=true);D.step(.05);
+  G.treats=50;G.team.forEach(t=>t.ready=0);const sent0=G.sent;BattlePets._send(0);T.ok(G.sent===sent0+1&&G.pets.filter(u=>!u.gone).length===1,'a pet could not be sent');
   const kl=G.kl;BattlePets._kit();T.ok(G.kl===kl+1,'the Treat Kitchen did not upgrade');
   G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1,'Pet Pounce did not fire');
   for(let i=0;i<40;i++)D.step(.05);G.denHP=1;G.pets.forEach(u=>u.x=8);D.step(.1);T.ok(G.boss,'the boss did not come out');G.denHP=0;D.step(.05);T.ok(G.over&&G.win,'the den fell but the battle did not end');
