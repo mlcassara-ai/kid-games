@@ -8,15 +8,16 @@
    - The lane is wider than the screen: swipe it, drag it with the mouse, use the arrow keys, or tap the little map under it.
    - Treat Kitchen: spend treats now to make treats come faster and hold more (the one big money decision, like Battle Cats' Worker Cat).
    - Pet Pounce: charges over time; when full it knocks every critter back and hurts them (like the Cat Cannon).
-   - Math = 🧱 Rebuild. When the Pet House is down to half, the kid can open the Rebuild panel: every right answer lays one brick
-     (+10% of the house). There are 20 bricks per battle, enough to rebuild the house twice from nothing. The battle keeps going.
+   - Math = 🧱 Rebuild. When the Pet House is down to half, the kid can open the Rebuild panel: every right answer lays one big brick
+     (+40% of the house). There are 5 bricks per battle, enough to rebuild the house twice from nothing. The battle keeps going.
+     Rebuild questions are about speed, not difficulty: quick, easy facts for everyone (see easyQ).
    - Roles come from each pet's perk: shield = Wall (cheap, tough), power = Brawler (big hits, cracks armour), heal = Medic,
      lucky = Jumper (reaches flyers, lucky hits), xp = Archer (long range, reaches flyers), coins = Stomper (hits a whole group).
      Rarity and the pet's growth (Baby to Mighty, plus Mighty levels) make it stronger.
    - Critters have traits: swarm (many weak ones: Stompers), flying (only Jumpers and Archers reach them), armoured (Brawlers),
      speedy. When the den drops to half, the boss bursts out with a shockwave that knocks your pets back.
    - Crowns: each stage can be beaten at 1, 2 and 3 crowns (tougher critters, faster waves).
-   - Math: the stage's own skill (Addition Forest = addition…) at the hero's own level; the Fossil Stage mixes skills.
+   - Math: easy, quick facts of the stage's skill (Addition Forest = addition…); the Fossil Stage mixes them.
    A wrong answer never takes anything away: it just doesn't lay a brick.
    - Keyboard: 1–5 send pets, K kitchen, Space pounce, R rebuild, arrows scroll; while rebuilding, type the answer and press Enter (Esc closes).
    SAVED: p.bp2 = {c:{stage: crowns beaten}, team:[pet ids]} and the play log p.bp (last 40 matches, for Parent Corner).
@@ -87,8 +88,8 @@ const CROWN={hp:[1,1.6,1.9],atk:[1,1.3,1.36],gap:[1,.85,.72],den:[1,1.3,1.6]};
      and only worlds with real flying animals have flyers.
    - treats trickle in (the Kitchen adds more), Pounce charges in about 30 s, the Grey Goblin boss is the big push,
      critters spawn faster while the boss is out and slower once it is down; after 4 minutes they tire (no endless tug-of-war).
-   - bricks: 20 per battle, each +10% of the house = exactly two full rebuilds. */
-const TUNE={trickle:.73,trickleKl:.31,charge:3.3,den:400,hp:1.15,atk:1.81,gap:3.79,bricks:20,brick:.1,repairAt:.5,house:480,siege:.58,foeCap:12,
+   - bricks: 5 per battle, each +40% of the house = exactly two full rebuilds. */
+const TUNE={trickle:.73,trickleKl:.31,charge:3.3,den:400,hp:1.15,atk:1.81,gap:3.79,bricks:5,brick:.4,repairAt:.5,house:480,siege:.58,foeCap:12,
  petHp:.66,bossHp:.68,bossAtk:1.62,bossSiege:.81,rage:.87,calm:1.78,tired:240,petSpd:.75,slamWait:.6,slamR:9};
 
 /* ---------- saved progress ---------- */
@@ -96,11 +97,18 @@ function prog(p){p.bp2=p.bp2||{c:{},team:[]};p.bp2.c=p.bp2.c||{};if(!Array.isArr
 const slots=p=>Math.min(5,3+Math.floor((p.level||1)/10));
 function available(p){return (p.pets||[]).filter(id=>!(window.Adv&&Adv.away&&Adv.away(p,id))&&!(window.PetCare&&PetCare.rescued&&PetCare.rescued(p,id))).map(id=>PETS.find(x=>x.id===id)).filter(Boolean);}
 
-/* ---------- questions: the stage's skill at the hero's own level ---------- */
-const plainQ=q=>!!q&&!q.tpl&&!q.rev&&typeof q.answer==='number'&&isFinite(q.answer)&&q.answer>=0&&Math.round(q.answer*100)===q.answer*100;
-function makeQ(p,op){for(let k=0;k<25;k++){let o=op;try{if(!o)o=pickOpFair(p);}catch(e){o='add';}let L=1;try{L=Math.max(1,lvl(p,o)||1);}catch(e){}
-  let q=null;try{q=genQ(o,Math.min(L,20));}catch(e){q=null;}if(plainQ(q))return q;}
- const a=rint(1,9),b=rint(1,9);return {text:`${a} + ${b}`,answer:a+b};}
+/* ---------- 🧱 Rebuild questions: about speed, not difficulty ----------
+   Quick, easy facts for everyone (kids and grown-ups alike), in the stage's skill: adding and taking away within 20 (within 10 for the
+   youngest), times tables up to 5 × 10 and the matching divisions. Heroes who don't multiply yet (grade 2 and below) get adding or
+   taking away instead. The Fossil Stage mixes them. */
+function easyQ(p,op){const g=p&&p.adult?12:Math.max(1,+(p&&p.grade)||3),young=g<=1,noMul=g<=2;
+ if(!op)op=choose(noMul?['add','sub']:['add','sub','mul','div']);if(noMul&&(op==='mul'||op==='div'))op=op==='mul'?'add':'sub';
+ const top=young?10:20;
+ if(op==='add'){const a=rint(1,young?5:9),b=rint(1,Math.min(young?5:9,top-a));return {text:`${a} + ${b}`,answer:a+b};}
+ if(op==='sub'){const a=rint(young?3:6,top),b=rint(1,Math.min(a-1,young?5:9));return {text:`${a} − ${b}`,answer:a-b};}
+ const a=rint(2,5),b=rint(1,10);if(op==='mul')return Math.random()<.5?{text:`${a} × ${b}`,answer:a*b}:{text:`${b} × ${a}`,answer:a*b};
+ return {text:`${a*b} ÷ ${a}`,answer:b};}
+const makeQ=(p,op)=>easyQ(p,op);
 const qText=q=>q.prompt?String(q.prompt):`${q.text} = ?`;
 
 /* ================= the battle engine (pure state; the screen only draws it) ================= */
@@ -301,6 +309,7 @@ body.bp2-lock{overflow:hidden}
 .bp2-note-pop{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%);z-index:70;background:rgba(30,20,60,.94);color:#fff;border:3px solid #f2b705;border-radius:18px;padding:14px 22px;text-align:center;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:bp2note 1.9s ease-out forwards;max-width:86vw}
 .bp2-note-pop b{display:block;font-size:24px}.bp2-note-pop small{display:block;font-size:14px;opacity:.85;margin-top:4px}
 @keyframes bp2note{0%{opacity:0;scale:.7}12%{opacity:1;scale:1.05}20%{scale:1}80%{opacity:1}100%{opacity:0}}
+.bp2-padrow{display:flex;gap:6px;margin-top:6px}.bp2-padrow button{font:inherit;font-size:20px;font-weight:800;border:0;border-radius:12px;min-height:46px;cursor:pointer}.bp2-padrow .skip{flex:1;background:#e9ecef;color:#2b2340}.bp2-padrow .go{flex:3;background:#40c057;color:#fff}
 .bp2-note{font-size:11px;opacity:.7;margin:0;text-align:center}.bp2-tc{font:inherit;position:relative;border:3px solid #d0bfff;border-radius:14px;background:#fff;min-height:84px;padding:4px 2px;cursor:pointer;color:#2b2340;overflow:hidden}
 .bp2-tc .pe{font-size:30px;display:block}.bp2-tc small{display:block;font-size:11px;font-weight:700}.bp2-tc .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(43,35,64,.35)}.bp2-tc.poor{opacity:.55}
 .bp2-q{display:flex;align-items:center;justify-content:center;gap:10px;font-size:28px;font-weight:800;flex-wrap:wrap}.bp2-q .box{min-width:90px;border:3px dashed #b197fc;border-radius:12px;text-align:center;background:#f8f5ff;padding:0 8px}
@@ -355,7 +364,7 @@ function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
    <button class="bp2-tc mega" id="bpTroll" onclick="BattlePets._troll()" aria-label="Call ${TROLL.n} the Troll"><span class="pe">${trollArt(46)}</span><small>MEGA<span class="bp2-key">T</span></small><small>🍖 ${TROLL.cost}</small><span class="cd" id="bpTrollCd"></span></button></div>
   <div class="bp2-card bp2-fix" id="bpFixP" style="display:none"><div class="bp2-row" style="justify-content:space-between"><b>🧱 Rebuild the Pet House</b><span class="bp2-bricks" id="bpBricks"></span><button class="btn small ghost dark" onclick="BattlePets._fixDone()">Done <span class="bp2-key">Esc</span></button></div>
    <div class="bp2-q"><span id="bpQ"></span><span class="box" id="bpIn">&nbsp;</span><button class="btn small ghost dark" onclick="BattlePets._say()" aria-label="Read it to me">🔊</button></div><div class="bp2-msg" id="bpMsg"></div>
-   <div class="bp2-pad">${['1','2','3','4','5','6','7','8','9','0','.','⌫'].map(k=>`<button onclick="BattlePets._key('${k}')">${k}</button>`).join('')}<button class="go" style="grid-column:1/-1" onclick="BattlePets._key('go')">✓ Check <span class="bp2-key">Enter</span></button></div></div>
+   <div class="bp2-pad">${['1','2','3','4','5','6','7','8','9','0','.','⌫'].map(k=>`<button onclick="BattlePets._key('${k}')">${k}</button>`).join('')}</div><div class="bp2-padrow"><button class="skip" onclick="BattlePets._key('skip')">⏭ Skip <span class="bp2-key">Space</span></button><button class="go" onclick="BattlePets._key('go')">✓ Check <span class="bp2-key">Enter</span></button></div></div>
   ${S.note?`<p class="bp2-note">${esc(S.note)}</p>`:''}</div>`;
  const sc=document.getElementById('bpScroll');sc.scrollLeft=sc.scrollWidth;panSetup(sc);scene();
  try{if(RO)RO.disconnect();if(window.ResizeObserver){RO=new ResizeObserver(()=>{clearTimeout(RSZ);RSZ=setTimeout(()=>{if(VIEW.k==='fight')scene();},200);});RO.observe(document.getElementById('bpField'));}}catch(e){}
@@ -389,7 +398,8 @@ function showQ(fresh){const el=document.getElementById('bpQ');if(!el||!G||!G.q)r
 function fixOpen(){if(!G||G.over)return;if(G.fixing){return;}if(!openFix()){topNote(G.bricks<=0?'No bricks left!':'You can rebuild when your Pet House drops below half.');return;}
  G.q=makeQ(me(),G.stage.op);G.inp='';const m=document.getElementById('bpMsg');if(m)m.textContent='Every right answer lays a brick: +'+Math.round(TUNE.brick*100)+'% for your Pet House.';draw();showQ(true);}
 function fixDone(){closeFix();draw();}
-function key(k){if(!G||G.over||!G.fixing)return;if(k==='go'){if(G.inp===''||G.inp==='.')return;const ok=Math.abs(parseFloat(G.inp)-G.q.answer)<1e-6;const add=answer(ok);
+function key(k){if(!G||G.over||!G.fixing)return;if(k==='skip'){G.skips=(G.skips||0)+1;G.q=makeQ(me(),G.stage.op);G.inp='';const m=document.getElementById('bpMsg');if(m)m.textContent='Skipped! Here is another one.';showQ(true);return;}
+ if(k==='go'){if(G.inp===''||G.inp==='.')return;const ok=Math.abs(parseFloat(G.inp)-G.q.answer)<1e-6;const add=answer(ok);
   try{const p=me(),dk=dayKey();p.daily=p.daily||{};p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][ok?'r':'w']++;}catch(e){}
   const m=document.getElementById('bpMsg');if(m)m.innerHTML=ok?`✅ 🧱 +${Math.round(add/G.houseMax*100)}% Pet House${G.streak>=3?` · 🔥 ${G.streak} in a row!`:''}${G.fixing?'':G.bricks<=0?' · That was your last brick!':' · Your Pet House is good as new!'}`:`The answer was <b>${esc(String(G.q.answer))}</b>. No brick lost. Try this one!`;
   try{SFX[ok?'correct':'wrong']();}catch(e){}G.q=makeQ(me(),G.stage.op);G.inp='';showQ(true);draw();return;}
@@ -398,7 +408,7 @@ function key(k){if(!G||G.over||!G.fixing)return;if(k==='go'){if(G.inp===''||G.in
 function onKey(e){try{if(document.getElementById('bpSnd')&&(e.key==='Escape'||e.key==='Enter')){soundDone();e.preventDefault();return;}if(typeof curScreen==='undefined'||curScreen!=='bp'||VIEW.k!=='fight'||!G||G.over||document.querySelector('.bp2-over')||document.querySelector('#modal.show'))return;
  const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))return;const k=e.key;let used=true;
  if(k==='ArrowLeft')panBy(-320);else if(k==='ArrowRight')panBy(320);
- else if(G.fixing){if(/^[0-9]$/.test(k))key(k);else if(k==='.'||k===',')key('.');else if(k==='Backspace')key('⌫');else if(k==='Enter')key('go');else if(k==='Escape')fixDone();else used=false;}
+ else if(G.fixing){if(/^[0-9]$/.test(k))key(k);else if(k==='.'||k===',')key('.');else if(k==='Backspace')key('⌫');else if(k==='Enter')key('go');else if(k===' ')key('skip');else if(k==='Escape')fixDone();else used=false;}
  else if(/^[1-5]$/.test(k))trySend(+k-1);else if(k==='k'||k==='K'){if(upgradeKitchen())draw();}else if(k===' '||k==='p'||k==='P'){if(pounce())draw();}else if(k==='r'||k==='R')fixOpen();else if(k==='s'||k==='S')soundOpen();else if(k==='t'||k==='T'){if(callTroll())draw();}else used=false;
  if(used){e.preventDefault();e.stopPropagation();}}catch(x){}}
 window.addEventListener('keydown',onKey,true);

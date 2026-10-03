@@ -220,6 +220,8 @@ const tests=[
   BattlePets._fix();T.ok(!G.fixing,'Rebuild opened while the Pet House was fine');
   G.houseHP=G.houseMax*.4;BattlePets._fix();await T.wait(80);T.ok(G.fixing&&G.q,'Rebuild did not open below half');
   const h0=G.houseHP,b0=G.bricks;String(G.q.answer).split('').forEach(k=>BattlePets._key(k));BattlePets._key('go');T.ok(G.houseHP>h0&&G.bricks===b0-1&&G.right===1,'a right answer did not lay a brick');
+  {const q0=G.q,a0=G.asked,b1=G.bricks;BattlePets._key('skip');T.ok(G.q!==q0&&G.asked===a0&&G.bricks===b1,'Skip did not give a new question for free');}
+  {const qs=[];for(let i=0;i<60;i++)qs.push(BattlePets._dbg.makeQ(P(),['add','sub','mul','div'][i%4]));T.ok(qs.every(q=>Number.isInteger(q.answer)&&q.answer>=0&&q.answer<=50),'a Rebuild question is not quick and easy');}
   const h1=G.houseHP;'99999'.split('').forEach(k=>BattlePets._key(k));BattlePets._key('go');T.ok(G.asked===2&&G.bricks===b0-1&&G.houseHP>=h1,'a wrong answer took something away');
   {const kd=k=>window.dispatchEvent(new KeyboardEvent('keydown',{key:k,bubbles:true,cancelable:true}));String(G.q.answer).split('').forEach(kd);kd('Enter');T.ok(G.right===2,'typing the answer on the keyboard did not work');
    kd('Escape');T.ok(!G.fixing,'Esc did not close the Rebuild panel');G.treats=50;const s0=G.sent;kd('1');T.ok(G.sent===s0+1,'the 1 key did not send a pet');kd('r');T.ok(!G.fixing,'R opened Rebuild while the house was above half');G.houseHP=G.houseMax*.4;kd('r');T.ok(G.fixing,'the R key did not open Rebuild');}
