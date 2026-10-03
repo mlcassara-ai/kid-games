@@ -32,6 +32,7 @@ A browser fishing game for kids ages 8–12, set in real San Diego County lakes.
 - **Day and night.** The sun moves while you fish: dawn, day, sunset and night, with a moon, stars and a lantern. At night the catfish come up shallow; crappie bite best at first and last light.
 - **Rare looks.** About 1 fish in 40 is a rare color of its species (a golden rainbow trout, an albino catfish, a koi carp, a ghost bass...). They pay double and get a ✨ in the Fishdex.
 - **Night Legends.** Each lake has a secret glowing giant that only comes out after dark: Moonbelly, Lantern, Old Brass, Starback, The Shadow and the Silver Ghost. Look for a glow deep down. They have their own shelf in the Fishdex.
+- **Wildlife.** Every so often (about once or twice in 30–45 minutes) a hungry visitor shows up: an osprey dives for a fish near the surface, or a merganser duck swims down after one. If it goes for *your* fish while you reel it in, tap fast to scare it off! You'll also spot a heron on the shore, a pond turtle, a crawdad on the bottom, or a bullfrog croaking at night. Each one goes into the Wildlife album in the Fishdex.
 - **Treasure.** Now and then a treasure chest sits on the lake bottom. Hook it and reel it in for coins, worms or a lure.
 - **Style.** Hats, rod colors and boat paint in the Tackle Shop.
 - **Fish stay at their depth.** A fish follows your bait only a little way up or down from where it was swimming, and never out of its natural depth, so you can't tease a deep catfish up to the surface. Now and then a bold bass or trout chases a bit farther.

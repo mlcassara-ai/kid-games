@@ -258,6 +258,8 @@
     <div class="dexgrid" id="bossGrid"></div>
     <div class="sech">🌙 Night Legends</div>
     <div class="dexgrid" id="legGrid"></div>
+    <div class="sech">🦅 Wildlife</div>
+    <div class="dexgrid" id="wildGrid"></div>
   </div>
 
   <!-- Trophy Lodge: your wall of mounted fish, records, the family board and the Derby -->
@@ -281,8 +283,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.03g";</script>
-<script src="ll-core.js?v=2026.10.03g"></script>
+<script>window.LL_VER="2026.10.03h";</script>
+<script src="ll-core.js?v=2026.10.03h"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -698,7 +700,7 @@ const UPG = {
 // Each player's game lives in their player record (ll-core.js): LL.player().game. S points at it while they play.
 function defaultSave(){ return { coins:0, lakes:["dixon"], up:{line:0,stringer:0,reel:0,guard:0,lure:0}, dex:{}, trips:0, sound:true,
   baits:["spinner","bread"], bait:"spinner", bobber:false, bobDepth:6, grandpa:false, grandpaBonus:false, lakeEarn:{}, bosses:{}, heavy:false, champ:false, day:{ lake:"dixon", kept:[] }, released:0, baitCount:{},
-  landed:0, streak:0, bestStreak:0, clock:7, legends:{}, treasures:0, look:{ hat:"cap", rod:"black", paint:"silver" }, owned:[], boatOwn:0, finder:false, jobs:null, mounts:[], derby:null, derbyLast:null, derbyPaid:{}, derbyWins:0 }; }
+  landed:0, streak:0, bestStreak:0, clock:7, legends:{}, treasures:0, look:{ hat:"cap", rod:"black", paint:"silver" }, owned:[], boatOwn:0, finder:false, jobs:null, wild:null, mounts:[], derby:null, derbyLast:null, derbyPaid:{}, derbyWins:0 }; }
 // old saves and saves from older versions pick up any new fields; nothing already earned is ever lowered
 function normalizeSave(s){
   const d = defaultSave();
@@ -767,7 +769,10 @@ const SFX = {
   coin(){ tone(988,.07,"square",.07); setTimeout(()=>tone(1318,.12,"square",.07),60); },
   click(){ tone(600,.05,"triangle",.08); },
   whoosh(){ tone(700,.35,"sine",.07,-550); },
-  thunk(){ tone(130,.12,"triangle",.16,-40); }
+  thunk(){ tone(130,.12,"triangle",.16,-40); },
+  croak(){ [0, .35].forEach(d => setTimeout(() => { tone(95, .28, "sawtooth", .07, -25); tone(140, .2, "square", .03, -40); }, d * 1000)); },
+  screech(kind){ if (kind === "osprey"){ [0, 140, 280].forEach((d, i) => setTimeout(() => tone(1900 - i * 120, .12, "sine", .07, 500), d)); }
+    else { [0, 160].forEach(d => setTimeout(() => tone(380, .1, "square", .06, -120), d)); } }
 };
 
 // =====================================================================
@@ -1108,6 +1113,7 @@ function reelPress(){
   if (state !== "fishing" || !trip) return;
   btnHeld = true; reelBtn.classList.add("down");
   const T = trip;
+  if (T.wild && T.wild.mode === "raid" && T.wild.stage === "warn") T.wild.taps++;
   if (T.nibble){ setHook(); return; }
   if (T.phase === "troll"){ if (T.strike) trollHook(); return; }
   if (T.phase === "ready") doCast();
@@ -1402,6 +1408,12 @@ function renderDex(){
       ${got ? `<div class="muted">${d.inches} in · ${d.lb} lb · caught at ${L.name}</div>` : `<div class="muted">Hint: it likes ${d.likes}.</div>`}`, "Close"); };
     bg.appendChild(c);
   });
+  const wg = $("wildGrid"); wg.innerHTML = ""; const ws = wildClock().seen;
+  WILD_ORDER.forEach(k => { const d = WILD[k], got = ws[k];
+    const c = document.createElement("div"); c.className = "dexcell" + (got ? "" : " unk"); c.appendChild(wildIcon(k, got));
+    const n = document.createElement("div"); n.textContent = got ? d.name : "???"; c.appendChild(n);
+    c.onclick = () => { SFX.click(); infoModal(`<h3>${got ? d.icon + " " + d.name : "Not spotted yet"}</h3><p>${got ? d.fact + "<br><span class='muted'>Seen " + got + (got > 1 ? " times" : " time") + "</span>" : d.big ? "Keep fishing. Sometimes a hungry visitor shows up for the fish!" : "Keep your eyes open while you fish."}</p>`, "Close"); };
+    wg.appendChild(c); });
   const lg = $("legGrid"); lg.innerHTML = "";
   LAKES.forEach(L => {
     const d = LEGENDS[L.id], got = S.legends[L.id], sp = legendSp(L.id);
@@ -2029,7 +2041,7 @@ function updateFishing(dt){
 
   T.upSpeed = 0;
   T.jig = Math.max(0, (T.jig || 0) - dt*4);
-  updateWeather(dt); updateClock(dt); T.lastDt = dt;
+  updateWeather(dt); updateClock(dt); updateWild(T, dt); T.lastDt = dt;
   anglerPose(T);
   if (T.phase === "ready"){ hk.x = T.vtip.x + Math.sin(T.t*2)*3; hk.y = T.vtip.y + 24; }
   else if (T.phase === "cast"){
@@ -2131,7 +2143,8 @@ function updateFishing(dt){
     T.doneT += dt; if (T.doneT > .7) finishTrip();
   }
   // camera
-  const target = hk.y - H*(T.phase === "troll" ? .7 : .38);          // trolling: keep the boat and shore in view
+  let target = hk.y - H*(T.phase === "troll" ? .7 : .38);          // trolling: keep the boat and shore in view
+  if (T.wild && T.wild.mode !== "see") target = Math.min(target, -H * .42);   // an osprey or duck: show the sky and the surface
   T.camY = lerp(T.camY, Math.max(camTop(), target), Math.min(1, dt*5));
   // reel sounds + reel icon spin
   if (T.phase === "troll" && btnHeld){ reelSound(8, 1700, .08, dt); T.reelAng += 200*dt; }
@@ -3013,6 +3026,7 @@ function renderScene(T, idle){
   ctx.textAlign = "center";
   for (const p of T.pops){ ctx.globalAlpha = 1 - Math.max(0, p.t-1)/.6; ctx.font = `bold ${p.size}px Trebuchet MS, sans-serif`; ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0,0,0,.55)"; const px = clamp(p.x, 110, W-110); ctx.strokeText(p.text, px, sy(p.y)); ctx.fillStyle = p.color; ctx.fillText(p.text, px, sy(p.y)); }
   ctx.globalAlpha = 1;
+  drawWild(T, sy);
   drawRain(T.lastDt || 1/60);
   if (S.finder && T.mode === "boat") drawFinder(T);
   if (F) drawFightUI(F);
@@ -3276,6 +3290,184 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+
+// =====================================================================
+//  WILDLIFE: ospreys and diving ducks after the fish, and quieter animals to spot (all photographed into the Wildlife album)
+// =====================================================================
+const WILD = {
+  osprey:   { name:"Osprey", icon:"🦅", fact:"Ospreys live around San Diego lakes. They hover, then dive feet-first and grab fish with spiky toes.", big:true },
+  merganser:{ name:"Common Merganser", icon:"🦆", fact:"A diving duck with a saw-edged bill. It swims underwater to catch fish!", big:true },
+  heron:    { name:"Great Blue Heron", icon:"🪶", fact:"It stands perfectly still in the shallows, then spears a fish with its beak." },
+  turtle:   { name:"Western Pond Turtle", icon:"🐢", fact:"California's only native freshwater turtle. It basks on logs and swims for snacks." },
+  crawdad:  { name:"Crawdad", icon:"🦞", fact:"Crayfish crawl along the bottom. Bass and catfish love to eat them." },
+  bullfrog: { name:"Bullfrog", icon:"🐸", fact:"You'll hear its deep \"jug-o-rum\" call on warm nights." }
+};
+const WILD_ORDER = ["osprey", "merganser", "heron", "turtle", "crawdad", "bullfrog"];
+// a big moment (osprey or duck) comes every 14-26 minutes of fishing, about 1-2 times in 30-45 minutes;
+// a quiet sighting every 4-8 minutes
+function wildClock(){ return S.wild = S.wild || { t: 0, nextBig: rand(14, 26) * 60, nextSee: rand(4, 8) * 60, seen: {} }; }
+function wildSeen(kind){
+  const w = wildClock(), first = !w.seen[kind]; w.seen[kind] = (w.seen[kind] || 0) + 1;
+  if (first){ S.coins += 10; toast("📸 New in your Wildlife album: " + WILD[kind].icon + " " + WILD[kind].name + "! +10 🪙", 3200); SFX.land(); }
+}
+function updateWild(T, dt){
+  if (T.boss) return;
+  const w = wildClock(); w.t += dt;
+  const A = T.wild;
+  if (!A){
+    const hooked = T.caught.length && T.caught[0], dep = T.hook.y / PPF, inView = T.phase === "ready" || (T.phase !== "fight" && dep < 10);
+    if (w.t > w.nextBig && inView && !T.jump){                         // waits until the surface is on screen
+      w.nextBig = w.t + rand(14, 26) * 60;
+      const kind = Math.random() < .55 ? "osprey" : "merganser";
+      if (hooked && T.phase === "reel" && (kind === "osprey" || fishLb(hooked) < 1.5)) startRaid(T, kind, hooked);
+      else startShow(T, kind);
+    } else if (w.t > w.nextSee && T.phase !== "fight"){
+      w.nextSee = w.t + rand(4, 8) * 60;
+      const opts = ["heron", "turtle", "crawdad"].concat(isNight() ? ["bullfrog", "bullfrog"] : []);
+      const kind = opts[Math.floor(Math.random() * opts.length)];
+      T.wild = { kind, mode:"see", t:0, dur: kind === "crawdad" ? 16 : kind === "turtle" ? 14 : 12, dir: Math.random() < .5 ? 1 : -1 };
+      if (kind === "bullfrog") SFX.croak();
+      wildSeen(kind);
+    }
+    return;
+  }
+  A.t += dt;
+  if (A.mode === "raid"){                                             // after your hooked fish: tap fast to scare it off!
+    const f = T.caught[0];
+    if (A.stage === "warn"){ if (!f || T.caught[0] !== A.f){ T.wild = null; return; }
+      if (A.taps >= A.need){ A.stage = "flee"; A.t = 0; SFX.shield(); pop(T.hook.x, -60, "You scared it off! +5 🪙", "#bff5c8", 20); S.coins += 5; showCoins(); return; }
+      if (A.t > A.win){ A.stage = "grab"; A.t = 0; } }
+    else if (A.stage === "grab"){ if (A.t > .45){
+        const i = T.caught.indexOf(A.f); if (i >= 0){ T.caught.splice(i, 1); T.lost++; T.chain = null; T.tired = false; }
+        A.stage = "flee"; A.t = 0; A.carry = A.f; SFX.splash(); splashAt(T, T.hook.x, 0, 16); S.coins += 5; showCoins();
+        pop(T.hook.x, -60, (A.kind === "osprey" ? "🦅 The osprey" : "🦆 The duck") + " stole your fish! (+5 🪙 for the photo)", "#ffd0c8", 17); } }
+    else if (A.stage === "flee" && A.t > 2.2) T.wild = null;
+  } else if (A.mode === "show"){                                      // a dive on a fish swimming near the top
+    if (A.stage === "in" && A.t > A.din){ A.stage = "hit"; A.t = 0; SFX.splash(); splashAt(T, A.x, 0, 18);
+      const i = T.fish.indexOf(A.f); if (i >= 0) T.fish.splice(i, 1); A.carry = A.f; }
+    else if (A.stage === "hit" && A.t > (A.kind === "merganser" ? 1.4 : .5)){ A.stage = "out"; A.t = 0; }
+    else if (A.stage === "out" && A.t > 2.6) T.wild = null;
+  } else if (A.t > A.dur) T.wild = null;
+}
+function startRaid(T, kind, f){
+  T.wild = { kind, mode:"raid", stage:"warn", t:0, f, taps:0, need: kind === "osprey" ? 8 : 6, win: 2.4, dir: T.hook.x < W/2 ? 1 : -1 };
+  wildSeen(kind); SFX.screech(kind);
+  pop(W / 2, -150, kind === "osprey" ? "🦅 An osprey wants your fish!" : "🦆 A duck wants your fish!", "#ffe38a", 19);
+}
+function startShow(T, kind){
+  let f = T.fish.filter(x => !x.boss && !x.nightLegend && !x.nibbling && x.y < 7 * PPF && x.L < 70).sort((a, b) => a.y - b.y)[0];
+  if (!f){ f = spawnFishFor(T.lake, 2.5 * PPF, null, true); f.x = rand(80, W - 80); T.fish.push(f); }   // a little fish right under the surface
+  T.wild = { kind, mode:"show", stage:"in", t:0, f, x: f.x, din: kind === "osprey" ? 2.2 : 3.2, dir: f.x < W/2 ? 1 : -1 };
+  wildSeen(kind); SFX.screech(kind);
+}
+// drawings (world coordinates through sy)
+let wc = null;                                       // set while painting an album picture
+function drawOsprey(x, y, s, flap, dir, dive){ const g = wc || ctx;
+  g.save(); g.translate(x, y); g.scale(dir * s, s); if (dive) g.rotate(.9);
+  g.fillStyle = "#4a3a2c"; g.beginPath(); g.moveTo(-14, 0); g.quadraticCurveTo(-4, -16 * flap - 4, 4, -2); g.quadraticCurveTo(12, -16 * flap - 4, 24, -1); g.lineTo(4, 3); g.fill();   // wings
+  g.fillStyle = "#f3efe6"; g.beginPath(); g.ellipse(4, 1, 9, 4, 0, 0, 7); g.fill();                   // white belly
+  g.fillStyle = "#4a3a2c"; g.beginPath(); g.moveTo(-6, 0); g.lineTo(-13, -2); g.lineTo(-13, 3); g.fill();   // tail
+  g.fillStyle = "#f3efe6"; g.beginPath(); g.arc(13, -1, 3.2, 0, 7); g.fill(); g.fillStyle = "#2a2a2a"; g.fillRect(12, -2.4, 4, 1.2);   // head with a dark eye stripe
+  g.fillStyle = "#333"; g.beginPath(); g.moveTo(16, -1); g.lineTo(18.5, .2); g.lineTo(16, 1); g.fill();
+  g.restore();
+}
+function drawDuck(x, y, s, dir, under){ const g = wc || ctx;
+  g.save(); g.translate(x, y); g.scale(dir * s, s);
+  if (under){ g.rotate(.15); g.fillStyle = "#5d6066"; g.beginPath(); g.ellipse(0, 0, 12, 4.5, 0, 0, 7); g.fill(); g.fillStyle = "#a8452a"; g.beginPath(); g.arc(12, -1, 3.4, 0, 7); g.fill();
+    g.fillStyle = "#c23a1a"; g.fillRect(14, -1.2, 5, 1.6); g.strokeStyle = "#e07a2a"; g.lineWidth = 1.4; g.beginPath(); g.moveTo(-11, 1); g.lineTo(-17, 4 + Math.sin(performance.now() / 80) * 2); g.stroke(); }
+  else { g.fillStyle = "#6a6d74"; g.beginPath(); g.ellipse(0, -3, 12, 5, 0, Math.PI, 0); g.lineTo(12, -1); g.lineTo(-12, -1); g.fill(); g.fillStyle = "#f2f0ea"; g.fillRect(-8, -4, 12, 2.5);
+    g.fillStyle = "#a8452a"; g.beginPath(); g.arc(10, -9, 3.6, 0, 7); g.fill(); g.beginPath(); g.moveTo(7, -10); g.lineTo(4, -13); g.lineTo(8, -12); g.fill();   // rusty head with a crest
+    g.fillStyle = "#c23a1a"; g.fillRect(12.5, -9.5, 5, 1.6); }
+  g.restore();
+}
+function drawTurtle(x, y, s, dir, t){ const g = wc || ctx; g.save(); g.translate(x, y); g.scale(dir * s, s);
+  g.fillStyle = "#6b7a4a"; for (const k of [-1, 1]){ g.beginPath(); g.ellipse(6 * k, 5 + Math.sin(t * 4 + k) * 1.5, 4, 2, .6 * k, 0, 7); g.fill(); }
+  g.fillStyle = "#4e5a32"; g.beginPath(); g.ellipse(0, 0, 11, 6, 0, 0, 7); g.fill(); g.strokeStyle = "rgba(200,190,120,.5)"; g.lineWidth = 1; for (const k of [-5, 0, 5]){ g.beginPath(); g.arc(k, 0, 3, 0, 7); g.stroke(); }
+  g.fillStyle = "#6b7a4a"; g.beginPath(); g.ellipse(13, -1, 3.6, 2.6, 0, 0, 7); g.fill(); g.fillStyle = "#111"; g.beginPath(); g.arc(14.5, -2, .8, 0, 7); g.fill(); g.restore(); }
+function drawCrawdad(x, y, s, dir, t){ const g = wc || ctx; g.save(); g.translate(x, y); g.scale(dir * s, s); g.fillStyle = "#a8402a"; g.strokeStyle = "#a8402a"; g.lineWidth = 1.2;
+  g.beginPath(); g.ellipse(0, 0, 8, 3, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(-9, 0, 4, 2.4, 0, 0, 7); g.fill();
+  for (const k of [-1, 1]){ g.beginPath(); g.moveTo(6, 0); g.lineTo(12, -3 * k + Math.sin(t * 3) * k); g.stroke(); g.beginPath(); g.ellipse(14, -3.5 * k, 3, 1.8, 0, 0, 7); g.fill(); }
+  for (let i = -2; i <= 2; i++){ g.beginPath(); g.moveTo(i * 2.5, 2); g.lineTo(i * 2.5 + Math.sin(t * 8 + i) * 1.5, 5); g.stroke(); }
+  g.beginPath(); g.moveTo(8, -1); g.lineTo(18, -6); g.moveTo(8, 1); g.lineTo(18, 4); g.stroke(); g.restore(); }
+function drawHeron(x, y, s, t){ const g = wc || ctx; g.save(); g.translate(x, y); g.scale(s, s); g.strokeStyle = "#5d6a78"; g.lineWidth = 1.4;
+  g.beginPath(); g.moveTo(-1, 0); g.lineTo(-2, -14); g.moveTo(2, 0); g.lineTo(1, -14); g.stroke();                        // legs
+  g.fillStyle = "#7d8a98"; g.beginPath(); g.ellipse(0, -19, 7, 5, -.3, 0, 7); g.fill();
+  const peck = Math.max(0, Math.sin(t * .9)) > .97 ? 6 : 0;
+  g.strokeStyle = "#8d98a6"; g.lineWidth = 2.4; g.beginPath(); g.moveTo(4, -22); g.quadraticCurveTo(2, -30, 6, -33 + peck); g.stroke();   // S-shaped neck
+  g.fillStyle = "#eef0f2"; g.beginPath(); g.arc(7, -34 + peck, 2.6, 0, 7); g.fill(); g.fillStyle = "#d6a83a"; g.beginPath(); g.moveTo(9, -35 + peck); g.lineTo(15, -33 + peck); g.lineTo(9, -33 + peck); g.fill();
+  g.fillStyle = "#222"; g.fillRect(5, -35.5 + peck, 4, .9); g.restore(); }
+function drawFrog(x, y, s){ const g = wc || ctx; g.save(); g.translate(x, y); g.scale(s, s); g.fillStyle = "#3f7a3a"; g.beginPath(); g.ellipse(0, 0, 13, 3, 0, 0, 7); g.fill();    // lily pad
+  g.fillStyle = "#5a8a3a"; g.beginPath(); g.ellipse(0, -4, 6, 4, 0, 0, 7); g.fill(); const pu = (Math.sin(performance.now() / 300) + 1) * 1.5; g.fillStyle = "#e8e2a0"; g.beginPath(); g.arc(4, -2, 2 + pu, 0, 7); g.fill();
+  g.fillStyle = "#5a8a3a"; g.beginPath(); g.arc(2, -8, 2, 0, 7); g.arc(-2, -8, 2, 0, 7); g.fill(); g.fillStyle = "#111"; g.beginPath(); g.arc(2, -8.5, .9, 0, 7); g.arc(-2, -8.5, .9, 0, 7); g.fill(); g.restore(); }
+function drawWild(T, sy){
+  const A = T.wild; if (!A) return;
+  const t = A.t, flap = .5 + .5 * Math.sin(performance.now() / 70);
+  if (A.mode === "see"){
+    const k = Math.min(1, t / 2, (A.dur - t) / 2);                  // fade in and out
+    ctx.save(); ctx.globalAlpha = clamp(k, 0, 1);
+    if (A.kind === "heron") drawHeron(A.dir > 0 ? W * .82 : W * .62, sy(0) - 2, 1.3, t);
+    if (A.kind === "turtle"){ const x = A.dir > 0 ? -30 + t * 40 : W + 30 - t * 40; drawTurtle(x, sy(3 * PPF + Math.sin(t) * 6), 1.3, A.dir, t); }
+    if (A.kind === "crawdad"){ const x = A.dir > 0 ? 30 + t * 22 : W - 30 - t * 22; drawCrawdad(x, sy(T.bottom) + 2, 1.2, A.dir, t); }
+    if (A.kind === "bullfrog") drawFrog(W * .7, sy(0) + 1, 1.3);
+    ctx.restore(); return;
+  }
+  const hx = T.hook.x;
+  if (A.kind === "osprey"){
+    let x, y, dive = false;
+    if (A.mode === "raid"){
+      if (A.stage === "warn"){ const k = Math.min(1, t / 1); x = hx - A.dir * (260 - 200 * k) + Math.sin(t * 3) * 10; y = sy(-150 + 40 * k); }
+      else if (A.stage === "grab"){ const k = Math.min(1, t / .45); x = hx - A.dir * 60 * (1 - k); y = sy(-110 + 110 * k); dive = true; }
+      else { x = hx + A.dir * t * 160; y = sy(-t * 120); }
+    } else {
+      if (A.stage === "in"){ const k = t / A.din; x = A.x - A.dir * (300 * (1 - k)); y = k < .6 ? sy(-180 + 40 * k) : sy(-156 + 156 * (k - .6) / .4); dive = k > .6; }
+      else if (A.stage === "hit"){ x = A.x; y = sy(-t * 20); }
+      else { x = A.x + A.dir * t * 150; y = sy(-t * 110); }
+    }
+    if (A.carry && A.stage !== "warn") drawFish(ctx, A.carry.sp, x, y + 10, Math.min(46, A.carry.L * .6), A.dir, T.t * 2, { rot: .2 });
+    drawOsprey(x, y, 2.2, dive ? .2 : flap, A.dir, dive);
+    if (A.mode === "raid" && A.stage === "warn"){                    // the tap meter
+      const w = 160, bx = W / 2 - w / 2, by = 128;
+      ctx.fillStyle = "rgba(10,25,40,.8)"; roundRect(bx - 8, by - 22, w + 16, 40, 10); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "bold 13px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; ctx.fillText("TAP FAST TO SCARE IT!", W / 2, by - 7);
+      ctx.fillStyle = "rgba(255,255,255,.2)"; roundRect(bx, by, w, 10, 5); ctx.fill(); ctx.fillStyle = "#7dffb8"; roundRect(bx, by, Math.max(10, w * Math.min(1, A.taps / A.need)), 10, 5); ctx.fill();
+    }
+  } else {                                                            // the merganser
+    let x, y, under = false;
+    if (A.mode === "raid"){
+      if (A.stage === "warn"){ x = hx - A.dir * (140 - 90 * Math.min(1, t / 1.2)); y = sy(0); }
+      else if (A.stage === "grab"){ x = hx - A.dir * 50 * (1 - t / .45); y = sy(T.hook.y * Math.min(1, t / .45)); under = true; }
+      else { x = hx + A.dir * t * 90; y = sy(Math.max(0, T.hook.y - t * 120)); under = y > sy(0) + 3; }
+    } else {
+      const F = A.f;
+      if (A.stage === "in"){ const k = t / A.din; x = A.x - A.dir * 200 * (1 - k); if (k < .45) y = sy(0); else { under = true; y = sy(F.y * (k - .45) / .55); } }
+      else if (A.stage === "hit"){ x = A.x; y = sy(F.y * (1 - t / 1.4)); under = true; }
+      else { x = A.x + A.dir * t * 70; y = sy(0); }
+    }
+    if (A.carry && (A.stage === "hit" || A.stage === "flee" || A.stage === "out")) drawFish(ctx, A.carry.sp, x + A.dir * 16, y + 2, Math.min(34, A.carry.L * .5), A.dir, T.t * 2, { rot: .3 });
+    drawDuck(x, y, 1.9, A.dir, under);
+    if (under && Math.random() < .3) T.bubbles.push({ x, y: y + T.camY, r: rand(1, 2.5), v: rand(20, 40) });
+    if (A.mode === "raid" && A.stage === "warn"){
+      const w = 160, bx = W / 2 - w / 2, by = 128;
+      ctx.fillStyle = "rgba(10,25,40,.8)"; roundRect(bx - 8, by - 22, w + 16, 40, 10); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "bold 13px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; ctx.fillText("TAP FAST TO SCARE IT!", W / 2, by - 7);
+      ctx.fillStyle = "rgba(255,255,255,.2)"; roundRect(bx, by, w, 10, 5); ctx.fill(); ctx.fillStyle = "#7dffb8"; roundRect(bx, by, Math.max(10, w * Math.min(1, A.taps / A.need)), 10, 5); ctx.fill();
+    }
+  }
+}
+// the Wildlife album (in the Fishdex)
+function wildIcon(kind, seen){
+  const c = document.createElement("canvas"); c.width = 300; c.height = 160; const x = c.getContext("2d"); x.scale(2, 2);
+  wc = x;
+  if (kind === "osprey") drawOsprey(68, 44, 2.4, .7, 1, false);
+  if (kind === "merganser") drawDuck(70, 52, 2.6, 1, false);
+  if (kind === "heron") drawHeron(70, 76, 1.9, 0);
+  if (kind === "turtle") drawTurtle(70, 40, 2.6, 1, 0);
+  if (kind === "crawdad") drawCrawdad(66, 40, 2.6, 1, 0);
+  if (kind === "bullfrog") drawFrog(75, 55, 2.8);
+  wc = null;
+  if (!seen){ x.globalCompositeOperation = "source-atop"; x.fillStyle = "#1c2d3b"; x.fillRect(0, 0, 150, 80); }
+  return c;
+}
 
 // =====================================================================
 //  TROPHY LODGE · RECORDS · FAMILY BOARD · FAMILY DERBY

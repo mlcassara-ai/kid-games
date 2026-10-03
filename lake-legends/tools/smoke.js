@@ -203,6 +203,31 @@ const BOT = n => {
   }
   await a.setViewportSize({ width: 390, height: 780 });
 
+  console.log("Wildlife");
+  const r5 = await a.evaluate(() => {
+    const out = {}, hookOne = () => { startTrip(lakeById("dixon"), 0, "boat", true); const f = makeFish("largemouth", 6 * PPF); f.variant = null; f.sp = SPECIES.largemouth; f.inches = 15; f.L = fishPx(f.sp, 15);
+      trip.fish.push(f); trip.phase = "reel"; trip.hook.y = 6 * PPF; hookFish(f); trip.fight = null; trip.phase = "reel"; if (!trip.caught.length) landFish(f); trip.caught[0].jumped = true; return f; };
+    S.clock = 10;
+    let f = hookOne(); startRaid(trip, "osprey", f); for (let i = 0; i < 9; i++){ reelPress(); reelRelease(); } updateWild(trip, 1/30);
+    out.saved = trip.wild && trip.wild.stage === "flee" && trip.caught.includes(f);
+    f = hookOne(); startRaid(trip, "osprey", f); for (let i = 0; i < 120 && trip.wild && trip.wild.stage !== "flee"; i++) updateWild(trip, 1/30);
+    out.stolen = !trip.caught.includes(f) && !!S.wild.seen.osprey;
+    trip = null; startTrip(lakeById("dixon"), 0, "boat", true); trip.phase = "ready"; const n0 = trip.fish.length; startShow(trip, "merganser");
+    for (let i = 0; i < 400 && trip.wild; i++) updateWild(trip, 1/30);
+    out.show = !trip.wild && !!S.wild.seen.merganser;
+    // timing: a big moment once every 14-26 minutes of fishing
+    S.wild.t = 0; S.wild.nextBig = 15 * 60; trip.wild = null; trip.phase = "ready"; let fired = 0;
+    for (let i = 0; i < 30 * 60 * 30 / 10; i++){ updateWild(trip, 10/30); if (trip.wild && trip.wild.mode !== "see"){ fired++; trip.wild = null; } else if (trip.wild) trip.wild = null; }
+    out.rate = fired;
+    trip = null; visit = null; showScreen("dex"); out.album = document.querySelectorAll("#wildGrid .dexcell").length === 6; showScreen("title");
+    return out;
+  });
+  ok(r5.saved, "tapping fast scares the osprey off and keeps the fish");
+  ok(r5.stolen, "too slow, and the osprey takes the fish (and it's in the album)");
+  ok(r5.show, "the merganser dives for a fish and is photographed");
+  ok(r5.rate >= 1 && r5.rate <= 2, "an osprey or duck shows up 1-2 times in 30 minutes (" + r5.rate + ")");
+  ok(r5.album, "the Fishdex has the Wildlife album");
+
   console.log("Install as an app");
   const app = await a.evaluate(async () => { const m = await (await fetch(document.querySelector('link[rel="manifest"]').href)).json();
     const ok = await Promise.all(m.icons.map(async i => (await fetch(i.src)).ok)); return { name: m.name, display: m.display, icons: m.icons.length, all: ok.every(Boolean), btn: !!$("btnApp") }; });
