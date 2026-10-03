@@ -341,7 +341,7 @@ const BOT = n => {
   const r7 = await a.evaluate(async () => {
     const out = {}, bak = JSON.stringify(S), O = lakeById("ocean");
     out.unlock = normalizeSave(Object.assign(JSON.parse(bak), { bosses:{ otay:true }, lakes:["dixon"] })).lakes.includes("ocean");
-    S.lakes = S.lakes.concat("ocean"); S.saltRod = false; S.coins = 1000; trip = null; visit = null;
+    S.lakes = S.lakes.concat("ocean"); S.saltRod = false; S.coins = SALT_ROD_COST + 100; trip = null; visit = null;
     startVisit(O, "dock"); out.gate = !trip && $("modalBox").textContent.includes("Saltwater Rod"); $("modal").classList.remove("show");
     showScreen("shop"); const buy = [...document.querySelectorAll("#shopList button")].find(b => b.textContent === "🪙" + SALT_ROD_COST); if (buy) buy.click();
     out.rod = S.saltRod && S.coins === 100;
@@ -366,9 +366,12 @@ const BOT = n => {
     Object.keys(S).forEach(k => delete S[k]); Object.assign(S, JSON.parse(bak)); showScreen("title");
     return out;
   });
+  const night = await a.evaluate(() => { const v = visit; visit = visit || { lake: LAKES[0], mode:"dock" }; const c0 = S.clock; let t = 0;
+    S.clock = 20; while (dayPart() === "night" && t < 3600){ updateClock(1); t++; } S.clock = c0; visit = v; return t; });
+  ok(night > 500 && night < 640, "night lasts about 9 minutes (" + Math.round(night / 60 * 10) / 10 + " min)");
   ok(r7.unlock, "beating Otay's boss opens the ocean (old saves too)");
   ok(r7.gate, "the ocean needs a Saltwater Rod & Reel first");
-  ok(r7.rod, "the rod is sold in the Tackle Shop for " + 900);
+  ok(r7.rod, "the rod is sold in the Tackle Shop for " + 2500);
   ok(r7.pier, "the pier is its own depth, up high, and lake bait stays home");
   ok(r7.baits, "only ocean bait shows at the ocean");
   ok(r7.pierOnly, "yellowtail and white seabass never come to the pier");

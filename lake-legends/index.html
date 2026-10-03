@@ -304,8 +304,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.03m";</script>
-<script src="ll-core.js?v=2026.10.03m"></script>
+<script>window.LL_VER="2026.10.03n";</script>
+<script src="ll-core.js?v=2026.10.03n"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -610,7 +610,7 @@ function rewardText(d){
 //  TIME OF DAY · RARE LOOKS · NIGHT LEGENDS · TREASURE
 // =====================================================================
 // The sun moves while you fish: one game hour every 25 seconds, so a whole day takes 10 minutes.
-const HOUR_SECS = 25;
+const HOUR_SECS = 25, NIGHT_SLOW = 2.5;   // a night hour lasts 2.5x longer, so night is about 9 1/2 minutes
 const clockH = () => S.clock == null ? 7 : S.clock;
 function nightAmt(){ const h = clockH(); if (h >= 7 && h < 17) return 0; if (h >= 17 && h < 20) return (h - 17) / 3; if (h >= 20 || h < 5) return 1; return 1 - (h - 5) / 2; }
 function duskAmt(){ const h = clockH(); return clamp(Math.max(1 - Math.abs(h - 18.3) / 1.6, 1 - Math.abs(h - 6) / 1.3), 0, 1); }
@@ -620,7 +620,7 @@ function timeIcon(){ return { night:"🌙", dawn:"🌅", day:"☀️", dusk:"�
 function clockText(){ const h = Math.floor(clockH()), m = Math.floor((clockH() % 1) * 4) * 15; return ((h + 11) % 12 + 1) + ":" + String(m).padStart(2, "0") + (h < 12 ? " am" : " pm"); }
 function updateClock(dt){
   if (!visit || (trip && trip.boss)) return;
-  const was = dayPart(); S.clock = (clockH() + dt / HOUR_SECS) % 24; const now = dayPart();
+  const was = dayPart(); S.clock = (clockH() + dt / (HOUR_SECS * (was === "night" ? NIGHT_SLOW : 1))) % 24; const now = dayPart();
   if (now !== was) toast(now === "night" ? "🌙 Night falls. The catfish are coming up!" : now === "dawn" ? "🌅 Sunrise! Crappie love the first light."
     : now === "dusk" ? "🌇 Sunset. Fish get bold in the evening." : "☀️ Good morning!", 3000);
 }
@@ -696,7 +696,7 @@ const PAINTS = { silver:{ name:"Bare aluminum", cost:0, col:null }, red:{ name:"
   green:{ name:"Lake green", cost:40, col:"#3f8f4a" }, purple:{ name:"Purple glitter", cost:90, col:"#7a4cc2" }, gold:{ name:"Gold flake", cost:200, col:"#d9a628" },
   flames:{ name:"Hot rod flames", cost:0, col:"#d8401e", flames:true, prize:"dex15" }, moon:{ name:"Moonlight", cost:0, col:"#2a3a7a", stars:true, prize:"leg6" },
   shiny:{ name:"Rare-look shimmer", cost:0, col:"#3fa8a0", prize:"looks3" }, wave:{ name:"Big wave", cost:0, col:"#1f6fa8", waves:true, prize:"ocean14" } };
-const SALT_ROD_COST = 900;
+const SALT_ROD_COST = 2500;
 const BOATS = [ { name:"Rental jon boat", cost:0, desc:"Rent one at each lake visit." },
   { name:"Your own jon boat", cost:150, desc:"No more rent! The boat is free at every lake." },
   { name:"Bass boat", cost:450, desc:"A fast, sparkly bass boat. Free at every lake, and it trolls faster." } ];
