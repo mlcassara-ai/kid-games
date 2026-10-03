@@ -221,6 +221,7 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-pet{position:relative}.bp2-flyb{position:absolute;top:4px;right:4px;font-size:11px;font-weight:800;background:#fff3bf;border-radius:8px;padding:1px 4px}
 .bp2-mega{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.bp2-mega button{font:inherit;font-weight:800;border:3px solid #e9e4ff;background:#fff;border-radius:14px;padding:6px 12px;cursor:pointer;color:#2b2340;text-align:left}.bp2-mega button.on{border-color:#7048e8;background:#f3f0ff}.bp2-mega button small{display:block;font-weight:600;color:#6b6490;font-size:11px}
 .bp2-zone{text-align:center;margin:8px 0}.bp2-zone p{color:#fff;opacity:.85;margin:0}
+.bp2-stage.locked{opacity:.7}
 .bp2-slot.full{border-style:solid;border-color:#40c057;background:#ebfbee}
 .bp2-hud{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}.bp2-bar{flex:1;height:12px;background:#eee;border-radius:6px;overflow:hidden}.bp2-bar i{display:block;height:100%}
 .bp2-scroll{overflow-x:auto;overflow-y:hidden;border-radius:16px;border:3px solid #2b2340;-webkit-overflow-scrolling:touch;cursor:grab;touch-action:pan-x;scrollbar-width:thin;overscroll-behavior-x:contain}
@@ -343,10 +344,13 @@ body.bp2-lock{overflow:hidden}
 const head=(t,back)=>((typeof topbar==='function')?topbar():'')+`<div class="page"><div class="zhead"><button class="btn ghost small backbtn" onclick="${back}">← ${back.includes('world')?'Village':'Back'}</button><h2 class="title">${t}</h2></div>`;
 function screen(){stopLoop();const p=me();if(!p||!on(p)){unlock();go('world');return;}css();if(VIEW.k!=='fight')unlock();
  if(VIEW.k==='team')return teamView(p);if(VIEW.k==='fight'&&G)return fightView(p);VIEW={k:'stages'};stageView(p);}
+/* a world's stage is open once its 👑 Legend round is beaten (the Fossil Stage will open in the Museum) */
+function stageOpen(p,s){if(!s.op)return false;try{return medal(p,s.id)>=5;}catch(e){return false;}}
 function stageView(p){const pr=prog(p),S=stages();
- app.innerHTML=head('🐾 Battle Pets <small style="font-size:13px;font-weight:600">demo</small>',"go('world')")+`<div class="bp2">
-  <div class="bp2-card"><b>How to play:</b> send your pets to knock down the critter den before the critters reach your Pet House. <b>Treats</b> come in by themselves: spend them to send pets, or on the <b>🍳 Treat Kitchen</b> to earn them faster. <b>🐾 Pet Pounce</b> charges up over time. When the critters smash your Pet House below half, tap <b>🧱 Rebuild</b> and answer math: every right answer lays a brick. You have enough bricks to rebuild the whole house twice!<br><small class="muted">Swipe or drag the battlefield to look around. On a computer: 1–5 send pets, T troll, K kitchen, Space pounce, R rebuild, ← → scroll.<br>🧌 <b>Mega: ${TROLL.n} the Troll</b> stomps in when you need him most, but he takes a long time to come back.</small><br><small class="muted">Demo: in the full game each stage is a hidden bonus level you unlock.</small></div>
-  ${S.map(s=>{const done=pr.c[s.id]||0;return `<div class="bp2-card bp2-stage"><span class="e">${s.art}</span><span><b>${esc(s.name)}</b><small>${s.op?OPN[s.op]+' at your level':'Mixed math at your level'} · boss: the ${esc(s.boss[0])}<br>Full game: opens in ${esc(s.where)}</small></span>
+ app.innerHTML=head('🐾 Battle Pets',"go('world')")+`<div class="bp2">
+  <div class="bp2-card"><b>How to play:</b> send your pets to knock down the critter den before the critters reach your Pet House. <b>Treats</b> come in by themselves: spend them to send pets, or on the <b>🍳 Treat Kitchen</b> to earn them faster. <b>🐾 Pet Pounce</b> charges up over time. When the critters smash your Pet House below half, tap <b>🧱 Rebuild</b> and answer quick math: every right answer lays a big brick. You have enough bricks to rebuild the whole house twice!<br><small class="muted">Swipe or drag the battlefield to look around. On a computer: 1–5 send pets, T mega, K kitchen, Space pounce, R rebuild, S sound, ← → scroll.<br>Mega: 🧌 <b>${TROLL.n}</b> roars critters back, or 🦅 <b>${EAGLE.n}</b> dives onto them. They take a long time to come back.</small><br><small class="muted">Each world's stage opens when you beat that world's 👑 Legend round.</small></div>
+  ${S.map(s=>{const done=pr.c[s.id]||0,open=stageOpen(p,s);if(!open)return `<div class="bp2-card bp2-stage locked"><span class="e">🔒</span><span><b>${esc(s.name)}</b><small>${s.op?`Beat the 👑 Legend round in ${esc(s.name)} to open it.`:'Opens in the Museum (coming soon).'}</small></span></div>`;
+   return `<div class="bp2-card bp2-stage"><span class="e">${s.art}</span><span><b>${esc(s.name)}</b><small>${s.op?'Quick '+OPN[s.op].toLowerCase()+' for repairs':'Mixed quick math for repairs'} · boss: the ${esc(s.boss[0])}</small></span>
    <span class="bp2-crowns">${[1,2,3].map(c=>`<button class="${done>=c?'done':''}" ${c>done+1?'disabled':''} onclick="BattlePets._pick('${s.id}',${c})">${'👑'.repeat(c)}${done>=c?' ✓':''}</button>`).join('')}</span></div>`;}).join('')}</div></div>`;}
 function pickStage(id,crown){const p=me();if(!p)return;const pr=prog(p);if(crown>(pr.c[id]||0)+1)return;VIEW={k:'team',id,crown};
  const av=available(p).map(x=>x.id);let team=pr.team.filter(x=>av.includes(x)).slice(0,slots(p));
@@ -558,8 +562,7 @@ function quit(){if(G&&!G.over&&G.t>3){if(!document.getElementById('bpQuit')){con
 
 /* ---------- the plaza building (demo access for every hero) ---------- */
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[BP_Y]&&W.T[BP_Y][BP_X];if(!t||t.water)return;
- if(on(me())){if(t.npc!=='bp'&&!t.npc&&!t.chest){if(W.hx===BP_X&&W.hy===BP_Y)return;t.npc='bp';t.block=true;t.o=null;}}
- else if(t.npc==='bp'){delete t.npc;t.block=false;}}catch(e){}}
+ if(t.npc==='bp'){delete t.npc;t.block=false;}}catch(e){}} /* the plaza building is gone (Oct 2026): stages open from each world's page */
 /* the world page: beating that world's 👑 Legend round opens its Battle Pets stage, with a button right there */
 function zoneBtn(zid){const st=stages().find(x=>x.id===zid),p=me();if(!st||!p||!on(p))return;const tip=document.querySelector('#app .ztip');if(!tip||document.getElementById('bpZone'))return;
  let won=false;try{won=medal(p,zid)>=5;}catch(e){}const c=prog(p).c[zid]||0;const d=document.createElement('div');d.id='bpZone';d.className='bp2-zone';

@@ -199,9 +199,11 @@ const tests=[
 
 ['battle pets demo: on the plaza for every hero; stages, team, a wide battle that follows the fight, 🧱 Rebuild math (keyboard too), last stand, the mega troll, rewards and the play log',async function(){
   T.reset();delete window.MQ_BP_BETA;const p=T.hero('Pets',5);state.cur=p.id;W=null;go('world');await T.wait(150);
-  T.ok(W.T[20][28].npc==='bp','the Battle Pets building is not on the plaza');
+  T.ok(W.T[20][28].npc!=='bp','the old Battle Pets building is still on the plaza');
   go('bp');const txt=document.querySelector('#app').innerText;T.ok(/Fossil Stage/.test(txt)&&/Addition Forest/.test(txt)&&BattlePets.stages().length>=3,'stages missing');
-  T.ok([...document.querySelectorAll('.bp2-crowns button')].some(b=>b.disabled),'crown 2 is open before crown 1 is beaten');
+  T.ok(document.querySelectorAll('.bp2-stage.locked').length===BattlePets.stages().length&&!document.querySelector('.bp2-crowns button'),'stages are open before their Legend round is beaten');
+  {const m0=window.medal;window.medal=()=>5;go('bp');T.ok(document.querySelectorAll('.bp2-stage.locked').length===1,'beating Legend did not open the world stages (only the Fossil Stage should stay locked)');
+   T.ok([...document.querySelectorAll('.bp2-crowns button')].some(b=>b.disabled),'crown 2 is open before crown 1 is beaten');window.medal=m0;}
   BattlePets._pick('forest',1);T.ok(document.querySelectorAll('.bp2-slot').length===Math.min(5,3+Math.floor((P().level||1)/10))&&document.querySelectorAll('.bp2-slot.full').length>=1,'team picker did not fill the team');
   const D=BattlePets._dbg;BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpScroll'),'the battle did not start');
   {const sc=document.getElementById('bpScroll');T.ok(sc.scrollWidth>sc.clientWidth+100,'the battlefield is not wider than the screen');}
