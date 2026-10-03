@@ -13,11 +13,13 @@
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; }
   button { touch-action:manipulation; }
   html,body { margin:0; height:100%; background:#0b2233; overflow:hidden; font-family:"Trebuchet MS","Arial Rounded MT Bold",system-ui,sans-serif; color:var(--ink); user-select:none; -webkit-user-select:none; }
-  #wrap { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); aspect-ratio:480/720; overflow:hidden; border-radius:.6em; box-shadow:0 0 40px rgba(0,0,0,.5); }
+  #wrap { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); overflow:hidden; border-radius:.6em; box-shadow:0 0 40px rgba(0,0,0,.5); }
   #c { position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; }
   canvas { display:block; }
   .screen { position:absolute; inset:0; display:none; flex-direction:column; align-items:center; padding:1.2em 1em; overflow-y:auto; }
   .screen.show { display:flex; }
+  .screen > * { max-width:36em; }
+  #modalBox { max-width:32em; }
   .dim { background:rgba(8,30,48,.55); }
   h1 { font-size:2.6em; margin:.3em 0 0; color:#fff; text-align:center; line-height:1; text-shadow:0 .08em 0 #0b3a57, 0 .15em .3em rgba(0,0,0,.4); }
   h1 small { display:block; font-size:.45em; color:var(--gold); letter-spacing:.15em; margin-top:.3em; }
@@ -46,6 +48,7 @@
   .dexcell { background:var(--paper); border-radius:.8em; padding:.4em; text-align:center; cursor:pointer; font-size:.8em; font-weight:bold; box-shadow:0 .2em 0 rgba(0,0,0,.2); }
   .dexcell.unk { background:#c9d6de; color:#51626e; }
   .dexcell.legend { background:linear-gradient(#fff4c9,#f5d56b); }
+  .dexcell.night { background:linear-gradient(#1c2d55,#3d5c94); color:#e8f4ff; }
   .dexcell canvas, .card canvas, #modalBox canvas { width:100%; height:auto; display:block; }
   #modal { position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(5,20,32,.7); padding:1em; z-index:40; }
   #modal.show { display:flex; }
@@ -77,7 +80,7 @@
   #optSheet { position:absolute; left:0; right:0; bottom:7.4em; display:none; flex-direction:column; align-items:center; gap:.4em; z-index:7; }
   #optSheet .chip { font-size:1em; min-width:12em; }
   .sidebtn { position:absolute; bottom:1.7em; width:4em; height:4em; border-radius:50%; border:none; padding:0; display:none; flex-direction:column; align-items:center; justify-content:center;
-    background:rgba(255,250,240,.95); color:var(--ink); z-index:6; cursor:pointer; box-shadow:0 .2em 0 rgba(0,0,0,.25); touch-action:manipulation; }
+    background:rgba(255,250,240,.95); color:var(--ink); z-index:6; cursor:pointer; font:inherit; box-shadow:0 .2em 0 rgba(0,0,0,.25); touch-action:manipulation; }
   .sidebtn.show { display:flex; }
   .sidebtn span { font-size:1.6em; line-height:1.1; }
   .sidebtn small { font-size:.68em; font-weight:bold; }
@@ -115,6 +118,16 @@
   @keyframes glow { 50% { filter:brightness(1.3); } }
   @keyframes flash { 50% { filter:brightness(1.6); } }
   @keyframes shake { 0%{ margin-right:-2px } 50%{ margin-right:2px } 100%{ margin-right:-2px } }
+  .brag { position:relative; width:100%; aspect-ratio:480/260; border-radius:.9em; overflow:hidden; margin:.1em 0 .4em; box-shadow:0 .2em 0 rgba(0,0,0,.25); flex:none; }
+  .brag canvas.bg { position:absolute; inset:0; width:100%; height:100%; }
+  .brag .hold { position:absolute; left:21%; bottom:2%; width:29%; aspect-ratio:100/130; }
+  .brag .hold svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .brag .fish { position:absolute; left:50%; top:58.5%; transform:translate(-50%,-50%) rotate(-4deg); filter:drop-shadow(0 .2em .3em rgba(0,0,0,.35)); animation:fishUp .7s cubic-bezier(.2,1.5,.4,1) both; }
+  .brag .nm { position:absolute; left:.6em; top:.45em; color:#fff; font-weight:bold; font-size:1.05em; text-shadow:0 1px 3px #000; }
+  .brag .wgt { position:absolute; right:.5em; bottom:.45em; background:rgba(255,250,240,.95); border-radius:.7em; padding:.15em .6em; font-weight:bold; font-size:1.15em; }
+  .brag .stamp { position:absolute; right:.5em; top:.5em; transform:rotate(8deg); background:rgba(255,250,240,.9); border:.16em solid; border-radius:.4em; padding:0 .35em; font-weight:900; font-size:1.05em; animation:slam .45s 1.1s both; }
+  @keyframes fishUp { 0% { opacity:0; transform:translate(-50%,-20%) scale(.5) rotate(-14deg); } 100% { opacity:1; transform:translate(-50%,-50%) scale(1) rotate(-4deg); } }
+  @keyframes slam { 0% { opacity:0; transform:scale(2.6) rotate(8deg); } 70% { opacity:1; transform:scale(.92) rotate(8deg); } 100% { opacity:1; transform:scale(1) rotate(8deg); } }
   .who { font:inherit; margin-top:1.4em; display:flex; align-items:center; gap:.5em; border:none; border-radius:1.2em; padding:.35em 1em .35em .5em; background:rgba(255,250,240,.92); color:var(--ink); cursor:pointer; box-shadow:0 .2em 0 rgba(0,0,0,.2); text-align:left; }
   .who svg { width:2.6em; height:3em; display:block; }
   .who b { display:block; font-size:1.15em; }
@@ -184,6 +197,8 @@
     <div class="dexgrid" id="dexGrid"></div>
     <div class="sech">🏆 Boss Trophies</div>
     <div class="dexgrid" id="bossGrid"></div>
+    <div class="sech">🌙 Night Legends</div>
+    <div class="dexgrid" id="legGrid"></div>
   </div>
 
   <!-- Results -->
@@ -199,14 +214,16 @@
   <button class="btn blue small mute" id="btnMute">🔊</button>
 </div>
 
-<script>window.LL_VER="2026.10.03a";</script>
-<script src="ll-core.js?v=2026.10.03a"></script>
+<script>window.LL_VER="2026.10.03b";</script>
+<script src="ll-core.js?v=2026.10.03b"></script>
 <script>
 "use strict";
 // =====================================================================
 //  DATA — San Diego County lake fish
 // =====================================================================
-const W = 480, H = 720, PPF = 16; // pixels per foot
+// The play area takes the screen's shape: 480 wide on phones (taller phones see more water), up to 1280 wide on iPads and computers.
+let W = 480, H = 720;
+const SW = 480, PPF = 16; // SW = narrowest width the game is laid out for; PPF = pixels per foot
 
 const SPECIES = {
   bluegill:  { name:"Bluegill", shape:"sun", cheek:"#3d6fb5", body:"#5e7d52", belly:"#e3a64a", fin:"#4f6b46", mark:"bars", markC:"rgba(30,50,40,.35)", ear:"#15213d",
@@ -352,6 +369,7 @@ function dayCount(lakeId){ return S.day && S.day.lake === lakeId ? S.day.kept.le
 function verdict(lakeId, f){
   const r = ruleFor(lakeId, f.id), nm = f.sp.name;
   if (f.boss) return { st:"release", why:"Legends go back! 📸" };
+  if (f.nightLegend) return { st:"release", why:"Night Legends go back! 📸" };
   if (r.release) return { st:"release", why:"Catch & release only" };
   if (r.springRelease && [2,3].includes(new Date().getMonth())) return { st:"release", why:"Release only in Mar–Apr" };
   if (r.bag && keptToday(lakeId, r.group) >= r.bag) return { st:"release", why:"Daily limit reached (" + r.bag + ")" };
@@ -418,6 +436,75 @@ function rewardText(d){
   return { icon:"🏆", title:"Lake Legend Trophy!", text:"You beat every boss in San Diego County. You're a Lake Legend!" };
 }
 
+// =====================================================================
+//  TIME OF DAY · RARE LOOKS · NIGHT LEGENDS · TREASURE
+// =====================================================================
+// The sun moves while you fish: one game hour every 25 seconds, so a whole day takes 10 minutes.
+const HOUR_SECS = 25;
+const clockH = () => S.clock == null ? 7 : S.clock;
+function nightAmt(){ const h = clockH(); if (h >= 7 && h < 17) return 0; if (h >= 17 && h < 20) return (h - 17) / 3; if (h >= 20 || h < 5) return 1; return 1 - (h - 5) / 2; }
+function duskAmt(){ const h = clockH(); return clamp(Math.max(1 - Math.abs(h - 18.3) / 1.6, 1 - Math.abs(h - 6) / 1.3), 0, 1); }
+const isNight = () => nightAmt() > .7;
+function dayPart(){ const h = clockH(); return h >= 20 || h < 5 ? "night" : h < 7 ? "dawn" : h < 17 ? "day" : "dusk"; }
+function timeIcon(){ return { night:"🌙", dawn:"🌅", day:"☀️", dusk:"🌇" }[dayPart()]; }
+function clockText(){ const h = Math.floor(clockH()), m = Math.floor((clockH() % 1) * 4) * 15; return ((h + 11) % 12 + 1) + ":" + String(m).padStart(2, "0") + (h < 12 ? " am" : " pm"); }
+function updateClock(dt){
+  if (!visit || (trip && trip.boss)) return;
+  const was = dayPart(); S.clock = (clockH() + dt / HOUR_SECS) % 24; const now = dayPart();
+  if (now !== was) toast(now === "night" ? "🌙 Night falls. The catfish are coming up!" : now === "dawn" ? "🌅 Sunrise! Crappie love the first light."
+    : now === "dusk" ? "🌇 Sunset. Fish get bold in the evening." : "☀️ Good morning!", 3000);
+}
+// at night the catfish rise and trout and sunfish go quiet
+const NIGHT_FISH = { channel:3, bluecat:3, whitecat:3, bullhead:3, carp:1.3, trout:.55, bluegill:.6, greensun:.7, redear:.8, bcrappie:1.2, wcrappie:1.2 };
+
+// Rare looks: about 1 fish in 40 is a rare color of its species, worth double
+const VARIANTS = {
+  bluegill:  { key:"electric", name:"Electric Bluegill", body:"#2f6fb8", belly:"#f0a23a", fin:"#2a5d96", cheek:"#6fd0ff", markC:"rgba(10,30,70,.35)" },
+  greensun:  { key:"jade", name:"Jade Sunfish", body:"#2f9a7a", belly:"#f4dc6a", fin:"#2a7f66", markC:"rgba(170,255,240,.9)" },
+  redear:    { key:"fire", name:"Fire Redear", body:"#a8742e", belly:"#ff9a3a", fin:"#9a5a24", earEdge:"#ff2a10" },
+  bcrappie:  { key:"midnight", name:"Midnight Crappie", body:"#4a4e58", belly:"#c9ccd4", fin:"#3c4048", markC:"rgba(10,10,20,.8)" },
+  wcrappie:  { key:"golden", name:"Golden Crappie", body:"#e2c55a", belly:"#fbf1c4", fin:"#cdb04a", markC:"rgba(140,110,30,.5)" },
+  trout:     { key:"golden", name:"Golden Rainbow Trout", body:"#e8b830", belly:"#fbe9a8", fin:"#e0a020", fact:"Golden rainbow trout are real! California hatcheries raise a few as a special treat for anglers." },
+  largemouth:{ key:"ghost", name:"Ghost Bass", body:"#cfd6c4", belly:"#fafaf2", fin:"#b9c2ae", markC:"rgba(120,130,110,.45)", fact:"A very pale \"ghost\" bass is leucistic: it's missing most of its color." },
+  smallmouth:{ key:"bronze", name:"Bronzeback", body:"#6a4520", belly:"#d8b070", fin:"#5a3a18", markC:"rgba(30,15,5,.6)" },
+  channel:   { key:"albino", name:"Albino Catfish", body:"#f2e6dc", belly:"#fffaf6", fin:"#ecd6c8", markC:"rgba(0,0,0,0)", eye:"#e0607e", fact:"Albino channel catfish are real. They're white with pink eyes!" },
+  bluecat:   { key:"ghost", name:"Ghost Blue Cat", body:"#b8cde0", belly:"#f6fafe", fin:"#a6bed4" },
+  whitecat:  { key:"pearl", name:"Pearl Catfish", body:"#eef0f2", belly:"#ffffff", fin:"#d8dde2" },
+  bullhead:  { key:"golden", name:"Golden Bullhead", body:"#d9a73a", belly:"#f7e3a0", fin:"#c4902a", fact:"Golden (xanthic) bullheads are rare but real." },
+  carp:      { key:"koi", name:"Koi Carp", body:"#f07a2a", belly:"#fff4ea", fin:"#f5f0ea", markC:"rgba(255,255,255,.55)", fact:"Koi are fancy carp! People sometimes let them go in lakes, where they grow huge." },
+  sturgeon:  { key:"albino", name:"Albino Sturgeon", body:"#e8e2d6", belly:"#faf7f0", fin:"#d8d0c0" }
+};
+const variantSp = id => Object.assign({}, SPECIES[id], VARIANTS[id], { variant: VARIANTS[id].key });
+const variantChance = () => .025 + .01 * (S.up.lure || 0);
+
+// Night Legends: one glowing giant per lake that only comes out after dark. Always photographed and released.
+const LEGENDS = {
+  dixon:    { name:"Moonbelly", base:"largemouth", inches:27, lb:16, str:1.9, stages:2, glow:"150,230,255", body:"#9fb4c4", belly:"#f2fbff", fin:"#8aa0b2", markC:"rgba(60,90,120,.5)",
+              bite:{ crank:.6, swim:.8, worm:.4, spinner:.35, crawler:.4 }, hint:"a pale bass that only feeds by moonlight" },
+  poway:    { name:"Lantern", base:"trout", inches:28, lb:11, str:1.8, stages:2, glow:"255,200,120", body:"#d89a52", belly:"#fff0c8", fin:"#d08a40",
+              bite:{ dough:.8, spinner:.6, worm:.5, crank:.4 }, hint:"a trout that glows like a lantern" },
+  jennings: { name:"Old Brass", base:"carp", inches:42, lb:42, str:2.2, stages:2, glow:"255,210,90", body:"#c98a2a", belly:"#f8de9a", fin:"#b8642a",
+              bite:{ corn:.9, bread:.6, dough:.6, worm:.3 }, hint:"a brassy old carp that cruises in the dark" },
+  cuyamaca: { name:"Starback", base:"sturgeon", inches:90, lb:140, str:2.4, stages:3, glow:"190,170,255", body:"#4a4a66", belly:"#c8c6dc", fin:"#3e3e58",
+              bite:{ crawler:.9, worm:.4, stink:.3 }, hint:"a sturgeon with stars on its back" },
+  elcap:    { name:"The Shadow", base:"bluecat", inches:58, lb:80, str:2.5, stages:3, glow:"120,255,200", body:"#28323e", belly:"#9aa8b6", fin:"#222a34",
+              bite:{ stink:.8, crawler:.8, worm:.25 }, hint:"a blue catfish as dark as the deep water" },
+  otay:     { name:"Silver Ghost", base:"whitecat", inches:34, lb:24, str:2.2, stages:2, glow:"230,240,255", body:"#e6eaee", belly:"#ffffff", fin:"#d0d6dc",
+              bite:{ stink:.9, crawler:.7, worm:.5 }, hint:"a shining white catfish nobody can keep hold of" }
+};
+const LEGEND_CHANCE = .3;                      // chance a night cast has the lake's legend down there
+function legendSp(lakeId){ const d = LEGENDS[lakeId]; return Object.assign({}, SPECIES[d.base], d, { nightLegend:true, legend:false, val:40,
+  facts:["A Night Legend of " + lakeById(lakeId).name + ": " + d.hint + ".", "It only comes out after dark. Catch it, snap a photo, and let it go!"] }); }
+
+// Treasure chests on the lake bottom
+function chestPrize(){
+  const r = Math.random();
+  if (r < .5) return { coins: Math.round(rand(15, 40)) };
+  if (r < .7) return { worms: 8 };
+  if (r < .85) return { coins: Math.round(rand(60, 100)) };
+  return S.baits.includes("crank") ? { coins: 50 } : { crank: true };
+}
+
 const UPG = {
   line:     { name:"Longer Line",    icon:"🧵", desc:"Drop your hook deeper.",            vals:[50,75,100,130,160], fmt:v=>v+" ft",      cost:[0,60,150,300,500] },
   stringer: { name:"Stronger Line", icon:"🪢", desc:"Big fish are less likely to snap your line.", vals:[1,.85,.72,.6,.5], fmt:v=>Math.round((1-v)*100)+"% stronger", cost:[0,40,120,250,450] },
@@ -432,7 +519,7 @@ const UPG = {
 // Each player's game lives in their player record (ll-core.js): LL.player().game. S points at it while they play.
 function defaultSave(){ return { coins:0, lakes:["dixon"], up:{line:0,stringer:0,reel:0,guard:0,lure:0}, dex:{}, trips:0, sound:true,
   baits:["spinner","bread"], bait:"spinner", bobber:false, bobDepth:6, grandpa:false, grandpaBonus:false, lakeEarn:{}, bosses:{}, heavy:false, champ:false, day:{ lake:"dixon", kept:[] }, released:0, baitCount:{},
-  landed:0 }; }
+  landed:0, streak:0, bestStreak:0, clock:7, legends:{}, treasures:0 }; }
 // old saves and saves from older versions pick up any new fields; nothing already earned is ever lowered
 function normalizeSave(s){
   const d = defaultSave();
@@ -759,9 +846,9 @@ function fishSprite(sp, L, frame){
 function drawFish(ctx, sp, x, y, L, dir, t, opt={}){
   ctx.save(); ctx.translate(x, y); ctx.scale(dir, 1);
   if (opt.rot) ctx.rotate(opt.rot);
-  if ((sp.legend || sp.boss) && !opt.silhouette){               // glowing aura
+  if ((sp.legend || sp.boss || sp.glow) && !opt.silhouette){               // glowing aura
     const g = ctx.createRadialGradient(0, 0, 4, 0, 0, L*.8);
-    const ac = sp.boss ? "255,95,70" : "255,225,110";
+    const ac = sp.glow || (sp.boss ? "255,95,70" : "255,225,110");
     g.addColorStop(0, "rgba(" + ac + ",.45)"); g.addColorStop(1, "rgba(" + ac + ",0)");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, L*.8, 0, Math.PI*2); ctx.fill();
   }
@@ -793,7 +880,10 @@ function fishIcon(id, w=150, h=80, silhouette=false){
 const cv = document.getElementById("c"), ctx = cv.getContext("2d");
 const wrap = document.getElementById("wrap");
 function layout(){
-  const s = Math.min(window.innerWidth/W, window.innerHeight/H);
+  const iw = window.innerWidth, ih = window.innerHeight, a = iw / ih;
+  if (a >= SW / 720){ H = ih < 520 ? 600 : 720; W = Math.round(clamp(H * a, SW, 1280)); }   // wide screens: a wider lake
+  else { W = SW; H = Math.round(Math.min(1040, SW / a)); }                                // tall phones: more water
+  const s = Math.min(iw/W, ih/H);
   const w = W*s, h = H*s;
   wrap.style.width = w+"px"; wrap.style.height = h+"px"; wrap.style.fontSize = (16*s)+"px";
   const dpr = Math.min(2, window.devicePixelRatio||1);
@@ -1015,7 +1105,7 @@ function renderDex(){
     const c = document.createElement("div");
     c.className = "dexcell" + (got ? "" : " unk") + (sp.legend ? " legend" : "");
     c.appendChild(fishIcon(id, 150, 80, !got));
-    const n = document.createElement("div"); n.textContent = (i+1) + ". " + (got ? sp.name + " " + tierIcon(id) : "???"); c.appendChild(n);
+    const n = document.createElement("div"); n.textContent = (i+1) + ". " + (got ? sp.name + " " + tierIcon(id) + (got.v ? " ✨" : "") : "???"); c.appendChild(n);
     c.onclick = () => { SFX.click(); showCard(id, false); };
     g.appendChild(c);
   });
@@ -1028,6 +1118,18 @@ function renderDex(){
     c.onclick = () => { SFX.click(); infoModal(`<h3>${got ? d.name : "Boss of " + L.name}</h3><p>${got ? d.intro : "Keep " + DAY_LIMIT[L.id] + " fish in one day at " + L.name + " to meet this boss."}</p>
       ${got ? `<div class="muted">${d.inches} in · ${d.lb} lb · caught at ${L.name}</div>` : `<div class="muted">Hint: it likes ${d.likes}.</div>`}`, "Close"); };
     bg.appendChild(c);
+  });
+  const lg = $("legGrid"); lg.innerHTML = "";
+  LAKES.forEach(L => {
+    const d = LEGENDS[L.id], got = S.legends[L.id], sp = legendSp(L.id);
+    const c = document.createElement("div"); c.className = "dexcell" + (got ? " night" : " unk");
+    c.appendChild(fishIcon(sp, 150, 80, !got));
+    const n = document.createElement("div"); n.innerHTML = got ? d.name + "<br>" + L.name : "???<br>" + L.name; c.appendChild(n);
+    c.onclick = () => { SFX.click(); infoModal(`<h3>${got ? "🌙 " + d.name : "A Night Legend of " + L.name}</h3><div id="legPic"></div>
+      <p>${got ? "You caught " + d.name + " " + got.n + (got.n > 1 ? " times" : " time") + "! " + d.hint[0].toUpperCase() + d.hint.slice(1) + "." : "Old-timers say there's " + d.hint + " at " + L.name + ". It only comes out at night."}</p>
+      <div class="muted">${got ? d.inches + " in · " + d.lb + " lb" : "🌙 Fish " + L.name + " after dark, deep down. Look for a glow."}</div>`, "Close");
+      if (got) legendPic(sp); };
+    lg.appendChild(c);
   });
 }
 // simple in-page modal (the page can't use alert/confirm)
@@ -1074,6 +1176,7 @@ function showCard(id, isNew, onDone){
       <div class="muted"><b>Size badge:</b> ${TIERS[tierOf(id, got.best)].icon} ${TIERS[tierOf(id, got.best)].name}${!sp.legend && tierOf(id, got.best) < 3 ? " · next badge at " + tierInches(id, tierOf(id, got.best) + 1) + " in" : ""}</div>
       <div class="muted"><b>Where to find it in this game:</b> ${sp.legend ? "Dixon Lake (boss)" : lakesFor(id).join(", ")}</div>
       <div class="muted"><b>Best bait:</b> ${bestBaits(id).join(", ") || "?"}</div>
+      ${VARIANTS[id] ? `<div class="muted"><b>✨ Rare look:</b> ${got.v && got.v[VARIANTS[id].key] ? VARIANTS[id].name + " ✓" + (VARIANTS[id].fact ? " " + VARIANTS[id].fact : "") : "??? (about 1 fish in 40 has a rare color, worth double)"}</div><div id="lookPic"></div>` : ""}
       <div class="muted">Real-life size range here: about ${sp.min}–${sp.max} inches</div>`;
   } else {
     info.innerHTML = sp.legend
@@ -1081,6 +1184,7 @@ function showCard(id, isNew, onDone){
       : `<p>You haven't caught this one yet.</p><div class="muted"><b>Try:</b> ${lakesFor(id).join(", ")}</div>`;
   }
   box.appendChild(info);
+  if (got && got.v && VARIANTS[id] && got.v[VARIANTS[id].key]){ const lp = $("lookPic"); if (lp){ const ic = fishIcon(variantSp(id), 240, 110); ic.style.maxWidth = "12em"; ic.style.margin = "0 auto"; lp.appendChild(ic); } }
   const b = document.createElement("button"); b.className = "btn"; b.textContent = isNew ? "Awesome!" : "Close";
   b.onclick = () => { SFX.click(); $("modal").classList.remove("show"); if (onDone) onDone(); };
   box.appendChild(b);
@@ -1096,8 +1200,9 @@ let trip = null;
 function spawnFishFor(lake, y, exclude, small){
   const frac = y / (lake.depth*PPF);
   const lure = S.up.lure;
-  let cands = lake.fish.filter(id => !SPECIES[id].legend && id !== exclude && frac >= SPECIES[id].d[0] && frac <= SPECIES[id].d[1])
-    .map(id => ({ v:id, w: SPECIES[id].rar * (SPECIES[id].rar <= 3 ? 1 + lure*.5 : 1) }));
+  const n = nightAmt(), cat = id => SPECIES[id].shape === "cat";
+  let cands = lake.fish.filter(id => !SPECIES[id].legend && id !== exclude && frac >= SPECIES[id].d[0] * (cat(id) ? 1 - .6*n : 1) && frac <= SPECIES[id].d[1])   // catfish rise at night
+    .map(id => ({ v:id, w: SPECIES[id].rar * (SPECIES[id].rar <= 3 ? 1 + lure*.5 : 1) * lerp(1, NIGHT_FISH[id] || 1, n) }));
   if (!cands.length){
     let best = null, bd = 9;
     lake.fish.forEach(id => { const s = SPECIES[id]; if (s.legend) return; const dd = frac < s.d[0] ? s.d[0]-frac : frac - s.d[1]; if (dd < bd){ bd = dd; best = id; } });
@@ -1115,7 +1220,8 @@ function makeFish(id, y, small){
   const inches = sp.legend ? rand(sp.min, sp.max) : lerp(sp.min, sp.max, f);
   const dir = Math.random() < .5 ? -1 : 1;
   const L = fishPx(sp, inches);
-  return { id, sp, inches, frac:f, L, x: rand(-20, W+20), y, baseY: y, dir,
+  const v = VARIANTS[id] && Math.random() < variantChance();
+  return { id, sp: v ? variantSp(id) : sp, variant: v ? VARIANTS[id].key : null, inches, frac:f, L, x: rand(-20, W+20), y, baseY: y, dir,
     speed: rand(18, 45) * (sp.shape==="sun" ? 1.2 : sp.shape==="sturgeon" ? .6 : 1), phase: rand(0,6), trophy: !sp.legend && f > .78 };
 }
 
@@ -1126,7 +1232,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   const dock = mode === "dock";
   const bottom = (dock ? Math.min(24, Math.round(lake.depth * .3)) : lake.depth) * PPF;
   const fish = [];
-  const n = dock ? Math.max(10, Math.round(bottom / 36)) : Math.round(bottom / 55);
+  const n = Math.round((dock ? Math.max(10, bottom / 36) : bottom / 55) * Math.sqrt(W / SW) * (W > SW ? 1.15 : 1));
   for (let i=0;i<n;i++) fish.push(spawnFishFor(lake, rand(dock ? 70 : 160, bottom - 15), null, dock));
   let boss = null;
   if (bossFeePaid){
@@ -1137,9 +1243,14 @@ function startTrip(lake, bossFeePaid, mode, quiet){
     fish.push({ id: d.dex || d.base, sp, inches:d.inches, frac:1, L, x:W/2, y, baseY:y, dir:1, speed:22, phase:0, trophy:false, boss:true, sniffT:0 });
     boss = { def:d, fee:bossFeePaid, left: BOSS_CASTS };
   }
+  if (!bossFeePaid && isNight() && LEGENDS[lake.id] && Math.random() < LEGEND_CHANCE){   // a Night Legend is down there tonight
+    const d = LEGENDS[lake.id], sp = legendSp(lake.id), maxY = Math.min(bottom - 10, upVal("line") * PPF);
+    const y = rand(Math.min(maxY * .5, 200), maxY - 20);
+    fish.push({ id: "legend_" + lake.id, sp, inches: d.inches, frac: 1, L: clamp(40 + d.inches * 2.2, 90, 200), x: rand(40, W - 40), y, baseY: y, dir: Math.random() < .5 ? -1 : 1, speed: 18, phase: 0, trophy: false, nightLegend: true });
+  }
   const snags = [];
   // on the bottom: mostly sunken wood, plus cans, an old boot, the odd tire
-  const nBottom = dock ? 2 : Math.max(3, Math.round(bottom / 150));
+  const nBottom = Math.round((dock ? 2 : Math.max(3, bottom / 150)) * W / SW);
   const bottomJunk = [{v:"log",w:5},{v:"branch",w:3},{v:"can",w:2},{v:"boot",w:1.5},{v:"tire",w:.6},{v:"cart",w:.2}];
   for (let i=0;i<nBottom;i++){
     const t = pickWeighted(bottomJunk), sg = makeSnag(t, rand(30, W-30), 0);
@@ -1152,11 +1263,14 @@ function startTrip(lake, bossFeePaid, mode, quiet){
     if (Math.random() < .6){ const sg = makeSnag("weed", rand(30, W-30), bottom); sg.h = rand(.25, dock ? .45 : .5) * bottom; sg.y = bottom - sg.h/2; snags.push(sg); }
     else snags.push(makeSnag("clump", rand(40, W-40), rand(bottom*.3, bottom*.75)));
   }
+  if (!bossFeePaid && Math.random() < .12){            // now and then, a treasure chest on the bottom
+    const sg = makeSnag("chest", rand(40, W - 40), 0); sg.y = bottom - sg.h/2 + 3; snags.push(sg);
+  }
   if (bossFeePaid) snags.length = 0;                  // boss fights: the boss is the only trouble down there
   trip = { lake, bottom, maxY: Math.min(bottom - 8, upVal("line") * PPF), fish, snags, caught:[], lost:0,
     mode, tipX: dock ? 193 : W/2 + 50, tipY: dock ? -70 : -72,
     bobber: !!S.bobber && !bossFeePaid, bobX: null,
-    hook:{ x: dock ? 193 : W/2+50, y: -30 }, phase:"ready", camY:-220, shields: upVal("guard"),
+    hook:{ x: dock ? 193 : W/2+50, y: -30 }, phase:"ready", camY:camTop(), shields: upVal("guard"),
     bubbles:[], pops:[], fight:null, t:0, doneT:0, chain:null,
     pending:0, autoUp:false, upSpeed:0, castT:0, castX:0, reelAng:0, spoolAng:0,
     boss, bait: "bare", baitLost:false, baitRolled:false };
@@ -1196,6 +1310,7 @@ function makeSnag(type, x, y){
   if (type==="weed"){ s.w=36; s.h=rand(70,140); s.y = y - s.h/2; }
   if (type==="branch"){ s.w=rand(70,110); s.h=14; s.rot=rand(-.2,.2); }
   if (type==="clump"){ s.w=54; s.h=34; }
+  if (type==="chest"){ s.w=34; s.h=24; }
   return s;
 }
 
@@ -1262,11 +1377,12 @@ function showCoins(){
 }
 function updateHud(){
   if (!trip) return;
-  const parts = [weatherIcon() + " ⬇ " + Math.max(0, Math.round(trip.hook.y / PPF)) + " ft"];
+  const wi = weatherIcon(), parts = [timeIcon() + (wi === "☀️" ? "" : wi) + " ⬇ " + Math.max(0, Math.round(trip.hook.y / PPF)) + " ft"];
   parts.push(trip.boss ? "⚔️ " + trip.boss.def.name + " · 🎣 " + (BOSS_CASTS - trip.boss.left + 1) + "/" + BOSS_CASTS : "🧺 " + dayCount(trip.lake.id) + "/" + DAY_LIMIT[trip.lake.id]);
   if (trip.phase === "troll") parts.push("🚤");
   if (trip.bobber) parts.push("🔴 " + Math.round(trip.bobDepthPx / PPF) + " ft");
   if (scentOn()) parts.push("🧴 " + scentLeft() + "s");
+  if ((S.streak || 0) >= 2 && !trip.boss) parts.push("🔥" + S.streak);
   if (upVal("guard")) parts.push("🛡️" + trip.shields);
   $("hudInfo").textContent = parts.join("   ");
   showCoins();
@@ -1284,11 +1400,12 @@ function hookFish(f){
   trip.fish.splice(trip.fish.indexOf(f), 1);
   trip.pending = 0; trip.tired = false; trip.surge = 0; trip.surgeT = rand(1.5, 3); trip.runDir = Math.random() < .5 ? -1 : 1; trip.spoolT = 0;
   SFX.bite();
-  const needFight = f.boss || f.sp.legend || f.trophy || f.id==="sturgeon" || f.id==="bluecat";
+  const needFight = f.boss || f.nightLegend || f.sp.legend || f.trophy || f.id==="sturgeon" || f.id==="bluecat";
   if (needFight){
     trip.fight = { f, tension: 25, prog: 10, surge: 0, nextSurge: rand(.8, 1.8), from: trip.phase, shake:0,
-      stage: 1, stages: f.boss ? trip.boss.def.stages : 1, run: null, nextRun: f.boss ? rand(2.5, 4) : 99 };
+      stage: 1, stages: f.boss ? trip.boss.def.stages : f.nightLegend ? f.sp.stages : 1, run: null, nextRun: f.boss ? rand(2.5, 4) : 99 };
     if (f.boss) pop(trip.hook.x, trip.hook.y - 70, "⚔️ " + f.sp.name + " took the bait!", "#ffd0c8", 22);
+    if (f.nightLegend) pop(trip.hook.x, trip.hook.y - 70, "🌙 " + f.sp.name + "! A Night Legend!", "#c8f0ff", 22);
     trip.phase = "fight";
   } else {
     landFish(f);
@@ -1311,7 +1428,9 @@ function landFish(f){
 // ---- Nibbles: a fish mouths the bait a few times. If it really bites, tap fast to set the hook!
 function interest(T, f){
   if (T.fouled) return 0;                                 // junk on the hook: no fish will touch it
-  const cb = curBait(T); let c = f.boss ? (T.boss.def.bite[cb] || .12) : biteChance(f, cb);
+  const cb = curBait(T); let c = f.boss ? (T.boss.def.bite[cb] || .12) : f.nightLegend ? (f.sp.bite[cb] || .05) : biteChance(f, cb);
+  if (c > 0 && f.sp.shape === "cat") c = Math.min(1, c + .12 * nightAmt());            // catfish feed at night
+  if (c > 0 && (f.id === "bcrappie" || f.id === "wcrappie")) c = Math.min(1, c + .18 * duskAmt());   // crappie bite at first and last light
   if (c > 0 && scentOn()) c = Math.min(1, c + .15);       // scent makes fish that already like your bait hungrier
   if (c > 0) c = Math.min(1, c + .1 * rainAmt());          // fish often bite better in the rain
   return c;
@@ -1341,10 +1460,11 @@ function updateWeather(dt){
 const fogCv = document.createElement("canvas"); fogCv.width = W; fogCv.height = H;
 const fogCtx = fogCv.getContext("2d");
 function drawFog(T, sy, hx, hy){
+  if (fogCv.width !== W || fogCv.height !== H){ fogCv.width = W; fogCv.height = H; }
   const f = fogCtx, rn = rainAmt(), cl = cloudAmt(), surf = sy(0);
   f.clearRect(0, 0, W, H);
   if (surf >= H) return;
-  const top = .05*cl + .72*rn;                          // murkiness right at the surface
+  const nt = nightAmt(), top = Math.min(.92, .05*cl + .72*rn + .5*nt);   // murkiness right at the surface (and darkness at night)
   const g = f.createLinearGradient(0, surf, 0, sy(160 * PPF));
   for (const ft of [0, 10, 25, 45, 70, 100, 160]){
     const deep = Math.min(.93, Math.pow(ft / 70, .8) * .9);
@@ -1353,7 +1473,7 @@ function drawFog(T, sy, hx, hy){
   }
   f.fillStyle = g; f.fillRect(0, Math.max(0, surf), W, H);
   if (hy > surf - 5){
-    const R = 150 - 80*rn;
+    const R = 150 - 80*rn - 20*nt;
     f.globalCompositeOperation = "destination-out";
     const rg = f.createRadialGradient(hx, hy, R*.25, hx, hy, R);
     rg.addColorStop(0, "rgba(0,0,0,.92)"); rg.addColorStop(1, "rgba(0,0,0,0)");
@@ -1419,7 +1539,7 @@ function setHook(){
     if (earlyTaps === 3) toast("Tip: nibbles are just tasting. Wait for BITE! Then tap.", 3200); return; }
   earlyTaps = 0;
   T.nibble = null; N.f.nibbling = false;
-  pop(T.hook.x, T.hook.y - 60, "Got it!", "#bff5c8", 20);
+  pop(T.hook.x, T.hook.y - 60, "Got it!", "#bff5c8", 20); T.kick = 1;
   hookFish(N.f);
 }
 function endNibble(why){
@@ -1450,6 +1570,11 @@ function checkSnags(T, hk){
   for (const s of T.snags){
     if (s.hitT > 0 || !hitSnag(s, hk.x, hk.y)) continue;
     s.hitT = 1.2;
+    if (s.type === "chest"){
+      if (T.fouled || T.caught.length) continue;
+      T.snags.splice(T.snags.indexOf(s), 1); T.fouled = "chest"; T.phase = "reel"; T.pending = 0; SFX.coin();
+      pop(hk.x, hk.y - 24, "🎁 A treasure chest! Reel it all the way in!", "#ffe38a", 17); return;
+    }
     if (T.shields > 0){ T.shields--; SFX.shield(); pop(hk.x, hk.y-20, "🛡️ Shield!", "#9fe6ff"); hk.x += (hk.x < s.x ? -30 : 30); }
     else if (!T.fouled){
       SFX.snag();
@@ -1484,7 +1609,7 @@ function stopTroll(){
 function trollHook(){
   const T = trip, st = T.strike; if (!st) return;
   T.strike = null; st.f.nibbling = false;
-  pop(T.hook.x, T.hook.y - 60, "Got it!", "#bff5c8", 20);
+  pop(T.hook.x, T.hook.y - 60, "Got it!", "#bff5c8", 20); T.kick = 1;
   T.phase = "reel"; T.pending = 0;
   hookFish(st.f);
 }
@@ -1528,6 +1653,22 @@ function updateTroll(dt){
   }
   checkSnags(T, hk);
 }
+// ---- Jumps: near the surface a hooked bass or trout can leap clear of the water ----
+const JUMPERS = { smallmouth:.9, largemouth:.6, trout:.5, dottie:1 };
+function splashAt(T, x, y, n){ T.drops = T.drops || []; for (let i = 0; i < n; i++) T.drops.push({ x: x + rand(-10, 10), y: y - 2, vx: rand(-110, 110), vy: rand(-330, -120), r: rand(1.5, 3.5) }); }
+function startJump(T, f){
+  T.jump = { t:0, dur: .95 + Math.min(.5, fishLb(f)*.05), f, x0: T.hook.x, dir: T.hook.x < W/2 ? 1 : -1, h: 70 + Math.min(60, f.L*.5) };
+  T.pending = 0; SFX.splash(); splashAt(T, T.hook.x, 0, 14); T.kick = .6;
+  pop(T.hook.x, -110, f.id === "smallmouth" ? "🐟 AIRBORNE!" : "🐟 JUMP!", "#ffe38a", 24);
+}
+function updateJump(T, dt){
+  const J = T.jump, hk = T.hook; J.t += dt; const p = Math.min(1, J.t / J.dur);
+  hk.x = clamp(J.x0 + J.dir * 80 * p, 20, W - 20); hk.y = -Math.sin(Math.PI * p) * J.h;
+  T.upSpeed = 0;
+  if (p >= 1){ T.jump = null; hk.y = 3.5*PPF; T.pending = 0; SFX.splash(); splashAt(T, hk.x, 0, 20); T.kick = .5; pop(hk.x, -30, "SPLASH! Keep reeling!", "#fff", 17); }
+}
+// how high the camera can go: on tall screens the water line sits a bit lower so the shallow dock isn't mostly mud
+const camTop = () => -220 - Math.max(0, H - 720) * .45;
 function updateFishing(dt){
   const T = trip; T.t += dt;
   const hk = T.hook;
@@ -1573,10 +1714,12 @@ function updateFishing(dt){
   T.bubbles.forEach(b => b.y -= b.v*dt); T.bubbles = T.bubbles.filter(b => b.y > Math.max(0, T.camY - 20));
   T.pops.forEach(p => { p.t += dt; p.y -= 25*dt; }); T.pops = T.pops.filter(p => p.t < 1.6);
   T.snags.forEach(s => s.hitT = Math.max(0, s.hitT - dt));
+  if (T.drops) for (let i = T.drops.length - 1; i >= 0; i--){ const d = T.drops[i]; d.vy += 700*dt; d.x += d.vx*dt; d.y += d.vy*dt; if (d.y > 6 && d.vy > 0) T.drops.splice(i, 1); }
+  T.kick = Math.max(0, (T.kick || 0) - dt*3);
 
   T.upSpeed = 0;
   T.jig = Math.max(0, (T.jig || 0) - dt*4);
-  updateWeather(dt); T.lastDt = dt;
+  updateWeather(dt); updateClock(dt); T.lastDt = dt;
   if (T.phase === "ready"){ hk.x = T.tipX + Math.sin(T.t*2)*3; hk.y = -30; }
   else if (T.phase === "cast"){
     T.castT = Math.min(1, T.castT + dt/.7);
@@ -1596,6 +1739,7 @@ function updateFishing(dt){
       hk.y += sp * dt; T.upSpeed = -sp;
       if (T.bobber){ hk.x = T.bobX; if (hk.y >= T.bobDepthPx){ hk.y = T.bobDepthPx; startReel(); pop(hk.x, -20, "🔴 Waiting for a bite...", "#fff", 15); } }
       else if (hk.y >= T.maxY){ hk.y = T.maxY; SFX.thunk(); startReel(T.maxY < T.bottom - 10 ? "End of your line!" : "Hit bottom!"); }
+    } else if (T.jump){ updateJump(T, dt);
     } else {
       let up = 0;
       {
@@ -1623,7 +1767,12 @@ function updateFishing(dt){
         if (T.surge > 0){ T.surge -= dt; rate *= 3; T.pending = Math.max(0, T.pending - 200*dt); }
         pull = rate * dt;
       }
-      if (T.bobber && !T.caught.length){
+      if (T.caught.length && !T.caught[0].jumped && hk.y < 9*PPF && hk.y > 3*PPF){       // near the top, a bass or trout may leap!
+        const f = T.caught[0]; f.jumped = true;
+        if ((JUMPERS[f.id] || 0) > Math.random() && fishLb(f) >= .5) startJump(T, f);
+      }
+      if (T.jump){ /* in the air */ }
+      else if (T.bobber && !T.caught.length){
         // bobber rig with nothing on: the float skims across the top toward you, bait hangs below it
         T.bobX += Math.sin(T.t * .4) * 3 * dt;                       // gentle drift
         const dx = T.tipX - T.bobX; T.bobX += Math.sign(dx) * Math.min(Math.abs(dx), up);
@@ -1665,13 +1814,13 @@ function updateFishing(dt){
         startNibble(f, c); break;
       }
     }
-    if (T.phase === "reel" && hk.y <= 3){ hk.y = 0; T.phase = "done"; T.doneT = 0; SFX.splash(); }
+    if (T.phase === "reel" && hk.y <= 3 && !T.jump){ hk.y = 0; T.phase = "done"; T.doneT = 0; SFX.splash(); if (T.caught.length) splashAt(T, hk.x, 0, 18); }
   } else if (T.phase === "done"){
     T.doneT += dt; if (T.doneT > .7) finishTrip();
   }
   // camera
   const target = hk.y - H*(T.phase === "troll" ? .7 : .38);          // trolling: keep the boat and shore in view
-  T.camY = lerp(T.camY, Math.max(-220, target), Math.min(1, dt*5));
+  T.camY = lerp(T.camY, Math.max(camTop(), target), Math.min(1, dt*5));
   // reel sounds + reel icon spin
   if (T.phase === "troll" && btnHeld){ reelSound(8, 1700, .08, dt); T.reelAng += 200*dt; }
   if (T.phase === "drop"){ reelSound(-T.upSpeed/PPF*1.8, 3300, .07, dt); T.spoolAng -= -T.upSpeed*dt*1.4; }
@@ -1757,16 +1906,17 @@ function finishTrip(){
   if (T.fouled){
     pending = null;
     const j = JUNK[T.fouled];
+    if (j.treasure){ openChest(); continueVisit(); return; }
     let msg = j.icon + " You reeled in " + j.name + ".";
     if (j.wood && BAITS[T.bait].soft && !T.baitLost && Math.random() < .5){ T.baitLost = true; T.baitRolled = true; endCastBait(T); if (visit) visit.lostMsg = null; msg += " Your " + BAITS[T.bait].name.toLowerCase() + " is gone."; }
     if (j.trash){ S.coins += 2; save(); msg += " +2 🪙 for cleaning the lake!"; }
     else msg += " Cleaned it off.";
-    toast(msg, 2800);
+    toast(msg, 2800); S.streak = 0;
     continueVisit();
     return;
   }
   if (!T.caught.length){
-    pending = null;
+    pending = null; S.streak = 0;
     const tip = curBait(T) === "bare" ? "Your hook is bare! Tap Bait." : "No bite. Try again!";
     toast(tip, 2600);
     continueVisit();
@@ -1774,24 +1924,32 @@ function finishTrip(){
   }
   T.caught.forEach(f => {
     const sp = f.sp, lb = weightLb(sp, f.inches);
-    const coins = Math.round(sp.val * 2 * (.6 + f.frac*.9) * (f.trophy ? 1.5 : 1) * (f.rare ? 1.5 : 1));
+    const coins = Math.round(sp.val * 2 * (.6 + f.frac*.9) * (f.trophy ? 1.5 : 1) * (f.rare ? 1.5 : 1) * (f.variant ? 2 : 1));
     const v = verdict(T.lake.id, f);
     const item = { f, v, coins, relCoins: Math.max(1, Math.ceil(coins * .5)), keep: v.st !== "release" };
     pending.items.push(item);
-    const isNew = !S.dex[f.id] && !newOnes.includes(f.id);
-    if (isNew) newOnes.push(f.id);
-    const prev = S.dex[f.id];
-    const pb = prev && f.inches > prev.best;
-    const t0 = prev ? tierOf(f.id, prev.best) : 0;
-    S.dex[f.id] = { n: (prev ? prev.n : 0) + 1, best: Math.max(prev ? prev.best : 0, f.inches) };
-    const t1 = tierOf(f.id, S.dex[f.id].best);
-    if (t1 > t0 && t1 >= 2) tierUps.push({ id: f.id, t: t1 });
+    let isNew = false, pb = false;
+    if (f.nightLegend){                                   // a Night Legend: its own trophy shelf, not the Fishdex
+      const lk = T.lake.id, had = S.legends[lk]; isNew = !had; f._newLegend = isNew;
+      S.legends[lk] = { n: (had ? had.n : 0) + 1, t: had ? had.t : Date.now() };
+      if (isNew){ item.coins += 100; item.relCoins += 100; }
+    } else {
+      isNew = !S.dex[f.id] && !newOnes.includes(f.id);
+      if (isNew) newOnes.push(f.id);
+      const prev = S.dex[f.id];
+      pb = prev && f.inches > prev.best; f._prevBest = prev ? prev.best : 0;
+      const t0 = prev ? tierOf(f.id, prev.best) : 0;
+      S.dex[f.id] = Object.assign({}, prev, { n: (prev ? prev.n : 0) + 1, best: Math.max(prev ? prev.best : 0, f.inches) });
+      if (f.variant){ const vs = S.dex[f.id].v = Object.assign({}, S.dex[f.id].v); f._newLook = !vs[f.variant]; vs[f.variant] = 1; }
+      const t1 = tierOf(f.id, S.dex[f.id].best);
+      if (t1 > t0 && t1 >= 2) tierUps.push({ id: f.id, t: t1 });
+    }
     const d = document.createElement("div"); d.className = "card";
     const r = document.createElement("div"); r.className = "row";
-    const ic = fishIcon(f.id, 110, 60); ic.style.width = "5.5em"; ic.style.flex = "none"; r.appendChild(ic);
+    const ic = fishIcon(f.sp, 110, 60); ic.style.width = "5.5em"; ic.style.flex = "none"; r.appendChild(ic);
     const tx = document.createElement("div"); tx.className = "grow";
     tx.innerHTML = `<b>${sp.name}</b><br><span class="muted">${f.inches.toFixed(1)} in · ${fmtLb(lb)}</span><br>
-      ${isNew ? '<span class="tag new">NEW!</span>' : ""}${f.rare ? '<span class="tag trophy">✨ RARE</span>' : ""}${f.trophy ? '<span class="tag trophy">TROPHY</span>' : ""}${pb ? '<span class="tag">Personal best!</span>' : ""}`;
+      ${isNew ? '<span class="tag new">NEW!</span>' : ""}${f.variant ? '<span class="tag trophy">✨ RARE LOOK ×2</span>' : ""}${f.nightLegend ? '<span class="tag trophy">🌙 NIGHT LEGEND</span>' : ""}${f.rare ? '<span class="tag trophy">✨ RARE</span>' : ""}${f.trophy ? '<span class="tag trophy">TROPHY</span>' : ""}${pb ? '<span class="tag">Personal best!</span>' : ""}`;
     r.appendChild(tx);
     const cc = document.createElement("div"); cc.style.fontWeight = "bold"; r.appendChild(cc);
     d.appendChild(r);
@@ -1806,6 +1964,14 @@ function finishTrip(){
     const d = document.createElement("div"); d.className = "card"; d.style.textAlign = "center";
     d.innerHTML = `<span style="font-size:1.6em">${tr.icon}</span> <b>${tr.name} ${SPECIES[u.id].name}! +${tr.bonus} 🪙</b>`; list.appendChild(d); });
   if (tierUps.length) setTimeout(() => SFX.land(), 250);
+  S.streak = (S.streak || 0) + 1; S.bestStreak = Math.max(S.bestStreak || 0, S.streak);
+  if (S.streak >= 3){ const b = Math.min(10, S.streak); pending.chain += b; const d = document.createElement("div"); d.className = "card"; d.style.textAlign = "center";
+    d.innerHTML = `🔥 <b>${S.streak} casts in a row! +${b} 🪙</b>`; list.appendChild(d); }
+  { const best = pending.items.slice().sort((a, b) => weightLb(b.f.sp, b.f.inches) - weightLb(a.f.sp, a.f.inches))[0];
+    const f = best.f, prevBest = (f._prevBest || 0);
+    const stamp = f.nightLegend ? ["🌙 NIGHT LEGEND!", "#3aa0d8"] : f._newLook ? ["✨ RARE LOOK!", "#b06cff"] : newOnes.includes(f.id) ? ["NEW FISH!", "#f5b82e"] : f.inches > prevBest && prevBest ? ["PERSONAL BEST!", "#b06cff"]
+      : tierUps.some(u => u.id === f.id && u.t === 3) ? ["🥇 GOLD!", "#f5b82e"] : f.rare ? ["✨ RARE!", "#b06cff"] : f.trophy ? ["TROPHY!", "#b06cff"] : null;
+    list.insertBefore(bragCard(T.lake, f, stamp), list.firstChild); }
   if (T.chain && T.caught[0] === T.chain.pred){ pending.chain += 5; const d = document.createElement("div"); d.className = "card"; d.style.textAlign = "center"; d.innerHTML = `🐟➡️🐟 <b>Food chain bonus! +5 🪙</b>`; list.appendChild(d); }
   if (T.lost) { const d = document.createElement("div"); d.className = "muted"; d.style.color = "#fff"; d.textContent = T.lost + " fish got away" + (T.baitLost && !T.caught.length ? " with your bait" : "") + ". Next time!"; list.appendChild(d); }
   const lim = DAY_LIMIT[T.lake.id];
@@ -1822,6 +1988,56 @@ function finishTrip(){
   updatePendingTotal();
   save();
   showScreen("results");
+}
+// ---- Brag shot: your angler holds up the catch, the scale spins up to its weight ----
+// the angler holding a fish up with both hands (the hands are a second layer, drawn over the fish)
+function holdSvg(col, hands){
+  if (hands) return `<svg class="hands" viewBox="0 0 100 130" aria-hidden="true"><circle cx="20" cy="76" r="6" fill="#e9b98f"/><circle cx="80" cy="76" r="6" fill="#e9b98f"/></svg>`;
+  return `<svg viewBox="0 0 100 130" aria-hidden="true"><ellipse cx="50" cy="126" rx="24" ry="4" fill="rgba(0,0,0,.18)"/>
+    <rect x="37" y="92" width="11" height="32" rx="5" fill="#34506e"/><rect x="52" y="92" width="11" height="32" rx="5" fill="#34506e"/>
+    <path d="M36 66 L20 76 M64 66 L80 76" stroke="${col}" stroke-width="9" stroke-linecap="round"/>
+    <rect x="30" y="56" width="40" height="42" rx="15" fill="${col}"/>
+    <circle cx="50" cy="38" r="16" fill="#e9b98f"/><path d="M33 35a17 15 0 0 1 34 0z" fill="#c9302c"/><rect x="50" y="31" width="21" height="5" rx="2.5" fill="#c9302c"/>
+    <circle cx="44" cy="40" r="2.5" fill="#0f2a3d"/><circle cx="56" cy="40" r="2.5" fill="#0f2a3d"/><path d="M42 46q8 7 16 0" fill="none" stroke="#0f2a3d" stroke-width="2.4" stroke-linecap="round"/></svg>`;
+}
+function bragCard(L, f, stamp){
+  const d = document.createElement("div"); d.className = "brag";
+  const bg = document.createElement("canvas"); bg.width = 480; bg.height = 260; bg.className = "bg";
+  const c = bg.getContext("2d"), sc = SCENES[L.id] || SCENES.dixon;
+  const g = c.createLinearGradient(0, 0, 0, 200); g.addColorStop(0, sc.sky[0]); g.addColorStop(.7, sc.sky[1]); g.addColorStop(1, sc.sky[2]);
+  c.fillStyle = g; c.fillRect(0, 0, 480, 200);
+  { const sa = shoreArt(L); c.drawImage(sa, 0, 0, sa.width * SW / sa.wid, sa.height, 0, 200 - SHORE_H, SW, SHORE_H); }
+  const wg = c.createLinearGradient(0, 200, 0, 260); wg.addColorStop(0, L.water[0]); wg.addColorStop(1, mixHex(L.water[0], L.water[1], .5));
+  c.fillStyle = wg; c.fillRect(0, 200, 480, 60);
+  c.fillStyle = "rgba(255,255,255,.35)"; for (let i = 0; i < 9; i++) c.fillRect(i*57 + 10, 210 + (i%3)*14, 26, 2);
+  d.appendChild(bg);
+  const p = LL.player(), col = p ? p.color : "#3f88bd";
+  const hold = document.createElement("div"); hold.className = "hold";
+  hold.innerHTML = holdSvg(col, false);
+  const fi = fishIcon(f.sp, 300, 150); fi.className = "fish";
+  fi.style.width = (130 + Math.min(1, fishLb(f) / 14) * 120) + "%";
+  hold.appendChild(fi); hold.insertAdjacentHTML("beforeend", holdSvg(col, true));
+  d.appendChild(hold);
+  const lb = fishLb(f);
+  d.insertAdjacentHTML("beforeend", `<div class="nm">${p ? LL.esc(p.name) + "'s " : ""}${f.sp.name}</div>
+    <div class="wgt">⚖️ <span>0</span> · ${f.inches.toFixed(1)} in</div>${stamp ? `<div class="stamp" style="color:${stamp[1]};border-color:${stamp[1]}">${stamp[0]}</div>` : ""}`);
+  // weigh-in: the number climbs to the fish's weight with little ticks
+  const out = d.querySelector(".wgt span"), t0 = performance.now() + 350, dur = 900 + Math.min(900, lb * 60); let lastTick = -1;
+  const step = now => { const k = clamp((now - t0) / dur, 0, 1), e = 1 - Math.pow(1 - k, 3); out.textContent = fmtLb(Math.max(.01, lb * e));
+    const tk = Math.floor(e * 14); if (tk !== lastTick && k > 0 && k < 1){ lastTick = tk; tick(2400 + tk*60, .06); }
+    if (k < 1 && d.isConnected) requestAnimationFrame(step); else if (k >= 1 && stamp) SFX.thunk(); };
+  requestAnimationFrame(step);
+  return d;
+}
+function legendPic(sp){ const lp = $("legPic"); if (!lp) return; const ic = fishIcon(sp, 300, 150); ic.style.maxWidth = "16em"; ic.style.margin = "0 auto"; lp.appendChild(ic); }
+// a treasure chest came up on the line
+function openChest(){
+  const pr = chestPrize(); let txt;
+  if (pr.coins){ S.coins += pr.coins; txt = `<b>${pr.coins} 🪙</b> inside!`; }
+  else if (pr.worms){ S.baitCount.worm = (S.baitCount.worm || 0) + pr.worms; if (!S.baits.includes("worm")) S.baits.push("worm"); txt = `<b>${pr.worms} worms</b>, still wiggling!`; }
+  else if (pr.crank){ S.baits.push("crank"); txt = `A <b>crankbait</b>! It's yours now.`; }
+  S.treasures = (S.treasures || 0) + 1; save(); SFX.land();
+  infoModal(`<div style="font-size:3.5em">🎁</div><span class="tag new">TREASURE!</span><h3>A sunken chest!</h3><p>${txt}</p>`, "Sweet!");
 }
 function updatePendingTotal(quiet){
   if (!pending) return;
@@ -1842,6 +2058,8 @@ function applyPending(){
   S.coins += total; S.lakeEarn[L.id] = (S.lakeEarn[L.id] || 0) + total;
   if (total) SFX.coin();
   const q = P.newOnes.map(id => nx => showCard(id, true, nx));
+  P.items.filter(it => it.f._newLegend).forEach(it => q.push(nx => infoModal(`<span class="tag new">🌙 NIGHT LEGEND</span><h3>${it.f.sp.name}</h3><div id="legPic"></div>
+    <p>You caught the Night Legend of ${L.name}: ${it.f.sp.hint}! You snapped a photo and let it swim back into the dark.</p><p><b>+100 🪙 legend bonus</b></p>`, "Amazing!", nx) || legendPic(it.f.sp)));
   if (!S.grandpaBonus && P.T.bait === "spinner" && P.items.length){
     S.grandpaBonus = true; S.coins += 10;
     q.unshift(nx => infoModal(`<div style="font-size:3em">👴❤️</div><h3>Grandpa would be proud!</h3><p><b>+10 🪙</b></p>`, "Yeah!", nx));
@@ -1939,7 +2157,7 @@ const causticTile = (() => {                      // shimmering light network on
   x.putImageData(img, 0, 0); return c;
 })();
 let causticPat = null;
-const SPECKS = Array.from({ length: 70 }, (_, i) => ({ x: prand(i, 11) * W, y: prand(i, 12) * (H + 60), r: .6 + prand(i, 13) * 1.4, v: 2 + prand(i, 14) * 6, a: .12 + prand(i, 15) * .25 }));
+const SPECKS = Array.from({ length: 70 }, (_, i) => ({ x: prand(i, 11), y: prand(i, 12) * (H + 60), r: .6 + prand(i, 13) * 1.4, v: 2 + prand(i, 14) * 6, a: .12 + prand(i, 15) * .25 }));
 function hillLine(x, seed, amp, base){ return base - (Math.sin(x*.009 + seed)*amp + Math.sin(x*.023 + seed*2)*amp*.45 + Math.sin(x*.061 + seed*3)*amp*.18); }
 // ---------- each lake has its own shore: mountains, trees, flowers and landmarks ----------
 const SHORE_H = 230;                              // shore art covers this many px above the waterline
@@ -1953,7 +2171,7 @@ const SCENES = {
 };
 const shoreCache = {};
 function shoreArt(L){
-  if (shoreCache[L.id]) return shoreCache[L.id];
+  const key = L.id + "|" + W; if (shoreCache[key]) return shoreCache[key];
   const sc = SCENES[L.id] || SCENES.dixon, S2 = 2, c0 = document.createElement("canvas");
   c0.width = W * S2; c0.height = SHORE_H * S2;
   const c = c0.getContext("2d"); c.scale(S2, S2);
@@ -2044,7 +2262,7 @@ function shoreArt(L){
     c.strokeStyle = "rgba(60,35,20,.5)"; c.lineWidth = .8; for (let k = 0; k < 4; k++){ c.beginPath(); c.moveTo(371, B - 10 - k*3); c.lineTo(399, B - 10 - k*3); c.stroke(); }
   }
   if (L.id === "elcap"){
-    c.fillStyle = "#cfcac0"; c.beginPath(); c.moveTo(380, B - 4); c.lineTo(392, B - 36); c.lineTo(W, B - 36); c.lineTo(W, B - 4); c.fill();   // the dam
+    c.fillStyle = "#cfcac0"; c.beginPath(); c.moveTo(380, B - 4); c.lineTo(392, B - 36); c.lineTo(SW, B - 36); c.lineTo(SW, B - 4); c.fill();   // the dam
     c.fillStyle = "rgba(0,0,0,.12)"; for (let k = 0; k < 5; k++) c.fillRect(398 + k*16, B - 36, 2, 32);
   }
   if (L.id === "otay"){
@@ -2071,18 +2289,28 @@ function shoreArt(L){
   // shoreline strip
   c.fillStyle = sc.sand; c.fillRect(0, B - 4, W, 4);
   c.fillStyle = "rgba(90,80,60,.5)"; for (let i = 0; i < 30; i++){ c.beginPath(); c.ellipse(prand(i, 41)*W, B - 2, 2 + prand(i, 42)*3, 1.4, 0, 0, 7); c.fill(); }
-  shoreCache[L.id] = c0; return c0;
+  c0.wid = W; shoreCache[key] = c0; return c0;
 }
-function drawShore(L, surf, t, scroll){
+const shoreDarkCache = {};
+function shoreDark(L){
+  const key = L.id + "|" + W; if (shoreDarkCache[key]) return shoreDarkCache[key];
+  const src = shoreArt(L), c = document.createElement("canvas"); c.width = src.width; c.height = src.height;
+  const x = c.getContext("2d"); x.drawImage(src, 0, 0); x.globalCompositeOperation = "source-atop"; x.fillStyle = "rgba(8,16,38,.78)"; x.fillRect(0, 0, c.width, c.height);
+  return shoreDarkCache[key] = c;
+}
+function drawShore(L, surf, t, scroll, n = 0){
   // while trolling the shore slides by; tiles alternate normal / mirrored so the edges always match
-  const img = shoreArt(L), P = W * 2, o = ((scroll || 0) * .25) % P;
+  const P = W * 2, o = ((scroll || 0) * .25) % P;
   const spots = [];                                    // where each copy sits: [x, mirrored]
   for (const k of [-1, 0]){ spots.push([o + k*P, false]); spots.push([o + W + k*P, true]); }
-  for (const [x, m] of spots){
-    if (x > W || x + W < 0) continue;
-    if (!m) ctx.drawImage(img, x, surf - SHORE_H, W, SHORE_H);
-    else { ctx.save(); ctx.translate(x + W, 0); ctx.scale(-1, 1); ctx.drawImage(img, 0, surf - SHORE_H, W, SHORE_H); ctx.restore(); }
-  }
+  const layers = [[shoreArt(L), 1]]; if (n > .02) layers.push([shoreDark(L), n]);     // at night a darkened copy fades in on top
+  for (const [img, a] of layers){ ctx.globalAlpha = a;
+    for (const [x, m] of spots){
+      if (x > W || x + W < 0) continue;
+      if (!m) ctx.drawImage(img, x, surf - SHORE_H, W, SHORE_H);
+      else { ctx.save(); ctx.translate(x + W, 0); ctx.scale(-1, 1); ctx.drawImage(img, 0, surf - SHORE_H, W, SHORE_H); ctx.restore(); }
+    } }
+  ctx.globalAlpha = 1;
   if (L.id === "jennings") for (const [x, m] of spots){ // the ranch windmill turns in the breeze
     const hx = x + (m ? W - 410 : 410), hy = surf - 64, a = t * 2.2;
     if (hx < -20 || hx > W + 20) continue;
@@ -2098,15 +2326,34 @@ function drawShore(L, surf, t, scroll){
     ctx.fillStyle = "#c33"; for (let k = 0; k < 4; k++) ctx.fillRect(x + 4 + k*5, surf, 2, 3);
   }
 }
-function drawSky(surf, t, L){
+// day, sunset and night skies blended by the time of day
+const DUSK_SKY = ["#41558f", "#e88a5c", "#ffd08c"], NIGHT_SKY = ["#050b20", "#122247", "#283b63"];
+function blendSky(day, i, k, n){ const a = hexRgb(day[i]), b = hexRgb(DUSK_SKY[i]), c = hexRgb(NIGHT_SKY[i]);
+  return "rgb(" + a.map((v, j) => Math.round(lerp(lerp(v, b[j], k * (1 - n)), c[j], n))).join(",") + ")"; }
+function drawSky(surf, t, L, n = 0, k = 0){
   const sc = SCENES[L && L.id] || SCENES.dixon;
   const sk = ctx.createLinearGradient(0, surf - 240, 0, surf);
-  sk.addColorStop(0, sc.sky[0]); sk.addColorStop(.7, sc.sky[1]); sk.addColorStop(1, sc.sky[2]);
+  sk.addColorStop(0, blendSky(sc.sky, 0, k, n)); sk.addColorStop(.7, blendSky(sc.sky, 1, k, n)); sk.addColorStop(1, blendSky(sc.sky, 2, k, n));
   ctx.fillStyle = sk; ctx.fillRect(0, 0, W, surf);
-  // sun with glow
-  const sx = 395, sy0 = surf - 170, gl = ctx.createRadialGradient(sx, sy0, 4, sx, sy0, 70);
-  gl.addColorStop(0, "rgba(255,250,220,1)"); gl.addColorStop(.2, "rgba(255,245,200,.9)"); gl.addColorStop(1, "rgba(255,240,200,0)");
-  ctx.fillStyle = gl; ctx.fillRect(sx - 70, sy0 - 70, 140, 140);
+  if (n > .02){                                        // stars and the moon
+    ctx.fillStyle = "#fff";
+    for (let i = 0; i < 46; i++){ ctx.globalAlpha = n * (.35 + .55 * Math.abs(Math.sin(t * (.5 + prand(i, 31)) + i))); ctx.fillRect(prand(i, 32) * W, surf - 240 + prand(i, 33) * 170, 1.6, 1.6); }
+    ctx.globalAlpha = n;
+    const mx = 90, my = surf - 175, mg = ctx.createRadialGradient(mx, my, 4, mx, my, 60);
+    mg.addColorStop(0, "rgba(220,235,255,.5)"); mg.addColorStop(1, "rgba(220,235,255,0)"); ctx.fillStyle = mg; ctx.fillRect(mx - 60, my - 60, 120, 120);
+    ctx.fillStyle = "#f4f1e0"; ctx.beginPath(); ctx.arc(mx, my, 13, 0, 7); ctx.fill();
+    ctx.fillStyle = "rgba(180,175,160,.5)"; ctx.beginPath(); ctx.arc(mx - 4, my - 3, 3, 0, 7); ctx.arc(mx + 5, my + 4, 2.2, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  // sun with glow (it sinks and warms up at sunset, and is gone at night)
+  if (n < .98){
+    const sx = 395, sy0 = surf - 170 + 120 * k * (1 - n), gl = ctx.createRadialGradient(sx, sy0, 4, sx, sy0, 70);
+    ctx.globalAlpha = 1 - n;
+    gl.addColorStop(0, k > .3 ? "rgba(255,210,150,1)" : "rgba(255,250,220,1)"); gl.addColorStop(.2, k > .3 ? "rgba(255,170,100,.9)" : "rgba(255,245,200,.9)"); gl.addColorStop(1, "rgba(255,240,200,0)");
+    ctx.fillStyle = gl; ctx.fillRect(sx - 70, sy0 - 70, 140, 140);
+    ctx.globalAlpha = 1;
+  }
+  ctx.globalAlpha = 1 - .65 * n;
   // soft clouds
   [[70, -175, 1], [260, -200, 1.3], [430, -150, .8]].forEach(([cx, cy, sc], i) => {
     const x = (cx + t*5*(i+1)) % (W + 160) - 80, y = surf + cy;
@@ -2117,6 +2364,7 @@ function drawSky(surf, t, L){
       ctx.fillStyle = cg; ctx.fillRect(px - r, py - r, r*2, r*2);
     }
   });
+  ctx.globalAlpha = 1;
 }
 function drawDock(surf, t){
   // bank
@@ -2174,10 +2422,12 @@ function renderScene(T, idle){
   const L = T.lake, camY = T.camY, bottomY = T.bottom;
   const sy = wy => wy - camY;
   const surf = sy(0), so = T === trip && visit ? (visit.scroll || 0) : 0;
+  const night = idle ? 0 : nightAmt(), dusk = idle ? 0 : duskAmt();
   // water: brighter near the surface, fading to deep green-blue
   const g = ctx.createLinearGradient(0, surf, 0, sy(L.depth * PPF));
   g.addColorStop(0, mixHex(L.water[0], "#e8f6f2", .18)); g.addColorStop(.08, L.water[0]); g.addColorStop(.55, mixHex(L.water[0], L.water[1], .6)); g.addColorStop(1, L.water[1]);
   ctx.fillStyle = g; ctx.fillRect(0, Math.max(0, surf), W, H);
+  if (night > .02){ ctx.fillStyle = "rgba(3,8,26," + (.5 * night).toFixed(2) + ")"; ctx.fillRect(0, Math.max(0, surf), W, H); }
   // shimmering light on the upper water
   if (surf < H){
     causticPat = causticPat || ctx.createPattern(causticTile, "repeat");
@@ -2185,7 +2435,7 @@ function renderScene(T, idle){
     for (let layer = 0; layer < 2; layer++){
       ctx.save();
       const fade = ctx.createLinearGradient(0, surf, 0, surf + depthPx);
-      ctx.globalAlpha = (layer ? .16 : .12) * (1 - .8*cloudAmt());
+      ctx.globalAlpha = (layer ? .16 : .12) * (1 - .8*cloudAmt()) * (1 - .85*night);
       ctx.translate((T.t * (layer ? -9 : 7) + so) % 128, (surf + T.t * (layer ? 4 : -3)) % 128);
       ctx.fillStyle = causticPat; ctx.scale(layer ? 1.6 : 1.1, layer ? 1.2 : .9);
       ctx.fillRect(-256, (top - ((surf + T.t * (layer ? 4 : -3)) % 128)) / (layer ? 1.2 : .9) - 10, W * 2 + 512, depthPx);
@@ -2196,15 +2446,15 @@ function renderScene(T, idle){
     for (const p of SPECKS){
       const yy = ((p.y - camY*.55 + T.t * p.v) % (H + 60) + H + 60) % (H + 60) - 30;
       if (yy < surf) continue;
-      ctx.globalAlpha = p.a; ctx.beginPath(); ctx.arc((p.x + Math.sin(T.t*.3 + p.y)*6), yy, p.r, 0, 7); ctx.fill();
+      ctx.globalAlpha = p.a; ctx.beginPath(); ctx.arc((p.x * W + Math.sin(T.t*.3 + p.y)*6), yy, p.r, 0, 7); ctx.fill();
     }
     ctx.globalAlpha = 1;
   }
   // sky + shore
   if (surf > 0){
-    drawSky(surf, T.t, L);
+    drawSky(surf, T.t, L, night, dusk);
     const scroll = T === trip && visit ? (visit.scroll || 0) : 0;
-    drawShore(L, surf, T.t, scroll);
+    drawShore(L, surf, T.t, scroll, night);
     // reflection band just under the surface
     const rf = ctx.createLinearGradient(0, surf, 0, surf + 26);
     rf.addColorStop(0, "rgba(70,95,60,.35)"); rf.addColorStop(1, "rgba(70,95,60,0)");
@@ -2225,18 +2475,27 @@ function renderScene(T, idle){
     }
     drawAngler(ax, feet, surf);
     drawRod(ax, feet);
+    if (night > .05){                                   // a lantern lights up the dock or the boat
+      const lx = T.mode === "dock" ? ax - 22 : ax + 34, ly = feet - 6, lg = ctx.createRadialGradient(lx, ly, 2, lx, ly, 80);
+      lg.addColorStop(0, "rgba(255,210,130," + (.55 * night).toFixed(2) + ")"); lg.addColorStop(1, "rgba(255,190,110,0)");
+      ctx.fillStyle = lg; ctx.fillRect(lx - 80, ly - 80, 160, 160);
+      ctx.fillStyle = "#333"; ctx.fillRect(lx - 3, ly - 9, 6, 2); ctx.fillStyle = "rgba(255,226,150," + night.toFixed(2) + ")"; ctx.fillRect(lx - 2.5, ly - 7, 5, 7);
+      ctx.strokeStyle = "#333"; ctx.lineWidth = 1; ctx.strokeRect(lx - 3, ly - 7, 6, 7);
+      ctx.fillStyle = "rgba(220,235,255," + (.25 * night).toFixed(2) + ")";   // moonlight on the water
+      for (let i = 0; i < 7; i++) ctx.fillRect(80 + Math.sin(T.t*1.5 + i) * 6 - (14 - i*1.5), surf + 3 + i*4, 28 - i*3, 1.4);
+    }
     // surface: bright waterline + moving glints
     ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.fillRect(0, surf, W, 1.2);
-    ctx.fillStyle = "rgba(255,255,255,.35)"; for (let i = 0; i < 14; i++){ const x = (i*37 + T.t*(10 + i%3*5) + scroll) % (W + 30) - 15; ctx.fillRect(x, surf + 2 + (i%4)*3, 8 + (i%3)*6, 1.2); }
+    ctx.fillStyle = "rgba(255,255,255," + (.35 * (1 - .7*night)).toFixed(2) + ")"; for (let i = 0; i < 14; i++){ const x = (i*37 + T.t*(10 + i%3*5) + scroll) % (W + 30) - 15; ctx.fillRect(x, surf + 2 + (i%4)*3, 8 + (i%3)*6, 1.2); }
   }
   if (!idle && surf > 0){
     const shade = .3*cloudAmt() + .25*rainAmt();
     if (shade > .01){ ctx.fillStyle = "rgba(60,70,85," + shade.toFixed(2) + ")"; ctx.fillRect(0, 0, W, surf); }
   }
   // light rays (fade under clouds)
-  ctx.save(); ctx.globalAlpha = .09 * (1 - .8*cloudAmt());
-  for (let i=0;i<6;i++){
-    const x = ((i*95 + so*.5) % 570) - 60 + Math.sin(T.t*.4+i)*18, rg = ctx.createLinearGradient(0, surf, 0, surf + 460);
+  ctx.save(); ctx.globalAlpha = .09 * (1 - .8*cloudAmt()) * (1 - night);
+  for (let i=0, nr = Math.ceil((W + 90) / 95); i<nr; i++){
+    const x = ((i*95 + so*.5) % (nr*95)) - 60 + Math.sin(T.t*.4+i)*18, rg = ctx.createLinearGradient(0, surf, 0, surf + 460);
     rg.addColorStop(0, "rgba(255,255,240,1)"); rg.addColorStop(1, "rgba(255,255,240,0)");
     ctx.fillStyle = rg; ctx.beginPath(); ctx.moveTo(x, surf); ctx.lineTo(x+30 + i%2*16, surf); ctx.lineTo(x+150, surf+460); ctx.lineTo(x+70, surf+460); ctx.fill();
   }
@@ -2273,6 +2532,13 @@ function renderScene(T, idle){
     if (f.boss){ ctx.font = "bold 16px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0,0,0,.6)"; ctx.strokeText("⚔️ " + f.sp.name, f.x, y - f.L*.35 - 8); ctx.fillStyle = "#ffd0c8"; ctx.fillText("⚔️ " + f.sp.name, f.x, y - f.L*.35 - 8); } }
   if (idle) return;
   drawFog(T, sy, T.hook.x, sy(T.hook.y));
+  // Night Legends glow, so you can spot them deep in the dark
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  for (const f of T.fish){ if (!f.sp.glow) continue; const y = sy(f.y); if (y < -150 || y > H + 150) continue;
+    const pulse = .4 + .15 * Math.sin(T.t * 2.4), gg = ctx.createRadialGradient(f.x, y, 4, f.x, y, f.L * .9);
+    gg.addColorStop(0, "rgba(" + f.sp.glow + "," + pulse.toFixed(2) + ")"); gg.addColorStop(1, "rgba(" + f.sp.glow + ",0)");
+    ctx.fillStyle = gg; ctx.fillRect(f.x - f.L, y - f.L, f.L * 2, f.L * 2); }
+  ctx.restore();
   // line + hook
   const hk = T.hook, hx = hk.x, hy = sy(hk.y) + (T.jig ? Math.sin(T.t*45) * T.jig * 3 : 0);
   const tipX = T.tipX, tipY = sy(T.tipY);
@@ -2299,7 +2565,9 @@ function renderScene(T, idle){
     ctx.restore();
   }
   // hanging catch (stacked below hook)
-  T.caught.slice(0,1).forEach((f,i) => { drawFish(ctx, f.sp, hx + Math.sin(T.t*6+i)*4, hy + 14 + f.L*.3, f.L*.8, 1, T.t, { rot:-Math.PI/2, phase:i }); });
+  if (T.jump){ const J = T.jump, p = Math.min(1, J.t / J.dur); drawFish(ctx, J.f.sp, hx, hy + 6, J.f.L*.9, J.dir, T.t*2, { rot: -(.5 - p) * 2 }); }
+  else T.caught.slice(0,1).forEach((f,i) => { drawFish(ctx, f.sp, hx + Math.sin(T.t*6+i)*4, hy + 14 + f.L*.3, f.L*.8, 1, T.t, { rot:-Math.PI/2, phase:i }); });
+  if (T.drops && T.drops.length){ ctx.fillStyle = "rgba(235,248,255,.9)"; for (const d of T.drops){ ctx.beginPath(); ctx.arc(d.x, sy(d.y), d.r, 0, 7); ctx.fill(); } }
   if (F) drawFish(ctx, F.f.sp, hx + shake*3 + Math.sin(T.t*14)*6, hy + F.f.L*.4 + 8, F.f.L, 1, T.t*2, { rot:-Math.PI/2 + Math.sin(T.t*10)*.3 });
   // hook
   ctx.strokeStyle = "#d9dde0"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(hx+shake, hy); ctx.lineTo(hx+shake, hy+12); ctx.arc(hx+shake-5, hy+12, 5, 0, Math.PI); ctx.stroke();
@@ -2347,7 +2615,8 @@ const JUNK = {
   log:{ name:"a waterlogged stick", icon:"🪵", wood:true }, branch:{ name:"a sunken branch", icon:"🪵", wood:true },
   can:{ name:"an old tin can", icon:"🥫", trash:true }, boot:{ name:"an old boot", icon:"🥾", trash:true },
   tire:{ name:"a chunk of tire", icon:"🛞", trash:true }, cart:{ name:"a shopping cart wheel", icon:"🛒", trash:true },
-  weed:{ name:"a wad of weeds", icon:"🌿" }, clump:{ name:"a wad of weeds", icon:"🌿" }
+  weed:{ name:"a wad of weeds", icon:"🌿" }, clump:{ name:"a wad of weeds", icon:"🌿" },
+  chest:{ name:"a treasure chest", icon:"🎁", treasure:true }
 };
 function drawJunk(type, x, y, t){
   ctx.save(); ctx.translate(x, y + 10); ctx.rotate(Math.sin(t*3)*.2);
@@ -2355,6 +2624,7 @@ function drawJunk(type, x, y, t){
   else if (type === "can"){ ctx.fillStyle = "#c33"; ctx.fillRect(-6, -2, 12, 18); ctx.fillStyle = "#ccc"; ctx.fillRect(-6, -2, 12, 3); }
   else if (type === "boot"){ ctx.fillStyle = "#5b3b22"; ctx.fillRect(-7, -2, 10, 18); ctx.fillRect(-7, 11, 20, 7); }
   else if (type === "tire"){ ctx.strokeStyle = "#222"; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(0, 8, 9, 0, 7); ctx.stroke(); }
+  else if (type === "chest"){ ctx.fillStyle = "#7a4a22"; ctx.fillRect(-9, 0, 18, 13); ctx.fillStyle = "#e5b53a"; ctx.fillRect(-9, 4, 18, 2); ctx.fillRect(-1.5, 3, 3, 5); }
   else if (type === "cart"){ ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(0, 8, 7, 0, 7); ctx.fill(); ctx.strokeStyle = "#9aa4ab"; ctx.lineWidth = 2; ctx.strokeRect(-3, -4, 6, 6); }
   else { ctx.strokeStyle = "#2f7a3a"; ctx.lineWidth = 3; for (let i=-2;i<=2;i++){ ctx.beginPath(); ctx.moveTo(0, -2); ctx.quadraticCurveTo(i*6 + Math.sin(t*4+i)*3, 8, i*5, 20); ctx.stroke(); } }
   ctx.restore();
@@ -2364,6 +2634,13 @@ function drawSnag(s, y, t){
   if (s.hitT > 0) ctx.globalAlpha = .6 + Math.sin(t*30)*.3;
   if (s.type==="log"){ ctx.rotate(s.rot); const lg = ctx.createLinearGradient(0, -s.h/2, 0, s.h/2); lg.addColorStop(0, "#7c5a3a"); lg.addColorStop(.5, "#5e4128"); lg.addColorStop(1, "#3a2817"); ctx.fillStyle = lg; ctx.fillRect(-s.w/2, -s.h/2, s.w, s.h);
     ctx.fillStyle = "rgba(60,90,40,.35)"; ctx.fillRect(-s.w/2, -s.h/2, s.w, 3); ctx.fillStyle = "#8a6440"; ctx.beginPath(); ctx.ellipse(s.w/2, 0, 6, s.h/2, 0, 0, 7); ctx.fill(); ctx.strokeStyle = "#4e331c"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-s.w/2+10, -3); ctx.lineTo(s.w/2-20, -3); ctx.moveTo(-s.w/2+25, 5); ctx.lineTo(s.w/2-10, 5); ctx.stroke(); ctx.fillStyle = "#6e4a2a"; ctx.fillRect(-10, -s.h/2-14, 5, 16); }
+  if (s.type==="chest"){
+    ctx.fillStyle = "#6e4320"; ctx.fillRect(-s.w/2, -s.h/2 + 6, s.w, s.h - 6);
+    ctx.fillStyle = "#8a5a2c"; ctx.beginPath(); ctx.moveTo(-s.w/2, -s.h/2 + 7); ctx.quadraticCurveTo(0, -s.h/2 - 6, s.w/2, -s.h/2 + 7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#e5b53a"; ctx.fillRect(-s.w/2, -s.h/2 + 6, s.w, 2.5); ctx.fillRect(-s.w/2 + 5, -s.h/2 + 2, 2.5, s.h - 2); ctx.fillRect(s.w/2 - 7.5, -s.h/2 + 2, 2.5, s.h - 2); ctx.fillRect(-3, -s.h/2 + 5, 6, 7);
+    const gl = .5 + Math.sin(t*3 + s.x) * .5; ctx.fillStyle = "rgba(255,240,170," + (gl * .9).toFixed(2) + ")";     // a glint
+    ctx.beginPath(); ctx.moveTo(s.w/2 - 4, -s.h/2 - 6); ctx.lineTo(s.w/2 - 2.5, -s.h/2 - 1); ctx.lineTo(s.w/2 + 2, -s.h/2); ctx.lineTo(s.w/2 - 2.5, -s.h/2 + 1); ctx.lineTo(s.w/2 - 4, -s.h/2 + 6); ctx.lineTo(s.w/2 - 5.5, -s.h/2 + 1); ctx.lineTo(s.w/2 - 10, -s.h/2); ctx.lineTo(s.w/2 - 5.5, -s.h/2 - 1); ctx.fill();
+  }
   if (s.type==="tire"){ ctx.strokeStyle = "#222"; ctx.lineWidth = 12; ctx.beginPath(); ctx.arc(0,0,17,0,7); ctx.stroke(); ctx.strokeStyle = "#444"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0,0,22,0,7); ctx.stroke(); }
   if (s.type==="boot"){ ctx.fillStyle = "#5b3b22"; ctx.fillRect(-10,-17,14,26); ctx.fillRect(-10,4,28,10); ctx.fillStyle = "#3d2715"; ctx.fillRect(-10,12,28,4); }
   if (s.type==="can"){ ctx.fillStyle = "#c33"; ctx.fillRect(-8,-13,16,26); ctx.fillStyle = "#ccc"; ctx.fillRect(-8,-13,16,3); ctx.fillStyle = "#fff"; ctx.fillRect(-8,-3,16,5); }
@@ -2391,10 +2668,10 @@ function drawSnag(s, y, t){
 }
 
 function drawFightUI(F){
-  const x = 40, y = 175, w = W-80;
+  const w = Math.min(W - 80, 520), x = (W - w) / 2, y = 175;
   ctx.fillStyle = "rgba(10,25,40,.8)"; roundRect(x-12, y-40, w+24, 150, 14); ctx.fill();
   ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = "bold 20px Trebuchet MS, sans-serif";
-  ctx.fillText(F.f.boss || F.f.sp.legend ? "⚔️ " + F.f.sp.name.toUpperCase() + " ⚔️" : "Big fish! It's fighting!", W/2, y-14);
+  ctx.fillText(F.f.boss || F.f.sp.legend ? "⚔️ " + F.f.sp.name.toUpperCase() + " ⚔️" : F.f.nightLegend ? "🌙 " + F.f.sp.name.toUpperCase() + " 🌙" : "Big fish! It's fighting!", W/2, y-14);
   ctx.font = "bold 13px Trebuchet MS, sans-serif"; ctx.textAlign = "left"; ctx.fillText("LINE TENSION", x, y+10);
   // tension bar
   const tg = ctx.createLinearGradient(x,0,x+w,0);
@@ -2459,7 +2736,7 @@ function makeIdle(){
   const lake = LAKES[0], bottom = lake.depth*PPF, fish = [];
   const ids = ["bluegill","largemouth","trout","redear","bcrappie","channel","carp"];
   for (let i=0;i<9;i++){ const f = makeFish(ids[i % ids.length], rand(90, 900)); fish.push(f); }
-  return { lake, bottom, fish, snags:[makeSnag("weed", 60, bottom), makeSnag("weed", 400, bottom), makeSnag("log", 300, 560)], bubbles:[], pops:[], camY:-220, t:0 };
+  return { lake, bottom, fish, snags:[makeSnag("weed", 60, bottom), makeSnag("weed", 400, bottom), makeSnag("log", 300, 560)], bubbles:[], pops:[], camY:camTop(), t:0 };
 }
 const idle = makeIdle();
 function updateIdle(dt){
@@ -2477,7 +2754,16 @@ function loop(now){
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   ctx.clearRect(0,0,W,H);
   syncReelBtn();
-  if (state === "fishing" && trip){ updateFishing(dt); if (trip) renderScene(trip, false); else renderScene(idle, true); }
+  if (state === "fishing" && trip){
+    const J = trip.jump, slow = J && J.t / J.dur > .3 && J.t / J.dur < .7 ? .4 : 1;
+    updateFishing(dt * slow);
+    if (trip){
+      const k = trip.kick || 0;
+      ctx.save(); if (k > .05) ctx.translate((Math.random() - .5) * k * 9, (Math.random() - .5) * k * 9);
+      renderScene(trip, false); ctx.restore();
+      if (k > .5){ ctx.fillStyle = "rgba(255,255,255," + ((k - .5) * .35).toFixed(2) + ")"; ctx.fillRect(0, 0, W, H); }
+    } else renderScene(idle, true);
+  }
   else { updateIdle(dt); renderScene(idle, true); }
   requestAnimationFrame(loop);
 }

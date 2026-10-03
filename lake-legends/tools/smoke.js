@@ -88,6 +88,53 @@ const BOT = n => {
   await a.evaluate(() => { trip = null; visit = null; showScreen("shop"); });
   ok(await a.evaluate(() => [...document.querySelectorAll("#shopList b")].some(b => b.textContent === "Lucky Lure")), "Lucky Lure is in the Tackle Shop");
 
+  console.log("Catch moments, night, legends, rare looks, treasure");
+  const r2 = await a.evaluate(() => {
+    const out = {}, land = (f, lake) => { trip.fish.push(f); trip.phase = "reel"; hookFish(f); trip.fight = null; if (!trip.caught.length) landFish(f); trip.phase = "reel"; trip.hook.y = 2;
+      for (let i = 0; i < 80 && trip; i++){ crank(); updateFishing(1/30); } };
+    S.coins = 500; S.lakes = LAKES.map(l => l.id);
+    // a smallmouth near the surface can jump
+    startVisit(lakeById("cuyamaca"), "boat"); const sm = makeFish("smallmouth", 6*PPF); sm.inches = 17; sm.L = fishPx(sm.sp, 17);
+    trip.fish.push(sm); trip.phase = "reel"; hookFish(sm); trip.phase = "reel"; trip.fight = null; if (!trip.caught.length) landFish(sm);
+    const oj = JUMPERS.smallmouth; JUMPERS.smallmouth = 1; trip.hook.y = 8 * PPF; let jumped = false;
+    for (let i = 0; i < 200 && trip; i++){ updateFishing(1/30); if (trip && trip.jump) jumped = true; if (jumped && trip && !trip.jump) break; }
+    JUMPERS.smallmouth = oj; out.jumped = jumped;
+    for (let i = 0; i < 600 && trip; i++){ crank(); updateFishing(1/30); }
+    out.brag = !!document.querySelector("#resList .brag");
+    $("btnCollect").onclick(); while ($("modal").classList.contains("show")) $("modalBox").querySelector("button:last-child").click();
+    // night: catfish come up; the legend is caught and recorded, not added to the Fishdex
+    S.clock = 23; out.night = isNight();
+    startTrip(lakeById("dixon"), 0, "boat", true);
+    land({ id:"legend_dixon", sp: legendSp("dixon"), inches:27, frac:1, L:120, x:200, y:100, baseY:100, dir:1, speed:0, phase:0, trophy:false, nightLegend:true });
+    out.legend = !!S.legends.dixon && !S.dex.legend_dixon && state === "results";
+    $("btnCollect").onclick(); while ($("modal").classList.contains("show")) $("modalBox").querySelector("button:last-child").click();
+    // a rare look counts double and is remembered
+    S.clock = 10; startTrip(lakeById("dixon"), 0, "dock", true);
+    const v = makeFish("trout", 80); v.sp = variantSp("trout"); v.variant = "golden"; land(v);
+    out.look = !!(S.dex.trout && S.dex.trout.v && S.dex.trout.v.golden);
+    $("btnCollect").onclick(); while ($("modal").classList.contains("show")) $("modalBox").querySelector("button:last-child").click();
+    // a treasure chest
+    const t0 = S.treasures || 0; startTrip(lakeById("dixon"), 0, "dock", true); const c = makeSnag("chest", trip.hook.x, 0); c.y = trip.hook.y; trip.snags = [c]; trip.phase = "drop"; checkSnags(trip, trip.hook);
+    trip.hook.y = 2; trip.phase = "reel"; for (let i = 0; i < 40 && trip; i++) updateFishing(1/30);
+    out.chest = S.treasures === t0 + 1; $("modal").classList.remove("show");
+    showScreen("dex"); out.dex = document.querySelectorAll("#legGrid .dexcell").length === 6;
+    trip = null; visit = null; showScreen("title");
+    return out;
+  });
+  ok(r2.jumped, "a hooked smallmouth jumps near the surface");
+  ok(r2.brag, "the catch screen shows the brag shot");
+  ok(r2.night, "the clock reaches night");
+  ok(r2.legend, "a Night Legend is caught, recorded and released");
+  ok(r2.look, "a rare look is saved in the Fishdex");
+  ok(r2.chest, "a treasure chest opens");
+  ok(r2.dex, "the Fishdex has the Night Legends shelf");
+  for (const [w, h] of [[1024, 768], [390, 844], [1440, 900]]){
+    await a.setViewportSize({ width: w, height: h }); await a.waitForTimeout(100);
+    const fit = await a.evaluate(() => { const r = $("wrap").getBoundingClientRect(); return { w: r.width / innerWidth, h: r.height / innerHeight }; });
+    ok(fit.w > .97 && fit.h > .97, `the game fills a ${w}×${h} screen (${Math.round(fit.w*100)}% × ${Math.round(fit.h*100)}%)`);
+  }
+  await a.setViewportSize({ width: 390, height: 780 });
+
   console.log("Second player");
   await a.evaluate(() => $("btnWho").onclick());
   await a.click("#llParent"); await a.fill("#llPin", "1234"); await a.click("#llO");
