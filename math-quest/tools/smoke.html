@@ -205,6 +205,7 @@ const tests=[
   BattlePets._pick('forest',1);T.ok(document.querySelectorAll('.bp2-slot').length===Math.min(5,3+Math.floor((P().level||1)/10))&&document.querySelectorAll('.bp2-slot.full').length>=1,'team picker did not fill the team');
   const D=BattlePets._dbg;BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpScroll'),'the battle did not start');
   {const sc=document.getElementById('bpScroll');T.ok(sc.scrollWidth>sc.clientWidth+100,'the battlefield is not wider than the screen');}
+  T.ok(document.getElementById('bpFull')&&!document.querySelector('#app .topbar')&&document.querySelector('.bp2-exit')&&document.body.classList.contains('bp2-lock'),'the battle is not a full-screen takeover with only Exit');
   T.ok(G.team.every(s=>P().pets.includes(s.pet.id)),'the team is not the hero\'s own pets');
   Music.update();T.ok(Music._state().want==='petBattle','the Pet Battle music is not chosen in a fight');{const r=await fetch('audio/pet-battle-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/pet-battle-studio.mp3 is missing');}
   {const t0=G.treats;G.treats=0;D.step(1);T.ok(G.treats>0&&G.charge>0,'treats and Pounce do not fill up by themselves');}
@@ -244,7 +245,7 @@ const tests=[
   Music.update();T.ok(Music._state().want===null,'battle music still playing after the battle ended');
   const pet0=G.team[0].pet.id,xp0=petData(P(),pet0).xp;D.finish();await T.wait(50);
   T.ok(P().bp2.c.forest===1&&petData(P(),pet0).xp>xp0&&P().bp.m.length===1&&P().bp.m[0][2]===1,'the win was not saved, or gave no pet XP');
-  T.ok(JSON.stringify(P().bp2).length<200&&JSON.stringify(P().bp).length<400,'Battle Pets data is too big');BattlePets._back();
+  T.ok(JSON.stringify(P().bp2).length<200&&JSON.stringify(P().bp).length<400,'Battle Pets data is too big');BattlePets._back();T.ok(!document.body.classList.contains('bp2-lock')&&!document.getElementById('bpFull'),'leaving the battle did not end the full-screen takeover');
   /* switching heroes ends a battle in progress */
   BattlePets._pick('forest',1);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();const q2=T.hero('Other',3);state.cur=q2.id;go('world');await T.wait(50);T.ok(!document.querySelector('.bp2-over'),'a results card was left on screen');
  }],

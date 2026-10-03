@@ -200,7 +200,7 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-mini i{position:absolute;top:5px;width:8px;height:8px;border-radius:50%;margin-left:-4px}.bp2-mini i.p{background:#2f9e44}.bp2-mini i.c{background:#e8590c}.bp2-mini i.b{background:#c92a2a;width:12px;height:12px;top:3px;margin-left:-6px}
 .bp2-fix{border:3px solid #f08c00;background:#fff9db}.bp2-btn.fix{background:#e8590c}.bp2-btn.fix.hot{animation:bp2pulse .8s ease-in-out infinite}@keyframes bp2pulse{50%{transform:scale(1.08);box-shadow:0 0 0 6px rgba(232,89,12,.3)}}
 .bp2-bricks{letter-spacing:1px;font-size:15px}.bp2-key{display:inline-block;font-size:10px;font-weight:800;background:#2b2340;color:#fff;border-radius:5px;padding:0 4px;margin-left:3px;vertical-align:middle}
-.bp2-flash{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);font-size:26px;font-weight:900;color:#fff;text-shadow:0 2px 6px #000;pointer-events:none;animation:bp2fl 1.6s ease-out forwards;white-space:nowrap}@keyframes bp2fl{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1}100%{opacity:0}}
+.bp2-flash{position:absolute;z-index:45;left:50%;top:30%;transform:translate(-50%,-50%);font-size:26px;font-weight:900;color:#fff;text-shadow:0 2px 6px #000;pointer-events:none;animation:bp2fl 1.6s ease-out forwards;white-space:nowrap}@keyframes bp2fl{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1}100%{opacity:0}}
 @media (hover:none){.bp2-key{display:none}}
 .bp2-ent.fight.pet .e{animation:bp2lungeL .5s ease-in-out infinite}.bp2-ent.fight.foe .e{animation:bp2lungeR .5s ease-in-out infinite}
 @keyframes bp2lungeL{0%,100%{translate:0 0}30%{translate:-8px -5px}45%{translate:-11px 0}}@keyframes bp2lungeR{0%,100%{translate:0 0}30%{translate:8px -5px}45%{translate:11px 0}}
@@ -257,14 +257,25 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .bp2-meter{flex:1;min-width:160px;height:22px;background:#fff3bf;border-radius:11px;overflow:hidden;position:relative;border:2px solid #f2b705}.bp2-meter i{display:block;height:100%;background:#f2b705}.bp2-meter span{position:absolute;inset:0;text-align:center;font-weight:800;font-size:13px;line-height:18px}
 .bp2-btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:8px 12px;min-height:44px;cursor:pointer;background:#7048e8;color:#fff}.bp2-btn:disabled{opacity:.45;cursor:default}.bp2-btn.gold{background:#f08c00}
-.bp2-team{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.bp2-tc{font:inherit;position:relative;border:3px solid #d0bfff;border-radius:14px;background:#fff;min-height:84px;padding:4px 2px;cursor:pointer;color:#2b2340;overflow:hidden}
+.bp2-team{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+body.bp2-lock{overflow:hidden}
+.bp2-full{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;gap:6px;background:#140f26;color:#fff;overflow:hidden;
+ padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+.bp2-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.bp2-exit{font:inherit;font-weight:800;border:0;border-radius:12px;background:rgba(255,255,255,.16);color:#fff;padding:8px 14px;min-height:44px;cursor:pointer}
+.bp2-exit:hover{background:rgba(255,255,255,.26)}.bp2-title{font-weight:800;font-size:15px;white-space:nowrap}.bp2-full .bp2-hud{flex:1;min-width:220px}
+.bp2-full .bp2-scroll{flex:1 1 auto;min-height:170px}.bp2-full .bp2-field{height:100%}
+.bp2-full .bp2-row,.bp2-full .bp2-team,.bp2-full .bp2-fix,.bp2-full .bp2-mini{width:100%;max-width:1100px;margin:0 auto;flex:none}
+.bp2-full .bp2-tc{min-height:72px}.bp2-full .bp2-fix{color:#2b2340;padding:8px 12px}.bp2-full .bp2-pad button{min-height:40px}.bp2-full .bp2-q{font-size:24px}
+.bp2-full .bp2-ent,.bp2-full .bp2-base{scale:var(--k,1);transform-origin:50% 100%}
+@media (min-width:900px){.bp2-full .bp2-pad{grid-template-columns:repeat(12,1fr)}.bp2-full .bp2-pad button.go{grid-column:1/-1}.bp2-full .bp2-msg{min-height:18px}}
+.bp2-note{font-size:11px;opacity:.7;margin:0;text-align:center}.bp2-tc{font:inherit;position:relative;border:3px solid #d0bfff;border-radius:14px;background:#fff;min-height:84px;padding:4px 2px;cursor:pointer;color:#2b2340;overflow:hidden}
 .bp2-tc .pe{font-size:30px;display:block}.bp2-tc small{display:block;font-size:11px;font-weight:700}.bp2-tc .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(43,35,64,.35)}.bp2-tc.poor{opacity:.55}
 .bp2-q{display:flex;align-items:center;justify-content:center;gap:10px;font-size:28px;font-weight:800;flex-wrap:wrap}.bp2-q .box{min-width:90px;border:3px dashed #b197fc;border-radius:12px;text-align:center;background:#f8f5ff;padding:0 8px}
 .bp2-pad{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.bp2-pad button{font:inherit;font-size:22px;font-weight:800;border:0;border-radius:12px;background:#f1ecff;color:#2b2340;min-height:48px;cursor:pointer}.bp2-pad button.go{background:#40c057;color:#fff}
 .bp2-msg{text-align:center;font-weight:700;min-height:22px}
 .bp2-over{position:fixed;inset:0;background:rgba(20,15,40,.6);display:grid;place-items:center;z-index:50;padding:16px}.bp2-over .bp2-card{max-width:380px;text-align:center}`;document.head.appendChild(s);}
 const head=(t,back)=>((typeof topbar==='function')?topbar():'')+`<div class="page"><div class="zhead"><button class="btn ghost small backbtn" onclick="${back}">← ${back.includes('world')?'Village':'Back'}</button><h2 class="title">${t}</h2></div>`;
-function screen(){stopLoop();const p=me();if(!p||!on(p)){go('world');return;}css();
+function screen(){stopLoop();const p=me();if(!p||!on(p)){unlock();go('world');return;}css();if(VIEW.k!=='fight')unlock();
  if(VIEW.k==='team')return teamView(p);if(VIEW.k==='fight'&&G)return fightView(p);VIEW={k:'stages'};stageView(p);}
 function stageView(p){const pr=prog(p),S=stages();
  app.innerHTML=head('🐾 Battle Pets <small style="font-size:13px;font-weight:600">demo</small>',"go('world')")+`<div class="bp2">
@@ -299,10 +310,12 @@ function teamOut(i){if(VIEW.k!=='team')return;VIEW.team.splice(i,1);screen();}
 function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;const S=stages().find(s=>s.id===VIEW.id);const team=VIEW.team.map(id=>PETS.find(x=>x.id===id)).filter(Boolean);
  if(!VIEW.flyOk&&flyRisk(S,team)){if(!document.getElementById('bpFlyW'))flyWarn();return;}
  prog(p).team=VIEW.team.slice();const b=p.bp=p.bp||{s:0,m:[]};b.s=(b.s||0)+1;save();
- newBattle(p,S,VIEW.crown,team);G.q=makeQ(p,S.op);VIEW={k:'fight',id:S.id,crown:G.crown};screen();}
-function fightView(p){const S=G.stage;
- app.innerHTML=head(`${S.art} ${esc(S.name)} ${'👑'.repeat(G.crown)}`,"BattlePets._quit()")+`<div class="bp2 wide">
-  <div class="bp2-hud"><span>🏚️</span><div class="bp2-bar"><i id="bpDen" style="background:#e8590c"></i></div><span id="bpT" style="min-width:48px;text-align:center"></span><div class="bp2-bar"><i id="bpHouse" style="background:#40c057"></i></div><span>🏡</span></div>
+ newBattle(p,S,VIEW.crown,team);G.q=makeQ(p,S.op);enterFS();VIEW={k:'fight',id:S.id,crown:G.crown};screen();}
+/* the battle takes over the whole screen: no menus, just ✕ Exit (and the browser goes full screen where it can) */
+function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
+ app.innerHTML=`<div class="bp2-full" id="bpFull">
+  <div class="bp2-top"><button class="bp2-exit" onclick="BattlePets._quit()" aria-label="Exit the battle">✕ Exit</button><span class="bp2-title">${S.art} ${esc(S.name)} ${'👑'.repeat(G.crown)}</span>
+  <div class="bp2-hud"><span>🏚️</span><div class="bp2-bar"><i id="bpDen" style="background:#e8590c"></i></div><span id="bpT" style="min-width:48px;text-align:center"></span><div class="bp2-bar"><i id="bpHouse" style="background:#40c057"></i></div><span>🏡</span></div></div>
   <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">${window.BPScene?BPScene.base('den',S):'🏚️'}</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">${window.BPScene?BPScene.base('house',S):'🏡'}</span></div></div>
   <div class="bp2-mini" id="bpMini" aria-label="Map of the battlefield: tap to look there"><span class="vw" id="bpVw"></span></div>
   <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button><button class="bp2-btn fix" id="bpFix" onclick="BattlePets._fix()"></button></div>
@@ -311,8 +324,9 @@ function fightView(p){const S=G.stage;
   <div class="bp2-card bp2-fix" id="bpFixP" style="display:none"><div class="bp2-row" style="justify-content:space-between"><b>🧱 Rebuild the Pet House</b><span class="bp2-bricks" id="bpBricks"></span><button class="btn small ghost dark" onclick="BattlePets._fixDone()">Done <span class="bp2-key">Esc</span></button></div>
    <div class="bp2-q"><span id="bpQ"></span><span class="box" id="bpIn">&nbsp;</span><button class="btn small ghost dark" onclick="BattlePets._say()" aria-label="Read it to me">🔊</button></div><div class="bp2-msg" id="bpMsg"></div>
    <div class="bp2-pad">${['1','2','3','4','5','6','7','8','9','0','.','⌫'].map(k=>`<button onclick="BattlePets._key('${k}')">${k}</button>`).join('')}<button class="go" style="grid-column:1/-1" onclick="BattlePets._key('go')">✓ Check <span class="bp2-key">Enter</span></button></div></div>
-  ${S.note?`<p class="muted" style="font-size:12px;margin:0">${esc(S.note)}</p>`:''}</div></div>`;
+  ${S.note?`<p class="bp2-note">${esc(S.note)}</p>`:''}</div>`;
  const sc=document.getElementById('bpScroll');sc.scrollLeft=sc.scrollWidth;panSetup(sc);scene();
+ try{if(RO)RO.disconnect();if(window.ResizeObserver){RO=new ResizeObserver(()=>{clearTimeout(RSZ);RSZ=setTimeout(()=>{if(VIEW.k==='fight')scene();},200);});RO.observe(document.getElementById('bpField'));}}catch(e){}
  document.getElementById('bpMini').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();lookAt((e.clientX-r.left)/r.width*100);});
  G.shown=false;draw();startLoop();}
 /* looking around the wide battlefield: swipe (touch scrolls natively), drag with the mouse, the mouse wheel, the arrow keys or the little map */
@@ -327,8 +341,12 @@ function frontX(){const P2=G.pets.filter(u=>!u.gone),F=G.foes.filter(f=>!f.gone)
 function lookAt(pct){holdCam();const sc=document.getElementById('bpScroll');if(!sc)return;sc.scrollTo({left:pct/100*sc.scrollWidth-sc.clientWidth/2,behavior:'smooth'});}
 function panBy(px){holdCam();const sc=document.getElementById('bpScroll');if(sc)sc.scrollBy({left:px,behavior:'smooth'});}
 /* the scenery (bpscene.js): built for this stage and crown, re-built when the screen changes size, slid by the scroll */
-function scene(){try{const f=document.getElementById('bpField'),sc=document.getElementById('bpScroll');if(!window.BPScene||!f||!sc||!G)return;BPScene.build(f,sc,G.stage,G.crown);if(G.boss&&!G.bossDown)BPScene.grey(true);}catch(e){}}
-let RSZ=0;window.addEventListener('resize',()=>{clearTimeout(RSZ);RSZ=setTimeout(()=>{if(typeof curScreen!=='undefined'&&curScreen==='bp'&&VIEW.k==='fight')scene();},250);});
+function scene(){try{const f=document.getElementById('bpField'),sc=document.getElementById('bpScroll');if(f)f.style.setProperty('--k',Math.max(1,Math.min(1.5,f.clientHeight/380)).toFixed(2)); /* bigger screen, bigger fighters */
+  if(!window.BPScene||!f||!sc||!G)return;BPScene.build(f,sc,G.stage,G.crown);if(G.boss&&!G.bossDown)BPScene.grey(true);}catch(e){}}
+let RSZ=0,RO=null,FS=false;
+function enterFS(){try{const el=document.documentElement,rq=el.requestFullscreen||el.webkitRequestFullscreen;if(!rq||document.fullscreenElement||document.webkitFullscreenElement)return;FS=true;const r=rq.call(el);if(r&&r.catch)r.catch(()=>{FS=false;});}catch(e){FS=false;}}
+function unlock(){document.body.classList.remove('bp2-lock');try{if(RO){RO.disconnect();RO=null;}}catch(e){}try{if(!FS)return;FS=false;const ex=document.exitFullscreen||document.webkitExitFullscreen;if((document.fullscreenElement||document.webkitFullscreenElement)&&ex)ex.call(document);}catch(e){}}
+window.addEventListener('resize',()=>{clearTimeout(RSZ);RSZ=setTimeout(()=>{if(typeof curScreen!=='undefined'&&curScreen==='bp'&&VIEW.k==='fight')scene();},250);});
 function panSetup(sc){let d=null;sc.addEventListener('scroll',()=>{try{if(window.BPScene)BPScene.parallax(sc);}catch(e){}},{passive:true});
  sc.addEventListener('pointerdown',holdCam);sc.addEventListener('touchstart',holdCam,{passive:true});sc.addEventListener('touchmove',holdCam,{passive:true});
  sc.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0)return;d={x:e.clientX,l:sc.scrollLeft};sc.classList.add('drag');});
@@ -441,14 +459,14 @@ function finish(){if(!G||G.done)return;G.done=true;const p=me();if(!p)return;con
   <div class="row"><button class="btn green big" onclick="BattlePets._again()">${G.win&&G.crown<3?'Next crown ➜':'Play again'}</button><button class="btn ghost dark" onclick="BattlePets._back()">Stages</button></div></div>`;
  document.body.appendChild(ov);}
 function again(){const g=G;document.querySelectorAll('.bp2-over').forEach(x=>x.remove());if(!g)return backTo();const p=me(),pr=prog(p);const c=g.win&&g.crown<3?g.crown+1:g.crown;pickStage(g.stage.id,Math.min(c,(pr.c[g.stage.id]||0)+1));}
-function backTo(){stopLoop();document.querySelectorAll('.bp2-over').forEach(x=>x.remove());G=null;VIEW={k:'stages'};screen();}
+function backTo(){stopLoop();unlock();document.querySelectorAll('.bp2-over').forEach(x=>x.remove());G=null;VIEW={k:'stages'};screen();}
 function quit(){if(G&&!G.over&&G.t>3){if(!document.getElementById('bpQuit')){const ov=document.createElement('div');ov.className='bp2-over';ov.id='bpQuit';ov.innerHTML=`<div class="bp2-card"><h2>Leave this battle?</h2><p>Nothing is lost, but this battle won't count.</p><div class="row"><button class="btn green" onclick="this.closest('.bp2-over').remove()">Keep playing</button><button class="btn ghost dark" onclick="BattlePets._back()">Leave</button></div></div>`;document.body.appendChild(ov);}return;}backTo();}
 
 /* ---------- the plaza building (demo access for every hero) ---------- */
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[BP_Y]&&W.T[BP_Y][BP_X];if(!t||t.water)return;
  if(on(me())){if(t.npc!=='bp'&&!t.npc&&!t.chest){if(W.hx===BP_X&&W.hy===BP_Y)return;t.npc='bp';t.block=true;t.o=null;}}
  else if(t.npc==='bp'){delete t.npc;t.block=false;}}catch(e){}}
-window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();if(s!=='bp'){stopLoop();document.querySelectorAll('.bp2-over').forEach(x=>x.remove());try{if(window.BPScene)BPScene.stop();}catch(e){}}},session:()=>{G=null;VIEW={k:'stages'};syncTile();}});
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();if(s!=='bp'){stopLoop();unlock();document.querySelectorAll('.bp2-over').forEach(x=>x.remove());try{if(window.BPScene)BPScene.stop();}catch(e){}}},session:()=>{G=null;VIEW={k:'stages'};syncTile();}});
 
 /* ---------- Parent Corner: the play log ---------- */
 function stats(p){const b=(p&&p.bp)||{},m=b.m||[];const w=m.filter(x=>x[2]).length,days=new Set(m.map(x=>new Date(x[0]*1000).toDateString())).size;
