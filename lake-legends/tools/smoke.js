@@ -228,6 +228,15 @@ const BOT = n => {
   ok(r5.rate >= 1 && r5.rate <= 2, "an osprey or duck shows up 1-2 times in 30 minutes (" + r5.rate + ")");
   ok(r5.album, "the Fishdex has the Wildlife album");
 
+  console.log("Sound");
+  await a.evaluate(() => { trip = null; visit = null; showScreen("title"); prizeQueue = []; $("modal").classList.remove("show"); const o = document.getElementById("llOv"); if (o) o.remove(); });
+  await a.click("#btnMute"); await a.waitForTimeout(1500);
+  const snd = await a.evaluate(() => ({ sliders: document.querySelectorAll("#modalBox [data-av]").length, ctx: !!AC && AC.state, notes: mus.step }));
+  ok(snd.sliders === 3, "the sound panel has effects, music and lake-sound volumes");
+  ok(snd.ctx === "running" && snd.notes > 0, "the background music is playing (" + snd.notes + " steps)");
+  await a.evaluate(() => { const r = document.querySelector('#modalBox [data-av="music"]'); r.value = 20; r.oninput(); $("modalBox").querySelector("button:last-child").click(); });
+  ok(await a.evaluate(() => JSON.parse(localStorage.getItem("lakelegends.audio")).music === .2 && Math.abs(BUS.music.gain.value - .12) < .01), "volume changes stick on the device");
+
   console.log("Install as an app");
   const app = await a.evaluate(async () => { const m = await (await fetch(document.querySelector('link[rel="manifest"]').href)).json();
     const ok = await Promise.all(m.icons.map(async i => (await fetch(i.src)).ok)); return { name: m.name, display: m.display, icons: m.icons.length, all: ok.every(Boolean), btn: !!$("btnApp") }; });

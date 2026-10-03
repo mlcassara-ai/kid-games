@@ -303,8 +303,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.03i";</script>
-<script src="ll-core.js?v=2026.10.03i"></script>
+<script>window.LL_VER="2026.10.03j";</script>
+<script src="ll-core.js?v=2026.10.03j"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -751,23 +751,31 @@ function normalizeSave(s){
   return o;
 }
 let S = defaultSave();                     // a stand-in until a player signs in
-function bindPlayer(p){ p.game = normalizeSave(p.game); S = p.game; shownCoins = null; setMuteIcon(); }
+function bindPlayer(p){ p.game = normalizeSave(p.game); S = p.game; shownCoins = null; setMuteIcon(); applyAV(); }
 function save(){ if (window.LL && LL.player() && LL.player().game === S){ checkPrizes(); LL.save(); } }
 const upVal = k => UPG[k].vals[S.up[k]];
 
 // =====================================================================
 //  SOUND (tiny WebAudio beeps)
 // =====================================================================
-let AC = null, NOISE = null;
+// Effects, music and lake sounds each have their own volume, remembered on this device. S.sound is the player's on/off switch.
+const AUDIO_KEY = "lakelegends.audio";
+const AV = { sfx: 1, music: .5, amb: .6 };
+try { Object.assign(AV, JSON.parse(localStorage.getItem(AUDIO_KEY) || "{}")); } catch(e) {}
+function saveAV(){ try { localStorage.setItem(AUDIO_KEY, JSON.stringify(AV)); } catch(e) {} applyAV(); }
+try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch(e) {}   // iPad/iPhone: play even when the silent switch is on
+let AC = null, NOISE = null, BUS = null;
 function audioCtx(){
   if (!S.sound) return null;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)();
     if (AC.state === "suspended") AC.resume();
-    if (!NOISE){ NOISE = AC.createBuffer(1, Math.floor(AC.sampleRate*.08), AC.sampleRate); const d = NOISE.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1; }
+    if (!NOISE){ NOISE = AC.createBuffer(1, Math.floor(AC.sampleRate*2), AC.sampleRate); const d = NOISE.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1; }
+    if (!BUS){ BUS = {}; for (const k of ["sfx", "music", "amb"]){ BUS[k] = AC.createGain(); BUS[k].connect(AC.destination); } applyAV(); }
     return AC;
   } catch(e){ return null; }
 }
+function applyAV(){ if (!BUS) return; const on = S && S.sound ? 1 : 0; BUS.sfx.gain.value = AV.sfx * on; BUS.music.gain.value = AV.music * on * .6; BUS.amb.gain.value = AV.amb * on; }
 window.addEventListener("pointerdown", () => audioCtx(), { once:true });
 // one "tick" of a reel's ratchet: a tiny filtered noise burst
 function tick(freq, vol, when=0, dur=.014){
@@ -776,7 +784,7 @@ function tick(freq, vol, when=0, dur=.014){
     const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(), t = ac.currentTime + when;
     src.buffer = NOISE; f.type = "bandpass"; f.frequency.value = freq; f.Q.value = 5;
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t+dur);
-    src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t, Math.random()*.05); src.stop(t+dur+.01);
+    src.connect(f); f.connect(g); g.connect(BUS.sfx); src.start(t, Math.random()*1.8); src.stop(t+dur+.01);
   } catch(e){}
 }
 // continuous reel sound: `rate` ticks per second
@@ -794,7 +802,7 @@ function tone(freq, dur, type="sine", vol=.15, slide=0){
     o.type = type; o.frequency.setValueAtTime(freq, t);
     if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq+slide), t+dur);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t+dur);
-    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+dur);
+    o.connect(g); g.connect(BUS.sfx); o.start(t); o.stop(t+dur);
   } catch(e) {}
 }
 const SFX = {
@@ -809,9 +817,72 @@ const SFX = {
   whoosh(){ tone(700,.35,"sine",.07,-550); },
   thunk(){ tone(130,.12,"triangle",.16,-40); },
   croak(){ [0, .35].forEach(d => setTimeout(() => { tone(95, .28, "sawtooth", .07, -25); tone(140, .2, "square", .03, -40); }, d * 1000)); },
+  fanfare(){ [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, .22, "triangle", .11), i * 85));
+    setTimeout(() => { [523, 659, 784].forEach(f => tone(f, .7, "triangle", .07)); tone(2093, .5, "sine", .04, 400); }, 470); },
+  bigSplash(){ tick(700, .25, 0, .25); tick(1200, .18, .05, .3); tone(300, .35, "triangle", .1, -200); },
   screech(kind){ if (kind === "osprey"){ [0, 140, 280].forEach((d, i) => setTimeout(() => tone(1900 - i * 120, .12, "sine", .07, 500), d)); }
     else { [0, 160].forEach(d => setTimeout(() => tone(380, .1, "square", .06, -120), d)); } }
 };
+
+// ---- Music: a calm tune made on the fly (a bright one by day, a slower one at night) ----
+const TUNES = { day: { bpm: 76, chords: [[48,52,55],[45,48,52],[41,45,48],[43,47,50]], scale: [60,62,64,67,69,72,74,76,79] },
+                night: { bpm: 60, chords: [[45,48,52],[41,45,48],[48,52,55],[43,47,50]], scale: [57,60,62,64,67,69,72,74] } };
+const midiHz = n => 440 * Math.pow(2, (n - 69) / 12);
+const mus = { next: 0, step: 0, mel: 4 };
+function pluck(t, n, vol, dur){ const ac = AC, o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain();
+  o.type = "triangle"; o.frequency.value = midiHz(n); f.type = "lowpass"; f.frequency.value = 2400;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(f); f.connect(g); g.connect(BUS.music); o.start(t); o.stop(t + dur + .05); }
+function pad(t, notes, dur){ for (const n of notes) for (const det of [-4, 4]){ const ac = AC, o = ac.createOscillator(), g = ac.createGain();
+  o.type = "sine"; o.frequency.value = midiHz(n); o.detune.value = det; g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.022, t + .9); g.gain.linearRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(BUS.music); o.start(t); o.stop(t + dur + .05); } }
+function musicTick(){
+  if (!AC || !BUS || AV.music <= 0 || !S.sound || AC.state !== "running"){ mus.next = 0; return; }
+  const tune = state === "fishing" && trip && isNight() ? TUNES.night : TUNES.day, eighth = 60 / tune.bpm / 2;
+  if (mus.next < AC.currentTime) mus.next = AC.currentTime + .1;
+  while (mus.next < AC.currentTime + .7){
+    const t = mus.next, st = mus.step % 16, ch = tune.chords[Math.floor(mus.step / 16) % 4];
+    if (st === 0){ pad(t, ch.map(n => n + 12), eighth * 16); pluck(t, ch[0] - 12, .12, 1.4); }
+    if (st === 8) pluck(t, ch[2] - 12, .09, 1.1);
+    if (st % 2 === 0 && (st === 0 || Math.random() < (tune === TUNES.night ? .32 : .5))){
+      mus.mel = clamp(mus.mel + Math.round(rand(-2.4, 2.4)), 0, tune.scale.length - 1); pluck(t, tune.scale[mus.mel], .07, .9); }
+    mus.step++; mus.next += eighth;
+  }
+}
+setInterval(musicTick, 150);
+// ---- Lake sounds: lapping water, birds by day, crickets at night, the motor while trolling ----
+const amb = { water: null, wg: null, motor: null, mg: null };
+function ambTick(){
+  if (!AC || !BUS || AC.state !== "running") return;
+  const fishing = state === "fishing" && trip, t = AC.currentTime;
+  if (!amb.water){ const src = AC.createBufferSource(), f = AC.createBiquadFilter(); src.buffer = NOISE; src.loop = true; f.type = "bandpass"; f.frequency.value = 450; f.Q.value = .8;
+    amb.wg = AC.createGain(); amb.wg.gain.value = 0; src.connect(f); f.connect(amb.wg); amb.wg.connect(BUS.amb); src.start(); amb.water = src; }
+  amb.wg.gain.setTargetAtTime((fishing ? .05 : .025) * (.7 + .3 * Math.sin(t * .9)) * (1 + (fishing ? rainAmt() : 0)), t, .4);   // little waves
+  if (!amb.motor){ const o = AC.createOscillator(), f = AC.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = 52; f.type = "lowpass"; f.frequency.value = 260;
+    amb.mg = AC.createGain(); amb.mg.gain.value = 0; o.connect(f); f.connect(amb.mg); amb.mg.connect(BUS.amb); o.start(); amb.motor = o; }
+  amb.mg.gain.setTargetAtTime(fishing && trip.phase === "troll" ? .05 : 0, t, .3);
+  if (!fishing || trip.camY > 400) return;                            // birds and crickets only near the surface
+  const night = isNight();
+  if (!night && Math.random() < .05){ const n = 2 + Math.floor(Math.random() * 3), base = rand(2400, 3400);   // a bird
+    for (let i = 0; i < n; i++){ const o = AC.createOscillator(), g = AC.createGain(), s0 = t + i * .11; o.type = "sine";
+      o.frequency.setValueAtTime(base, s0); o.frequency.exponentialRampToValueAtTime(base * 1.35, s0 + .07);
+      g.gain.setValueAtTime(.0001, s0); g.gain.exponentialRampToValueAtTime(.025, s0 + .01); g.gain.exponentialRampToValueAtTime(.0001, s0 + .08);
+      o.connect(g); g.connect(BUS.amb); o.start(s0); o.stop(s0 + .1); } }
+  if (night && Math.random() < .35){ for (let i = 0; i < 3; i++){ const o = AC.createOscillator(), g = AC.createGain(), s0 = t + i * .045; o.type = "square"; o.frequency.value = 4700;   // crickets
+      g.gain.setValueAtTime(.0001, s0); g.gain.exponentialRampToValueAtTime(.008, s0 + .005); g.gain.exponentialRampToValueAtTime(.0001, s0 + .03);
+      o.connect(g); g.connect(BUS.amb); o.start(s0); o.stop(s0 + .04); } }
+}
+setInterval(ambTick, 250);
+// the sound panel (from More while fishing, and the 🔊 button on the menus)
+function soundPanel(){
+  const row = (k, label) => `<label style="display:flex;align-items:center;gap:.6em;margin:.5em 0;text-align:left"><span style="width:7.5em">${label}</span><input type="range" min="0" max="100" value="${Math.round(AV[k] * 100)}" data-av="${k}" style="flex:1"></label>`;
+  infoModal(`<h3>🔊 Sound</h3>
+    <button class="btn ${S.sound ? "" : "red"} small" id="sndAll">${S.sound ? "🔊 Sound is on" : "🔇 Sound is off"}</button>
+    ${row("sfx", "🎣 Effects")}${row("music", "🎵 Music")}${row("amb", "🐦 Lake sounds")}
+    <p class="muted">On an iPad or iPhone, turn the volume up. If it's still quiet, check the silent switch or Control Center.</p>`, "Done");
+  $("sndAll").onclick = () => { S.sound = !S.sound; save(); setMuteIcon(); applyAV(); if (S.sound) audioCtx(); soundPanel(); };
+  document.querySelectorAll("[data-av]").forEach(r => { r.oninput = () => { AV[r.dataset.av] = r.value / 100; saveAV(); }; r.onchange = () => { audioCtx(); if (r.dataset.av === "sfx") SFX.coin(); }; });
+}
 
 // =====================================================================
 //  HELPERS
@@ -1254,11 +1325,11 @@ function renderOptions(){
   }
   add("❓ How to play", () => infoModal(HOWTO_HTML, "Got it"));
   add("🐞 Report a problem or idea", () => LL.report());
-  add(S.sound ? "🔊 Sound: on" : "🔇 Sound: off", () => { S.sound = !S.sound; save(); setMuteIcon(); });
+  add(S.sound ? "🔊 Sound" : "🔇 Sound: off", () => soundPanel());
   add(trip && trip.boss ? "🏳️ Give up the boss fight" : "🏁 Leave lake", leaveLake);
 }
 function setMuteIcon(){ $("btnMute").textContent = S.sound ? "🔊" : "🔇"; }
-$("btnMute").onclick = () => { S.sound = !S.sound; save(); setMuteIcon(); SFX.click(); };
+$("btnMute").onclick = () => { audioCtx(); SFX.click(); soundPanel(); };
 setMuteIcon();
 
 // size badges: bronze for any catch, silver and gold for bigger ones of that species
@@ -1522,7 +1593,7 @@ function showCard(id, isNew, onDone){
   b.onclick = () => { SFX.click(); $("modal").classList.remove("show"); if (onDone) onDone(); };
   box.appendChild(b);
   $("modal").classList.add("show");
-  if (isNew) SFX.land();
+  if (isNew) SFX.fanfare();
 }
 
 // =====================================================================
@@ -1993,7 +2064,7 @@ const waveAt = (x, t) => Math.sin(x * .045 + t * 1.7) * 1.4 + Math.sin(x * .12 -
 function splashAt(T, x, y, n){ if (y <= 6) ripple(T, x, n > 12); T.drops = T.drops || []; for (let i = 0; i < n; i++) T.drops.push({ x: x + rand(-10, 10), y: y - 2, vx: rand(-110, 110), vy: rand(-330, -120), r: rand(1.5, 3.5) }); }
 function startJump(T, f){
   T.jump = { t:0, dur: .95 + Math.min(.5, fishLb(f)*.05), f, x0: T.hook.x, dir: T.hook.x < W/2 ? 1 : -1, h: 70 + Math.min(60, f.L*.5) };
-  T.pending = 0; SFX.splash(); splashAt(T, T.hook.x, 0, 14); T.kick = .6;
+  T.pending = 0; SFX.bigSplash(); splashAt(T, T.hook.x, 0, 14); T.kick = .6;
   pop(T.hook.x, -110, f.id === "smallmouth" ? "🐟 AIRBORNE!" : "🐟 JUMP!", "#ffe38a", 24);
 }
 function updateJump(T, dt){
@@ -2486,7 +2557,7 @@ function finishBoss(T){
       ${d.reward.bait ? `<p class="muted">If only you'd had this against ${d.name}! 😄</p>` : ""}`, "Awesome!", nx));
     $("resTitle").textContent = "You beat " + d.name + "!";
     $("resTotal").textContent = "+" + prize + " 🪙   (you have " + S.coins + ")";
-    SFX.land();
+    SFX.fanfare();
   } else {
     card.innerHTML = `<span class="tag" style="background:#f3d6d2;color:#8a1f14">${d.name} got away!</span>`;
     card.appendChild(ic);

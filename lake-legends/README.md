@@ -51,6 +51,9 @@ Dixon Lake, Lake Poway, Lake Jennings, Lake Cuyamaca, El Capitan and Lower Otay.
 
 Which fish live in which lake is simplified for the game. It's based on the City of San Diego reservoir species list, San Diego Tourism Authority and Wikipedia.
 
+## Sound
+Tap 🔊 (on the menus, or More → Sound while fishing) for separate volumes for effects, music (a calm tune by day, a slower one at night) and lake sounds (lapping water, birds, crickets at night, the motor while trolling). On an iPad or iPhone the game plays even with the silent switch on (newer iPadOS); if it's quiet, turn the volume up or check Control Center.
+
 ## Install it like an app
 On the title screen, tap **💻 Get the app**. In Chrome or Edge (Mac or PC) it installs right away and opens in its own window with its own icon. In Safari on a Mac, use **File → Add to Dock**; on an iPad or iPhone, **Share → Add to Home Screen**. An app added from Safari keeps its own save, so turn on online save in the Parent Corner and join with your family code inside the new app.
 
