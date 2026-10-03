@@ -49,6 +49,9 @@ Dixon Lake, Lake Poway, Lake Jennings, Lake Cuyamaca, El Capitan and Lower Otay.
 
 Which fish live in which lake is simplified for the game. It's based on the City of San Diego reservoir species list, San Diego Tourism Authority and Wikipedia.
 
+## Install it like an app
+On the title screen, tap **💻 Get the app**. In Chrome or Edge (Mac or PC) it installs right away and opens in its own window with its own icon. In Safari on a Mac, use **File → Add to Dock**; on an iPad or iPhone, **Share → Add to Home Screen**. An app added from Safari keeps its own save, so turn on online save in the Parent Corner and join with your family code inside the new app.
+
 ## Tech
 The game is `index.html` plus `ll-core.js` (players, picture locks, Parent Corner, online save and auto-update). No build step and no libraries. Each player's progress is saved in the browser, and online too once a grown-up turns on online save (a family code; Firebase, the same way Math Quest and Language Quest save). Players' first names only; nothing else is collected.
 

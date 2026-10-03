@@ -203,6 +203,12 @@ const BOT = n => {
   }
   await a.setViewportSize({ width: 390, height: 780 });
 
+  console.log("Install as an app");
+  const app = await a.evaluate(async () => { const m = await (await fetch(document.querySelector('link[rel="manifest"]').href)).json();
+    const ok = await Promise.all(m.icons.map(async i => (await fetch(i.src)).ok)); return { name: m.name, display: m.display, icons: m.icons.length, all: ok.every(Boolean), btn: !!$("btnApp") }; });
+  ok(app.name === "Lake Legends" && app.display === "standalone" && app.icons >= 2 && app.all, "the app manifest and its icons load");
+  ok(app.btn, "the title screen has a Get the app button");
+
   console.log("Second player");
   await a.evaluate(() => $("btnWho").onclick());
   await a.click("#llParent"); await a.fill("#llPin", "1234"); await a.click("#llO");
