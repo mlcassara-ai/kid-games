@@ -41,6 +41,11 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 #zone.show{opacity:1; transform:translate(-50%,0)}
 #zone b{display:block; font-size:1.3rem}
 #zone span{font-size:1.5rem; color:var(--sky)}
+/* hold-to-walk arrows (like Math Quest's): faint until used */
+#dpad{position:fixed; left:12px; bottom:calc(env(safe-area-inset-bottom,0px) + 12px); display:grid; grid-template-areas:". u ." "l . r" ". d ."; grid-template-columns:repeat(3,48px); grid-template-rows:repeat(3,48px); gap:3px; opacity:.45; z-index:2; pointer-events:none; transition:opacity .3s}
+#dpad.used{opacity:.9}
+#dpad button{pointer-events:auto; border:0; background:rgba(255,255,255,.8); border-radius:14px; font-size:20px; color:#12233d; box-shadow:0 3px 0 rgba(0,0,0,.25); touch-action:none; cursor:pointer; padding:0}
+#dpad button:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.25)}
 #hint{position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); left:50%; transform:translateX(-50%); background:rgba(18,35,61,.8); color:#fff; border-radius:999px; padding:8px 18px; font-size:1rem; z-index:2; pointer-events:none; transition:opacity .6s; white-space:nowrap}
 #card{position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); transform:translate(-50%,130%); width:min(92vw,420px); background:var(--card); color:var(--ink); border-radius:24px; padding:16px 18px; box-shadow:0 8px 30px rgba(0,0,0,.35); z-index:3; transition:transform .35s}
 #card.show{transform:translate(-50%,0)}
@@ -112,6 +117,7 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 <canvas id="mini" aria-label="Mini map"></canvas>
 <div id="zone"><b></b><span lang="ar"></span></div>
 <div id="hint">Tap anywhere to walk · tap things to learn their names</div>
+<div id="dpad"><button data-d="0,-1" style="grid-area:u" aria-label="Up">▲</button><button data-d="-1,0" style="grid-area:l" aria-label="Left">◀</button><button data-d="1,0" style="grid-area:r" aria-label="Right">▶</button><button data-d="0,1" style="grid-area:d" aria-label="Down">▼</button></div>
 <div id="enterBar" role="status"><div><b></b> <span lang="ar"></span></div><button class="btn ghost" id="enterHear" aria-label="Hear the name again">🔊</button><button class="btn go" id="enterGo">Enter ▶</button><button class="btn ghost" id="enterCancel">Not now</button></div>
 <div id="fm" role="dialog" aria-modal="true"><div class="box" id="fmBox"></div></div>
 <div id="card" role="dialog" aria-live="polite">
@@ -122,8 +128,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.03b";</script>
-<script src="lq-core.js?v=2026.10.03b"></script>
+<script>window.LQ_VER="2026.10.03c";</script>
+<script src="lq-core.js?v=2026.10.03c"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -463,7 +469,32 @@ function toWorld(sx,sy){ return [cam.x+sx/ZOOM, cam.y+sy/ZOOM]; }
 function walkable(x,y){ return x>20&&y>40&&x<W-20&&y<H-20 && biomeAt(x,y)!=="sea"; }
 function setTarget(x,y){ player.tx=Math.max(20,Math.min(W-20,x)); player.ty=Math.max(40,Math.min(H-20,y)); player.moving=true; marker={x:player.tx,y:player.ty,t:0}; }
 let hintHidden=false;
+function clearPending(){ pendingFriend=null; pendingTeta=false; pendingJiddo=false; pendingFountain=false; pendingItem=null; pendingLandmark=null; pendingEnterL=null; }
+/* press and drag on the map: the hero follows the finger (a plain tap still walks to the spot) */
+let drag=null;
+cv.addEventListener("pointerdown",e=>{ drag={x:e.clientX,y:e.clientY,id:e.pointerId,on:false}; });
+cv.addEventListener("pointermove",e=>{ if(!drag||drag.id!==e.pointerId) return;
+  if(!drag.on && Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>18){ drag.on=true; closeCard(); cancelEnter(); clearPending(); }
+  if(drag.on){ const [wx,wy]=toWorld(e.clientX,e.clientY); setTarget(wx,wy); } });
+cv.addEventListener("pointercancel",()=>{ drag=null; });
+/* arrow keys / WASD and the on-screen arrows: walk while held */
+const held={}; let padDir=null;
+const KEYS={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0],W:[0,-1],S:[0,1],A:[-1,0],D:[1,0]};
+function startManual(){ if(!hintHidden){ document.getElementById("hint").style.opacity=0; hintHidden=true; } closeCard(); cancelEnter(); clearPending(); player.moving=false; marker=null; }
+addEventListener("keydown",e=>{ const k=KEYS[e.key]; if(!k||e.metaKey||e.ctrlKey||e.altKey) return;
+  const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+  if(document.getElementById("lqOv")||document.querySelector("#fm.show")) return;
+  e.preventDefault(); if(!held[e.key]) startManual(); held[e.key]=k; });
+addEventListener("keyup",e=>{ delete held[e.key]; });
+addEventListener("blur",()=>{ for(const k in held) delete held[k]; padDir=null; });
+document.querySelectorAll("#dpad button").forEach(b=>{ const d=b.dataset.d.split(",").map(Number), pad=b.parentNode;
+  b.addEventListener("pointerdown",e=>{ e.preventDefault(); e.stopPropagation(); try{ b.setPointerCapture(e.pointerId); }catch(_){} startManual(); padDir=d; pad.classList.add("used"); clearTimeout(pad._t); });
+  const stop=()=>{ if(padDir===d) padDir=null; clearTimeout(pad._t); pad._t=setTimeout(()=>pad.classList.remove("used"),1500); };
+  ["pointerup","pointercancel","lostpointercapture"].forEach(ev=>b.addEventListener(ev,stop)); });
+function manualDir(){ let x=0,y=0; for(const k in held){ x+=held[k][0]; y+=held[k][1]; } if(padDir){ x+=padDir[0]; y+=padDir[1]; }
+  x=Math.sign(x); y=Math.sign(y); return (x||y)?[x,y]:null; }
 cv.addEventListener("pointerup",e=>{
+  if(drag&&drag.on){ drag=null; return; } drag=null;
   if(!hintHidden){ document.getElementById("hint").style.opacity=0; hintHidden=true; }
   const [wx,wy]=toWorld(e.clientX,e.clientY);
   closeCard();
@@ -1024,12 +1055,25 @@ document.getElementById("enterGo").onclick=e=>{ e.stopPropagation(); if(entering
 document.getElementById("enterHear").onclick=e=>{ e.stopPropagation(); if(entering) say(entering.l.ar); };
 
 /* ============ loop ============ */
-let last=performance.now(), T=0;
+let last=performance.now(), T=0, wasManual=false;
+const WALK=420;
+/* step to (nx,ny); at the water's edge slide along it instead of stopping dead */
+function tryMove(nx,ny){ if(walkable(nx,ny)){ player.x=nx; player.y=ny; return true; }
+  if(walkable(nx,player.y)&&Math.abs(nx-player.x)>0.3){ player.x=nx; return true; }
+  if(walkable(player.x,ny)&&Math.abs(ny-player.y)>0.3){ player.y=ny; return true; }
+  return false; }
 function frame(now){
   const dt=Math.min(0.05,(now-last)/1000); last=now; T+=dt;
   // move
+  const md=manualDir();
+  if(md){ const n=Math.hypot(md[0],md[1]), step=WALK*dt; player.moving=false; marker=null; wasManual=true;
+    if(md[0]) player.face=md[0];
+    tryMove(player.x+md[0]/n*step, player.y+md[1]/n*step); }
+  else if(wasManual){ wasManual=false;
+    const onPad=LANDMARKS.find(l=>OPEN[l.id]&&Math.hypot((player.x-padOf(l).x)/1.6,player.y-padOf(l).y)<45); if(onPad) startEnter(onPad); }
   if(player.moving){
-    const dx=player.tx-player.x, dy=player.ty-player.y, d=Math.hypot(dx,dy), step=280*dt;
+    /* about Math Quest's walking pace; long trips speed up so crossing the map doesn't drag */
+    const dx=player.tx-player.x, dy=player.ty-player.y, d=Math.hypot(dx,dy), step=Math.min(WALK*1.8,WALK+d*0.5)*dt;
     if(Math.abs(dx)>2) player.face=dx>0?1:-1;
     if(d<=step){ player.x=player.tx; player.y=player.ty; player.moving=false; marker=null;
       if(pendingLandmark){ openCard(pendingLandmark); pendingLandmark=null; }
@@ -1041,7 +1085,7 @@ function frame(now){
       if(pendingJiddo){ jiddoTalk(); pendingJiddo=false; }
       if(pendingFountain){ fountain(); pendingFountain=false; } }
     else { const nx=player.x+dx/d*step, ny=player.y+dy/d*step;
-      if(walkable(nx,ny)){ player.x=nx; player.y=ny; } else { player.moving=false; marker=null; } }
+      if(!tryMove(nx,ny)){ player.moving=false; marker=null; } }
   }
   const z=biomeAt(player.x,player.y); if(z!==currentZone){ if(currentZone!==null) showZone(z); currentZone=z; }
   // camera
