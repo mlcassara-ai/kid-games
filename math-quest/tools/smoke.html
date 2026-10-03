@@ -293,6 +293,11 @@ const tests=[
   T.ok(d.S.grow&&d.S.grow.list.length===5&&d.S.dug!==dug0,'no tunnels were refilled with new finds');T.ok(/rockfall/.test(t),'the welcome does not mention the rockfall');
   T.ok(/brand-new cave/.test(t),'camp does not say when a brand-new cave comes');try{d.closeModal();}catch(e){}Cave.leave();
  }],
+ ['inner space ride music: the studio version plays during Ozzy\'s ride',async function(){
+  T.reset();const p=T.hero('Rider',4);state.cur=p.id;go('world');await T.wait(50);const el=document.createElement('div');el.id='isRoot';document.body.appendChild(el);curScreen='inner';
+  Music.update();T.ok(Music._state().want==='innerStudio','the ride does not choose the studio Inner Space music');el.remove();go('world');
+  {const r=await fetch('audio/inner-space-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/inner-space-studio.mp3 is missing');}
+ }],
  ['fossil battle door: the Museum opens the Fossil Stage once all 4 dinosaur skeletons are built',async function(){
   T.reset();const p=T.hero('Digger',4);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;p.sci.met=true;p.sci.rocks=0;p.sci.trips=5;p.sci.lab={ok:{},freeDay:''};p.cave={trips:5,stats:{dug:12},ex:{trex:1,triceratops:1,stego:1}};
   go('lab');Lab.down();await T.wait(400);let d=Cave._dbg();try{d.closeModal();}catch(e){}d.openMuseum();await T.wait(60);let t=document.querySelector('#cvMod').innerText;

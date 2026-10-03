@@ -37,6 +37,7 @@ const TRACKS={
  starsStudio:{name:'🎧 Music-Box Stars (studio)',file:'audio/music-box-stars-studio.mp3'}, /* the owner's Suno version of Music-Box Stars, a map music choice */
  petBattle:{name:'⚔️ Pet Battle',file:'audio/pet-battle-studio.mp3'},
  lastStand:{name:'⚔️ Last Stand',file:'audio/pet-battle-last-stand-studio.mp3'},
+ innerStudio:{name:'🚀 Inner Space (studio)',file:'audio/inner-space-studio.mp3'}, /* Ozzy's ride: the owner's Suno version of the live Inner Space tune below */
  standFirm:{name:'🛡️ Stand Firm',file:'audio/pet-battle-stand-firm-studio.mp3'}, /* the third, slower Battle Pets song: the owner's Suno version of an original tune */ /* the alternate Battle Pets song: the owner's Suno version of an original tune */ /* Battle Pets fights: an original marching-band battle tune, rendered here and finished by the owner in Suno */
  magma:{name:'🌋 Magma Deep',bpm:44,root:45,scale:[0,1,5,7,8],prog:[[0,7,12],[1,8,13],[-4,3,8],[0,7,12]],tone:'glass',rest:.6,padVol:.1,octave:12,padCut:380,rumble:.3}};
 const LEVEL=.34; // softer than sound effects
@@ -200,7 +201,7 @@ function update(){try{const p=typeof P==='function'&&state&&state.cur?P():null;
  if(inDistrict()&&p)id=dTrack(p);
  if(inCave&&p&&p.caveMusic!==false){try{const d=Cave._dbg();const y=d.S.y;if(y===0)id=trackFor({music:'auto'});else{const L=d.layerOf(y);const lid=L&&L.id;id=['magma','mantle'].includes(lid)?'magma':['crystal','granite'].includes(lid)?'crystal':'cave';}}catch(e){id='cave';}}
  const inHaunt=typeof curScreen!=='undefined'&&!document.hidden&&((curScreen==='zone'&&typeof curArg!=='undefined'&&curArg==='haunt')||(curScreen==='battle'&&typeof B!=='undefined'&&B&&B.z&&B.z.id==='haunt'&&!B.over));if(inHaunt&&p&&choice(p)!=='off')id='haunt';
- const inRide=typeof curScreen!=='undefined'&&curScreen==='inner'&&!document.hidden&&!!document.getElementById('isRoot');if(inRide&&p&&choice(p)!=='off')id='inner';
+ const inRide=typeof curScreen!=='undefined'&&curScreen==='inner'&&!document.hidden&&!!document.getElementById('isRoot');if(inRide&&p&&choice(p)!=='off')id='innerStudio';
  const inBP=typeof curScreen!=='undefined'&&curScreen==='bp'&&!document.hidden&&window.BattlePets&&BattlePets._dbg&&BattlePets._dbg.view().k==='fight'&&BattlePets._dbg.G()&&!BattlePets._dbg.G().over;if(inBP&&p){try{id=window.BattlePets&&BattlePets.songId?BattlePets.songId():'petBattle';}catch(e){id='petBattle';}}
  if(mVol()<=0)id=null;
  want=id;
