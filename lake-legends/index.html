@@ -303,8 +303,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.03j";</script>
-<script src="ll-core.js?v=2026.10.03j"></script>
+<script>window.LL_VER="2026.10.03k";</script>
+<script src="ll-core.js?v=2026.10.03k"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -451,7 +451,10 @@ const LAKE_RULES = {
   elcap:    { bcrappie:{ min:10, bag:25, group:"panfish" }, wcrappie:{ min:10, bag:25, group:"panfish" } }
 };
 // the game's "day": catch this many keepers in one day and the boss shows up
-const DAY_LIMIT = { dixon:5, poway:6, jennings:7, cuyamaca:7, elcap:8, otay:10 };
+const DAY_LIMIT = { dixon:7, poway:9, jennings:10, cuyamaca:10, elcap:12, otay:14 };
+// the boss only comes out once you've caught enough different kinds of fish at that lake
+const kindsNeed = L => Math.min(3 + LAKES.indexOf(L), L.fish.filter(id => !SPECIES[id].legend).length);
+const kindsAt = L => Object.keys((S.lakeDex || {})[L.id] || {}).length;
 function ruleFor(lakeId, id){ return Object.assign({ group:id }, STATE_RULES[id] || {}, (LAKE_RULES[lakeId] || {})[id] || {}); }
 function keptToday(lakeId, group){ return S.day && S.day.lake === lakeId ? S.day.kept.filter(k => k.group === group).length : 0; }
 function dayCount(lakeId){ return S.day && S.day.lake === lakeId ? S.day.kept.length : 0; }
@@ -469,7 +472,7 @@ function verdict(lakeId, f){
 function lakeInfoHtml(L){
   const bd = BOSSES[L.id];
   return `<h3>${L.name}</h3><p>${L.blurb}</p><div class="muted">${L.town} · ${L.depth} ft deep</div>
-    <p>🪵 <b>Dock:</b> free, shallow, small fish<br>🚣 <b>Boat:</b> ${rentCost(L) ? "🪙" + rentCost(L) : "your own boat"}, the whole lake<br>⚔️ <b>Boss:</b> keep ${DAY_LIMIT[L.id]} fish in one day to meet ${bd.name}</p>` + rulesHtml(L);
+    <p>🪵 <b>Dock:</b> free, shallow, small fish<br>🚣 <b>Boat:</b> ${rentCost(L) ? "🪙" + rentCost(L) : "your own boat"}, the whole lake<br>⚔️ <b>Boss:</b> keep ${DAY_LIMIT[L.id]} fish in one day and catch ${kindsNeed(L)} kinds of fish here to meet ${bd.name}</p>` + rulesHtml(L);
 }
 function rulesHtml(L){
   const lines = [];
@@ -1414,7 +1417,7 @@ function renderMap(){
     const d = document.createElement("div"); d.className = "card lake" + (owned ? "" : " locked"); d.id = "lake_" + L.id;
     const bd = BOSSES[L.id], i = LAKES.indexOf(L), lim = DAY_LIMIT[L.id];
     const sub = !owned ? "🔒 Beat " + BOSSES[LAKES[i-1].id].name + " to unlock"
-      : (S.bosses[L.id] ? "🏆 " + bd.name : "⚔️ " + bd.name + " · 🧺 " + dayCount(L.id) + "/" + lim) + " · 🐟 " + seen + "/" + L.fish.length;
+      : (S.bosses[L.id] ? "🏆 " + bd.name : "⚔️ " + bd.name + " · 🧺 " + dayCount(L.id) + "/" + lim + " · 🐟 kinds here " + Math.min(kindsAt(L), kindsNeed(L)) + "/" + kindsNeed(L)) + " · 📖 " + seen + "/" + L.fish.length;
     d.innerHTML = `<div class="row"><div class="grow"><h3>${owned ? "" : "🔒 "}${L.name}</h3><div class="muted">${sub}</div></div></div>`;
     if (owned){
       const col = document.createElement("div"); col.className = "lakebtns";
@@ -1513,7 +1516,7 @@ function renderDex(){
     const c = document.createElement("div"); c.className = "dexcell" + (got ? " legend" : " unk");
     c.appendChild(fishIcon(bossSp(L.id), 150, 80, !got));
     const n = document.createElement("div"); n.innerHTML = (got ? d.name + "<br>" + d.lb + " lb" : "???<br>" + L.name); c.appendChild(n);
-    c.onclick = () => { SFX.click(); infoModal(`<h3>${got ? d.name : "Boss of " + L.name}</h3><p>${got ? d.intro : "Keep " + DAY_LIMIT[L.id] + " fish in one day at " + L.name + " to meet this boss."}</p>
+    c.onclick = () => { SFX.click(); infoModal(`<h3>${got ? d.name : "Boss of " + L.name}</h3><p>${got ? d.intro : "Keep " + DAY_LIMIT[L.id] + " fish in one day at " + L.name + " and catch " + kindsNeed(L) + " different kinds of fish there to meet this boss."}</p>
       ${got ? `<div class="muted">${d.inches} in · ${d.lb} lb · caught at ${L.name}</div>` : `<div class="muted">Hint: it likes ${d.likes}.</div>`}`, "Close"); };
     bg.appendChild(c);
   });
@@ -1584,7 +1587,7 @@ function showCard(id, isNew, onDone){
       <div class="muted">Real-life size range here: about ${sp.min}–${sp.max} inches</div>`;
   } else {
     info.innerHTML = sp.legend
-      ? `<p>Old-timers at the bait shop whisper about a giant bass with a golden glow... She's the <b>boss of Dixon Lake</b>. Keep ${DAY_LIMIT.dixon} fish in one day at Dixon and she'll show up.</p>`
+      ? `<p>Old-timers at the bait shop whisper about a giant bass with a golden glow... She's the <b>boss of Dixon Lake</b>. Keep ${DAY_LIMIT.dixon} fish in one day at Dixon and catch ${kindsNeed(LAKES[0])} kinds of fish there, and she'll show up.</p>`
       : `<p>You haven't caught this one yet.</p><div class="muted"><b>Try:</b> ${lakesFor(id).join(", ")}</div>`;
   }
   box.appendChild(info);
@@ -2358,7 +2361,7 @@ function finishTrip(){
   }
   T.caught.forEach(f => {
     const sp = f.sp, lb = weightLb(sp, f.inches);
-    const coins = Math.round(sp.val * 2 * (.6 + f.frac*.9) * (f.trophy ? 1.5 : 1) * (f.rare ? 1.5 : 1) * (f.variant ? 2 : 1) * (f.id === fishOfDay() ? 2 : 1));
+    const coins = Math.round(sp.val * 1.2 * (.6 + f.frac*.9) * (f.trophy ? 1.5 : 1) * (f.rare ? 1.5 : 1) * (f.variant ? 2 : 1) * (f.id === fishOfDay() ? 2 : 1));
     const v = verdict(T.lake.id, f);
     const item = { f, v, coins, relCoins: Math.max(1, Math.ceil(coins * .5)), keep: v.st !== "release" };
     pending.items.push(item);
@@ -2508,14 +2511,15 @@ function applyPending(){
     q.unshift(nx => infoModal(`<div style="font-size:3em">👴❤️</div><h3>Grandpa would be proud!</h3><p><b>+10 🪙</b></p>`, "Yeah!", nx));
   }
   const now = dayCount(L.id);
-  if (before < lim && now >= lim){
-    const bd = BOSSES[L.id];
+  P.items.forEach(it => { if (SPECIES[it.f.id] && !it.f.nightLegend){ S.lakeDex = S.lakeDex || {}; (S.lakeDex[L.id] = S.lakeDex[L.id] || {})[it.f.id] = 1; } });
+  const bd = BOSSES[L.id];
+  if (!S.bosses[L.id] && now >= lim){
+    if (kindsAt(L) >= kindsNeed(L)){ S.day = { lake: L.id, kept: [] }; q.push(nx => bossOffer(L, nx)); }
+    else if (before < lim) q.push(nx => infoModal(`<div style="font-size:3em">🧺</div><h3>Limit reached!</h3><p>${bd.name} is watching... but won't come out until you've caught <b>${kindsNeed(L)} different kinds of fish</b> at ${L.name}. You have <b>${kindsAt(L)}</b>.</p><div class="muted">Try other baits, other depths, the boat, or fishing at night.</div>`, "I'm on it!", nx));
+  } else if (before < lim && now >= lim){
     if (S.bosses[L.id]){
       S.coins += 15; S.day = { lake: L.id, kept: [] };
       q.push(nx => infoModal(`<div style="font-size:3em">🧺</div><h3>You caught your limit!</h3><p>${lim} keepers at ${L.name}. Limit bonus: <b>+15 🪙</b>. A brand new fishing day starts now.</p>`, "Nice!", nx));
-    } else {
-      S.day = { lake: L.id, kept: [] };   // a new day starts either way
-      q.push(nx => bossOffer(L, nx));
     }
   }
   save();

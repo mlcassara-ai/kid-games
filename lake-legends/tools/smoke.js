@@ -170,13 +170,17 @@ const BOT = n => {
   console.log("Depth bands, reports, update notice");
   const r4 = await a.evaluate(() => {
     const out = {};
-    // a catfish can't be teased up out of the deep (Mika's trick)
-    S.clock = 12; startTrip(lakeById("dixon"), 0, "boat", true);
-    const f = makeFish("channel", 50 * PPF); f.variant = null; f.sp = SPECIES.channel; f.x = 240; f.baseY = f.y = 50 * PPF; trip.fish = [f];
-    trip.bait = "worm"; trip.phase = "reel"; trip.hook.x = 250; trip.hook.y = 50 * PPF; let topY = f.baseY;
-    for (let i = 0; i < 1500; i++){ const hy = Math.max(2 * PPF, 50 * PPF - i * .8); trip.hook.y = hy; trip.pending = 0; btnHeld = false; trip.nibble = null; f.nibbling = false; f.sniffT = 0; f.fleeT = 0;
-      updateFishing(1/30); if (!trip) break; trip.hook.y = hy; trip.phase = "reel"; trip.caught = []; topY = Math.min(topY, f.baseY); }
-    out.band = topY > 30 * PPF && topY < 49 * PPF; out.topFt = Math.round(topY / PPF);
+    // a catfish can't be teased up out of the deep (Mika's trick): try a few, at least one must follow, none may rise past its band
+    let topY = 99999, moved = false;
+    for (let k = 0; k < 6 && !moved; k++){
+      S.clock = 12; startTrip(lakeById("dixon"), 0, "boat", true);
+      const f = makeFish("channel", 50 * PPF); f.variant = null; f.sp = SPECIES.channel; f.x = 240; f.baseY = f.y = 50 * PPF; trip.fish = [f];
+      trip.bait = "worm"; trip.phase = "reel"; trip.hook.x = 250; trip.hook.y = 50 * PPF; let top = f.baseY;
+      for (let i = 0; i < 1500; i++){ const hy = Math.max(2 * PPF, 50 * PPF - i * .8); trip.hook.y = hy; trip.pending = 0; btnHeld = false; trip.nibble = null; f.nibbling = false; f.sniffT = 0; f.fleeT = 0;
+        updateFishing(1/30); if (!trip) break; trip.hook.y = hy; trip.phase = "reel"; trip.caught = []; top = Math.min(top, f.baseY); }
+      topY = Math.min(topY, top); moved = moved || top < 49 * PPF;
+    }
+    out.band = topY > 30 * PPF && moved; out.topFt = Math.round(topY / PPF);
     trip = null; visit = null; showScreen("title");
     // a report is saved with the screen and version
     LL.report();
@@ -202,6 +206,26 @@ const BOT = n => {
     ok(fit.w > .97 && fit.h > .97, `the game fills a ${w}×${h} screen (${Math.round(fit.w*100)}% × ${Math.round(fit.h*100)}%)`);
   }
   await a.setViewportSize({ width: 390, height: 780 });
+
+  console.log("Pacing");
+  const r6 = await a.evaluate(() => {
+    const out = {}, L = lakeById("dixon"), keep = id => { startTrip(L, 0, "dock", true); const f = makeFish(id, 60); f.variant = null; f.sp = SPECIES[id]; f.inches = Math.max(13, SPECIES[id].min + 1);
+      trip.fish.push(f); trip.phase = "reel"; hookFish(f); trip.fight = null; trip.phase = "reel"; if (!trip.caught.length) landFish(f); trip.hook.y = 2;
+      for (let i = 0; i < 80 && trip; i++){ crank(); updateFishing(1/30); } const q = applyPending(); return q.length; };
+    const saved = { bosses: S.bosses, lakeDex: S.lakeDex, day: S.day }; S.bosses = {}; S.lakeDex = {}; S.day = { lake:"dixon", kept:[] };
+    for (let i = 0; i < DAY_LIMIT.dixon; i++) keep("bluegill");
+    out.noBoss = !$("modalBox").textContent.includes("is here") && kindsAt(L) === 1;
+    let offered = false; const keepQ = id => { startTrip(L, 0, "dock", true); const f = makeFish(id, 60); f.variant = null; f.sp = SPECIES[id]; f.inches = Math.max(13, SPECIES[id].min + 1);
+      trip.fish.push(f); trip.phase = "reel"; hookFish(f); trip.fight = null; trip.phase = "reel"; if (!trip.caught.length) landFish(f); trip.hook.y = 2;
+      for (let i = 0; i < 80 && trip; i++){ crank(); updateFishing(1/30); } return applyPending(); };
+    for (const id of ["largemouth", "channel"]) offered = keepQ(id).some(fn => /bossOffer/.test(fn.toString())) || offered;
+    const q = []; out.offerFlag = offered;
+    out.kinds = kindsAt(L); out.offer = out.offerFlag;
+    Object.assign(S, saved); trip = null; visit = null; $("modal").classList.remove("show"); showScreen("title");
+    return out;
+  });
+  ok(r6.noBoss, "a full basket of just bluegill doesn't bring out the boss");
+  ok(r6.kinds >= 3 && r6.offer, "after 3 kinds at Dixon the boss offer comes");
 
   console.log("Wildlife");
   const r5 = await a.evaluate(() => {
