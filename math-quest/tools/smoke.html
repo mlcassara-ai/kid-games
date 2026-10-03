@@ -210,7 +210,7 @@ const tests=[
   Music.update();T.ok(['petBattle','lastStand'].includes(Music._state().want),'no battle song is chosen in a fight');
   /* 🔊 in a battle pauses it and offers only battle sound: effects, music, the battle song */
   BattlePets._sound();T.ok(G.paused&&document.getElementById('bpSnd')&&document.querySelectorAll('#bpSnd .bp2-songs button').length===4,'the battle sound card did not open and pause');
-  BattlePets._song('last');Music.update();T.ok(P().bpSong==='last'&&Music._state().want==='lastStand','choosing Last Stand did not change the battle song');
+  BattlePets._song('last');Music.update();T.ok(P().bpSong==='last'&&Music._state().want==='lastStand','choosing Last Stand did not change the battle song');{const r=await fetch('audio/pet-battle-last-stand-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/pet-battle-last-stand-studio.mp3 is missing');}
   BattlePets._song('march');Music.update();T.ok(Music._state().want==='petBattle','choosing Pet Battle did not change the battle song');
   BattlePets._song('off');Music.update();T.ok(!Music._state().want,'No battle music still plays music');BattlePets._song('mix');
   BattlePets._soundDone();T.ok(!G.paused&&!document.getElementById('bpSnd'),'closing the sound card did not resume the battle');{const r=await fetch('audio/pet-battle-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/pet-battle-studio.mp3 is missing');}
