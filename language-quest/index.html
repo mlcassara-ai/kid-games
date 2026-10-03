@@ -80,6 +80,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 #fm .slot.got .l{opacity:1}
 #fm .slot .w{font-size:.95rem; direction:rtl}
 #fm p{line-height:1.45}
+#fm .hearrow{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px}
+#fm .hearrow .btn{font-size:1.35rem; min-height:56px; padding:8px 18px}
 #fm .vol{display:flex; align-items:center; gap:10px; margin:14px 0 0; font-weight:800; text-align:left}
 #fm .vol span{width:92px}
 #fm .vol input{flex:1; height:36px; accent-color:var(--mint)}
@@ -120,8 +122,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02zg";</script>
-<script src="lq-core.js?v=2026.10.02zg"></script>
+<script>window.LQ_VER="2026.10.02zh";</script>
+<script src="lq-core.js?v=2026.10.02zh"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -770,12 +772,17 @@ function closeFm(){ fm.classList.remove("show"); }
 fm.addEventListener("pointerup",e=>{ if(e.target===fm) closeFm(); });
 function distractors(ch){ const g=(LIKE.find(x=>x.includes(ch))||[]).filter(x=>x!==ch); const pool=[...g]; const all=Object.keys(LNAME).filter(x=>x!==ch&&!g.includes(x));
   while(pool.length<2) pool.push(all.splice(Math.random()*all.length|0,1)[0]); return pool.sort(()=>Math.random()-.5).slice(0,2); }
+// big "hear it again" buttons for a found friend: the animal's name, and the letter it starts with
+const hearRow=f=>`<div class="hearrow"><button class="btn ghost" id="fHearName">🔊 <span lang="ar">${f.ar}</span></button><button class="btn ghost" id="fHearLetter">🔊 <span lang="ar">${f.ch}</span> <span lang="ar">${LNAME[f.ch]}</span></button></div>
+  <p style="margin:4px 0 0;color:var(--muted);font-size:.95rem">Tap to hear them again as many times as you like.</p>`;
+function wireHear(f){ const n=document.getElementById("fHearName"), l=document.getElementById("fHearLetter"); if(n) n.onclick=()=>say(f.ar); if(l) l.onclick=()=>say(LNAME[f.ch]);
+  fmBox.querySelectorAll(".big,.ltr").forEach(e=>{ e.style.cursor="pointer"; e.onclick=()=>say(e.classList.contains("ltr")?LNAME[f.ch]:f.ar); }); }
 function meetFriend(f){ LQ.mark("Friend "+f.ch);
   closeCard(); const got=!!found()[f.ch]; say(f.ar);
   const head=`<div class="big">${f.e}</div><div class="arw" lang="ar">${f.ar}</div><p style="margin:0">Marhaba! I'm a <b>${f.en}</b>.</p>`;
-  if(got){ openFm(`${head}<div class="ltr" lang="ar">${f.ch}</div><p>My name starts with <b>${LNAME[f.ch]}</b> <span lang="ar">${LNAME[f.ch]}</span>. I'm already in your album! ⭐</p>
-      <div class="row"><button class="btn ghost" id="fHear">🔊 Hear again</button><button class="btn go" id="fOk">OK</button></div>`);
-    document.getElementById("fHear").onclick=()=>say(f.ar); document.getElementById("fOk").onclick=closeFm; return; }
+  if(got){ openFm(`${head}<div class="ltr" lang="ar">${f.ch}</div><p>My name starts with <b lang="ar">${LNAME[f.ch]}</b>. I'm already in your album! ⭐</p>
+      ${hearRow(f)}<div class="row"><button class="btn go" id="fOk">OK</button></div>`);
+    wireHear(f); document.getElementById("fOk").onclick=closeFm; return; }
   const opts=[f.ch,...distractors(f.ch)].sort(()=>Math.random()-.5);
   openFm(`${head}<p><b>Which letter does my name start with?</b></p>
     <div class="opts">${opts.map(o=>`<button class="opt" lang="ar" data-o="${o}">${o}</button>`).join("")}</div>
@@ -786,10 +793,10 @@ function meetFriend(f){ LQ.mark("Friend "+f.ch);
       LQ.update(p=>{ p.friends=p.friends||{}; p.friends[f.ch]=Date.now(); p.friendsStarted=true; }); LQ.addCoins(15); hud();
       const n=Object.keys(found()).length;
       setTimeout(()=>{ openFm(`<div class="big">${f.e}</div><div class="ltr" lang="ar">${f.ch}</div>
-        <p style="font-size:1.15rem"><b>Yes!</b> <span lang="ar">${f.ar}</span> starts with <b>${LNAME[f.ch]}</b> <span lang="ar">${LNAME[f.ch]}</span>.</p>
+        <p style="font-size:1.15rem"><b>Yes!</b> <span lang="ar">${f.ar}</span> starts with <b lang="ar">${LNAME[f.ch]}</b>.</p>
         <p>⭐ I'm in your Letter Friends album now! <b>+15 🪙</b><br><span class="muted" style="color:var(--muted)">${n} of 28 friends found</span></p>
-        <div class="row"><button class="btn ghost" id="fAlb">📒 Album</button><button class="btn go" id="fOk">Yalla!</button></div>`);
-        document.getElementById("fOk").onclick=closeFm; document.getElementById("fAlb").onclick=album;
+        ${hearRow(f)}<div class="row"><button class="btn ghost" id="fAlb">📒 Album</button><button class="btn go" id="fOk">OK</button></div>`);
+        wireHear(f); document.getElementById("fOk").onclick=closeFm; document.getElementById("fAlb").onclick=album;
         if(n===28) setTimeout(allFound,900); },700);
     } else { b.classList.add("wrong"); LQ.record("letters",f.ch,false,o); say(LNAME[o]); }
   });
