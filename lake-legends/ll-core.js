@@ -89,13 +89,18 @@ const payload=()=>({v:1,players:state.players,pin:state.pin||null,pinUpd:state.p
 function merge(remote,keepId){
   const del=Object.assign({},remote.deleted||{},state.deleted||{}); const map=new Map(), order=[];
   (remote.players||[]).forEach(p=>{ map.set(p.id,p); order.push(p.id); });
-  state.players.forEach(p=>{ const r=map.get(p.id); if(!r){ map.set(p.id,p); order.push(p.id); } else if(p.id===keepId||(p.upd||0)>(r.upd||0)) map.set(p.id,p); });
+  state.players.forEach(p=>{ const r=map.get(p.id); if(!r){ map.set(p.id,p); order.push(p.id); return; }
+    const win=(p.id===keepId||(p.upd||0)>(r.upd||0))?p:r, lose=win===p?r:p; mergePrizes(win,lose); map.set(p.id,win); });
   const sig=()=>JSON.stringify(state.players,(k,v)=>k==="upd"?undefined:v); const before=sig();
   state.players=order.map(id=>map.get(id)).filter(p=>!(del[p.id]&&del[p.id]>=(p.upd||0))); state.deleted=del;
   if(remote.pin&&(!state.pin||(remote.pinUpd||0)>(state.pinUpd||0))){ state.pin=remote.pin; state.pinUpd=remote.pinUpd||0; }
   if(state.cur&&!state.players.find(p=>p.id===state.cur)) state.cur=null;
   stampChanges(true); saveLocal(); return before!==sig();
 }
+/* prizes from home can be set on one device while the kid plays on another: combine both copies' lists */
+function mergePrizes(a,b){ const del=Object.assign({},b.pdel||{},a.pdel||{}), m=new Map();
+  for(const x of (b.pprizes||[]).concat(a.pprizes||[])){ const y=m.get(x.id); m.set(x.id,y?Object.assign({},y,x,{earned:Math.max(y.earned||0,x.earned||0)||undefined,given:Math.max(y.given||0,x.given||0)||undefined}):x); }
+  const list=[...m.values()].filter(x=>!del[x.id]); if(list.length||a.pprizes) a.pprizes=list; if(Object.keys(del).length) a.pdel=del; }
 function scheduleSync(){ if(!cloud.code) return; clearTimeout(cloud.timer); cloud.timer=setTimeout(syncNow,3000); }
 async function syncNow(){
   if(!cloud.code) return; if(cloud.busy){ cloud.again=true; return; } cloud.busy=true; let changed=false;
@@ -264,9 +269,35 @@ function kidSummary(p){
     <div class="ll-small">${extra||"Hasn't fished yet."}</div>
     ${(p.reports||[]).length?`<details class="ll-small" style="margin-top:6px" open><summary>🐞 Reports and suggestions (${p.reports.length})</summary>${p.reports.slice().reverse().map(r=>`<div style="margin:5px 0;padding:6px 8px;background:#f1ece0;border-radius:10px"><div>${r.k==="idea"?"💡 Suggestion":"🐞 Problem"} · ${agoText(r.t)} · ${esc(r.s||"")} · ${esc(r.v||"")}</div><div style="color:#0f2a3d">${esc(r.m)}</div>${(()=>{ const a=((notes&&notes.msgs)||[]).find(m=>m.re&&m.to===p.id&&m.re.t===r.t); return a?`<div style="margin-top:4px;color:#2f8a4a">↳ ${(REPLY_HEAD[a.st]||REPLY_HEAD.thanks)[0]} ${esc(a.m)} ${a.readBy&&a.readBy[p.id]?"(seen "+agoText(a.readBy[p.id])+")":"(not seen yet)"}</div>`:`<div style="margin-top:4px">⏳ not answered yet</div>`; })()}</div>`).join("")}</details>`:""}
     ${errs.length?`<details class="ll-small" style="margin-top:6px"><summary>Problems the game noticed (${errs.length})</summary>${errs.map(r=>`<div style="color:#b23a56;margin:3px 0">${agoText(r.t)} · ${esc(r.m)} · ${esc(r.at)} (${esc(r.v)})</div>`).join("")}</details>`:""}
-    <div class="ll-row" style="justify-content:flex-start;margin-top:8px"><button class="ll-btn gh" data-lock="${p.id}">🔒 Secret pictures</button><button class="ll-btn gh" data-reset="${p.id}">Start ${esc(p.name)} over</button><button class="ll-btn gh" data-del="${p.id}">Remove player</button></div></div>`;
+    ${prizesHtml(p)}
+    <div class="ll-row" style="justify-content:flex-start;margin-top:8px"><button class="ll-btn g" data-padd="${p.id}">🎁 Add a prize</button><button class="ll-btn gh" data-lock="${p.id}">🔒 Secret pictures</button><button class="ll-btn gh" data-reset="${p.id}">Start ${esc(p.name)} over</button><button class="ll-btn gh" data-del="${p.id}">Remove player</button></div></div>`;
+}
+/* prizes from home: a grown-up picks a goal and types a real-world reward; the game celebrates when it's earned */
+const goalsFor=p=>typeof window.LL_GOALS==="function"?window.LL_GOALS(p.game||{}):[];
+function prizesHtml(p){ const pp=p.pprizes||[]; if(!pp.length) return ""; const goals=goalsFor(p);
+  return `<div class="ll-small" style="margin-top:8px"><b>🎁 Prizes from home</b>${pp.map(x=>{ const g=goals.find(y=>y.id===x.goal)||{name:"?",cur:0,need:1};
+    return `<div style="margin:4px 0;padding:6px 8px;background:#eef6ec;border-radius:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:space-between">
+      <span><b>${esc(x.text)}</b> for: ${esc(g.name)} · ${x.earned?(x.given?"🎉 given":"🎁 <b style='color:#2f8a4a'>EARNED</b> "+agoText(x.earned)):g.cur+"/"+g.need}</span>
+      <span>${x.earned&&!x.given?`<button class="ll-btn gh" data-given="${p.id}|${x.id}">Mark as given</button>`:""}<button class="ll-btn gh" data-pdel="${p.id}|${x.id}" aria-label="Remove">✕</button></span></div>`; }).join("")}</div>`; }
+function prizeForm(p){ const goals=goalsFor(p).filter(g=>g.cur<g.need);
+  overlay(`<div class="ll-card" style="max-width:480px;margin:20px auto">
+    <h2 style="margin-top:0">🎁 A prize for ${esc(p.name)}</h2>
+    <p class="ll-small">Pick a goal in the game and type the real-world prize. When ${esc(p.name)} reaches it, the game celebrates and tells them to come and get it.</p>
+    <label class="ll-small">Goal</label>
+    <select id="llPG" style="font:inherit;font-size:1.05rem;width:100%;padding:10px;border-radius:12px;border:2px solid #d5dfea;margin:4px 0 10px">${goals.map(g=>`<option value="${g.id}">${esc(g.name)} (now ${g.cur}/${g.need})</option>`).join("")}</select>
+    <label class="ll-small">Prize</label><input id="llPT" maxlength="60" placeholder="e.g. Pizza night, a trip to the real Dixon Lake" autocomplete="off">
+    <div id="llPE" style="color:#c2476a;font-weight:700;min-height:1.2rem;margin-top:4px"></div>
+    <div class="ll-row"><button class="ll-btn gh" id="llPC">Cancel</button><button class="ll-btn g" id="llPS">Save prize ✓</button></div></div>`);
+  document.getElementById("llPC").onclick=()=>parentCorner();
+  document.getElementById("llPS").onclick=()=>{ const t=document.getElementById("llPT").value.trim(), g=document.getElementById("llPG").value;
+    if(!t){ document.getElementById("llPE").textContent="Type the prize first."; return; } if(!g){ document.getElementById("llPE").textContent="Every goal is already reached!"; return; }
+    p.pprizes=(p.pprizes||[]).concat({id:uid(),goal:g,text:t.slice(0,60),t:Date.now()}); stampChanges(false); saveLocal(); scheduleSync(); parentCorner(); };
 }
 function wireKidButtons(){
+  document.querySelectorAll("[data-padd]").forEach(b=>b.onclick=()=>{ const p=state.players.find(x=>x.id===b.dataset.padd); if(p) prizeForm(p); });
+  const pick=v=>{ const [pid,xid]=v.split("|"), p=state.players.find(x=>x.id===pid); return p&&{p,x:(p.pprizes||[]).find(y=>y.id===xid)}; };
+  document.querySelectorAll("[data-given]").forEach(b=>b.onclick=()=>{ const r=pick(b.dataset.given); if(!r||!r.x) return; r.x.given=Date.now(); stampChanges(false); saveLocal(); scheduleSync(); parentCorner(); });
+  document.querySelectorAll("[data-pdel]").forEach(b=>b.onclick=()=>{ const r=pick(b.dataset.pdel); if(!r||!r.x||!confirm("Remove this prize?")) return; r.p.pprizes=r.p.pprizes.filter(y=>y!==r.x); r.p.pdel=Object.assign({},r.p.pdel,{[r.x.id]:Date.now()}); stampChanges(false); saveLocal(); scheduleSync(); parentCorner(); });
   document.querySelectorAll("[data-lock]").forEach(b=>b.onclick=()=>{ const p=state.players.find(x=>x.id===b.dataset.lock); if(p) chooseLock(p,false); });
   document.querySelectorAll("[data-reset]").forEach(b=>b.onclick=()=>{ const p=state.players.find(x=>x.id===b.dataset.reset); if(!p) return;
     if(confirm(`Erase all of ${p.name}'s fish, coins, gear and lakes and start fresh? This can't be undone.`)){ p.game=null; stampChanges(false); saveLocal(); scheduleSync(); fire(); parentCorner(); } });

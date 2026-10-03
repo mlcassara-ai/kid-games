@@ -286,6 +286,27 @@ const BOT = n => {
   ok(!!JSON.parse(STORE.get(mid)).msgs[0].readBy[ana], "tapping it records that the player saw it");
   ok(!(await b.$("#llNoteRead")), "it doesn't show again");
 
+  console.log("Prizes");
+  // device a (Ben signed in): a parent sets a prize for Ana; device b (Ana signed in) must get it, and earn it
+  await a.evaluate(() => { trip = null; visit = null; showScreen("title"); LL.parentCorner(); });
+  await a.fill("#llPin", "9999"); await a.click("#llO");                 // the newest PIN (set on device b) is the family's PIN
+  const anaBtn = await a.$$("[data-padd]"); if (!anaBtn.length) console.log("PC:", (await a.textContent("#llOv")).slice(0, 300)); await anaBtn[0].click();
+  await a.selectOption("#llPG", "land1000"); await a.fill("#llPT", "Pizza night"); await a.click("#llPS");
+  ok((await a.textContent("#llOv")).includes("Pizza night"), "a parent can set a prize from home");
+  await a.click("#llDone"); await a.evaluate(() => LL.syncNow()); await a.waitForTimeout(300);
+  await b.evaluate(() => LL.syncNow()); await b.waitForTimeout(300);
+  ok(await b.evaluate(() => (LL.player().pprizes || []).some(x => x.text === "Pizza night")), "the prize reaches the kid's device even while they're playing there");
+  const pz = await b.evaluate(() => { S.landed = 1000; S.dex = Object.assign({}, S.dex); for (const id of DEX_ORDER.slice(0, 5)) S.dex[id] = S.dex[id] || { n:1, best: SPECIES[id].min + 1 };
+    const c0 = S.coins; save(); return { coins: S.coins - c0, pirate: owns("hat", "pirate"), earned: !!(LL.player().pprizes.find(x => x.text === "Pizza night") || {}).earned, queued: prizeQueue.length }; });
+  ok(pz.pirate && pz.coins >= 100 + 100, "the prize ladder pays coins and unlocks prize items (pirate hat)");
+  ok(pz.earned && pz.queued >= 2, "the prize from home is earned and announced");
+  await b.waitForTimeout(1200);
+  ok((await b.textContent("#modalBox")).length > 0 && await b.isVisible("#modal"), "prizes pop up on the title screen");
+  await b.evaluate(() => { while ($("modal").classList.contains("show")){ $("modalBox").querySelector("button:last-child").click(); flushPrizes(); } });
+  await b.evaluate(() => printCertificate({ sp: SPECIES.largemouth, inches: 22.4, lb: 7.4, lake: "Dixon Lake", t: Date.now() }));
+  ok(await b.isVisible("#cert .certpage") && (await b.textContent("#cert")).includes("Ana"), "a catch certificate is ready to print");
+  await b.click("#certClose");
+
   ok(!errs.length, "no page errors" + (errs.length ? ": " + errs.slice(0, 3).join(" | ") : ""));
   await browser.close(); server.close();
   console.log("\n" + checks + " checks, " + fails.length + " failed");

@@ -71,6 +71,26 @@
   .plaque.arm .down { background:#e0483a; }
   .brag .mount { position:absolute; left:.5em; top:2.1em; border:none; border-radius:.7em; background:rgba(255,250,240,.95); color:var(--ink); font:inherit; font-weight:bold; font-size:.85em; padding:.25em .6em; cursor:pointer; }
   .brag .mount:disabled { opacity:.85; cursor:default; }
+  .brag .mount.cert { top:4.1em; }
+  .plaque .down.pr { right:auto; left:.3em; }
+  #cert { position:fixed; inset:0; z-index:95; display:none; flex-direction:column; align-items:center; justify-content:center; gap:.8em; background:rgba(5,20,32,.85); padding:1em; overflow:auto; }
+  .certpage { background:#fffaf0; width:min(92vw, 720px); aspect-ratio:11/8.5; padding:2.2%; box-shadow:0 1em 3em rgba(0,0,0,.5); font-family:Georgia, "Times New Roman", serif; color:#3a2600; }
+  .certin { height:100%; border:.5em double #b8862b; border-radius:.4em; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:3% 4%; text-align:center;
+    background:radial-gradient(ellipse at center, #fffdf6, #f5e8c6); }
+  .certin h1 { margin:0; font-size:clamp(1.4em, 5vw, 2.6em); color:#8a5a14; -webkit-text-fill-color:#8a5a14; background:none; filter:none; letter-spacing:.04em; }
+  .certtop { letter-spacing:.3em; font-weight:bold; color:#2a6a8a; font-size:clamp(.7em, 2vw, 1em); }
+  .certsub { margin:0; font-style:italic; font-size:clamp(.8em, 2.2vw, 1.1em); }
+  .certname { font-size:clamp(1.6em, 6vw, 3em); font-weight:bold; color:#1d4a6a; border-bottom:.08em solid #b8862b; padding:0 1em; }
+  .certfish { font-size:clamp(1.1em, 4vw, 2em); font-weight:bold; }
+  .certpage img { width:42%; }
+  .certstats { font-size:clamp(.9em, 2.6vw, 1.3em); font-weight:bold; }
+  .certfoot { width:100%; display:flex; justify-content:space-between; align-items:flex-end; font-size:clamp(.6em, 1.8vw, .9em); }
+  .certfoot > div { width:35%; } .certline { border-bottom:.1em solid #3a2600; min-height:1.4em; margin-bottom:.2em; }
+  .certseal { width:auto !important; font-size:2.4em; line-height:1; display:flex; flex-direction:column; align-items:center; } .certseal small { font-size:.25em; letter-spacing:.2em; }
+  .certbtns { display:flex; gap:.6em; }
+  @media print { body > *:not(#cert) { display:none !important; } html, body { background:#fff !important; overflow:visible !important; height:auto !important; }
+    #cert { position:static; display:flex !important; background:none; padding:0; } .certbtns { display:none; } .certpage { width:100%; box-shadow:none; }
+    @page { size:landscape; margin:.4in; } }
   .jobs .job, .card .job { display:flex; justify-content:space-between; gap:.5em; margin:.2em 0; font-size:.92em; }
   .jobs .job.done { color:#2f8a4a; }
   .card .job { justify-content:space-between; gap:.5em; margin:.2em 0; font-size:.92em; }
@@ -283,8 +303,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.03h";</script>
-<script src="ll-core.js?v=2026.10.03h"></script>
+<script>window.LL_VER="2026.10.03i";</script>
+<script src="ll-core.js?v=2026.10.03i"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -581,19 +601,29 @@ const HATS = {
   cap:     { name:"Red cap", cost:0, col:"#c9302c" },     bluecap:{ name:"Blue cap", cost:30, col:"#2f6fb8" },
   beanie:  { name:"Beanie", cost:50, col:"#3f8f4a" },     bucket: { name:"Bucket hat", cost:60, col:"#c8b88a" },
   straw:   { name:"Straw hat", cost:80, col:"#e8cf7a" },   cowboy: { name:"Cowboy hat", cost:120, col:"#8a5a2c" },
-  captain: { name:"Captain's hat", cost:150, col:"#f4f4f4" }, crown:{ name:"Lake Legend crown", cost:0, col:"#f5c242", champ:true }
+  captain: { name:"Captain's hat", cost:150, col:"#f4f4f4" }, crown:{ name:"Lake Legend crown", cost:0, col:"#f5c242", champ:true },
+  pirate:  { name:"Pirate hat", cost:0, col:"#222222", prize:"dex5" }, explorer:{ name:"Explorer hat", cost:0, col:"#c9b27a", prize:"wild6" },
+  ranger:  { name:"Ranger hat", cost:0, col:"#6b5a2a", prize:"land500" }
 };
 const RODS = { black:{ name:"Black rod", cost:0, col:"#2b2b2b" }, red:{ name:"Red rod", cost:25, col:"#c9302c" }, blue:{ name:"Blue rod", cost:25, col:"#2f7fb5" },
-  pink:{ name:"Pink rod", cost:25, col:"#e0607e" }, gold:{ name:"Golden rod", cost:150, col:"#e5b53a" } };
+  pink:{ name:"Pink rod", cost:25, col:"#e0607e" }, gold:{ name:"Golden rod", cost:150, col:"#e5b53a" },
+  rainbow:{ name:"Rainbow rod", cost:0, col:"#e0483a", rainbow:true, prize:"dex10" }, diamond:{ name:"Diamond rod", cost:0, col:"#a8ecff", prize:"looks14" },
+  legend:{ name:"Legend rod", cost:0, col:"#7a4cc2", prize:"gold15" } };
 const PAINTS = { silver:{ name:"Bare aluminum", cost:0, col:null }, red:{ name:"Fire red", cost:40, col:"#c9402c" }, blue:{ name:"Ocean blue", cost:40, col:"#2f6fb8" },
-  green:{ name:"Lake green", cost:40, col:"#3f8f4a" }, purple:{ name:"Purple glitter", cost:90, col:"#7a4cc2" }, gold:{ name:"Gold flake", cost:200, col:"#d9a628" } };
+  green:{ name:"Lake green", cost:40, col:"#3f8f4a" }, purple:{ name:"Purple glitter", cost:90, col:"#7a4cc2" }, gold:{ name:"Gold flake", cost:200, col:"#d9a628" },
+  flames:{ name:"Hot rod flames", cost:0, col:"#d8401e", flames:true, prize:"dex15" }, moon:{ name:"Moonlight", cost:0, col:"#2a3a7a", stars:true, prize:"leg6" },
+  shiny:{ name:"Rare-look shimmer", cost:0, col:"#3fa8a0", prize:"looks3" } };
 const BOATS = [ { name:"Rental jon boat", cost:0, desc:"Rent one at each lake visit." },
   { name:"Your own jon boat", cost:150, desc:"No more rent! The boat is free at every lake." },
   { name:"Bass boat", cost:450, desc:"A fast, sparkly bass boat. Free at every lake, and it trolls faster." } ];
 const FINDER_COST = 180;
 const look = () => Object.assign({ hat:"cap", rod:"black", paint:"silver" }, S.look);
 function owns(kind, key){ const it = ({ hat:HATS, rod:RODS, paint:PAINTS })[kind][key]; if (!it) return false;
-  if (it.champ) return !!S.champ; return it.cost === 0 || (S.owned || []).includes(kind + ":" + key); }
+  if (it.champ) return !!S.champ; if (it.prize) return !!(S.prizes || {})[it.prize];
+  return it.cost === 0 || (S.owned || []).includes(kind + ":" + key); }
+// a rod's paint: one color, or a rainbow
+function rodPaint(c, key, x0, y0, x1, y1){ const r = RODS[key] || RODS.black; if (!r.rainbow) return r.col;
+  const g = c.createLinearGradient(x0, y0, x1, y1); ["#e0483a", "#f5b82e", "#3fa34d", "#2f7fb5", "#7a4cc2"].forEach((cl, i) => g.addColorStop(i / 4, cl)); return g; }
 const rentCost = L => S.boatOwn ? 0 : L.boat;
 
 // hats, drawn on the canvas (x, y = middle of the head, r = head radius) and as SVG for the menus
@@ -607,6 +637,12 @@ function drawHat(c, kind, x, y, r){
   else if (kind === "cowboy"){ c.beginPath(); c.moveTo(x - 2*r, y - .75*r); c.quadraticCurveTo(x, y - .1*r, x + 2*r, y - .75*r); c.quadraticCurveTo(x, y - .35*r, x - 2*r, y - .75*r); c.fill();
     c.beginPath(); c.moveTo(x - .8*r, y - .5*r); c.lineTo(x - .75*r, y - 1.55*r); c.quadraticCurveTo(x, y - 1.2*r, x + .75*r, y - 1.55*r); c.lineTo(x + .8*r, y - .5*r); c.fill(); }
   else if (kind === "captain"){ c.beginPath(); c.ellipse(x, y - 1.05*r, 1.2*r, .4*r, 0, 0, 7); c.fill(); c.fillRect(x - .95*r, y - 1.05*r, 1.9*r, .6*r); c.fillStyle = "#1d2f55"; c.fillRect(x - .95*r, y - .55*r, 1.9*r, .22*r); c.fillRect(x, y - .45*r, 1.4*r, .22*r); c.fillStyle = "#e5b53a"; c.beginPath(); c.arc(x, y - .95*r, .22*r, 0, 7); c.fill(); }
+  else if (kind === "pirate"){ c.beginPath(); c.moveTo(x - 1.6*r, y - .6*r); c.quadraticCurveTo(x, y - 2.2*r, x + 1.6*r, y - .6*r); c.quadraticCurveTo(x, y - 1*r, x - 1.6*r, y - .6*r); c.fill();
+    c.fillStyle = "#fff"; c.beginPath(); c.arc(x, y - 1.25*r, .22*r, 0, 7); c.fill(); c.fillRect(x - .3*r, y - .98*r, .6*r, .1*r); }
+  else if (kind === "explorer"){ c.beginPath(); c.ellipse(x, y - .55*r, 1.75*r, .3*r, 0, 0, 7); c.fill(); c.beginPath(); c.ellipse(x, y - .9*r, 1*r, .8*r, 0, Math.PI, 0); c.fill();
+    c.fillStyle = "#6a5a32"; c.fillRect(x - 1*r, y - .82*r, 2*r, .2*r); }
+  else if (kind === "ranger"){ c.beginPath(); c.ellipse(x, y - .55*r, 2*r, .32*r, 0, 0, 7); c.fill(); c.beginPath(); c.moveTo(x - .8*r, y - .6*r); c.lineTo(x - .5*r, y - 1.6*r); c.lineTo(x, y - 1.3*r); c.lineTo(x + .5*r, y - 1.6*r); c.lineTo(x + .8*r, y - .6*r); c.fill();
+    c.fillStyle = "#3a2a10"; c.fillRect(x - .8*r, y - .82*r, 1.6*r, .18*r); }
   else if (kind === "crown"){ c.beginPath(); c.moveTo(x - .9*r, y - .55*r); c.lineTo(x - .9*r, y - 1.55*r); c.lineTo(x - .45*r, y - 1.05*r); c.lineTo(x, y - 1.7*r); c.lineTo(x + .45*r, y - 1.05*r); c.lineTo(x + .9*r, y - 1.55*r); c.lineTo(x + .9*r, y - .55*r); c.fill(); c.fillStyle = "#e0483a"; c.beginPath(); c.arc(x, y - .85*r, .18*r, 0, 7); c.fill(); }
   c.restore();
 }
@@ -614,8 +650,10 @@ function drawHat(c, kind, x, y, r){
 function styleIcon(kind, key){
   const c = document.createElement("canvas"); c.width = 96; c.height = 96; const x = c.getContext("2d"); x.scale(2, 2);
   if (kind === "hat"){ x.fillStyle = "#e9b98f"; x.beginPath(); x.arc(24, 30, 11, 0, 7); x.fill(); drawHat(x, key, 24, 30, 11); }
-  else if (kind === "rod"){ x.strokeStyle = RODS[key].col; x.lineWidth = 3.5; x.lineCap = "round"; x.beginPath(); x.moveTo(8, 42); x.lineTo(42, 6); x.stroke(); x.fillStyle = "#9aa3aa"; x.beginPath(); x.arc(14, 36, 4, 0, 7); x.fill(); }
-  else { x.fillStyle = PAINTS[key].col || "#a9b3ba"; x.beginPath(); x.moveTo(4, 22); x.lineTo(44, 22); x.quadraticCurveTo(40, 34, 32, 36); x.lineTo(10, 36); x.quadraticCurveTo(5, 30, 4, 22); x.fill(); x.fillStyle = "rgba(255,255,255,.35)"; x.fillRect(6, 24, 36, 2); }
+  else if (kind === "rod"){ x.strokeStyle = rodPaint(x, key, 8, 42, 42, 6); x.lineWidth = 3.5; x.lineCap = "round"; x.beginPath(); x.moveTo(8, 42); x.lineTo(42, 6); x.stroke(); x.fillStyle = "#9aa3aa"; x.beginPath(); x.arc(14, 36, 4, 0, 7); x.fill(); }
+  else { x.fillStyle = PAINTS[key].col || "#a9b3ba"; x.beginPath(); x.moveTo(4, 22); x.lineTo(44, 22); x.quadraticCurveTo(40, 34, 32, 36); x.lineTo(10, 36); x.quadraticCurveTo(5, 30, 4, 22); x.fill(); x.fillStyle = "rgba(255,255,255,.35)"; x.fillRect(6, 24, 36, 2);
+    if (PAINTS[key].flames){ x.fillStyle = "#f5b82e"; for (let i = 0; i < 3; i++){ x.beginPath(); x.moveTo(8 + i * 6, 34); x.quadraticCurveTo(14 + i * 6, 26, 22 + i * 6, 28); x.quadraticCurveTo(16 + i * 6, 30, 12 + i * 6, 34); x.fill(); } }
+    if (PAINTS[key].stars){ x.fillStyle = "#fff"; for (const [a, b] of [[12, 28], [22, 31], [33, 27], [27, 33]]) x.fillRect(a, b, 1.6, 1.6); } }
   return c;
 }
 // the player's angler as SVG (menus, the title, the brag shot)
@@ -700,7 +738,7 @@ const UPG = {
 // Each player's game lives in their player record (ll-core.js): LL.player().game. S points at it while they play.
 function defaultSave(){ return { coins:0, lakes:["dixon"], up:{line:0,stringer:0,reel:0,guard:0,lure:0}, dex:{}, trips:0, sound:true,
   baits:["spinner","bread"], bait:"spinner", bobber:false, bobDepth:6, grandpa:false, grandpaBonus:false, lakeEarn:{}, bosses:{}, heavy:false, champ:false, day:{ lake:"dixon", kept:[] }, released:0, baitCount:{},
-  landed:0, streak:0, bestStreak:0, clock:7, legends:{}, treasures:0, look:{ hat:"cap", rod:"black", paint:"silver" }, owned:[], boatOwn:0, finder:false, jobs:null, wild:null, mounts:[], derby:null, derbyLast:null, derbyPaid:{}, derbyWins:0 }; }
+  landed:0, streak:0, bestStreak:0, clock:7, legends:{}, treasures:0, look:{ hat:"cap", rod:"black", paint:"silver" }, owned:[], boatOwn:0, finder:false, jobs:null, wild:null, prizes:{}, mounts:[], derby:null, derbyLast:null, derbyPaid:{}, derbyWins:0 }; }
 // old saves and saves from older versions pick up any new fields; nothing already earned is ever lowered
 function normalizeSave(s){
   const d = defaultSave();
@@ -714,7 +752,7 @@ function normalizeSave(s){
 }
 let S = defaultSave();                     // a stand-in until a player signs in
 function bindPlayer(p){ p.game = normalizeSave(p.game); S = p.game; shownCoins = null; setMuteIcon(); }
-function save(){ if (window.LL && LL.player() && LL.player().game === S) LL.save(); }
+function save(){ if (window.LL && LL.player() && LL.player().game === S){ checkPrizes(); LL.save(); } }
 const upVal = k => UPG[k].vals[S.up[k]];
 
 // =====================================================================
@@ -1376,8 +1414,8 @@ function renderShop(){
       const own = owns(kind, key), on = lk[kind] === key;
       const c = document.createElement("button"); c.className = "stylecell" + (on ? " on" : "");
       c.appendChild(styleIcon(kind, key));
-      c.insertAdjacentHTML("beforeend", `<div>${it.name}</div><small>${on ? "Wearing ✓" : own ? "Tap to use" : "🪙 " + it.cost}</small>`);
-      c.disabled = !own && S.coins < it.cost;
+      c.insertAdjacentHTML("beforeend", `<div>${it.name}</div><small>${on ? "Wearing ✓" : own ? "Tap to use" : it.prize ? "🏅 Prize: " + (MILESTONES.find(m => m.id === it.prize) || {}).name : "🪙 " + it.cost}</small>`);
+      c.disabled = !own && (it.prize || S.coins < it.cost);
       c.onclick = () => { if (!own){ if (S.coins < it.cost) return; S.coins -= it.cost; S.owned = (S.owned || []).concat(kind + ":" + key); SFX.coin(); }
         else SFX.click(); S.look = Object.assign(look(), { [kind]: key }); save(); renderShop(); };
       grid.appendChild(c);
@@ -2346,7 +2384,8 @@ function bragCard(L, f, stamp){
   const lb = fishLb(f);
   d.insertAdjacentHTML("beforeend", `<div class="nm">${p ? LL.esc(p.name) + "'s " : ""}${f.sp.name}</div>
     <div class="wgt">⚖️ <span>0</span> · ${f.inches.toFixed(1)} in</div>${stamp ? `<div class="stamp" style="color:${stamp[1]};border-color:${stamp[1]}">${stamp[0]}</div>` : ""}
-    <button class="mount">🖼️ Mount it</button>`);
+    <button class="mount">🖼️ Mount it</button><button class="mount cert">🖨️ Certificate</button>`);
+  d.querySelector(".cert").onclick = e => { e.stopPropagation(); printCertificate({ sp: f.sp, inches: f.inches, lb: fishLb(f), lake: L.name, t: Date.now() }); };
   d.querySelector(".mount").onclick = e => { e.stopPropagation(); if (mountFish(f, L)){ e.target.textContent = "🖼️ On your wall ✓"; e.target.disabled = true; } };
   // weigh-in: the number climbs to the fish's weight with little ticks
   const out = d.querySelector(".wgt span"), t0 = performance.now() + 350, dur = 900 + Math.min(900, lb * 60); let lastTick = -1;
@@ -2762,7 +2801,10 @@ function drawBoat(bx, by){
     ctx.strokeStyle = "#a07a4a"; ctx.lineWidth = 2.2; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(bx + 18, by - 26); ctx.lineTo(bx + 46, by - 10); ctx.stroke();   // an oar
     ctx.fillStyle = "#a07a4a"; ctx.beginPath(); ctx.ellipse(bx + 48, by - 8, 5, 2.4, .5, 0, 7); ctx.fill();
   }
-  if (look().paint === "purple" || look().paint === "gold"){                                   // glitter
+  const pd = PAINTS[look().paint] || {};
+  if (pd.flames){ ctx.fillStyle = "#f5b82e"; for (let i = 0; i < 4; i++){ const fx = bx - 50 + i * 14; ctx.beginPath(); ctx.moveTo(fx, by + 4); ctx.quadraticCurveTo(fx + 10, by - 12, fx + 26, by - 9); ctx.quadraticCurveTo(fx + 14, by - 5, fx + 8, by + 4); ctx.fill(); } }
+  if (pd.stars){ ctx.fillStyle = "#fff"; for (let i = 0; i < 10; i++) ctx.fillRect(bx - 55 + prand(i, 63) * 100, by - 13 + prand(i, 64) * 15, 1.5, 1.5); ctx.fillStyle = "#f4f1e0"; ctx.beginPath(); ctx.arc(bx + 30, by - 5, 3.5, 0, 7); ctx.fill(); }
+  if (look().paint === "purple" || look().paint === "gold" || look().paint === "shiny"){                                   // glitter
     const tt = performance.now() / 400;
     for (let i = 0; i < 9; i++){ const a = .5 + .5 * Math.sin(tt + i * 1.7); ctx.fillStyle = "rgba(255,255,255," + a.toFixed(2) + ")"; ctx.fillRect(bx - 55 + prand(i, 61) * 100, by - 14 + prand(i, 62) * 16, 1.6, 1.6); }
   }
@@ -2831,7 +2873,7 @@ function drawAngler(T, sy, surf){
   drawHat(ctx, look().hat, 0, -35, 6.6);
   ctx.restore();
   // the rod: cork handle, reel underneath, a blank that bends toward the fish
-  const rc = (RODS[look().rod] || RODS.black).col, g = { x: P.g.x, y: sy(P.g.y) }, t0 = { x: P.t0.x, y: sy(P.t0.y) }, tip = { x: P.tip.x, y: sy(P.tip.y) };
+  const rc = rodPaint(ctx, look().rod, P.g.x, sy(P.g.y), P.tip.x, sy(P.tip.y)), g = { x: P.g.x, y: sy(P.g.y) }, t0 = { x: P.t0.x, y: sy(P.t0.y) }, tip = { x: P.tip.x, y: sy(P.tip.y) };
   const ux = Math.cos(P.th), uy = -Math.sin(P.th), butt = { x: g.x - ux * 12, y: g.y - uy * 12 }, ctl = { x: g.x + (t0.x - g.x) * .55, y: g.y + (t0.y - g.y) * .55 };
   ctx.lineCap = "round";
   ctx.strokeStyle = rc; ctx.lineWidth = 3.2; ctx.beginPath(); ctx.moveTo(butt.x, butt.y); ctx.lineTo(g.x + ux * 14, g.y + uy * 14); ctx.stroke();
@@ -3470,6 +3512,83 @@ function wildIcon(kind, seen){
 }
 
 // =====================================================================
+//  PRIZES: the prize ladder (coins + items you can't buy), prizes from home (set in the Parent Corner), catch certificates
+// =====================================================================
+const dexN = g => DEX_ORDER.filter(id => g.dex && g.dex[id]).length;
+const goldN = g => DEX_ORDER.filter(id => g.dex && g.dex[id] && tierOf(id, g.dex[id].best) === 3).length;
+const MILESTONES = [
+  { id:"dex5",    name:"Catch 5 kinds of fish",       need:5,    coins:100, prog: g => dexN(g) },
+  { id:"dex10",   name:"Catch 10 kinds of fish",      need:10,   coins:200, prog: g => dexN(g) },
+  { id:"dex15",   name:"Fill the whole Fishdex",       need:15,   coins:500, prog: g => dexN(g) },
+  { id:"looks3",  name:"Find 3 rare looks",            need:3,    coins:150, prog: g => Object.values(g.dex || {}).filter(d => d.v).length },
+  { id:"looks14", name:"Find all 14 rare looks",       need:14,   coins:600, prog: g => Object.values(g.dex || {}).filter(d => d.v).length },
+  { id:"leg1",    name:"Catch a Night Legend",         need:1,    coins:150, prog: g => Object.keys(g.legends || {}).length },
+  { id:"leg6",    name:"Catch all 6 Night Legends",    need:6,    coins:600, prog: g => Object.keys(g.legends || {}).length },
+  { id:"gold5",   name:"Earn 5 gold badges",           need:5,    coins:200, prog: g => goldN(g) },
+  { id:"gold15",  name:"Earn all 15 gold badges",      need:15,   coins:700, prog: g => goldN(g) },
+  { id:"land100", name:"Land 100 fish",                need:100,  coins:100, prog: g => g.landed || 0 },
+  { id:"land500", name:"Land 500 fish",                need:500,  coins:300, prog: g => g.landed || 0 },
+  { id:"land1000",name:"Land 1,000 fish",              need:1000, coins:600, prog: g => g.landed || 0 },
+  { id:"wild6",   name:"Spot all 6 wildlife",          need:6,    coins:200, prog: g => Object.keys((g.wild || {}).seen || {}).length },
+  { id:"boss6",   name:"Beat all 6 bosses",            need:6,    coins:300, prog: g => Object.keys(g.bosses || {}).length },
+  { id:"chest10", name:"Find 10 treasure chests",      need:10,   coins:200, prog: g => g.treasures || 0 },
+  { id:"streak10",name:"Land fish on 10 casts in a row", need:10, coins:150, prog: g => g.bestStreak || 0 }
+];
+// the item a milestone unlocks, if any
+function prizeItem(id){ for (const [kind, T] of [["hat", HATS], ["rod", RODS], ["paint", PAINTS]]) for (const k in T) if (T[k].prize === id) return { kind, key:k, name: T[k].name }; return null; }
+let prizeQueue = [];
+function checkPrizes(){
+  if (!S || !S.dex) return;
+  S.prizes = S.prizes || {};
+  for (const m of MILESTONES){
+    if (S.prizes[m.id] || m.prog(S) < m.need) continue;
+    S.prizes[m.id] = Date.now(); S.coins += m.coins; const it = prizeItem(m.id);
+    prizeQueue.push(`<div style="font-size:3.5em">🏅</div><span class="tag new">PRIZE UNLOCKED!</span><h3>${m.name}</h3><p><b>+${m.coins} 🪙</b>${it ? ` and the <b>${it.name}</b>! Wear it from the Tackle Shop's Style section.` : ""}</p>`);
+  }
+  const p = window.LL && LL.player();
+  if (p && p.game === S) for (const pp of p.pprizes || []){                        // prizes from home
+    const m = MILESTONES.find(x => x.id === pp.goal); if (!m || pp.earned || m.prog(S) < m.need) continue;
+    pp.earned = Date.now();
+    prizeQueue.push(`<div style="font-size:3.5em">🎁</div><span class="tag new">A PRIZE FROM HOME!</span><h3>${LL.esc(pp.text)}</h3><p>You did it: <b>${m.name}</b>! Go tell a grown-up. 🎉</p>`);
+  }
+}
+// prizes pop up between casts, never in the middle of one
+function flushPrizes(){
+  if (!prizeQueue.length || $("modal").classList.contains("show") || document.getElementById("llOv")) return;
+  if (state === "results" || (state === "fishing" && !(trip && trip.phase === "ready"))) return;
+  infoModal(prizeQueue.shift(), "Awesome!"); SFX.land();
+}
+setInterval(flushPrizes, 900);
+function prizeLadderCard(){
+  const rows = MILESTONES.map(m => { const got = (S.prizes || {})[m.id], cur = Math.min(m.need, m.prog(S)), it = prizeItem(m.id);
+    return `<div class="job${got ? " done" : ""}"><span>${got ? "✅" : "🏅"} ${m.name}${it ? " · <b>" + it.name + "</b>" : ""}</span><span>${got ? "+" + m.coins + " 🪙 ✓" : cur + "/" + m.need + " · 🪙" + m.coins}</span></div>
+      ${got ? "" : `<div class="bossbar" style="margin:0 0 .3em"><i style="width:${Math.round(cur / m.need * 100)}%;background:var(--green)"></i></div>`}`; }).join("");
+  const p = LL.player(), pp = (p && p.pprizes) || [];
+  return `<div class="card jobs"><b>🏅 Prize ladder</b> <span class="muted">${Object.keys(S.prizes || {}).length}/${MILESTONES.length} won</span>${rows}</div>`
+    + (pp.length ? `<div class="card jobs"><b>🎁 Prizes from home</b> <span class="muted">set by a grown-up in the Parent Corner</span>${pp.map(x => { const m = MILESTONES.find(y => y.id === x.goal) || { name:"?", need:1, prog:() => 0 };
+      return `<div class="job${x.earned ? " done" : ""}"><span>${x.earned ? (x.given ? "🎉" : "🎁") : "⏳"} <b>${LL.esc(x.text)}</b> for: ${m.name}</span><span>${x.earned ? (x.given ? "given ✓" : "earned!") : Math.min(m.need, m.prog(S)) + "/" + m.need}</span></div>`; }).join("")}</div>` : "");
+}
+// goals and progress for the Parent Corner (any player's game)
+window.LL_GOALS = g => MILESTONES.map(m => ({ id: m.id, name: m.name, cur: Math.min(m.need, m.prog(g || {})), need: m.need }));
+
+// A printable "Certificate of Catch"
+function printCertificate(c){
+  const p = LL.player(), sp = c.sp, icon = fishIcon(sp, 420, 200).toDataURL();
+  let el = $("cert"); if (!el){ el = document.createElement("div"); el.id = "cert"; document.body.appendChild(el); }
+  const date = new Date(c.t || Date.now()).toLocaleDateString(undefined, { year:"numeric", month:"long", day:"numeric" });
+  el.innerHTML = `<div class="certpage"><div class="certin">
+    <div class="certtop">🎣 LAKE LEGENDS 🎣</div><h1>Certificate of Catch</h1>
+    <p class="certsub">This certifies that</p><div class="certname">${LL.esc(p ? p.name : "An angler")}</div>
+    <p class="certsub">caught a</p><div class="certfish">${sp.name}</div><img src="${icon}" alt="">
+    <div class="certstats">${(+c.inches).toFixed(1)} inches · ${fmtLb(c.lb)} · ${LL.esc(c.lake)}</div>
+    <div class="certfoot"><div><div class="certline"></div>Lake Legends Fishing Club</div><div class="certseal">🏆<small>OFFICIAL</small></div><div><div class="certline">${date}</div>Date</div></div>
+  </div></div><div class="certbtns"><button class="btn" id="certPrint">🖨️ Print</button><button class="btn blue" id="certClose">Close</button></div>`;
+  el.style.display = "flex";
+  $("certPrint").onclick = () => window.print();
+  $("certClose").onclick = () => { el.style.display = "none"; };
+}
+
+// =====================================================================
 //  TROPHY LODGE · RECORDS · FAMILY BOARD · FAMILY DERBY
 // =====================================================================
 const MAX_MOUNTS = 8;
@@ -3534,13 +3653,15 @@ function renderLodge(){
     const sp = mountSp(m); if (!sp) return;
     const pl = document.createElement("div"); pl.className = "plaque";
     pl.appendChild(fishIcon(sp, 220, 100));
-    pl.insertAdjacentHTML("beforeend", `<div class="brass">${sp.name}<br><small>${m.inches} in · ${fmtLb(m.lb)} · ${lakeById(m.lake).name}</small></div><button class="down" aria-label="Take it down">✕</button>`);
+    pl.insertAdjacentHTML("beforeend", `<div class="brass">${sp.name}<br><small>${m.inches} in · ${fmtLb(m.lb)} · ${lakeById(m.lake).name}</small></div><button class="down" aria-label="Take it down">✕</button><button class="down pr" aria-label="Print a certificate">🖨️</button>`);
+    pl.querySelector(".pr").onclick = () => printCertificate({ sp, inches: m.inches, lb: m.lb, lake: lakeById(m.lake).name, t: m.t });
     pl.querySelector(".down").onclick = () => { if (!pl.classList.contains("arm")){ pl.classList.add("arm"); pl.querySelector(".down").textContent = "Take down?"; return; }
       S.mounts.splice(S.mounts.indexOf(m), 1); save(); renderLodge(); };
     wall.appendChild(pl);
   });
   box.appendChild(wall);
   box.insertAdjacentHTML("beforeend", derbyCard());
+  box.insertAdjacentHTML("beforeend", prizeLadderCard());
   // my records
   let big = null;
   for (const id of Object.keys(S.dex)){ const sp = SPECIES[id]; if (!sp) continue; const lb = weightLb(sp, S.dex[id].best); if (!big || lb > big.lb) big = { lb, name: sp.name, inches: S.dex[id].best }; }
