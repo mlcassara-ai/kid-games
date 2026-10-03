@@ -164,7 +164,7 @@ function listHTML(p){const ids=owned(p).filter(id=>!rescued(p,id));if(!ids.lengt
  const grp=id=>id===p.pet?0:atCamp(p,id)?2:1;ids.sort((a,b)=>grp(a)-grp(b)||String(petById(a).name).localeCompare(petById(b).name));
  return `<div class="panel pc-panel pc-pets"><h3>🐾 All your pets <small class="muted">(${ids.length})</small></h3><p class="muted" style="margin:0 0 8px">Every pet needs a little love every few days: a pat, a snack or a game.${ruleOn(p)?' Lonely pets can wander off to the Pet Rescue.':''}</p>${allBtns}
  <div class="pc-list"><div class="pc-hd"><span></span><span>Pet</span><span>Tummy · Happy</span><span></span></div>${ids.map(id=>{const pd=petMood(pdOf(p,id));const camp=atCamp(p,id);const patOk=!pd.patT||now-pd.patT>15*60e3;
-  return `<div class="pc-row${camp?' dim':''}" data-pet="${id}">${petFace(p,id,camp)}<div class="pc-nm"><b>${nm(id)}</b>${chip(p,id)}</div><div class="pc-h"><span title="Tummy">${hearts(pd.food,'🍗')}</span><span title="Happy">${hearts(pd.joy,'💖')}</span></div>
+  return `<div class="pc-row${camp?' dim':''}" data-pet="${id}">${petFace(p,id,camp)}<div class="pc-nm" role="button" style="cursor:pointer" title="See ${nm(id)}'s details" onclick="PetCare.profile('${id}')"><b style="text-decoration:underline dotted">${nm(id)}</b>${chip(p,id)}</div><div class="pc-h"><span title="Tummy">${hearts(pd.food,'🍗')}</span><span title="Happy">${hearts(pd.joy,'💖')}</span></div>
    ${camp?'':`<div class="pc-act"><button class="btn small ${patOk?'':'ghost dark'}" onclick="PetCare.pat('${id}')" aria-label="Pat">🤗<span class="pc-l"> Pat</span></button><button class="btn small ${!food||pd.food>=MOOD_MAX?'pc-empty':'green'}" onclick="PetCare.snack('${id}')" title="${pd.food>=MOOD_MAX?'Full!':food?food.name:'No snacks left'}" aria-label="Snack">${food?food.e:'🍽️'}<span class="pc-l"> Snack</span></button></div>`}</div>`;}).join('')}</div>
  ${food?'':'<p class="muted" style="margin:8px 0 0;font-size:14px">Out of snacks? Buy some in the Pet Shop below.</p>'}</div>`;}
 function planPrice(p,pl){const n=Math.max(1,sitPets(p).length);return Math.round(n*PRICE*pl.id*(1-pl.off));}
@@ -179,7 +179,7 @@ function sitterHTML(p){const c=C(p),su=sitUntil(p),n=sitPets(p).length,camp=owne
 function rescueHTML(p){const ids=owned(p).filter(id=>rescued(p,id));if(!ids.length)return '';
  const food=PET_FOODS.filter(f=>(p.pantry[f.id]||0)>0&&f.food>0).sort((a,b)=>a.price-b.price)[0];
  return `<div class="panel pc-panel pc-resc"><div class="pc-sithead"><div class="pc-nana">${RANGER}</div><div><h3 style="margin:0">🏡 Pet Rescue</h3><p class="muted" style="margin:2px 0 0">"${ids.length>1?'These pets are':nm(ids[0])+' is'} safe with me. Come bring ${ids.length>1?'them':'them'} home!" — Ranger Juniper</p></div></div>
-  ${ids.map(id=>{const pd=pdOf(p,id);const rs=pd.rs||{};const ready=rs.fed&&rs.played;return `<div class="pc-row"><span class="pc-e">${pe(id)}</span><div class="pc-nm"><b>${nm(id)}</b><div class="pc-steps"><span>${rs.fed?'✅':'⬜'} Give a snack</span><span>${rs.played?'✅':'⬜'} Play a game</span><span>⬜ Adoption fee 🪙 ${RESCUE_FEE} <i class="muted" style="font-style:normal">or help Ranger Juniper with ${RM_N} math problems</i></span></div></div>
+  ${ids.map(id=>{const pd=pdOf(p,id);const rs=pd.rs||{};const ready=rs.fed&&rs.played;return `<div class="pc-row"><span class="pc-e">${pe(id)}</span><div class="pc-nm" role="button" style="cursor:pointer" title="See ${nm(id)}'s details" onclick="PetCare.profile('${id}')"><b style="text-decoration:underline dotted">${nm(id)}</b><div class="pc-steps"><span>${rs.fed?'✅':'⬜'} Give a snack</span><span>${rs.played?'✅':'⬜'} Play a game</span><span>⬜ Adoption fee 🪙 ${RESCUE_FEE} <i class="muted" style="font-style:normal">or help Ranger Juniper with ${RM_N} math problems</i></span></div></div>
    <div class="pc-act">${rs.fed?'':food?`<button class="btn small green" onclick="PetCare.rfeed('${id}')">${food.e} Snack</button>`:`<button class="btn small gold" onclick="PetCare.rbuy('${id}')">🍎 Buy a snack · 🪙 10</button>`}${rs.played?'':`<button class="btn small" onclick="PetCare.rplay('${id}')">🎾 Play fetch</button>`}${ready?`<button class="btn small gold" onclick="PetCare.home('${id}')">🏠 Bring home · 🪙 ${RESCUE_FEE}</button>${(()=>{const t=rmTries(pd);return t<RM_TRIES?`<button class="btn small green" onclick="PetCare.rmath('${id}')">🧮 Help Juniper${t?' (1 more try today)':''} · free</button>`:`<button class="btn small ghost dark" onclick="PetCare.rmath('${id}')">🧮 Math help: try again tomorrow</button>`;})()}`:''}</div></div>`;}).join('')}</div>`;}
 /* ---------- rescue by math: help Ranger Juniper with 5 problems at the kid's own level; 4 right brings the pet home for free.
    Two tries a day (a first go and one retry). Nothing is lost for a miss. ---------- */
@@ -350,5 +350,40 @@ window.MQ_HOOKS.push({screen:s=>{try{
 setInterval(()=>{try{const p=typeof P==='function'&&typeof state!=='undefined'&&state&&state.cur?P():null;if(p)sweep(p);}catch(e){}},60e3);
 window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 function offerNow(){const p=P(),su=sitUntil(p);if(!su)return;homePets(p).forEach(id=>{const pd=pdOf(p,id);if(pd.sitNo===su)delete pd.sitNo;});const c=C(p);c.news=c.news.filter(n=>n.k!=='offer');c.news.unshift({k:'offer',t:Date.now()});showing=false;showNews(p);}
-window.PetCare={_when:t=>when(t),_sit:v=>{sitOpen=!!v;},_weekOk:weekAskOk,_weekAsk:weekAsk,_satMorning:satMorning,patAll,feedAll,dress,rmath,_rm:k=>rmPress(k),_rmState:()=>RM,_busy:busy,offer:offerNow,uncovered,sweep,counts,dot,homeCard,rescued,pat,snack,hire,rfeed,rbuy,rplay,home,setRule,vacation,redraw,ruleOn,canLeave,PRICE,RESCUE_FEE,_C:C};
+/* ---------- pet profile (Oct 2026) ----------
+   Tap a pet's name in "All your pets" (Pet Home) or its tile in the backpack: one card with everything about that pet, and a
+   separate "Make battle buddy" button (tapping a backpack tile used to switch the buddy straight away).
+   p.petJoin = {petId: {t: when it joined, h: how}}. Joining was not tracked before; the first time this runs, the pets a hero
+   already has are marked {o:1} and shown as "joined before Oct 3, 2026". */
+const PERK_LONG={coins:'You earn extra coins in battles while it is your battle buddy.',power:'Your spells hit harder while it is your battle buddy.',
+ shield:'It sometimes blocks a monster\'s hit for you.',xp:'You level up faster while it is your battle buddy.',lucky:'You find more eggs while it is your battle buddy.',
+ heal:'It heals you when you get answers right in a row.'};
+function joinHow(x){if(!x)return 'joined your team';if(x.tier==='mythic')return 'unlocked by the Gold Family Goal';if(x.tier==='event')return 'won in the Halloween event';
+ if(x.fade)return 'rescued in the Great Fade';if(x.cleanup)return 'found in a camp cleanup';if(x.prize)return 'won as a prize';if(x.id==='sorty')return 'joined from the Sorting game';return 'hatched from an egg';}
+function noteJoins(p){try{if(!p||!Array.isArray(p.pets))return;let ch=false;
+ if(!p.petJoinInit){p.petJoinInit=1;p.petJoin=p.petJoin||{};p.pets.forEach(id=>{if(!p.petJoin[id])p.petJoin[id]={o:1};});ch=true;}
+ else{p.petJoin=p.petJoin||{};p.pets.forEach(id=>{if(!p.petJoin[id]){p.petJoin[id]={t:Date.now(),h:joinHow(petById(id))};ch=true;}});}
+ if(ch)save();}catch(e){}}
+function ago(t){const d=Math.floor((Date.now()-t)/864e5);return d<=0?'today':d===1?'yesterday':`${d} days ago`;}
+function profile(id){const p=P();if(!p||!owned(p).includes(id))return;noteJoins(p);const x=petById(id);if(!x)return;
+ const pd=petMood(pdOf(p,id)),st=petStage(pd),nx=PET_STAGES[PET_STAGES.indexOf(st)+1],li=petLvInfo(pd),tier=PET_TIERS[x.tier]||{n:'',c:'#888'};
+ const moves=petMovesMax(pd),mv=(typeof PET_MOVES!=='undefined'&&PET_MOVES[id])||'Pet Attack';
+ const camp=atCamp(p,id),resc=rescued(p,id),buddy=p.pet===id;const j=(p.petJoin||{})[id]||{o:1};
+ const home=window.Adv&&Adv.homeOf?Adv.homeOf(id):null,cards=window.Adv&&Adv.cardsWith?Adv.cardsWith(p,id):0;
+ const pct=nx?Math.min(100,(pd.xp-st.xp)/(nx.xp-st.xp)*100):Math.round(li.into/li.need*100);
+ const row=(e,h,v)=>`<div style="display:flex;gap:10px;text-align:left;margin:8px 0"><span style="font-size:22px;min-width:28px">${e}</span><div><b>${h}</b><br>${v}</div></div>`;
+ modal(`<div class="mcard"><div style="font-size:64px;line-height:1.1">${petAvatar(p,x)}</div><h2 style="margin:6px 0 2px">${esc(x.name)}</h2>
+  <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px"><span style="background:${tier.c};color:#fff;border-radius:10px;padding:2px 10px;font-weight:700">${esc(tier.n)}</span><span style="background:#f1ecff;border-radius:10px;padding:2px 10px;font-weight:700">${st.n}${li.lv?` Lv ${li.lv}`:''}</span>${buddy?'<span style="background:#ebfbee;border-radius:10px;padding:2px 10px;font-weight:700">⭐ Battle buddy</span>':''}</div>
+  ${camp?'<p class="muted" style="margin:0">🎒 On a camp adventure right now</p>':resc?'<p class="muted" style="margin:0">🏡 At the Pet Rescue: bring them home from the Pet Home</p>':''}
+  ${row('⭐','Skill: '+esc(PERKS[x.perk]||''),esc(PERK_LONG[x.perk]||''))}
+  ${row('🐾','Battle move: '+esc(mv),moves?`Can be used <b>${moves}×</b> per battle, after 3 right answers. Every Mighty level makes it stronger.`:`Learned when ${esc(x.name)} grows to <b>Big</b>.`)}
+  ${row('📈','Growing up',`<div class="pxp" style="margin:4px 0"><i style="width:${pct}%"></i></div>${nx?`${Math.floor(pd.xp)} / ${nx.xp} pet XP to become <b>${nx.n}</b>`:`Mighty Lv ${li.lv}: ${Math.floor(li.into)} / ${li.need} XP to Lv ${li.lv+1}`}`)}
+  ${row('💖','How it feels',`Tummy ${pips(pd.food,'🍗')} · Happy ${pips(pd.joy,'💖')}${pd.patT?`<br><small class="muted">Last pat: ${ago(pd.patT)}</small>`:''}`)}
+  ${row('🏕️','Camp',`${home?`Feels at home in ${home.e} <b>${esc(home.n)}</b>. `:''}${cards?`Has sent you <b>${cards}</b> postcard${cards>1?'s':''} from camp.`:'No camp postcards yet.'}`)}
+  ${row('📅','Joined your team',j.o?'Before Oct 3, 2026 (the game started keeping track then)':`${new Date(j.t).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric',year:'numeric'})}: ${esc(j.h||'joined your team')}`)}
+  <div class="row">${buddy||camp||resc?'':`<button class="btn gold" onclick="PetCare._buddy('${id}')">⭐ Make battle buddy</button>`}<button class="btn ghost dark" onclick="closeModal()">Close</button></div></div>`);}
+function makeBuddy(id){const p=P();if(!p||!owned(p).includes(id)||atCamp(p,id)||rescued(p,id))return;p.pet=id;save();try{SFX.tap();}catch(e){}closeModal();
+ toast(`⭐ ${petById(id).name} is your battle buddy now!`);try{if(curScreen==='backpack'||curScreen==='pethome')goStay(curScreen);}catch(e){}}
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:()=>{try{noteJoins(P());}catch(e){}}});
+window.PetCare={profile,_buddy:makeBuddy,_joins:noteJoins,_when:t=>when(t),_sit:v=>{sitOpen=!!v;},_weekOk:weekAskOk,_weekAsk:weekAsk,_satMorning:satMorning,patAll,feedAll,dress,rmath,_rm:k=>rmPress(k),_rmState:()=>RM,_busy:busy,offer:offerNow,uncovered,sweep,counts,dot,homeCard,rescued,pat,snack,hire,rfeed,rbuy,rplay,home,setRule,vacation,redraw,ruleOn,canLeave,PRICE,RESCUE_FEE,_C:C};
 })();

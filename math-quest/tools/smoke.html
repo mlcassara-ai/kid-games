@@ -247,6 +247,13 @@ const tests=[
  ['school quests: weekly quizzes are well formed and reach the right hero',async function(){
   const Q=MQ_CONTENT.quizzes||{};const bad=Object.entries(Q).filter(([k,z])=>!z.title||!(z.questions||[]).length||z.questions.some(q=>!q.q||!Array.isArray(q.c)||q.c.length<2||!(q.a>=0&&q.a<q.c.length)||new Set(q.c).size!==q.c.length)).map(([k])=>k);
   T.ok(!bad.length,'quizzes with broken questions: '+bad.join());
+  /* pet profile: a tap shows details (and no longer swaps the buddy); join dates: old pets 'before', new pets dated */
+  {T.reset();const p=T.hero('Pets',5);state.cur=p.id;p.petJoin=null;p.petJoinInit=0;PetCare._joins(p);const b0=p.pet,other=p.pets.find(x=>x!==p.pet);
+   T.ok(p.petJoin[other]&&p.petJoin[other].o===1,'existing pets were not marked as joined before tracking');
+   go('backpack');shopClick('pet',other);T.ok(P().pet===b0&&/Joined your team/.test(document.querySelector('#modal').innerText)&&/Battle move/.test(document.querySelector('#modal').innerText),'a backpack tap swapped the buddy or showed no details');
+   PetCare._buddy(other);T.ok(P().pet===other,'Make battle buddy did not work');try{closeModal();}catch(e){}
+   const nw=PETS.find(x=>x.tier==='common'&&!p.pets.includes(x.id));if(nw){p.pets.push(nw.id);PetCare._joins(p);T.ok(p.petJoin[nw.id]&&p.petJoin[nw.id].t&&/egg/.test(p.petJoin[nw.id].h),'a new pet got no join date');}
+   go('pethome');try{closeModal();}catch(e){}T.ok(document.querySelector('.pc-nm[role=button]'),'pet names in Pet Home are not tappable');}
   {const w=PetCare._when(Date.now()+7*864e5+3*36e5+3e4);T.ok(/7 days 3 hours left/.test(w)&&/\d/.test(w.split('(')[0]),'Nana Paws time is not clear: '+w);}
   /* Today's Adventure: a kid with their own school content gets a School work step before the reward, once a day */
   {T.reset();const j=T.hero('Jibreel',5);state.cur=j.id;const t=Daily._dbg.tad(j);t.s=2;const card=()=>{const d=document.createElement('div');d.innerHTML=Daily.cardHTML(P());return d.innerText;};
