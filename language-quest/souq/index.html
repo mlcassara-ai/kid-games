@@ -157,8 +157,8 @@ h3{margin:14px 0 8px; font-size:1.1rem}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🛍️</div><h2>The Souq</h2><p class="muted">السُّوق — count with the shopkeepers!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.03a";</script>
-<script src="../lq-core.js?v=2026.10.03a"></script>
+<script>window.LQ_VER="2026.10.03b";</script>
+<script src="../lq-core.js?v=2026.10.03b"></script>
 <script>
 /* ============ numbers data ============
    Counting words in the form used when counting aloud. STALLS: [name, what it covers, kind, the numbers taught].
@@ -301,15 +301,20 @@ function baskets(i){ LQ.mark("Basket challenge");
       <div class="q">Put this many in the basket:<span class="big" lang="ar">${WORD[n]} ${e}</span></div>
       <div class="shelf" id="shelf">${`<button class="item" aria-label="add one">${e}</button>`.repeat(12)}</div>
       <div class="basket" id="basket" aria-live="polite"></div>
-      <div class="actions"><button class="btn ghost" id="again">🔊 Hear again</button><button class="btn go" id="ok">Done ✓</button><button class="btn ghost" id="run">Leave the stall</button></div></div>`;
+      <div class="actions"><button class="btn ghost" id="again">🔊 Hear again</button><button class="btn go" id="ok" disabled>Done ✓</button><button class="btn ghost" id="run">Leave the stall</button></div></div>`;
     say(WORD[n]); $("again").onclick=()=>say(WORD[n]); $("run").onclick=()=>stall(i);
-    const move=(b,to)=>{ if(busy) return; $(to).appendChild(b); inB+=to==="basket"?1:-1; b.onclick=()=>move(b,to==="basket"?"shelf":"basket"); if(to==="basket"&&WORD[inB]) say(WORD[inB]); };
+    // Done stays greyed out until something is in the basket, so it cannot be pressed by mistake on an empty basket
+    const move=(b,to)=>{ if(busy) return; $(to).appendChild(b); inB+=to==="basket"?1:-1; b.onclick=()=>move(b,to==="basket"?"shelf":"basket"); if(to==="basket"&&WORD[inB]) say(WORD[inB]); $("ok").disabled=inB===0; $("basket").style.borderColor=""; };
     document.querySelectorAll(".item").forEach(b=>b.onclick=()=>move(b,"basket"));
-    $("ok").onclick=()=>{ if(busy) return; busy=true; const B=$("basket");
-      if(inB===n){ B.style.borderColor="var(--mint)"; hp--; addCoins(4); LQ.record("words",WORD[n],true); say("مُمْتَاز"); }
-      else { B.style.borderColor="var(--rose)"; hearts--; LQ.record("words",WORD[n],false,WORD[inB]||""); say(WORD[n]);
-        $("app").querySelector(".q").innerHTML=`You put <b>${inB}</b>. <span lang="ar">${WORD[n]}</span> is <b>${ar(n)}</b> (${n}).`; }
-      qn++; LQ.nextButton(()=>{ busy=false; draw(); }); };
+    // a wrong count costs a heart but stays on the same question, with the basket as it was, so the child can fix it and try again
+    $("ok").onclick=()=>{ if(busy||inB===0) return; const B=$("basket");
+      if(inB===n){ busy=true; B.style.borderColor="var(--mint)"; hp--; addCoins(4); LQ.record("words",WORD[n],true); say("مُمْتَاز");
+        $("app").querySelector(".q").innerHTML=`✅ Yes! <span lang="ar">${WORD[n]}</span> is <b>${ar(n)}</b> (${n}).`; qn++; LQ.nextButton(()=>{ busy=false; draw(); }); return; }
+      B.style.borderColor="var(--rose)"; hearts--; LQ.record("words",WORD[n],false,WORD[inB]||""); say(WORD[n]);
+      document.querySelector(".hearts").innerHTML="❤️".repeat(Math.max(0,hearts))+"🤍".repeat(3-Math.max(0,hearts));
+      if(hearts<=0){ busy=true; $("app").querySelector(".q").innerHTML=`You put <b>${inB}</b>. <span lang="ar">${WORD[n]}</span> is <b>${ar(n)}</b> (${n}).`; LQ.nextButton(()=>{ busy=false; draw(); }); return; }
+      $("app").querySelector(".q").innerHTML=`You put <b>${inB}</b>. Count again: we need <span lang="ar" style="font-size:1.4rem">${WORD[n]}</span>. <button class="btn ghost" id="again2" style="min-height:36px;padding:4px 12px">🔊</button>`;
+      $("again2").onclick=()=>say(WORD[n]); };
   }
   draw();
 }

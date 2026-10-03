@@ -52,6 +52,29 @@ async function cloudPut(c,obj){ const t=await token();
   const body={fields:{data:{stringValue:JSON.stringify(obj)},updated:{integerValue:String(Date.now())},v:{integerValue:"1"}}};
   const r=await fetch(docUrl(c),{method:"PATCH",headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify(body)});
   if(!r.ok) throw new Error("put "+r.status); }
+/* ---------------- notes to a player ("📬 A message for you") ----------------
+   Kept in a small document of their own next to the family save (families/lqm_<family code>), so a copy of the game that
+   does not know about notes can never overwrite them. Written with tools/send_note.py. The player has to tap "Read", and
+   the time they did is stored in readBy, so we know they saw it. */
+const noteUrl=c=>`https://firestore.googleapis.com/v1/projects/${FB.project}/databases/(default)/documents/families/lqm_${String(c).toLowerCase().replace(/[^a-z0-9]/g,"")}`;
+async function notesGet(c){ const t=await token(); const r=await fetch(noteUrl(c),{headers:{Authorization:"Bearer "+t},cache:"no-store"});
+  if(r.status===404) return null; if(!r.ok) throw new Error("notes "+r.status); const j=await r.json(); const s=j.fields&&j.fields.data&&j.fields.data.stringValue; return s?JSON.parse(s):null; }
+async function notesPut(c,obj){ const t=await token(); const body={fields:{data:{stringValue:JSON.stringify(obj)},updated:{integerValue:String(Date.now())},v:{integerValue:"1"}}};
+  const r=await fetch(noteUrl(c),{method:"PATCH",headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok) throw new Error("notes put "+r.status); }
+let notes=null, noteOpen=false;
+const unreadFor=p=>((notes&&notes.msgs)||[]).filter(m=>(m.to===p.id||m.to==="*")&&!(m.readBy&&m.readBy[p.id]));
+async function fetchNotes(){ if(!cloud.code) return; try{ notes=await notesGet(cloud.code); }catch(e){ return; } showNote(); }
+function showNote(){ const p=cur(); if(!p||noteOpen||onProfiles||document.getElementById("lqOv")) return; const m=unreadFor(p)[0]; if(!m) return;
+  noteOpen=true;
+  overlay(`<div class="lq-card" style="max-width:480px;margin:30px auto;text-align:center"><div style="font-size:3rem">📬</div>
+    <h2 style="margin:4px 0">A message for ${esc(p.name)}</h2><p class="lq-small" style="margin:0">From ${esc(m.from||"the Language Quest team")} · ${agoText(m.t)}</p>
+    <p style="font-size:1.1rem;text-align:left;white-space:pre-wrap;background:#F6F8FB;border-radius:14px;padding:12px">${esc(m.m)}</p>
+    <div class="lq-row"><button class="lq-btn g" id="lqNoteRead">Read ✓</button></div></div>`);
+  document.getElementById("lqNoteRead").onclick=async()=>{ const b=document.getElementById("lqNoteRead"); b.disabled=true; b.textContent="Saving…";
+    try{ const fresh=await notesGet(cloud.code)||{v:1,msgs:[]}; const x=(fresh.msgs||[]).find(y=>y.id===m.id); if(x){ x.readBy=x.readBy||{}; x.readBy[p.id]=Date.now(); await notesPut(cloud.code,fresh); } notes=fresh; }
+    catch(e){ m.readBy=m.readBy||{}; m.readBy[p.id]=Date.now(); }            // offline: hide it now; it will show again next time and can be read then
+    noteOpen=false; closeOverlay(); fire(); setTimeout(showNote,400); };
+}
 const payload=()=>({v:1,players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},cls:state.cls||null,upd:Date.now()});
 function merge(remote,keepId){
   const del=Object.assign({},remote.deleted||{},state.deleted||{}); const map=new Map(), order=[];
@@ -67,7 +90,7 @@ function merge(remote,keepId){
 function scheduleSync(){ if(!cloud.code) return; clearTimeout(cloud.timer); cloud.timer=setTimeout(syncNow,3000); }
 async function syncNow(){
   if(!cloud.code) return; if(cloud.busy){ cloud.again=true; return; } cloud.busy=true; let changed=false;
-  try{ const remote=await cloudGet(cloud.code); if(remote) changed=merge(remote,state.cur); await cloudPut(cloud.code,payload()); cloud.status="ok"; cloud.last=Date.now(); }
+  try{ const remote=await cloudGet(cloud.code); if(remote) changed=merge(remote,state.cur); await cloudPut(cloud.code,payload()); cloud.status="ok"; cloud.last=Date.now(); fetchNotes(); }
   catch(e){ cloud.status="offline"; }
   cloud.busy=false; badge(); if(changed) fire(); if(cloud.again){ cloud.again=false; scheduleSync(); }
 }
@@ -185,7 +208,7 @@ function profiles(onEnter){ onProfiles=true;
 }
 setInterval(()=>{ if(!onProfiles||document.hidden||!document.querySelector("#lqOv .lq-pro")) return; syncNow().then(()=>{ if(onProfiles&&document.querySelector("#lqOv .lq-pro")) profiles(); }); },30000);
 function choose(id){ const p=state.players.find(x=>x.id===id); if(!p) return; if(p.lock&&p.lock.length) askLock(p); else enter(p); }
-function enter(p){ onProfiles=false; state.cur=p.id; p.last=Date.now(); try{ sessionStorage.setItem("lq.active",p.id); }catch(e){} saveLocal(); closeOverlay(); fire(); if(enterCb) enterCb(p); }
+function enter(p){ onProfiles=false; state.cur=p.id; p.last=Date.now(); try{ sessionStorage.setItem("lq.active",p.id); }catch(e){} saveLocal(); closeOverlay(); fire(); if(enterCb) enterCb(p); setTimeout(()=>notes?showNote():fetchNotes(),800); }
 function askLock(p){ let tries=[]; const pics=[...PICS].sort(()=>Math.random()-.5);
   overlay(`<div class="lq-card" style="max-width:380px;margin:40px auto;text-align:center">${hero(p.color,70)}<h2>Hi ${esc(p.name)}! 🔒</h2>
     <p>Tap your ${p.lock.length} secret pictures in order.</p><div class="lq-dots" id="lqDots">${p.lock.map(()=>"○").join(" ")}</div>

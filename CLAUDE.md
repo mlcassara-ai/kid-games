@@ -52,6 +52,7 @@ Prodigy-style click-to-move world teaching Modern Standard Arabic with full hara
 - Each player's save carries `trail` (last 30 screens opened) and `errs` (last 10 page errors and freezes). Every screen function calls `LQ.mark("…")` first; a new screen must do the same, before any heavy work, so a freeze is attributed to it.
 - Parents and the teacher see both under a child's details. To read a family's save from the terminal: `/usr/bin/python3 language-quest/tools/peek.py FAMILY-CODE` (read-only; never store the code in a file).
 - Testers can send a problem or suggestion with the 🐞 Report button on every page. It is saved in the player's own save (`reports`, last 30) with the screen and version, shown in the Parent Corner details and printed by `peek.py`.
+- To send a player a note in the game: `/usr/bin/python3 language-quest/tools/send_note.py FAMILY-CODE "Name" "Message" --from Michael`. It shows the next time that player is signed in and stays until they tap Read ✓. `send_note.py FAMILY-CODE --list` shows each note and when it was read. Notes live in their own doc `families/lqm_<code>` so an older game version can't overwrite them.
 - This stays inside the family's own save. Do not add third-party analytics or send it anywhere else.
 
 ### Rules that must hold
