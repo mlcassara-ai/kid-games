@@ -209,7 +209,7 @@ function storm(){if(!S||!document.body.contains(S.field)){stop();return;}if(Math
  if(S.t==='caves'){S.scene.classList.remove('bps-tremor');void S.scene.offsetWidth;S.scene.classList.add('bps-tremor');
   for(let i=0;i<5;i++){const p=document.createElement('i');p.className='bps-pebble';p.style.left=(S.sc.scrollLeft+Math.random()*S.cw)+'px';p.style.animationDelay=(Math.random()*.4)+'s';S.wx.appendChild(p);setTimeout(()=>p.remove(),1800);}return;}
  const b=S.wx.querySelector('.bps-bolt');if(!b)return;b.style.left=S.sc.scrollLeft+'px';b.style.width=S.cw+'px';b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
- try{if(typeof tone==='function'){tone(55,1.1,'sawtooth',.035,.25);tone(42,1.3,'sine',.06,.3);}}catch(e){}}
+ try{if(typeof tone==='function'){tone(55,1.1,'sawtooth',.016,.25);tone(42,1.3,'sine',.03,.3);}}catch(e){}}
 function parallax(sc){if(!S||!S.scene)return;const x=sc.scrollLeft;const q=(sel,f)=>{const e=S.scene.querySelector(sel);if(e)e.style.transform=`translateX(${f1(x*(1-f))}px)`;};
  q('.bps-sky',0);q('.bps-far',.25);q('.bps-mid',.55);const fg=S.fg&&S.fg.firstChild;if(fg)fg.style.transform=`translateX(${f1(-x*.3)}px)`;
  const rb=S.wx.querySelector('.bps-rain');if(rb){rb.style.left=x+'px';rb.style.width=S.cw+'px';}}

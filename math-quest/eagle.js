@@ -71,6 +71,7 @@ const PERCH=`<svg viewBox="0 0 360 520" class="eg-perch" preserveAspectRatio="xM
 <path class="eg-jaw" d="M100 142 Q80 150 70 158 Q92 160 112 150Z" fill="#d99a00"/>
 <ellipse cx="140" cy="106" rx="13" ry="11" fill="url(#egEye)"/><circle cx="136" cy="107" r="5" fill="#111"/>
 <path class="eg-brow" d="M118 88 L162 98" stroke="#6b5a45" stroke-width="7" stroke-linecap="round"/><path class="eg-browk" d="M120 92 Q140 80 162 90" stroke="#6b5a45" stroke-width="6" fill="none" stroke-linecap="round"/></g></svg>`;
+window.MQ_EAGLE_SVG={perch:PERCH,fly:FLY(true)}; /* Battle Pets uses Skyla as a mega */
 const CHICK=`<svg viewBox="0 0 80 80"><ellipse cx="40" cy="48" rx="30" ry="28" fill="#c9c4bd"/><g fill="#dcd7d0"><circle cx="18" cy="30" r="10"/><circle cx="30" cy="22" r="10"/><circle cx="46" cy="21" r="10"/><circle cx="60" cy="30" r="10"/></g><circle cx="30" cy="42" r="6" fill="#fff"/><circle cx="50" cy="42" r="6" fill="#fff"/><circle cx="31" cy="43" r="3.4" fill="#222"/><circle cx="49" cy="43" r="3.4" fill="#222"/><path d="M34 52 L46 52 L40 62Z" fill="#f2b705"/></svg>`;
 // ---- a real stick nest: back rim (behind you + chicks) and front rim (in front) ----
 const NEST=(()=>{let sd=7;const R=()=>(sd=(sd*9301+49297)%233280)/233280;

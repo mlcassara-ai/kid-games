@@ -236,6 +236,10 @@ const tests=[
   G.trollAt=0;BattlePets._troll();const tr=G.pets.find(u=>u.mega&&!u.gone);T.ok(tr&&G.trollAt>=G.t+90&&G.trolls===1,'the troll did not come, or his cooldown is short');
   {D._spawn('flying');const fz=G.foes[G.foes.length-1];fz.x=tr.x-4;tr.stun=0;tr.stompAt=0;tr.poundAt=0;for(let i=0;i<14;i++)D.step(.05);T.ok(fz.x<tr.x-5||fz.gone,'the troll\'s roar did not blow a flyer back');fz.gone=true;}
   G.treats=50;G.trollAt=0;T.ok(!D.callTroll(),'a second troll came while the first was out');tr.leave=G.t;D.step(.05);T.ok(tr.gone&&tr.left,'the troll did not go home');G.trollAt=G.t+50;
+  /* 🦅 Skyla, the other mega: walks, rises, dives onto the critters ahead */
+  {G.megaId='eagle';G.trollAt=0;G.treats=50;const before=G.trolls;D.callTroll();const eg=G.pets.find(u=>u.mega&&!u.gone&&u.R.id==='eagle');T.ok(eg&&G.trolls===before+1,'Skyla did not come');
+   eg.stun=0;D._spawn('basic');const ef=G.foes[G.foes.length-1];ef.x=eg.x-8;const eh=ef.hp;let rose=false;for(let i=0;i<40&&!G.dives;i++){D.step(.05);if(eg.ph==='rise')rose=true;}
+   T.ok(rose&&G.dives>=1&&(ef.hp<eh||ef.gone),'Skyla did not rise and dive onto the critter');eg.leave=G.t;D.step(.05);ef.gone=true;G.megaId='troll';G.trollAt=G.t+50;}
   /* the camera follows our lead pet (with no pets out it rests on the Pet House) */
   {const sc=document.getElementById('bpScroll');sc.scrollLeft=0;G.pets.forEach(u=>u.gone=true);D.step(.05);T.ok(D.leadX()>=90,'with no pets out the camera does not rest on the Pet House');const l0=sc.scrollLeft;for(let i=0;i<5;i++)BattlePets._cam();T.ok(sc.scrollLeft>l0,'the camera did not move to the lead pet');}
   /* the scenery: a world for the stage, drawn bases, the Goblin drains the colour */
@@ -259,6 +263,13 @@ const tests=[
   T.ok(JSON.stringify(P().bp2).length<200&&JSON.stringify(P().bp).length<400,'Battle Pets data is too big');BattlePets._back();T.ok(!document.body.classList.contains('bp2-lock')&&!document.getElementById('bpFull'),'leaving the battle did not end the full-screen takeover');
   /* switching heroes ends a battle in progress */
   BattlePets._pick('forest',1);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();const q2=T.hero('Other',3);state.cur=q2.id;go('world');await T.wait(50);T.ok(!document.querySelector('.bp2-over'),'a results card was left on screen');
+ }],
+ ['battle pets on the world page: locked until the Legend round, then a Battle button',async function(){
+  T.reset();delete window.MQ_BP_BETA;const p=T.hero('Zoner',4);state.cur=p.id;go('zone','forest');await T.wait(60);
+  T.ok(document.getElementById('bpZone')&&/Legend/.test(document.getElementById('bpZone').textContent)&&!document.querySelector('#bpZone button'),'the world page does not say how to unlock Battle Pets');
+  const m0=window.medal;window.medal=()=>5;go('zone','forest');await T.wait(60);const b=document.querySelector('#bpZone button');T.ok(b&&/Battle Pets/.test(b.textContent),'no Battle button after the Legend round');
+  window.medal=m0;BattlePets.openStage('forest');await T.wait(60);T.ok(curScreen==='bp'&&BattlePets._dbg.view().k==='team'&&BattlePets._dbg.view().id==='forest','the Battle button did not open the stage');
+  go('zone','temple');await T.wait(60);T.ok(!document.getElementById('bpZone'),'a world without a Battle Pets stage shows the button');BattlePets._back();
  }],
  ['report button: a problem or suggestion is saved in the hero save with the screen and version, and shows in Parent Corner',async function(){
   T.reset();const p=T.hero('Tester',3);state.cur=p.id;W=null;go('world');await T.wait(80);

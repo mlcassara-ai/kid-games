@@ -52,6 +52,9 @@ const petSpd=(R,m)=>R.spd*TUNE.petSpd/(1+.5*(m-1));
    takes a big breath and ROARS: the blast hurts and throws back every critter in front of him, flyers too (his club can't reach flyers).
    When called he LEAPS from the Pet House to land just behind the lead pet, then walks slowly. He stays about 28 seconds
    once he reaches the fight (50 at most), then stomps home. A big wait: 40 s before the first call, 100 s between calls. */
+/* 🦅 the other mega: Skyla the Giant Eagle (the eagle's own drawing, eagle.js). She walks, then rises into the air and DIVES down at an
+   angle onto the critters ahead (flyers too), smacking them back; between dives she pecks. Only one mega per battle: the team builder picks. */
+const EAGLE={id:'eagle',n:'Skyla',e:'🦅',cost:16,first:40,cd:100,life:28,maxLife:50,hp:420,atk:24,rng:3,spd:3.2,fly:true,dive:3.4,rise:.55,fall:.38,reach:5,tip:'Mega eagle: rises up and dives onto critters'};
 const TROLL={id:'troll',n:'Grumbleroot',e:'🧌',cost:16,first:40,cd:100,life:28,maxLife:50,hp:500,atk:30,rng:3.6,spd:2.6,area:true,armor:2,pound:3.6,wind:.45,reach:12,tip:'Mega troll: huge and slow; his ROAR blasts critters back'};
 function powerOf(p,pet){const pd=petData(p,pet.id),st=petStage(pd),si=Math.max(0,PET_STAGES.indexOf(st));const tm=((typeof PET_TIERS!=='undefined'&&PET_TIERS[pet.tier])||{mult:1}).mult||1;
  let ml=0;try{ml=petLv(pd)||0;}catch(e){}return Math.min(2.6,tm*(1+.2*si+.04*ml));}
@@ -123,9 +126,22 @@ function send(i){const s=G&&!G.over&&G.team[i];if(!s||G.treats<s.R.cost||s.ready
  G.treats-=s.R.cost;s.ready=G.t+s.R.cd;G.sent++;const R=s.R,m=s.m;
  G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m*TUNE.petHp,max:R.hp*m*TUNE.petHp,atk:R.atk*m,rng:R.rng,spd:petSpd(R,m),kb:0,stun:0,flyer:flies(s.pet),id:Math.random()});fx('send');return true;}
 const trollOut=()=>!!G&&G.pets.some(u=>u.mega&&!u.gone);
-function callTroll(){if(!G||G.over||G.t<G.trollAt||G.treats<TROLL.cost||trollOut())return false;G.treats-=TROLL.cost;G.trollAt=G.t+TROLL.cd;G.trolls++;
+const MEGA={troll:TROLL,eagle:EAGLE},megaOf=()=>MEGA[G&&G.megaId]||TROLL;
+function eagleStep(u,foes,dt){const E=EAGLE;
+ if(u.ph==='rise'){if(G.t>=u.phT){u.ph='dive';u.phT=G.t+E.fall;u.x0=u.x;fx('swoop');}return;}
+ if(u.ph==='dive'){const k=Math.min(1,1-(u.phT-G.t)/E.fall);u.x=u.x0+(u.tx-u.x0)*k;
+  if(G.t>=u.phT){u.x=u.tx;u.ph='walk';u.diveAt=G.t+E.dive;G.dives=(G.dives||0)+1;foes.forEach(f=>{if(f.gone||Math.abs(f.x-u.x)>E.reach)return;f.hp-=u.atk*(f.boss?.8:2);knock(f,-(f.boss?2:7));f.stun=G.t+.8;f.pawT=G.t;});G.diveX=u.x;fx('dive');}return;}
+ const ahead=foes.filter(f=>!f.gone&&u.x-f.x>=-1&&u.x-f.x<=16);
+ if(ahead.length&&G.t>=(u.diveAt||0)){const t=ahead.reduce((a,b)=>b.x>a.x?b:a);u.tx=Math.max(DEN_X+2,t.x+.5);u.ph='rise';u.phT=G.t+E.rise;if(!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+E.life);}return;}
+ const near=foes.filter(f=>!f.gone&&u.x-f.x>=-1&&u.x-f.x<=u.rng);
+ if(near.length){u.fight=true;near[0].hp-=u.atk*.3*dt;return;}
+ if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*.5*dt;return;}
+ u.x-=u.spd*.8*dt;u.mv=true;}
+function eagleArt(){const e=window.MQ_EAGLE_SVG;if(!e)return `<span style="font-size:70px;line-height:1">${EAGLE.e}</span>`;return `<span class="eg-walk">${e.perch}</span><span class="eg-flyart">${e.fly}</span>`;}
+const megaArt=(id,w)=>id==='eagle'?(w<60&&window.MQ_EAGLE_SVG?`<span class="eg-btn">${window.MQ_EAGLE_SVG.perch}</span>`:w<60?`<span style="font-size:30px">${EAGLE.e}</span>`:eagleArt()):trollArt(w);
+function callTroll(){const M=megaOf();if(!G||G.over||G.t<G.trollAt||G.treats<M.cost||trollOut())return false;G.treats-=M.cost;G.trollAt=G.t+M.cd;G.trolls++;
  const m=1+.35*G.c;const lead=G.pets.filter(u=>!u.gone&&!u.mega),to=lead.length?Math.min(HOUSE_X-2,Math.min(...lead.map(u=>u.x))+2.5):HOUSE_X-2;
- G.pets.push({side:'p',mega:true,leapT:G.t,stun:G.t+.95,pet:{id:'troll',e:TROLL.e,name:TROLL.n},R:TROLL,x:to,hp:TROLL.hp*m,max:TROLL.hp*m,atk:TROLL.atk*m,rng:TROLL.rng,spd:TROLL.spd,kb:0,leave:G.t+TROLL.maxLife,stompAt:0,poundAt:0,id:Math.random()});fx('troll');return true;}
+ G.pets.push({side:'p',mega:true,leapT:G.t,stun:G.t+.95,pet:{id:M.id,e:M.e,name:M.n},R:M,x:to,hp:M.hp*m,max:M.hp*m,atk:M.atk*m,rng:M.rng,spd:M.spd,kb:0,leave:G.t+M.maxLife,stompAt:0,poundAt:0,ph:'walk',diveAt:0,id:Math.random()});fx(M.id==='eagle'?'eagle':'troll');return true;}
 /* the giant pounce paw */
 const PAW='<svg class="paw" viewBox="0 0 200 200" aria-hidden="true"><g fill="#ffb627" stroke="#fff" stroke-width="7"><ellipse cx="100" cy="128" rx="54" ry="46"/><ellipse cx="42" cy="78" rx="20" ry="27" transform="rotate(-24 42 78)"/>'+
  '<ellipse cx="80" cy="48" rx="21" ry="28" transform="rotate(-8 80 48)"/><ellipse cx="122" cy="48" rx="21" ry="28" transform="rotate(8 122 48)"/><ellipse cx="160" cy="78" rx="20" ry="27" transform="rotate(24 160 78)"/></g>'+
@@ -165,16 +181,16 @@ function step(dt){if(!G||G.over)return;G.t+=dt;
  if(!G.boss&&G.denHP<=G.denMax*.5){G.boss=true;spawn('boss');G.pets.forEach(p=>{if(p.gone)return;knock(p,12);p.stun=G.t+.8;});fx('boss');} /* the boss's shockwave */
  const pets=G.pets.filter(x=>!x.gone),foes=G.foes.filter(x=>!x.gone);
  G.pets.forEach(u=>{u.fight=false;});G.foes.forEach(f=>{f.fight=false;});
- pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx('trollbye');return;}if(u.stun>G.t)return;u.mv=false;const R=u.R;const reach=f=>(!f.fly||R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
+ pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx(u.R.id==='eagle'?'eaglebye':'trollbye');return;}if(u.stun>G.t)return;u.mv=false;const R=u.R;if(u.mega&&R.id==='eagle'){eagleStep(u,foes,dt);return;}const reach=f=>(!f.fly||R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
   if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];u.fight=true;u.tgFly=!!hit[0].fly;hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});
    if(Math.random()<.18*dt)knock(hit[0],-(1.5+Math.random()*1.5)*(hit[0].boss?.3:1)); /* now and then a hit shoves the critter back a little */
-   if(u.mega&&!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+TROLL.life);}}
+   if(u.mega&&!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+R.life);}}
   else if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*dt*(G.bossDown||!G.boss?1:.5)*(G.t>TUNE.tired?1.6:1);}
   else{u.x-=u.spd*.8*dt;u.mv=true;}
-  if(u.mega&&!u.poundAt&&G.t>=u.stompAt&&foes.some(f=>!f.gone&&u.x-f.x>=-2&&u.x-f.x<=6)){u.poundAt=G.t+TROLL.wind;u.windT=G.t;} /* he roars at any critter right in front of him, flyers too */
+  if(u.mega&&R.id==='troll'&&!u.poundAt&&G.t>=u.stompAt&&foes.some(f=>!f.gone&&u.x-f.x>=-2&&u.x-f.x<=6)){u.poundAt=G.t+TROLL.wind;u.windT=G.t;} /* he roars at any critter right in front of him, flyers too */
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
  /* flyers drift over pets that can't reach them (like Battle Cats' floating enemies) and go for the Pet House */
- foes.forEach(f=>{if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>(!f.fly||u.R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
+ foes.forEach(f=>{if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>u.ph!=='rise'&&u.ph!=='dive'&&(!f.fly||u.R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
   if(tg.length){const u=tg.reduce((a,b)=>b.x<a.x?b:a);u.hp-=f.atk*dt;f.fight=true;if(Math.random()<.18*dt)knock(u,1.5+Math.random()*1.5);if(f.boss&&G.t>=(G.bossShake||0)){G.bossShake=G.t+1.4;fx('bossHit');}}
   else if(HOUSE_X-f.x<=f.rng&&(f.fight=true))G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;
   else{f.x+=f.spd*.8*dt;f.mv=true;}});
@@ -203,6 +219,8 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-slots{display:flex;gap:8px;flex-wrap:wrap}.bp2-slot{font:inherit;width:72px;height:72px;border-radius:14px;border:3px dashed #b197fc;background:#f8f5ff;font-size:34px;cursor:pointer}
 .bp2-filt{font:inherit;font-weight:800;border:2px solid #f2b705;background:#fff9db;color:#2b2340;border-radius:20px;padding:6px 12px;min-height:40px;cursor:pointer}.bp2-filt.on{background:#f2b705}
 .bp2-pet{position:relative}.bp2-flyb{position:absolute;top:4px;right:4px;font-size:11px;font-weight:800;background:#fff3bf;border-radius:8px;padding:1px 4px}
+.bp2-mega{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.bp2-mega button{font:inherit;font-weight:800;border:3px solid #e9e4ff;background:#fff;border-radius:14px;padding:6px 12px;cursor:pointer;color:#2b2340;text-align:left}.bp2-mega button.on{border-color:#7048e8;background:#f3f0ff}.bp2-mega button small{display:block;font-weight:600;color:#6b6490;font-size:11px}
+.bp2-zone{text-align:center;margin:8px 0}.bp2-zone p{color:#fff;opacity:.85;margin:0}
 .bp2-slot.full{border-style:solid;border-color:#40c057;background:#ebfbee}
 .bp2-hud{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}.bp2-bar{flex:1;height:12px;background:#eee;border-radius:6px;overflow:hidden}.bp2-bar i{display:block;height:100%}
 .bp2-scroll{overflow-x:auto;overflow-y:hidden;border-radius:16px;border:3px solid #2b2340;-webkit-overflow-scrolling:touch;cursor:grab;touch-action:pan-x;scrollbar-width:thin;overscroll-behavior-x:contain}
@@ -256,6 +274,12 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-trollsvg .tr-mopen{display:none}.bp2-trollsvg .tr-mclosed{display:inline}.bp2-trollsvg .tr-brow-angry{display:inline}.bp2-trollsvg .tr-brow-kind{display:none}.bp2-trollsvg .tr-drool{display:none}
 .bp2-ent.roar .bp2-trollsvg .tr-mopen{display:inline}.bp2-ent.roar .bp2-trollsvg .tr-mclosed{display:none}
 .bp2-ent.mega.roar .e{animation:bp2roar 1.15s ease-in-out}
+.bp2-ent.r-eagle .e{transition:translate .55s ease-out,rotate .3s}.bp2-ent.r-eagle .eg-flyart{display:none}
+.bp2-ent.r-eagle .eg-walk svg,.bp2-ent.r-eagle .eg-flyart svg,.bp2-tc .eg-btn svg{position:static;display:block;height:auto;transform:none;animation:none}
+.bp2-ent.r-eagle .eg-walk svg{width:84px}.bp2-ent.r-eagle .eg-flyart svg{width:170px}.bp2-tc .eg-btn{display:block;width:34px;margin:0 auto}.bp2-tc .eg-btn svg{width:34px}
+.bp2-ent.r-eagle.air .eg-walk,.bp2-ent.r-eagle.diving .eg-walk{display:none}.bp2-ent.r-eagle.air .eg-flyart,.bp2-ent.r-eagle.diving .eg-flyart{display:block}
+.bp2-ent.r-eagle.air .e,.bp2-ent.r-eagle.diving .e{animation:none}.bp2-ent.r-eagle.air .e{translate:0 -150px;rotate:10deg}
+.bp2-ent.r-eagle.diving .e{translate:0 0;rotate:-30deg;transition:translate .38s ease-in,rotate .1s}
 .bp2-ent.leap{transition:left .9s cubic-bezier(.3,.1,.5,1)}.bp2-ent.leap .e{animation:bp2leap .9s ease-in-out}
 @keyframes bp2leap{0%{translate:0 0;rotate:0deg}15%{translate:0 6px}50%{translate:0 -170px;rotate:-12deg}90%{translate:0 0;rotate:4deg}100%{translate:0 0;rotate:0deg}}
 @keyframes bp2roar{0%{translate:0 0;rotate:0deg;scale:1}35%{translate:5px -5px;rotate:4deg;scale:1.02}45%{translate:-8px 0;rotate:-8deg;scale:1.1}55%{translate:-6px 1px;rotate:-7deg;scale:1.1}65%{translate:-9px -1px;rotate:-8deg;scale:1.1}85%{translate:-6px 0;rotate:-6deg;scale:1.08}100%{translate:0 0;rotate:0deg;scale:1}}
@@ -329,6 +353,7 @@ function pickStage(id,crown){const p=me();if(!p)return;const pr=prog(p);if(crown
  if(!team.length)team=available(p).sort((a,b)=>powerOf(p,b)-powerOf(p,a)).slice(0,slots(p)).map(x=>x.id);VIEW.team=team;screen();}
 function teamView(p){const S=stages().find(s=>s.id===VIEW.id);if(!S){VIEW={k:'stages'};return screen();}const av=available(p),n=slots(p),team=VIEW.team;
  app.innerHTML=head(`${S.art} ${esc(S.name)} ${'👑'.repeat(VIEW.crown)}`,"BattlePets._back()")+`<div class="bp2"><div class="bp2-card"><b>Build your team</b> (up to ${n}). Tap a pet to add it, tap a team spot to take it out.
+  <div class="bp2-mega"><b>Mega:</b> ${[['troll','🧌 Grumbleroot','roars critters back'],['eagle','🦅 Skyla','dives onto critters']].map(([id,t,sub])=>`<button class="${(prog(p).mega||'troll')===id?'on':''}" onclick="BattlePets._mega('${id}')">${t}<small>${sub}</small></button>`).join('')}<small class="muted">One mega per battle.</small></div>
   <div class="muted" style="font-size:13px;margin:4px 0 8px">Critters here: ${S.crit.map(c=>`${c[1]} ${esc(c[0])} <i>(${TRAIT[c[2]].tag||'plain'})</i>`).join(' · ')}</div>
   <div class="bp2-slots">${Array.from({length:n},(_,i)=>{const id=team[i],pet=id&&PETS.find(x=>x.id===id);return `<button class="bp2-slot ${pet?'full':''}" onclick="BattlePets._out(${i})" aria-label="${pet?'Take '+esc(pet.name)+' out':'Empty spot'}">${pet?pet.e:''}</button>`;}).join('')}
   <button class="bp2-btn" style="margin-left:auto" onclick="BattlePets._auto()" ${av.length?'':'disabled'}>🎲 Pick for me</button><button class="bp2-btn gold" ${team.length?'':'disabled'} onclick="BattlePets._start()">Start! ▶</button></div></div>
@@ -352,7 +377,7 @@ function teamOut(i){if(VIEW.k!=='team')return;VIEW.team.splice(i,1);screen();}
 function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;const S=stages().find(s=>s.id===VIEW.id);const team=VIEW.team.map(id=>PETS.find(x=>x.id===id)).filter(Boolean);
  if(!VIEW.flyOk&&flyRisk(S,team)){if(!document.getElementById('bpFlyW'))flyWarn();return;}
  prog(p).team=VIEW.team.slice();const b=p.bp=p.bp||{s:0,m:[]};b.s=(b.s||0)+1;save();
- newBattle(p,S,VIEW.crown,team);G.q=makeQ(p,S.op);G.songPick=Math.floor(Math.random()*3);enterFS();VIEW={k:'fight',id:S.id,crown:G.crown};screen();}
+ newBattle(p,S,VIEW.crown,team);G.megaId=prog(p).mega==='eagle'?'eagle':'troll';G.q=makeQ(p,S.op);G.songPick=Math.floor(Math.random()*3);enterFS();VIEW={k:'fight',id:S.id,crown:G.crown};screen();}
 /* the battle takes over the whole screen: no menus, just ✕ Exit (and the browser goes full screen where it can) */
 function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
  app.innerHTML=`<div class="bp2-full" id="bpFull">
@@ -361,7 +386,7 @@ function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
   <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">${window.BPScene?BPScene.base('den',S):'🏚️'}</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">${window.BPScene?BPScene.base('house',S):'🏡'}</span></div></div>
   <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button><button class="bp2-btn fix" id="bpFix" onclick="BattlePets._fix()"></button></div>
   <div class="bp2-team six">${G.team.map((s,i)=>`<button class="bp2-tc" id="bpTc${i}" onclick="BattlePets._send(${i})"><span class="pe">${s.pet.e}</span><small>${s.R.e} ${s.R.n}<span class="bp2-key">${i+1}</span></small><small>🍖 ${s.R.cost}</small><span class="cd" id="bpCd${i}"></span></button>`).join('')}
-   <button class="bp2-tc mega" id="bpTroll" onclick="BattlePets._troll()" aria-label="Call ${TROLL.n} the Troll"><span class="pe">${trollArt(46)}</span><small>MEGA<span class="bp2-key">T</span></small><small>🍖 ${TROLL.cost}</small><span class="cd" id="bpTrollCd"></span></button></div>
+   <button class="bp2-tc mega" id="bpTroll" onclick="BattlePets._troll()" aria-label="Call ${megaOf().n}"><span class="pe">${megaArt(megaOf().id,46)}</span><small>MEGA<span class="bp2-key">T</span></small><small>🍖 ${megaOf().cost}</small><span class="cd" id="bpTrollCd"></span></button></div>
   <div class="bp2-card bp2-fix" id="bpFixP" style="display:none"><div class="bp2-row" style="justify-content:space-between"><b>🧱 Rebuild the Pet House</b><span class="bp2-bricks" id="bpBricks"></span><button class="btn small ghost dark" onclick="BattlePets._fixDone()">Done <span class="bp2-key">Esc</span></button></div>
    <div class="bp2-q"><span id="bpQ"></span><span class="box" id="bpIn">&nbsp;</span><button class="btn small ghost dark" onclick="BattlePets._say()" aria-label="Read it to me">🔊</button></div><div class="bp2-msg" id="bpMsg"></div>
    <div class="bp2-pad">${['1','2','3','4','5','6','7','8','9','0','.','⌫'].map(k=>`<button onclick="BattlePets._key('${k}')">${k}</button>`).join('')}</div><div class="bp2-padrow"><button class="skip" onclick="BattlePets._key('skip')">⏭ Skip <span class="bp2-key">Space</span></button><button class="go" onclick="BattlePets._key('go')">✓ Check <span class="bp2-key">Enter</span></button></div></div>
@@ -414,19 +439,20 @@ function onKey(e){try{if(document.getElementById('bpSnd')&&(e.key==='Escape'||e.
 window.addEventListener('keydown',onKey,true);
 /* draw: one element per unit, moved every frame */
 function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)return;const all=G.pets.concat(G.foes);
- all.forEach(u=>{if(!u.el){u.el=document.createElement('div');u.el.className=`bp2-ent ${u.side==='p'?'pet r-'+((u.R&&u.R.id)||'x'):'foe t-'+(u.trait||'basic')}${u.boss?' boss':''}${u.fly?' fly':''}`;u.el.style.setProperty('--d',(-Math.random()*.9).toFixed(2)+'s');u.el.innerHTML=`<div class="hb"><i></i></div><span class="e">${u.mega?trollArt(130):u.boss?goblinArt(118):u.side==='p'?u.pet.e:u.e}</span>${u.side==='c'&&u.trait&&u.trait!=='boss'&&!u.notag?`<span class="tag">${u.trait}</span>`:''}`;f.appendChild(u.el);}
+ all.forEach(u=>{if(!u.el){u.el=document.createElement('div');u.el.className=`bp2-ent ${u.side==='p'?'pet r-'+((u.R&&u.R.id)||'x'):'foe t-'+(u.trait||'basic')}${u.boss?' boss':''}${u.fly?' fly':''}`;u.el.style.setProperty('--d',(-Math.random()*.9).toFixed(2)+'s');u.el.innerHTML=`<div class="hb"><i></i></div><span class="e">${u.mega?megaArt(u.R.id,130):u.boss?goblinArt(118):u.side==='p'?u.pet.e:u.e}</span>${u.side==='c'&&u.trait&&u.trait!=='boss'&&!u.notag?`<span class="tag">${u.trait}</span>`:''}`;f.appendChild(u.el);}
   if(u.gone){if(!u.dead){u.dead=1;if(!u.left)u.el.classList.add('ko');else u.el.style.opacity=0;const e=u.el;setTimeout(()=>e.remove(),450);if(!u.left){puff(u.x,'poof');if(Math.random()<.6)puff(u.x+(Math.random()*2-1),'dust');}}return;}
   const now=performance.now();if(u.kbT!==u.kbSeen){u.kbSeen=u.kbT;u.kbUntil=now+420;u.el.classList.remove('kb');void u.el.offsetWidth;u.el.classList.add('kb');puff(u.x,'dust');}
   if(u.kbUntil&&now>u.kbUntil){u.kbUntil=0;u.el.classList.remove('kb');puff(u.x,'dust');}
   if(u.lastHp!==undefined&&u.hp<u.lastHp){u.hurtAcc=(u.hurtAcc||0)+u.lastHp-u.hp;if(u.hurtAcc>u.max*.07){u.hurtAcc=0;u.hurtUntil=now+120;}}u.lastHp=u.hp;u.el.classList.toggle('hurt',(u.hurtUntil||0)>now);
   if(u.mega&&u.leapT!==undefined&&!u.leapSeen){u.leapSeen=1;u.el.style.left=HOUSE_X+'%';void u.el.offsetWidth;u.el.classList.add('leap');setTimeout(()=>{try{u.el.classList.remove('leap');puffAny(u.x,'ring');puffAny(u.x-1,'dust');puffAny(u.x+1,'dust');shake();tone(55,.35,'sine',.14);}catch(e){}},900);}
+  if(u.mega&&u.R.id==='eagle'){u.el.classList.toggle('air',u.ph==='rise');u.el.classList.toggle('diving',u.ph==='dive');}
   if(u.mega&&u.windT!==u.windSeen){u.windSeen=u.windT;u.el.classList.remove('roar');void u.el.offsetWidth;u.el.classList.add('roar');}
   u.el.style.left=u.x+'%';u.el.classList.toggle('walk',!!u.mv&&!u.fight);if(u.mv&&!u.fly&&window.BPScene&&Math.random()<.025)BPScene.scuff(u.x);u.el.classList.toggle('fight',!!u.fight);if(u.flyer)u.el.classList.toggle('fly',!(u.fight&&!u.tgFly));u.el.classList.toggle('stun',!!(u.stun>G.t&&!u.mega&&!(u.leapT!==undefined&&G.t-u.leapT<1)));
   if(u.fight&&!u.mega&&now>(u.fxAt||0)){u.fxAt=now+900;if(u.R&&u.R.id==='archer')arrow(u);else if(u.R&&u.R.id==='medic')puffAny(u.x,'heal',70);}if(u.mega)u.el.classList.add('mega');u.el.querySelector('.hb i').style.width=Math.max(0,u.hp/u.max*100)+'%';});
  G.pets=G.pets.filter(u=>!(u.gone&&u.dead));G.foes=G.foes.filter(u=>!(u.gone&&u.dead));
  clash();baseSmoke();pawHits();camera();flyHint();
- {const tb=document.getElementById('bpTroll'),tc=document.getElementById('bpTrollCd');if(tb&&tc){const out=trollOut(),wait=Math.max(0,G.trollAt-G.t),span=G.trolls?TROLL.cd:TROLL.first;
-  tc.style.height=(out?100:wait/span*100)+'%';tb.classList.toggle('poor',G.treats<TROLL.cost||out||wait>0);tb.title=out?`${TROLL.n} is stomping!`:wait>0?`${TROLL.n} is coming in ${Math.ceil(wait)} s`:`Call ${TROLL.n}!`;}}
+ {const tb=document.getElementById('bpTroll'),tc=document.getElementById('bpTrollCd'),M=megaOf();if(tb&&tc){const out=trollOut(),wait=Math.max(0,G.trollAt-G.t),span=G.trolls?M.cd:M.first;
+  tc.style.height=(out?100:wait/span*100)+'%';tb.classList.toggle('poor',G.treats<M.cost||out||wait>0);tb.title=out?`${M.n} is fighting!`:wait>0?`${M.n} is coming in ${Math.ceil(wait)} s`:`Call ${M.n}!`;}}
  const q=id=>document.getElementById(id);q('bpDen').style.width=(G.denHP/G.denMax*100)+'%';q('bpHouse').style.width=(G.houseHP/G.houseMax*100)+'%';q('bpT').textContent=Math.floor(G.t)+'s';
  q('bpTreat').style.width=(G.treats/treatCap()*100)+'%';q('bpTreatT').textContent=`🍖 ${Math.floor(G.treats)} / ${treatCap()}`;
  const fb=q('bpFix'),fp=q('bpFixP'),cf=canFix();fb.innerHTML=`🧱 Rebuild <span class="bp2-key">R</span><br><small>${G.bricks} brick${G.bricks===1?'':'s'}</small>`;fb.disabled=!G.fixing&&!cf;fb.classList.toggle('hot',cf&&!G.fixing);
@@ -445,6 +471,10 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
    else if(k==='troll'){shake();flash(`🧌 ${TROLL.n} stomps in!`);tone(70,.5,'sawtooth',.08);tone(55,.6,'square',.05,.2);}
    else if(k==='roar'){const t=G.pets.find(u=>u.mega&&!u.gone);if(t){[0,110,220,330].forEach(ms=>setTimeout(()=>puffAny(t.x-1.6,'sound',78),ms));puffAny(t.x-2.5,'word',150);puffAny(t.x-3,'dust');puffAny(t.x-5,'dust');}shake();setTimeout(shake,250);roarSound();}
    else if(k==='trollbye')topNote(`🧌 ${TROLL.n} stomps home. He'll be back!`);
+   else if(k==='eaglebye')topNote(`🦅 ${EAGLE.n} flies home. She'll be back!`);
+   else if(k==='eagle'){flash(`🦅 ${EAGLE.n} swoops in!`);tone(1500,.18,'triangle',.03);tone(1100,.25,'triangle',.025,.12);}
+   else if(k==='swoop'){tone(900,.3,'sawtooth',.012);tone(600,.35,'triangle',.02,.05);}
+   else if(k==='dive'){const x=G.diveX;puffAny(x,'ring');puffAny(x-1,'dust');puffAny(x+1,'dust');puffAny(x,'star');shake();tone(70,.3,'sine',.1);}
    else if(k==='bossHit'){shake();tone(90,.18,'sawtooth',.04);}}catch(e){}}}
 /* effects: little dust clouds, smoke and hit stars, kept to a handful at a time so older iPads stay smooth */
 let PTS=0,CLASH=0;
@@ -465,11 +495,11 @@ function puffAny(x,kind,y){const f=document.getElementById('bpField');if(!f||PTS
 function roarSound(){try{if(typeof state!=='undefined'&&!state.sound)return;const ctx=AC||(AC=new(window.AudioContext||window.webkitAudioContext)());const out=fxOut(ctx),t=ctx.currentTime;
  const nb=ctx.createBuffer(1,ctx.sampleRate*1.3,ctx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
  const n=ctx.createBufferSource(),bp=ctx.createBiquadFilter(),ng=ctx.createGain();n.buffer=nb;bp.type='bandpass';bp.Q.value=1.1;bp.frequency.setValueAtTime(900,t);bp.frequency.exponentialRampToValueAtTime(220,t+1.15);
- ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.55,t+.08);ng.gain.setValueAtTime(.5,t+.7);ng.gain.exponentialRampToValueAtTime(.0001,t+1.25);n.connect(bp);bp.connect(ng);ng.connect(out);n.start(t);n.stop(t+1.3);
+ ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.28,t+.08);ng.gain.setValueAtTime(.25,t+.7);ng.gain.exponentialRampToValueAtTime(.0001,t+1.25);n.connect(bp);bp.connect(ng);ng.connect(out);n.start(t);n.stop(t+1.3);
  const o=ctx.createOscillator(),lp=ctx.createBiquadFilter(),og=ctx.createGain(),lfo=ctx.createOscillator(),lg=ctx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(62,t+1.15);
- lp.type='lowpass';lp.frequency.value=950;og.gain.setValueAtTime(.0001,t);og.gain.exponentialRampToValueAtTime(.28,t+.07);og.gain.setValueAtTime(.26,t+.75);og.gain.exponentialRampToValueAtTime(.0001,t+1.2);
+ lp.type='lowpass';lp.frequency.value=950;og.gain.setValueAtTime(.0001,t);og.gain.exponentialRampToValueAtTime(.14,t+.07);og.gain.setValueAtTime(.13,t+.75);og.gain.exponentialRampToValueAtTime(.0001,t+1.2);
  lfo.frequency.value=21;lg.gain.value=.12;lfo.connect(lg);lg.connect(og.gain);o.connect(lp);lp.connect(og);og.connect(out);o.start(t);lfo.start(t);o.stop(t+1.25);lfo.stop(t+1.25);
- const sub=ctx.createOscillator(),sg=ctx.createGain();sub.frequency.setValueAtTime(70,t);sub.frequency.exponentialRampToValueAtTime(40,t+1.1);sg.gain.setValueAtTime(.35,t);sg.gain.exponentialRampToValueAtTime(.0001,t+1.2);sub.connect(sg);sg.connect(out);sub.start(t);sub.stop(t+1.25);}catch(e){}}
+ const sub=ctx.createOscillator(),sg=ctx.createGain();sub.frequency.setValueAtTime(70,t);sub.frequency.exponentialRampToValueAtTime(40,t+1.1);sg.gain.setValueAtTime(.18,t);sg.gain.exponentialRampToValueAtTime(.0001,t+1.2);sub.connect(sg);sg.connect(out);sub.start(t);sub.stop(t+1.25);}catch(e){}}
 const SMKT={};let SMKN=0;
 function baseSmoke(){const now=performance.now();[['h',G.houseHP/G.houseMax,HOUSE_X],['d',G.denHP/G.denMax,DEN_X]].forEach(([k,hp,x0])=>{const top=k==='h'&&Math.random()<.55,x=top?x0+1.2:x0+(Math.random()*3-1.5),y=top?116:52+Math.random()*50;const dmg=1-hp;if(dmg<.25||now<(SMKT[k]||0))return;
  const I=Math.min(1,(dmg-.25)/.7);SMKT[k]=now+1000/(1.2+11*I);smoke(x,I,false,y);if(I>.55&&Math.random()<I*.5)smoke(x,I,true,y);});}
@@ -530,7 +560,12 @@ function quit(){if(G&&!G.over&&G.t>3){if(!document.getElementById('bpQuit')){con
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[BP_Y]&&W.T[BP_Y][BP_X];if(!t||t.water)return;
  if(on(me())){if(t.npc!=='bp'&&!t.npc&&!t.chest){if(W.hx===BP_X&&W.hy===BP_Y)return;t.npc='bp';t.block=true;t.o=null;}}
  else if(t.npc==='bp'){delete t.npc;t.block=false;}}catch(e){}}
-window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();if(s!=='bp'){stopLoop();unlock();document.querySelectorAll('.bp2-over').forEach(x=>x.remove());try{if(window.BPScene)BPScene.stop();}catch(e){}}},session:()=>{G=null;VIEW={k:'stages'};syncTile();}});
+/* the world page: beating that world's 👑 Legend round opens its Battle Pets stage, with a button right there */
+function zoneBtn(zid){const st=stages().find(x=>x.id===zid),p=me();if(!st||!p||!on(p))return;const tip=document.querySelector('#app .ztip');if(!tip||document.getElementById('bpZone'))return;
+ let won=false;try{won=medal(p,zid)>=5;}catch(e){}const c=prog(p).c[zid]||0;const d=document.createElement('div');d.id='bpZone';d.className='bp2-zone';
+ d.innerHTML=won?`<button class="btn gold big" onclick="BattlePets.openStage('${zid}')">🐾 Battle Pets: ${esc(st.name)} ${c?'👑'.repeat(c):''}</button>`:`<p>🔒 Beat the 👑 <b>Legend</b> round to unlock a 🐾 Battle Pets stage here!</p>`;tip.after(d);css();}
+function openStage(zid){const p=me();if(!p)return;VIEW={k:'stages'};go('bp');const c=Math.min(3,(prog(p).c[zid]||0)+1);pickStage(zid,c);}
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:(s,arg)=>{if(s==='zone')try{zoneBtn(arg);}catch(e){}if(s==='world')syncTile();if(s!=='bp'){stopLoop();unlock();document.querySelectorAll('.bp2-over').forEach(x=>x.remove());try{if(window.BPScene)BPScene.stop();}catch(e){}}},session:()=>{G=null;VIEW={k:'stages'};syncTile();}});
 
 /* ---------- Parent Corner: the play log ---------- */
 function stats(p){const b=(p&&p.bp)||{},m=b.m||[];const w=m.filter(x=>x[2]).length,days=new Set(m.map(x=>new Date(x[0]*1000).toDateString())).size;
@@ -544,8 +579,8 @@ function parentSection(){try{if(typeof state==='undefined'||!state.players)retur
 window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 
 (function reg(){if(typeof SCREENS!=='undefined'){SCREENS.bp=()=>screen();}else setTimeout(reg,30);})();
-window.BattlePets={on,stats,stages,
- _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>trySend(i),_kit:()=>{if(upgradeKitchen())draw();},_sound:soundOpen,_report:()=>{if(!G||G.over||!window.MQReport)return;G.paused=true;MQReport.open(()=>{if(G){G.paused=false;LAST=performance.now();}});},_soundDone:soundDone,_vol:setVol,_song:setSong,songId,_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S);try{SFX.tap();}catch(e){}screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))topNote('No critters to pounce on yet!');},_key:key,_again:again,_back:backTo,_quit:quit,
+window.BattlePets={on,stats,stages,openStage,
+ _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>trySend(i),_kit:()=>{if(upgradeKitchen())draw();},_sound:soundOpen,_report:()=>{if(!G||G.over||!window.MQReport)return;G.paused=true;MQReport.open(()=>{if(G){G.paused=false;LAST=performance.now();}});},_soundDone:soundDone,_vol:setVol,_song:setSong,songId,_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S);try{SFX.tap();}catch(e){}screen();},_mega:id=>{const p=me();if(!p||!MEGA[id])return;prog(p).mega=id;save();if(VIEW.k==='team')screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))topNote('No critters to pounce on yet!');},_key:key,_again:again,_back:backTo,_quit:quit,
  _say:()=>{try{if(G&&G.q)speakToggle(()=>say(speakable(qText(G.q)),.9));}catch(e){}},_sync:syncTile,
- _dbg:{TUNE,CROWN,TROLL,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
+ _dbg:{TUNE,CROWN,TROLL,EAGLE,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
 })();
