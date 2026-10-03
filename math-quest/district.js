@@ -155,9 +155,12 @@ function label(ctx,txt,x,y,fg,bg){ctx.font=`700 ${Math.round(D.ts*.26)}px Fredok
  ctx.fillStyle=bg;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x-w/2,y-h/2,w,h,h/2);else ctx.rect(x-w/2,y-h/2,w,h);ctx.fill();ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,x,y+1);}
 function resize(){const cv=document.getElementById('dcv'),box=document.getElementById('dworld');if(!cv||!box||!D)return;const b=box.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
  cv.width=Math.round(b.width*dpr);cv.height=Math.round(b.height*dpr);cv.style.width=b.width+'px';cv.style.height=b.height+'px';D.ts=Math.round(clampN(Math.min(b.width,b.height)/9,38,58));D.vw=b.width;D.vh=b.height;}
+/* footsteps, using the village's footstep sound (index.html) with the district's ground: stone paths, rock, sand by the water */
+const STEP_GROUND={mountain:'caves',canyon:'caves',city:'caves',bay:'reef',lagoon:'reef'};
+function stepSound(x,y){try{const t=D.T[y][x];if(typeof footstep==='function')footstep({path:!!(t.path||t.plaza),b:STEP_GROUND[t.b]||'village'});}catch(e){}}
 function frame(now){const cv=document.getElementById('dcv');if(typeof curScreen==='undefined'||curScreen!=='district'||!cv||!D)return;D.raf=requestAnimationFrame(frame);
  if(D.moving&&now-D.mt>=140)D.moving=false;
- if(!D.moving){if(D.path.length){const [nx,ny]=D.path.shift();if(nx!==D.hx)D.dir=nx>D.hx?1:-1;D.fx=D.hx;D.fy=D.hy;D.hx=nx;D.hy=ny;D.mt=now;D.moving=true;}else if(D.after){const f=D.after;D.after=null;f();}}
+ if(!D.moving){if(D.path.length){const [nx,ny]=D.path.shift();if(nx!==D.hx)D.dir=nx>D.hx?1:-1;D.fx=D.hx;D.fy=D.hy;D.hx=nx;D.hy=ny;D.mt=now;D.moving=true;stepSound(nx,ny);}else if(D.after){const f=D.after;D.after=null;f();}}
  if(D.moving){const k=Math.min(1,(now-D.mt)/140);D.drawX=D.fx+(D.hx-D.fx)*k;D.drawY=D.fy+(D.hy-D.fy)*k;}else{D.drawX=D.hx;D.drawY=D.hy;}
  if(!D.vw||!cv.width)resize();if(!D.vw||!cv.width)return;
  const ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1,ts=D.ts,[cx,cy]=cam();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,D.vw,D.vh);
