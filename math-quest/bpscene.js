@@ -36,13 +36,17 @@ const COL={
  fossil:{far:'#d99a5c',far2:'#e8b57a',mid:'#e9c37c',mid2:'#dcb06a',grass:'#e7c483',grass2:'#d8b06c',lane:'#e1bd7c',lane2:'#cfa765',fg:'#9a6a3a'}};
 
 /* ---------- the layers of each world ---------- */
-function far(t,w,h,r,c){const C=COL[t];let s='';
+let CRATERS=[];
+function far(t,w,h,r,c){const C=COL[t];let s='';CRATERS=[];
  if(t==='forest'){s+=peaks(w,h,h*.42,h*.2,170,r,C.far2,'opacity=".8"')+peaks(w,h,h*.5,h*.16,140,r,C.far);}
  else if(t==='caves'){s+=peaks(w,h,h*.45,h*.22,120,r,C.far2)+peaks(w,h,h*.55,h*.14,90,r,C.far);
   for(let i=0;i<9;i++){const x=r()*w,y=h*(.42+r()*.2),k=C.crys[i%3];s+=`<g class="bps-glow" style="animation-delay:${f1(-r()*3)}s"><path d="M${f1(x)} ${f1(y)} l6 -22 l6 22z M${f1(x+8)} ${f1(y)} l4 -14 l4 14z M${f1(x-7)} ${f1(y)} l3 -11 l3 11z" fill="${k}" opacity=".85"/><ellipse cx="${f1(x+5)}" cy="${f1(y-6)}" rx="18" ry="12" fill="${k}" opacity=".18"/></g>`;}}
  else if(t==='volcano'){s+=peaks(w,h,h*.55,h*.12,150,r,C.far2,'opacity=".8"');
   [[.3,1],[.75,.7]].forEach(([p,k])=>{const x=w*p,top=h*(.2+(1-k)*.12),bw=w*.16*k;s+=`<path d="M${f1(x-bw)} ${h} L${f1(x-bw*.18)} ${f1(top)} Q${f1(x)} ${f1(top-6)} ${f1(x+bw*.18)} ${f1(top)} L${f1(x+bw)} ${h}Z" fill="${C.far}"/>
-   <ellipse class="bps-pulse" cx="${f1(x)}" cy="${f1(top+2)}" rx="${f1(bw*.2)}" ry="6" fill="#ffb347"/><path d="M${f1(x-bw*.12)} ${f1(top+4)} q${f1(bw*.05)} ${f1(h*.12)} ${f1(-bw*.03)} ${f1(h*.3)}" stroke="#ff6a00" stroke-width="5" fill="none" opacity=".8"/>`;});}
+   <ellipse class="bps-pulse" cx="${f1(x)}" cy="${f1(top+2)}" rx="${f1(bw*.2)}" ry="6" fill="#ffb347"/>
+   <path class="bps-flow" d="M${f1(x-bw*.1)} ${f1(top+4)} q${f1(-bw*.08)} ${f1(h*.14)} ${f1(-bw*.22)} ${f1(h*.32)} t${f1(-bw*.18)} ${f1(h*.3)}" stroke="#ff6a00" stroke-width="7" fill="none" stroke-linecap="round" opacity=".9"/>
+   <path class="bps-flow" style="animation-duration:9s" d="M${f1(x+bw*.08)} ${f1(top+4)} q${f1(bw*.1)} ${f1(h*.18)} ${f1(bw*.26)} ${f1(h*.36)}" stroke="#ff8c1a" stroke-width="5" fill="none" stroke-linecap="round" opacity=".8"/>
+   ${Array.from({length:7},(_,i)=>`<circle class="bps-plume" style="animation-delay:${f1(-i*1.1)}s" cx="${f1(x)}" cy="${f1(top-6)}" r="${f1(14*k)}" fill="#5c4a48"/>`).join('')}`;CRATERS.push([p,top,k]);});}
  else if(t==='castle'){s+=hill(w,h,h*.62,h*.05,200,r,C.far2,'opacity=".7"');
   const cx=w*.45,base=h*.62;let g='';[[-150,90,24],[-90,130,30],[-30,170,36],[30,150,30],[90,120,28],[150,95,24]].forEach(([dx,th,tw])=>{const x=cx+dx;g+=`<rect x="${f1(x-tw/2)}" y="${f1(base-th)}" width="${tw}" height="${th}" fill="${C.far}"/><path d="M${f1(x-tw/2-4)} ${f1(base-th)} L${f1(x)} ${f1(base-th-tw*1.1)} L${f1(x+tw/2+4)} ${f1(base-th)}Z" fill="#5d6a8a"/>`;
    for(let k=0;k<2;k++)g+=`<rect class="bps-win" style="animation-delay:${f1(-r()*4)}s" x="${f1(x-3)}" y="${f1(base-th+18+k*26)}" width="6" height="10" rx="3" fill="#ffd66b"/>`;});
@@ -87,6 +91,10 @@ function fore(t,w,h,r){const C=COL[t];let s='';for(let x=r()*200;x<w;x+=260+r()*
 /* the sky layer stays put: clouds, birds, bats, embers, a moon */
 function skyBits(t,crown,cw,h,r){let s='';
  if(t==='caves'){for(let i=0;i<3;i++)s+=`<div class="bps-bat" style="top:${f1(10+r()*25)}%;animation-delay:${f1(-r()*18)}s;animation-duration:${f1(14+r()*8)}s">🦇</div>`;return s;}
+ if(t==='volcano')for(let i=0;i<22;i++)s+=`<i class="bps-ash" style="left:${f1(r()*110-5)}%;animation-delay:${f1(-r()*14)}s;animation-duration:${f1(10+r()*8)}s"></i>`;
+ if(t==='forest'&&crown<3)for(let i=0;i<7;i++)s+=`<div class="bps-leaf" style="left:${f1(r()*100)}%;animation-delay:${f1(-r()*12)}s;animation-duration:${f1(9+r()*6)}s">${r()<.5?'🍃':'🍂'}</div>`;
+ if(t==='caves')for(let i=0;i<12;i++)s+=`<i class="bps-mote" style="left:${f1(r()*100)}%;top:${f1(15+r()*55)}%;animation-delay:${f1(-r()*6)}s"></i>`;
+ if(t==='fossil'){s+=`<div class="bps-tumble" style="animation-delay:${f1(-r()*20)}s">🌾</div><div class="bps-devil" style="animation-delay:${f1(-r()*30)}s"></div>`;}
  if(t==='volcano'){for(let i=0;i<14;i++)s+=`<i class="bps-ember" style="left:${f1(r()*100)}%;animation-delay:${f1(-r()*6)}s;animation-duration:${f1(4+r()*4)}s"></i>`;}
  if(crown===3){s+=`<div class="bps-moon"></div>`;}
  if(t!=='volcano'||crown===1)for(let i=0;i<4;i++)s+=`<div class="bps-cloud${crown===3?' dark':''}" style="top:${f1(4+r()*26)}%;animation-delay:${f1(-r()*90)}s;animation-duration:${f1(70+r()*60)}s;scale:${f1(.6+r()*.8)}"></div>`;
@@ -141,6 +149,16 @@ function css(){if(document.getElementById('bpsCSS'))return;const s=document.crea
 @keyframes bpscloud{to{transform:translateX(calc(100vw + 400px))}}
 .bps-bird{position:absolute;left:-40px;font-size:18px;color:#2b2340;animation:bpsfly 28s linear infinite}@keyframes bpsfly{0%{transform:translate(0,0)}50%{transform:translate(55vw,-14px)}100%{transform:translate(110vw,6px)}}
 .bps-bat{position:absolute;left:-40px;font-size:20px;animation:bpsfly 18s linear infinite;filter:brightness(.6)}
+.bps-ash{position:absolute;top:-10px;width:4px;height:4px;border-radius:50%;background:#8a7f7d;opacity:.8;animation:bpsashf 14s linear infinite}
+@keyframes bpsashf{from{transform:translate(0,0)}to{transform:translate(-120px,110vh)}}
+.bps-leaf{position:absolute;top:-30px;font-size:16px;animation:bpsleaf 12s linear infinite}@keyframes bpsleaf{0%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(40px,25vh) rotate(90deg)}50%{transform:translate(-10px,50vh) rotate(180deg)}75%{transform:translate(50px,75vh) rotate(270deg)}100%{transform:translate(0,105vh) rotate(360deg)}}
+.bps-mote{position:absolute;width:4px;height:4px;border-radius:50%;background:#c5f6fa;box-shadow:0 0 8px 2px rgba(122,240,255,.7);animation:bpsfirefly 5s ease-in-out infinite alternate}
+.bps-tumble{position:absolute;bottom:14%;left:-60px;font-size:30px;filter:sepia(1) saturate(1.5);animation:bpstumble 22s linear infinite}@keyframes bpstumble{0%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(28vw,-14px) rotate(360deg)}50%{transform:translate(55vw,0) rotate(720deg)}75%{transform:translate(82vw,-10px) rotate(1080deg)}100%{transform:translate(115vw,0) rotate(1440deg)}}
+.bps-devil{position:absolute;bottom:12%;left:-80px;width:46px;height:110px;background:radial-gradient(ellipse at 50% 100%,rgba(214,170,110,.55),rgba(214,170,110,0) 70%);clip-path:polygon(35% 100%,65% 100%,100% 0,0 0);animation:bpsdevil 30s linear infinite}@keyframes bpsdevil{0%{transform:translateX(0) skewX(0)}50%{transform:translateX(55vw) skewX(10deg)}100%{transform:translateX(115vw) skewX(-6deg)}}
+.bps-plume{transform-box:fill-box;transform-origin:center;animation:bpsplume 7.7s ease-out infinite}@keyframes bpsplume{0%{transform:translate(0,0) scale(.4);opacity:0}10%{opacity:.85}100%{transform:translate(70px,-160px) scale(3.2);opacity:0}}
+.bps-flow{stroke-dasharray:26 16;animation:bpsflow 7s linear infinite}@keyframes bpsflow{to{stroke-dashoffset:-210}}
+.bps-rock{position:absolute;width:9px;height:9px;border-radius:50%;background:#ffb347;box-shadow:0 0 10px 3px #ff6b00;animation:bpsrock 1.8s cubic-bezier(.3,.6,.6,1) forwards}
+@keyframes bpsrock{0%{transform:translate(0,0);opacity:1}50%{transform:translate(calc(var(--rx)*.5),-110px)}100%{transform:translate(var(--rx),40px);opacity:0}}
 .bps-moon{position:absolute;right:12%;top:8%;width:46px;height:46px;border-radius:50%;background:#f1f3f5;box-shadow:0 0 30px 8px rgba(241,243,245,.35)}
 .bps-ember{position:absolute;bottom:0;width:4px;height:4px;border-radius:50%;background:#ffa94d;box-shadow:0 0 6px #ff6b00;animation:bpsember 6s linear infinite}
 @keyframes bpsember{0%{transform:translate(0,0);opacity:0}10%{opacity:1}100%{transform:translate(30px,-300px);opacity:0}}
@@ -159,7 +177,7 @@ function css(){if(document.getElementById('bpsCSS'))return;const s=document.crea
 .bps-base{display:block;overflow:visible}.bps-base .crk{opacity:0;transition:opacity .4s}.d1 .bps-base .crk1,.d2 .bps-base .crk1,.d2 .bps-base .crk2,.d3 .bps-base .crk{opacity:1}
 .bps-tremor{animation:bpstrem .5s linear}@keyframes bpstrem{25%{translate:-3px 1px}50%{translate:3px -1px}75%{translate:-2px 0}}
 .bps-pebble{position:absolute;top:0;width:6px;height:6px;border-radius:2px;background:#7a6f92;animation:bpspeb 1.2s ease-in forwards}@keyframes bpspeb{to{transform:translateY(300px) rotate(200deg)}}
-@media (prefers-reduced-motion:reduce){.bps-cloud,.bps-bird,.bps-bat,.bps-ember,.bps-fly,.bps-rain,.bps-sway,.bps-banner,.bps-drip{animation:none}}`;document.head.appendChild(s);}
+@media (prefers-reduced-motion:reduce){.bps-ash,.bps-leaf,.bps-mote,.bps-tumble,.bps-devil,.bps-plume,.bps-flow,.bps-cloud,.bps-bird,.bps-bat,.bps-ember,.bps-fly,.bps-rain,.bps-sway,.bps-banner,.bps-drip{animation:none}}`;document.head.appendChild(s);}
 
 /* ---------- build the scene into the battlefield ---------- */
 let S=null;
@@ -177,10 +195,15 @@ function build(field,sc,stage,crown){stop();css();const t=themeOf(stage),r=rngOf
  field.insertBefore(scene,field.firstChild);
  const fg=document.createElement('div');fg.className='bps-fgwrap';fg.style.cssText='position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden';fg.innerHTML=L('bps-fg',span(1.3),svg(span(1.3),fore(t,span(1.3),h,r)));field.appendChild(fg);
  const wx=document.createElement('div');wx.className='bps-weather';field.appendChild(wx);
- S={t,c,field,sc,scene,fg,wx,W,cw,marks:scene.querySelector('.bps-marks'),nMarks:0,timer:0,grey:false};
+ S={t,c,field,sc,scene,fg,wx,W,cw,marks:scene.querySelector('.bps-marks'),nMarks:0,timer:0,grey:false,craters:CRATERS.slice()};
  if(c===3&&t!=='caves'){wx.innerHTML='<div class="bps-rain"></div><div class="bps-bolt"></div>';}
  if(c===3)S.timer=setInterval(storm,5200);
+ if(t==='volcano')S.erupt=setInterval(erupt,9000);
  parallax(sc);}
+/* now and then a volcano coughs up glowing rocks (decoration only) */
+function erupt(){if(!S||!document.body.contains(S.field)){stop();return;}if(Math.random()<.35)return;const L=S.scene.querySelector('.bps-far');if(!L||!S.craters||!S.craters.length)return;
+ const [p,top]=S.craters[Math.floor(Math.random()*S.craters.length)],x=p*L.clientWidth;for(let i=0;i<7;i++){const d=document.createElement('i');d.className='bps-rock';d.style.left=x+'px';d.style.top=top+'px';d.style.setProperty('--rx',(Math.random()*160-80)+'px');d.style.animationDelay=(Math.random()*.4)+'s';L.appendChild(d);setTimeout(()=>d.remove(),2400);}
+ const pl=L.querySelectorAll('.bps-plume');pl.forEach(c=>c.setAttribute('fill','#3d2f2e'));setTimeout(()=>pl.forEach(c=>c.setAttribute('fill','#5c4a48')),2500);}
 /* lightning and thunder outdoors; tremors and falling pebbles in the caves */
 function storm(){if(!S||!document.body.contains(S.field)){stop();return;}if(Math.random()<.45)return;
  if(S.t==='caves'){S.scene.classList.remove('bps-tremor');void S.scene.offsetWidth;S.scene.classList.add('bps-tremor');
@@ -200,6 +223,6 @@ function scuff(x){if(!S||!S.marks)return;const m=document.createElement('i');m.c
 /* bases: drawn pictures, cracking as they are hurt */
 function base(kind,stage){css();return kind==='house'?house():den(themeOf(stage));}
 function baseState(el,hp){if(!el)return;const d=hp<.25?3:hp<.5?2:hp<.75?1:0;if(el._d===d)return;el._d=d;el.classList.remove('d1','d2','d3');if(d)el.classList.add('d'+d);}
-function stop(){if(S&&S.timer)clearInterval(S.timer);S=null;}
+function stop(){if(S&&S.timer)clearInterval(S.timer);if(S&&S.erupt)clearInterval(S.erupt);S=null;}
 window.BPScene={build,parallax,grey,rainbow,scuff,base,baseState,stop,themeOf,_s:()=>S};
 })();
