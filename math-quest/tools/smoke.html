@@ -203,6 +203,7 @@ const tests=[
   go('bp');const txt=document.querySelector('#app').innerText;T.ok(/Fossil Stage/.test(txt)&&/Addition Forest/.test(txt)&&BattlePets.stages().length>=3,'stages missing');
   T.ok(document.querySelectorAll('.bp2-stage.locked').length===BattlePets.stages().length&&!document.querySelector('.bp2-crowns button'),'stages are open before their Legend round is beaten');
   {const m0=window.medal;window.medal=()=>5;go('bp');T.ok(document.querySelectorAll('.bp2-stage.locked').length===1,'beating Legend did not open the world stages (only the Fossil Stage should stay locked)');
+   {const S0=BattlePets.stages()[0];P().cave=P().cave||{};P().cave.ex={trex:1,triceratops:1,stego:1};T.ok(!BattlePets.stageOpen(P(),S0),'the Fossil Stage opened with only 3 dinosaurs');P().cave.ex.brachio=1;T.ok(BattlePets.stageOpen(P(),S0),'the Fossil Stage did not open with all 4 dinosaur skeletons');P().cave.ex={};}
    T.ok([...document.querySelectorAll('.bp2-crowns button')].some(b=>b.disabled),'crown 2 is open before crown 1 is beaten');window.medal=m0;}
   BattlePets._pick('forest',1);T.ok(document.querySelectorAll('.bp2-slot').length===Math.min(5,3+Math.floor((P().level||1)/10))&&document.querySelectorAll('.bp2-slot.full').length>=1,'team picker did not fill the team');
   const D=BattlePets._dbg;BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpScroll'),'the battle did not start');
@@ -272,6 +273,13 @@ const tests=[
   const m0=window.medal;window.medal=()=>5;go('zone','forest');await T.wait(60);const b=document.querySelector('#bpZone button');T.ok(b&&/Battle Pets/.test(b.textContent),'no Battle button after the Legend round');
   window.medal=m0;BattlePets.openStage('forest');await T.wait(60);T.ok(curScreen==='bp'&&BattlePets._dbg.view().k==='team'&&BattlePets._dbg.view().id==='forest','the Battle button did not open the stage');
   go('zone','temple');await T.wait(60);T.ok(!document.getElementById('bpZone'),'a world without a Battle Pets stage shows the button');BattlePets._back();
+ }],
+ ['fossil battle door: the Museum opens the Fossil Stage once all 4 dinosaur skeletons are built',async function(){
+  T.reset();const p=T.hero('Digger',4);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;p.sci.met=true;p.sci.rocks=0;p.sci.trips=5;p.sci.lab={ok:{},freeDay:''};p.cave={trips:5,stats:{dug:12},ex:{trex:1,triceratops:1,stego:1}};
+  go('lab');Lab.down();await T.wait(400);let d=Cave._dbg();try{d.closeModal();}catch(e){}d.openMuseum();await T.wait(60);let t=document.querySelector('#cvMod').innerText;
+  T.ok(/3 of 4/.test(t)&&!document.querySelector('#cvMod [data-fb]'),'the Museum does not show the 3 of 4 dinosaurs note');d.closeModal();
+  d.S.ex.brachio=1;d.openMuseum();await T.wait(60);const b=document.querySelector('#cvMod [data-fb]');T.ok(b&&/restless/.test(document.querySelector('#cvMod').innerText),'no Fossil Battle button with all 4 dinosaurs');
+  b.click();await T.wait(250);T.ok(curScreen==='bp'&&BattlePets._dbg.view().k==='team'&&BattlePets._dbg.view().id==='fossil'&&!document.getElementById('cvRoot'),'the Fossil Battle button did not leave the cave for the Fossil Stage');BattlePets._back();
  }],
  ['report button: a problem or suggestion is saved in the hero save with the screen and version, and shows in Parent Corner',async function(){
   T.reset();const p=T.hero('Tester',3);state.cur=p.id;W=null;go('world');await T.wait(80);
