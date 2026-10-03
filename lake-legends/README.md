@@ -35,7 +35,7 @@ A browser fishing game for kids ages 8–12, set in real San Diego County lakes.
 - **Treasure.** Now and then a treasure chest sits on the lake bottom. Hook it and reel it in for coins, worms or a lure.
 - **Style.** Hats, rod colors and boat paint in the Tackle Shop.
 - **Fish stay at their depth.** A fish follows your bait only a little way up or down from where it was swimming, and never out of its natural depth, so you can't tease a deep catfish up to the surface. Now and then a bold bass or trout chases a bit farther.
-- **🐞 Report.** Found a problem or have an idea? Tap 🐞 Report on the menus (or More → Report while fishing). It's saved with your player for the grown-ups to read in the Parent Corner.
+- **🐞 Report.** Found a problem or have an idea? Tap 🐞 Report on the menus (or More → Report while fishing). It's saved with your player for the grown-ups to read in the Parent Corner. When it gets fixed (or your idea goes into the game), you'll get a popup saying so.
 - **Pearl's jobs and the Fish of the Day.** Pearl at the bait shop has 3 jobs every day; finish all 3 for a mystery gift. One kind of fish is the Fish of the Day and pays double.
 - **The Lodge.** Mount your best catches on your cabin wall, check your records, see who holds the family record for each fish, and play the **Family Derby**: a new contest every week (biggest bass, most fish, heaviest catfish...). The winner gets 100 coins.
 

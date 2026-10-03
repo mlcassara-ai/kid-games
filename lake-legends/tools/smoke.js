@@ -179,13 +179,16 @@ const BOT = n => {
     out.band = topY > 30 * PPF && topY < 49 * PPF; out.topFt = Math.round(topY / PPF);
     trip = null; visit = null; showScreen("title");
     // a report is saved with the screen and version
-    LL.report(); document.getElementById("llRep").value = "The boat is upside down"; document.getElementById("llRepOk").click();
+    LL.report();
+    { const ta = document.getElementById("llRep"); ta.focus(); const ev = new KeyboardEvent("keydown", { code:"Space", key:" ", bubbles:true, cancelable:true }); ta.dispatchEvent(ev); out.space = !ev.defaultPrevented; }
+    document.getElementById("llRep").value = "The boat is upside down"; document.getElementById("llRepOk").click();
     const rp = (LL.player().reports || [])[0]; out.report = !!rp && rp.m.includes("upside") && !!rp.v; document.getElementById("llRepDone").click();
     out.bug = getComputedStyle($("btnBug")).display !== "none";
     showScreen("map"); out.pins = document.querySelectorAll("#lakeMap .pin").length === 6 && $("lakeMap").getBoundingClientRect().height > 100; showScreen("title");
     return out;
   });
   ok(r4.band, "a catfish won't follow the bait up out of its depth (stopped at " + r4.topFt + " ft)");
+  ok(r4.space, "the space bar types a space in the report box");
   ok(r4.report, "a report or suggestion is saved with the screen and version");
   ok(r4.bug, "the 🐞 Report button is on the menus");
   ok(r4.pins, "the drawn lake map shows a pin for every lake");
@@ -236,6 +239,21 @@ const BOT = n => {
   await a.evaluate(() => LL.syncNow()); await a.waitForTimeout(200);
   ok(await a.evaluate(() => LL.players().find(p => p.name === "Ana").game.coins >= 1123), "a change on one device reaches the other");
   ok(await a.evaluate(() => LL.player().name === "Ben" && S.coins === 0), "the player signed in on the first device is untouched");
+
+  console.log("Replies to reports");
+  // the reply tool writes families/llm_<code>; Ana (signed in on device b) should get a popup, but not in the middle of a cast
+  const rep = await b.evaluate(() => (LL.player().reports || [])[0]);
+  const ana = await b.evaluate(() => LL.player().id);
+  const mid = [...STORE.keys()].find(k => k.startsWith("ll_")).replace(/^ll_/, "llm_");
+  STORE.set(mid, JSON.stringify({ v:1, msgs:[{ id:"r1", t:Date.now(), to:ana, toName:"Ana", from:"the Lake Legends team", m:"The boat floats the right way now!", st:"fixed", re:{ t:rep.t, k:"problem", m:rep.m }, readBy:{} }] }));
+  await b.evaluate(() => { startVisit(lakeById("dixon"), "dock"); });
+  await b.evaluate(() => LL.syncNow()); await b.waitForTimeout(500);
+  ok(!(await b.$("#llNoteRead")), "a reply waits while the player is fishing");
+  await b.evaluate(() => { trip = null; visit = null; showScreen("title"); }); await b.waitForTimeout(5600);
+  ok(await b.isVisible("#llNoteRead") && (await b.textContent("#llOv")).includes("We fixed it!") && (await b.textContent("#llOv")).includes("upside"), "the reply pops up with the report and the answer");
+  await b.click("#llNoteRead"); await b.waitForTimeout(400);
+  ok(!!JSON.parse(STORE.get(mid)).msgs[0].readBy[ana], "tapping it records that the player saw it");
+  ok(!(await b.$("#llNoteRead")), "it doesn't show again");
 
   ok(!errs.length, "no page errors" + (errs.length ? ": " + errs.slice(0, 3).join(" | ") : ""));
   await browser.close(); server.close();

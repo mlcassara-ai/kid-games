@@ -108,6 +108,7 @@ Fishing game for ages 8–12 on six real San Diego County lakes; just for fun (n
 - Function names must be unique in the file (a duplicate silently replaces the earlier one), and one syntax error stops the whole game.
 - Fish follow the bait only inside `fishBand()` (their species depth band, and at most about 8 ft above where they were swimming; an occasional bold bass or trout 18 ft). Keep it that way so fish can't be teased to the surface.
 - 🐞 Report (`LL.report()`) saves `reports` (last 30) in the player record with the screen and version; the Parent Corner shows them. To read a family's save from the terminal: `/usr/bin/python3 lake-legends/tools/peek.py FAMILY-CODE` (read-only; never store the code in a file).
+- When a report is dealt with, answer it so the player gets a popup: `/usr/bin/python3 lake-legends/tools/reply.py FAMILY-CODE --list` shows every report numbered with its answer and whether it was seen; `reply.py FAMILY-CODE N "Message"` answers report N (`--status fixed|added|thanks`; the default is fixed for problems, added for suggestions); `reply.py FAMILY-CODE --note "Name" "Message"` sends a plain note. Replies live in `families/llm_<code>` so the game's own sync can't overwrite them; the popup waits until the player isn't mid-cast, and tapping it records `readBy`.
 - When a new version is published, a "Tap to update" notice appears just above the reel button; tapping it saves, reloads and lands on the title screen.
 
 ### Release checklist

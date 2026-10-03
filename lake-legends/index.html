@@ -276,8 +276,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.03e";</script>
-<script src="ll-core.js?v=2026.10.03e"></script>
+<script>window.LL_VER="2026.10.03f";</script>
+<script src="ll-core.js?v=2026.10.03f"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -1079,12 +1079,14 @@ window.addEventListener("resize", layout); layout();
 // =====================================================================
 const keys = {};
 let pointerX = null, pointerDown = false;
+const typing = e => { const t = e.target; return !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable); };   // typing in a box: the keys are for the box, not the reel
 window.addEventListener("keydown", e => {
+  if (typing(e)) return;
   keys[e.code] = true;
   if (["Space","ArrowDown","ArrowUp","ArrowLeft","ArrowRight"].includes(e.code)) e.preventDefault();
   if (!e.repeat && (e.code==="Space" || e.code==="ArrowUp")) reelPress();
 });
-window.addEventListener("keyup", e => { keys[e.code] = false; if (e.code==="Space" || e.code==="ArrowUp") reelRelease(); });
+window.addEventListener("keyup", e => { if (typing(e)) return; keys[e.code] = false; if (e.code==="Space" || e.code==="ArrowUp") reelRelease(); });
 function toGameX(e){ const r = cv.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
 cv.addEventListener("pointermove", e => { pointerX = toGameX(e); });
 cv.addEventListener("pointerdown", e => { pointerDown = true; pointerX = toGameX(e); try{ cv.setPointerCapture(e.pointerId); }catch(_){} });

@@ -57,6 +57,34 @@ async function cloudPut(c,obj){ const t=await token();
   const body={fields:{data:{stringValue:JSON.stringify(obj)},updated:{integerValue:String(Date.now())},v:{integerValue:"1"}}};
   const r=await fetch(docUrl(c),{method:"PATCH",headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify(body)});
   if(!r.ok) throw new Error("put "+r.status); }
+/* ---------------- replies and notes to a player ----------------
+   When a report or suggestion is dealt with, tools/reply.py writes a reply into a small document of its own next to the
+   family save (families/llm_<family code>), so a copy of the game that doesn't know about replies can never overwrite it.
+   The player sees a popup the next time they're signed in and not in the middle of a cast; tapping it records readBy. */
+const noteUrl=c=>`https://firestore.googleapis.com/v1/projects/${FB.project}/databases/(default)/documents/families/llm_${String(c).toLowerCase().replace(/[^a-z0-9]/g,"")}`;
+async function notesGet(c){ const t=await token(); const r=await fetch(noteUrl(c),{headers:{Authorization:"Bearer "+t},cache:"no-store"});
+  if(r.status===404) return null; if(!r.ok) throw new Error("notes "+r.status); const j=await r.json(); const s=j.fields&&j.fields.data&&j.fields.data.stringValue; return s?JSON.parse(s):null; }
+async function notesPut(c,obj){ const t=await token(); const body={fields:{data:{stringValue:JSON.stringify(obj)},updated:{integerValue:String(Date.now())},v:{integerValue:"1"}}};
+  const r=await fetch(noteUrl(c),{method:"PATCH",headers:{Authorization:"Bearer "+t,"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok) throw new Error("notes put "+r.status); }
+let notes=null, noteOpen=false;
+const unreadFor=p=>((notes&&notes.msgs)||[]).filter(m=>(m.to===p.id||m.to==="*")&&!(m.readBy&&m.readBy[p.id]));
+async function fetchNotes(){ if(!cloud.code) return; try{ notes=await notesGet(cloud.code); }catch(e){ return; } showNote(); }
+const REPLY_HEAD={ fixed:["🛠️","We fixed it!"], added:["💡","Your idea is in the game!"], thanks:["🙏","Thanks for telling us!"] };
+function showNote(){ const p=cur(); if(!p||noteOpen||onProfiles||document.getElementById("llOv")) return;
+  if(typeof window.LL_SAFE==="function"&&!window.LL_SAFE()) return;                     // never in the middle of a cast or a catch
+  const m=unreadFor(p)[0]; if(!m) return;
+  noteOpen=true; const hd=m.re?(REPLY_HEAD[m.st]||REPLY_HEAD.thanks):["📬","A message for "+p.name];
+  overlay(`<div class="ll-card" style="max-width:480px;margin:30px auto;text-align:center"><div style="font-size:3.2rem">${hd[0]}</div>
+    <h2 style="margin:4px 0">${esc(hd[1])}</h2><p class="ll-small" style="margin:0">From ${esc(m.from||"the Lake Legends team")} · ${agoText(m.t)}</p>
+    ${m.re?`<p class="ll-small" style="text-align:left;margin:12px 0 4px">You ${m.re.k==="idea"?"suggested":"told us"} (${agoText(m.re.t)}):</p><p style="text-align:left;font-style:italic;background:#f1ece0;border-radius:12px;padding:8px 12px;margin:0">“${esc(m.re.m)}”</p>`:""}
+    <p style="font-size:1.1rem;text-align:left;white-space:pre-wrap;background:#e6f3fa;border-radius:14px;padding:12px">${esc(m.m)}</p>
+    <div class="ll-row"><button class="ll-btn g" id="llNoteRead">${m.re?"Yay! ✓":"Read ✓"}</button></div></div>`);
+  document.getElementById("llNoteRead").onclick=async()=>{ const b=document.getElementById("llNoteRead"); b.disabled=true; b.textContent="Saving…";
+    try{ const fresh=await notesGet(cloud.code)||{v:1,msgs:[]}; const x=(fresh.msgs||[]).find(y=>y.id===m.id); if(x){ x.readBy=x.readBy||{}; x.readBy[p.id]=Date.now(); await notesPut(cloud.code,fresh); } notes=fresh; }
+    catch(e){ m.readBy=m.readBy||{}; m.readBy[p.id]=Date.now(); }            // offline: hide it now; it shows again next time and can be read then
+    noteOpen=false; closeOverlay(); setTimeout(showNote,400); };
+}
+setInterval(()=>{ if(document.visibilityState==="visible") showNote(); },5000);      // a popup that waited for the end of a cast shows up soon after
 const payload=()=>({v:1,players:state.players,pin:state.pin||null,pinUpd:state.pinUpd||0,deleted:state.deleted||{},upd:Date.now()});
 function merge(remote,keepId){
   const del=Object.assign({},remote.deleted||{},state.deleted||{}); const map=new Map(), order=[];
@@ -71,7 +99,7 @@ function merge(remote,keepId){
 function scheduleSync(){ if(!cloud.code) return; clearTimeout(cloud.timer); cloud.timer=setTimeout(syncNow,3000); }
 async function syncNow(){
   if(!cloud.code) return; if(cloud.busy){ cloud.again=true; return; } cloud.busy=true; let changed=false;
-  try{ const remote=await cloudGet(cloud.code); if(remote) changed=merge(remote,state.cur); await cloudPut(cloud.code,payload()); cloud.status="ok"; cloud.last=Date.now(); }
+  try{ const remote=await cloudGet(cloud.code); if(remote) changed=merge(remote,state.cur); await cloudPut(cloud.code,payload()); cloud.status="ok"; cloud.last=Date.now(); fetchNotes(); }
   catch(e){ cloud.status="offline"; }
   cloud.busy=false; badge(); if(changed) fire(); if(cloud.again){ cloud.again=false; scheduleSync(); }
 }
@@ -162,7 +190,7 @@ function profiles(onEnter){ onProfiles=true;
 }
 setInterval(()=>{ if(!onProfiles||document.hidden||!document.querySelector("#llOv .ll-pro")) return; syncNow().then(()=>{ if(onProfiles&&document.querySelector("#llOv .ll-pro")) profiles(); }); },30000);
 function choose(id){ const p=state.players.find(x=>x.id===id); if(!p) return; if(p.lock&&p.lock.length) askLock(p); else enter(p); }
-function enter(p){ onProfiles=false; state.cur=p.id; p.last=Date.now(); try{ sessionStorage.setItem("ll.active",p.id); }catch(e){} saveLocal(); closeOverlay(); if(enterCb) enterCb(p); fire(); }
+function enter(p){ onProfiles=false; state.cur=p.id; p.last=Date.now(); try{ sessionStorage.setItem("ll.active",p.id); }catch(e){} saveLocal(); closeOverlay(); if(enterCb) enterCb(p); fire(); setTimeout(fetchNotes,800); }
 function askLock(p){ let tries=[]; const pics=[...PICS].sort(()=>Math.random()-.5);
   overlay(`<div class="ll-card" style="max-width:380px;margin:40px auto;text-align:center">${avatar(p,64)}<h2>Hi ${esc(p.name)}! 🔒</h2>
     <p>Tap your ${p.lock.length} secret pictures in order.</p><div class="ll-dots" id="llDots">${p.lock.map(()=>"○").join(" ")}</div>
@@ -234,7 +262,7 @@ function kidSummary(p){
   const errs=(p.errs||[]).slice().reverse();
   return `<div class="ll-kid"><h3>${esc(p.name)} <span class="ll-small">last fished ${agoText(Object.keys(p.days||{}).length?p.last:0)}</span></h3>
     <div class="ll-small">${extra||"Hasn't fished yet."}</div>
-    ${(p.reports||[]).length?`<details class="ll-small" style="margin-top:6px" open><summary>🐞 Reports and suggestions (${p.reports.length})</summary>${p.reports.slice().reverse().map(r=>`<div style="margin:5px 0;padding:6px 8px;background:#f1ece0;border-radius:10px"><div>${r.k==="idea"?"💡 Suggestion":"🐞 Problem"} · ${agoText(r.t)} · ${esc(r.s||"")} · ${esc(r.v||"")}</div><div style="color:#0f2a3d">${esc(r.m)}</div></div>`).join("")}</details>`:""}
+    ${(p.reports||[]).length?`<details class="ll-small" style="margin-top:6px" open><summary>🐞 Reports and suggestions (${p.reports.length})</summary>${p.reports.slice().reverse().map(r=>`<div style="margin:5px 0;padding:6px 8px;background:#f1ece0;border-radius:10px"><div>${r.k==="idea"?"💡 Suggestion":"🐞 Problem"} · ${agoText(r.t)} · ${esc(r.s||"")} · ${esc(r.v||"")}</div><div style="color:#0f2a3d">${esc(r.m)}</div>${(()=>{ const a=((notes&&notes.msgs)||[]).find(m=>m.re&&m.to===p.id&&m.re.t===r.t); return a?`<div style="margin-top:4px;color:#2f8a4a">↳ ${(REPLY_HEAD[a.st]||REPLY_HEAD.thanks)[0]} ${esc(a.m)} ${a.readBy&&a.readBy[p.id]?"(seen "+agoText(a.readBy[p.id])+")":"(not seen yet)"}</div>`:`<div style="margin-top:4px">⏳ not answered yet</div>`; })()}</div>`).join("")}</details>`:""}
     ${errs.length?`<details class="ll-small" style="margin-top:6px"><summary>Problems the game noticed (${errs.length})</summary>${errs.map(r=>`<div style="color:#b23a56;margin:3px 0">${agoText(r.t)} · ${esc(r.m)} · ${esc(r.at)} (${esc(r.v)})</div>`).join("")}</details>`:""}
     <div class="ll-row" style="justify-content:flex-start;margin-top:8px"><button class="ll-btn gh" data-lock="${p.id}">🔒 Secret pictures</button><button class="ll-btn gh" data-reset="${p.id}">Start ${esc(p.name)} over</button><button class="ll-btn gh" data-del="${p.id}">Remove player</button></div></div>`;
 }
