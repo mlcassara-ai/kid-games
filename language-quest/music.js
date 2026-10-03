@@ -22,7 +22,18 @@ const TRACKS=[
  // "motif" makes it singable: a short phrase is played, repeated, answered and played again, like a nursery rhyme.
  {id:"play", name:"Playtime", bpm:112, base:72, scale:[0,2,4,5,7,9,11], lead:"bell", bass:[48,55,53,55],
   drum:[[0,"d"],[2,"t"],[4,"d"],[6,"t"]], rest:0, motif:true,
-  rhythms:[[2,2,2,2],[1,1,2,2,2],[2,1,1,2,2],[2,2,4],[1,1,1,1,2,2],[2,2,1,1,2]]}
+  rhythms:[[2,2,2,2],[1,1,2,2,2],[2,1,1,2,2],[2,2,4],[1,1,1,1,2,2],[2,2,1,1,2]]},
+ // Two traditional children's songs, played as fixed tunes. "tune" is a list of bars; each bar is [note, length in eighths]
+ // pairs adding up to 8 (notes as MIDI numbers, .5 = quarter tone). Both melodies were written down from memory and
+ // need checking by someone who knows them; correct the notes here.
+ // Yalla tnam: the Levantine lullaby, slow, in maqam Bayati on D (E half-flat = 63.5)
+ {id:"yalla", name:"Yalla Tnam (lullaby)", bpm:72, lead:"bell", bass:[50,50,55,50], drum:[[0,"d"]], soft:true,
+  tune:[[[69,1],[69,1],[67,1],[65,1],[67,2],[69,2]], [[67,1],[67,1],[65,1],[63.5,1],[65,2],[67,2]],
+        [[65,1],[65,1],[63.5,1],[62,1],[63.5,2],[65,2]], [[63.5,1],[63.5,1],[62,2],[62,4]]]},
+ // Ya matar, hutti hutti: the rain chant, bouncy, on a few neighbouring notes
+ {id:"matar", name:"Ya Matar (rain song)", bpm:112, lead:"bell", bass:[48,48,53,43], drum:[[0,"d"],[2,"t"],[4,"d"],[6,"t"]],
+  tune:[[[67,1],[67,1],[64,1],[69,1],[67,2],[64,2]], [[67,1],[67,1],[64,1],[69,1],[67,2],[64,2]],
+        [[69,1],[69,1],[67,1],[67,1],[64,1],[64,1],[67,2]], [[69,1],[67,1],[64,1],[62,1],[60,4]]]}
 ];
 let vol=0.3; try{ const v=parseFloat(localStorage.getItem(KEY)); if(!isNaN(v)) vol=Math.max(0,Math.min(1,v)); }catch(e){}
 let T=TRACKS.find(t=>t.id==="play"); try{ T=TRACKS.find(t=>t.id===localStorage.getItem(TKEY))||T; }catch(e){}      // Playtime unless the player picked another
@@ -63,11 +74,12 @@ function tek(t,v){ const s=ctx.createBufferSource(), f=ctx.createBiquadFilter(),
 // one bar = eight eighth notes. The tune wanders by small steps, breathes with rests, and comes home every fourth bar.
 function playBar(t){
   const E=60/T.bpm/2, home=bar%4===3, quiet=!home&&Math.random()<T.rest, play=LEAD[T.lead];
-  T.drum.forEach(([i,k])=>k==="d"?dum(t+i*E,0.15):tek(t+i*E,0.05)); if(bar%2) tek(t+7*E,0.03);
+  T.drum.forEach(([i,k])=>k==="d"?dum(t+i*E,T.soft?0.08:0.15):tek(t+i*E,0.05)); if(bar%2&&!T.soft) tek(t+7*E,0.03);
   oud(t,T.bass[bar%4],0.16,0.7); oud(t+4*E,T.bass[(bar+1)%4],0.11,0.6);                        // plucked bass, no held tone
   if(T.arp) T.arp.forEach((st,i)=>oud(t+(i*2+1)*E,T.bass[bar%4]+12+st,0.07,0.5));                // light oud pattern under the flute
   if(T.chords&&bar%2===0) [0,2,4].forEach((d,i)=>qanun(t+i*0.03,pitch(d)-12,0.07,0.8));          // a soft strum to open the bar
-  if(T.motif){ if(!motif||bar%16===0) motif={A:phrase(),B:phrase()};          // phrase, phrase again, an answer, phrase home
+  if(T.tune){ let at=0; T.tune[bar%T.tune.length].forEach(([m,len])=>{ if(m) play(t+at*E,m,T.soft?0.15:0.2,len*E*(T.soft?1.8:1.3)); at+=len; }); }
+  else if(T.motif){ if(!motif||bar%16===0) motif={A:phrase(),B:phrase()};          // phrase, phrase again, an answer, phrase home
     const which=bar%4, notes=(which===2?motif.B:motif.A).map(n=>({len:n.len,deg:n.deg})); if(which===1) notes[notes.length-1].deg=4; if(which===3) notes[notes.length-1].deg=0;
     let at=0; notes.forEach(n=>{ play(t+at*E,pitch(n.deg),0.2,n.len*E*1.4); at+=n.len; }); if(which===3) play(t+at*E-notes[notes.length-1].len*E,pitch(7),0.1,0.9);
     oud(t+2*E,T.bass[bar%4]+12,0.07,0.3); oud(t+6*E,T.bass[(bar+1)%4]+12,0.07,0.3); }

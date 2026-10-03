@@ -33,4 +33,5 @@ Everything below is already in the game. The Arabic was written without a native
 - **The five stories:** see `story-harbor-stories.md`. Is story 5's ending (the lion jumps into the well) fine for young children?
 - **Alphabet School:** each letter's picture word (the first example word from the Letter Dunes), and whether the sound should be the letter with fatha (بَ).
 - **Letter tracing (Camp One):** stroke order is body first, then dots right to left, with the top dot of ث last; end shapes start from the joining stroke on the right.
+- **Two songs in the map music** (sound menu): "Yalla Tnam" and "Ya Matar". The melodies were written down from memory and may not match how they are sung. A short phone recording of each, hummed or sung, is enough to correct them.
 - **Case endings:** phrases keep their endings inside, but the last word and single words are read without one (pausal form). Is that the convention you want?
