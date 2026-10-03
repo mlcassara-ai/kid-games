@@ -2,7 +2,7 @@
    A second neighborhood reached by train from Number Village: a station plaza and five physics areas.
    You can ride the train, walk the map and tap things. The five zone signs open the physics games (physics.js);
    Munch-Bot, the hungry robot, takes coins and saves his fact cards (p.fizz). Still no battles, wild monsters or chests here. It draws its own map so the main world code is untouched.
-   HIDDEN: no entry point unless the game was opened once with ?district=1 on that device (or window.MQ_DISTRICT_BETA===true).
+   OPEN TO EVERYONE since Oct 3, 2026: the train station is on the village plaza for every hero.
    Uses Math Quest globals: P, save, go, modal, closeModal, toast, esc, topbar, heroSVG, SFX, tone, say, speakable, speakToggle,
    youngReader, voiceOn, SCREENS, curScreen, W (main map tiles). */
 (function(){
@@ -20,7 +20,8 @@ const SPOTS=[{id:'fizz',x:22,y:14,e:'🤖',n:'Munch-Bot'},{id:'train',x:17,y:14,
 const LAKES=[[41,26,5.6],[4,25,3.4],[30,12,1.5]];
 const TRAIN_X=28,TRAIN_Y=13; /* the station tile on the main map (top-right of the village plaza, the side toward the district) */
 let D=null;
-function flag(){if(window.MQ_DISTRICT_BETA===true)return true;try{if(/[?&]district=1(&|$)/.test(location.search))localStorage.setItem('mqDistrictBeta','1');return localStorage.getItem('mqDistrictBeta')==='1';}catch(e){return false;}}
+/* open to everyone since Oct 3, 2026 (it was a per-device preview behind ?district=1). window.MQ_DISTRICT_BETA===false hides it again (tests). */
+function flag(){return window.MQ_DISTRICT_BETA!==false;}
 function rng(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
 

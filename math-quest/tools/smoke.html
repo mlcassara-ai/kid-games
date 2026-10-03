@@ -162,7 +162,7 @@ const tests=[
   go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.querySelector('#app').innerText),'the Fact Gym building did not open the fact grid');go('map');T.ok(!document.querySelector('.mq-hc'),'Mastery card is still on the Quest Board');go('world');await T.wait(50);
   T.ok(!document.querySelector('.topbar button.tb-hero')&&document.querySelectorAll('.topbar [onclick*="backpack"]').length===1,'the top bar has more than one way into the Bag');
   {const z=ZONES.find(x=>x.id==='garden');T.ok(zoneTag(p,z)==='','an untouched world shows progress');p.progress.garden=[3,2,1,0,0,0];T.ok(zoneTag(p,z)===' 3/6','world progress tag is wrong: '+zoneTag(p,z));p.progress.garden=[3,3,3,3,3,3];T.ok(/🥉 0\/6/.test(zoneTag(p,z)),'medal tag is wrong: '+zoneTag(p,z));}
-  T.ok(wWalk(W.hx,W.hy),'hero starts on a blocked tile');T.ok(!bad.length,bad.slice(0,4).join(' | '));window.MQ_TRUCK_BETA=false;window.MQ_DISTRICT_BETA=false;W=null;}],
+  T.ok(wWalk(W.hx,W.hy),'hero starts on a blocked tile');T.ok(!bad.length,bad.slice(0,4).join(' | '));window.MQ_TRUCK_BETA=false;delete window.MQ_DISTRICT_BETA;W=null;}],
 
 ['food truck: hidden unless the preview switch is on; then card, screens and map spot',async function(){
   T.reset();const p=T.hero('Truck',3,{battles:40});state.cur=p.id;
@@ -175,8 +175,8 @@ const tests=[
   T.ok([[21,20],[23,20],[22,19],[22,21]].some(([x,y])=>W.T[y]&&W.T[y][x]&&!W.T[y][x].block&&!W.T[y][x].water),'truck cannot be reached on the map');
   wNpc('truck');T.ok(curScreen==='truck','tapping the truck on the map did not open it');window.MQ_TRUCK_BETA=false;}],
 
-['discovery district preview: hidden by default, walkable with the switch on',async function(){
-  T.reset();const p=T.hero('District',3);state.cur=p.id;window.MQ_DISTRICT_BETA=false;try{localStorage.removeItem('mqDistrictBeta');}catch(e){}
+['discovery district: open to everyone (and can still be switched off), walkable',async function(){
+  T.reset();const p=T.hero('District',3);state.cur=p.id;delete window.MQ_DISTRICT_BETA;try{localStorage.removeItem('mqDistrictBeta');}catch(e){}T.ok(Discovery.flag(),'Discovery District is not open to everyone');window.MQ_DISTRICT_BETA=false;
   T.ok(!Discovery.flag(),'district preview is on without the switch');go('world');await T.wait(100);T.ok(W.T[13][28].npc!=='train','train shows on the map without the switch');
   go('district');T.ok(curScreen==='world','district opened without the switch');
   window.MQ_DISTRICT_BETA=true;go('world');await T.wait(100);T.ok(W.T[13][28].npc==='train','train station missing from the village');
@@ -195,7 +195,7 @@ const tests=[
   await T.wait(1100);T.ok(f.seen.length===1&&f.t===0&&/fact card/i.test(document.querySelector('#modal').innerText),'no fact card after enough tosses');
   f.seen=d.FACTS.filter(x=>x[0][0]==='a').map(x=>x[0]).slice(0,5);f.sets=[];const c0=p.coins;for(let k=0;k<60&&!f.sets.includes('a');k++)d.card();T.ok(f.sets.includes('a')&&p.coins>=c0+100,'finishing a set gave no reward');
   T.ok(new Set(d.FACTS.map(x=>x[0])).size===d.FACTS.length&&d.FACTS.every(x=>d.SETS.some(s=>s[0]===x[0][0])),'fact ids are not unique or lack a set');
-  closeModal();window.MQ_DISTRICT_BETA=false;go('world');}],
+  closeModal();delete window.MQ_DISTRICT_BETA;go('world');}],
 
 ['battle pets test: hidden unless switched on for a hero; saves only the switch and a play log',async function(){
   T.reset();window.MQ_BP_BETA=false;try{localStorage.removeItem('mqBpTest');}catch(e){}const p=T.hero('Pets',5),q=T.hero('Other',3);state.cur=p.id;W=null;go('world');await T.wait(150);
