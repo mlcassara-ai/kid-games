@@ -404,9 +404,9 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 .pav .pacc{position:absolute;left:50%;transform:translateX(-50%);font-size:.55em;pointer-events:none}
 .pav .pacc.top{top:-.52em;font-size:.48em}.pav .pacc.eyes{top:.22em;font-size:.5em}
 .pav.big{font-size:clamp(110px,22vw,170px)}
-.pethome{display:grid;grid-template-columns:minmax(260px,1fr) 2fr;gap:16px;align-items:start}
+.pethome{display:grid;grid-template-columns:minmax(300px,1fr) 1fr;gap:16px;align-items:start}
 @media(max-width:760px){.pethome{grid-template-columns:1fr}}
-.phcard{text-align:center;position:sticky;top:70px}
+.phcard{text-align:center}
 @media(max-width:760px){.phcard{position:static}}
 .phstage{position:relative;padding:66px 0 6px;background:radial-gradient(ellipse at 50% 90%,#e3ffe9 0,#f6f3ff 60%);border-radius:18px;cursor:pointer;overflow:hidden;min-height:220px;user-select:none;-webkit-user-select:none}
 .phstage .pav{animation:bob 2s ease-in-out infinite}
@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.02zi';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="battlepets.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.02zj';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="battlepets.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -3112,6 +3112,7 @@ SCREENS.pethome=()=>{
  const shopItem=(kind,it,owned,eq,sub)=>`<button class="item ${eq?'eq':''} ${!owned&&p.coins<it.price?'need':''}" onclick="petShop('${kind}','${it.id}')"><div class="ie">${it.e}</div><div>${it.name}</div>${sub?`<small>${sub}</small>`:''}<div class="ip">${kind==='food'?`🪙 ${it.price}`:owned?(eq?'✓ Wearing':kind==='toy'?'✓ Yours':'Wear'):'🪙 '+it.price}</div></button>`;
  app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small backbtn" onclick="go('world')">← World</button><h2 class="title">🏠 Pet Home</h2></div>${window.Adv?Adv.petCard(p):''}
  <div class="pethome">
+  <div class="phleft"> <!-- Feed and Play sit right under the pet, so it's clear they are for this pet; the Pet Shop is on the side -->
   <div class="panel phcard">
    <div class="phstage" id="phStage" onclick="patPet()">${petAvatar(p,pet,'big')}<div class="bubblesay" id="petSay">${esc(petSays(pd,pet))}</div></div>
    <div class="muted" style="margin-top:4px">Tap ${esc(pet.name)} to give a pat!</div>
@@ -3123,9 +3124,10 @@ SCREENS.pethome=()=>{
     <div class="muted">${petMovesMax(pd)?`🐾 Battle move: <b>${PET_MOVES[pet.id]||'Pet Attack'}</b> (${petMovesMax(pd)}× per battle)${petHappy(pd)?' · 😊 Happy bonus: extra strong!':''}`:`🐾 When ${esc(pet.name)} becomes <b>Big</b>, it learns a battle move!`}</div>
    </div>
   </div>
-  <div>
    <div class="panel"><h3>🍽️ Feed ${esc(pet.name)}</h3>${pantry.length?`<div class="items">${pantry.map(f=>`<button class="item ${pd.food>=MOOD_MAX?'need':''}" onclick="feedPet('${f.id}')"><div class="ie">${f.e}</div><div>${f.name}</div><small>You have ${p.pantry[f.id]}</small><div class="ip" style="color:${pd.food>=MOOD_MAX?'#999':'#1e9a53'}">${pd.food>=MOOD_MAX?'Full!':'Feed'}</div></button>`).join('')}</div>`:`<p class="muted">Your food bag is empty. Buy some snacks below! 👇</p>`}</div>
-   <div class="panel"><h3>🎾 Play</h3>${p.toys.length?`<div class="items">${PET_TOYS.filter(t=>p.toys.includes(t.id)).map(t=>{const done=pd.played[t.id]===today;return `<button class="item ${done?'need':''}" onclick="playPet('${t.id}')"><div class="ie">${t.e}</div><div>${t.name}</div><div class="ip" style="color:${done?'#999':'#1e9a53'}">${done?'Played today':'Play!'}</div></button>`;}).join('')}</div>`:`<p class="muted">No toys yet. Get one in the Pet Shop! Each toy can be played with once a day.</p>`}</div>
+   <div class="panel"><h3>🎾 Play with ${esc(pet.name)}</h3>${p.toys.length?`<div class="items">${PET_TOYS.filter(t=>p.toys.includes(t.id)).map(t=>{const done=pd.played[t.id]===today;return `<button class="item ${done?'need':''}" onclick="playPet('${t.id}')"><div class="ie">${t.e}</div><div>${t.name}</div><div class="ip" style="color:${done?'#999':'#1e9a53'}">${done?'Played today':'Play!'}</div></button>`;}).join('')}</div>`:`<p class="muted">No toys yet. Get one in the Pet Shop! Each toy can be played with once a day.</p>`}</div>
+  </div>
+  <div>
    <div class="panel"><h3>🛒 Pet Shop</h3><p class="muted" style="margin-top:0">You have 🪙 ${p.coins}</p>
     <h4>Snacks</h4><div class="items">${PET_FOODS.map(f=>shopItem('food',f,false,false,`+${f.xp} pet XP${f.joy?' · 💖':''}`)).join('')}</div>
     <h4>Toys</h4><div class="items">${PET_TOYS.map(t=>shopItem('toy',t,p.toys.includes(t.id),false)).join('')}</div>
