@@ -28,10 +28,11 @@ html,body{height:100%; margin:0; overflow:hidden; background:#2a5d8f; font-famil
 .hud-r{display:flex; gap:8px}
 .hud .me{font-size:1.15rem; padding:6px 18px}
 .hud .coins{background:#F2B134; color:#12233D}
+.hud .pill{white-space:nowrap}
 .pill{background:var(--card); color:var(--ink); border-radius:999px; padding:6px 14px; font-weight:800; box-shadow:0 3px 10px rgba(0,0,0,.2)}
 button.pill{border:0; font:inherit; font-weight:800; cursor:pointer}
 select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width:150px}
-@media (max-width:640px){ select.pill{max-width:110px} .hud .me{font-size:1rem; padding:6px 12px} }
+@media (max-width:640px){ select.pill{max-width:110px} .hud .me{font-size:1rem; padding:6px 12px} .hud .pill{padding:6px 10px} .hud .lbl{display:none} .hud-r{gap:6px} }      /* phones: icons only, so the bar stays on one line */
 #start{position:fixed; inset:0; background:rgba(18,35,61,.55); display:flex; align-items:center; justify-content:center; z-index:5}
 #start .box{background:var(--card); color:var(--ink); border-radius:26px; padding:24px 28px; text-align:center; width:min(88vw,360px)}
 #start h2{margin:4px 0}#start p{color:var(--muted); margin:4px 0 16px}
@@ -101,9 +102,9 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 </head>
 <body>
 <canvas id="game" aria-label="Language Quest world map. Tap to walk."></canvas>
-<div class="hud"><button class="pill" id="whoBtn" aria-label="Leave and pick another player">👋 Leave</button>
-  <button class="pill me" id="meBtn" aria-label="My page: my progress, clothes and secret pictures">🙂 <span id="meName">Me</span></button>
-  <div class="hud-r"><button class="pill" id="soundBtn" aria-label="Sound: voice and music volume">🔊</button><div class="pill coins" id="coinPill" aria-label="Dinars">🪙 0</div></div></div>
+<div class="hud"><button class="pill me" id="meBtn" aria-label="My page: my progress, clothes and secret pictures">👤 <span id="meName">Me</span></button>
+  <div class="hud-r"><button class="pill" id="soundBtn" aria-label="Sound: voice and music volume">🔊</button><div class="pill coins" id="coinPill" aria-label="Dinars">🪙 0</div>
+  <button class="pill" id="whoBtn" aria-label="Leave and pick another player">👋 <span class="lbl">Leave</span></button></div></div>
 <div id="start"><div class="box"><div style="font-size:3rem">🗺️</div><h2>Language Quest</h2><p>Tap things to hear their names in Arabic.</p>
   <button class="btn go" id="startBtn">▶ Tap to start</button></div></div>
 <canvas id="mini" aria-label="Mini map"></canvas>
@@ -119,8 +120,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02zd";</script>
-<script src="lq-core.js?v=2026.10.02zd"></script>
+<script>window.LQ_VER="2026.10.02ze";</script>
+<script src="lq-core.js?v=2026.10.02ze"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */

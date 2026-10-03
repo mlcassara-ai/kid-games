@@ -347,7 +347,7 @@ function readHelp(){ if(!("speechSynthesis" in window)) return;
   const v=speechSynthesis.getVoices().find(v=>/^en(-|_)(US|GB)/i.test(v.lang)&&/Samantha|Karen|Daniel|Google|Female|Natural/i.test(v.name))||speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang)); if(v) u.voice=v;
   speechSynthesis.speak(u); }
 function addHelpButton(){ if(document.getElementById("lqHelp")) return; const snd=document.getElementById("snd")||document.getElementById("soundBtn"); if(!snd) return;
-  const b=document.createElement("button"); b.id="lqHelp"; b.className="pill"; b.type="button"; b.textContent="❓"; b.setAttribute("aria-label","Read the instructions aloud");
+  const b=document.createElement("button"); b.id="lqHelp"; b.className="pill"; b.type="button"; b.innerHTML='❓ <span class="lbl">Help</span>'; b.setAttribute("aria-label","Read the instructions aloud");
   b.onclick=e=>{ e.stopPropagation(); readHelp(); }; snd.parentNode.insertBefore(b,snd); }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",addHelpButton); else addHelpButton();
 /* ---------------- drawn hero + costumes ----------------
