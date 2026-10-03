@@ -207,10 +207,11 @@ const tests=[
   {const sc=document.getElementById('bpScroll');T.ok(sc.scrollWidth>sc.clientWidth+100,'the battlefield is not wider than the screen');}
   T.ok(document.getElementById('bpFull')&&!document.querySelector('#app .topbar')&&document.querySelector('.bp2-exit')&&document.body.classList.contains('bp2-lock'),'the battle is not a full-screen takeover with only Exit');
   T.ok(G.team.every(s=>P().pets.includes(s.pet.id)),'the team is not the hero\'s own pets');
-  Music.update();T.ok(['petBattle','lastStand'].includes(Music._state().want),'no battle song is chosen in a fight');
+  Music.update();T.ok(['petBattle','lastStand','standFirm'].includes(Music._state().want),'no battle song is chosen in a fight');
   /* 🔊 in a battle pauses it and offers only battle sound: effects, music, the battle song */
-  BattlePets._sound();T.ok(G.paused&&document.getElementById('bpSnd')&&document.querySelectorAll('#bpSnd .bp2-songs button').length===4,'the battle sound card did not open and pause');
+  BattlePets._sound();T.ok(G.paused&&document.getElementById('bpSnd')&&document.querySelectorAll('#bpSnd .bp2-songs button').length===5,'the battle sound card did not open and pause');
   BattlePets._song('last');Music.update();T.ok(P().bpSong==='last'&&Music._state().want==='lastStand','choosing Last Stand did not change the battle song');{const r=await fetch('audio/pet-battle-last-stand-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/pet-battle-last-stand-studio.mp3 is missing');}
+  BattlePets._song('firm');Music.update();T.ok(Music._state().want==='standFirm','choosing Stand Firm did not change the battle song');{const r=await fetch('audio/pet-battle-stand-firm-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/pet-battle-stand-firm-studio.mp3 is missing');}
   BattlePets._song('march');Music.update();T.ok(Music._state().want==='petBattle','choosing Pet Battle did not change the battle song');
   BattlePets._song('off');Music.update();T.ok(!Music._state().want,'No battle music still plays music');BattlePets._song('mix');
   BattlePets._soundDone();T.ok(!G.paused&&!document.getElementById('bpSnd'),'closing the sound card did not resume the battle');{const r=await fetch('audio/pet-battle-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/pet-battle-studio.mp3 is missing');}

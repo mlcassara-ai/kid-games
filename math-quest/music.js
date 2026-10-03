@@ -36,7 +36,8 @@ const TRACKS={
  neonStudio:{name:'🎧 Neon Night (studio)',file:'audio/neon-night-studio.mp3'},
  starsStudio:{name:'🎧 Music-Box Stars (studio)',file:'audio/music-box-stars-studio.mp3'}, /* the owner's Suno version of Music-Box Stars, a map music choice */
  petBattle:{name:'⚔️ Pet Battle',file:'audio/pet-battle-studio.mp3'},
- lastStand:{name:'⚔️ Last Stand',file:'audio/pet-battle-last-stand-studio.mp3'}, /* the alternate Battle Pets song: the owner's Suno version of an original tune */ /* Battle Pets fights: an original marching-band battle tune, rendered here and finished by the owner in Suno */
+ lastStand:{name:'⚔️ Last Stand',file:'audio/pet-battle-last-stand-studio.mp3'},
+ standFirm:{name:'🛡️ Stand Firm',file:'audio/pet-battle-stand-firm-studio.mp3'}, /* the third, slower Battle Pets song: the owner's Suno version of an original tune */ /* the alternate Battle Pets song: the owner's Suno version of an original tune */ /* Battle Pets fights: an original marching-band battle tune, rendered here and finished by the owner in Suno */
  magma:{name:'🌋 Magma Deep',bpm:44,root:45,scale:[0,1,5,7,8],prog:[[0,7,12],[1,8,13],[-4,3,8],[0,7,12]],tone:'glass',rest:.6,padVol:.1,octave:12,padCut:380,rumble:.3}};
 const LEVEL=.34; // softer than sound effects
 let dryG=null; /* a gain with no reverb, kept in step with the music level (fadeTo / vol) */

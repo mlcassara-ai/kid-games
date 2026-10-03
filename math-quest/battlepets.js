@@ -352,7 +352,7 @@ function teamOut(i){if(VIEW.k!=='team')return;VIEW.team.splice(i,1);screen();}
 function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;const S=stages().find(s=>s.id===VIEW.id);const team=VIEW.team.map(id=>PETS.find(x=>x.id===id)).filter(Boolean);
  if(!VIEW.flyOk&&flyRisk(S,team)){if(!document.getElementById('bpFlyW'))flyWarn();return;}
  prog(p).team=VIEW.team.slice();const b=p.bp=p.bp||{s:0,m:[]};b.s=(b.s||0)+1;save();
- newBattle(p,S,VIEW.crown,team);G.q=makeQ(p,S.op);G.songAlt=Math.random()<.5;enterFS();VIEW={k:'fight',id:S.id,crown:G.crown};screen();}
+ newBattle(p,S,VIEW.crown,team);G.q=makeQ(p,S.op);G.songPick=Math.floor(Math.random()*3);enterFS();VIEW={k:'fight',id:S.id,crown:G.crown};screen();}
 /* the battle takes over the whole screen: no menus, just ✕ Exit (and the browser goes full screen where it can) */
 function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
  app.innerHTML=`<div class="bp2-full" id="bpFull">
@@ -486,10 +486,10 @@ function arrow(u){const f=document.getElementById('bpField');if(!f)return;const 
  const px=(u.x-t.x)/100*f.clientWidth;if(px<30)return;const a=document.createElement('div');a.className='bp2-arrow';a.style.left=u.x+'%';a.style.bottom=(t.fly?'48%':'54px');a.style.setProperty('--px',(-px)+'px');f.appendChild(a);setTimeout(()=>a.remove(),500);}
 function shake(){const sc=document.getElementById('bpScroll');if(!sc)return;sc.classList.remove('shake');void sc.offsetWidth;sc.classList.add('shake');}
 /* 🔊 during a battle: the game pauses while the kid sets the sound-effects and music volume and picks the battle song.
-   p.bpSong: 'mix' (a different song each battle), 'march' (Pet Battle), 'last' (Last Stand) or 'off' (no music in battles). */
-const SONGS=[['mix','🎲 Mix them up','A different song each battle'],['march','🥁 Pet Battle','Bouncy marching band'],['last','⚔️ Last Stand','Epic drums and strings'],['off','🔇 No battle music','']];
+   p.bpSong: 'mix' (a different song each battle), 'march' (Pet Battle), 'last' (Last Stand), 'firm' (Stand Firm) or 'off' (no music in battles). */
+const SONGS=[['mix','🎲 Mix them up','A different song each battle'],['march','🥁 Pet Battle','Bouncy marching band'],['last','⚔️ Last Stand','Epic drums and strings'],['firm','🛡️ Stand Firm','Slower: war drums and horns'],['off','🔇 No battle music','']];
 function songChoice(p){const c=p&&p.bpSong;return SONGS.some(x=>x[0]===c)?c:'mix';}
-function songId(){const p=me();const c=songChoice(p);if(c==='off')return null;if(c==='march')return 'petBattle';if(c==='last')return 'lastStand';return G&&G.songAlt?'lastStand':'petBattle';}
+function songId(){const p=me();const c=songChoice(p);if(c==='off')return null;if(c==='march')return 'petBattle';if(c==='last')return 'lastStand';if(c==='firm')return 'standFirm';return ['petBattle','lastStand','standFirm'][(G&&G.songPick)||0];}
 function soundOpen(){if(!G||G.over)return;G.paused=true;document.querySelectorAll('#bpSnd').forEach(x=>x.remove());const p=me();
  const fx=(typeof state!=='undefined'&&state.sound===false)?0:((typeof state!=='undefined'&&state.fxVol!=null)?state.fxVol:70),mu=(typeof state!=='undefined'&&state.musicVol!=null)?state.musicVol:30,c=songChoice(p);
  const sl=(k,t,v)=>`<div class="bp2-sl"><div><b>${t}</b><span id="bpv_${k}">${v===0?'Off':v+'%'}</span></div><input type="range" min="0" max="100" step="5" value="${v}" aria-label="${t}" oninput="BattlePets._vol('${k}',this.value,false)" onchange="BattlePets._vol('${k}',this.value,true)"></div>`;
