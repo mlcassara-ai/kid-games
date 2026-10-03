@@ -243,6 +243,11 @@ const tests=[
    S.y=0;S.bat=10;S.bankWh=30;S.bankT=Date.now();d.openPower();const pg=document.querySelector('#cvPlug');T.ok(pg&&/Camp battery bank/.test(document.querySelector('#cvMod').innerText),'no Plug in button in Power Up at camp');if(pg){pg.click();T.ok(S.bankWh<.01&&Math.abs(S.bat-(10+30/E))<.01,'the Plug in button did not charge the helmet: '+S.bat+' '+S.bankWh);}try{d.closeModal();}catch(e){}}
   S.x=4;S.y=0;try{Cave.leave();}catch(e){}
  }],
+ ['school quests: weekly quizzes are well formed and reach the right hero',async function(){
+  const Q=MQ_CONTENT.quizzes||{};const bad=Object.entries(Q).filter(([k,z])=>!z.title||!(z.questions||[]).length||z.questions.some(q=>!q.q||!Array.isArray(q.c)||q.c.length<2||!(q.a>=0&&q.a<q.c.length)||new Set(q.c).size!==q.c.length)).map(([k])=>k);
+  T.ok(!bad.length,'quizzes with broken questions: '+bad.join());
+  T.reset();const p=T.hero('Jibreel',5);state.cur=p.id;const ids=quizList(p).map(z=>z.id||z.key||z);T.ok(JSON.stringify(ids).includes('j-punct')&&JSON.stringify(ids).includes('j-matter'),'this week\'s quizzes do not reach Jibreel: '+JSON.stringify(ids).slice(0,200));
+ }],
  ['music: the login page plays the map tune, Discovery District has its own choices',async function(){
   T.reset();const p=T.hero('Tune',3);state.musicVol=30;state.cur=null;go('profiles');Music.update();T.ok(['meadow','dusk'].includes(Music._state().want),'no map tune on the login page: '+Music._state().want);
   state.musicVol=0;Music.update();T.ok(!Music._state().want,'login music ignores the Music slider');state.musicVol=30;

@@ -1012,7 +1012,7 @@ window.MQ_CONTENT = {
           { q: 'A box is 4 units long, 2 units wide and 15 units tall. Volume?', a: '120' }
         ] }
       ],
-      quizzes: ['j-grammar', 'j-volume', 'ca-missions']
+      quizzes: ['j-punct', 'j-matter', 'j-grammar', 'j-volume', 'ca-missions']
     }
   },
 
@@ -1307,6 +1307,41 @@ window.MQ_CONTENT = {
         { q: '24 buttons in 3 equal piles. How many in each pile?', c: ['6', '7', '8', '21'], a: 2, why: '3 × 8 = 24, so 24 ÷ 3 = 8.' },
         { q: 'Which is an ARRAY?', c: ['Things in neat rows and columns', 'A pile of things', 'A circle of things', 'Things in a line with gaps'], a: 0, why: 'An array has equal rows, like eggs in a carton.' },
         { q: 'Which multiplication matches 7 + 7 + 7?', c: ['7 × 7', '3 × 7', '7 + 3', '21 × 3'], a: 1, why: 'Three groups of 7 is 3 × 7 = 21.' }
+      ]
+    },
+    'j-punct': {
+      title: 'Punctuation Detective',
+      emoji: '🔍',
+      note: "From Jibreel's sentence punctuation worksheet (week of Oct 2). Our own sentences, same rules.",
+      questions: [
+        { q: "Which sentence is punctuated correctly?", c: ["Because it rained all night, the soccer field was muddy.", "Because it rained all night the soccer field, was muddy.", "Because, it rained all night the soccer field was muddy."], a: 0, why: "When a sentence starts with a part like \"Because…\", put a comma where that part ends." },
+        { q: "Which sentence is punctuated correctly?", c: ["Although the pumpkin was huge we carried it home.", "Although the pumpkin was huge; we carried it home.", "Although the pumpkin was huge, we carried it home."], a: 2, why: "\"Although the pumpkin was huge\" can't stand alone, so it gets a comma, not a semicolon." },
+        { q: "Which sentence is punctuated correctly?", c: ["The bus was late so, we walked to school.", "The bus was late, so we walked to school.", "The bus was late; so we walked to school."], a: 1, why: "Two complete sentences joined by so, and or but get a comma BEFORE the joining word." },
+        { q: "Which sentence is punctuated correctly?", c: ["I love apple pie, my brother loves pumpkin pie.", "I love apple pie my brother loves pumpkin pie.", "I love apple pie; my brother loves pumpkin pie."], a: 2, why: "A semicolon can join two complete sentences. A comma alone can't." },
+        { q: "Which sentence is punctuated correctly?", c: ["The owl hooted we jumped.", "The owl hooted, and we jumped.", "The owl hooted, we jumped."], a: 1, why: "\"The owl hooted\" and \"we jumped\" are two sentences. Join them with a comma AND a word like and." },
+        { q: "Which sentence is punctuated correctly?", c: ["We ate dinner after the game ended.", "We ate dinner, after the game ended.", "We ate dinner; after the game ended."], a: 0, why: "When the \"after…\" part comes at the END, you usually don't need a comma." },
+        { q: "Which sentence is punctuated correctly?", c: ["When the bell rang the students lined up.", "When the bell, rang the students lined up.", "When the bell rang, the students lined up."], a: 2, why: "The opening part \"When the bell rang\" ends with a comma." },
+        { q: "Which sentence is punctuated correctly?", c: ["I wanted to stay up late, but my mom said no.", "I wanted to stay up late but, my mom said no.", "I wanted to stay up late; but my mom said no."], a: 0, why: "The comma goes before but, not after it." },
+        { q: "Which sentence is punctuated correctly?", c: ["The cookies smelled great, however they were too hot to eat.", "The cookies smelled great; however, they were too hot to eat.", "The cookies smelled great however, they were too hot to eat."], a: 1, why: "Joining two sentences with however: semicolon before it, comma after it." },
+        { q: "Which sentence is punctuated correctly?", c: ["If you finish your homework we can, carve the pumpkin.", "If, you finish your homework we can carve the pumpkin.", "If you finish your homework, we can carve the pumpkin."], a: 2, why: "\"If you finish your homework\" is the opening part, so the comma comes right after it." }
+      ]
+    },
+    'j-matter': {
+      title: 'States of Matter',
+      emoji: '🧊',
+      note: "From Jibreel's science notes: Topic 2, Changes in Matter, Lesson 1 (week of Oct 2)",
+      questions: [
+        { q: "What are the three states of matter?", c: ["hot, warm and cold", "solid, liquid and gas", "rock, water and wind", "big, medium and small"], a: 1, why: "Most things can be a solid, a liquid or a gas, depending on their temperature." },
+        { q: "You pick up a solid block and move it. What happens to its shape?", c: ["It keeps its shape", "It takes the shape of your hand", "It turns into a liquid", "It spreads out to fill the room"], a: 0, why: "Solids have a definite shape. They don't change shape when you move them." },
+        { q: "You pour water from a bowl into a tall vase. What changes?", c: ["Both its shape and its volume", "Its volume, but not its shape", "Its shape, but not its volume", "Nothing changes"], a: 2, why: "A liquid takes the shape of its container, but the amount (volume) stays the same." },
+        { q: "Which has a definite volume but NOT a definite shape?", c: ["a solid", "a liquid", "a gas"], a: 1, why: "A liquid keeps its volume but takes the shape of whatever holds it." },
+        { q: "A gas always ___ the space it is given.", c: ["leaves", "fills", "shrinks", "freezes"], a: 1, why: "Gas spreads out to fill any space it's in, like air filling a balloon." },
+        { q: "An ice cube melts. That is a change from…", c: ["liquid to gas", "gas to liquid", "solid to liquid", "liquid to solid"], a: 2, why: "Ice is solid water. Melting turns it into liquid water." },
+        { q: "Water freezes into ice. What stays the same?", c: ["its shape", "its mass (how much matter there is)", "its state", "its temperature"], a: 1, why: "When matter changes state, its mass stays the same." },
+        { q: "When water boils into steam, what changes a lot?", c: ["its volume: steam spreads out and takes up much more space", "its mass", "nothing at all"], a: 0, why: "Mass stays the same, but the volume does not: a gas takes up far more space." },
+        { q: "The air we breathe is matter in which state?", c: ["liquid", "solid", "gas"], a: 2, why: "Air is a mix of gases." },
+        { q: "Most gases are invisible. How can you tell they are there?", c: ["by their color", "by their effect on other things, like wind moving leaves", "by their shape", "you can never tell"], a: 1, why: "We notice gases by what they do: wind pushes leaves, air fills a balloon." },
+        { q: "What usually makes a substance change from one state to another?", c: ["changing its color", "moving it to a new place", "heating or cooling it", "putting it in a bigger box"], a: 2, why: "Heat melts and boils things; cooling freezes and condenses them." }
       ]
     },
     'j-grammar': {
