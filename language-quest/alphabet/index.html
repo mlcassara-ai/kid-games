@@ -147,8 +147,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🏫</div><h2>Alphabet School</h2><p class="muted">مَدْرَسَةُ الحُرُوف — meet the 28 letters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.03c";</script>
-<script src="../lq-core.js?v=2026.10.03c"></script>
+<script>window.LQ_VER="2026.10.03d";</script>
+<script src="../lq-core.js?v=2026.10.03d"></script>
 <script>
 /* ============ the alphabet, at the most basic level ============
    Each letter on its own (no joined shapes; those are taught in the Letter Dunes): its name, its sound with fatha,
@@ -184,13 +184,21 @@ const ABC=[
  ["و", "وَاو", "Waaw", "وَ", "🌹", "وَرْدَة", "rose"],
  ["ي", "يَاء", "Yaa", "يَ", "✋", "يَد", "hand"]
 ];
-const GROUPS=[[0,7],[7,14],[14,21],[21,28]].map(([a,b],i)=>({i,from:a,to:b,letters:ABC.slice(a,b)}));
+/* letter families: the alphabet in order, cut where a shape family ends, so letters that share a shape and differ only in their dots are learned together */
+const GROUPS=[[0,4,"ب ت ث have the same shape. Only the dots change: one dot below, two dots on top, three dots on top."],
+ [4,7,"ج ح خ share one shape: ج has a dot inside, ح has no dot, خ has a dot on top."],
+ [7,11,"Two pairs: د and ذ, then ر and ز. The second letter of each pair has a dot on top."],
+ [11,15,"Two pairs: س and ش, then ص and ض. The second letter of each pair has dots on top."],
+ [15,19,"Two pairs: ط and ظ, then ع and غ. The second letter of each pair has a dot on top."],
+ [19,23,"ف has one dot on top and ق has two. Then come ك and ل."],
+ [23,28,"The last five letters! ن has one dot on top and ي has two dots below."]
+].map(([a,b,tip],i)=>({i,from:a,to:b,tip,letters:ABC.slice(a,b)}));
 const LIKE=[["ب","ت","ث","ن","ي"],["ج","ح","خ"],["د","ذ"],["ر","ز","و"],["س","ش"],["ص","ض"],["ط","ظ"],["ع","غ"],["ف","ق"],["ك","ل"],["م","ه"],["ا","ل"]];
 const IDX={}; ABC.forEach((l,i)=>IDX[l[0]]=i);
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
 /* ============ save: the signed-in player (shared with the map through lq-core.js) ============
-   p.abc = letters met here (heard), p.abcStars = stars per group of seven */
+   p.abc = letters met here (heard), p.abcStars = stars per letter family (GROUPS), p.abcV=2 once stars from the old four groups of seven were moved over */
 const $=id=>document.getElementById(id);
 if(!LQ.player()) location.replace("../");               // nobody signed in: go pick a player on the map
 const save={ get coins(){ const p=LQ.player(); return p?p.coins||0:0; },
@@ -222,11 +230,11 @@ $("go").onclick=()=>{ let said=false; try{ said=sessionStorage.getItem("lq.said"
 const stars3=n=>"★".repeat(n)+"☆".repeat(3-n);
 function home(){ LQ.mark("Alphabet School: home"); hush(); const met=save.met, n=Object.keys(met).length;
   $("app").innerHTML=`<div class="panel"><h2>Welcome to the Alphabet School!</h2>
-    <p class="muted" style="margin:0">Arabic has 28 letters. Meet them seven at a time: hear each name and sound, then play a game. <b>${n} of 28</b> letters met.</p>
+    <p class="muted" style="margin:0">Arabic has 28 letters. Meet them in small families: letters that share a shape and differ only in their dots. Hear each name and sound, then play a game. <b>${n} of 28</b> letters met.</p>
     <button class="btn go big-go" id="song">🎶 Hear the whole alphabet</button></div>
     <div class="groups">${GROUPS.map(g=>{ const m=g.letters.filter(l=>met[l[0]]).length, st=save.stars[g.i]||0;
       return `<button class="camp" data-g="${g.i}"><div class="ls" lang="ar" style="white-space:normal;font-size:1.6rem;line-height:1.6">${g.letters.map(l=>l[0]).join(" ")}</div>
-        <div class="nm">Letters ${g.from+1} to ${g.to}</div><div class="st">${st?stars3(st):`<span class="muted" style="font-size:.95rem">${m}/7 met</span>`}</div></button>`; }).join("")}</div>`;
+        <div class="nm">Letters ${g.from+1} to ${g.to}</div><div class="st">${st?stars3(st):`<span class="muted" style="font-size:.95rem">${m}/${g.letters.length} met</span>`}</div></button>`; }).join("")}</div>`;
   $("song").onclick=song; document.querySelectorAll(".camp").forEach(b=>b.onclick=()=>group(+b.dataset.g));
 }
 /* ---- the whole alphabet, read in order with each letter lighting up ---- */
@@ -242,9 +250,9 @@ function song(){ LQ.mark("Alphabet song"); hush(); let stop=false;
   $("again").onclick=()=>{ hush(); play(0); }; $("bk").onclick=()=>{ stop=true; home(); };
   play(0);
 }
-/* ---- meet seven letters: tap one to hear its name, its sound and a word that starts with it ---- */
+/* ---- meet a letter family: tap one to hear its name, its sound and a word that starts with it ---- */
 function group(g){ LQ.mark("Letters "+(GROUPS[g].from+1)+"-"+GROUPS[g].to); hush(); const G=GROUPS[g], heard=new Set(G.letters.filter(l=>save.met[l[0]]).map(l=>l[0]));
-  $("app").innerHTML=`<div class="panel"><h2>Letters ${G.from+1} to ${G.to}</h2><p class="muted" style="margin:0">Tap each letter: you will hear its name, its sound and a word that starts with it.</p>
+  $("app").innerHTML=`<div class="panel"><h2>Letters ${G.from+1} to ${G.to}</h2><p style="margin:0 0 6px;font-weight:700">${G.tip.replace(/[\u0621-\u064A](?:[\u0621-\u064A ]*[\u0621-\u064A])?/g,m=>`<span lang="ar" dir="rtl" style="font-size:1.35em;unicode-bidi:isolate">${m}</span>`)}</p><p class="muted" style="margin:0">Tap each letter: you will hear its name, its sound and a word that starts with it.</p>
     <div class="cards">${G.letters.map(l=>`<button class="lc ${heard.has(l[0])?"heard":""}" data-c="${l[0]}"><span class="ch" lang="ar">${l[0]}</span><span class="nm" lang="ar">${l[1]}</span>
       <span class="en">${l[2]}</span><span class="pic" lang="ar">${l[4]} ${l[5]}</span></button>`).join("")}</div>
     <div class="actions"><button class="btn ghost" id="bk">All letters</button><button class="btn boss" id="play">🎲 Letter game</button></div></div>`;
@@ -257,7 +265,7 @@ function group(g){ LQ.mark("Letters "+(GROUPS[g].from+1)+"-"+GROUPS[g].to); hush
 function game(g){ LQ.mark("Letter game "+(g+1)); hush(); const G=GROUPS[g]; let hp=6, hearts=3, qn=0, busy=false;
   const qs=shuffle([...G.letters,...shuffle([...G.letters]).slice(0,3)]).map((l,k)=>({l,type:["hear","next","name"][k%3]}));
   const twins=ch=>(LIKE.find(f=>f.includes(ch))||[]).filter(x=>x!==ch);
-  const others=(ch,n)=>{ const a=shuffle(twins(ch)).slice(0,2), pool=shuffle(G.letters.map(l=>l[0]).filter(x=>x!==ch&&!a.includes(x))); return [...a,...pool].slice(0,n); };
+  const others=(ch,n)=>{ const a=shuffle(twins(ch)).slice(0,2), pool=shuffle(G.letters.map(l=>l[0]).filter(x=>x!==ch&&!a.includes(x))); const out=[...a,...pool]; if(out.length<n){ const i=IDX[ch]; out.push(...shuffle(ABC.map(l=>l[0]).filter((x,j)=>x!==ch&&!out.includes(x)&&Math.abs(j-i)<=6)).slice(0,n-out.length)); } return out.slice(0,n); };
   function draw(){
     if(hp<=0||hearts<=0) return finish();
     const q=qs[qn%qs.length], l=q.l, ch=l[0], i=IDX[ch]; let type=q.type; if(type==="next"&&i<2) type="hear";
@@ -289,12 +297,15 @@ function game(g){ LQ.mark("Letter game "+(g+1)); hush(); const G=GROUPS[g]; let 
     const stars=hearts, first=!save.stars[g]; LQ.mark("Letter game "+(g+1)+" won");
     LQ.update(p=>{ p.abcStars=p.abcStars||{}; p.abcStars[g]=Math.max(p.abcStars[g]||0,stars); p.abc=p.abc||{}; G.letters.forEach(l=>p.abc[l[0]]=1); }); addCoins(first?20:5); persist(); say("مُمْتَاز");
     $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You know letters ${G.from+1} to ${G.to}!</h2><p style="font-size:2rem;color:var(--saffron);margin:0">${stars3(stars)}</p>
-      <p class="muted">${g<3?"Next, meet the next seven letters.":"You have met all 28 letters. Now try the Letter Dunes, where letters change shape!"}</p>
-      <div class="actions"><button class="btn go" id="next">${g<3?"Next letters":"All letters"}</button><button class="btn ghost" id="stay">Stay here</button></div></div>`;
-    $("next").onclick=()=>g<3?group(g+1):home(); $("stay").onclick=()=>group(g);
+      <p class="muted">${g<GROUPS.length-1?"Next, meet the next letter family.":(Object.keys(save.met).length>=28?"You have met all 28 letters. Now try the Letter Dunes, where letters change shape!":"That was the last family! Go back and meet the letters you have not met yet.")}</p>
+      <div class="actions"><button class="btn go" id="next">${g<GROUPS.length-1?"Next letters":"All letters"}</button><button class="btn ghost" id="stay">Stay here</button></div></div>`;
+    $("next").onclick=()=>g<GROUPS.length-1?group(g+1):home(); $("stay").onclick=()=>group(g);
   }
   draw();
 }
+if(LQ.player()&&LQ.player().abcV!==2) LQ.update(p=>{ const old=p.abcStars||{}, st={};
+  GROUPS.forEach(g=>{ const olds=[...new Set(g.letters.map((l,k)=>Math.floor((g.from+k)/7)))].map(o=>old[o]||0); const v=Math.min(...olds); if(v) st[g.i]=v; });
+  p.abcStars=st; p.abcV=2; });
 persist(); home();
 </script>
 </body>

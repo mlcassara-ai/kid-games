@@ -35,3 +35,15 @@ Everything below is already in the game. The Arabic was written without a native
 - **Letter tracing (Camp One):** stroke order is body first, then dots right to left, with the top dot of ث last; end shapes start from the joining stroke on the right.
 - **Grandmother's basket** (opens after all 28 Letter Friends): one everyday object per letter: إِبْرِيق، بَاب، تُفَّاحَة، ثَوْب، جَرَس، حَقِيبَة، خُبْز، دَلْو، ذُرَة، رِيشَة، زَيْتُون، سَاعَة، شَمْعَة، صُنْدُوق، ضِمَادَة، طَبْل، ظَرْف، عِنَب، غَيْمَة، فِنْجَان، قَلَم، كُرَة، لَيْمُون، مِفْتَاح، نَجْمَة، هَدِيَّة، وَرْدَة، يَد. Better words for any letter, especially ث ذ ض ظ?
 - **Case endings:** phrases keep their endings inside, but the last word and single words are read without one (pausal form). Is that the convention you want?
+
+## Alphabet School letter families
+
+The Alphabet School now teaches the letters in alphabet order, cut into seven small families so that letters sharing a shape (differing only in dots) are learned together. Is this the grouping you would use, or would you change it?
+
+1. ا ب ت ث
+2. ج ح خ
+3. د ذ ر ز
+4. س ش ص ض
+5. ط ظ ع غ
+6. ف ق ك ل
+7. م ن ه و ي
