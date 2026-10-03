@@ -77,7 +77,7 @@ function initState(){
  S.pack=S.pack||[];S.rp=S.rp||0;S.maxRow=S.maxRow||0;S.probe=S.probe||{rank:0,best:0,wins:0,day:'',runs:0};
  S.stats.dug=S.stats.dug||0;S.dive=S.dive||{c:0,f:0,cr:0,d:0,ch:0};
  const d=today();
- if(S.day!==d){const first=!S.day;S.day=d;S.dug='';S.obs=[];S.x=4;S.y=0;S.bat=batMax();S.caveIn=!first;}
+ if(S.day!==d){const first=!S.day;S.day=d;S.dug='';S.obs=[];S.grow=null;S.x=4;S.y=0;S.bat=batMax();S.caveIn=!first;}
  {const rd=realDay();if(S.probe.day!==rd){S.probe.day=rd;S.probe.runs=0;}}
  if(S.bat==null)S.bat=batMax();
  charge(true); // the helmet battery charges while you are away
@@ -177,12 +177,24 @@ function genWorld(){
  // daily secret pocket (geode) somewhere you have already been able to reach
  const maxR=Math.max(10,Math.min(S.maxRow,CORE_ROW-1));let pocket=null;
  for(let tries=0;tries<300&&!pocket;tries++){const x=1+Math.floor(R()*(COLS-1)),y=2+Math.floor(R()*(maxR-1)),i=idx(x,y);if(isRock(i)&&!items.has(i)&&!landing(x,y)){pocket={x,y,id:pick(R,CD.GEODES).id};items.set(i,{t:'g',id:pocket.id});}}
- W={g,items,pockets,gateX,pocket,dug:decDug(S.dug,ROWS*COLS)};
- for(let i=0;i<ROWS*COLS;i++)if(isDug(i)){if(g[i]>=1&&g[i]<100||g[i]===T_GATE||g[i]===T_DOOR)g[i]=T_AIR;items.delete(i);}
+ W={g,items,pockets,gateX,pocket,dug:decDug(S.dug,ROWS*COLS),old:[]};
+ for(let i=0;i<ROWS*COLS;i++)if(isDug(i)){if(g[i]>=1&&g[i]<100){const y=Math.floor(i/COLS),x=i%COLS;if(y>=2&&!landing(x,y))W.old.push([i,g[i]]);}if(g[i]>=1&&g[i]<100||g[i]===T_GATE||g[i]===T_DOOR)g[i]=T_AIR;items.delete(i);}
+ /* refilled tunnels (see regrow) keep their new finds until they are dug again */
+ ((S.grow&&S.grow.list)||[]).forEach(([i,it])=>{if(!isDug(i)&&g[i]>=1&&g[i]<100)items.set(i,it);});
  (S.obs||[]).forEach(i=>items.delete(i));
  // per-tile texture seeds
  W.tex=new Uint8Array(ROWS*COLS);for(let i=0;i<W.tex.length;i++)W.tex[i]=Math.floor(R()*256);
 }
+/* 🌱 regrowth (Oct 2026): the map only changes every 5 trips, so a hero who clears it out used to find nothing. Now every new trip
+   a small rockfall closes a few old tunnels (that the hero has already reached) and hides fresh minerals and coins in them. */
+const REGROW=5;
+function regrow(){if(!W||!W.old||!W.old.length)return 0;S.grow=S.grow||{list:[]};S.grow.list=S.grow.list.filter(([i])=>!isDug(i));
+ const pickFrom=W.old.slice().sort(()=>Math.random()-.5).slice(0,REGROW);let n=0;
+ pickFrom.forEach(([i,rk])=>{const y=Math.floor(i/COLS),L=layerOf(y)||CD.LAYERS[0],li=CD.LAYERS.indexOf(L);
+  const mins=Object.keys(CD.MIN).filter(k=>CD.MIN[k].L.includes(L.id)),pool=[];mins.forEach(k=>{for(let w=0;w<CD.RAR[CD.MIN[k].r].w;w++)pool.push(k);});
+  const it=n<3&&pool.length?{t:'m',id:pool[Math.floor(Math.random()*pool.length)]}:{t:'$',v:Math.round(COINV[Math.max(0,li)]*(.8+Math.random()*.5))};
+  W.dug[i>>3]&=~(1<<(i&7));W.g[i]=rk;W.items.set(i,it);S.grow.list.push([i,it]);n++;});
+ W.old=W.old.filter(([i])=>!pickFrom.some(q=>q[0]===i));S.dug=encDug();return n;}
 const tile=(x,y)=>(x<0||x>=COLS||y<0||y>=ROWS)?T_BAR:W.g[idx(x,y)];
 const rockOf=c=>c>=1&&c<100?CD.ROCKS[ROCK_IDS[c-1]]:null;
 
@@ -301,7 +313,7 @@ function after(){
  if(it&&it.t==='$'){W.items.delete(i);setDug(i);const v=addDugCoins(it.v);S.dive.c+=v;if(it.ch)S.dive.ch++;sfx(it.ch?'chest':'coin');floats.push({x:(S.x+.5)*TS,y:S.y*TS,t:`+${v} 🪙`,l:1,big:it.ch});if(it.ch)say(`🧰 A buried treasure chest! +${v} coins!`,2500);}
  else if(it&&it.t!=='c'){if(S.pack.length>=packMax()){sfx('bonk');say(`🎒 Backpack full (${packMax()})! Tap 🏠 to beam to camp and study your finds.`);}
   else{W.items.delete(i);setDug(i);
-   if(it.t==='m'){sfx('find');S.dive.f++;S.pack.push({t:'m',id:it.id,k:Date.now().toString(36)+Math.random().toString(36).slice(2,5),tests:{}});say(S.idd[it.id]?`💎 ${CD.MIN[it.id].n}! You already know this one — you'll sell it at camp.`:`💎 A mystery mineral! Study it in the 🔬 Lab.`);}
+   if(it.t==='m'){sfx('find');S.dive.f++;S.pack.push({t:'m',id:it.id,k:Date.now().toString(36)+Math.random().toString(36).slice(2,5),tests:{}});say(S.idd[it.id]?`💎 ${CD.MIN[it.id].n}: you already have this one! Back at camp it turns into 🪙 ${CD.RAR[CD.MIN[it.id].r].sell} coins by itself.`:`💎 A mystery mineral! Study it in the 🔬 Lab.`);}
    else if(it.t==='f'){sfx('fossil');S.dive.f++;S.pack.push({t:'f',id:it.id,i:it.i});const f=CD.FOSSILS.find(x=>x.id===it.id);say(`🦴 A fossil piece! Looks like part of a ${f.n} (${f.parts[it.i]}).`);}
    else if(it.t==='g'){sfx('find');S.dive.f++;S.pack.push({t:'g',id:it.id});say('🔮 You found today\'s SECRET POCKET — a geode! Crack it open in the 🔬 Lab.');}
   }}
@@ -492,6 +504,8 @@ function lockCard(g){const n=gateNeed(g.id),m=medals();
  modal(`<div class="cv-card"><div class="cv-big">🔒</div><h2>${g.e} ${esc(g.n)} is sealed!</h2>${guide(`This rock is too tough for my drill right now. Every <b>🏅 Boss Medal</b> you win in Math Quest powers it up.<br>You have <b>${m}</b> — you need <b>${n}</b>. Beat more bosses (and replay worlds on harder rounds) and come back!`)}
  <div class="cv-meter ok"><i style="width:${Math.min(100,m/n*100)}%"></i></div><p class="cv-sub" style="text-align:center">🏅 ${m} / ${n}</p><button class="cv-btn" data-close>OK!</button></div>`);}
 /* Dr. Quartz's best suggestion for right now */
+/* how many trips until the whole cave shifts (the host counts trips: a fresh cave every 5) */
+function shiftLine(){let n=0;try{n=H&&H.shiftIn?+H.shiftIn():0;}catch(e){}if(!n)return '';return n<=1?'🌀 A brand-new cave is coming on your <b>next trip</b>!':`🌀 A brand-new cave is coming in <b>${n} trips</b>.`;}
 function tipText(){const unk=S.pack.filter(p=>p.t==='m'||p.t==='g');
  if(unk.length)return {t:`You have <b>${unk.length} mystery specimen${unk.length>1?'s':''}</b> in your backpack. Let's study ${unk.length>1?'them':'it'} in the 🔬 Lab — I'll help!`,a:'lab'};
  if(museumReady())return {t:'You found enough fossil pieces to build a skeleton! Head to the 🏛️ Museum.',a:'museum'};
@@ -1252,11 +1266,11 @@ function open(host){coreOn=false;coreRoll=null;
  let tripK=null;
  if(MQ()){S.bat=batMax();S.tripPow=0;S.tripSol=0;S.x=4;S.y=0;uvOn=false;S.trips=(S.trips||0)+1;PEND_FOS+=deliverFossils();
   if(H.tripRock){tripK='r'+Date.now().toString(36);S.pack.push({t:'m',id:H.tripRock,k:tripK,tests:{},map:1});}}
- genWorld();build();snapCam();hud();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+ genWorld();let grew=0;if(MQ()&&!S.caveIn&&S.trips>1)grew=regrow();build();snapCam();hud();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
  if(!MQ()&&PEND_FOS){try{say(`🦴 ${PEND_FOS} fossil piece${PEND_FOS>1?'s':''} went to the 🏛️ Museum.`);}catch(e){}PEND_FOS=0;}
  if(MQ()){const first=!S.stats.dug&&S.trips<=1;setTimeout(()=>{S.caveIn=false;},0);
   modal(`<div class="cv-card">${first?`<div class="cv-big">⛏️</div><h2>Deep Down: The Science Cave</h2>`:''}${guide(first?`Welcome to my dig site, ${esc(H.player.name)}! Down there are the real layers of the Earth — minerals 💎, fossils 🦴 and cave critters 🦇.<br>First, let's find out what your <b>mystery rock</b> is. I'll show you how in the Lab!`:!H.tripRock?`Welcome back, ${esc(H.player.name)}! Your key let you ride straight down. No new rock to test today, so grab your shovel and dig!`:pick(Math.random,[`Welcome back, ${esc(H.player.name)}! Let's see what that mystery rock of yours is.`,`Ooh, another mystery rock! To the Lab — I can't wait to find out what it is!`,`Hello again, rock detective! Let's test your mystery rock first, then you can dig.`]))}
-  ${!first&&S.caveIn?'<p class="cv-sub">🌀 The cave shifted since your last visit — fresh minerals, coins and fossil pieces are waiting!</p>':(!first?'<p class="cv-sub">⛏️ Your tunnels are just where you left them. Keep digging deeper!</p>':'')}${(()=>{const n=PEND_FOS;PEND_FOS=0;return n?`<p class="cv-sub">🦴 <b>${n} fossil piece${n>1?'s':''}</b> from your backpack went to the 🏛️ Museum! Build skeletons there.</p>`:'';})()}<p class="cv-sub">Your battery is full. ⚡ Math can add up to one more battery of charge this trip.</p><button class="cv-btn" id="cvGoLab">${H.tripRock||first?'🔬 Study my mystery rock':'⛏️ Start digging'}</button></div>`,{noX:1});
+  ${!first&&S.caveIn?'<p class="cv-sub">🌀 The cave shifted since your last visit — fresh minerals, coins and fossil pieces are waiting!</p>':(!first?`<p class="cv-sub">⛏️ Your tunnels are just where you left them. Keep digging deeper!${grew?` 🌱 A small rockfall closed ${grew} old tunnel${grew>1?'s':''} and hid new minerals and coins inside. Dig through them again!`:''}</p>`:'')}${shiftLine()?`<p class="cv-sub">${shiftLine()}</p>`:''}${(()=>{const n=PEND_FOS;PEND_FOS=0;return n?`<p class="cv-sub">🦴 <b>${n} fossil piece${n>1?'s':''}</b> from your backpack went to the 🏛️ Museum! Build skeletons there.</p>`:'';})()}<p class="cv-sub">Your battery is full. ⚡ Math can add up to one more battery of charge this trip.</p><button class="cv-btn" id="cvGoLab">${H.tripRock||first?'🔬 Study my mystery rock':'⛏️ Start digging'}</button></div>`,{noX:1});
   const b=root.querySelector('#cvGoLab');if(b)b.onclick=()=>{closeModal();if(tripK)bench(tripK);else if(H.tripRock||first)openLab();};
   save(true);return;}
  if(S.caveIn){S.caveIn=false;say('🌙 Overnight a small cave-in shifted the rocks — new pockets have opened! Look for today\'s ✨ secret pocket.',5000);}
@@ -1463,5 +1477,5 @@ let coreDbg=null;
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={mathQ,open,leave,summary,coreHint,deliverFossils:st=>deliverTo(st),_dbg:()=>({S,W,H,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
+window.Cave={mathQ,open,leave,summary,coreHint,deliverFossils:st=>deliverTo(st),_dbg:()=>({S,W,H,ROWS,save,regrow,shiftLine,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
 })();
