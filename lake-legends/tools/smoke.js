@@ -182,11 +182,13 @@ const BOT = n => {
     LL.report(); document.getElementById("llRep").value = "The boat is upside down"; document.getElementById("llRepOk").click();
     const rp = (LL.player().reports || [])[0]; out.report = !!rp && rp.m.includes("upside") && !!rp.v; document.getElementById("llRepDone").click();
     out.bug = getComputedStyle($("btnBug")).display !== "none";
+    showScreen("map"); out.pins = document.querySelectorAll("#lakeMap .pin").length === 6 && $("lakeMap").getBoundingClientRect().height > 100; showScreen("title");
     return out;
   });
   ok(r4.band, "a catfish won't follow the bait up out of its depth (stopped at " + r4.topFt + " ft)");
   ok(r4.report, "a report or suggestion is saved with the screen and version");
   ok(r4.bug, "the 🐞 Report button is on the menus");
+  ok(r4.pins, "the drawn lake map shows a pin for every lake");
   await a.evaluate(() => { localStorage.removeItem("llUpdTry"); });
   await a.route(/version\.json/, r => r.fulfill({ status:200, contentType:"application/json", body:'{"v":"2099.01.01a"}' }));
   ok(await a.evaluate(async () => { await LL_UPDATE.check(); return true; }), "update check runs");
