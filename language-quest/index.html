@@ -37,13 +37,6 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 #start{position:fixed; inset:0; background:rgba(18,35,61,.55); display:flex; align-items:center; justify-content:center; z-index:5}
 #start .box{background:var(--card); color:var(--ink); border-radius:26px; padding:24px 28px; text-align:center; width:min(88vw,360px)}
 #start h2{margin:4px 0}#start p{color:var(--muted); margin:4px 0 16px}
-#bigMap{position:fixed; inset:0; z-index:6; background:rgba(18,35,61,.85); display:none; flex-direction:column; align-items:center; justify-content:center; padding:calc(env(safe-area-inset-top,0px) + 10px) 10px calc(env(safe-area-inset-bottom,0px) + 10px)}
-#bigMap.show{display:flex}
-#bigMap .bar{display:flex; align-items:center; justify-content:space-between; gap:10px; width:var(--mw,90vw); color:#fff; margin-bottom:8px}
-#bigMap h2{margin:0; font-size:1.3rem; text-shadow:0 2px 6px rgba(0,0,0,.4)}
-#bigMap .sub{font-size:.95rem; opacity:.9; font-weight:700}
-#bmWrap{max-width:calc(100vw - 20px); overflow-x:auto; overflow-y:hidden; border-radius:22px; border:4px solid #fff; box-shadow:0 10px 40px rgba(0,0,0,.45); touch-action:pan-x; -webkit-overflow-scrolling:touch}
-#bigMap canvas{display:block; cursor:pointer; touch-action:pan-x}
 #zone{position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 62px); transform:translate(-50%,-20px); opacity:0; background:var(--card); color:var(--ink); border-radius:18px; padding:8px 20px; text-align:center; box-shadow:0 4px 14px rgba(0,0,0,.25); z-index:2; pointer-events:none; transition:opacity .4s, transform .4s}
 #zone.show{opacity:1; transform:translate(-50%,0)}
 #zone b{display:block; font-size:1.3rem}
@@ -117,11 +110,11 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
 <body>
 <canvas id="game" aria-label="Language Quest world map. Tap to walk."></canvas>
 <div class="hud"><button class="pill me" id="meBtn" aria-label="My page: my progress, clothes and secret pictures">👤 <span id="meName">Me</span></button>
-  <div class="hud-r"><button class="pill" id="mapBtn" aria-label="Map of the whole land">🗺️<span class="lbl"> Map</span></button><button class="pill" id="soundBtn" aria-label="Sound: voice and music volume">🔊</button><div class="pill coins" id="coinPill" aria-label="Dinars">🪙 0</div>
+  <div class="hud-r"><button class="pill" id="soundBtn" aria-label="Sound: voice and music volume">🔊</button><div class="pill coins" id="coinPill" aria-label="Dinars">🪙 0</div>
   <button class="pill" id="whoBtn" aria-label="Leave and pick another player">👋 <span class="lbl">Leave</span></button></div></div>
 <div id="start"><div class="box"><div style="font-size:3rem">🗺️</div><h2>Language Quest</h2><p>Tap things to hear their names in Arabic.</p>
   <button class="btn go" id="startBtn">▶ Tap to start</button></div></div>
-<div id="bigMap" role="dialog" aria-modal="true" aria-label="Map of the land"><div class="bar"><div><h2>🗺️ The Land <span lang="ar">الخَرِيطَة</span></h2><div class="sub">Tap a place to walk there.</div></div><button class="pill" id="bmClose" aria-label="Close the map">✕ Close</button></div><div id="bmWrap"><canvas id="bmCv"></canvas></div></div>
+
 <div id="zone"><b></b><span lang="ar"></span></div>
 <div id="hint">Tap anywhere to walk · tap things to learn their names</div>
 <div id="dpad"><button data-d="0,-1" style="grid-area:u" aria-label="Up">▲</button><button data-d="-1,0" style="grid-area:l" aria-label="Left">◀</button><button data-d="1,0" style="grid-area:r" aria-label="Right">▶</button><button data-d="0,1" style="grid-area:d" aria-label="Down">▼</button></div>
@@ -135,8 +128,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.03e";</script>
-<script src="lq-core.js?v=2026.10.03e"></script>
+<script>window.LQ_VER="2026.10.03f";</script>
+<script src="lq-core.js?v=2026.10.03f"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -490,7 +483,7 @@ const KEYS={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[
 function startManual(){ if(!hintHidden){ document.getElementById("hint").style.opacity=0; hintHidden=true; } closeCard(); cancelEnter(); clearPending(); player.moving=false; marker=null; }
 addEventListener("keydown",e=>{ const k=KEYS[e.key]; if(!k||e.metaKey||e.ctrlKey||e.altKey) return;
   const a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
-  if(document.getElementById("lqOv")||document.querySelector("#fm.show,#bigMap.show")) return;
+  if(document.getElementById("lqOv")||document.querySelector("#fm.show")) return;
   e.preventDefault(); if(!held[e.key]) startManual(); held[e.key]=k; });
 addEventListener("keyup",e=>{ delete held[e.key]; });
 addEventListener("blur",()=>{ for(const k in held) delete held[k]; padDir=null; });
@@ -540,59 +533,7 @@ document.getElementById("cClose").onclick=closeCard;
 document.getElementById("cAr").onclick=()=>say(document.getElementById("cAr").textContent);
 document.getElementById("cEnter").onclick=()=>{ const ZONES=OPEN; if(cardLandmark&&ZONES[cardLandmark.id]){ const url=ZONES[cardLandmark.id]; if(!LQ.player()){ LQ.profiles(()=>{ hud(); location.href=url; }); return; } location.href=url; return; } document.getElementById("cEnter").textContent="Coming soon!"; setTimeout(()=>document.getElementById("cEnter").textContent="Enter (coming soon)",1500); };
 
-/* ============ the big map: 🗺️ in the top bar opens the whole land; tap a place to walk there ============ */
-const bm=document.getElementById("bigMap"), bmCv=document.getElementById("bmCv"), bmx=bmCv.getContext("2d");
-let bmOn=false, bmBox=null;
-/* where each region's name goes: the middle of its seed points */
-const REGION_AT=Object.keys(BIOMES).map(b=>{ const pts=SEEDS.filter(q=>q[0]===b); return {b,x:pts.reduce((a,q)=>a+q[1],0)/pts.length,y:pts.reduce((a,q)=>a+q[2],0)/pts.length}; });
-function openBigMap(){ LQ.mark("Big map"); closeCard(); cancelEnter();
-  /* fit the whole land; on a phone that is too small to read, so draw it bigger and let it swipe sideways, starting on the player */
-  let r=Math.min((innerWidth-28)/W,(innerHeight-130)/H); if(r<0.2) r=Math.min(0.3,(innerHeight-150)/H);
-  const w=Math.round(W*r), h=Math.round(H*r), dpr=Math.min(devicePixelRatio||1,2);
-  bmCv.style.width=w+"px"; bmCv.style.height=h+"px"; bmCv.width=w*dpr; bmCv.height=h*dpr; bm.style.setProperty("--mw",Math.min(w,innerWidth-28)+"px");
-  bmBox={k:r,dpr}; bm.classList.add("show"); bmOn=true;
-  const wrap=document.getElementById("bmWrap"); wrap.scrollLeft=Math.max(0,player.x*r-wrap.clientWidth/2);
-  requestAnimationFrame(drawBigMap); }
-function closeBigMap(){ bm.classList.remove("show"); bmOn=false; }
-function bmLabel(t,x,y,size,bg,fg){ const c=bmx; c.font=`800 ${size}px "Baloo Bhaijaan 2","Geeza Pro",sans-serif`; const w=c.measureText(t).width+size;
-  c.fillStyle=bg; c.beginPath(); bmRound(c,x-w/2,y-size*0.75,w,size*1.5,size*0.75); c.fill(); c.fillStyle=fg; c.fillText(t,x,y+1); }
-function bmRound(c,x,y,w,h,r){ c.roundRect?c.roundRect(x,y,w,h,r):c.rect(x,y,w,h); }
-function drawBigMap(now){ if(!bmOn) return; const {k,dpr}=bmBox, c=bmx, t=(now||0)/1000;
-  c.setTransform(dpr*k,0,0,dpr*k,0,0); c.imageSmoothingQuality="high"; c.drawImage(ground,0,0,W,H);
-  c.strokeStyle="#EBD7A8"; c.lineWidth=14; c.lineJoin=c.lineCap="round"; for(const tr of TRAILS){ c.beginPath(); tr.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])); c.stroke(); }
-  c.setTransform(dpr,0,0,dpr,0,0); c.textAlign="center"; c.textBaseline="middle";
-  const big=k>0.22, fs=big?15:12;
-  for(const g of REGION_AT){ if(g.b==="oasis"||[...LANDMARKS,PLAZA].some(l=>Math.abs(l.x-g.x)<330&&g.y-l.y>-120&&g.y-l.y<260)) continue; c.font=`800 ${fs+1}px "Baloo Bhaijaan 2",sans-serif`; c.fillStyle="rgba(255,255,255,.85)"; c.strokeStyle="rgba(18,35,61,.55)"; c.lineWidth=3;
-    const tw=c.measureText(BIOMES[g.b].en).width/2+8, gx=Math.max(tw,Math.min(W*k-tw,g.x*k)); c.strokeText(BIOMES[g.b].en,gx,g.y*k); c.fillText(BIOMES[g.b].en,gx,g.y*k); }
-  // the town square
-  const atSquare=Math.hypot(player.x-PLAZA.x,player.y-PLAZA.y)<260;
-  c.font=`${big?30:22}px sans-serif`; c.fillText("⛲",PLAZA.x*k,PLAZA.y*k-6); if(!atSquare) bmLabel("Town Square",PLAZA.x*k,PLAZA.y*k+(big?24:18),fs,"rgba(255,255,255,.92)","#12233D");
-  // letter friends already found
-  const fdm=found(); c.font=`${big?14:11}px sans-serif`; FRIENDS.forEach(f=>{ if(fdm[f.ch]) c.fillText("⭐",f.x*k,f.y*k); });
-  // places: open ones in gold, the rest still to come
-  for(const l of LANDMARKS){ const x=l.x*k, y=l.y*k, open=!!OPEN[l.id];
-    c.fillStyle=open?"#F2B134":"rgba(255,255,255,.75)"; c.beginPath(); c.arc(x,y,big?24:18,0,7); c.fill(); c.strokeStyle="#fff"; c.lineWidth=3; c.stroke();
-    c.font=`${big?26:20}px sans-serif`; c.fillText(l.icon,x,y+1);
-    bmLabel(open?l.en:l.en+" · soon",x,y+(big?40:31),fs,open?"rgba(18,35,61,.88)":"rgba(18,35,61,.55)","#fff"); }
-  // you are here
-  const px=player.x*k, py=player.y*k, pulse=(Math.sin(t*4)+1)/2;
-  c.fillStyle=`rgba(242,177,52,${0.25+0.25*pulse})`; c.beginPath(); c.arc(px,py,16+pulse*8,0,7); c.fill();
-  c.fillStyle="#F2B134"; c.strokeStyle="#12233D"; c.lineWidth=3; c.beginPath(); c.arc(px,py,9,0,7); c.fill(); c.stroke();
-  bmLabel(atSquare?"You are here · Town Square":"You are here",px,py+(big?30:26),fs,"#F2B134","#12233D");
-  requestAnimationFrame(drawBigMap); }
-document.getElementById("mapBtn").onclick=e=>{ e.stopPropagation(); openBigMap(); };
-document.getElementById("bmClose").onclick=e=>{ e.stopPropagation(); closeBigMap(); };
-bm.addEventListener("pointerup",e=>{ if(e.target===bm) closeBigMap(); });
-let bmDown=null; bmCv.addEventListener("pointerdown",e=>{ bmDown=[e.clientX,e.clientY]; });
-bmCv.addEventListener("pointercancel",()=>{ bmDown=null; });
-bmCv.addEventListener("pointerup",e=>{ e.stopPropagation(); if(!bmDown||Math.hypot(e.clientX-bmDown[0],e.clientY-bmDown[1])>12){ bmDown=null; return; } bmDown=null; const r=bmCv.getBoundingClientRect(), k=bmBox.k;
-  const wx=(e.clientX-r.left)/k, wy=(e.clientY-r.top)/k;
-  clearPending(); closeBigMap();
-  const l=LANDMARKS.map(l=>({l,d:Math.hypot(l.x-wx,l.y-wy)})).sort((a,b)=>a.d-b.d)[0];
-  if(l&&l.d<45/k){ const pd=padOf(l.l); if(OPEN[l.l.id]) pendingEnterL=l.l; else pendingLandmark=l.l; setTarget(pd.x,OPEN[l.l.id]?pd.y:pd.y+40); return; }
-  if(Math.hypot(PLAZA.x-wx,PLAZA.y-wy)<40/k) return setTarget(START.x,START.y);
-  if(walkable(wx,wy)) setTarget(wx,wy); });
-addEventListener("keydown",e=>{ if(e.key==="Escape"&&bmOn) closeBigMap(); });
+
 
 /* ============ drawing ============ */
 const EMOJI='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
