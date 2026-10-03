@@ -94,3 +94,20 @@ Adaptive math battles plus a village of side activities, for grades 1–12 and a
 - Stories, notes and long text are never read aloud automatically; grades 1–2 hear questions and short lines automatically. No emoji are read aloud.
 - A wrong answer never takes away something already earned.
 - Never hold a player object (`P()`, `p.adv`, `p.tad`…) across a wait such as a question popup or a timer. An online sync replaces player objects, so anything written to the old one is lost. Fetch `P()` again inside the callback. The smoke test cannot see this unless a test swaps the player mid-flow (see the adventure test).
+
+## Lake Legends
+
+Fishing game for ages 8–12 on six real San Diego County lakes; just for fun (not educational). Primary targets are iPad Safari and iPhone; Mac Chrome/Safari must work too.
+
+- `lake-legends/index.html` — the whole game (data tables near the top, then save, sound, fish painting, screens, fishing loop, rendering, Lodge/Derby, players). Edit with exact-match scripted replacements; the base64 icons in `<head>` are huge, never print them.
+- `lake-legends/ll-core.js` — players, secret-picture locks, parent PIN, Parent Corner, online save (`families/ll_<code>`, same pattern as `lq-core.js`) and auto-update. Each player's game is `player.game`; the game's `S` points at it and `save()` goes through `LL.save()`.
+- `lake-legends/README.md` — the player-facing feature list. Keep it current with every feature.
+- The play area takes the screen's shape (`layout()`: `W` 480–1280, `H` 720 or taller on phones). `W`/`H` are variables; `SW` is the narrowest width. Anything cached by width (shore art) is keyed by `W`.
+- A new save field goes in `defaultSave()`; `normalizeSave()` fills it into old saves. Never lower anything already earned.
+- Function names must be unique in the file (a duplicate silently replaces the earlier one), and one syntax error stops the whole game.
+
+### Release checklist
+
+1. Run `node lake-legends/tools/smoke.js` on its own (fakes Firebase, plays the game in headless Chromium). It must print `RESULT: PASS`. Add a check there for each new feature.
+2. `/usr/bin/python3 lake-legends/tools/release.py` bumps `version.json`, `window.LL_VER` and `ll-core.js?v=` together.
+3. Commit, push to `main`, and confirm the Pages build succeeded and serves the new `version.json`.

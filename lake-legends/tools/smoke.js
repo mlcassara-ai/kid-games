@@ -128,6 +128,45 @@ const BOT = n => {
   ok(r2.look, "a rare look is saved in the Fishdex");
   ok(r2.chest, "a treasure chest opens");
   ok(r2.dex, "the Fishdex has the Night Legends shelf");
+  console.log("Boats, style, Pearl's jobs, Fish of the Day, Lodge, Derby");
+  const r3 = await a.evaluate(() => {
+    const out = {}, land = (id, inches) => { const f = makeFish(id, 80); f.variant = null; f.sp = SPECIES[id]; f.inches = inches; f.L = fishPx(f.sp, inches);
+      trip.fish.push(f); trip.phase = "reel"; hookFish(f); trip.fight = null; if (!trip.caught.length) landFish(f); trip.phase = "reel"; trip.hook.y = 2;
+      for (let i = 0; i < 80 && trip; i++){ crank(); updateFishing(1/30); } return f; };
+    const clear = () => { while ($("modal").classList.contains("show")) $("modalBox").querySelector("button:last-child").click(); };
+    S.coins = 1000; S.clock = 10;
+    // own boat: no rent
+    showScreen("shop"); S.boatOwn = 0; const before = S.coins; S.coins -= BOATS[1].cost; S.boatOwn = 1;
+    const c0 = S.coins; startVisit(lakeById("dixon"), "boat"); out.noRent = S.coins === c0 && trip.mode === "boat";
+    // style: buy and wear a hat
+    showScreen("shop"); const cell = [...document.querySelectorAll(".stylecell")].find(c => c.textContent.includes("Straw hat")); cell.click();
+    out.hat = look().hat === "straw" && owns("hat", "straw");
+    // Fish of the Day pays double, and Pearl's jobs move
+    S.jobs = null; const J = jobs(); J.list[0] = { k:"count", need:1, got:0, text:"Catch 1 fish", pay:20 };
+    startTrip(lakeById("dixon"), 0, "dock", true); const fd = fishOfDay(); land(fd, 10);
+    const it = pending && pending.items[0]; out.fotd = !!it && document.querySelector("#resList").textContent.includes("FISH OF THE DAY");
+    const c1 = S.coins; $("btnCollect").onclick(); clear();
+    out.job = J.list[0].got === 1 && S.coins >= c1 + 20;
+    // Derby and mounting
+    out.derby = rollDerby().wk === weekKey() && (S.derby.score > 0 || derbyFor(S.derby.wk).unit === "lb");
+    startTrip(lakeById("dixon"), 0, "dock", true); const big = land("largemouth", 20);
+    const mb = document.querySelector("#resList .brag .mount"); mb.click(); out.mount = S.mounts.length === 1 && S.mounts[0].id === "largemouth";
+    $("btnCollect").onclick(); clear(); trip = null; visit = null;
+    showScreen("lodge"); out.lodge = document.querySelectorAll("#lodgeBody .plaque").length === 1 && document.querySelector("#lodgeBody").textContent.includes("Family records");
+    // last week's champion is paid once
+    S.derbyLast = { wk: weekKey(-1), score: 3, best: "3 fish" }; S.derbyPaid = {}; const c2 = S.coins;
+    out.prize = !!derbyPrize() && S.coins === c2 + 100 && !derbyPrize();
+    showScreen("title");
+    return out;
+  });
+  ok(r3.noRent, "your own boat is free at every lake");
+  ok(r3.hat, "a hat can be bought and worn");
+  ok(r3.fotd, "the Fish of the Day pays double");
+  ok(r3.job, "Pearl's jobs count catches and pay");
+  ok(r3.derby, "the Family Derby tracks this week");
+  ok(r3.mount, "a catch can be mounted on the Lodge wall");
+  ok(r3.lodge, "the Lodge shows the wall and the family records");
+  ok(r3.prize, "last week's Derby winner is paid once");
   for (const [w, h] of [[1024, 768], [390, 844], [1440, 900]]){
     await a.setViewportSize({ width: w, height: h }); await a.waitForTimeout(100);
     const fit = await a.evaluate(() => { const r = $("wrap").getBoundingClientRect(); return { w: r.width / innerWidth, h: r.height / innerHeight }; });

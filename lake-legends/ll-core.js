@@ -129,6 +129,7 @@ function overlay(html){ ensureCss(); let o=document.getElementById("llOv"); if(!
   o.innerHTML=`<div class="in">${html}</div>`; o.scrollTop=0; badge(); return o; }
 function closeOverlay(){ const o=document.getElementById("llOv"); if(o) o.remove(); }
 /* a little angler in the player's shirt color */
+const avatar=(p,size)=>{ try{ if(typeof window.LL_AVATAR==="function") return window.LL_AVATAR(p,size); }catch(e){} return angler(p.color,size); };
 function angler(color,size){ return `<svg viewBox="0 0 80 92" width="${size||72}" height="${(size||72)*1.15}" aria-hidden="true">
   <ellipse cx="40" cy="88" rx="20" ry="4" fill="rgba(0,0,0,.15)"/>
   <path d="M58 70 L74 8" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round"/><path d="M74 8 Q78 40 70 60" stroke="#fff" stroke-width="1.2" fill="none"/>
@@ -144,7 +145,7 @@ function profiles(onEnter){ onProfiles=true;
   if(onEnter) enterCb=onEnter;
   const seen=p=>{ const t=Object.keys(p.days||{}).length?p.last:0; if(!t) return `<div class="s">hasn't fished yet</div>`; const m=(Date.now()-t)/60000;
     return m<4?`<div class="s now">🟢 fishing now</div>`:`<div class="s">fished ${m<60?Math.max(1,Math.round(m))+" min ago":m<1440&&new Date(t).getDate()===new Date().getDate()?Math.round(m/60)+" h ago":agoText(t)}</div>`; };
-  const list=state.players.map(p=>`<button class="ll-pc" data-id="${p.id}">${angler(p.color)}<div class="n">${esc(p.name)}</div>
+  const list=state.players.map(p=>`<button class="ll-pc" data-id="${p.id}">${avatar(p,72)}<div class="n">${esc(p.name)}</div>
     <div class="s">🪙 ${(p.game&&p.game.coins)||0} · 📖 ${fishCount(p)}${p.lock?" 🔒":""}</div>${seen(p)}</button>`).join("");
   overlay(`<h1>Lake Legends<small>DEEP DROP</small></h1>
     <h2>Who's fishing?</h2>
@@ -160,7 +161,7 @@ setInterval(()=>{ if(!onProfiles||document.hidden||!document.querySelector("#llO
 function choose(id){ const p=state.players.find(x=>x.id===id); if(!p) return; if(p.lock&&p.lock.length) askLock(p); else enter(p); }
 function enter(p){ onProfiles=false; state.cur=p.id; p.last=Date.now(); try{ sessionStorage.setItem("ll.active",p.id); }catch(e){} saveLocal(); closeOverlay(); if(enterCb) enterCb(p); fire(); }
 function askLock(p){ let tries=[]; const pics=[...PICS].sort(()=>Math.random()-.5);
-  overlay(`<div class="ll-card" style="max-width:380px;margin:40px auto;text-align:center">${angler(p.color,64)}<h2>Hi ${esc(p.name)}! 🔒</h2>
+  overlay(`<div class="ll-card" style="max-width:380px;margin:40px auto;text-align:center">${avatar(p,64)}<h2>Hi ${esc(p.name)}! 🔒</h2>
     <p>Tap your ${p.lock.length} secret pictures in order.</p><div class="ll-dots" id="llDots">${p.lock.map(()=>"○").join(" ")}</div>
     <div class="ll-grid" id="llGrid">${pics.map(e=>`<button data-e="${e}">${e}</button>`).join("")}</div>
     <div class="ll-row"><button class="ll-btn gh" id="llNot">That's not me</button></div></div>`);
@@ -193,7 +194,7 @@ function createPlayer(){ let color=COLORS[state.players.length%COLORS.length];
   draw();
 }
 function chooseLock(p,isNew,done){ let pick=[]; const after=()=>done?done():isNew?enter(p):parentCorner();
-  const draw=()=>{ overlay(`<div class="ll-card" style="max-width:420px;margin:20px auto;text-align:center">${angler(p.color,64)}
+  const draw=()=>{ overlay(`<div class="ll-card" style="max-width:420px;margin:20px auto;text-align:center">${avatar(p,64)}
     <h2>Pick 2 secret pictures</h2><p>They keep ${esc(p.name)}'s fishing safe. Remember the order!</p>
     <div class="ll-dots">${[0,1].map(i=>pick[i]||"○").join(" ")}</div>
     <div class="ll-grid">${PICS.map(e=>`<button data-e="${e}">${e}</button>`).join("")}</div>
