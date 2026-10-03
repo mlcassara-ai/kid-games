@@ -25,7 +25,10 @@ const canLeave=(p,id)=>ruleOn(p)&&id!==p.pet&&!special(id)&&!atCamp(p,id)&&!resc
 /* the pets Nana is paid to watch: not the battle buddy or special pets, which can never leave anyway */
 const sitPets=p=>homePets(p).filter(id=>id!==p.pet&&!special(id));
 const sitUntil=p=>{const c=C(p);return c.sit&&c.sit>Date.now()?c.sit:0;};
-const when=t=>new Date(t).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'});
+/* 'Fri, Oct 10, 10:00 AM (7 days 3 hours left)': a weekday alone was unclear when it was more than a week away */
+function timeLeft(t){const m=Math.max(0,Math.round((t-Date.now())/60000)),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60;const u=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+ return d?u(d,'day')+(h?' '+u(h,'hour'):''):h?u(h,'hour')+(mm?' '+u(mm,'minute'):''):u(Math.max(1,mm),'minute');}
+const when=t=>`${new Date(t).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} (${timeLeft(t)} left)`;
 
 /* ---------- the daily check ---------- */
 function stageOf(p,id){const pd=pdOf(p,id);return canLeave(p,id)?(pd.stg||0):0;}
@@ -347,5 +350,5 @@ window.MQ_HOOKS.push({screen:s=>{try{
 setInterval(()=>{try{const p=typeof P==='function'&&typeof state!=='undefined'&&state&&state.cur?P():null;if(p)sweep(p);}catch(e){}},60e3);
 window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 function offerNow(){const p=P(),su=sitUntil(p);if(!su)return;homePets(p).forEach(id=>{const pd=pdOf(p,id);if(pd.sitNo===su)delete pd.sitNo;});const c=C(p);c.news=c.news.filter(n=>n.k!=='offer');c.news.unshift({k:'offer',t:Date.now()});showing=false;showNews(p);}
-window.PetCare={_sit:v=>{sitOpen=!!v;},_weekOk:weekAskOk,_weekAsk:weekAsk,_satMorning:satMorning,patAll,feedAll,dress,rmath,_rm:k=>rmPress(k),_rmState:()=>RM,_busy:busy,offer:offerNow,uncovered,sweep,counts,dot,homeCard,rescued,pat,snack,hire,rfeed,rbuy,rplay,home,setRule,vacation,redraw,ruleOn,canLeave,PRICE,RESCUE_FEE,_C:C};
+window.PetCare={_when:t=>when(t),_sit:v=>{sitOpen=!!v;},_weekOk:weekAskOk,_weekAsk:weekAsk,_satMorning:satMorning,patAll,feedAll,dress,rmath,_rm:k=>rmPress(k),_rmState:()=>RM,_busy:busy,offer:offerNow,uncovered,sweep,counts,dot,homeCard,rescued,pat,snack,hire,rfeed,rbuy,rplay,home,setRule,vacation,redraw,ruleOn,canLeave,PRICE,RESCUE_FEE,_C:C};
 })();

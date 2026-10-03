@@ -247,6 +247,7 @@ const tests=[
  ['school quests: weekly quizzes are well formed and reach the right hero',async function(){
   const Q=MQ_CONTENT.quizzes||{};const bad=Object.entries(Q).filter(([k,z])=>!z.title||!(z.questions||[]).length||z.questions.some(q=>!q.q||!Array.isArray(q.c)||q.c.length<2||!(q.a>=0&&q.a<q.c.length)||new Set(q.c).size!==q.c.length)).map(([k])=>k);
   T.ok(!bad.length,'quizzes with broken questions: '+bad.join());
+  {const w=PetCare._when(Date.now()+7*864e5+3*36e5+3e4);T.ok(/7 days 3 hours left/.test(w)&&/\d/.test(w.split('(')[0]),'Nana Paws time is not clear: '+w);}
   /* Today's Adventure: a kid with their own school content gets a School work step before the reward, once a day */
   {T.reset();const j=T.hero('Jibreel',5);state.cur=j.id;const t=Daily._dbg.tad(j);t.s=2;const card=()=>{const d=document.createElement('div');d.innerHTML=Daily.cardHTML(P());return d.innerText;};
    T.ok(/School work/.test(card())&&/Punctuation Detective/.test(card()),'no School work step for Jibreel: '+card().slice(0,200));
