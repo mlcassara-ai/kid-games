@@ -5,7 +5,9 @@
 
 Read-only. The family code is the family's key, so pass it on the command line and never save it in a file.
 """
-import datetime, json, os, re, sys, urllib.request
+import datetime, json, os, re, sys, urllib.error, urllib.request
+
+OCEAN = {"sardine","topsmelt","mackerel","croaker","opaleye","sandbass","kelpbass","halibut","bonito","leopard","batray","guitarfish","yellowtail","wsb"}
 
 def main():
     if len(sys.argv) != 2:
@@ -18,13 +20,19 @@ def main():
     token = json.load(urllib.request.urlopen(req, timeout=20))["idToken"]
     doc_id = "ll_" + re.sub("[^a-z0-9]", "", sys.argv[1].lower())
     url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents/families/%s" % (project, doc_id)
-    doc = json.load(urllib.request.urlopen(urllib.request.Request(url, headers={"Authorization": "Bearer " + token}), timeout=20))
+    try:
+        doc = json.load(urllib.request.urlopen(urllib.request.Request(url, headers={"Authorization": "Bearer " + token}), timeout=20))
+    except urllib.error.HTTPError as e:
+        if e.code in (403, 404):
+            sys.exit("No Lake Legends save found for that code. Use the family's real code (the one in the Parent Corner), not the words FAMILY-CODE.")
+        raise
     data = json.loads(doc["fields"]["data"]["stringValue"])
     when = lambda t: datetime.datetime.fromtimestamp(t / 1000).strftime("%b %d %H:%M") if t else "-"
     print("saved", when(int(doc["fields"]["updated"]["integerValue"])), "| players:", len(data["players"]))
     for p in data["players"]:
         g = p.get("game") or {}
         print("\n== %s | coins %s | last played %s | days %d" % (p["name"], g.get("coins"), when(p.get("last")), len(p.get("days", {}))))
+        print("  gear:", g.get("up"), "| boat:", g.get("boatOwn"), "| salt rod:", bool(g.get("saltRod")), "| ocean fish:", len([k for k in (g.get("dex") or {}) if k in OCEAN]))
         print("  Fishdex:", len(g.get("dex") or {}), "| landed:", g.get("landed"), "| lakes:", ",".join(g.get("lakes") or []),
               "| bosses:", ",".join(g.get("bosses") or {}), "| legends:", ",".join(g.get("legends") or {}))
         for e in p.get("reports") or []:

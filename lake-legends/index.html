@@ -304,8 +304,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.03l";</script>
-<script src="ll-core.js?v=2026.10.03l"></script>
+<script>window.LL_VER="2026.10.03m";</script>
+<script src="ll-core.js?v=2026.10.03m"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -2505,7 +2505,8 @@ function updateFishing(dt){
         startNibble(f, c); break;
       }
     }
-    if (T.phase === "reel" && hk.y <= 3 && !T.jump){ hk.y = 0; T.phase = "done"; T.doneT = 0; SFX.splash(); if (T.caught.length) splashAt(T, hk.x, 0, 18); }
+    if (T.phase === "reel" && hk.y <= 3 && !T.jump){ hk.y = 0; SFX.splash(); if (T.caught.length) splashAt(T, hk.x, 0, 18);
+      if (!trySnatch(T)){ T.phase = "done"; T.doneT = 0; } }
   } else if (T.phase === "done"){
     T.doneT += dt; if (T.doneT > .7) finishTrip();
   }
@@ -3797,6 +3798,14 @@ function updateWild(T, dt){
     return;
   }
   A.t += dt;
+  if (A.mode === "snatch"){                                           // a bird swoops down and grabs your fish right at the surface
+    if (A.stage === "in" && A.t > .8){
+      const i = T.caught.indexOf(A.f); if (i >= 0){ T.caught.splice(i, 1); T.lost++; T.chain = null; T.tired = false; }
+      A.stage = "out"; A.t = 0; A.carry = A.f; SFX.splash(); splashAt(T, A.x, 0, 14); S.coins += 5; showCoins();
+      pop(W / 2, -70, (A.kind === "pelican" ? "🐦 A pelican" : "🦅 An osprey") + " stole your " + A.f.sp.name + "!!! (+5 🪙 for the photo)", "#ffd0c8", 18);
+    } else if (A.stage === "out" && A.t > 1.8){ T.wild = null; T.phase = "done"; T.doneT = 0; }
+    return;
+  }
   if (A.mode === "raid"){                                             // after your hooked fish: tap fast to scare it off!
     const f = T.caught[0];
     if (A.stage === "warn"){ if (!f || T.caught[0] !== A.f){ T.wild = null; return; }
@@ -3813,6 +3822,19 @@ function updateWild(T, dt){
     else if (A.stage === "hit" && A.t > (A.kind === "merganser" || A.kind === "sealion" ? 1.4 : .5)){ A.stage = "out"; A.t = 0; }
     else if (A.stage === "out" && A.t > 2.6) T.wild = null;
   } else if (A.t > A.dur) T.wild = null;
+}
+// Now and then, just as a fish comes out of the water, a bird swoops in and steals it. Never a boss, a legend, a rare look,
+// a trophy or a kind you haven't caught before, never a big fish, and at most once every 10 minutes of fishing.
+const SNATCH = { chance: .08 };
+function trySnatch(T){
+  const f = T.caught[0], w = wildClock();
+  if (!f || T.boss || T.wild || f.boss || f.nightLegend || f.sp.legend || f.variant || f.trophy || !S.dex[f.id] || fishLb(f) > 4) return false;
+  if (w.t < (w.nextSnatch || 0) || Math.random() > SNATCH.chance) return false;
+  w.nextSnatch = w.t + 10 * 60;
+  const kind = T.lake.ocean ? "pelican" : "osprey";
+  T.phase = "snatch"; T.wild = { kind, mode:"snatch", stage:"in", t:0, f, x: T.hook.x, dir: T.hook.x < W/2 ? 1 : -1 };
+  wildSeen(kind); SFX.screech(kind);
+  return true;
 }
 function startRaid(T, kind, f){
   T.wild = { kind, mode:"raid", stage:"warn", t:0, f, taps:0, need: kind === "sealion" ? 11 : kind === "osprey" || kind === "pelican" ? 8 : 6, win: 2.4, dir: T.hook.x < W/2 ? 1 : -1 };
@@ -3919,7 +3941,10 @@ function drawWild(T, sy){
   const hx = T.hook.x;
   if (A.kind === "osprey" || A.kind === "pelican"){
     let x, y, dive = false;
-    if (A.mode === "raid"){
+    if (A.mode === "snatch"){
+      if (A.stage === "in"){ const k = Math.min(1, t / .8); x = A.x - A.dir * 240 * (1 - k); y = sy(-170 * (1 - k) * (1 - k) - 12); dive = k > .5; }
+      else { x = A.x + A.dir * t * 170; y = sy(-12 - t * 120); }
+    } else if (A.mode === "raid"){
       if (A.stage === "warn"){ const k = Math.min(1, t / 1); x = hx - A.dir * (260 - 200 * k) + Math.sin(t * 3) * 10; y = sy(-150 + 40 * k); }
       else if (A.stage === "grab"){ const k = Math.min(1, t / .45); x = hx - A.dir * 60 * (1 - k); y = sy(-110 + 110 * k); dive = true; }
       else { x = hx + A.dir * t * 160; y = sy(-t * 120); }

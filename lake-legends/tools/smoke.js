@@ -319,6 +319,24 @@ const BOT = n => {
   ok(!!JSON.parse(STORE.get(mid)).msgs[0].readBy[ana], "tapping it records that the player saw it");
   ok(!(await b.$("#llNoteRead")), "it doesn't show again");
 
+  const r8 = await a.evaluate(() => {
+    const out = {}, land = () => { startTrip(lakeById("dixon"), 0, "boat", true); const f = makeFish("bluegill", 4 * PPF); f.variant = null; f.sp = SPECIES.bluegill; f.inches = 7; f.trophy = false;
+      trip.fish.push(f); trip.phase = "reel"; trip.hook.y = 4 * PPF; hookFish(f); trip.fight = null; trip.phase = "reel"; if (!trip.caught.length) landFish(f); return f; };
+    const R = Math.random; S.dex.bluegill = S.dex.bluegill || { n:1, best:7 }; wildClock().nextSnatch = 0;
+    SNATCH.chance = 1; let f = land();
+    for (let i = 0; i < 400 && trip && trip.phase !== "snatch"; i++){ crank(); updateFishing(1/30); }
+    out.started = trip && trip.phase === "snatch";
+    for (let i = 0; i < 200 && trip && trip.phase === "snatch"; i++) updateFishing(1/30);
+    out.stolen = trip && !trip.caught.includes(f) && trip.phase === "done";
+    f = land();
+    for (let i = 0; i < 400 && trip && trip.phase === "reel"; i++){ crank(); updateFishing(1/30); }
+    out.cooldown = trip && trip.phase !== "snatch" && trip.caught.includes(f); SNATCH.chance = .08;
+    trip = null; visit = null; $("modal").classList.remove("show"); modalQueue = []; showScreen("title");
+    return out;
+  });
+  ok(r8.started && r8.stolen, "a bird can swoop down and steal a fish right at the surface");
+  ok(r8.cooldown, "it can't happen again right away");
+
   console.log("The ocean");
   const r7 = await a.evaluate(async () => {
     const out = {}, bak = JSON.stringify(S), O = lakeById("ocean");
