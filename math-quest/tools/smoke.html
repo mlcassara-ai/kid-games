@@ -246,6 +246,12 @@ const tests=[
  ['school quests: weekly quizzes are well formed and reach the right hero',async function(){
   const Q=MQ_CONTENT.quizzes||{};const bad=Object.entries(Q).filter(([k,z])=>!z.title||!(z.questions||[]).length||z.questions.some(q=>!q.q||!Array.isArray(q.c)||q.c.length<2||!(q.a>=0&&q.a<q.c.length)||new Set(q.c).size!==q.c.length)).map(([k])=>k);
   T.ok(!bad.length,'quizzes with broken questions: '+bad.join());
+  /* Today's Adventure: a kid with their own school content gets a School work step before the reward, once a day */
+  {T.reset();const j=T.hero('Jibreel',5);state.cur=j.id;const t=Daily._dbg.tad(j);t.s=2;const card=()=>{const d=document.createElement('div');d.innerHTML=Daily.cardHTML(P());return d.innerText;};
+   T.ok(/School work/.test(card())&&/Punctuation Detective/.test(card()),'no School work step for Jibreel: '+card().slice(0,200));
+   Daily.pick();T.ok(curScreen==='battle'&&B&&B.mode==='quiz'&&B.qid==='j-punct'&&B.backTo==='map','Pick your fun did not send him to the school quiz first');
+   go('map');P().quizStats['j-punct']={best:60,tries:1,stars:1,d:dayKey()};T.ok(/Pick your fun ➜/.test(card())&&/✅ 3 · School work/.test(card()),'the reward is not open after doing the school quiz today');
+   const o=T.hero('Other',5);state.cur=o.id;Daily._dbg.tad(o).s=2;T.ok(!/School work/.test(card()),'School work shown to a hero without their own school content');}
   T.reset();const p=T.hero('Jibreel',5);state.cur=p.id;const ids=quizList(p).map(z=>z.id||z.key||z);T.ok(JSON.stringify(ids).includes('j-punct')&&JSON.stringify(ids).includes('j-matter'),'this week\'s quizzes do not reach Jibreel: '+JSON.stringify(ids).slice(0,200));
  }],
  ['music: the login page plays the map tune, Discovery District has its own choices',async function(){

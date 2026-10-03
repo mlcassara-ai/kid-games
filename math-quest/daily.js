@@ -2,7 +2,9 @@
    PART A  Today's Adventure: a 3-step guided start on the Quest Board (about ten minutes).
              1 Fix-it        3 of the kid's own missed problems, hint shown up front
              2 Focus battle  one shortened battle in the kid's weakest skill (or the monster they left yesterday)
-             3 Pick your fun a small reward for camp, pets or the coin purse, plus the day's Adventure Star
+             3 School work   (only for kids with their own school content in content.js) one quiz or homework set from
+                             this week's worksheets that isn't passed yet (80%+ first try), newest first; once a day
+             4 Pick your fun a small reward for camp, pets or the coin purse, plus the day's Adventure Star
            Optional: nothing is locked behind it.
    PART B  Math as the fuel: a few questions inside the places kids already visit.
              Pet Home  "Teach a trick" (3 a day)          Camp  packing questions before a trip, sacks tied shut
@@ -123,14 +125,25 @@ function focus(p){const t=tad(p);
  let i=[0,1,2,3,4].find(k=>!arr[k]);if(i===undefined)i=Math.floor(Math.random()*5);
  return {zid:z.id,i,op:z.op};}
 function show(p){return !!p&&p.setup&&(p.battles||0)>=MIN_BATTLES;}
+/* ---------- step 3: school work (the kid's own weekly worksheets, content.js) ---------- */
+const PASS=80;
+function ownSchool(p){try{if(p&&!p.ckey)kidData(p); /* kidData matches the hero to their school content by name */
+ return !!(p&&p.ckey&&typeof CONTENT!=='undefined'&&CONTENT.kids&&CONTENT.kids[p.ckey]);}catch(e){return false;}}
+function schoolItems(p){if(!ownSchool(p))return [];const out=[];try{quizList(p).forEach(x=>out.push({kind:'quiz',id:x.id,title:x.title,emoji:x.emoji||'📚',st:(p.quizStats||{})[x.id]}));hwList(p).forEach(x=>out.push({kind:'hw',id:x.id,title:x.title,emoji:'📝',st:(p.hwStats||{})[x.id]}));}catch(e){}return out;}
+function schoolDue(p){return schoolItems(p).find(x=>!(x.st&&(x.st.best||0)>=PASS))||null;}
+function schoolToday(p){return schoolItems(p).find(x=>x.st&&x.st.d===today())||null;}
+function school(){const p=P();if(!show(p))return;const t=tad(p);if(t.s!==2)return;const due=schoolDue(p);if(!due||schoolToday(p)){pick();return;}
+ try{startQuest(due.kind,due.id);if(typeof B!=='undefined'&&B){B.backTo='map';B.backArg=null;}}catch(e){pick();}}
 function cardHTML(p){try{if(!show(p))return '';css();const t=tad(p);
  if(t.s>=3)return `<div class="tad-card"><div class="tad-head"><h3>🧭 Today's Adventure: done! ⭐</h3><span class="tad-streak">🔥 ${t.streak||1} day${(t.streak||1)>1?'s':''} in a row</span></div><div class="tad-foot"><small>Come back next time you play for a new one.</small></div></div>`;
  if(t.s===1&&!t.cur){t.cur=focus(p);}
  const f=t.s<=1?(t.cur||focus(p)):t.cur;const zn=f?(ZONES.find(z=>z.id===f.zid)||{}).name:'a math world';
  const st=(n,b,txt)=>`<div class="tad-step ${t.s>n?'done':t.s===n?'now':''}"><b>${t.s>n?'✅ ':''}${b}</b>${txt}</div>`;
- const btn=t.s===0?['Daily.fix()','Start ➜']:t.s===1?['Daily.battle()','Battle ➜']:['Daily.pick()','Pick your fun ➜'];
+ const due=schoolDue(p),did=schoolToday(p),sch=did||due;const needSch=t.s===2&&due&&!did;
+ const btn=t.s===0?['Daily.fix()','Start ➜']:t.s===1?['Daily.battle()','Battle ➜']:needSch?['Daily.school()','School work ➜']:['Daily.pick()','Pick your fun ➜'];
+ const schStep=sch?`<div class="tad-step ${did?'done':needSch?'now':''}"><b>${did?'✅ ':''}3 · School work</b>${esc(sch.emoji+' '+sch.title)}</div>`:'';
  return `<div class="tad-card"><div class="tad-head"><h3>🧭 Today's Adventure</h3>${t.streak&&t.last?`<span class="tad-streak">🔥 ${t.streak} in a row</span>`:''}</div>
- <div class="tad-steps">${st(0,'1 · Fix-it','3 problems to try again')}${st(1,'2 · Focus battle',esc(zn||''))}${st(2,'3 · Pick your fun','Choose a reward')}</div>
+ <div class="tad-steps">${st(0,'1 · Fix-it','3 problems to try again')}${st(1,'2 · Focus battle',esc(zn||''))}${schStep}${st(2,(sch?'4':'3')+' · Pick your fun','Choose a reward')}</div>
  <div class="tad-foot"><button class="btn green" onclick="${btn[0]}">${btn[1]}</button><small>About 10 minutes · earns today's ⭐ Adventure Star</small></div></div>`;}catch(e){return '';}}
 function redraw(){try{if(curScreen==='map')goStay('map');}catch(e){}}
 function fix(){const p=P();if(!show(p))return;const t=tad(p);if(t.s!==0)return;const qs=fixList(p);
@@ -140,7 +153,7 @@ function fix(){const p=P();if(!show(p))return;const t=tad(p);if(t.s!==0)return;c
   modal(`<div class="mcard"><div class="big-emoji">🔧</div><h2>Fix-it done!</h2><p>You got <b>${right} of ${qs.length}</b>. Next up: one battle${zn?` in <b>${esc(zn)}</b>`:''}.${t.cur&&t.cur.owed?' That monster has been waiting for you!':''}</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Later</button><button class="btn green" onclick="closeModal();Daily.battle()">Battle ➜</button></div></div>`);});}
 function battle(){const p=P();const t=tad(p);if(t.s!==1)return;if(!t.cur)t.cur=focus(p);if(!t.cur){t.s=2;save();redraw();return;}save();
  startBattle(t.cur.zid,t.cur.i,null,{short:true});try{if(typeof B!=='undefined'&&B){B.backTo='map';B.backArg=null;}}catch(e){}}
-function pick(){const p=P();const t=tad(p);if(t.s!==2)return;
+function pick(){const p=P();const t=tad(p);if(t.s!==2)return;if(schoolDue(p)&&!schoolToday(p)){school();return;}
  modal(`<div class="mcard"><div class="big-emoji">⭐</div><h2>Adventure done! Pick your fun:</h2><div class="tad-pick">
  <button onclick="Daily.take('pack')"><b>🥾</b>Trail pack<small>extra camp sack on your next trip</small></button>
  <button onclick="Daily.take('treat')"><b>🧺</b>Treat basket<small>3 pet snacks</small></button>
@@ -206,5 +219,5 @@ window.MQ_HOOKS.push({
 window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 (function reg(n){if(window.Adv&&typeof SCREENS!=='undefined'){wrapAdv();return;}if((n||0)<3000)setTimeout(()=>reg((n||0)+1),50);})(0);
 
-window.Daily={cardHTML,fix,battle,pick,take,trick,help,_k:key,_next:next,_x:closeAsk,_say:()=>{if(ST)speakToggle(()=>speakQ(ST.q));},_hint:()=>{if(ST&&!ST.end){ST.hint=true;paint();}},_dbg:{tad,focus,fixList,funQ,ask,cur:()=>ST&&ST.q}};
+window.Daily={cardHTML,fix,battle,school,pick,take,trick,help,_k:key,_next:next,_x:closeAsk,_say:()=>{if(ST)speakToggle(()=>speakQ(ST.q));},_hint:()=>{if(ST&&!ST.end){ST.hint=true;paint();}},_dbg:{tad,focus,fixList,funQ,ask,cur:()=>ST&&ST.q}};
 })();
