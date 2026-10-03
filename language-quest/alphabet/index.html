@@ -147,8 +147,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🏫</div><h2>Alphabet School</h2><p class="muted">مَدْرَسَةُ الحُرُوف — meet the 28 letters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02zi";</script>
-<script src="../lq-core.js?v=2026.10.02zi"></script>
+<script>window.LQ_VER="2026.10.02zj";</script>
+<script src="../lq-core.js?v=2026.10.02zj"></script>
 <script>
 /* ============ the alphabet, at the most basic level ============
    Each letter on its own (no joined shapes; those are taught in the Letter Dunes): its name, its sound with fatha,
@@ -269,13 +269,17 @@ function game(g){ LQ.mark("Letter game "+(g+1)); hush(); const G=GROUPS[g]; let 
       <div class="q">${prompt}</div>
       <div class="opts">${opts.map(o=>word?`<div class="optw"><button class="opt word" lang="ar" data-v="${o}">${ABC[IDX[o]][1]}</button><button class="hear" data-v="${o}" aria-label="Hear this name">🔊</button></div>`
         :`<button class="opt" lang="ar" data-v="${o}">${o}</button>`).join("")}</div>
-      <div class="actions">${speak?`<button class="btn ghost" id="again">🔊 Hear again</button>`:""}<button class="btn ghost" id="run">Back to the letters</button></div></div>`;
+      <p id="fb" class="center" style="min-height:1.6rem;margin:10px 0 0;font-weight:800"></p>
+      <div class="actions">${speak?`<button class="btn ghost" id="again">🔊 Hear again</button>`:""}<button class="btn ghost" id="run">Back to the letters</button><button class="btn go" id="nx" style="display:none">Next ▶</button></div></div>`;
     if(speak){ say(speak); $("again").onclick=()=>say(speak); } $("run").onclick=()=>group(g);
     document.querySelectorAll(".hear").forEach(b=>b.onclick=()=>{ if(!busy) say(ABC[IDX[b.dataset.v]][1]); });
+    // after an answer the child moves on with Next, so there is time to look at the right letter and hear it again
     document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(busy) return; busy=true; const v=b.dataset.v; say(l[1]);
-      if(v===ch){ b.classList.add("right"); hp--; addCoins(3); LQ.record("letters",ch,true); }
-      else { b.classList.add("wrong"); hearts--; LQ.record("letters",ch,false,v); document.querySelector(`.opt[data-v="${ch}"]`).classList.add("right"); }
-      qn++; setTimeout(()=>{ busy=false; draw(); },1100); });
+      if(v===ch){ b.classList.add("right"); hp--; addCoins(3); LQ.record("letters",ch,true); $("fb").innerHTML=`✅ Yes! <span lang="ar">${ch}</span> is <span lang="ar">${l[1]}</span>.`; }
+      else { b.classList.add("wrong"); hearts--; LQ.record("letters",ch,false,v); document.querySelector(`.opt[data-v="${ch}"]`).classList.add("right"); $("fb").innerHTML=`The answer is <span lang="ar" style="font-size:1.4rem">${ch}</span> <span lang="ar">${l[1]}</span>.`; }
+      if(!$("again")){ const h=document.createElement("button"); h.className="btn ghost"; h.id="again"; h.textContent="🔊 Hear again"; $("run").before(h); }
+      $("again").onclick=()=>say(l[1]);
+      qn++; const nx=$("nx"); nx.style.display=""; nx.onclick=()=>{ busy=false; draw(); }; });
   }
   function finish(){
     if(hearts<=0){ LQ.mark("Letter game "+(g+1)+" lost");

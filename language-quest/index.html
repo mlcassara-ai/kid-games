@@ -122,8 +122,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02zi";</script>
-<script src="lq-core.js?v=2026.10.02zi"></script>
+<script>window.LQ_VER="2026.10.02zj";</script>
+<script src="lq-core.js?v=2026.10.02zj"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -306,6 +306,41 @@ const LIKE=[["ب","ت","ث","ن","ي"],["ج","ح","خ"],["د","ذ"],["ر","ز","
 for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(FRIENDS.some(f=>Math.hypot(f.x-q.x,f.y-q.y)<110)||Math.hypot(TETA.x-q.x,TETA.y-q.y)<130) props.splice(i,1); }
 for(let i=props.length-1;i>=0;i--){ const q=props[i]; if(LANDMARKS.some(l=>Math.hypot((l.x-q.x)/1.4,l.y+125-q.y)<85)) props.splice(i,1); }
 const found=()=>{ const p=LQ.player(); return p?(p.friends||{}):{}; };
+/* ---- Grandmother's basket: the second quest, opened by finding all 28 Letter Friends ----
+   28 everyday things she dropped across the land, one for every letter: [letter, word, English, picture, x, y].
+   Positions were picked once to keep clear of everything else on the map. Saved per player in p.basket. */
+const ITEMS=[
+ ["ا", "إِبْرِيق", "teapot", "🫖", 230, 1800],
+ ["ب", "بَاب", "door", "🚪", 2870, 240],
+ ["ت", "تُفَّاحَة", "apple", "🍎", 2390, 2310],
+ ["ث", "ثَوْب", "dress", "👗", 1190, 390],
+ ["ج", "جَرَس", "bell", "🔔", 1370, 1590],
+ ["ح", "حَقِيبَة", "bag", "👜", 110, 180],
+ ["خ", "خُبْز", "bread", "🍞", 2870, 1290],
+ ["د", "دَلْو", "bucket", "🪣", 2030, 900],
+ ["ذ", "ذُرَة", "corn", "🌽", 560, 960],
+ ["ر", "رِيشَة", "feather", "🪶", 1100, 2310],
+ ["ز", "زَيْتُون", "olives", "🫒", 2030, 150],
+ ["س", "سَاعَة", "clock", "🕰️", 2180, 1590],
+ ["ش", "شَمْعَة", "candle", "🕯️", 1760, 2130],
+ ["ص", "صُنْدُوق", "box", "📦", 1250, 990],
+ ["ض", "ضِمَادَة", "bandage", "🩹", 2750, 1860],
+ ["ط", "طَبْل", "drum", "🥁", 770, 1590],
+ ["ظ", "ظَرْف", "envelope", "✉️", 2600, 750],
+ ["ع", "عِنَب", "grapes", "🍇", 500, 2310],
+ ["غ", "غَيْمَة", "cloud", "☁️", 110, 1260],
+ ["ف", "فِنْجَان", "cup", "☕", 110, 720],
+ ["ق", "قَلَم", "pen", "✏️", 740, 240],
+ ["ك", "كُرَة", "ball", "⚽", 2450, 330],
+ ["ل", "لَيْمُون", "lemon", "🍋", 1070, 1890],
+ ["م", "مِفْتَاح", "key", "🔑", 110, 2190],
+ ["ن", "نَجْمَة", "star", "⭐", 1610, 390],
+ ["ه", "هَدِيَّة", "gift", "🎁", 2480, 1140],
+ ["و", "وَرْدَة", "rose", "🌹", 2930, 600],
+ ["ي", "يَد", "hand", "✋", 470, 1350]
+].map(([ch,ar,en,e,x,y])=>({ch,ar,en,e,x,y}));
+const basket=()=>{ const p=LQ.player(); return p?(p.basket||{}):{}; };
+const basketOpen=()=>Object.keys(found()).length>=28;
 
 /* ============ Wisdom Fountain: toss coins, get a saying ============
    p = proverb [id, Arabic, literal meaning, what it teaches]
@@ -395,7 +430,7 @@ const DECOR=[], PEAKS=[];
 const player={x:START.x,y:START.y,tx:START.x,ty:START.y,moving:false,t:0,face:1};
 const cam={x:0,y:0};
 let pendingEnterL=null;
-let bubble=null, pendingLandmark=null, pendingFriend=null, pendingTeta=false, pendingJiddo=false, pendingFountain=false, currentZone=null, marker=null;
+let bubble=null, pendingLandmark=null, pendingFriend=null, pendingTeta=false, pendingJiddo=false, pendingFountain=false, pendingItem=null, currentZone=null, marker=null;
 
 /* ============ canvas ============ */
 const cv=document.getElementById("game"), ctx=cv.getContext("2d");
@@ -432,7 +467,7 @@ cv.addEventListener("pointerup",e=>{
   if(!hintHidden){ document.getElementById("hint").style.opacity=0; hintHidden=true; }
   const [wx,wy]=toWorld(e.clientX,e.clientY);
   closeCard();
-  pendingFriend=null; pendingTeta=false; pendingJiddo=false; pendingFountain=false;
+  pendingFriend=null; pendingTeta=false; pendingJiddo=false; pendingFountain=false; pendingItem=null;
   cancelEnter();
   for(const l of LANDMARKS){ if(!OPEN[l.id]) continue; const pd=padOf(l), onPad=Math.hypot((wx-pd.x)/1.6,wy-pd.y)<55, onBld=Math.abs(wx-l.x)<100 && wy>l.y-(l.id==="falls"?260:150) && wy<l.y+100;
     if(onPad||onBld){ pendingFriend=null; pendingTeta=false;
@@ -444,6 +479,7 @@ cv.addEventListener("pointerup",e=>{
   if(Math.abs(wx-JIDDO.x)<75 && wy>JIDDO.y-130 && wy<JIDDO.y+40){ pendingLandmark=null; pendingJiddo=true; setTarget(JIDDO.x,JIDDO.y+60); return; }
   if(Math.abs(wx-FOUNTAIN.x)<80 && wy>FOUNTAIN.y-130 && wy<FOUNTAIN.y+40){ pendingLandmark=null; pendingFountain=true; setTarget(FOUNTAIN.x,FOUNTAIN.y+60); return; }
   for(const f of FRIENDS){ if(Math.hypot(wx-f.x,wy-(f.y-30))<68){ pendingLandmark=null; pendingFriend=f; setTarget(f.x,f.y+45); return; } }
+  if(basketOpen()) for(const it of ITEMS){ if(Math.hypot(wx-it.x,wy-(it.y-25))<60){ pendingLandmark=null; pendingItem=it; setTarget(it.x,it.y+40); return; } }
   let hit=null, hd=1e9;
   for(const p of props){ const cx=p.x, cy=p.y-p.s*0.45, d=Math.hypot(wx-cx,wy-cy); if(d<p.s*0.7 && d<hd){hit=p; hd=d;} }
   if(hit){ bubble={p:hit,t:0}; say(hit.ar); if(hit.b!=="sea") setTarget(hit.x, hit.y+28); return; }
@@ -529,6 +565,13 @@ function drawStall(l){
     ctx.beginPath(); ctx.arc(x-60+i*24,y-86,12,0,Math.PI); ctx.fill(); }
   drawEmoji("🍊",x-40,y-30,26); drawEmoji("🏺",x-8,y-30,30); drawEmoji("🧺",x+30,y-30,28);
 }
+function drawItem(it,got,time){
+  if(!got){ const r=30+Math.sin(time*3+it.x)*4; ctx.fillStyle="rgba(255,214,90,.45)"; ctx.beginPath(); ctx.ellipse(it.x,it.y-4,r,r*0.45,0,0,7); ctx.fill(); }
+  shadow(it.x,it.y,18); drawEmoji(it.e,it.x,it.y,46);
+  if(!got){ ctx.font=`22px ${EMOJI}`; ctx.fillStyle="#000"; ctx.textAlign="center"; ctx.textBaseline="bottom"; ctx.fillText("🌟",it.x+24,it.y-34+Math.sin(time*4+it.y)*3); }
+  else { ctx.fillStyle="#2FA894"; ctx.strokeStyle="#fff"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(it.x+22,it.y-44,14,0,7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle="#fff"; ctx.font='500 18px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.direction="rtl"; ctx.fillText(it.ch,it.x+22,it.y-42); ctx.direction="ltr"; }
+}
 function drawFriend(f,got,time){
   const bob=Math.sin(time*2.4+f.x)*3;
   if(!got){ const r=34+Math.sin(time*3+f.y)*4; ctx.fillStyle="rgba(242,177,52,.28)"; ctx.beginPath(); ctx.ellipse(f.x,f.y-4,r,r*0.42,0,0,7); ctx.fill(); }
@@ -568,7 +611,7 @@ function nameTag(x,y,en,ar){ ctx.font='800 15px "Baloo Bhaijaan 2",system-ui,san
 function drawTeta(time){
   const p=LQ.player(), started=p&&p.friendsStarted; shadow(TETA.x,TETA.y,30); ctx.save(); ctx.translate(TETA.x,TETA.y); ctx.scale(1.05,1.05); tetaArt(ctx,time); ctx.restore();
   nameTag(TETA.x,TETA.y,"Grandmother","الجَدَّة");
-  if(!started){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle="#F2B134"; ctx.beginPath(); ctx.arc(TETA.x+38,TETA.y-128-b,17,0,7); ctx.fill(); ctx.fillStyle="#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText("!",TETA.x+38,TETA.y-127-b); }
+  if(!started||(basketOpen()&&!(p&&p.basketStarted))){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle="#F2B134"; ctx.beginPath(); ctx.arc(TETA.x+38,TETA.y-128-b,17,0,7); ctx.fill(); ctx.fillStyle="#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText("!",TETA.x+38,TETA.y-127-b); }
 }
 function drawFountain(time){
   shadow(FOUNTAIN.x,FOUNTAIN.y,58); sprFountain(FOUNTAIN.x,FOUNTAIN.y,time);
@@ -848,8 +891,19 @@ function tetaTalk(){ LQ.mark("Grandmother");
       <p>Look for animals with a ✨ sparkle. Tap one, say hello, and find the letter their name starts with. Can you find them all?</p>
       <div class="row"><button class="btn go" id="tGo">Let's go! 📒</button></div>`);
     document.getElementById("tGo").onclick=()=>{ LQ.update(q=>{ q.friendsStarted=true; }); album(); }; return; }
-  if(n>=28){ openFm(`${tetaPic}<h2>🎉 You found all 28 friends!</h2><p>Grandmother is so proud of you. You know every letter of the alphabet!</p><div class="row"><button class="btn go" id="tOk">Thank you, Grandmother!</button></div>`);
-    document.getElementById("tOk").onclick=closeFm; return; }
+  if(n>=28){ const b=Object.keys(basket()).length;
+    if(!p.basketStarted){ openFm(`${tetaPic}<h2 style="margin:4px 0">🎉 You found all 28 friends! Can you help me again?</h2>
+        <p>On my way home I dropped <b>28 things</b> from my basket, one for every letter of the alphabet. They are all over the land now.</p>
+        <p>Look for things with a 🌟 gold sparkle. Tap one, hear its name, and find the letter it starts with.</p>
+        <div class="row"><button class="btn go" id="tGo">I'll find them! 🧺</button></div>`);
+      document.getElementById("tGo").onclick=()=>{ LQ.update(q=>{ q.basketStarted=true; }); basketAlbum(); }; return; }
+    if(b>=28){ openFm(`${tetaPic}<h2>🎉 You found everything!</h2><p>All 28 friends and all 28 things from my basket. Grandmother is so proud of you!</p><div class="row"><button class="btn go" id="tOk">Thank you, Grandmother!</button></div>`);
+      document.getElementById("tOk").onclick=closeFm; return; }
+    const h=itemHint(), where=h?BIOMES[biomeAt(h.x,h.y)].en:"";
+    openFm(`${tetaPic}<h2 style="margin:4px 0">You've found ${b} of 28 things from my basket!</h2>
+      <p>${h?`I think I dropped something near <b>${where}</b>. Look for the 🌟 gold sparkle!`:""}</p>
+      <div class="row"><button class="btn ghost" id="tBk">🧺 Basket</button><button class="btn go" id="tOk">OK, Grandmother!</button></div>`);
+    document.getElementById("tOk").onclick=closeFm; document.getElementById("tBk").onclick=basketAlbum; return; }
   const h=hintFor(), where=h?BIOMES[biomeAt(h.x,h.y)].en:"";
   openFm(`${tetaPic}<h2 style="margin:4px 0">You've found ${n} of 28 friends!</h2>
     <p>${h?`I think someone is waiting near <b>${where}</b>. Look for the ✨ sparkle!`:""}</p>
@@ -870,7 +924,47 @@ function album(){ LQ.mark("Album");
     else { say(LNAME[f.ch]); document.getElementById("albHint").innerHTML=`The <b><span lang="ar">${LNAME[f.ch]}</span></b> friend is hiding in <b>${BIOMES[biomeAt(f.x,f.y)].en}</b>.`; } });
 }
 function allFound(){ const p=LQ.player(); if(!p||p.friendsAll) return; LQ.update(q=>{ q.friendsAll=Date.now(); }); LQ.addCoins(100); hud(); say("مُمْتَاز");
-  openFm(`<div class="big">🏆</div><h2>All 28 Letter Friends!</h2><p>You found every friend and know every letter. <b>+100 🪙</b> from Grandmother!</p><div class="row"><button class="btn go" id="wOk">Yay!</button></div>`);
+  openFm(`<div class="big">🏆</div><h2>All 28 Letter Friends!</h2><p>You found every friend and know every letter. <b>+100 🪙</b> from Grandmother!</p><p>Go and see Grandmother in the town square: she needs your help again!</p><div class="row"><button class="btn go" id="wOk">Yay!</button></div>`);
+  document.getElementById("wOk").onclick=closeFm; }
+/* ---- Grandmother's basket: meeting a lost thing, the basket page, the finish ---- */
+function itemHint(){ const bk=basket(); let best=null,bd=1e9; ITEMS.forEach(it=>{ if(bk[it.ch]) return; const d=Math.hypot(it.x-player.x,it.y-player.y); if(d<bd){bd=d;best=it;} }); return best; }
+function meetItem(it){ LQ.mark("Basket "+it.ch); closeCard(); const got=!!basket()[it.ch]; say(it.ar);
+  const head=`<div class="big">${it.e}</div><div class="arw" lang="ar">${it.ar}</div><p style="margin:0">Grandmother's <b>${it.en}</b>!</p>`;
+  if(got){ openFm(`${head}<div class="ltr" lang="ar">${it.ch}</div><p>It starts with <b lang="ar">${LNAME[it.ch]}</b>. It's already back in the basket! 🧺</p>
+      ${hearRow(it)}<div class="row"><button class="btn go" id="fOk">OK</button></div>`); wireHear(it); document.getElementById("fOk").onclick=closeFm; return; }
+  const opts=[it.ch,...distractors(it.ch)].sort(()=>Math.random()-.5);
+  openFm(`${head}<p><b>Which letter does this word start with?</b></p>
+    <div class="opts">${opts.map(o=>`<button class="opt" lang="ar" data-o="${o}">${o}</button>`).join("")}</div>
+    <div class="row"><button class="btn ghost" id="fHear">🔊 Hear the word</button><button class="btn ghost" id="fLater">Later</button></div>`);
+  document.getElementById("fHear").onclick=()=>say(it.ar); document.getElementById("fLater").onclick=closeFm;
+  fmBox.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ const o=b.dataset.o;
+    if(o===it.ch){ b.classList.add("right"); LQ.record("words",it.ar,true); say(LNAME[it.ch]);
+      LQ.update(p=>{ p.basket=p.basket||{}; p.basket[it.ch]=Date.now(); }); LQ.addCoins(15); hud();
+      const n=Object.keys(basket()).length;
+      setTimeout(()=>{ openFm(`<div class="big">${it.e}</div><div class="ltr" lang="ar">${it.ch}</div>
+        <p style="font-size:1.15rem"><b>Yes!</b> <span lang="ar">${it.ar}</span> starts with <b lang="ar">${LNAME[it.ch]}</b>.</p>
+        <p>🧺 Back in Grandmother's basket! <b>+15 🪙</b><br><span style="color:var(--muted)">${n} of 28 things found</span></p>
+        ${hearRow(it)}<div class="row"><button class="btn ghost" id="fBk">🧺 Basket</button><button class="btn go" id="fOk">OK</button></div>`);
+        wireHear(it); document.getElementById("fOk").onclick=closeFm; document.getElementById("fBk").onclick=basketAlbum;
+        if(n===28) setTimeout(basketDone,900); },700);
+    } else { b.classList.add("wrong"); LQ.record("words",it.ar,false,o); say(LNAME[o]); }
+  });
+}
+function basketAlbum(){ LQ.mark("Basket album"); const bk=basket(), n=Object.keys(bk).length;
+  if(!basketOpen()){ openFm(`<div class="big">🧺</div><h2>Grandmother's basket</h2><p>Find all 28 Letter Friends first. Then Grandmother will need your help!</p><div class="row"><button class="btn go" id="aOk">OK</button></div>`); document.getElementById("aOk").onclick=closeFm; return; }
+  openFm(`<h2 style="margin:0">🧺 Grandmother's basket <span style="color:var(--muted);font-size:1rem">${n}/28</span></h2>
+    <p style="margin:4px 0 0;color:var(--muted)">Tap a thing you've found to hear it again.</p>
+    <div class="alb">${ITEMS.map((it,i)=>bk[it.ch]?`<button class="slot got" data-i="${i}"><div class="e">${it.e}</div><div class="l" lang="ar">${it.ch}</div><div class="w" lang="ar">${it.ar}</div></button>`
+      :`<button class="slot" data-i="${i}"><div class="e">❔</div><div class="l" lang="ar">${it.ch}</div><div class="w" style="color:var(--muted)">&nbsp;</div></button>`).join("")}</div>
+    <p id="albHint" style="min-height:1.4rem;color:var(--muted)"></p>
+    <div class="row"><button class="btn go" id="aOk">Close</button></div>`);
+  document.getElementById("aOk").onclick=closeFm;
+  fmBox.querySelectorAll(".slot").forEach(b=>b.onclick=()=>{ const it=ITEMS[+b.dataset.i];
+    if(bk[it.ch]){ say(it.ar); document.getElementById("albHint").innerHTML=`${it.e} <span lang="ar">${it.ar}</span> (${it.en}) starts with <span lang="ar">${LNAME[it.ch]}</span>`; }
+    else { say(LNAME[it.ch]); document.getElementById("albHint").innerHTML=`The <b><span lang="ar">${LNAME[it.ch]}</span></b> thing is somewhere in <b>${BIOMES[biomeAt(it.x,it.y)].en}</b>.`; } });
+}
+function basketDone(){ const p=LQ.player(); if(!p||p.basketAll) return; LQ.update(q=>{ q.basketAll=Date.now(); }); LQ.addCoins(100); hud(); say("مُمْتَاز");
+  openFm(`<div class="big">🏆🧺</div><h2>Grandmother's basket is full!</h2><p>You found all 28 things and know a word for every letter. <b>+100 🪙</b> from Grandmother!</p><div class="row"><button class="btn go" id="wOk">Yay!</button></div>`);
   document.getElementById("wOk").onclick=closeFm; }
 /* ---- Wisdom Fountain ---- */
 // Each toss costs one coin more than the last (1, 2, 3...). The fountain answers on a secret toss between
@@ -942,6 +1036,7 @@ function frame(now){
       if(pendingEnterL){ startEnter(pendingEnterL); pendingEnterL=null; }
       else { const onPad=LANDMARKS.find(l=>OPEN[l.id]&&Math.hypot((player.x-padOf(l).x)/1.6,player.y-padOf(l).y)<45); if(onPad) startEnter(onPad); }
       if(pendingFriend){ meetFriend(pendingFriend); pendingFriend=null; }
+      if(pendingItem){ meetItem(pendingItem); pendingItem=null; }
       if(pendingTeta){ tetaTalk(); pendingTeta=false; }
       if(pendingJiddo){ jiddoTalk(); pendingJiddo=false; }
       if(pendingFountain){ fountain(); pendingFountain=false; } }
@@ -969,6 +1064,7 @@ function frame(now){
   for(const l of LANDMARKS) list.push({y:l.y,f:()=>drawLandmark(l,T)});
   const fd=found();
   for(const f of FRIENDS) if(f.x>vx0&&f.x<vx1&&f.y>vy0&&f.y<vy1) list.push({y:f.y,f:()=>drawFriend(f,!!fd[f.ch],T)});
+  if(basketOpen()){ const bk=basket(); for(const it of ITEMS) if(it.x>vx0&&it.x<vx1&&it.y>vy0&&it.y<vy1) list.push({y:it.y,f:()=>drawItem(it,!!bk[it.ch],T)}); }
   list.push({y:TETA.y,f:()=>drawTeta(T)});
   list.push({y:FOUNTAIN.y,f:()=>drawFountain(T)});
   list.push({y:JIDDO.y,f:()=>drawJiddo(T)});
@@ -989,7 +1085,7 @@ document.getElementById("startBtn").onclick=()=>{
 function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("meName").textContent=p?p.name:"Me"; document.getElementById("meBtn").style.visibility=document.getElementById("whoBtn").style.visibility=p?"visible":"hidden"; /* the top bar shows who is playing */ }
 LQ.onChange(hud); hud();
 // "Go" on the Me page for the two places that live on the map
-addEventListener("lq:goto",e=>{ if(e.detail==="album") album(); if(e.detail==="fountain"){ player.x=player.tx=FOUNTAIN.x; player.y=player.ty=FOUNTAIN.y+60; fountain(); } });
+addEventListener("lq:goto",e=>{ if(e.detail==="album") album(); if(e.detail==="basket") basketAlbum(); if(e.detail==="fountain"){ player.x=player.tx=FOUNTAIN.x; player.y=player.ty=FOUNTAIN.y+60; fountain(); } });
 document.getElementById("meBtn").onclick=()=>{ if(LQ.player()){ closeCard(); LQ.me(); } };
 document.getElementById("whoBtn").onclick=()=>{ closeCard(); LQ.leave(); LQ.profiles(()=>hud()); };
 /* coming back from a zone (same tab, same player): go straight back onto the map next to that zone */

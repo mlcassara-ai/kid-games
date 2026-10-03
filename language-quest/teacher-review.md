@@ -33,4 +33,5 @@ Everything below is already in the game. The Arabic was written without a native
 - **The five stories:** see `story-harbor-stories.md`. Is story 5's ending (the lion jumps into the well) fine for young children?
 - **Alphabet School:** each letter's picture word (the first example word from the Letter Dunes), and whether the sound should be the letter with fatha (بَ).
 - **Letter tracing (Camp One):** stroke order is body first, then dots right to left, with the top dot of ث last; end shapes start from the joining stroke on the right.
+- **Grandmother's basket** (opens after all 28 Letter Friends): one everyday object per letter: إِبْرِيق، بَاب، تُفَّاحَة، ثَوْب، جَرَس، حَقِيبَة، خُبْز، دَلْو، ذُرَة، رِيشَة، زَيْتُون، سَاعَة، شَمْعَة، صُنْدُوق، ضِمَادَة، طَبْل، ظَرْف، عِنَب، غَيْمَة، فِنْجَان، قَلَم، كُرَة، لَيْمُون، مِفْتَاح، نَجْمَة، هَدِيَّة، وَرْدَة، يَد. Better words for any letter, especially ث ذ ض ظ?
 - **Case endings:** phrases keep their endings inside, but the last word and single words are read without one (pausal form). Is that the convention you want?

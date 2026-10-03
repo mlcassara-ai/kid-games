@@ -383,7 +383,7 @@ function drawHero(c,p,o){ o=o||{}; const wear=o.wear||(p&&p.wear)||{}, t=o.time|
 /* ---------------- "Me": the player's own page ---------------- */
 function mePage(){
   const p=cur(); if(!p) return; mark("Me page"); const n=o=>Object.keys(o||{}).length, sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
-  const L=n(p.letters), rows=[["🏫 Alphabet letters met",n(p.abc),28,"alphabet/"],["⛺ Letters caught",L,28,"letters/"],["✏️ Letters traced",n(p.trace),28,"letters/"],["💦 Sound Falls pools",n(p.falls),8,"falls/"],["🛍️ Souq stalls",n(p.souq),5,"souq/"],["⛵ Stories finished",n(p.harbor),5,"harbor/"],["📒 Letter Friends",n(p.friends),28,"#album"],["⛲ Sayings found",n(p.well&&p.well.got),26,"#fountain"]];   // last item: where tapping the row goes
+  const L=n(p.letters), rows=[["🏫 Alphabet letters met",n(p.abc),28,"alphabet/"],["⛺ Letters caught",L,28,"letters/"],["✏️ Letters traced",n(p.trace),28,"letters/"],["💦 Sound Falls pools",n(p.falls),8,"falls/"],["🛍️ Souq stalls",n(p.souq),5,"souq/"],["⛵ Stories finished",n(p.harbor),5,"harbor/"],["📒 Letter Friends",n(p.friends),28,"#album"],["🧺 Grandmother's basket",n(p.basket),28,"#basket"],["⛲ Sayings found",n(p.well&&p.well.got),26,"#fountain"]];   // last item: where tapping the row goes
   const stars=sum(p.camps)+sum(p.falls)+sum(p.souq)+sum(p.harbor)+sum(p.abcStars), days=n(p.days), dr=p.dr||{}, td=dr[today()]||0, best=p.best||{n:0};
   const right=["letters","marks","words"].reduce((a,k)=>a+Object.values((p.stats||{})[k]||{}).reduce((x,e)=>x+(e.r||0),0),0);
   const week=[]; for(let i=6;i>=0;i--){ const d=new Date(Date.now()-i*864e5); week.push([["Su","Mo","Tu","We","Th","Fr","Sa"][d.getDay()],dr[d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()]||0]); }
