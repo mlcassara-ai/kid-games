@@ -268,6 +268,9 @@ body.bp2-lock{overflow:hidden}
 .bp2-full .bp2-tc{min-height:72px}.bp2-full .bp2-fix{color:#2b2340;padding:8px 12px}.bp2-full .bp2-pad button{min-height:40px}.bp2-full .bp2-q{font-size:24px}
 .bp2-full .bp2-ent,.bp2-full .bp2-base{scale:var(--k,1);transform-origin:50% 100%}
 @media (min-width:900px){.bp2-full .bp2-pad{grid-template-columns:repeat(12,1fr)}.bp2-full .bp2-pad button.go{grid-column:1/-1}.bp2-full .bp2-msg{min-height:18px}}
+.bp2-note-pop{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%);z-index:70;background:rgba(30,20,60,.94);color:#fff;border:3px solid #f2b705;border-radius:18px;padding:14px 22px;text-align:center;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:bp2note 1.9s ease-out forwards;max-width:86vw}
+.bp2-note-pop b{display:block;font-size:24px}.bp2-note-pop small{display:block;font-size:14px;opacity:.85;margin-top:4px}
+@keyframes bp2note{0%{opacity:0;scale:.7}12%{opacity:1;scale:1.05}20%{scale:1}80%{opacity:1}100%{opacity:0}}
 .bp2-note{font-size:11px;opacity:.7;margin:0;text-align:center}.bp2-tc{font:inherit;position:relative;border:3px solid #d0bfff;border-radius:14px;background:#fff;min-height:84px;padding:4px 2px;cursor:pointer;color:#2b2340;overflow:hidden}
 .bp2-tc .pe{font-size:30px;display:block}.bp2-tc small{display:block;font-size:11px;font-weight:700}.bp2-tc .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(43,35,64,.35)}.bp2-tc.poor{opacity:.55}
 .bp2-q{display:flex;align-items:center;justify-content:center;gap:10px;font-size:28px;font-weight:800;flex-wrap:wrap}.bp2-q .box{min-width:90px;border:3px dashed #b197fc;border-radius:12px;text-align:center;background:#f8f5ff;padding:0 8px}
@@ -305,7 +308,7 @@ const flyRisk=(S,team)=>S.crit.some(c=>TRAIT[c[2]]&&TRAIT[c[2]].fly)&&!team.some
 function flyWarn(){const ov=document.createElement('div');ov.className='bp2-over';ov.id='bpFlyW';ov.innerHTML=`<div class="bp2-card"><div style="font-size:48px">🐝</div><h2>Flying critters are coming!</h2>
   <p>Nobody on your team can reach them, so they'll fly right over your pets to your Pet House.</p><p class="muted">Jumpers 🦘 and Archers 🏹 can stop flyers.</p>
   <div class="row"><button class="btn green" onclick="BattlePets._flyFix()">🐝 Show pets that stop flyers</button><button class="btn ghost dark" onclick="BattlePets._flyGo()">Start anyway</button></div></div>`;document.body.appendChild(ov);}
-function teamIn(id){const p=me();if(!p||VIEW.k!=='team')return;const t=VIEW.team;if(t.includes(id)){t.splice(t.indexOf(id),1);}else if(t.length<slots(p))t.push(id);else{toast('Your team is full. Tap a team spot to take a pet out first.');return;}screen();}
+function teamIn(id){const p=me();if(!p||VIEW.k!=='team')return;const t=VIEW.team;if(t.includes(id)){t.splice(t.indexOf(id),1);}else if(t.length<slots(p))t.push(id);else{notice(`🐾 Team full! (${slots(p)} pets)`,'Tap a pet in your team to take it out first.');return;}screen();}
 function teamOut(i){if(VIEW.k!=='team')return;VIEW.team.splice(i,1);screen();}
 function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;const S=stages().find(s=>s.id===VIEW.id);const team=VIEW.team.map(id=>PETS.find(x=>x.id===id)).filter(Boolean);
  if(!VIEW.flyOk&&flyRisk(S,team)){if(!document.getElementById('bpFlyW'))flyWarn();return;}
@@ -317,7 +320,6 @@ function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
   <div class="bp2-top"><button class="bp2-exit" onclick="BattlePets._quit()" aria-label="Exit the battle">✕ Exit</button><span class="bp2-title">${S.art} ${esc(S.name)} ${'👑'.repeat(G.crown)}</span>
   <div class="bp2-hud"><span>🏚️</span><div class="bp2-bar"><i id="bpDen" style="background:#e8590c"></i></div><span id="bpT" style="min-width:48px;text-align:center"></span><div class="bp2-bar"><i id="bpHouse" style="background:#40c057"></i></div><span>🏡</span></div></div>
   <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">${window.BPScene?BPScene.base('den',S):'🏚️'}</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">${window.BPScene?BPScene.base('house',S):'🏡'}</span></div></div>
-  <div class="bp2-mini" id="bpMini" aria-label="Map of the battlefield: tap to look there"><span class="vw" id="bpVw"></span></div>
   <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button><button class="bp2-btn fix" id="bpFix" onclick="BattlePets._fix()"></button></div>
   <div class="bp2-team six">${G.team.map((s,i)=>`<button class="bp2-tc" id="bpTc${i}" onclick="BattlePets._send(${i})"><span class="pe">${s.pet.e}</span><small>${s.R.e} ${s.R.n}<span class="bp2-key">${i+1}</span></small><small>🍖 ${s.R.cost}</small><span class="cd" id="bpCd${i}"></span></button>`).join('')}
    <button class="bp2-tc mega" id="bpTroll" onclick="BattlePets._troll()" aria-label="Call ${TROLL.n} the Troll"><span class="pe">${trollArt(46)}</span><small>MEGA<span class="bp2-key">T</span></small><small>🍖 ${TROLL.cost}</small><span class="cd" id="bpTrollCd"></span></button></div>
@@ -327,9 +329,8 @@ function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
   ${S.note?`<p class="bp2-note">${esc(S.note)}</p>`:''}</div>`;
  const sc=document.getElementById('bpScroll');sc.scrollLeft=sc.scrollWidth;panSetup(sc);scene();
  try{if(RO)RO.disconnect();if(window.ResizeObserver){RO=new ResizeObserver(()=>{clearTimeout(RSZ);RSZ=setTimeout(()=>{if(VIEW.k==='fight')scene();},200);});RO.observe(document.getElementById('bpField'));}}catch(e){}
- document.getElementById('bpMini').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect();lookAt((e.clientX-r.left)/r.width*100);});
  G.shown=false;draw();startLoop();}
-/* looking around the wide battlefield: swipe (touch scrolls natively), drag with the mouse, the mouse wheel, the arrow keys or the little map */
+/* looking around the wide battlefield: swipe (touch scrolls natively), drag with the mouse, the mouse wheel or the arrow keys */
 /* the camera follows our lead pet; when the kid looks around by hand it waits 5 seconds, then glides back */
 let CAM_HOLD=0;const holdCam=()=>{CAM_HOLD=performance.now()+5000;};
 function camera(){const sc=document.getElementById('bpScroll');if(!sc||!G)return;if(G.camAt&&G.t<G.camAt.until){const t=Math.max(0,G.camAt.x/100*sc.scrollWidth-sc.clientWidth*.5);sc.scrollLeft+=(t-sc.scrollLeft)*.3;return;}if(performance.now()<CAM_HOLD)return;const x=leadX();
@@ -368,7 +369,7 @@ function onKey(e){try{if(typeof curScreen==='undefined'||curScreen!=='bp'||VIEW.
  const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))return;const k=e.key;let used=true;
  if(k==='ArrowLeft')panBy(-320);else if(k==='ArrowRight')panBy(320);
  else if(G.fixing){if(/^[0-9]$/.test(k))key(k);else if(k==='.'||k===',')key('.');else if(k==='Backspace')key('⌫');else if(k==='Enter')key('go');else if(k==='Escape')fixDone();else used=false;}
- else if(/^[1-5]$/.test(k)){if(send(+k-1))draw();}else if(k==='k'||k==='K'){if(upgradeKitchen())draw();}else if(k===' '||k==='p'||k==='P'){if(pounce())draw();}else if(k==='r'||k==='R')fixOpen();else if(k==='t'||k==='T'){if(callTroll())draw();}else used=false;
+ else if(/^[1-5]$/.test(k))trySend(+k-1);else if(k==='k'||k==='K'){if(upgradeKitchen())draw();}else if(k===' '||k==='p'||k==='P'){if(pounce())draw();}else if(k==='r'||k==='R')fixOpen();else if(k==='t'||k==='T'){if(callTroll())draw();}else used=false;
  if(used){e.preventDefault();e.stopPropagation();}}catch(x){}}
 window.addEventListener('keydown',onKey,true);
 /* draw: one element per unit, moved every frame */
@@ -390,7 +391,7 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
  const fb=q('bpFix'),fp=q('bpFixP'),cf=canFix();fb.innerHTML=`🧱 Rebuild <span class="bp2-key">R</span><br><small>${G.bricks} brick${G.bricks===1?'':'s'}</small>`;fb.disabled=!G.fixing&&!cf;fb.classList.toggle('hot',cf&&!G.fixing);
  if(fp){if(G.fixing!==G.shown){G.shown=G.fixing;fp.style.display=G.fixing?'':'none';if(G.fixing){showQ(false);try{fp.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(e){}}}const bk=q('bpBricks');if(bk)bk.textContent=`🧱 × ${G.bricks}`;}
  if(window.BPScene){BPScene.baseState(q('bpHouseB'),G.houseHP/G.houseMax);BPScene.baseState(q('bpDenB'),G.denHP/G.denMax);if(G.boss&&!G.bossDown)BPScene.grey(true);}
- miniMap();
+
  const kb=q('bpKit');kb.textContent=G.kl>=4?'🍳 Kitchen max':`🍳 Kitchen ${G.kl+1}→${G.kl+2} · 🍖${kitchenCost()}`;kb.disabled=G.kl>=4||G.treats<kitchenCost();
  const pb=q('bpPounce');pb.textContent=G.charge>=100?'🐾 POUNCE!':`🐾 ${Math.floor(G.charge)}%`;pb.disabled=G.charge<100;
  G.team.forEach((s,i)=>{const c=q('bpCd'+i),b=q('bpTc'+i);if(!c)return;const left=Math.max(0,s.ready-G.t);c.style.height=(left/s.R.cd*100)+'%';b.classList.toggle('poor',G.treats<s.R.cost);});
@@ -440,10 +441,12 @@ function smoke(x,I,ember,y){if(SMKN>=44)return;const f=document.getElementById('
 function flyHint(){if(G.flyHint)return;const P2=G.pets.filter(u=>!u.gone&&!u.mega);if(!P2.length)return;const front=Math.min(...P2.map(u=>u.x));
  if(G.foes.some(f=>!f.gone&&f.fly&&f.x>front+3)){G.flyHint=true;toast(G.team.some(s=>s.R.fly)?'🐝 Flyers float over pets that can\'t reach them! Send your Jumper 🦘 or Archer 🏹.':'🐝 Flyers float over pets that can\'t reach them! Next time, bring a Jumper 🦘 or an Archer 🏹.');}}
 function shake(){const sc=document.getElementById('bpScroll');if(!sc)return;sc.classList.remove('shake');void sc.offsetWidth;sc.classList.add('shake');}
+/* a big notice in the middle of the screen (team full, too many pets out) */
+let NOTE_T=0;
+function notice(t,sub){const now=Date.now();if(now<NOTE_T)return;NOTE_T=now+1200;document.querySelectorAll('.bp2-note-pop').forEach(x=>x.remove());
+ const d=document.createElement('div');d.className='bp2-note-pop';d.setAttribute('role','status');d.innerHTML=`<b>${esc(t)}</b>${sub?`<small>${esc(sub)}</small>`:''}`;document.body.appendChild(d);setTimeout(()=>d.remove(),1900);try{tone(220,.12,'square',.04);}catch(e){}}
+function trySend(i){if(send(i)){draw();return;}if(G&&!G.over&&G.team[i]&&G.pets.filter(x=>!x.gone&&!x.mega).length>=MAX_OUT)notice(`🐾 Max pets out! (${MAX_OUT})`,'Wait for a pet to come back before sending more.');}
 function flash(t,big){const f=document.getElementById('bpScroll');if(!f)return;const d=document.createElement('div');d.className='bp2-flash'+(big?' bp2-pounce-t':'');d.textContent=t;d.style.position='fixed';d.style.top='40%';document.body.appendChild(d);setTimeout(()=>d.remove(),1700);}
-let MINI=0;function miniMap(){if(++MINI%4)return;const m=document.getElementById('bpMini'),sc=document.getElementById('bpScroll');if(!m||!sc||!G)return;
- const vw=document.getElementById('bpVw');if(vw){vw.style.left=(sc.scrollLeft/sc.scrollWidth*100)+'%';vw.style.width=(sc.clientWidth/sc.scrollWidth*100)+'%';}
- m.querySelectorAll('i').forEach(x=>x.remove());let h='';G.pets.forEach(u=>{if(!u.gone)h+=`<i class="p" style="left:${u.x}%"></i>`;});G.foes.forEach(f=>{if(!f.gone)h+=`<i class="${f.boss?'b':'c'}" style="left:${f.x}%"></i>`;});m.insertAdjacentHTML('beforeend',h);}
 function loop(now){if(VIEW.k!=='fight'||!G||typeof curScreen==='undefined'||curScreen!=='bp'){stopLoop();return;}const dt=Math.min(.05,(now-LAST)/1000);LAST=now;if(!document.hidden)step(dt);draw();if(G.over){stopLoop();finish();return;}RAF=requestAnimationFrame(loop);}
 function startLoop(){stopLoop();LAST=performance.now();RAF=requestAnimationFrame(loop);}
 function stopLoop(){if(RAF)cancelAnimationFrame(RAF);RAF=0;}
@@ -481,7 +484,7 @@ window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 
 (function reg(){if(typeof SCREENS!=='undefined'){SCREENS.bp=()=>screen();}else setTimeout(reg,30);})();
 window.BattlePets={on,stats,stages,
- _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>{if(send(i))draw();},_kit:()=>{if(upgradeKitchen())draw();},_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S);try{SFX.tap();}catch(e){}screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))toast('No critters to pounce on yet!');},_key:key,_again:again,_back:backTo,_quit:quit,
+ _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>trySend(i),_kit:()=>{if(upgradeKitchen())draw();},_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S);try{SFX.tap();}catch(e){}screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))toast('No critters to pounce on yet!');},_key:key,_again:again,_back:backTo,_quit:quit,
  _say:()=>{try{if(G&&G.q)speakToggle(()=>say(speakable(qText(G.q)),.9));}catch(e){}},_sync:syncTile,
  _dbg:{TUNE,CROWN,TROLL,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
 })();

@@ -235,6 +235,7 @@ const tests=[
   /* warn before a battle when flyers are coming and nobody can reach them */
   {const S0=BattlePets.stages()[1],t=D.autoPick(P(),S0);T.ok(t.length>=1&&t.length<=Math.min(5,3+Math.floor((P().level||1)/10))&&t.every(id=>P().pets.includes(id))&&new Set(t).size===t.length,'Pick for me built a bad team');}
   {const wall=PETS.find(x=>x.perk==='shield'),hop=PETS.find(x=>x.perk==='lucky'),S0=BattlePets.stages()[1];T.ok(D.flyRisk(S0,[wall])&&!D.flyRisk(S0,[wall,hop]),'the flyer warning check is wrong');}
+  {const keep=G.pets.slice();for(let i=0;i<12;i++)G.pets.push({side:'p',x:50,hp:1,max:1,R:G.team[0].R,pet:G.team[0].pet,kb:0,stun:0});G.treats=50;G.team.forEach(t=>t.ready=0);BattlePets._send(0);T.ok(document.querySelector('.bp2-note-pop'),'no Max pets notice when the field is full');G.pets=keep;document.querySelectorAll('.bp2-note-pop').forEach(x=>x.remove());}
   G.treats=50;G.team.forEach(t=>t.ready=0);const sent0=G.sent;BattlePets._send(0);T.ok(G.sent===sent0+1&&G.pets.filter(u=>!u.gone).length===1,'a pet could not be sent');
   const kl=G.kl;BattlePets._kit();T.ok(G.kl===kl+1,'the Treat Kitchen did not upgrade');
   {D._spawn('basic');const pf=G.foes[G.foes.length-1];pf.x=50;const ph=pf.hp;G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1&&G.slam&&Math.abs(G.slam.x-50)<.01,'Pet Pounce did not aim at the lead critter');
