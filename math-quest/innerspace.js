@@ -255,10 +255,13 @@ function drawStopLive(c,k,x,y,S,sec,a){if(k<1||a<=0.01)return;c.save();c.globalA
  else if(k===5){const r=S*.3;c.strokeStyle='#9c36b5';c.lineWidth=Math.max(2,S*.02);for(let i=0;i<16;i++){const q=i/16*Math.PI*2+sec*.1;c.beginPath();c.moveTo(x+Math.cos(q)*r,y+Math.sin(q)*r);c.lineTo(x+Math.cos(q)*r*1.35,y+Math.sin(q)*r*1.35);c.stroke();c.fillStyle='#e599f7';c.beginPath();c.arc(x+Math.cos(q)*r*1.38,y+Math.sin(q)*r*1.38,S*.035,0,7);c.fill();}
   const g=c.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r);g.addColorStop(0,'#f3d9fa');g.addColorStop(1,'#9c36b5');c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();}
  c.restore();}
-function shrink(){const t=tier();R.sz=0;let k=0,go=performance.now()+600;const TRAVEL=4.6;
+/* after a kid's first ride the shrink-down is an ⏩ express: it zooms past the ant, hair, cell, germ and virus without stopping (the size
+   meter still ticks down), then dives into the molecules. 🐢 Slow tour brings back every stop and chat. The first ride is always the full tour. */
+function shrink(){const t=tier();R.sz=0;let k=0,go=performance.now()+600;let ex=false;try{const s0=S(PL||P());ex=!DEMO&&!R.slow&&((s0.rides||0)>=1||Object.keys(s0.album||{}).length>0);}catch(e){}const TRAVEL=ex?1.4:4.6;
  const say=()=>k===0?'':(k===1?['We\'ve already started shrinking… and now we\'re as small as an <b>ANT</b>! 🐜 Hi there, ant! To us it looks as big as a <b>house</b>! Watch the size meter at the top to see how small we get.','The shrink ray is already on! We\'re ant-sized: about <b>3 millimeters</b>. A grain of sand would look like a boulder! The <b>size meter</b> at the top shows how small we are.','Shrinking is underway: about <b>3 mm</b> now, roughly 500 times smaller. Sand grains are boulders. The <b>size meter</b> tracks us; each stop is many times smaller than the last.'][t]:STOPS[k][t]);
  const btnTxt=()=>k<5?'Let\'s keep going ➜':'Dive into the molecules ➜';
- frame(nar(say(),'Shrinking… ⏳',{dis:1}));{const nb=root.querySelector('.is-nar');if(nb){nb.style.opacity='0';nb.style.transition='opacity .8s';}}
+ frame(nar(ex?'⏩ <b>Express shrink!</b> You\'ve done this before, so we\'ll zoom straight past the ant, the hair, a cell, a germ and a virus. Watch the size meter!':say(),'Shrinking… ⏳',{dis:1}));{const nb=root.querySelector('.is-nar');if(nb&&!ex){nb.style.opacity='0';nb.style.transition='opacity .8s';}}
+ if(ex){const nb=root.querySelector('.is-nar');if(nb){const sb=document.createElement('button');sb.className='is-btn';sb.id='isSlow';sb.textContent='🐢 Slow tour';sb.onclick=()=>{R.slow=true;scene();};nb.appendChild(sb);}}
  const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');
  const hook=()=>onNext(()=>{if(go)return;if(k>=5){next();return;}go=performance.now();const b=root.querySelector('#isNext');if(b){b.disabled=true;b.textContent='Shrinking… ⏳';}snd(520-k*40,.5,'sine',.04);});
  hook();
@@ -271,6 +274,8 @@ function shrink(){const t=tier();R.sz=0;let k=0,go=performance.now()+600;const T
   if(go){const p=gp,sm=x=>x*x*(3-2*x),a=sm(Math.min(1,p/.42)),b=sm(Math.max(0,(p-.55)/.45));
    // first the thing we're passing grows past us and fades away… then (after a moment of just rings) the next one appears as a dot
    if(p<.42)drawStop(c,k,cx,cy,S*(1+a*2),sec,1-a);if(p>.55)drawStop(c,k+1,cx,cy,S*(.02+b*.98),sec,Math.min(1,b*1.6));
+   if(p>=1&&ex&&k<4){k++;setSize(k);snd(660+k*60,.12,'triangle',.04);go=performance.now();return;} /* express: no stop, keep zooming */
+   if(p>=1&&ex){go=0;k=5;setSize(k);snd(980,.18,'triangle',.05);const n=root.querySelector('.is-nar .txt');if(n)n.innerHTML=`<small>Ride Operator ${NAME}</small>We\'re smaller than a virus now. Next stop: the molecules!`;const b=root.querySelector('#isNext');if(b){b.disabled=false;b.textContent=btnTxt();}const sl=root.querySelector('#isSlow');if(sl)sl.remove();return;}
    if(p>=1){go=0;k++;setSize(k);snd(660+k*60,.18,'triangle',.05);const n=root.querySelector('.is-nar .txt');if(n)n.innerHTML=`<small>Ride Operator ${NAME}</small>${say()}`;const nb=root.querySelector('.is-nar');if(nb)nb.style.opacity='1';const b=root.querySelector('#isNext');if(b){b.disabled=false;b.textContent=btnTxt();}}}
   else drawStop(c,k,cx,cy,S,sec,1);
   car(c,cx+Math.sin(sec*.7)*8,cy+S*.34+Math.cos(sec*.9)*5,Math.min(w,h)*.14,sec);});}
