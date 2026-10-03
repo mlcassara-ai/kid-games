@@ -33,47 +33,53 @@ const choose=a=>a[Math.floor(Math.random()*a.length)];
 
 /* ---------- roles (from the pet's perk) ---------- */
 const ROLE={
- shield:{id:'wall',n:'Wall',e:'🛡️',cost:2,cd:2.5,hp:70,atk:3,rng:5,spd:5,tip:'Cheap and tough: holds the line'},
- power:{id:'brawler',n:'Brawler',e:'💥',cost:6,cd:7,hp:45,atk:15,rng:6,spd:4,armor:2,tip:'Big hits; cracks armour'},
- heal:{id:'medic',n:'Medic',e:'💚',cost:4,cd:8,hp:30,atk:2,rng:5,spd:4.5,heal:3,tip:'Heals pets nearby'},
- lucky:{id:'jumper',n:'Jumper',e:'🦘',cost:3,cd:4,hp:28,atk:7,rng:6,spd:7,fly:true,crit:.25,tip:'Fast; reaches flyers; lucky hits'},
- xp:{id:'archer',n:'Archer',e:'🏹',cost:4,cd:5,hp:22,atk:6,rng:20,spd:4,fly:true,tip:'Long range; reaches flyers'},
- coins:{id:'stomper',n:'Stomper',e:'🌀',cost:5,cd:6,hp:40,atk:6,rng:9,spd:3.5,area:true,tip:'Hits a whole group'}};
+ shield:{id:'wall',n:'Wall',e:'🛡️',cost:2,cd:2.5,hp:70,atk:3,rng:1.8,spd:5,tip:'Cheap and tough: holds the line'},
+ power:{id:'brawler',n:'Brawler',e:'💥',cost:6,cd:7,hp:45,atk:15,rng:2,spd:4,armor:2,tip:'Big hits; cracks armour'},
+ heal:{id:'medic',n:'Medic',e:'💚',cost:4,cd:8,hp:30,atk:2,rng:2,spd:4.5,heal:3,tip:'Heals pets nearby'},
+ lucky:{id:'jumper',n:'Jumper',e:'🦘',cost:3,cd:4,hp:28,atk:7,rng:2,spd:7,fly:true,crit:.25,tip:'Fast; reaches flyers; lucky hits'},
+ xp:{id:'archer',n:'Archer',e:'🏹',cost:4,cd:5,hp:22,atk:6,rng:11,spd:4,fly:true,tip:'Long range; reaches flyers'},
+ coins:{id:'stomper',n:'Stomper',e:'🌀',cost:5,cd:6,hp:40,atk:6,rng:2.6,spd:3.5,area:true,tip:'Hits a whole group'}};
 const roleOf=pet=>ROLE[pet&&pet.perk]||ROLE.shield;
+/* walking speed: every pet walks slower than its role's top speed, and the stronger (bigger) it is, the slower it goes */
+const petSpd=(R,m)=>R.spd*TUNE.petSpd/(1+.5*(m-1));
 /* 🧌 the mega: Grumbleroot the Troll (testing: every hero, every crown; how to earn him is still to be decided).
-   Huge, slow and tough; hits a whole group, cracks armour, and every few seconds STOMPS, knocking nearby critters back.
-   Can't reach flyers. Stays about 28 seconds, then stomps home. A big wait: 40 s before the first call, 100 s between calls. */
-const TROLL={id:'troll',n:'Grumbleroot',e:'🧌',cost:16,first:40,cd:100,life:28,hp:500,atk:30,rng:8,spd:5.5,area:true,armor:2,stomp:2.6,tip:'Mega troll: huge, stomps critters back'};
+   Huge, slow and tough (the real Grumbleroot from the troll's cave, with a club); hits a whole group and cracks armour. Every few seconds he
+   raises his club and POUNDS the ground: it hurts and knocks back every critter near him. Can't reach flyers. He stays about 28 seconds
+   once he reaches the fight (50 at most), then stomps home. A big wait: 40 s before the first call, 100 s between calls. */
+const TROLL={id:'troll',n:'Grumbleroot',e:'🧌',cost:16,first:40,cd:100,life:28,maxLife:50,hp:500,atk:30,rng:3.6,spd:2.6,area:true,armor:2,pound:3.2,wind:.5,reach:7,tip:'Mega troll: huge and slow; his club pound knocks critters back'};
 function powerOf(p,pet){const pd=petData(p,pet.id),st=petStage(pd),si=Math.max(0,PET_STAGES.indexOf(st));const tm=((typeof PET_TIERS!=='undefined'&&PET_TIERS[pet.tier])||{mult:1}).mult||1;
  let ml=0;try{ml=petLv(pd)||0;}catch(e){}return Math.min(2.6,tm*(1+.2*si+.04*ml));}
 
 /* ---------- critters ---------- */
 const TRAIT={
- basic:{hp:30,atk:5,spd:4,rng:5},
- swarm:{hp:10,atk:2,spd:6,rng:4,group:3,tag:'swarm'},
- flying:{hp:24,atk:4,spd:5,rng:5,fly:true,tag:'flying'},
- armored:{hp:70,atk:6,spd:2.5,rng:5,armor:true,tag:'armoured'},
- speedy:{hp:18,atk:4,spd:9,rng:4,tag:'speedy'},
- boss:{hp:420,atk:14,spd:2.2,rng:7,boss:true,tag:'boss'}};
+ basic:{hp:30,atk:5,spd:4,rng:1.8},
+ swarm:{hp:10,atk:2,spd:6,rng:1.6,group:3,tag:'swarm'},
+ flying:{hp:24,atk:4,spd:5,rng:1.8,fly:true,tag:'flying'},
+ armored:{hp:70,atk:6,spd:2.5,rng:2,armor:true,tag:'armoured'},
+ speedy:{hp:18,atk:4,spd:9,rng:1.6,tag:'speedy'},
+ boss:{hp:420,atk:14,spd:2.2,rng:3.2,boss:true,tag:'boss'}};
 const TRAIT_ORDER=['basic','swarm','flying','armored','speedy'];
+/* the critters' boss on every stage: the Grey Goblin from the Great Fade (fade.js draws him) */
+const GOBLIN=['Grey Goblin','👺'];
+const goblinArt=w=>window.MQ_GOBLIN_SVG?`<span class="bp2-gob" style="width:${w}px">${window.MQ_GOBLIN_SVG()}</span>`:GOBLIN[1];
 const OPN={add:'Addition',sub:'Subtraction',mul:'Multiplication',div:'Division'};
 function stages(){const out=[{id:'fossil',name:'Fossil Stage',art:'🦴',op:null,bg:['#efe3c8','#d8c49b'],where:'the Museum, when every dinosaur skeleton is built',
-  crit:[['Bone Rattler','🦴','basic'],['Raptor Bones','🦖','swarm'],['Pterosaur Bones','🦅','flying'],['Neck Bones','🦕','armored'],['Speedy Skull','💀','speedy']],boss:['T. rex Skeleton','🦖'],
+  crit:[['Bone Rattler','🦴','basic'],['Raptor Bones','🦖','swarm'],['Pterosaur Bones','🦅','flying'],['Neck Bones','🦕','armored'],['Speedy Skull','💀','speedy']],boss:GOBLIN,
   note:'Pretend! Real skeletons don\'t walk. Real fossils are bones turned to stone over millions of years.'}];
  (typeof ZONES!=='undefined'?ZONES:[]).forEach(z=>{if(!OPN[z.op]||out.some(s=>s.op===z.op)||!z.mons||z.mons.length<6)return;
   out.push({id:z.id,name:z.name,art:z.art||'⭐',op:z.op,where:`${z.name}, after beating ${z.mons[5][0]}`,bg:{add:['#d8f5c9','#a6dc8a'],sub:['#d9d2f0','#a99fd1'],mul:['#ffd8b8','#f0a070'],div:['#dfe3ea','#aab3c2']}[z.op],
-   crit:z.mons.slice(0,5).map((m,i)=>[m[0],m[1],TRAIT_ORDER[i]]),boss:z.mons[5]});});
+   crit:z.mons.slice(0,5).map((m,i)=>[m[0],m[1],TRAIT_ORDER[i]]),boss:GOBLIN});});
  return out;}
-const CROWN={hp:[1,1.6,2.1],atk:[1,1.3,1.44],gap:[1,.85,.72],den:[1,1.1,1.25]};
-/* balance knobs, tuned by simulation (Oct 2026) against Battle Cats-style targets and players like the two real kids:
-   - doing nothing always loses; crown 1 is a sure win in about 1.5 minutes; crown 2 is a close fight of about 4 minutes in which
-     the Pet House usually gets badly hurt, so 🧱 Rebuild matters (a grade-3 player: about 40% without math, 80% with it);
-     crown 3 is a stretch goal (a grade-5 player about 1 in 3).
-   - treats trickle in (the Kitchen adds more), Pounce charges in about 30 s, the boss is the big push (hits pets and the house hard),
+const CROWN={hp:[1,1.35,1.7],atk:[1,1.175,1.28],gap:[1,.85,.72],den:[1,1.3,1.6]};
+/* balance knobs, tuned by simulation (Oct 2026) against Battle Cats-style targets and players like the two real kids, after pets were
+   made to walk slower (bigger = slower) and to fight at touching distance, with flyers drifting over pets that can't reach them:
+   - doing nothing always loses; crown 1 is a sure win in about 3 minutes; crown 2 is a close fight (a grade-3 player wins about a third
+     of the time without 🧱 Rebuild and about half with it); crown 3 is a stretch goal (a grade-5 player about 1 in 4).
+   - treats trickle in (the Kitchen adds more), Pounce charges in about 30 s, the Grey Goblin boss is the big push,
      critters spawn faster while the boss is out and slower once it is down; after 4 minutes they tire (no endless tug-of-war).
-   - bricks: 13 per battle, each +2/13 of the house = exactly two full rebuilds. */
-const TUNE={trickle:.81,trickleKl:.2,charge:3.3,den:545,hp:1.4,atk:1.45,gap:4.2,bricks:13,brick:2/13,repairAt:.5,house:280,siege:.55,foeCap:11,
- petHp:1,bossHp:1.07,bossAtk:2.19,bossSiege:1.71,rage:.82,calm:2.5,tired:240};
+   - bricks: 20 per battle, each +10% of the house = exactly two full rebuilds. */
+const TUNE={trickle:.73,trickleKl:.31,charge:3.3,den:400,hp:1.15,atk:1.81,gap:3.79,bricks:20,brick:.1,repairAt:.5,house:480,siege:.58,foeCap:12,
+ petHp:.66,bossHp:.68,bossAtk:1.62,bossSiege:.81,rage:.87,calm:1.78,tired:240,petSpd:.75,waveSpd:110};
 
 /* ---------- saved progress ---------- */
 function prog(p){p.bp2=p.bp2||{c:{},team:[]};p.bp2.c=p.bp2.c||{};if(!Array.isArray(p.bp2.team))p.bp2.team=[];return p.bp2;}
@@ -97,10 +103,23 @@ const treatCap=()=>12+6*G.kl,treatRate=()=>TUNE.trickle+TUNE.trickleKl*G.kl,kitc
 function upgradeKitchen(){if(!G||G.over||G.kl>=4||G.treats<kitchenCost())return false;G.treats-=kitchenCost();G.kl++;G.treats=Math.min(G.treats,treatCap());fx('kitchen');return true;}
 function send(i){const s=G&&!G.over&&G.team[i];if(!s||G.treats<s.R.cost||s.ready>G.t||G.pets.filter(x=>!x.gone&&!x.mega).length>=MAX_OUT)return false;
  G.treats-=s.R.cost;s.ready=G.t+s.R.cd;G.sent++;const R=s.R,m=s.m;
- G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m*TUNE.petHp,max:R.hp*m*TUNE.petHp,atk:R.atk*m,rng:R.rng,spd:R.spd,kb:0,stun:0,id:Math.random()});fx('send');return true;}
+ G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m*TUNE.petHp,max:R.hp*m*TUNE.petHp,atk:R.atk*m,rng:R.rng,spd:petSpd(R,m),kb:0,stun:0,id:Math.random()});fx('send');return true;}
 const trollOut=()=>!!G&&G.pets.some(u=>u.mega&&!u.gone);
 function callTroll(){if(!G||G.over||G.t<G.trollAt||G.treats<TROLL.cost||trollOut())return false;G.treats-=TROLL.cost;G.trollAt=G.t+TROLL.cd;G.trolls++;
- const m=1+.35*G.c;G.pets.push({side:'p',mega:true,pet:{id:'troll',e:TROLL.e,name:TROLL.n},R:TROLL,x:HOUSE_X-2,hp:TROLL.hp*m,max:TROLL.hp*m,atk:TROLL.atk*m,rng:TROLL.rng,spd:TROLL.spd,kb:0,stun:0,leave:G.t+TROLL.life,stompAt:0,id:Math.random()});fx('troll');return true;}
+ const m=1+.35*G.c;G.pets.push({side:'p',mega:true,pet:{id:'troll',e:TROLL.e,name:TROLL.n},R:TROLL,x:HOUSE_X-2,hp:TROLL.hp*m,max:TROLL.hp*m,atk:TROLL.atk*m,rng:TROLL.rng,spd:TROLL.spd,kb:0,stun:0,leave:G.t+TROLL.maxLife,stompAt:0,poundAt:0,id:Math.random()});fx('troll');return true;}
+/* the giant pounce paw */
+const PAW='<svg class="paw" viewBox="0 0 200 200" aria-hidden="true"><g fill="#ffb627" stroke="#fff" stroke-width="7"><ellipse cx="100" cy="128" rx="54" ry="46"/><ellipse cx="42" cy="78" rx="20" ry="27" transform="rotate(-24 42 78)"/>'+
+ '<ellipse cx="80" cy="48" rx="21" ry="28" transform="rotate(-8 80 48)"/><ellipse cx="122" cy="48" rx="21" ry="28" transform="rotate(8 122 48)"/><ellipse cx="160" cy="78" rx="20" ry="27" transform="rotate(24 160 78)"/></g>'+
+ '<g fill="#ffd98a" opacity=".8"><ellipse cx="88" cy="116" rx="20" ry="12"/><ellipse cx="74" cy="40" rx="7" ry="10"/><ellipse cx="116" cy="40" rx="7" ry="10"/></g></svg>';
+/* Grumbleroot's picture: the same drawing as the troll's cave (troll.js), plus a big club held in his hand */
+const CLUB='<rect x="-10" y="-175" width="20" height="190" rx="9" fill="#6b4423" stroke="#3d2614" stroke-width="5"/><path d="M-10 -40h20M-10 -20h20" stroke="#3d2614" stroke-width="4"/>'+
+ '<path d="M-32 -165 Q-46 -232 -20 -278 Q0 -304 24 -278 Q48 -232 32 -165Z" fill="#8a5a2b" stroke="#3d2614" stroke-width="6"/>'+
+ '<g fill="#5a3a1a"><circle cx="-28" cy="-212" r="8"/><circle cx="26" cy="-238" r="7"/><circle cx="0" cy="-266" r="7"/><circle cx="22" cy="-192" r="6"/><circle cx="-14" cy="-246" r="5"/></g>';
+function trollArt(w){const t=window.MQ_TROLL_SVG;if(!t)return `<span style="font-size:${Math.round(w*.75)}px;line-height:1">${TROLL.e}</span>`;
+ const inner=t.replace(/<svg class="tr-troll"[^>]*>/,'<svg x="0" y="0" width="420" height="540" viewBox="0 0 420 540">');
+ return `<svg class="bp2-trollsvg" viewBox="-190 -60 640 600" width="${w}" height="${Math.round(w*600/640)}" aria-hidden="true"><g transform="translate(66,494)"><g class="bp2-club">${CLUB}</g></g>${inner}</svg>`;}
+/* the club pound lands half a second after he raises it: it hurts and knocks back every critter within reach */
+function pound(u,foes){u.poundAt=0;u.stompAt=G.t+TROLL.pound;foes.forEach(f=>{if(f.gone||Math.abs(u.x-f.x)>TROLL.reach)return;if(f.fly&&!TROLL.fly)return;f.hp-=u.atk*(f.boss?.8:1.6);knock(f,-(f.boss?2:6));f.stun=G.t+.6;});fx('stomp');}
 /* every push in the battle goes through here, so the screen can show the flight (the troll is hard to move) */
 function knock(u,dx){if(u.mega)dx*=.4;u.x=Math.max(DEN_X+2,Math.min(HOUSE_X-2,u.x+dx));u.kbT=G.t;}
 /* 🧱 Rebuild: math mends the Pet House, from half health down, with a limited pile of bricks */
@@ -110,26 +129,32 @@ function closeFix(){if(G)G.fixing=false;}
 function answer(ok){if(!G||G.over||!G.fixing||G.bricks<=0)return 0;G.asked++;if(!ok){G.streak=0;return 0;}
  G.right++;G.streak++;G.bricks--;const add=Math.min(G.houseMax-G.houseHP,G.houseMax*TUNE.brick);G.houseHP+=add;fx('brick');
  if(G.bricks<=0||G.houseHP>=G.houseMax-.01)G.fixing=false;return add;}
-function pounce(){if(!G||G.over||G.charge<100)return false;G.charge=0;G.pounces++;G.foes.forEach(f=>{if(f.gone)return;knock(f,-(f.boss?6:12));f.hp-=f.boss?60:25;f.stun=G.t+1.2;});fx('pounce');return true;}
+/* Pet Pounce (like the Cat Cannon): a giant paw sweeps the whole lane from the Pet House to the den in under a second,
+   smacking every critter back as it passes (hurt, knocked back, stunned) */
+function pounce(){if(!G||G.over||G.charge<100||G.wave)return false;G.charge=0;G.pounces++;G.wave={x:HOUSE_X,n:G.pounces};fx('pounce');return true;}
+function sweep(dt){const w=G.wave;if(!w)return;w.x-=TUNE.waveSpd*dt;
+ G.foes.forEach(f=>{if(f.gone||f.pw===w.n||f.x<w.x)return;f.pw=w.n;knock(f,-(f.boss?6:12));f.hp-=f.boss?60:25;f.stun=G.t+1.2;f.pawT=G.t;});
+ if(w.x<=DEN_X){G.wave=null;}}
 function spawn(kind){const S=G.stage,c=G.c;let def,name,e;
  if(kind==='boss'){def=TRAIT.boss;name=S.boss[0];e=S.boss[1];}else{const pick=S.crit.find(x=>x[2]===kind)||S.crit[0];def=TRAIT[pick[2]];name=pick[0];e=pick[1];}
- const n=def.group||1,bh=def.boss?TUNE.bossHp:1,ba=def.boss?TUNE.bossAtk:1;for(let i=0;i<n;i++)G.foes.push({side:'c',name,e,trait:def.tag||'',x:DEN_X+2+i*2.5,hp:def.hp*CROWN.hp[c]*TUNE.hp*bh,max:def.hp*CROWN.hp[c]*TUNE.hp*bh,atk:def.atk*CROWN.atk[c]*TUNE.atk*ba,rng:def.rng,spd:def.spd*(1+.08*c),fly:!!def.fly,armor:!!def.armor,boss:!!def.boss,kb:0,stun:0,id:Math.random()});}
+ const n=def.group||1,bh=def.boss?TUNE.bossHp:1,ba=def.boss?TUNE.bossAtk:1;for(let i=0;i<n;i++)G.foes.push({side:'c',name,e,trait:def.tag||'',x:DEN_X+2+i*1.3,hp:def.hp*CROWN.hp[c]*TUNE.hp*bh,max:def.hp*CROWN.hp[c]*TUNE.hp*bh,atk:def.atk*CROWN.atk[c]*TUNE.atk*ba,rng:def.rng,spd:def.spd*(1+.08*c),fly:!!def.fly,armor:!!def.armor,boss:!!def.boss,kb:0,stun:0,id:Math.random()});}
 function nextKind(){const t=G.t,w={basic:4,swarm:t>8?2:0,speedy:t>15?2:0,flying:t>20?2:0,armored:t>30?2:0};const tot=Object.values(w).reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(const k in w){r-=w[k];if(r<=0)return k;}return 'basic';}
 function step(dt){if(!G||G.over)return;G.t+=dt;
- G.treats=Math.min(treatCap(),G.treats+treatRate()*dt);G.charge=Math.min(100,G.charge+TUNE.charge*dt);
+ G.treats=Math.min(treatCap(),G.treats+treatRate()*dt);if(!G.wave)G.charge=Math.min(100,G.charge+TUNE.charge*dt);sweep(dt);
  if(G.t>=G.spawnAt&&G.foes.filter(f=>!f.gone).length<TUNE.foeCap){spawn(nextKind());G.gap=Math.max(1.6,G.gap*.97);G.spawnAt=G.t+G.gap*(G.boss&&!G.bossDown?TUNE.rage:G.bossDown?TUNE.calm:1)*(G.t>TUNE.tired?1.7:1)*(.8+Math.random()*.4);} /* after 4 minutes the critters get sleepy, so no battle drags on forever */
  if(!G.tiredSaid&&G.t>TUNE.tired){G.tiredSaid=true;fx('tired');}
  if(!G.boss&&G.denHP<=G.denMax*.5){G.boss=true;spawn('boss');G.pets.forEach(p=>{if(p.gone)return;knock(p,12);p.stun=G.t+.8;});fx('boss');} /* the boss's shockwave */
  const pets=G.pets.filter(x=>!x.gone),foes=G.foes.filter(x=>!x.gone);
  G.pets.forEach(u=>{u.fight=false;});G.foes.forEach(f=>{f.fight=false;});
- pets.forEach(u=>{if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx('trollbye');return;}if(u.stun>G.t)return;u.mv=false;const R=u.R;const reach=f=>(!f.fly||R.fly)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
+ pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx('trollbye');return;}if(u.stun>G.t)return;u.mv=false;const R=u.R;const reach=f=>(!f.fly||R.fly)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
   if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];u.fight=true;hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});
    if(Math.random()<.18*dt)knock(hit[0],-(1.5+Math.random()*1.5)*(hit[0].boss?.3:1)); /* now and then a hit shoves the critter back a little */
-   if(u.mega&&G.t>=u.stompAt){u.stompAt=G.t+R.stomp;foes.forEach(f=>{if(Math.abs(u.x-f.x)<=u.rng+4){knock(f,-(f.boss?1.5:4));f.stun=G.t+.5;}});fx('stomp');}}
+   if(u.mega){if(!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+TROLL.life);}if(!u.poundAt&&G.t>=u.stompAt){u.poundAt=G.t+TROLL.wind;u.windT=G.t;}}}
   else if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*dt*(G.bossDown||!G.boss?1:.5)*(G.t>TUNE.tired?1.6:1);}
   else{u.x-=u.spd*.8*dt;u.mv=true;}
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
- foes.forEach(f=>{if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>u.x-f.x>=-1&&u.x-f.x<=f.rng);
+ /* flyers drift over pets that can't reach them (like Battle Cats' floating enemies) and go for the Pet House */
+ foes.forEach(f=>{if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>(!f.fly||u.R.fly)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
   if(tg.length){const u=tg.reduce((a,b)=>b.x<a.x?b:a);u.hp-=f.atk*dt;f.fight=true;if(Math.random()<.18*dt)knock(u,1.5+Math.random()*1.5);if(f.boss&&G.t>=(G.bossShake||0)){G.bossShake=G.t+1.4;fx('bossHit');}}
   else if(HOUSE_X-f.x<=f.rng&&(f.fight=true))G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;
   else{f.x+=f.spd*.8*dt;f.mv=true;}});
@@ -172,7 +197,25 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-ent.hurt .e{filter:brightness(2.4) saturate(.2)}
 .bp2-ent.kb{transition:left .38s cubic-bezier(.2,.7,.3,1)}.bp2-ent.kb .e{animation:bp2arc .42s ease-out}
 @keyframes bp2arc{0%{translate:0 0;rotate:0deg}45%{translate:0 -22px;rotate:-14deg}100%{translate:0 0;rotate:0deg}}
-.bp2-ent.mega .e{font-size:92px}.bp2-ent.mega .hb{width:70px;height:6px}.bp2-ent.mega .hb i{background:#7048e8}
+.bp2-ent.mega .e{font-size:0;line-height:0}.bp2-ent.mega.fight .e{animation:none}.bp2-trollsvg{display:block;overflow:visible}
+.bp2-club{transform:rotate(-24deg)}.bp2-ent.pound .bp2-club{animation:bp2pound .9s ease-in-out}.bp2-ent.mega.pound .e{animation:bp2squash .9s ease-in-out}
+@keyframes bp2pound{0%{transform:rotate(-24deg)}45%{transform:rotate(34deg)}56%{transform:rotate(-102deg)}82%{transform:rotate(-102deg)}100%{transform:rotate(-24deg)}}
+@keyframes bp2squash{0%,100%{translate:0 0;scale:1 1}45%{translate:0 -8px;scale:.98 1.03}58%{translate:0 3px;scale:1.05 .93}70%{translate:0 0;scale:1 1}}
+.bp2-pt.smoke{border-radius:50%;animation:bp2smoke var(--dur,2s) ease-out forwards;z-index:1}
+@keyframes bp2smoke{0%{opacity:0;scale:.45;translate:0 0}15%{opacity:var(--op,.75)}100%{opacity:0;scale:2.3;translate:var(--dx,0px) calc(-1 * var(--rise,120px))}}
+.bp2-pt.ember{width:6px;height:6px;border-radius:50%;background:#ff922b;box-shadow:0 0 6px #ff6b00;animation:bp2smoke 1.2s ease-out forwards;z-index:2}
+.bp2-tc.mega .bp2-trollsvg{margin:0 auto}
+.bp2-gob{display:block;line-height:0}.bp2-gob svg{width:100%;height:auto;display:block;overflow:visible}.bp2-ent.boss .e:has(.bp2-gob){font-size:0}
+.bp2-wave{position:absolute;top:0;bottom:0;width:0;z-index:5;pointer-events:none;display:none}
+.bp2-wave .band{position:absolute;left:-10px;top:0;bottom:0;width:190px;background:linear-gradient(90deg,rgba(255,236,150,.95),rgba(255,190,60,.55) 35%,rgba(255,170,40,0));filter:blur(3px)}
+.bp2-wave .paw{position:absolute;left:-120px;bottom:6%;width:210px;height:210px;filter:drop-shadow(0 0 14px #ffd43b) drop-shadow(0 6px 6px rgba(0,0,0,.35));animation:bp2swipe .18s ease-in-out infinite alternate}
+@keyframes bp2swipe{from{rotate:-14deg;translate:0 -6px}to{rotate:8deg;translate:0 6px}}
+.bp2-blast{position:absolute;inset:0;background:radial-gradient(circle at var(--bx,90%) 70%,rgba(255,255,255,.95),rgba(255,236,150,.6) 30%,rgba(255,255,255,0) 70%);pointer-events:none;z-index:6;animation:bp2blast .5s ease-out forwards}
+@keyframes bp2blast{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+.bp2-ent.cheer .e{animation:bp2cheer .3s ease-in-out 4 alternate !important}@keyframes bp2cheer{from{translate:0 0}to{translate:0 -20px}}
+.bp2-pt.streak{height:5px;width:90px;border-radius:3px;background:linear-gradient(90deg,rgba(255,220,120,.9),rgba(255,220,120,0));animation:bp2streak .45s ease-out forwards}
+@keyframes bp2streak{from{opacity:1;scale:1 1}to{opacity:0;scale:1.6 .4;translate:40px 0}}
+.bp2-pounce-t{font-size:44px !important;color:#ffd43b !important;-webkit-text-stroke:2px #7048e8;letter-spacing:2px}.bp2-ent.mega .hb{width:70px;height:6px}.bp2-ent.mega .hb i{background:#7048e8}
 .bp2-ent.boss .hb{width:64px;height:6px}
 .bp2-pt{position:absolute;bottom:24px;pointer-events:none;transform:translateX(-50%);z-index:3}
 .bp2-pt.dust{width:20px;height:20px;border-radius:50%;background:rgba(150,120,80,.55);animation:bp2dust .65s ease-out forwards}
@@ -206,7 +249,7 @@ function screen(){stopLoop();const p=me();if(!p||!on(p)){go('world');return;}css
 function stageView(p){const pr=prog(p),S=stages();
  app.innerHTML=head('🐾 Battle Pets <small style="font-size:13px;font-weight:600">demo</small>',"go('world')")+`<div class="bp2">
   <div class="bp2-card"><b>How to play:</b> send your pets to knock down the critter den before the critters reach your Pet House. <b>Treats</b> come in by themselves: spend them to send pets, or on the <b>🍳 Treat Kitchen</b> to earn them faster. <b>🐾 Pet Pounce</b> charges up over time. When the critters smash your Pet House below half, tap <b>🧱 Rebuild</b> and answer math: every right answer lays a brick. You have enough bricks to rebuild the whole house twice!<br><small class="muted">Swipe or drag the battlefield to look around. On a computer: 1–5 send pets, T troll, K kitchen, Space pounce, R rebuild, ← → scroll.<br>🧌 <b>Mega: ${TROLL.n} the Troll</b> stomps in when you need him most, but he takes a long time to come back.</small><br><small class="muted">Demo: in the full game each stage is a hidden bonus level you unlock.</small></div>
-  ${S.map(s=>{const done=pr.c[s.id]||0;return `<div class="bp2-card bp2-stage"><span class="e">${s.art}</span><span><b>${esc(s.name)}</b><small>${s.op?OPN[s.op]+' at your level':'Mixed math at your level'} · boss: ${s.boss[1]} ${esc(s.boss[0])}<br>Full game: opens in ${esc(s.where)}</small></span>
+  ${S.map(s=>{const done=pr.c[s.id]||0;return `<div class="bp2-card bp2-stage"><span class="e">${s.art}</span><span><b>${esc(s.name)}</b><small>${s.op?OPN[s.op]+' at your level':'Mixed math at your level'} · boss: the ${esc(s.boss[0])}<br>Full game: opens in ${esc(s.where)}</small></span>
    <span class="bp2-crowns">${[1,2,3].map(c=>`<button class="${done>=c?'done':''}" ${c>done+1?'disabled':''} onclick="BattlePets._pick('${s.id}',${c})">${'👑'.repeat(c)}${done>=c?' ✓':''}</button>`).join('')}</span></div>`;}).join('')}</div></div>`;}
 function pickStage(id,crown){const p=me();if(!p)return;const pr=prog(p);if(crown>(pr.c[id]||0)+1)return;VIEW={k:'team',id,crown};
  const av=available(p).map(x=>x.id);let team=pr.team.filter(x=>av.includes(x)).slice(0,slots(p));
@@ -225,11 +268,11 @@ function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;c
 function fightView(p){const S=G.stage;
  app.innerHTML=head(`${S.art} ${esc(S.name)} ${'👑'.repeat(G.crown)}`,"BattlePets._quit()")+`<div class="bp2 wide">
   <div class="bp2-hud"><span>🏚️</span><div class="bp2-bar"><i id="bpDen" style="background:#e8590c"></i></div><span id="bpT" style="min-width:48px;text-align:center"></span><div class="bp2-bar"><i id="bpHouse" style="background:#40c057"></i></div><span>🏡</span></div>
-  <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">🏚️</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">🏡</span></div></div>
+  <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">🏚️</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">🏡</span><div class="bp2-wave" id="bpWave"><div class="band"></div>${PAW}</div></div></div>
   <div class="bp2-mini" id="bpMini" aria-label="Map of the battlefield: tap to look there"><span class="vw" id="bpVw"></span></div>
   <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button><button class="bp2-btn fix" id="bpFix" onclick="BattlePets._fix()"></button></div>
   <div class="bp2-team six">${G.team.map((s,i)=>`<button class="bp2-tc" id="bpTc${i}" onclick="BattlePets._send(${i})"><span class="pe">${s.pet.e}</span><small>${s.R.e} ${s.R.n}<span class="bp2-key">${i+1}</span></small><small>🍖 ${s.R.cost}</small><span class="cd" id="bpCd${i}"></span></button>`).join('')}
-   <button class="bp2-tc mega" id="bpTroll" onclick="BattlePets._troll()" aria-label="Call ${TROLL.n} the Troll"><span class="pe">${TROLL.e}</span><small>MEGA<span class="bp2-key">T</span></small><small>🍖 ${TROLL.cost}</small><span class="cd" id="bpTrollCd"></span></button></div>
+   <button class="bp2-tc mega" id="bpTroll" onclick="BattlePets._troll()" aria-label="Call ${TROLL.n} the Troll"><span class="pe">${trollArt(46)}</span><small>MEGA<span class="bp2-key">T</span></small><small>🍖 ${TROLL.cost}</small><span class="cd" id="bpTrollCd"></span></button></div>
   <div class="bp2-card bp2-fix" id="bpFixP" style="display:none"><div class="bp2-row" style="justify-content:space-between"><b>🧱 Rebuild the Pet House</b><span class="bp2-bricks" id="bpBricks"></span><button class="btn small ghost dark" onclick="BattlePets._fixDone()">Done <span class="bp2-key">Esc</span></button></div>
    <div class="bp2-q"><span id="bpQ"></span><span class="box" id="bpIn">&nbsp;</span><button class="btn small ghost dark" onclick="BattlePets._say()" aria-label="Read it to me">🔊</button></div><div class="bp2-msg" id="bpMsg"></div>
    <div class="bp2-pad">${['1','2','3','4','5','6','7','8','9','0','.','⌫'].map(k=>`<button onclick="BattlePets._key('${k}')">${k}</button>`).join('')}<button class="go" style="grid-column:1/-1" onclick="BattlePets._key('go')">✓ Check <span class="bp2-key">Enter</span></button></div></div>
@@ -240,7 +283,7 @@ function fightView(p){const S=G.stage;
 /* looking around the wide battlefield: swipe (touch scrolls natively), drag with the mouse, the mouse wheel, the arrow keys or the little map */
 /* the camera glides to where the two sides meet; when the kid looks around by hand it waits 5 seconds, then glides back */
 let CAM_HOLD=0;const holdCam=()=>{CAM_HOLD=performance.now()+5000;};
-function camera(){const sc=document.getElementById('bpScroll');if(!sc||!G||performance.now()<CAM_HOLD)return;const x=frontX();
+function camera(){const sc=document.getElementById('bpScroll');if(!sc||!G)return;if(G.wave){const t=Math.max(0,G.wave.x/100*sc.scrollWidth-sc.clientWidth*.55);sc.scrollLeft+=(t-sc.scrollLeft)*.35;return;}if(performance.now()<CAM_HOLD)return;const x=frontX();
  const tgt=Math.max(0,Math.min(sc.scrollWidth-sc.clientWidth,x/100*sc.scrollWidth-sc.clientWidth/2)),d=tgt-sc.scrollLeft;if(Math.abs(d)>3)sc.scrollLeft+=Math.sign(d)*Math.max(1.5,Math.abs(d)*.07);}
 function frontX(){const P2=G.pets.filter(u=>!u.gone),F=G.foes.filter(f=>!f.gone);const pf=P2.length?Math.min(...P2.map(u=>u.x)):null,ff=F.length?Math.max(...F.map(f=>f.x)):null;
  if(pf!==null&&ff!==null)return (pf+ff)/2;if(pf!==null)return pf;if(ff!==null)return ff;return HOUSE_X;}
@@ -272,14 +315,15 @@ function onKey(e){try{if(typeof curScreen==='undefined'||curScreen!=='bp'||VIEW.
 window.addEventListener('keydown',onKey,true);
 /* draw: one element per unit, moved every frame */
 function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)return;const all=G.pets.concat(G.foes);
- all.forEach(u=>{if(!u.el){u.el=document.createElement('div');u.el.className=`bp2-ent ${u.side==='p'?'pet':'foe'}${u.boss?' boss':''}${u.fly?' fly':''}`;u.el.innerHTML=`<div class="hb"><i></i></div><span class="e">${u.side==='p'?u.pet.e:u.e}</span>${u.side==='c'&&u.trait&&u.trait!=='boss'?`<span class="tag">${u.trait}</span>`:''}`;f.appendChild(u.el);}
+ all.forEach(u=>{if(!u.el){u.el=document.createElement('div');u.el.className=`bp2-ent ${u.side==='p'?'pet':'foe'}${u.boss?' boss':''}${u.fly?' fly':''}`;u.el.innerHTML=`<div class="hb"><i></i></div><span class="e">${u.mega?trollArt(130):u.boss?goblinArt(118):u.side==='p'?u.pet.e:u.e}</span>${u.side==='c'&&u.trait&&u.trait!=='boss'?`<span class="tag">${u.trait}</span>`:''}`;f.appendChild(u.el);}
   if(u.gone){if(!u.dead){u.dead=1;u.el.style.opacity=0;const e=u.el;setTimeout(()=>e.remove(),450);if(!u.left){puff(u.x,'poof');if(Math.random()<.6)puff(u.x+(Math.random()*2-1),'dust');}}return;}
   const now=performance.now();if(u.kbT!==u.kbSeen){u.kbSeen=u.kbT;u.kbUntil=now+420;u.el.classList.remove('kb');void u.el.offsetWidth;u.el.classList.add('kb');puff(u.x,'dust');}
   if(u.kbUntil&&now>u.kbUntil){u.kbUntil=0;u.el.classList.remove('kb');puff(u.x,'dust');}
   if(u.lastHp!==undefined&&u.hp<u.lastHp){u.hurtAcc=(u.hurtAcc||0)+u.lastHp-u.hp;if(u.hurtAcc>u.max*.07){u.hurtAcc=0;u.hurtUntil=now+120;}}u.lastHp=u.hp;u.el.classList.toggle('hurt',(u.hurtUntil||0)>now);
+  if(u.mega&&u.windT!==u.windSeen){u.windSeen=u.windT;u.el.classList.remove('pound');void u.el.offsetWidth;u.el.classList.add('pound');}
   u.el.style.left=u.x+'%';u.el.classList.toggle('walk',!!u.mv&&!u.fight);u.el.classList.toggle('fight',!!u.fight);if(u.mega)u.el.classList.add('mega');u.el.querySelector('.hb i').style.width=Math.max(0,u.hp/u.max*100)+'%';});
  G.pets=G.pets.filter(u=>!(u.gone&&u.dead));G.foes=G.foes.filter(u=>!(u.gone&&u.dead));
- clash();camera();
+ clash();baseSmoke();waveFx();camera();
  {const tb=document.getElementById('bpTroll'),tc=document.getElementById('bpTrollCd');if(tb&&tc){const out=trollOut(),wait=Math.max(0,G.trollAt-G.t),span=G.trolls?TROLL.cd:TROLL.first;
   tc.style.height=(out?100:wait/span*100)+'%';tb.classList.toggle('poor',G.treats<TROLL.cost||out||wait>0);tb.title=out?`${TROLL.n} is stomping!`:wait>0?`${TROLL.n} is coming in ${Math.ceil(wait)} s`:`Call ${TROLL.n}!`;}}
  const q=id=>document.getElementById(id);q('bpDen').style.width=(G.denHP/G.denMax*100)+'%';q('bpHouse').style.width=(G.houseHP/G.houseMax*100)+'%';q('bpT').textContent=Math.floor(G.t)+'s';
@@ -291,9 +335,11 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
  const kb=q('bpKit');kb.textContent=G.kl>=4?'🍳 Kitchen max':`🍳 Kitchen ${G.kl+1}→${G.kl+2} · 🍖${kitchenCost()}`;kb.disabled=G.kl>=4||G.treats<kitchenCost();
  const pb=q('bpPounce');pb.textContent=G.charge>=100?'🐾 POUNCE!':`🐾 ${Math.floor(G.charge)}%`;pb.disabled=G.charge<100;
  G.team.forEach((s,i)=>{const c=q('bpCd'+i),b=q('bpTc'+i);if(!c)return;const left=Math.max(0,s.ready-G.t);c.style.height=(left/s.R.cd*100)+'%';b.classList.toggle('poor',G.treats<s.R.cost);});
- while(G.fx.length){const k=G.fx.shift();try{if(k==='send')tone(440,.1,'square',.03);else if(k==='poof')tone(300,.12,'triangle',.04);else if(k==='pounce'){[523,659,784].forEach((h,j)=>tone(h,.12,'triangle',.06,j*.06));}else if(k==='boss'){shake();tone(110,.6,'sawtooth',.06);toast(`${G.stage.boss[1]} ${G.stage.boss[0]} bursts out!`);}else if(k==='bossdown')toast('The boss is down! Knock over the den!');else if(k==='kitchen')SFX.coin();else if(k==='brick')tone(660,.08,'square',.04);else if(k==='standH'){shake();flash('🏡 LAST STAND! Critters thrown back!');[392,523,659].forEach((h,j)=>tone(h,.15,'square',.06,j*.08));}else if(k==='standD')flash('🏚️ The den shakes your pets back!');else if(k==='tired')toast('😴 The critters are getting sleepy. Push now!');
+ while(G.fx.length){const k=G.fx.shift();try{if(k==='send')tone(440,.1,'square',.03);else if(k==='poof')tone(300,.12,'triangle',.04);else if(k==='pounce'){[392,523,659,784,1047].forEach((h,j)=>tone(h,.14,'triangle',.07,j*.05));tone(90,.5,'sawtooth',.05,.05);shake();flash('🐾 PET POUNCE!',true);
+    const fl=document.getElementById('bpField');if(fl){const b=document.createElement('div');b.className='bp2-blast';b.style.setProperty('--bx',HOUSE_X+'%');fl.appendChild(b);setTimeout(()=>b.remove(),600);}
+    G.pets.forEach(u=>{if(u.el&&!u.gone&&!u.mega){u.el.classList.add('cheer');setTimeout(()=>{try{u.el.classList.remove('cheer');}catch(e){}},1300);}});}else if(k==='boss'){shake();tone(110,.6,'sawtooth',.06);flash(`The ${G.stage.boss[0]} bursts out!`);}else if(k==='bossdown')toast('The boss is down! Knock over the den!');else if(k==='kitchen')SFX.coin();else if(k==='brick')tone(660,.08,'square',.04);else if(k==='standH'){shake();flash('🏡 LAST STAND! Critters thrown back!');[392,523,659].forEach((h,j)=>tone(h,.15,'square',.06,j*.08));}else if(k==='standD')flash('🏚️ The den shakes your pets back!');else if(k==='tired')toast('😴 The critters are getting sleepy. Push now!');
    else if(k==='troll'){shake();flash(`🧌 ${TROLL.n} stomps in!`);tone(70,.5,'sawtooth',.08);tone(55,.6,'square',.05,.2);}
-   else if(k==='stomp'){const t=G.pets.find(u=>u.mega&&!u.gone);if(t){puff(t.x-3,'ring');puff(t.x-4,'dust');puff(t.x-1,'dust');}shake();tone(60,.25,'sine',.12);}
+   else if(k==='stomp'){const t=G.pets.find(u=>u.mega&&!u.gone);if(t){puff(t.x-5,'ring');puff(t.x-6,'dust');puff(t.x-4,'dust');puff(t.x-2,'dust');puff(t.x-5,'star');}shake();tone(60,.25,'sine',.12);}
    else if(k==='trollbye')toast(`🧌 ${TROLL.n} stomps home. He'll be back!`);
    else if(k==='bossHit'){shake();tone(90,.18,'sawtooth',.04);}}catch(e){}}}
 /* effects: little dust clouds, smoke and hit stars, kept to a handful at a time so older iPads stay smooth */
@@ -303,8 +349,25 @@ function puff(x,kind){if(PTS>=36)return;const f=document.getElementById('bpField
  const done=()=>{if(d.parentNode){d.remove();PTS--;}};d.addEventListener('animationend',done);setTimeout(done,900);}
 function clash(){const now=performance.now();if(now<CLASH)return;CLASH=now+170;const fighters=G.pets.concat(G.foes).filter(u=>!u.gone&&u.fight);if(!fighters.length)return;
  const u=fighters[Math.floor(Math.random()*fighters.length)];const x=u.x+(u.side==='p'?-2:2)+(Math.random()*2-1);puff(x,'dust');if(Math.random()<.22)puff(x,'star');}
+/* a hurt base smokes: from 25% damage, more and darker smoke the more it is hurt, with embers near the end */
+let WSEEN=0;
+function waveFx(){const el=document.getElementById('bpWave');if(!el)return;const w=G.wave;el.style.display=w?'block':'none';if(!w)return;el.style.left=w.x+'%';
+ if(Math.random()<.7)puffAny(w.x+1+Math.random()*2,'dust');if(Math.random()<.5){puffAny(w.x+2,'streak',30+Math.random()*120);}
+ G.foes.forEach(f=>{if(f.pawT&&f.pawT!==f.pawSeen&&!f.gone){f.pawSeen=f.pawT;puffAny(f.x,'star',60);puffAny(f.x,'dust');try{tone(520+Math.random()*200,.07,'square',.05);}catch(e){}}});}
+/* effects that must show even when the screen is busy (the pounce) */
+function puffAny(x,kind,y){const f=document.getElementById('bpField');if(!f||PTS>60)return;const d=document.createElement('div');d.className='bp2-pt '+kind;d.style.left=x+'%';if(y!==undefined)d.style.bottom=y+'px';
+ if(kind==='star')d.textContent=Math.random()<.5?'💥':'⭐';if(kind==='dust')d.style.setProperty('--dx',(Math.random()*30)+'px');PTS++;f.appendChild(d);
+ const done=()=>{if(d.parentNode){d.remove();PTS--;}};d.addEventListener('animationend',done);setTimeout(done,900);}
+const SMKT={};let SMKN=0;
+function baseSmoke(){const now=performance.now();[['h',G.houseHP/G.houseMax,HOUSE_X],['d',G.denHP/G.denMax,DEN_X]].forEach(([k,hp,x])=>{const dmg=1-hp;if(dmg<.25||now<(SMKT[k]||0))return;
+ const I=Math.min(1,(dmg-.25)/.7);SMKT[k]=now+1000/(1.2+11*I);smoke(x,I);if(I>.55&&Math.random()<I*.5)smoke(x,I,true);});}
+function smoke(x,I,ember){if(SMKN>=44)return;const f=document.getElementById('bpField');if(!f)return;const d=document.createElement('div'),sz=Math.round(22+30*I*(.7+Math.random()*.6)),g=Math.round(205-150*I);
+ d.className='bp2-pt '+(ember?'ember':'smoke');d.style.left=(x+(Math.random()*3-1.5))+'%';d.style.bottom=(58+Math.random()*30)+'px';
+ if(!ember){d.style.width=d.style.height=sz+'px';d.style.background=`rgb(${g},${g},${g+6})`;d.style.setProperty('--op',(.55+.35*I).toFixed(2));d.style.setProperty('--dur',(1.7+1.1*I).toFixed(2)+'s');}
+ d.style.setProperty('--dx',(Math.random()*60-30)+'px');d.style.setProperty('--rise',Math.round(100+80*I)+'px');SMKN++;f.appendChild(d);
+ const done=()=>{if(d.parentNode){d.remove();SMKN--;}};d.addEventListener('animationend',done);setTimeout(done,3200);}
 function shake(){const sc=document.getElementById('bpScroll');if(!sc)return;sc.classList.remove('shake');void sc.offsetWidth;sc.classList.add('shake');}
-function flash(t){const f=document.getElementById('bpScroll');if(!f)return;const d=document.createElement('div');d.className='bp2-flash';d.textContent=t;d.style.position='fixed';d.style.top='40%';document.body.appendChild(d);setTimeout(()=>d.remove(),1700);}
+function flash(t,big){const f=document.getElementById('bpScroll');if(!f)return;const d=document.createElement('div');d.className='bp2-flash'+(big?' bp2-pounce-t':'');d.textContent=t;d.style.position='fixed';d.style.top='40%';document.body.appendChild(d);setTimeout(()=>d.remove(),1700);}
 let MINI=0;function miniMap(){if(++MINI%4)return;const m=document.getElementById('bpMini'),sc=document.getElementById('bpScroll');if(!m||!sc||!G)return;
  const vw=document.getElementById('bpVw');if(vw){vw.style.left=(sc.scrollLeft/sc.scrollWidth*100)+'%';vw.style.width=(sc.clientWidth/sc.scrollWidth*100)+'%';}
  m.querySelectorAll('i').forEach(x=>x.remove());let h='';G.pets.forEach(u=>{if(!u.gone)h+=`<i class="p" style="left:${u.x}%"></i>`;});G.foes.forEach(f=>{if(!f.gone)h+=`<i class="${f.boss?'b':'c'}" style="left:${f.x}%"></i>`;});m.insertAdjacentHTML('beforeend',h);}
@@ -347,5 +410,5 @@ window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 window.BattlePets={on,stats,stages,
  _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>{if(send(i))draw();},_kit:()=>{if(upgradeKitchen())draw();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();},_key:key,_again:again,_back:backTo,_quit:quit,
  _say:()=>{try{if(G&&G.q)speakToggle(()=>say(speakable(qText(G.q)),.9));}catch(e){}},_sync:syncTile,
- _dbg:{TUNE,CROWN,TROLL,G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
+ _dbg:{TUNE,CROWN,TROLL,petSpd,G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
 })();

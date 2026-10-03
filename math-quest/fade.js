@@ -633,6 +633,7 @@ function goblinSVG(o){o=o||{};const sad=!!o.soft;return `<svg class="fd-goblin" 
 <path d="M52 44 Q58 52 52 56 Q47 54 49 50" fill="#8d8f96" stroke="#4a4c52" stroke-width="2"/>
 <path d="${sad?'M42 62 Q52 67 62 62':'M42 64 Q52 58 62 64'}" stroke="#3b3d42" stroke-width="3" fill="none" stroke-linecap="round"/>
 <path d="M30 26 Q40 14 52 18 Q64 12 74 26" stroke="#7d7f86" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`;}
+window.MQ_GOBLIN_SVG=()=>goblinVillainSVG(); /* Battle Pets uses the same Grey Goblin as the critters' boss */
 /* comic-book villain version of the Grey Goblin for his big entrance: cape, sly grin, thick ink outlines */
 function goblinVillainSVG(){const K='#16151c',W='3.6';return `<svg class="fd-goblin fd-vil" viewBox="0 0 170 190" aria-hidden="true">
 <ellipse cx="85" cy="184" rx="52" ry="6" fill="rgba(0,0,0,.35)"/>

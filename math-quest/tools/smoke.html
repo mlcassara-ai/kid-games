@@ -229,8 +229,10 @@ const tests=[
   {const sc=document.getElementById('bpScroll');sc.scrollLeft=0;D._spawn('basic');const cf=G.foes[G.foes.length-1];cf.x=80;const l0=sc.scrollLeft;for(let i=0;i<5;i++)BattlePets._cam();T.ok(sc.scrollLeft>l0,'the camera did not follow the fight');cf.gone=true;D.step(.05);}
   G.treats=50;G.team.forEach(t=>t.ready=0);const sent0=G.sent;BattlePets._send(0);T.ok(G.sent===sent0+1&&G.pets.filter(u=>!u.gone).length===1,'a pet could not be sent');
   const kl=G.kl;BattlePets._kit();T.ok(G.kl===kl+1,'the Treat Kitchen did not upgrade');
-  G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1,'Pet Pounce did not fire');
-  for(let i=0;i<40;i++)D.step(.05);G.denHP=1;G.pets.forEach(u=>u.x=8);D.step(.1);T.ok(G.boss,'the boss did not come out');G.denHP=0;D.step(.05);T.ok(G.over&&G.win,'the den fell but the battle did not end');
+  {D._spawn('basic');const pf=G.foes[G.foes.length-1];pf.x=50;const ph=pf.hp;G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1&&G.wave,'Pet Pounce did not fire');
+   T.ok(pf.x===50,'the pounce hit a critter before the paw reached it');for(let i=0;i<30&&G.wave;i++)D.step(.05);T.ok(!G.wave&&pf.x<50&&pf.hp<ph,'the pounce paw did not sweep the lane and smack the critter');pf.gone=true;}
+  {const r=G.team[0].R;T.ok(D.petSpd(r,1)>D.petSpd(r,2)&&D.petSpd(r,1)<r.spd,'stronger pets do not walk slower');}
+  for(let i=0;i<40;i++)D.step(.05);G.denHP=1;G.pets.forEach(u=>u.x=8);D.step(.1);T.ok(G.boss,'the boss did not come out');T.ok(G.foes.some(f=>f.boss&&f.name==='Grey Goblin'),'the boss is not the Grey Goblin');G.denHP=0;D.step(.05);T.ok(G.over&&G.win,'the den fell but the battle did not end');
   Music.update();T.ok(Music._state().want===null,'battle music still playing after the battle ended');
   const pet0=G.team[0].pet.id,xp0=petData(P(),pet0).xp;D.finish();await T.wait(50);
   T.ok(P().bp2.c.forest===1&&petData(P(),pet0).xp>xp0&&P().bp.m.length===1&&P().bp.m[0][2]===1,'the win was not saved, or gave no pet XP');

@@ -152,6 +152,7 @@ const TROLL=`<svg class="tr-troll" viewBox="0 0 420 540" preserveAspectRatio="xM
  <g class="tr-mclosed"><path d="M150 200 Q210 220 272 198" stroke="#2a3016" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M162 204 L168 180 L176 206Z" fill="#f2ead0"/><path d="M252 204 L258 178 L264 202Z" fill="#f2ead0"/></g>
  <g class="tr-mopen"><path d="M150 196 Q210 250 272 196 Q210 214 150 196Z" fill="#3a0d0d" stroke="#2a3016" stroke-width="4"/><path d="M162 200 L168 176 L176 204Z" fill="#f2ead0"/><path d="M252 202 L258 174 L264 200Z" fill="#f2ead0"/><path d="M196 226 Q210 236 226 226 Q212 222 196 226Z" fill="#c0392b"/></g>
 </g></svg>`;
+window.MQ_TROLL_SVG=TROLL; /* Battle Pets draws the same Grumbleroot as its mega */
 const CAVE=`<svg class="tr-cave" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice"><defs><radialGradient id="trGlow" cx="50%" cy="60%" r="65%"><stop offset="0" stop-color="#3b2f4a"/><stop offset=".6" stop-color="#1a1224"/><stop offset="1" stop-color="#07040c"/></radialGradient></defs>
 <rect width="800" height="500" fill="url(#trGlow)"/>
 <path d="M0 0 H800 V60 L760 40 L740 110 L715 45 L680 70 L660 30 L620 90 L600 40 L560 60 L540 20 L500 80 L470 35 L430 60 L400 25 L360 95 L330 40 L300 70 L270 30 L240 85 L210 40 L170 70 L140 30 L110 100 L80 45 L50 70 L20 35 L0 60Z" fill="#0d0912"/>
