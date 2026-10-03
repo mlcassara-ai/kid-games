@@ -117,7 +117,7 @@ const BOT = n => {
     const t0 = S.treasures || 0; startTrip(lakeById("dixon"), 0, "dock", true); const c = makeSnag("chest", trip.hook.x, 0); c.y = trip.hook.y; trip.snags = [c]; trip.phase = "drop"; checkSnags(trip, trip.hook);
     trip.hook.y = 2; trip.phase = "reel"; for (let i = 0; i < 40 && trip; i++) updateFishing(1/30);
     out.chest = S.treasures === t0 + 1; $("modal").classList.remove("show");
-    showScreen("dex"); out.dex = document.querySelectorAll("#legGrid .dexcell").length === 6;
+    showScreen("dex"); out.dex = document.querySelectorAll("#legGrid .dexcell").length === LAKES.length;
     trip = null; visit = null; showScreen("title");
     return out;
   });
@@ -188,7 +188,7 @@ const BOT = n => {
     document.getElementById("llRep").value = "The boat is upside down"; document.getElementById("llRepOk").click();
     const rp = (LL.player().reports || [])[0]; out.report = !!rp && rp.m.includes("upside") && !!rp.v; document.getElementById("llRepDone").click();
     out.bug = getComputedStyle($("btnBug")).display !== "none";
-    showScreen("map"); out.pins = document.querySelectorAll("#lakeMap .pin").length === 6 && $("lakeMap").getBoundingClientRect().height > 100; showScreen("title");
+    showScreen("map"); out.pins = document.querySelectorAll("#lakeMap .pin").length === LAKES.length && $("lakeMap").getBoundingClientRect().height > 100; showScreen("title");
     return out;
   });
   ok(r4.band, "a catfish won't follow the bait up out of its depth (stopped at " + r4.topFt + " ft)");
@@ -243,7 +243,7 @@ const BOT = n => {
     S.wild.t = 0; S.wild.nextBig = 15 * 60; trip.wild = null; trip.phase = "ready"; let fired = 0;
     for (let i = 0; i < 30 * 60 * 30 / 10; i++){ updateWild(trip, 10/30); if (trip.wild && trip.wild.mode !== "see"){ fired++; trip.wild = null; } else if (trip.wild) trip.wild = null; }
     out.rate = fired;
-    trip = null; visit = null; showScreen("dex"); out.album = document.querySelectorAll("#wildGrid .dexcell").length === 6; showScreen("title");
+    trip = null; visit = null; showScreen("dex"); out.album = document.querySelectorAll("#wildGrid .dexcell").length === WILD_ORDER.length; showScreen("title");
     return out;
   });
   ok(r5.saved, "tapping fast scares the osprey off and keeps the fish");
@@ -318,6 +318,47 @@ const BOT = n => {
   await b.click("#llNoteRead"); await b.waitForTimeout(400);
   ok(!!JSON.parse(STORE.get(mid)).msgs[0].readBy[ana], "tapping it records that the player saw it");
   ok(!(await b.$("#llNoteRead")), "it doesn't show again");
+
+  console.log("The ocean");
+  const r7 = await a.evaluate(async () => {
+    const out = {}, bak = JSON.stringify(S), O = lakeById("ocean");
+    out.unlock = normalizeSave(Object.assign(JSON.parse(bak), { bosses:{ otay:true }, lakes:["dixon"] })).lakes.includes("ocean");
+    S.lakes = S.lakes.concat("ocean"); S.saltRod = false; S.coins = 1000; trip = null; visit = null;
+    startVisit(O, "dock"); out.gate = !trip && $("modalBox").textContent.includes("Saltwater Rod"); $("modal").classList.remove("show");
+    showScreen("shop"); const buy = [...document.querySelectorAll("#shopList button")].find(b => b.textContent === "🪙" + SALT_ROD_COST); if (buy) buy.click();
+    out.rod = S.saltRod && S.coins === 100;
+    S.baits = S.baits.concat(["worm", "squid"]); S.baitCount.worm = 5; S.baitCount.squid = 5; S.bait = "worm"; S.boatOwn = 2;
+    startVisit(O, "dock");
+    out.pier = trip && trip.bottom === O.pierDepth * PPF && trip.bait === "spinner" && anglerBase(trip).feet < -40;
+    uiSheet = "bait"; renderBaitBar(); const bar = $("baitBar").textContent; out.baits = bar.includes("Squid") && !bar.includes("Worm");
+    let boatFish = 0; for (let i = 0; i < 300; i++) if (spawnFishFor(O, 300, null, false).sp.boatOnly) boatFish++; out.pierOnly = boatFish === 0;
+    await new Promise(r => setTimeout(r, 200));
+    out.charterCost = rentCost(O) === O.boat;
+    S.coins = 500; toggleBoat(); boatFish = 0; for (let i = 0; i < 400; i++) if (spawnFishFor(O, 300, null, false).sp.boatOnly) boatFish++;
+    out.charter = trip.mode === "boat" && S.coins === 500 - O.boat && boatFish > 0;
+    await new Promise(r => setTimeout(r, 200));
+    let painted = true; try { for (const id of OCEAN_DEX.concat("giantsea")) for (let k = 0; k < 5; k++) fishSprite(SPECIES[id], 90, k); fishSprite(legendSp("ocean"), 120, 2); } catch (e) { painted = false; }
+    out.painted = painted;
+    const f = makeFish("mackerel", 6 * PPF); trip.fish.push(f); trip.phase = "reel"; trip.hook.y = 6 * PPF; hookFish(f); trip.fight = null; trip.phase = "reel"; if (!trip.caught.length) landFish(f);
+    startRaid(trip, "sealion", f); out.sealion = trip.wild.need > 8 && !!S.wild.seen.sealion;
+    for (let i = 0; i < 120 && trip.wild && trip.wild.stage !== "flee"; i++) updateWild(trip, 1/30);
+    leaveLake(); visit = null;
+    startTrip(lakeById("dixon"), 0, "dock", true); uiSheet = "bait"; renderBaitBar(); out.lakeBaits = !$("baitBar").textContent.includes("Squid");
+    trip = null; showScreen("dex"); out.dex = $("oceanDex").style.display !== "none" && document.querySelectorAll("#oceanGrid .dexcell").length === OCEAN_DEX.length;
+    Object.keys(S).forEach(k => delete S[k]); Object.assign(S, JSON.parse(bak)); showScreen("title");
+    return out;
+  });
+  ok(r7.unlock, "beating Otay's boss opens the ocean (old saves too)");
+  ok(r7.gate, "the ocean needs a Saltwater Rod & Reel first");
+  ok(r7.rod, "the rod is sold in the Tackle Shop for " + 900);
+  ok(r7.pier, "the pier is its own depth, up high, and lake bait stays home");
+  ok(r7.baits, "only ocean bait shows at the ocean");
+  ok(r7.pierOnly, "yellowtail and white seabass never come to the pier");
+  ok(r7.charterCost && r7.charter, "the charter costs " + 120 + " even with your own boat, and brings the offshore fish");
+  ok(r7.painted, "every ocean fish can be drawn");
+  ok(r7.sealion, "a sea lion raid needs more taps");
+  ok(r7.lakeBaits, "ocean bait doesn't show at the lakes");
+  ok(r7.dex, "the Fishdex has an ocean section");
 
   console.log("Prizes");
   // device a (Ben signed in): a parent sets a prize for Ana; device b (Ana signed in) must get it, and earn it

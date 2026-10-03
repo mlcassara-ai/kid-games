@@ -40,6 +40,7 @@ A browser fishing game for kids ages 8–12, set in real San Diego County lakes.
 - **Pearl's jobs and the Fish of the Day.** Pearl at the bait shop has 3 jobs every day; finish all 3 for a mystery gift. One kind of fish is the Fish of the Day and pays double.
 - **Prizes.** The prize ladder in the Lodge pays coins and unlocks things you can't buy (a pirate hat, a rainbow rod, hot-rod flames for your boat, a diamond rod and more) for goals like 10 kinds of fish, all Night Legends or 1,000 fish landed. Grown-ups can add their own **prizes from home** in the Parent Corner ("Catch all 6 Night Legends → pizza night"); the game celebrates when one is earned. Tap **🖨️ Certificate** on a catch (or on a fish on your wall) for a printable Certificate of Catch.
 - **The Lodge.** Mount your best catches on your cabin wall, check your records, see who holds the family record for each fish, and play the **Family Derby**: a new contest every week (biggest bass, most fish, heaviest catfish...). The winner gets 100 coins.
+- **The ocean: Oceanside Pier.** Beat the Lower Otay boss and the ocean opens up, but it's a big step. You need a 🌊 **Saltwater Rod & Reel** (900 coins) before you can fish there, and lake bait stays home: buy ocean bait (live anchovies, squid strips, sand crabs, a sabiki rig, an iron jig). Ocean fish are pickier, and the big ones (halibut, bonito, leopard sharks, bat rays, guitarfish) fight hard. Fish free from the tall pier (32 ft of water, with kelp, a current that pushes your bait, and mussel-covered pilings), or book a 🛥️ **charter boat** (120 coins a trip, even if you own a boat) for the deep water, the only place to catch yellowtail and white seabass. Keep 16 fish in one day and catch 9 different kinds there to meet **Big Gus**, a giant sea bass (catch, photo, release). At night look for **Moonray**, the glowing bat ray. Brown pelicans dive, sea lions try to steal your fish (they take 11 fast taps to scare off), and dolphins and gulls go by. The ocean has its own section in the Fishdex, and the prize ladder has a sailor hat (7 kinds of ocean fish) and Big Wave boat paint (all 14).
 
 ## The fish
 There are 14 real species found in San Diego County lakes: bluegill, green sunfish, redear sunfish, black crappie, white crappie, rainbow trout, largemouth bass, smallmouth bass, channel catfish, blue catfish, white catfish, bullhead, common carp and sturgeon.
@@ -47,7 +48,9 @@ There are 14 real species found in San Diego County lakes: bluegill, green sunfi
 There's also one legend: **Dottie**, the real giant largemouth bass from Dixon Lake.
 
 ## The lakes
-Dixon Lake, Lake Poway, Lake Jennings, Lake Cuyamaca, El Capitan and Lower Otay.
+Dixon Lake, Lake Poway, Lake Jennings, Lake Cuyamaca, El Capitan and Lower Otay, then the ocean at Oceanside Pier.
+
+Ocean fish (14): Pacific sardine, topsmelt, Pacific mackerel, yellowfin croaker, opaleye, barred sand bass, kelp bass, California halibut, Pacific bonito, leopard shark, bat ray, shovelnose guitarfish, and from the charter boat only, yellowtail and white seabass. The ocean rules (sizes and daily limits) are simplified from California's ocean rules.
 
 Which fish live in which lake is simplified for the game. It's based on the City of San Diego reservoir species list, San Diego Tourism Authority and Wikipedia.
 

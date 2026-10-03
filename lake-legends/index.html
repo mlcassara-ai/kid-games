@@ -274,6 +274,7 @@
     <div class="topbar"><span class="coins" id="dexCount">0/15</span><button class="btn blue small" data-go="map">⬅ Lakes</button></div>
     <h2>Fishdex</h2>
     <div class="dexgrid" id="dexGrid"></div>
+    <div id="oceanDex" style="display:none"><div class="sech" id="oceanHead">🌊 Ocean Fishdex</div><div class="dexgrid" id="oceanGrid"></div></div>
     <div class="sech">🏆 Boss Trophies</div>
     <div class="dexgrid" id="bossGrid"></div>
     <div class="sech">🌙 Night Legends</div>
@@ -303,8 +304,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.03k";</script>
-<script src="ll-core.js?v=2026.10.03k"></script>
+<script>window.LL_VER="2026.10.03l";</script>
+<script src="ll-core.js?v=2026.10.03l"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -361,6 +362,54 @@ const SPECIES = {
     min:27, max:29, k:1000, rar:0, d:[.42,.66], val:150, str:2.3, fixedLb:21.7,
     facts:["Dottie was a REAL giant largemouth bass that lived in Dixon Lake in Escondido.","Anglers caught and released her several times. In 2003 she weighed 21 lb 11 oz!","In 2006 she weighed about 25 pounds, but she was hooked by accident in the side, so it didn't count as a record.","She's one of the most famous bass in the world."] }
 };
+// ---- Ocean fish (Oceanside Pier and the charter boat) ----
+Object.assign(SPECIES, {
+  mackerel:  { name:"Pacific Mackerel", shape:"trout", body:"#3f7a8a", belly:"#eef2ee", fin:"#5a7a7a", mark:"waves", markC:"rgba(10,40,45,.75)", ocean:true,
+    min:8, max:16, k:2500, rar:9, d:[.02,.32], val:4, str:.9,
+    facts:["Mackerel swim in big fast schools near the surface.","Look for the wavy dark lines on its back.","Lots of anglers catch mackerel first, then use them as bait for bigger fish!"] },
+  sardine:   { name:"Pacific Sardine", shape:"trout", body:"#4a6f8a", belly:"#f2f4f6", fin:"#7a8a9a", mark:"dots", markC:"rgba(20,30,45,.7)", ocean:true,
+    min:5, max:9, k:2600, rar:8, d:[0,.25], val:2, str:.6,
+    facts:["Sardines are small silver fish that travel in giant schools.","A whole row of dark spots runs along each side.","Almost every big fish in the ocean eats sardines."] },
+  topsmelt:  { name:"Topsmelt", shape:"trout", body:"#7a9a8a", belly:"#f4f6f2", fin:"#9aaaa0", mark:"stripe", markC:"rgba(230,240,245,.9)", ocean:true,
+    min:6, max:12, k:3200, rar:7, d:[0,.18], val:2, str:.6,
+    facts:["Topsmelt cruise right under the surface by piers.","A shiny silver stripe runs down each side.","They're a tiny fish with a big appetite for tiny shrimp."] },
+  croaker:   { name:"Yellowfin Croaker", shape:"carp", body:"#b9b39a", belly:"#f2ead2", fin:"#e6c23a", mark:"streaks", markC:"rgba(90,80,50,.35)", ocean:true,
+    min:7, max:14, k:1600, rar:6, d:[.04,.36], val:5, str:.9,
+    facts:["Croakers really croak! They drum a muscle against their swim bladder.","Look for the yellow fins.","They hunt along sandy beaches right in the surf."] },
+  opaleye:   { name:"Opaleye", shape:"sun", tall:.46, body:"#3f5a3a", belly:"#7a8a6a", fin:"#3a4a32", mark:"spots2", markC:"rgba(235,240,230,.85)", eye:"#3a8ad0", ocean:true,
+    min:8, max:16, k:1100, rar:4, d:[.05,.4], val:7, str:1.1,
+    facts:["Opaleye have bright opal-blue eyes.","Most have one or two white spots on their back.","They nibble seaweed off the pier pilings."] },
+  sandbass:  { name:"Barred Sand Bass", shape:"bass", body:"#8a8a7a", belly:"#e8e2d0", fin:"#7a7a6a", mark:"bars", markC:"rgba(40,40,30,.55)", ocean:true,
+    min:10, max:24, k:1500, rar:6, d:[.14,.6], val:9, str:1.2,
+    facts:["Sand bass gather over sandy flats near reefs in summer.","Count the dark bars on its side.","It's a cousin of the kelp bass and the giant sea bass."] },
+  kelpbass:  { name:"Kelp Bass", shape:"bass", body:"#6a6a42", belly:"#d8d2a8", fin:"#5a5a38", mark:"calico", markC:"rgba(240,236,210,.8)", ocean:true,
+    min:10, max:24, k:1450, rar:5, d:[.08,.55], val:10, str:1.3,
+    facts:["Its nickname is \"calico bass\" because of its pale blotches.","It lives in kelp forests and around pier pilings.","Kelp bass can live more than 30 years!"] },
+  halibut:   { name:"California Halibut", shape:"flat", body:"#7a6a4a", belly:"#f2ece0", fin:"#8a7a5a", mark:"mottle", markC:"rgba(60,45,25,.45)", ocean:true,
+    min:14, max:48, k:2400, rar:3, d:[.24,1], val:18, str:1.6, fighter:true,
+    facts:["A halibut is born looking like a normal fish. Then one eye moves over to the other side!","It lies flat on the sand and ambushes fish swimming by.","The biggest ones weigh more than 50 pounds."] },
+  bonito:    { name:"Pacific Bonito", shape:"trout", body:"#2f4a6a", belly:"#eef0f4", fin:"#4a5a6a", mark:"stripes", markC:"rgba(15,25,40,.7)", ocean:true,
+    min:14, max:30, k:2300, rar:3, d:[.02,.5], val:14, str:1.7, fighter:true,
+    facts:["Bonito are small cousins of tuna, built for speed.","Dark stripes slant across its back.","When a school is feeding, the water boils with fish!"] },
+  leopard:   { name:"Leopard Shark", shape:"shark", body:"#8a8270", belly:"#ece6d6", fin:"#7a7262", mark:"leopard", markC:"rgba(40,32,20,.75)", ocean:true,
+    min:24, max:60, k:5500, rar:2.5, d:[.3,1], val:22, str:1.9, fighter:true,
+    facts:["Leopard sharks are gentle and don't hurt people.","Their dark saddles and spots look like a leopard's.","Thousands gather in the shallows of La Jolla every summer."] },
+  batray:    { name:"Bat Ray", shape:"ray", body:"#4a4a3e", belly:"#e8e6e0", fin:"#3e3e34", ocean:true,
+    min:18, max:50, k:1500, rar:2.5, d:[.6,1], val:20, str:2.0, fighter:true,
+    facts:["Bat rays \"fly\" through the water flapping their wings.","They dig up clams and crabs from the sand.","Its size is measured across the wings, from tip to tip."] },
+  guitarfish:{ name:"Shovelnose Guitarfish", shape:"guitar", body:"#9a8a6a", belly:"#efe8d8", fin:"#8a7a5a", ocean:true,
+    min:20, max:48, k:3000, rar:3, d:[.55,1], val:14, str:1.5, fighter:true,
+    facts:["It's a ray that looks a bit like a shark.","Seen from above, its body is shaped like a guitar!","It glides along sandy bottoms eating crabs and worms."] },
+  yellowtail:{ name:"Yellowtail", shape:"trout", body:"#3a5a7a", belly:"#eef0f2", fin:"#e8c83a", mark:"ystripe", markC:"rgba(240,200,50,.9)", ocean:true, boatOnly:true,
+    min:20, max:48, k:1300, rar:1.6, d:[.1,.7], val:30, str:2.4, fighter:true,
+    facts:["Yellowtail are some of the hardest-fighting fish in California.","A bright yellow stripe runs from nose to tail.","Sportfishing boats from San Diego chase them every summer."] },
+  wsb:       { name:"White Seabass", shape:"carp", body:"#8a96a6", belly:"#eef0f2", fin:"#7a8696", ocean:true, boatOnly:true,
+    min:24, max:60, k:1800, rar:1, d:[.3,.9], val:34, str:2.3, fighter:true,
+    facts:["It's actually a giant croaker, not a true seabass.","California raises young white seabass and releases them to help them come back.","Big ones weigh over 50 pounds."] },
+  giantsea:  { name:"Giant Sea Bass", shape:"bass", body:"#3a3e44", belly:"#9aa0a6", fin:"#33373c", mark:"dots", markC:"rgba(10,10,12,.7)", ocean:true,
+    min:40, max:90, k:900, rar:0, d:[.7,1], val:60, str:3, facts:["Giant sea bass can weigh over 500 pounds and live 75 years.","They're protected in California: catch, photo, release."] }
+});
+const OCEAN_DEX = ["sardine","topsmelt","mackerel","croaker","opaleye","sandbass","kelpbass","halibut","bonito","leopard","batray","guitarfish","yellowtail","wsb"];
 const DEX_ORDER = ["bluegill","greensun","redear","bcrappie","wcrappie","trout","largemouth","smallmouth","channel","bluecat","whitecat","bullhead","carp","sturgeon","dottie"];
 
 const LAKES = [
@@ -375,7 +424,10 @@ const LAKES = [
   { id:"elcap", boat:15, name:"El Capitan", town:"Lakeside", depth:150, cost:400, water:["#3f98bd","#081f33"], hills:"#a58a5a",
     blurb:"Deep, deep water. Blue catfish lurk at the bottom.", fish:["bluegill","greensun","largemouth","wcrappie","bullhead","carp","bluecat"], rare:["channel","redear"] },
   { id:"otay", boat:15, name:"Lower Otay", town:"Chula Vista", depth:120, cost:600, water:["#4a9fb8","#0a2a40"], hills:"#b09a6a",
-    blurb:"Famous for giant blue cats, plus the whole sunfish family.", fish:["bluegill","redear","bcrappie","wcrappie","largemouth","whitecat","bullhead","bluecat"], rare:["greensun","carp"] }
+    blurb:"Famous for giant blue cats, plus the whole sunfish family.", fish:["bluegill","redear","bcrappie","wcrappie","largemouth","whitecat","bullhead","bluecat"], rare:["greensun","carp"] },
+  { id:"ocean", ocean:true, boat:120, name:"Oceanside Pier", town:"Oceanside", depth:90, pierDepth:32, cost:0, water:["#3a9ec0","#082a44"], hills:"#c9b07a",
+    blurb:"Saltwater! Mackerel, halibut, sharks and rays. Fish from the pier, or take the charter boat out to deep water.",
+    fish:["sardine","topsmelt","mackerel","croaker","opaleye","sandbass","kelpbass","halibut","bonito","leopard","batray","guitarfish"], boatFish:["yellowtail","wsb"], rare:["opaleye","guitarfish"] }
 ];
 const lakeById = id => LAKES.find(l => l.id === id);
 
@@ -392,8 +444,19 @@ const BAITS = {
   corn:   { name:"Dough Balls",     icon:"🌽", cost:0, boss:"jennings", desc:"Sweet corn dough. Carp gobble it up. It stays on the hook." },
   crawler:{ name:"Nightcrawler Rig",icon:"🪨", cost:30, soft:true, pack:10, lose:.35, boss:"cuyamaca", desc:"Live bait! A fat nightcrawler on a sinker, right on the bottom. Sturgeon and big catfish love it. 50/50 chance a fish eats it. A box of 10." }
 };
-const BAIT_ORDER = ["spinner","bread","worm","dough","crank","swim","stink","corn","crawler"];
+Object.assign(BAITS, {
+  anchovy: { name:"Live Anchovies", icon:"🐟", cost:40, soft:true, pack:12, lose:.5, salt:true, desc:"Live bait for the ocean. Almost everything eats an anchovy. A scoop of 12." },
+  squid:   { name:"Squid Strips", icon:"🦑", cost:25, soft:true, pack:20, lose:.35, salt:true, desc:"Squid stays on the hook well. Rays, sharks and croakers love it. A pack of 20." },
+  sandcrab:{ name:"Sand Crabs", icon:"🦀", cost:15, soft:true, pack:10, lose:.5, salt:true, desc:"Dug from the beach. Croakers and guitarfish go crazy for them. A bucket of 10." },
+  sabiki:  { name:"Sabiki Rig", icon:"🎏", cost:60, salt:true, desc:"A string of tiny shiny flies. Catches mackerel, sardines and smelt." },
+  ironjig: { name:"Iron Jig", icon:"🗡️", cost:250, salt:true, desc:"A heavy metal lure you crank fast. Bonito and yellowtail chase it down." },
+  goldjig: { name:"Golden Jig", icon:"🌟", cost:0, salt:true, boss:"ocean", desc:"Big Gus's prize. Every big ocean fish wants to bite it." }
+});
+const BAIT_ORDER = ["spinner","bread","worm","dough","crank","swim","stink","corn","crawler","anchovy","squid","sandcrab","sabiki","ironjig","goldjig"];
+const FRESH_ONLY = ["bread","worm","dough","stink","corn","crawler"];      // these stay home when you go to the ocean
 // live baits (worms, nightcrawlers) come in packs and have a 50/50 chance of getting eaten; everything else stays on the hook
+// salt baits only work at the ocean; worms, bread and the rest stay home
+function baitHere(k, L){ const b = BAITS[k]; if (!b || !L || k === "bare") return true; return L.ocean ? !FRESH_ONLY.includes(k) : !b.salt; }
 function baitUnlocked(k){ const b = BAITS[k]; return !b.boss || S.baits.includes(k) || !!S.bosses[b.boss]; }
 function baitLeft(k){ return BAITS[k].soft ? (S.baitCount[k] || 0) : (k === "bare" || S.baits.includes(k) ? Infinity : 0); }
 function takeBait(k){
@@ -418,11 +481,18 @@ const BITE = {
   channel:{bread:.15,worm:.5,stink:.95,crawler:.7,dough:.2,corn:.3}, bluecat:{worm:.15,stink:.75,crawler:.8},
   whitecat:{worm:.5,stink:.9,crawler:.6},           bullhead:{bread:.3,worm:.7,stink:.8,crawler:.5},
   carp:{bread:.6,worm:.25,corn:.95,dough:.5,crawler:.2},     sturgeon:{worm:.05,stink:.15,crawler:.8},
-  dottie:{crank:.6,swim:1,worm:.25,crawler:.2}
+  dottie:{crank:.6,swim:1,worm:.25,crawler:.2},
+  // ocean fish are pickier: the right bait matters
+  mackerel:{sabiki:.8,anchovy:.6,squid:.45,ironjig:.3,spinner:.35,goldjig:.6}, sardine:{sabiki:.75,anchovy:.1}, topsmelt:{sabiki:.65,squid:.2},
+  croaker:{sandcrab:.75,squid:.45,anchovy:.25}, opaleye:{squid:.25,sandcrab:.3},
+  sandbass:{anchovy:.6,squid:.4,swim:.45,ironjig:.3,crank:.25,goldjig:.7}, kelpbass:{anchovy:.6,swim:.55,squid:.35,crank:.3,goldjig:.7},
+  halibut:{anchovy:.5,swim:.45,squid:.2,goldjig:.6}, bonito:{ironjig:.55,anchovy:.5,spinner:.15,goldjig:.7},
+  leopard:{squid:.45,anchovy:.35,sandcrab:.15,goldjig:.5}, batray:{squid:.5,sandcrab:.45,anchovy:.15}, guitarfish:{sandcrab:.5,squid:.45},
+  yellowtail:{ironjig:.5,anchovy:.5,squid:.25,goldjig:.7}, wsb:{squid:.45,anchovy:.4,goldjig:.6}
 };
 function biteChance(f, bait){
   let c = (BITE[f.id] || {})[bait] || 0;
-  if (f.trophy && !["crank","swim","stink","crawler"].includes(bait)) c *= .4;   // big fish want a real meal
+  if (f.trophy && !["crank","swim","stink","crawler","anchovy","squid","ironjig","goldjig"].includes(bait)) c *= .4;   // big fish want a real meal
   return c;
 }
 function bestBaits(id){
@@ -432,7 +502,7 @@ function bestBaits(id){
 // ---- Real fishing rules (California statewide + local lake rules) ----
 // Statewide (CA DFW): bass 5/day, 12" min in lakes; trout 5/day; sunfish + crappie 25/day combined;
 // catfish 5/day in San Diego County; bullhead & carp no limit; white sturgeon catch-and-release only.
-const GROUP_NAMES = { bass:"bass", trout:"trout", panfish:"sunfish & crappie", catfish:"catfish", bluegill:"bluegill", sunfish:"sunfish" };
+const GROUP_NAMES = { seabass:"kelp & sand bass", bass:"bass", trout:"trout", panfish:"sunfish & crappie", catfish:"catfish", bluegill:"bluegill", sunfish:"sunfish" };
 const STATE_RULES = {
   largemouth:{ min:12, bag:5, group:"bass" },  smallmouth:{ min:12, bag:5, group:"bass" },
   trout:{ bag:5, group:"trout" },
@@ -440,6 +510,10 @@ const STATE_RULES = {
   bcrappie:{ bag:25, group:"panfish" }, wcrappie:{ bag:25, group:"panfish" },
   channel:{ bag:5, group:"catfish" }, bluecat:{ bag:5, group:"catfish" }, whitecat:{ bag:5, group:"catfish" },
   bullhead:{}, carp:{},
+  sandbass:{ min:14, bag:5, group:"seabass" }, kelpbass:{ min:14, bag:5, group:"seabass" }, halibut:{ min:22, bag:5, group:"halibut" },
+  leopard:{ min:36, bag:3, group:"leopard" }, wsb:{ min:28, bag:3, group:"wsb" }, bonito:{ bag:10, group:"bonito" }, yellowtail:{ bag:10, group:"yellowtail" },
+  mackerel:{ bag:10, group:"mackerel" }, sardine:{ bag:10, group:"sardine" }, topsmelt:{ bag:10, group:"topsmelt" }, croaker:{ bag:10, group:"croaker" },
+  opaleye:{ bag:10, group:"opaleye" }, batray:{ bag:10, group:"batray" }, guitarfish:{ bag:10, group:"guitarfish" },
   sturgeon:{ release:true, note:"Sturgeon are catch-and-release only in California." }
 };
 const LAKE_RULES = {
@@ -451,7 +525,7 @@ const LAKE_RULES = {
   elcap:    { bcrappie:{ min:10, bag:25, group:"panfish" }, wcrappie:{ min:10, bag:25, group:"panfish" } }
 };
 // the game's "day": catch this many keepers in one day and the boss shows up
-const DAY_LIMIT = { dixon:7, poway:9, jennings:10, cuyamaca:10, elcap:12, otay:14 };
+const DAY_LIMIT = { dixon:7, poway:9, jennings:10, cuyamaca:10, elcap:12, otay:14, ocean:16 };
 // the boss only comes out once you've caught enough different kinds of fish at that lake
 const kindsNeed = L => Math.min(3 + LAKES.indexOf(L), L.fish.filter(id => !SPECIES[id].legend).length);
 const kindsAt = L => Object.keys((S.lakeDex || {})[L.id] || {}).length;
@@ -472,7 +546,8 @@ function verdict(lakeId, f){
 function lakeInfoHtml(L){
   const bd = BOSSES[L.id];
   return `<h3>${L.name}</h3><p>${L.blurb}</p><div class="muted">${L.town} · ${L.depth} ft deep</div>
-    <p>🪵 <b>Dock:</b> free, shallow, small fish<br>🚣 <b>Boat:</b> ${rentCost(L) ? "🪙" + rentCost(L) : "your own boat"}, the whole lake<br>⚔️ <b>Boss:</b> keep ${DAY_LIMIT[L.id]} fish in one day and catch ${kindsNeed(L)} kinds of fish here to meet ${bd.name}</p>` + rulesHtml(L);
+    <p>${L.ocean ? `🎣 <b>You need:</b> a Saltwater Rod & Reel (🪙${SALT_ROD_COST}) and ocean bait<br>🪵 <b>Pier:</b> free, ${L.pierDepth} ft deep<br>🛥️ <b>Charter boat:</b> 🪙${L.boat} a trip, deep water, the only place for ${L.boatFish.map(id => SPECIES[id].name).join(" and ")}<br>`
+      : `🪵 <b>Dock:</b> free, shallow, small fish<br>🚣 <b>Boat:</b> ${rentCost(L) ? "🪙" + rentCost(L) : "your own boat"}, the whole lake<br>`}⚔️ <b>Boss:</b> keep ${DAY_LIMIT[L.id]} fish in one day and catch ${kindsNeed(L)} kinds of fish here to meet ${bd.name}</p>` + rulesHtml(L);
 }
 function rulesHtml(L){
   const lines = [];
@@ -493,7 +568,7 @@ function rulesHtml(L){
   });
   return `<h4 style="margin:.6em 0 0">📋 Rules</h4>
     <ul style="text-align:left">${lines.join("")}</ul>
-    <div class="muted">Based on California fishing rules. Always check the sign at the real lake!</div>`;
+    <div class="muted">${L.ocean ? "Based on California ocean rules, made simpler. You don't need a fishing license on a public pier, but you do on a boat. Always check the posted rules!" : "Based on California fishing rules. Always check the sign at the real lake!"}</div>`;
 }
 
 // ---- Boss fish (one per lake) ----
@@ -515,7 +590,10 @@ const BOSSES = {
               intro:"The biggest blue catfish anyone at El Capitan has ever seen." },
   otay:     { name:"The Otay Titan", fee:120, base:"bluecat", inches:64, lb:105, need:280, str:3.0, stages:5, reward:{champ:true},
               bite:{stink:.9, crawler:.9, worm:.15}, likes:"the stinkiest bait you've got",
-              intro:"The final boss. A blue catfish so huge it's more legend than fish." }
+              intro:"The biggest boss of the lakes. A blue catfish so huge it's more legend than fish." },
+  ocean:    { name:"Big Gus", fee:200, base:"giantsea", inches:78, lb:380, need:400, str:3.2, stages:5, reward:{bait:"goldjig"},
+              bite:{anchovy:.9, squid:.5, ironjig:.3}, likes:"a big live bait, deep down",
+              intro:"A giant sea bass as big as a refrigerator. They're protected in California: catch him, snap a photo, let him go." }
 };
 function bossSp(lakeId){
   const d = BOSSES[lakeId];
@@ -547,7 +625,7 @@ function updateClock(dt){
     : now === "dusk" ? "🌇 Sunset. Fish get bold in the evening." : "☀️ Good morning!", 3000);
 }
 // at night the catfish rise and trout and sunfish go quiet
-const NIGHT_FISH = { channel:3, bluecat:3, whitecat:3, bullhead:3, carp:1.3, trout:.55, bluegill:.6, greensun:.7, redear:.8, bcrappie:1.2, wcrappie:1.2 };
+const NIGHT_FISH = { leopard:2, batray:2.5, guitarfish:2, croaker:1.3, channel:3, bluecat:3, whitecat:3, bullhead:3, carp:1.3, trout:.55, bluegill:.6, greensun:.7, redear:.8, bcrappie:1.2, wcrappie:1.2 };
 
 // Rare looks: about 1 fish in 40 is a rare color of its species, worth double
 const VARIANTS = {
@@ -582,7 +660,9 @@ const LEGENDS = {
   elcap:    { name:"The Shadow", base:"bluecat", inches:58, lb:80, str:2.5, stages:3, glow:"120,255,200", body:"#28323e", belly:"#9aa8b6", fin:"#222a34",
               bite:{ stink:.8, crawler:.8, worm:.25 }, hint:"a blue catfish as dark as the deep water" },
   otay:     { name:"Silver Ghost", base:"whitecat", inches:34, lb:24, str:2.2, stages:2, glow:"230,240,255", body:"#e6eaee", belly:"#ffffff", fin:"#d0d6dc",
-              bite:{ stink:.9, crawler:.7, worm:.5 }, hint:"a shining white catfish nobody can keep hold of" }
+              bite:{ stink:.9, crawler:.7, worm:.5 }, hint:"a shining white catfish nobody can keep hold of" },
+  ocean:    { name:"Moonray", base:"batray", inches:66, lb:120, str:2.5, stages:3, glow:"200,170,255", body:"#3a3456", belly:"#e8e4f2", fin:"#302a48",
+              bite:{ squid:.8, sandcrab:.6, anchovy:.3 }, hint:"a glowing bat ray that glides under the pier at night" }
 };
 const LEGEND_CHANCE = .3;                      // chance a night cast has the lake's legend down there
 function legendSp(lakeId){ const d = LEGENDS[lakeId]; return Object.assign({}, SPECIES[d.base], d, { nightLegend:true, legend:false, val:40,
@@ -606,7 +686,7 @@ const HATS = {
   straw:   { name:"Straw hat", cost:80, col:"#e8cf7a" },   cowboy: { name:"Cowboy hat", cost:120, col:"#8a5a2c" },
   captain: { name:"Captain's hat", cost:150, col:"#f4f4f4" }, crown:{ name:"Lake Legend crown", cost:0, col:"#f5c242", champ:true },
   pirate:  { name:"Pirate hat", cost:0, col:"#222222", prize:"dex5" }, explorer:{ name:"Explorer hat", cost:0, col:"#c9b27a", prize:"wild6" },
-  ranger:  { name:"Ranger hat", cost:0, col:"#6b5a2a", prize:"land500" }
+  ranger:  { name:"Ranger hat", cost:0, col:"#6b5a2a", prize:"land500" }, sailor:{ name:"Sailor hat", cost:0, col:"#f8f8f8", prize:"ocean7" }
 };
 const RODS = { black:{ name:"Black rod", cost:0, col:"#2b2b2b" }, red:{ name:"Red rod", cost:25, col:"#c9302c" }, blue:{ name:"Blue rod", cost:25, col:"#2f7fb5" },
   pink:{ name:"Pink rod", cost:25, col:"#e0607e" }, gold:{ name:"Golden rod", cost:150, col:"#e5b53a" },
@@ -615,7 +695,8 @@ const RODS = { black:{ name:"Black rod", cost:0, col:"#2b2b2b" }, red:{ name:"Re
 const PAINTS = { silver:{ name:"Bare aluminum", cost:0, col:null }, red:{ name:"Fire red", cost:40, col:"#c9402c" }, blue:{ name:"Ocean blue", cost:40, col:"#2f6fb8" },
   green:{ name:"Lake green", cost:40, col:"#3f8f4a" }, purple:{ name:"Purple glitter", cost:90, col:"#7a4cc2" }, gold:{ name:"Gold flake", cost:200, col:"#d9a628" },
   flames:{ name:"Hot rod flames", cost:0, col:"#d8401e", flames:true, prize:"dex15" }, moon:{ name:"Moonlight", cost:0, col:"#2a3a7a", stars:true, prize:"leg6" },
-  shiny:{ name:"Rare-look shimmer", cost:0, col:"#3fa8a0", prize:"looks3" } };
+  shiny:{ name:"Rare-look shimmer", cost:0, col:"#3fa8a0", prize:"looks3" }, wave:{ name:"Big wave", cost:0, col:"#1f6fa8", waves:true, prize:"ocean14" } };
+const SALT_ROD_COST = 900;
 const BOATS = [ { name:"Rental jon boat", cost:0, desc:"Rent one at each lake visit." },
   { name:"Your own jon boat", cost:150, desc:"No more rent! The boat is free at every lake." },
   { name:"Bass boat", cost:450, desc:"A fast, sparkly bass boat. Free at every lake, and it trolls faster." } ];
@@ -627,7 +708,7 @@ function owns(kind, key){ const it = ({ hat:HATS, rod:RODS, paint:PAINTS })[kind
 // a rod's paint: one color, or a rainbow
 function rodPaint(c, key, x0, y0, x1, y1){ const r = RODS[key] || RODS.black; if (!r.rainbow) return r.col;
   const g = c.createLinearGradient(x0, y0, x1, y1); ["#e0483a", "#f5b82e", "#3fa34d", "#2f7fb5", "#7a4cc2"].forEach((cl, i) => g.addColorStop(i / 4, cl)); return g; }
-const rentCost = L => S.boatOwn ? 0 : L.boat;
+const rentCost = L => L.ocean ? L.boat : S.boatOwn ? 0 : L.boat;         // your own boat stays home: the ocean needs a charter
 
 // hats, drawn on the canvas (x, y = middle of the head, r = head radius) and as SVG for the menus
 function drawHat(c, kind, x, y, r){
@@ -640,6 +721,8 @@ function drawHat(c, kind, x, y, r){
   else if (kind === "cowboy"){ c.beginPath(); c.moveTo(x - 2*r, y - .75*r); c.quadraticCurveTo(x, y - .1*r, x + 2*r, y - .75*r); c.quadraticCurveTo(x, y - .35*r, x - 2*r, y - .75*r); c.fill();
     c.beginPath(); c.moveTo(x - .8*r, y - .5*r); c.lineTo(x - .75*r, y - 1.55*r); c.quadraticCurveTo(x, y - 1.2*r, x + .75*r, y - 1.55*r); c.lineTo(x + .8*r, y - .5*r); c.fill(); }
   else if (kind === "captain"){ c.beginPath(); c.ellipse(x, y - 1.05*r, 1.2*r, .4*r, 0, 0, 7); c.fill(); c.fillRect(x - .95*r, y - 1.05*r, 1.9*r, .6*r); c.fillStyle = "#1d2f55"; c.fillRect(x - .95*r, y - .55*r, 1.9*r, .22*r); c.fillRect(x, y - .45*r, 1.4*r, .22*r); c.fillStyle = "#e5b53a"; c.beginPath(); c.arc(x, y - .95*r, .22*r, 0, 7); c.fill(); }
+  else if (kind === "sailor"){ c.beginPath(); c.ellipse(x, y - .95*r, .9*r, .62*r, 0, Math.PI, 0); c.fill(); c.fillRect(x - .9*r, y - .95*r, 1.8*r, .35*r);
+    c.fillStyle = "#e3e9ee"; c.beginPath(); c.ellipse(x, y - .58*r, 1.25*r, .3*r, 0, 0, 7); c.fill(); c.fillStyle = "#2f5fb3"; c.fillRect(x - 1.05*r, y - .66*r, 2.1*r, .1*r); }
   else if (kind === "pirate"){ c.beginPath(); c.moveTo(x - 1.6*r, y - .6*r); c.quadraticCurveTo(x, y - 2.2*r, x + 1.6*r, y - .6*r); c.quadraticCurveTo(x, y - 1*r, x - 1.6*r, y - .6*r); c.fill();
     c.fillStyle = "#fff"; c.beginPath(); c.arc(x, y - 1.25*r, .22*r, 0, 7); c.fill(); c.fillRect(x - .3*r, y - .98*r, .6*r, .1*r); }
   else if (kind === "explorer"){ c.beginPath(); c.ellipse(x, y - .55*r, 1.75*r, .3*r, 0, 0, 7); c.fill(); c.beginPath(); c.ellipse(x, y - .9*r, 1*r, .8*r, 0, Math.PI, 0); c.fill();
@@ -656,7 +739,8 @@ function styleIcon(kind, key){
   else if (kind === "rod"){ x.strokeStyle = rodPaint(x, key, 8, 42, 42, 6); x.lineWidth = 3.5; x.lineCap = "round"; x.beginPath(); x.moveTo(8, 42); x.lineTo(42, 6); x.stroke(); x.fillStyle = "#9aa3aa"; x.beginPath(); x.arc(14, 36, 4, 0, 7); x.fill(); }
   else { x.fillStyle = PAINTS[key].col || "#a9b3ba"; x.beginPath(); x.moveTo(4, 22); x.lineTo(44, 22); x.quadraticCurveTo(40, 34, 32, 36); x.lineTo(10, 36); x.quadraticCurveTo(5, 30, 4, 22); x.fill(); x.fillStyle = "rgba(255,255,255,.35)"; x.fillRect(6, 24, 36, 2);
     if (PAINTS[key].flames){ x.fillStyle = "#f5b82e"; for (let i = 0; i < 3; i++){ x.beginPath(); x.moveTo(8 + i * 6, 34); x.quadraticCurveTo(14 + i * 6, 26, 22 + i * 6, 28); x.quadraticCurveTo(16 + i * 6, 30, 12 + i * 6, 34); x.fill(); } }
-    if (PAINTS[key].stars){ x.fillStyle = "#fff"; for (const [a, b] of [[12, 28], [22, 31], [33, 27], [27, 33]]) x.fillRect(a, b, 1.6, 1.6); } }
+    if (PAINTS[key].stars){ x.fillStyle = "#fff"; for (const [a, b] of [[12, 28], [22, 31], [33, 27], [27, 33]]) x.fillRect(a, b, 1.6, 1.6); }
+    if (PAINTS[key].waves){ x.strokeStyle = "#fff"; x.lineWidth = 1.6; x.beginPath(); for (let i = 0; i <= 32; i += 2) x.lineTo(8 + i, 30 + Math.sin(i * .5) * 2); x.stroke(); } }
   return c;
 }
 // the player's angler as SVG (menus, the title, the brag shot)
@@ -681,7 +765,7 @@ function avatarSvg(p, size){
 const dayKey = (d = new Date()) => d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
 function seeded(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; }; }
 function fishOfDay(){
-  const pool = [...new Set(LAKES.filter(l => S.lakes.includes(l.id)).flatMap(l => l.fish))].filter(id => !SPECIES[id].legend);
+  const pool = [...new Set(LAKES.filter(l => S.lakes.includes(l.id) && (!l.ocean || S.saltRod)).flatMap(l => l.fish))].filter(id => !SPECIES[id].legend);
   const r = seeded("fotd" + dayKey()); return pool[Math.floor(r() * pool.length)] || "bluegill";
 }
 
@@ -689,7 +773,7 @@ function fishOfDay(){
 const JOB_KINDS = ["count", "species", "lake", "bait", "night", "size", "release", "troll"];
 function makeJobs(){
   const r = seeded("jobs" + dayKey() + ((LL.player() || {}).id || "")), pick = a => a[Math.floor(r() * a.length)];
-  const lakes = LAKES.filter(l => S.lakes.includes(l.id)), sp = [...new Set(lakes.flatMap(l => l.fish))].filter(id => !SPECIES[id].legend && SPECIES[id].rar >= 4);
+  const lakes = LAKES.filter(l => S.lakes.includes(l.id) && (!l.ocean || S.saltRod)), sp = [...new Set(lakes.flatMap(l => l.fish))].filter(id => !SPECIES[id].legend && SPECIES[id].rar >= 4);
   const baits = S.baits.filter(k => BAITS[k] && k !== "bare"), kinds = JOB_KINDS.filter(k => k !== "troll" || S.boatOwn || S.coins > 30), list = [];
   while (list.length < 3){
     const k = pick(kinds); if (list.some(j => j.k === k)) continue;
@@ -751,6 +835,7 @@ function normalizeSave(s){
   if (!o.bait || o.bait === "bare") o.bait = "spinner";
   for (const k of o.baits) if (BAITS[k] && BAITS[k].soft && o.baitCount[k] === undefined) o.baitCount[k] = BAITS[k].pack;
   if (!o.landed) o.landed = Object.values(o.dex).reduce((n, d) => n + (d.n || 0), 0);
+  if (o.bosses && o.bosses.otay && !o.lakes.includes("ocean")) o.lakes.push("ocean");   // the ocean came after some players had already beaten Otay
   return o;
 }
 let S = defaultSave();                     // a stand-in until a player signs in
@@ -823,7 +908,8 @@ const SFX = {
   fanfare(){ [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, .22, "triangle", .11), i * 85));
     setTimeout(() => { [523, 659, 784].forEach(f => tone(f, .7, "triangle", .07)); tone(2093, .5, "sine", .04, 400); }, 470); },
   bigSplash(){ tick(700, .25, 0, .25); tick(1200, .18, .05, .3); tone(300, .35, "triangle", .1, -200); },
-  screech(kind){ if (kind === "osprey"){ [0, 140, 280].forEach((d, i) => setTimeout(() => tone(1900 - i * 120, .12, "sine", .07, 500), d)); }
+  screech(kind){ if (kind === "sealion"){ [0, 260].forEach(d => setTimeout(() => tone(260, .18, "sawtooth", .06, 80), d)); return; }
+    if (kind === "osprey" || kind === "pelican"){ [0, 140, 280].forEach((d, i) => setTimeout(() => tone(1900 - i * 120, .12, "sine", .07, 500), d)); }
     else { [0, 160].forEach(d => setTimeout(() => tone(380, .1, "square", .06, -120), d)); } }
 };
 
@@ -902,7 +988,7 @@ function pickWeighted(list){ let t = list.reduce((s,x)=>s+x.w,0), r = Math.rando
 // =====================================================================
 //  FISH DRAWING — detailed, field-guide style (painted once, cached as sprites)
 // =====================================================================
-function shapeHr(sp){ return sp.shape==="sun" ? (sp.tall||.56) : sp.shape==="bass" ? .36 : sp.shape==="trout" ? .27 : sp.shape==="cat" ? .27 : sp.shape==="carp" ? .38 : .17; }
+function shapeHr(sp){ return sp.shape==="ray" ? .5 : sp.shape==="flat" ? .44 : sp.shape==="shark" || sp.shape==="guitar" ? .2 : sp.shape==="sun" ? (sp.tall||.56) : sp.shape==="bass" ? .36 : sp.shape==="trout" ? .27 : sp.shape==="cat" ? .27 : sp.shape==="carp" ? .38 : .17; }
 function hexRgb(hex){ const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
 function shade(hex, amt){                     // amt < 0 darkens, > 0 lightens
   const [r, g, b] = hexRgb(hex), f = amt < 0 ? 0 : 255, a = Math.abs(amt);
@@ -919,7 +1005,7 @@ const FISH_LOOK = {                          // snout height, forehead fullness,
   carp:     { sy:.2,  a1:.4,  pk:.06,  ped:.23, bd:.95 },
   sturgeon: { sy:.2,  a1:.2,  pk:.1,   ped:.18, bd:.9 }
 };
-function depthOf(sp){ return sp.depth || (sp.shape === "sun" ? (sp.tall ? .44 : .5) : sp.shape === "bass" ? .3 : sp.shape === "trout" ? .25 : sp.shape === "cat" ? .23 : sp.shape === "carp" ? .34 : .15); }
+function depthOf(sp){ return sp.depth || (sp.shape === "ray" ? .95 : sp.shape === "flat" ? .42 : sp.shape === "shark" ? .17 : sp.shape === "guitar" ? .14 : sp.shape === "sun" ? (sp.tall ? .44 : .5) : sp.shape === "bass" ? .3 : sp.shape === "trout" ? .25 : sp.shape === "cat" ? .23 : sp.shape === "carp" ? .34 : .15); }
 function pedOf(sp){ return Math.min(.5, .1 / depthOf(sp)); }       // tail stem is about a tenth of body length tall
 function bodyPath(c, sp, bl, h){
   const k = FISH_LOOK[sp.shape] || FISH_LOOK.bass, pk = bl * k.pk;
@@ -976,7 +1062,134 @@ function spinyFin(c, x0, y0, x1, y1, heights, col){
   fin(c, [x0, y0], [x1, y1], pts, col, n - 1, .78);
 }
 
+// Sharks, rays, the guitarfish and the halibut don't fit the regular fish body, so they get painters of their own.
+function oddEye(c, x, y, r, col){
+  const ir = c.createRadialGradient(x, y, r*.2, x, y, r); ir.addColorStop(0, col); ir.addColorStop(1, shade(col, -.45));
+  c.fillStyle = ir; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+  c.fillStyle = "#050505"; c.beginPath(); c.arc(x + r*.12, y, r*.58, 0, 7); c.fill();
+  c.fillStyle = "rgba(255,255,255,.85)"; c.beginPath(); c.arc(x + r*.35, y - r*.3, Math.max(.6, r*.22), 0, 7); c.fill();
+}
+function oddFill(c, sp, path, top, bot){            // back-to-belly colour, sheen on top, shadow underneath
+  path(); const g = c.createLinearGradient(0, top, 0, bot);
+  g.addColorStop(0, shade(sp.body, -.35)); g.addColorStop(.4, sp.body); g.addColorStop(.78, mixHex(sp.body, sp.belly, .5)); g.addColorStop(1, sp.belly);
+  c.fillStyle = g; c.fill();
+}
+function oddShine(c, x0, y0, x1, y1){
+  const hl = c.createLinearGradient(0, y0, 0, y1); hl.addColorStop(0, "rgba(255,255,255,.22)"); hl.addColorStop(.45, "rgba(255,255,255,0)"); hl.addColorStop(1, "rgba(0,0,0,.16)");
+  c.fillStyle = hl; c.fillRect(x0, y0, x1 - x0, y1 - y0);
+}
+function paintShark(c, sp, L, w, sil){
+  const bl = L*.42, h = bl*depthOf(sp), ts = w*bl*.14, guitar = sp.shape === "guitar", fc = sil ? "#1c2d3b" : sp.fin, a = sil ? 1 : .92, seed = sp.name.length;
+  fin(c, [-bl*.86, -h*.22], [-bl*.86, h*.16], guitar                                     // tail: long top lobe (the guitarfish has no bottom lobe)
+    ? [[-bl*1.05, -h*.8 + ts*.4], [-bl*1.3, -h*1.2 + ts], [-bl*1.44, -h*.3 + ts], [-bl*1.2, h*.5 + ts*.6]]
+    : [[-bl*1.05, -h*.9 + ts*.4], [-bl*1.42, -h*2.2 + ts], [-bl*1.5, -h*1.8 + ts], [-bl*1.22, -h*.1 + ts*.7], [-bl*1.12, h*1.0 + ts*.5], [-bl*1.0, h*.5]], fc, 8, a);
+  if (guitar){
+    fin(c, [-bl*.16, -h*.95], [-bl*.4, -h*.82], [[-bl*.22, -h*2.4], [-bl*.38, -h*2.2]], fc, 0, a);
+    fin(c, [-bl*.58, -h*.62], [-bl*.76, -h*.45], [[-bl*.63, -h*1.9], [-bl*.76, -h*1.7]], fc, 0, a);
+  } else {
+    fin(c, [bl*.12, -h*.97], [-bl*.2, -h*.9], [[bl*.02, -h*2.4], [-bl*.12, -h*2.35], [-bl*.22, -h*1.1]], fc, 5, a);
+    fin(c, [-bl*.5, -h*.62], [-bl*.66, -h*.48], [[-bl*.56, -h*1.5], [-bl*.68, -h*1.4]], fc, 0, a);
+    fin(c, [-bl*.52, h*.6], [-bl*.66, h*.46], [[-bl*.6, h*1.3], [-bl*.7, h*1.2]], fc, 0, a);
+  }
+  fin(c, [-bl*.25, h*.85], [-bl*.42, h*.75], [[-bl*.36, h*1.6], [-bl*.46, h*1.4]], fc, 0, a);       // pelvic
+  const path = () => {
+    c.beginPath();
+    if (guitar){ c.moveTo(bl*1.16, h*.15); c.bezierCurveTo(bl*1.0, -h*.25, bl*.55, -h*.9, bl*.15, -h); }
+    else { c.moveTo(bl*1.06, h*.15); c.bezierCurveTo(bl*1.0, -h*.5, bl*.6, -h, bl*.15, -h); }
+    c.bezierCurveTo(-bl*.3, -h, -bl*.6, -h*.5, -bl*.9, -h*.22); c.lineTo(-bl*.9, h*.16);
+    c.bezierCurveTo(-bl*.6, h*.45, -bl*.3, h*.95, bl*.15, h*.95);
+    c.bezierCurveTo(bl*.6, h*.95, bl*.95, h*.7, guitar ? bl*1.16 : bl*1.06, h*.15); c.closePath();
+  };
+  if (sil){ path(); c.fillStyle = "#1c2d3b"; c.fill();
+    if (guitar) fin(c, [bl*.75, h*.5], [bl*.02, h*.8], [[bl*.55, h*1.5], [bl*.2, h*1.7], [-bl*.02, h*1.15]], fc, 0, 1);
+    else fin(c, [bl*.42, h*.62], [bl*.22, h*.88], [[bl*.2, h*1.9], [bl*.02, h*2.1], [bl*.12, h*1.2]], fc, 0, 1);
+    return; }
+  oddFill(c, sp, path, -h, h);
+  c.save(); path(); c.clip();
+  c.fillStyle = sp.markC || "rgba(0,0,0,.3)";
+  if (sp.mark === "leopard"){
+    for (let i = 0; i < 10; i++){ c.beginPath(); c.ellipse(-bl*.86 + i*bl*.2, -h*.72, bl*.045, h*.42, 0, 0, 7); c.fill(); }   // saddles across the back
+    for (let i = 0; i < 22; i++){ c.beginPath(); c.arc(-bl*.9 + prand(i, seed)*bl*1.8, -h*.1 + prand(i+40, seed)*h*.55, Math.max(.8, L*.012), 0, 7); c.fill(); }
+  } else {
+    c.fillStyle = "rgba(255,250,235,.35)";
+    for (let i = 0; i < 26; i++){ c.beginPath(); c.arc(-bl*.9 + prand(i, seed)*bl*1.9, -h + prand(i+40, seed)*h*1.2, Math.max(.5, L*.006), 0, 7); c.fill(); }
+  }
+  oddShine(c, -bl*1.1, -h, bl*1.2, h);
+  c.restore();
+  path(); c.strokeStyle = "rgba(0,0,0,.28)"; c.lineWidth = Math.max(.7, L*.008); c.stroke();
+  c.strokeStyle = "rgba(0,0,0,.35)"; c.lineWidth = Math.max(.6, L*.006);                          // gill slits
+  for (let i = 0; i < 5; i++){ const gx = bl*(guitar ? .5 : .56) - i*bl*.045; c.beginPath(); c.moveTo(gx, -h*.3); c.quadraticCurveTo(gx - bl*.015, 0, gx, h*.35); c.stroke(); }
+  if (guitar) fin(c, [bl*.75, h*.5], [bl*.02, h*.8], [[bl*.55, h*1.5], [bl*.2, h*1.7], [-bl*.02, h*1.15]], sp.fin, 10, .85);   // the flat front "body of the guitar"
+  else fin(c, [bl*.42, h*.62], [bl*.22, h*.88], [[bl*.2, h*1.9], [bl*.02, h*2.1], [bl*.12, h*1.2]], sp.fin, 6, .88);
+  oddEye(c, guitar ? bl*.74 : bl*.8, guitar ? -h*.62 : -h*.3, Math.max(1.4, L*.02), guitar ? "#9a8a5a" : "#c9c08a");
+  c.strokeStyle = "rgba(35,20,15,.7)"; c.lineWidth = Math.max(.8, L*.01);
+  c.beginPath(); c.moveTo(bl*.9, h*.55); c.quadraticCurveTo(bl*.8, h*.75, bl*.68, h*.6); c.stroke();          // mouth tucked underneath
+}
+function paintRay(c, sp, L, w, sil){
+  const bl = L*.42, sc = .9 + .1*w, H = bl*.95*sc, tx = -bl*.08 - w*bl*.05, fc = sil ? "#1c2d3b" : sp.fin;
+  c.strokeStyle = fc; c.lineCap = "round"; c.lineWidth = Math.max(1, L*.016);                     // the long whip tail
+  c.beginPath(); c.moveTo(-bl*.5, 0); c.quadraticCurveTo(-bl*1.0, w*bl*.08, -bl*1.55, w*bl*.18); c.stroke();
+  fin(c, [-bl*.36, -H*.12], [-bl*.36, H*.12], [[-bl*.56, -H*.2], [-bl*.64, 0], [-bl*.56, H*.2]], fc, 0, sil ? 1 : .9);
+  const path = () => {
+    c.beginPath(); c.moveTo(bl*.92, 0);
+    c.bezierCurveTo(bl*.94, -H*.15, bl*.74, -H*.2, bl*.56, -H*.17);                               // the raised head
+    c.bezierCurveTo(bl*.36, -H*.45, bl*.12, -H*.85, tx, -H);                                       // leading edge out to the wing tip
+    c.bezierCurveTo(-bl*.14, -H*.66, -bl*.3, -H*.3, -bl*.5, -H*.1); c.lineTo(-bl*.5, H*.1);       // trailing edge back to the body
+    c.bezierCurveTo(-bl*.3, H*.3, -bl*.14, H*.66, tx, H);
+    c.bezierCurveTo(bl*.12, H*.85, bl*.36, H*.45, bl*.56, H*.17);
+    c.bezierCurveTo(bl*.74, H*.2, bl*.94, H*.15, bl*.92, 0); c.closePath();
+  };
+  path();
+  if (sil){ c.fillStyle = "#1c2d3b"; c.fill(); return; }
+  const g = c.createRadialGradient(bl*.2, 0, 1, bl*.1, 0, H*1.05);
+  g.addColorStop(0, shade(sp.body, .12)); g.addColorStop(.6, sp.body); g.addColorStop(1, shade(sp.body, -.4));
+  c.fillStyle = g; c.fill();
+  c.save(); path(); c.clip();
+  c.strokeStyle = "rgba(0,0,0,.12)"; c.lineWidth = Math.max(.6, L*.006);                          // fin rays fanning out into the wings
+  for (let i = 1; i < 9; i++){ const t = i/9; for (const sg of [-1, 1]){ c.beginPath(); c.moveTo(bl*.2 - t*bl*.5, sg*H*.12); c.lineTo(bl*.45 - t*bl*.9, sg*H); c.stroke(); } }
+  const sh = c.createRadialGradient(bl*.35, -H*.08, 1, bl*.35, -H*.08, bl*.5); sh.addColorStop(0, "rgba(255,255,255,.28)"); sh.addColorStop(1, "rgba(255,255,255,0)");
+  c.fillStyle = sh; c.fillRect(-bl, -H, bl*2, H*2);
+  if (sp.glow){ c.fillStyle = "rgba(" + sp.glow + ",.5)"; for (let i = 0; i < 14; i++){ c.beginPath(); c.arc(-bl*.4 + prand(i, 5)*bl*1.1, -H*.8 + prand(i+20, 5)*H*1.6, Math.max(1, L*.012), 0, 7); c.fill(); } }
+  c.restore();
+  path(); c.strokeStyle = "rgba(0,0,0,.3)"; c.lineWidth = Math.max(.7, L*.008); c.stroke();
+  c.strokeStyle = "rgba(0,0,0,.18)"; c.beginPath(); c.moveTo(bl*.86, 0); c.quadraticCurveTo(bl*.3, 0, -bl*.48, 0); c.stroke();   // backbone ridge
+  for (const sg of [-1, 1]) oddEye(c, bl*.7, sg*H*.12, Math.max(1.3, L*.016), "#c9b98a");
+}
+function paintFlat(c, sp, L, w, sil){
+  const bl = L*.42, h = bl*depthOf(sp), ts = w*bl*.12, fc = sil ? "#1c2d3b" : sp.fin, a = sil ? 1 : .82, seed = sp.name.length;
+  fin(c, [-bl*.9, -h*.2], [-bl*.9, h*.2], [[-bl*1.1, -h*.55 + ts*.5], [-bl*1.32, -h*.62 + ts], [-bl*1.37, ts], [-bl*1.32, h*.62 + ts], [-bl*1.1, h*.55 + ts*.5]], fc, 12, a);
+  fin(c, [bl*.62, -h*.8], [-bl*.86, -h*.25], [[bl*.5, -h*1.22], [bl*.1, -h*1.32], [-bl*.4, -h*1.22], [-bl*.82, -h*.62]], fc, 26, a);   // fins fringe the whole body
+  fin(c, [bl*.4, h*.88], [-bl*.86, h*.25], [[bl*.3, h*1.25], [-bl*.1, h*1.32], [-bl*.5, h*1.18], [-bl*.82, h*.62]], fc, 22, a);
+  const path = () => {
+    c.beginPath(); c.moveTo(bl, h*.05);
+    c.bezierCurveTo(bl*.95, -h*.7, bl*.5, -h, 0, -h); c.bezierCurveTo(-bl*.5, -h, -bl*.85, -h*.5, -bl*.92, -h*.2); c.lineTo(-bl*.92, h*.2);
+    c.bezierCurveTo(-bl*.85, h*.5, -bl*.5, h, 0, h); c.bezierCurveTo(bl*.5, h, bl*.95, h*.7, bl, h*.05); c.closePath();
+  };
+  if (sil){ path(); c.fillStyle = "#1c2d3b"; c.fill(); return; }
+  path(); const g = c.createRadialGradient(bl*.1, -h*.2, 1, 0, 0, bl);
+  g.addColorStop(0, shade(sp.body, .12)); g.addColorStop(.7, sp.body); g.addColorStop(1, shade(sp.body, -.3)); c.fillStyle = g; c.fill();
+  c.save(); path(); c.clip();
+  c.fillStyle = sp.markC || "rgba(0,0,0,.3)";
+  for (let i = 0; i < 26; i++){ c.beginPath(); c.ellipse(-bl*.9 + prand(i, seed)*bl*1.8, -h + prand(i+30, seed)*h*2, L*.03*(.6+prand(i+7, seed)), L*.022*(.6+prand(i+9, seed)), prand(i+3, seed)*3, 0, 7); c.fill(); }
+  c.fillStyle = "rgba(245,240,225,.45)";
+  for (let i = 0; i < 18; i++){ c.beginPath(); c.arc(-bl*.9 + prand(i+60, seed)*bl*1.8, -h + prand(i+90, seed)*h*2, Math.max(.6, L*.008), 0, 7); c.fill(); }
+  c.strokeStyle = "rgba(255,255,255,.25)"; c.lineWidth = Math.max(.6, L*.008);                   // the halibut's lateral line arches over the fin
+  c.beginPath(); c.moveTo(bl*.55, -h*.25); c.bezierCurveTo(bl*.4, -h*.75, bl*.15, -h*.7, bl*.05, -h*.1); c.lineTo(-bl*.9, 0); c.stroke();
+  oddShine(c, -bl, -h, bl, h);
+  c.restore();
+  path(); c.strokeStyle = "rgba(0,0,0,.28)"; c.lineWidth = Math.max(.7, L*.009); c.stroke();
+  c.strokeStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.moveTo(bl*.5, -h*.6); c.quadraticCurveTo(bl*.35, 0, bl*.5, h*.6); c.stroke();   // gill cover
+  fin(c, [bl*.42, h*.05], [bl*.42, h*.3], [[bl*.2, h*.15 + w*h*.1], [bl*.16, h*.38], [bl*.28, h*.5]], sp.fin, 6, .7);
+  oddEye(c, bl*.74, -h*.38, Math.max(1.4, L*.022), "#b8a060");                                   // both eyes on the top side
+  oddEye(c, bl*.62, -h*.62, Math.max(1.3, L*.02), "#b8a060");
+  c.strokeStyle = "rgba(35,20,15,.8)"; c.lineWidth = Math.max(.9, L*.013);                       // a big toothy mouth
+  c.beginPath(); c.moveTo(bl*1.0, h*.04); c.quadraticCurveTo(bl*.85, h*.3, bl*.6, h*.26); c.stroke();
+  c.fillStyle = "#f4f0e0"; for (let i = 0; i < 4; i++){ c.beginPath(); c.moveTo(bl*(.94 - i*.08), h*(.12 + i*.04)); c.lineTo(bl*(.92 - i*.08), h*(.2 + i*.04)); c.lineTo(bl*(.9 - i*.08), h*(.12 + i*.04)); c.fill(); }
+}
+const ODD_PAINT = { shark: paintShark, guitar: paintShark, ray: paintRay, flat: paintFlat };
+
 function paintFish(c, sp, L, w, sil){
+  if (ODD_PAINT[sp.shape]) return ODD_PAINT[sp.shape](c, sp, L, w, sil);
   const bl = L * .42, h = bl * depthOf(sp), ts = w * bl * .12;   // ts = tail sweep
   const F = bl * .5, up = f => -(h + (f - 1) * F), dn = f => h + (f - 1) * F;   // fin heights scale with length, not depth
   const th = bl * (sp.shape === "sun" ? .36 : sp.shape === "cat" ? .3 : sp.shape === "sturgeon" ? .3 : .38);   // tail half-height
@@ -1034,6 +1247,13 @@ function paintFish(c, sp, L, w, sil){
   else if (sp.mark === "band"){ for (let i = 0; i < 12; i++){ const bx = -bl*.9 + i*bl*.165; c.beginPath(); c.ellipse(bx, -h*.02 + Math.sin(i*1.7)*h*.1, bl*.1, h*.2 + prand(i, seed)*h*.08, 0, 0, 7); c.fill(); } }
   else if (sp.mark === "speckle"){ const n = sp.dense ? 70 : 34; for (let i = 0; i < n; i++){ c.beginPath(); c.ellipse(-bl + prand(i, seed)*bl*2, -h + prand(i+50, seed)*dn(1.75), Math.max(.8, L*.02*(.5+prand(i+9, seed))), Math.max(.6, L*.014*(.5+prand(i+19, seed))), prand(i+3, seed)*3, 0, 7); c.fill(); } }
   else if (sp.mark === "dots"){ for (let i = 0; i < 16; i++){ c.beginPath(); c.arc(-bl*.8 + prand(i, seed)*bl*1.6, -h*.75 + prand(i+30, seed)*dn(1.1), Math.max(.8, L*.013), 0, 7); c.fill(); } }
+  else if (sp.mark === "waves"){ c.lineWidth = Math.max(.8, L*.016); for (let i = 0; i < 14; i++){ const x0 = -bl*.92 + i*bl*.13; c.beginPath(); c.moveTo(x0, -h); c.quadraticCurveTo(x0 + bl*.07, -h*.72, x0, -h*.45); c.quadraticCurveTo(x0 - bl*.06, -h*.25, x0 + bl*.02, -h*.05); c.stroke(); } }
+  else if (sp.mark === "stripe"){ const sg = c.createLinearGradient(0, -h*.22, 0, h*.12); sg.addColorStop(0, "rgba(235,245,250,0)"); sg.addColorStop(.5, sp.markC); sg.addColorStop(1, "rgba(235,245,250,0)"); c.fillStyle = sg; c.fillRect(-bl*1.1, -h*.22, bl*2.1, h*.34); }
+  else if (sp.mark === "ystripe"){ const sg = c.createLinearGradient(0, -h*.25, 0, h*.15); sg.addColorStop(0, "rgba(240,200,50,0)"); sg.addColorStop(.5, sp.markC); sg.addColorStop(1, "rgba(240,200,50,0)"); c.fillStyle = sg; c.fillRect(-bl*1.1, -h*.25, bl*2.3, h*.4); }
+  else if (sp.mark === "streaks"){ c.lineWidth = Math.max(.6, L*.008); for (let i = 0; i < 16; i++){ const x0 = -bl*.95 + i*bl*.12; c.beginPath(); c.moveTo(x0, -h); c.lineTo(x0 + bl*.22, h*.35); c.stroke(); } }
+  else if (sp.mark === "stripes"){ c.lineWidth = Math.max(1, L*.02); for (let i = 0; i < 8; i++){ const x0 = -bl*.6 + i*bl*.2; c.beginPath(); c.moveTo(x0, -h); c.lineTo(x0 - bl*.45, -h*.15); c.stroke(); } }
+  else if (sp.mark === "spots2"){ for (const [sx, sy] of [[-bl*.02, -h*.7], [-bl*.34, -h*.6]]){ c.beginPath(); c.ellipse(sx, sy, L*.04, L*.03, 0, 0, 7); c.fill(); } }
+  else if (sp.mark === "calico"){ for (let i = 0; i < 22; i++){ c.beginPath(); c.ellipse(-bl*.85 + prand(i, seed)*bl*1.6, -h*.9 + prand(i+30, seed)*h*1.3, L*.035*(.5+prand(i+7, seed)), L*.025*(.5+prand(i+9, seed)), prand(i+3, seed)*3, 0, 7); c.fill(); } }
   else if (sp.mark === "trout"){
     const pk = c.createLinearGradient(0, -h*.35, 0, h*.35);
     pk.addColorStop(0, "rgba(226,112,135,0)"); pk.addColorStop(.5, "rgba(226,112,135,.8)"); pk.addColorStop(1, "rgba(226,112,135,0)");
@@ -1155,7 +1375,7 @@ function drawFish(ctx, sp, x, y, L, dir, t, opt={}){
   const k = L / (L < 80 ? Math.round(L/2)*2 : Math.round(L/4)*4);
   ctx.scale(k * (1 + ph*.015), k);                              // tiny body flex as it swims
   const amp = (opt.bend == null ? 1 : opt.bend) * s.hh * .045;
-  if (amp > .25 && L > 26 && !opt.rot){
+  if (amp > .25 && L > 26 && !opt.rot && sp.shape !== "ray"){
     // swim wave: the body is drawn in thin slices, each nudged up or down, more toward the tail
     const N = L > 90 ? 12 : 8, sw = s.w / N, pxw = s.cv.width / N;
     for (let i = 0; i < N; i++){
@@ -1286,8 +1506,14 @@ $("btnHow").onclick = () => { SFX.click(); infoModal(HOWTO_HTML, "Let's fish!");
 $("btnLakes").onclick = () => { SFX.click(); showScreen("map"); };
 // A "visit" = you stay at one lake, casting again and again, until you leave.
 let visit = null;
+function needSaltRod(){
+  infoModal(`<div style="font-size:3.5em">🌊🎣</div><h3>You need a Saltwater Rod & Reel</h3>
+    <p>Ocean fish are big and strong, and salt water rusts a lake reel. Buy a <b>Saltwater Rod & Reel</b> at the Tackle Shop for <b>🪙${SALT_ROD_COST}</b>.</p>
+    <div class="muted">You'll need ocean bait too: anchovies, squid or sand crabs.</div>`, "OK");
+}
 function startVisit(L, mode){
-  if (mode === "boat"){ const c = rentCost(L); if (S.coins < c) return; if (c){ S.coins -= c; save(); SFX.coin(); toast("🚣 Boat rented for your whole visit!"); } else toast("🚤 " + BOATS[S.boatOwn].name + ", ready to go!"); }
+  if (L.ocean && !S.saltRod){ needSaltRod(); return; }
+  if (mode === "boat"){ const c = rentCost(L); if (S.coins < c) return; if (c){ S.coins -= c; save(); SFX.coin(); toast(L.ocean ? "🛥️ Charter boat booked for your visit!" : "🚣 Boat rented for your whole visit!"); } else toast("🚤 " + BOATS[S.boatOwn].name + ", ready to go!"); }
   visit = { lake: L, mode }; S.lastLake = L.id; save();
   startTrip(L, 0, mode);
 }
@@ -1307,8 +1533,8 @@ function toggleBoat(){
   if (visit.mode === "dock"){
     const c = rentCost(L);
     if (S.coins < c){ toast("A boat costs 🪙" + c + "."); return; }
-    if (c){ S.coins -= c; save(); SFX.coin(); } visit.mode = "boat"; toast(c ? "🚣 Boat rented!" : "🚤 Into your boat!");
-  } else { visit.mode = "dock"; toast("🪵 Back to the dock"); }
+    if (c){ S.coins -= c; save(); SFX.coin(); } visit.mode = "boat"; toast(L.ocean ? "🛥️ All aboard the charter!" : c ? "🚣 Boat rented!" : "🚤 Into your boat!");
+  } else { visit.mode = "dock"; toast(L.ocean ? "🪵 Back to the pier" : "🪵 Back to the dock"); }
   startTrip(L, 0, visit.mode, true);
 }
 // bottom-row buttons: Bait and More open small pickers only when you want them
@@ -1322,7 +1548,8 @@ function renderOptions(){
   const add = (label, fn, dis) => { const b = document.createElement("button"); b.className = "chip"; b.innerHTML = label; b.disabled = !!dis;
     b.onclick = () => { uiSheet = null; fn(); }; box.appendChild(b); };
   if (trip && !trip.boss && visit){
-    add(visit.mode === "dock" ? (rentCost(visit.lake) ? "🚣 Rent a boat · 🪙" + rentCost(visit.lake) : "🚤 Take your boat out") : "🪵 Back to the dock", toggleBoat, visit.mode === "dock" && S.coins < rentCost(visit.lake));
+    const oc = visit.lake.ocean;
+    add(visit.mode === "dock" ? (oc ? "🛥️ Charter boat · 🪙" + rentCost(visit.lake) : rentCost(visit.lake) ? "🚣 Rent a boat · 🪙" + rentCost(visit.lake) : "🚤 Take your boat out") : oc ? "🪵 Back to the pier" : "🪵 Back to the dock", toggleBoat, visit.mode === "dock" && S.coins < rentCost(visit.lake));
     add(scentOn() ? "🧴 Fish scent · " + scentLeft() + "s left" : "🧴 Fish scent · 🪙" + SCENT_COST, useScent, scentOn() || S.coins < SCENT_COST);
     add("📋 Lake rules", () => infoModal(rulesHtml(visit.lake), "Got it"));
   }
@@ -1348,7 +1575,7 @@ function goldCount(){ return DEX_ORDER.filter(id => S.dex[id] && tierOf(id, S.de
 function dexCaughtCount(){ return DEX_ORDER.filter(id => S.dex[id]).length; }
 
 // a drawn map of San Diego County with a pin on each lake (real positions, simplified)
-const MAP_POS = { dixon:[33.17, -117.05], poway:[33.00, -117.01], jennings:[32.86, -116.89], cuyamaca:[32.98, -116.58], elcap:[32.89, -116.80], otay:[32.61, -116.93] };
+const MAP_POS = { ocean:[33.20, -117.26], dixon:[33.17, -117.05], poway:[33.00, -117.01], jennings:[32.86, -116.89], cuyamaca:[32.98, -116.58], elcap:[32.89, -116.80], otay:[32.61, -116.93] };
 const mapXY = (lat, lon) => [(lon + 117.35) / .9 * 480, (33.31 - lat) / .78 * 300];
 let mapArt = null;
 function drawLakeMap(){
@@ -1417,12 +1644,13 @@ function renderMap(){
     const d = document.createElement("div"); d.className = "card lake" + (owned ? "" : " locked"); d.id = "lake_" + L.id;
     const bd = BOSSES[L.id], i = LAKES.indexOf(L), lim = DAY_LIMIT[L.id];
     const sub = !owned ? "🔒 Beat " + BOSSES[LAKES[i-1].id].name + " to unlock"
-      : (S.bosses[L.id] ? "🏆 " + bd.name : "⚔️ " + bd.name + " · 🧺 " + dayCount(L.id) + "/" + lim + " · 🐟 kinds here " + Math.min(kindsAt(L), kindsNeed(L)) + "/" + kindsNeed(L)) + " · 📖 " + seen + "/" + L.fish.length;
+      : (S.bosses[L.id] ? "🏆 " + bd.name : "⚔️ " + bd.name + " · 🧺 " + dayCount(L.id) + "/" + lim + " · 🐟 kinds here " + Math.min(kindsAt(L), kindsNeed(L)) + "/" + kindsNeed(L)) + " · 📖 " + seen + "/" + L.fish.length
+        + (L.ocean && !S.saltRod ? "<br>🌊 Needs a Saltwater Rod & Reel (🪙" + SALT_ROD_COST + " at the Tackle Shop)" : "");
     d.innerHTML = `<div class="row"><div class="grow"><h3>${owned ? "" : "🔒 "}${L.name}</h3><div class="muted">${sub}</div></div></div>`;
     if (owned){
       const col = document.createElement("div"); col.className = "lakebtns";
-      const b = document.createElement("button"); b.className = "btn"; b.textContent = "🪵 Dock"; b.onclick = () => startVisit(L, "dock"); col.appendChild(b);
-      const bb = document.createElement("button"); bb.className = "btn blue"; bb.textContent = rentCost(L) ? "🚣 Boat 🪙" + rentCost(L) : "🚤 Boat"; bb.disabled = S.coins < rentCost(L);
+      const b = document.createElement("button"); b.className = "btn"; b.textContent = L.ocean ? "🪵 Pier" : "🪵 Dock"; b.onclick = () => startVisit(L, "dock"); col.appendChild(b);
+      const bb = document.createElement("button"); bb.className = "btn blue"; bb.textContent = L.ocean ? "🛥️ Charter 🪙" + rentCost(L) : rentCost(L) ? "🚣 Boat 🪙" + rentCost(L) : "🚤 Boat"; bb.disabled = S.coins < rentCost(L) && !(L.ocean && !S.saltRod);
       bb.onclick = () => startVisit(L, "boat"); col.appendChild(bb);
       const ib = document.createElement("button"); ib.className = "btn small"; ib.style.cssText = "background:#dfeef7;color:#1d5680;box-shadow:none"; ib.textContent = "ℹ️";
       ib.onclick = () => { SFX.click(); infoModal(lakeInfoHtml(L), "Got it"); };
@@ -1437,7 +1665,7 @@ function renderShop(){
   $("shopCoins").textContent = "🪙 " + S.coins;
   const list = $("shopList"); list.innerHTML = "";
   const h1 = document.createElement("div"); h1.className = "sech"; h1.textContent = "🪱 Bait & Lures"; list.appendChild(h1);
-  BAIT_ORDER.forEach(k => {
+  const baitRow = k => {
     const bt = BAITS[k], own = S.baits.includes(k), open = baitUnlocked(k);
     const d = document.createElement("div"); d.className = "card shopitem";
     const lock = !open ? `<div class="muted">🔒 Prize for beating <b>${BOSSES[bt.boss].name}</b> at ${lakeById(bt.boss).name}</div>` : "";
@@ -1450,7 +1678,17 @@ function renderShop(){
     else { b.className = "btn gold small"; b.textContent = (bt.soft ? "+" + bt.pack + " " : "") + "🪙" + bt.cost; b.disabled = S.coins < bt.cost;
       b.onclick = () => { if (buyBait(k)){ toast(bt.soft ? bt.pack + " " + bt.name + " added to your tackle box!" : bt.name + " added to your tackle box!"); renderShop(); } }; }
     d.querySelector(".row").appendChild(b); list.appendChild(d);
-  });
+  };
+  BAIT_ORDER.filter(k => !BAITS[k].salt).forEach(baitRow);
+  if (S.lakes.includes("ocean")){                     // the ocean section shows up once the ocean is unlocked
+    const ho = document.createElement("div"); ho.className = "sech"; ho.textContent = "🌊 Ocean Tackle (only works at the ocean)"; list.appendChild(ho);
+    const d = document.createElement("div"); d.className = "card shopitem";
+    d.innerHTML = `<div class="row"><div style="font-size:2em">🌊</div><div class="grow"><b>Saltwater Rod & Reel</b><div class="muted">A heavy rod with a big reel that won't rust. You need it to fish at the ocean.</div></div></div>`;
+    const b = document.createElement("button"); b.className = "btn small" + (S.saltRod ? "" : " gold"); b.textContent = S.saltRod ? "Owned ✓" : "🪙" + SALT_ROD_COST; b.disabled = S.saltRod || S.coins < SALT_ROD_COST;
+    b.onclick = () => { if (S.coins < SALT_ROD_COST || S.saltRod) return; S.coins -= SALT_ROD_COST; S.saltRod = true; save(); SFX.coin(); toast("🌊 Saltwater Rod & Reel! The ocean is waiting.", 2600); renderShop(); };
+    d.querySelector(".row").appendChild(b); list.appendChild(d);
+    BAIT_ORDER.filter(k => BAITS[k].salt).forEach(baitRow);
+  }
   const h2 = document.createElement("div"); h2.className = "sech"; h2.textContent = "⚙️ Gear"; list.appendChild(h2);
   Object.keys(UPG).forEach(k => {
     const u = UPG[k], lv = S.up[k], max = u.vals.length - 1;
@@ -1510,6 +1748,15 @@ function renderDex(){
     c.onclick = () => { SFX.click(); showCard(id, false); };
     g.appendChild(c);
   });
+  const og = $("oceanGrid"); og.innerHTML = "";
+  $("oceanDex").style.display = S.lakes.includes("ocean") ? "" : "none";
+  $("oceanHead").textContent = "🌊 Ocean Fishdex " + OCEAN_DEX.filter(id => S.dex[id]).length + "/" + OCEAN_DEX.length;
+  OCEAN_DEX.forEach((id, i) => {
+    const sp = SPECIES[id], got = S.dex[id], c = document.createElement("div");
+    c.className = "dexcell" + (got ? "" : " unk"); c.appendChild(fishIcon(id, 150, 80, !got));
+    const n = document.createElement("div"); n.textContent = (i+1) + ". " + (got ? sp.name + " " + tierIcon(id) : "???"); c.appendChild(n);
+    c.onclick = () => { SFX.click(); showCard(id, false); }; og.appendChild(c);
+  });
   const bg = $("bossGrid"); bg.innerHTML = "";
   LAKES.forEach(L => {
     const d = BOSSES[L.id], got = S.bosses[L.id];
@@ -1568,7 +1815,7 @@ function showChallenge(L){
   ic.style.maxWidth = "16em"; ic.style.margin = "0 auto"; const bp = $("bossPic"); if (bp) bp.appendChild(ic);
 }
 
-function lakesFor(id){ return LAKES.filter(l => l.fish.includes(id) || (l.rare || []).includes(id)).map(l => l.name + ((l.rare || []).includes(id) ? " (rare)" : "")); }
+function lakesFor(id){ return LAKES.filter(l => l.fish.includes(id) || (l.rare || []).includes(id) || (l.boatFish || []).includes(id)).map(l => l.name + ((l.rare || []).includes(id) ? " (rare)" : (l.boatFish || []).includes(id) ? " (charter boat)" : "")); }
 let modalQueue = [];
 function showCard(id, isNew, onDone){
   const sp = SPECIES[id], got = S.dex[id], box = $("modalBox");
@@ -1604,11 +1851,13 @@ function showCard(id, isNew, onDone){
 // =====================================================================
 let trip = null;
 
+let spawnBoat = false;                       // true on a boat trip: the ocean's offshore fish only come to the charter
+const smallFor = (lake, dock) => dock && (lake.ocean ? .8 : true);   // dock fish run small; pier fish a little less so
 function spawnFishFor(lake, y, exclude, small){
   const frac = y / (lake.depth*PPF);
   const lure = S.up.lure;
   const n = nightAmt(), cat = id => SPECIES[id].shape === "cat";
-  let cands = lake.fish.filter(id => !SPECIES[id].legend && id !== exclude && frac >= SPECIES[id].d[0] * (cat(id) ? 1 - .6*n : 1) && frac <= SPECIES[id].d[1])   // catfish rise at night
+  let cands = lake.fish.concat(spawnBoat && lake.boatFish || []).filter(id => !SPECIES[id].legend && id !== exclude && frac >= SPECIES[id].d[0] * (cat(id) ? 1 - .6*n : 1) && frac <= SPECIES[id].d[1])   // catfish rise at night
     .map(id => ({ v:id, w: SPECIES[id].rar * (SPECIES[id].rar <= 3 ? 1 + lure*.5 : 1) * lerp(1, NIGHT_FISH[id] || 1, n) }));
   if (!cands.length){
     let best = null, bd = 9;
@@ -1623,7 +1872,7 @@ function spawnFishFor(lake, y, exclude, small){
 const RARE_CHANCE = .05;
 function makeFish(id, y, small){
   const sp = SPECIES[id];
-  const f = Math.pow(Math.random(), 1.5 - S.up.lure*.17) * (small ? .55 : 1);   // dock fish run small
+  const f = Math.pow(Math.random(), 1.5 - S.up.lure*.17) * (small === true ? .55 : small || 1);   // dock fish run small
   const inches = sp.legend ? rand(sp.min, sp.max) : lerp(sp.min, sp.max, f);
   const dir = Math.random() < .5 ? -1 : 1;
   const L = fishPx(sp, inches);
@@ -1637,10 +1886,11 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   mode = bossFeePaid ? "boat" : (mode || "dock");
   if (!S.day || S.day.lake !== lake.id) S.day = { lake: lake.id, kept: [] };   // new lake = new fishing day                 // boss fights always include a boat
   const dock = mode === "dock";
-  const bottom = (dock ? Math.min(24, Math.round(lake.depth * .3)) : lake.depth) * PPF;
+  spawnBoat = !dock;
+  const bottom = (dock ? (lake.pierDepth || Math.min(24, Math.round(lake.depth * .3))) : lake.depth) * PPF;
   const fish = [];
   const n = Math.round((dock ? Math.max(10, bottom / 36) : bottom / 55) * Math.sqrt(W / SW) * (W > SW ? 1.15 : 1));
-  for (let i=0;i<n;i++) fish.push(spawnFishFor(lake, rand(dock ? 70 : 160, bottom - 15), null, dock));
+  for (let i=0;i<n;i++) fish.push(spawnFishFor(lake, rand(dock ? 70 : 160, bottom - 15), null, smallFor(lake, dock)));
   let boss = null;
   if (bossFeePaid){
     const d = BOSSES[lake.id], sp = bossSp(lake.id);
@@ -1658,7 +1908,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   const snags = [];
   // on the bottom: mostly sunken wood, plus cans, an old boot, the odd tire
   const nBottom = Math.round((dock ? 2 : Math.max(3, bottom / 150)) * W / SW);
-  const bottomJunk = [{v:"log",w:5},{v:"branch",w:3},{v:"can",w:2},{v:"boot",w:1.5},{v:"tire",w:.6},{v:"cart",w:.2}];
+  const bottomJunk = lake.ocean ? [{v:"can",w:2},{v:"boot",w:1},{v:"tire",w:1}] : [{v:"log",w:5},{v:"branch",w:3},{v:"can",w:2},{v:"boot",w:1.5},{v:"tire",w:.6},{v:"cart",w:.2}];
   for (let i=0;i<nBottom;i++){
     const t = pickWeighted(bottomJunk), sg = makeSnag(t, rand(30, W-30), 0);
     sg.y = bottom - sg.h/2 + 4;                       // resting on the lake bottom
@@ -1666,7 +1916,11 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   }
   // in the water column: plants growing up from the bottom and floating weed clumps
   const nPlants = dock ? 1 : Math.max(2, Math.round(bottom / 260));
-  for (let i=0;i<nPlants;i++){
+  if (lake.ocean) for (let i = 0; i < (dock ? 2 : 3); i++){       // kelp grows almost to the top
+    const sg = makeSnag("weed", dock ? rand(270, W - 40) : rand(40, W - 40), bottom); sg.kelp = true;   // not right under the pier where your bait drops
+    sg.w = 44; sg.h = rand(.55, .85) * bottom; sg.y = bottom - sg.h/2; snags.push(sg);
+  }
+  else for (let i=0;i<nPlants;i++){
     if (Math.random() < .6){ const sg = makeSnag("weed", rand(30, W-30), bottom); sg.h = rand(.25, dock ? .45 : .5) * bottom; sg.y = bottom - sg.h/2; snags.push(sg); }
     else snags.push(makeSnag("clump", rand(40, W-40), rand(bottom*.3, bottom*.75)));
   }
@@ -1675,7 +1929,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   }
   if (bossFeePaid) snags.length = 0;                  // boss fights: the boss is the only trouble down there
   trip = { lake, bottom, maxY: Math.min(bottom - 8, upVal("line") * PPF), fish, snags, caught:[], lost:0,
-    mode, tipX: rodTipFor(anglerBase({ mode }), ROD_IDLE).x, tipY: rodTipFor(anglerBase({ mode }), ROD_IDLE).y,
+    mode, tipX: rodTipFor(anglerBase({ mode, lake }), ROD_IDLE).x, tipY: rodTipFor(anglerBase({ mode, lake }), ROD_IDLE).y,
     bobber: !!S.bobber && !bossFeePaid, bobX: null,
     hook:{ x: dock ? 193 : W/2+50, y: -30 }, phase:"ready", camY:camTop(), shields: upVal("guard"),
     bubbles:[], pops:[], fight:null, t:0, doneT:0, chain:null,
@@ -1683,7 +1937,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
     boss, bait: "bare", baitLost:false, baitRolled:false };
   // what's on the hook? It stays from the last cast unless a fish ate it.
   if (visit && visit.hookBait !== undefined) trip.bait = visit.hookBait;
-  else { trip.bait = S.bait && baitUnlocked(S.bait) && takeBait(S.bait) ? S.bait : "spinner"; if (visit) visit.hookBait = trip.bait; }
+  else { trip.bait = S.bait && baitUnlocked(S.bait) && baitHere(S.bait, lake) && takeBait(S.bait) ? S.bait : "spinner"; if (visit) visit.hookBait = trip.bait; }
   if (scentOn() && !bossFeePaid) addScentFish(trip, 5);
   if (visit && visit.lostMsg){ toast("🪝 " + visit.lostMsg + " Tap Bait.", 2600); visit.lostMsg = null; }
   btnHeld = false; uiSheet = bossFeePaid ? "bait" : null;          // boss fight: pick your bait first
@@ -1727,7 +1981,7 @@ function renderBaitBar(){
   if (bd) bar.insertAdjacentHTML("beforeend", '<div class="lbl" style="color:#ffe38a">🎯 ' + bd.name + ' likes ' + bd.likes + '. ⭐ = good pick</div>');
   BAIT_ORDER.forEach(k => {
     const bt = BAITS[k];
-    if (k === "bare" || !baitUnlocked(k)) return;                  // boss prizes show up once you win them
+    if (k === "bare" || !baitUnlocked(k) || (trip && !baitHere(k, trip.lake))) return;   // boss prizes show up once you win them; ocean bait only at the ocean
     const onHook = trip && trip.bait === k;
     const left = baitLeft(k), needBuy = left <= 0 && !onHook;
     const c = document.createElement("button");
@@ -1800,14 +2054,14 @@ function updateHud(){
 
 function hitFish(f, hx, hy){ const h = f.L * .2; return Math.abs(f.x - hx) < f.L*.42 && Math.abs(f.y - hy) < h + 5; }
 function hitSnag(s, hx, hy){ return Math.abs(s.x - hx) < s.w/2 && Math.abs(s.y - hy) < s.h/2 + 3; }
-const PREDATORS = ["trout","largemouth","smallmouth","bcrappie","wcrappie","channel","bluecat","whitecat","dottie"];
+const PREDATORS = ["trout","largemouth","smallmouth","bcrappie","wcrappie","channel","bluecat","whitecat","dottie","kelpbass","sandbass","halibut","bonito","yellowtail","wsb","leopard"];
 function canEat(pred, prey){ return PREDATORS.includes(pred.id) && prey.inches <= pred.inches * .45; }
 
 function hookFish(f){
   trip.fish.splice(trip.fish.indexOf(f), 1);
   trip.pending = 0; trip.tired = false; trip.surge = 0; trip.surgeT = rand(1.5, 3); trip.runDir = Math.random() < .5 ? -1 : 1; trip.spoolT = 0;
   SFX.bite();
-  const needFight = f.boss || f.nightLegend || f.sp.legend || f.trophy || f.id==="sturgeon" || f.id==="bluecat";
+  const needFight = f.boss || f.nightLegend || f.sp.legend || f.trophy || f.id==="sturgeon" || f.id==="bluecat" || (f.sp.fighter && f.frac > .35);
   if (needFight){
     trip.fight = { f, tension: 25, prog: 10, surge: 0, nextSurge: rand(.8, 1.8), from: trip.phase, shake:0,
       stage: 1, stages: f.boss ? trip.boss.def.stages : f.nightLegend ? f.sp.stages : 1, run: null, nextRun: f.boss ? rand(2.5, 4) : 99 };
@@ -1913,7 +2167,7 @@ function useScent(){
 // scent draws extra fish into the area
 function addScentFish(T, n){
   const dock = T.mode === "dock";
-  for (let i=0;i<n;i++) T.fish.push(spawnFishFor(T.lake, rand(dock ? 70 : 160, T.bottom - 15), null, dock));
+  for (let i=0;i<n;i++) T.fish.push(spawnFishFor(T.lake, rand(dock ? 70 : 160, T.bottom - 15), null, smallFor(T.lake, dock)));
 }
 function startNibble(f, c){
   const T = trip, side = f.x < T.hook.x ? 1 : -1;
@@ -1996,7 +2250,7 @@ function checkSnags(T, hk){
 
 // ---- Trolling: the boat idles along, the lure trails behind, fish strike as you pass ----
 const TROLL_LURES = ["spinner", "crank", "swim"];
-const TROLL_SHAPE = { bass:1.15, trout:1.1, sun:.6, cat:.04, carp:.04, sturgeon:0 };   // bottom feeders almost never chase a moving lure
+const TROLL_SHAPE = { bass:1.15, trout:1.1, sun:.6, cat:.04, carp:.04, sturgeon:0, flat:.4, shark:.25, ray:.02, guitar:.05 };   // bottom feeders almost never chase a moving lure
 function trollInterest(T, f){
   let c = interest(T, f) * (TROLL_SHAPE[f.sp.shape] ?? .6);
   if (f.trophy) c *= .35;                              // the big ones are wary: trophies mostly come from a good cast
@@ -2063,7 +2317,7 @@ function updateTroll(dt){
 // ---- Jumps: near the surface a hooked bass or trout can leap clear of the water ----
 const JUMPERS = { smallmouth:.9, largemouth:.6, trout:.5, dottie:1 };
 function ripple(T, x, big){ (T.ripples = T.ripples || []).push({ x, t: 0, big: !!big }); if (T.ripples.length > 12) T.ripples.shift(); }
-const waveAt = (x, t) => Math.sin(x * .045 + t * 1.7) * 1.4 + Math.sin(x * .12 - t * 2.3) * .8;
+const waveAt = (x, t) => (trip && trip.lake.ocean ? 2.6 : 1) * (Math.sin(x * .045 + t * 1.7) * 1.4 + Math.sin(x * .12 - t * 2.3) * .8);
 function splashAt(T, x, y, n){ if (y <= 6) ripple(T, x, n > 12); T.drops = T.drops || []; for (let i = 0; i < n; i++) T.drops.push({ x: x + rand(-10, 10), y: y - 2, vx: rand(-110, 110), vy: rand(-330, -120), r: rand(1.5, 3.5) }); }
 function startJump(T, f){
   T.jump = { t:0, dur: .95 + Math.min(.5, fishLb(f)*.05), f, x0: T.hook.x, dir: T.hook.x < W/2 ? 1 : -1, h: 70 + Math.min(60, f.L*.5) };
@@ -2168,6 +2422,7 @@ function updateFishing(dt){
   else if ((T.phase === "drop" || T.phase === "reel") && T.nibble){ updateNibble(dt); }
   else if (T.phase === "drop" || T.phase === "reel"){
     steer(hk, dt, T.phase === "drop" && !T.bobber ? 1 : 0);    // you steer the bait on the way down; once reeling, the line pulls it toward you
+    if (T.lake.ocean && !T.bobber && !T.caught.length) hk.x = clamp(hk.x + Math.sin(T.t * .35) * 16 * dt * Math.min(1, hk.y / 200), 12, W - 12);   // the ocean current pushes your bait
 
     if (T.phase === "drop"){
       const fast = (keys.ArrowDown || keys.KeyS) && !T.bobber;
@@ -2614,9 +2869,38 @@ const SCENES = {
   jennings: { sky:["#62a8dd","#b4d8ee","#f0efe2"], far:"#8f9aa6", hills:"#c3a15a", sand:"#c9b184", tree:"oak",  flowers:["#f2d23a","#f5e27a"], seed:11 },
   cuyamaca: { sky:["#3f8fd6","#9ccbf0","#e2f1fb"], far:"#6d88a0", hills:"#5f8a4a", sand:"#a89a78", tree:"pine", flowers:["#7b5fd0","#f4f4f4","#c86bd6"], seed:15 },
   elcap:    { sky:["#6aa6d4","#c2d9e6","#f3eadb"], far:"#9a9aa2", hills:"#a58a5a", sand:"#c8ae82", tree:"scrub",flowers:["#e6c33a"], seed:19 },
+  ocean:    { sky:["#5aa8e0","#b4dcf2","#f2f4ee"], far:"#9aa8b2", hills:"#c9b07a", sand:"#e8d6a8", tree:"palm", flowers:["#f0d43a"], seed:29 },
   otay:     { sky:["#78acd4","#c6dceb","#f1eee6"], far:"#8c8aa0", hills:"#b09a6a", sand:"#cdb58a", tree:"palm", flowers:["#f0d43a","#f7e46a"], seed:23 }
 };
 const shoreCache = {};
+// the ocean view from the pier: open sea to the horizon, an island far out, bluffs, palms and a lifeguard tower
+function oceanShore(c, B){
+  const sea = c.createLinearGradient(0, B - 44, 0, B); sea.addColorStop(0, "#8cc4dc"); sea.addColorStop(1, "#4d9fc4");
+  c.fillStyle = sea; c.fillRect(0, B - 44, W, 44);
+  c.fillStyle = "rgba(255,255,255,.5)"; c.fillRect(0, B - 45, W, 1.5);                               // the horizon
+  c.fillStyle = "rgba(140,150,170,.55)"; c.beginPath(); c.moveTo(W * .58, B - 44); c.quadraticCurveTo(W * .7, B - 54, W * .86, B - 47); c.lineTo(W * .9, B - 44); c.fill();   // an island far out
+  c.strokeStyle = "rgba(255,255,255,.35)"; c.lineWidth = 1;
+  for (let i = 0; i < 26; i++){ const x = prand(i, 51) * W, y = B - 40 + prand(i, 52) * 36; c.beginPath(); c.moveTo(x, y); c.lineTo(x + 6 + prand(i, 53) * 10, y); c.stroke(); }
+  const bw = Math.min(200, W * .36);                                                                    // bluffs on the left
+  c.fillStyle = "#c9a878"; c.beginPath(); c.moveTo(0, B - 100); c.quadraticCurveTo(bw * .5, B - 104, bw * .8, B - 80); c.quadraticCurveTo(bw * .95, B - 50, bw, B - 10); c.lineTo(0, B - 10); c.fill();
+  c.strokeStyle = "rgba(140,105,70,.45)"; c.lineWidth = 1.2; for (let k = 0; k < 7; k++){ c.beginPath(); c.moveTo(0, B - 88 + k * 11); c.quadraticCurveTo(bw * .5, B - 90 + k * 12, bw * (.82 + k * .025), B - 70 + k * 9); c.stroke(); }
+  c.fillStyle = "#6f8a4a"; c.beginPath(); c.moveTo(0, B - 104); c.quadraticCurveTo(bw * .5, B - 110, bw * .82, B - 82); c.lineTo(bw * .78, B - 78); c.quadraticCurveTo(bw * .5, B - 100, 0, B - 96); c.fill();
+  [[bw * .2, "#f2efe6", "#c9563c"], [bw * .42, "#eef0f0", "#7a8a96"], [bw * .6, "#f6e6c8", "#c9563c"]].forEach(([x, wall, roof]) => {   // beach houses on the bluff
+    c.fillStyle = wall; c.fillRect(x - 9, B - 116, 18, 12); c.fillStyle = roof; c.beginPath(); c.moveTo(x - 11, B - 116); c.lineTo(x, B - 124); c.lineTo(x + 11, B - 116); c.fill();
+    c.fillStyle = "#6fa3c4"; c.fillRect(x - 5, B - 113, 4, 4); c.fillRect(x + 2, B - 113, 4, 4); });
+  const palm = (x, y, h) => { c.strokeStyle = "#7a6248"; c.lineWidth = 2; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 4, y - h * .5, x + 2, y - h); c.stroke();
+    c.strokeStyle = "#3f6b3a"; c.lineWidth = 1.6; for (let k = 0; k < 7; k++){ const a = -Math.PI + k * Math.PI / 6; c.beginPath(); c.moveTo(x + 2, y - h); c.quadraticCurveTo(x + 2 + Math.cos(a) * 8, y - h - 5, x + 2 + Math.cos(a) * 13, y - h + 4 + Math.abs(Math.sin(a)) * 3); c.stroke(); } };
+  palm(bw * .1, B - 103, 34); palm(bw * .32, B - 106, 40); palm(bw * .52, B - 104, 30); palm(bw * .74, B - 88, 36);
+  c.fillStyle = "#ecdcae"; c.beginPath(); c.moveTo(0, B - 12); c.lineTo(bw * 1.5, B - 4); c.lineTo(bw * 1.5, B); c.lineTo(0, B); c.fill();   // the beach
+  const tx = bw * 1.15;                                                                                // lifeguard tower
+  c.strokeStyle = "#8a7a62"; c.lineWidth = 1.5; c.beginPath(); c.moveTo(tx - 7, B - 4); c.lineTo(tx - 5, B - 20); c.moveTo(tx + 7, B - 4); c.lineTo(tx + 5, B - 20); c.stroke();
+  c.fillStyle = "#4aa8d8"; c.fillRect(tx - 9, B - 32, 18, 12); c.fillStyle = "#f2c53a"; c.beginPath(); c.moveTo(tx - 11, B - 32); c.lineTo(tx, B - 38); c.lineTo(tx + 11, B - 32); c.fill();
+  c.fillStyle = "#fff"; c.fillRect(tx - 6, B - 29, 12, 5); c.fillStyle = "#d33a3a"; c.fillRect(tx + 9, B - 44, 6, 4); c.fillRect(tx + 9, B - 44, 1, 14);
+  c.strokeStyle = "rgba(255,255,255,.8)"; c.lineWidth = 1.4; for (let k = 0; k < 3; k++){ c.beginPath(); c.moveTo(0, B - 8 + k * 2); c.quadraticCurveTo(bw * .8, B - 6 + k * 2, bw * 1.6, B - 2 + k); c.stroke(); }   // surf on the sand
+  const sx = W * .72;                                                                                  // a sailboat
+  c.fillStyle = "#f6f6f2"; c.beginPath(); c.moveTo(sx, B - 30); c.lineTo(sx, B - 58); c.lineTo(sx + 14, B - 30); c.fill(); c.beginPath(); c.moveTo(sx - 2, B - 32); c.lineTo(sx - 2, B - 52); c.lineTo(sx - 11, B - 32); c.fill();
+  c.fillStyle = "#c9563c"; c.beginPath(); c.moveTo(sx - 14, B - 29); c.lineTo(sx + 17, B - 29); c.lineTo(sx + 12, B - 25); c.lineTo(sx - 10, B - 25); c.fill();
+}
 function shoreArt(L){
   const key = L.id + "|" + W; if (shoreCache[key]) return shoreCache[key];
   const sc = SCENES[L.id] || SCENES.dixon, S2 = 2, c0 = document.createElement("canvas");
@@ -2624,6 +2908,7 @@ function shoreArt(L){
   const c = c0.getContext("2d"); c.scale(S2, S2);
   const B = SHORE_H, seed = sc.seed;
   const ridge = (x, sd, amp, base) => hillLine(x, sd, amp, base);
+  if (L.ocean){ oceanShore(c, B); c0.wid = W; shoreCache[key] = c0; return c0; }
   const fillRidge = (fill, sd, amp, base, step = 8) => { c.fillStyle = fill; c.beginPath(); c.moveTo(0, B); for (let x = 0; x <= W; x += step) c.lineTo(x, ridge(x, sd, amp, base)); c.lineTo(W, B); c.fill(); };
   const haze = (col, a) => { const [r,g,b] = hexRgb(col); return `rgba(${r},${g},${b},${a})`; };
 
@@ -2849,6 +3134,59 @@ function drawDock(surf, t){
   // reflection of the dock in the water
   ctx.fillStyle = "rgba(60,40,25,.18)"; ctx.fillRect(0, surf + 1, 218, 8);
 }
+// the pier's pilings run all the way down to the sand (drawn with the water, so they stay when the surface scrolls away)
+const PILINGS = [22, 84, 146, 208];
+function drawPilings(surf, floor){
+  for (const px of PILINGS){
+    const pg = ctx.createLinearGradient(px - 6, 0, px + 6, 0); pg.addColorStop(0, "#3a3a38"); pg.addColorStop(.5, "#5d5a50"); pg.addColorStop(1, "#33322f");
+    ctx.fillStyle = pg; ctx.fillRect(px - 6, Math.max(-10, surf), 12, floor - Math.max(-10, surf) + 4);
+    ctx.fillStyle = "rgba(60,90,50,.35)"; for (let k = 0; k < 14; k++){ const y = surf + 40 + prand(k, px)*(floor - surf - 40); ctx.beginPath(); ctx.ellipse(px - 6 + prand(k, px + 5)*12, y, 3, 5, 0, 0, 7); ctx.fill(); }   // weed and anemones
+  }
+}
+// Oceanside Pier: a tall wooden pier on pilings crusted with mussels
+function drawPier(surf, t){
+  const deck = surf - 56;
+  ctx.fillStyle = "rgba(20,40,60,.25)"; ctx.fillRect(0, surf + 1, 240, 10);                          // shadow on the water
+  for (const px of PILINGS){
+    const pg = ctx.createLinearGradient(px - 6, 0, px + 6, 0); pg.addColorStop(0, "#4a3f34"); pg.addColorStop(.5, "#7d6c58"); pg.addColorStop(1, "#3f352b");
+    ctx.fillStyle = pg; ctx.fillRect(px - 6, deck + 8, 12, surf - deck + 34);
+    ctx.fillStyle = "rgba(30,35,50,.85)"; for (let k = 0; k < 9; k++){ ctx.beginPath(); ctx.ellipse(px - 4 + prand(k, px)*8, surf + 3 + k*3.5, 2.4, 1.5, prand(k, px + 1)*3, 0, 7); ctx.fill(); }   // mussels
+    ctx.fillStyle = "rgba(230,225,210,.7)"; for (let k = 0; k < 6; k++){ ctx.beginPath(); ctx.arc(px - 5 + prand(k, px + 2)*10, surf - 4 + prand(k, px + 3)*12, 1, 0, 7); ctx.fill(); }   // barnacles
+  }
+  ctx.strokeStyle = "#5c4e40"; ctx.lineWidth = 3;                                                     // cross braces
+  for (const [a, b] of [[22, 84], [84, 146], [146, 208]]){ ctx.beginPath(); ctx.moveTo(a, deck + 12); ctx.lineTo(b, surf - 8); ctx.moveTo(b, deck + 12); ctx.lineTo(a, surf - 8); ctx.stroke(); }
+  for (let bx = 0; bx < 240; bx += 12){                                                               // weathered deck boards
+    const g = ctx.createLinearGradient(0, deck - 1, 0, deck + 9); g.addColorStop(0, "#b3a690"); g.addColorStop(1, "#7a6c5a");
+    ctx.fillStyle = g; ctx.fillRect(bx, deck - 1, 11, 10);
+  }
+  ctx.fillStyle = "#5a4c3e"; ctx.fillRect(0, deck + 8, 240, 4);
+  ctx.fillStyle = "#6d5f4e"; for (let px = 6; px < 240; px += 38) ctx.fillRect(px, deck - 28, 4, 28);  // railing
+  ctx.fillRect(0, deck - 30, 240, 4); ctx.fillRect(0, deck - 17, 240, 2.5);
+  ctx.fillStyle = "#3a3f44"; ctx.fillRect(40, deck - 78, 3, 78);                                      // lamp post
+  ctx.fillStyle = "#2c3034"; ctx.fillRect(34, deck - 84, 15, 7); ctx.fillStyle = "#f3e7b0"; ctx.fillRect(36, deck - 78, 11, 4);
+  ctx.fillStyle = "#e8eef2"; ctx.fillRect(98, deck - 14, 18, 13); ctx.fillStyle = "#2f7fb5"; ctx.fillRect(98, deck - 14, 18, 4);   // cooler
+  ctx.fillStyle = "#f4f6f8"; ctx.beginPath(); ctx.moveTo(176, deck - 12); ctx.lineTo(188, deck - 12); ctx.lineTo(186, deck - 1); ctx.lineTo(178, deck - 1); ctx.fill();   // bait bucket
+  const gy = deck - 30, hop = Math.max(0, Math.sin(t * .7)) > .98 ? 3 : 0;                            // a gull on the railing
+  ctx.fillStyle = "#f2f2f2"; ctx.beginPath(); ctx.ellipse(222, gy - 6 - hop, 7, 4.5, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(228, gy - 11 - hop, 3, 0, 7); ctx.fill();
+  ctx.fillStyle = "#8a949c"; ctx.beginPath(); ctx.ellipse(219, gy - 7 - hop, 6, 2.6, -.15, 0, 7); ctx.fill();
+  ctx.fillStyle = "#e8b43a"; ctx.fillRect(230, gy - 11.5 - hop, 4, 1.4); ctx.fillStyle = "#111"; ctx.fillRect(228.4, gy - 12.4 - hop, 1, 1);
+  ctx.strokeStyle = "#d9a83a"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(221, gy - 2 - hop); ctx.lineTo(221, gy); ctx.moveTo(224, gy - 2 - hop); ctx.lineTo(224, gy); ctx.stroke();
+}
+// a white sportfishing charter boat
+function drawCharter(bx, by, t){
+  ctx.fillStyle = "rgba(20,30,40,.25)"; ctx.beginPath(); ctx.ellipse(bx - 15, by + 10, 115, 5, 0, 0, 7); ctx.fill();
+  const g = ctx.createLinearGradient(0, by - 24, 0, by + 9); g.addColorStop(0, "#ffffff"); g.addColorStop(.6, "#e3e8ec"); g.addColorStop(1, "#a9b3bb");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(bx - 128, by - 26); ctx.quadraticCurveTo(bx - 96, by + 6, bx - 70, by + 8); ctx.lineTo(bx + 88, by + 8); ctx.lineTo(bx + 92, by - 15); ctx.lineTo(bx - 60, by - 15); ctx.quadraticCurveTo(bx - 100, by - 18, bx - 128, by - 26); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#1f4f8a"; ctx.beginPath(); ctx.moveTo(bx - 112, by - 8); ctx.quadraticCurveTo(bx - 60, by - 2, bx + 90, by - 2); ctx.lineTo(bx + 90, by + 1); ctx.quadraticCurveTo(bx - 60, by + 1, bx - 106, by - 4); ctx.fill();   // stripe
+  ctx.fillStyle = "#c9302c"; ctx.fillRect(bx - 70, by + 5, 158, 3);                                    // bottom paint
+  ctx.fillStyle = "#f6f8fa"; ctx.fillRect(bx - 96, by - 42, 60, 27);                                   // cabin
+  ctx.fillStyle = "#24384c"; for (let k = 0; k < 3; k++) ctx.fillRect(bx - 91 + k*18, by - 37, 14, 9);
+  ctx.fillStyle = "#e9edf0"; ctx.fillRect(bx - 84, by - 56, 38, 14); ctx.fillStyle = "#1f4f8a"; ctx.fillRect(bx - 88, by - 60, 46, 4);   // flybridge and its canopy
+  ctx.strokeStyle = "#c8ced3"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(bx - 60, by - 60); ctx.lineTo(bx - 64, by - 104); ctx.moveTo(bx - 52, by - 60); ctx.lineTo(bx - 20, by - 112 + Math.sin(t) * 2); ctx.stroke();   // antenna and outrigger
+  ctx.strokeStyle = "#dfe4e8"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(bx - 36, by - 24); ctx.lineTo(bx + 90, by - 24); ctx.stroke();   // rail
+  for (let px = bx - 30; px <= bx + 90; px += 24){ ctx.beginPath(); ctx.moveTo(px, by - 24); ctx.lineTo(px, by - 15); ctx.stroke(); }
+  ctx.strokeStyle = "#2b2b2b"; ctx.lineWidth = 1.6; for (const px of [bx + 62, bx + 76]){ ctx.beginPath(); ctx.moveTo(px, by - 16); ctx.lineTo(px + 18, by - 60); ctx.stroke(); }   // rods in the holders
+}
 function drawBoat(bx, by){
   // your boat: an aluminum jon boat (rented or your own) or a bass boat, in your paint color
   const pc = (PAINTS[look().paint] || PAINTS.silver).col, bass = S.boatOwn >= 2;
@@ -2878,6 +3216,8 @@ function drawBoat(bx, by){
   }
   const pd = PAINTS[look().paint] || {};
   if (pd.flames){ ctx.fillStyle = "#f5b82e"; for (let i = 0; i < 4; i++){ const fx = bx - 50 + i * 14; ctx.beginPath(); ctx.moveTo(fx, by + 4); ctx.quadraticCurveTo(fx + 10, by - 12, fx + 26, by - 9); ctx.quadraticCurveTo(fx + 14, by - 5, fx + 8, by + 4); ctx.fill(); } }
+  if (pd.waves){ ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 1.8; ctx.beginPath(); for (let i = 0; i <= 96; i += 3) ctx.lineTo(bx - 50 + i, by - 3 + Math.sin(i * .2) * 2.5); ctx.stroke();
+    ctx.lineWidth = 1; ctx.beginPath(); for (let i = 0; i <= 96; i += 3) ctx.lineTo(bx - 50 + i, by + 1 + Math.sin(i * .2 + 1.5) * 2); ctx.stroke(); }
   if (pd.stars){ ctx.fillStyle = "#fff"; for (let i = 0; i < 10; i++) ctx.fillRect(bx - 55 + prand(i, 63) * 100, by - 13 + prand(i, 64) * 15, 1.5, 1.5); ctx.fillStyle = "#f4f1e0"; ctx.beginPath(); ctx.arc(bx + 30, by - 5, 3.5, 0, 7); ctx.fill(); }
   if (look().paint === "purple" || look().paint === "gold" || look().paint === "shiny"){                                   // glitter
     const tt = performance.now() / 400;
@@ -2887,7 +3227,8 @@ function drawBoat(bx, by){
 }
 // ---- The angler: a bigger, animated fisher who winds up, casts, cranks, leans into fights and cheers ----
 const AK = 1.45, ROD_LEN = 82, ROD_IDLE = 52 * Math.PI / 180;
-function anglerBase(T){ if (T.mode === "dock") return { ax: 150, feet: -14 }; return { ax: W/2 + 7, feet: Math.sin((T.t || 0) * 2) * 1.5 - 14 }; }   // world coords of the feet
+function anglerBase(T){ const oc = T.lake && T.lake.ocean;
+  if (T.mode === "dock") return { ax: 150, feet: oc ? -56 : -14 }; return { ax: W/2 + 7, feet: Math.sin((T.t || 0) * (oc ? 1.3 : 2)) * (oc ? 3 : 1.5) - 14 }; }   // world coords of the feet
 const gripLocal = { x: 9, y: -17 };
 function toWorld(b, lean, x, y){ const c = Math.cos(lean), s = Math.sin(lean), X = x * AK, Y = y * AK; return { x: b.ax + X*c - Y*s, y: b.feet + X*s + Y*c }; }
 function rodTipFor(b, th, lean = 0){ const g = toWorld(b, lean, gripLocal.x, gripLocal.y); return { x: g.x + ROD_LEN * Math.cos(th), y: g.y - ROD_LEN * Math.sin(th) }; }
@@ -2998,6 +3339,7 @@ function renderScene(T, idle){
     }
     ctx.globalAlpha = 1;
     drawDeepBackdrop(T, sy, so, night);
+    if (T.mode === "dock" && L.ocean) drawPilings(sy(0), sy(T.bottom));
   }
   // sky + shore
   if (surf > 0){
@@ -3010,17 +3352,18 @@ function renderScene(T, idle){
     rf.addColorStop(0, "rgba(70,95,60,.35)"); rf.addColorStop(1, "rgba(70,95,60,0)");
     ctx.fillStyle = rf; ctx.fillRect(0, surf, W, 26);
     let ax, feet;
-    if (T.mode === "dock"){ drawDock(surf, T.t); ax = 150; feet = surf - 14; }
+    if (T.mode === "dock"){ if (L.ocean) drawPier(surf, T.t); else drawDock(surf, T.t); ax = 150; feet = surf + anglerBase(T).feet; }
     else {
-      const bx = W/2 + 20, by = surf + Math.sin(T.t*2)*1.5, trolling = T.phase === "troll";
+      const bx = W/2 + 20, by = surf + (L.ocean ? Math.sin(T.t*1.3)*3 : Math.sin(T.t*2)*1.5), trolling = T.phase === "troll";
       if (trolling){                                          // foamy wake trailing off the stern
         ctx.strokeStyle = "rgba(255,255,255,.6)"; ctx.lineWidth = 1.5;
         for (let k = 0; k < 5; k++){ const x = bx + 60 + k*26 + (T.t*40 % 26); ctx.globalAlpha = .7 - k*.13; ctx.beginPath(); ctx.moveTo(x, surf + 2); ctx.quadraticCurveTo(x + 10, surf + 5 + k, x + 20, surf + 3); ctx.stroke(); }
         ctx.globalAlpha = 1;
       }
-      drawBoat(bx, by);
-      ctx.fillStyle = "#3a4046"; ctx.fillRect(bx + 50, by - 24, 9, 11); ctx.fillStyle = "#c9302c"; ctx.fillRect(bx + 50, by - 24, 9, 3);   // little outboard motor
-      ctx.fillStyle = "#2a2f33"; ctx.fillRect(bx + 53, by - 13, 3, trolling ? 16 : 12);
+      if (L.ocean) drawCharter(bx, by, T.t);
+      else { drawBoat(bx, by);
+        ctx.fillStyle = "#3a4046"; ctx.fillRect(bx + 50, by - 24, 9, 11); ctx.fillStyle = "#c9302c"; ctx.fillRect(bx + 50, by - 24, 9, 3);   // little outboard motor
+        ctx.fillStyle = "#2a2f33"; ctx.fillRect(bx + 53, by - 13, 3, trolling ? 16 : 12); }
       ax = bx - 13; feet = by - 14;
     }
     if (T !== trip || !T.pose) anglerPose(T);          // a trip updates its own pose each frame
@@ -3276,11 +3619,11 @@ function drawSnag(s, y, t){
     const base = s.h/2, sx = (yy, i) => { const r = (base - yy) / s.h; return i*5*(1 + r*1.4) + Math.sin(t*1.3 + yy*.025 + i*.35 + s.x*.01) * r * r * 16; };
     for (let i=-2;i<=2;i++){
       const top = -s.h/2 + Math.abs(i)*s.h*.14;
-      const wg = ctx.createLinearGradient(0, base, 0, top); wg.addColorStop(0, "#1c4221"); wg.addColorStop(1, i%2 ? "#5e9a44" : "#74ae4f");
+      const wg = ctx.createLinearGradient(0, base, 0, top); wg.addColorStop(0, s.kelp ? "#3a2c10" : "#1c4221"); wg.addColorStop(1, s.kelp ? (i%2 ? "#8a6a24" : "#a8842e") : i%2 ? "#5e9a44" : "#74ae4f");
       ctx.strokeStyle = wg; ctx.lineWidth = 2.6 - Math.abs(i)*.4; ctx.beginPath(); ctx.moveTo(sx(base, i), base);
       for (let yy = base; yy > top; yy -= 6) ctx.lineTo(sx(yy, i), yy);
       ctx.stroke();
-      ctx.fillStyle = i%2 ? "rgba(84,140,62,.7)" : "rgba(104,160,72,.7)";
+      ctx.fillStyle = s.kelp ? (i%2 ? "rgba(150,112,40,.75)" : "rgba(176,134,52,.75)") : i%2 ? "rgba(84,140,62,.7)" : "rgba(104,160,72,.7)";
       let side = 1;
       for (let yy = base - 10; yy > top + 4; yy -= 11){ const xx = sx(yy, i); side = -side; ctx.beginPath(); ctx.ellipse(xx + side*4.5, yy - 2, 5.5, 1.7, side*-.55, 0, 7); ctx.fill(); }
     }
@@ -3417,9 +3760,13 @@ const WILD = {
   heron:    { name:"Great Blue Heron", icon:"🪶", fact:"It stands perfectly still in the shallows, then spears a fish with its beak." },
   turtle:   { name:"Western Pond Turtle", icon:"🐢", fact:"California's only native freshwater turtle. It basks on logs and swims for snacks." },
   crawdad:  { name:"Crawdad", icon:"🦞", fact:"Crayfish crawl along the bottom. Bass and catfish love to eat them." },
-  bullfrog: { name:"Bullfrog", icon:"🐸", fact:"You'll hear its deep \"jug-o-rum\" call on warm nights." }
+  bullfrog: { name:"Bullfrog", icon:"🐸", fact:"You'll hear its deep \"jug-o-rum\" call on warm nights." },
+  pelican:  { name:"Brown Pelican", icon:"🐦", fact:"Brown pelicans fold their wings and plunge head-first into the sea, scooping fish into their stretchy pouch.", big:true, ocean:true },
+  sealion:  { name:"California Sea Lion", icon:"🦭", fact:"Sea lions hang around piers and boats hoping for an easy meal. They can swim 25 miles an hour!", big:true, ocean:true },
+  dolphin:  { name:"Bottlenose Dolphin", icon:"🐬", fact:"Pods of dolphins swim along the San Diego coast, often right past the surf line.", ocean:true },
+  gull:     { name:"Western Gull", icon:"🕊️", fact:"Western gulls live all along the coast. They'll grab a snack right out of your bait bucket!", ocean:true }
 };
-const WILD_ORDER = ["osprey", "merganser", "heron", "turtle", "crawdad", "bullfrog"];
+const WILD_ORDER = ["osprey", "merganser", "heron", "turtle", "crawdad", "bullfrog", "pelican", "sealion", "dolphin", "gull"];
 // a big moment (osprey or duck) comes every 14-26 minutes of fishing, about 1-2 times in 30-45 minutes;
 // a quiet sighting every 4-8 minutes
 function wildClock(){ return S.wild = S.wild || { t: 0, nextBig: rand(14, 26) * 60, nextSee: rand(4, 8) * 60, seen: {} }; }
@@ -3435,14 +3782,15 @@ function updateWild(T, dt){
     const hooked = T.caught.length && T.caught[0], dep = T.hook.y / PPF, inView = T.phase === "ready" || (T.phase !== "fight" && dep < 10);
     if (w.t > w.nextBig && inView && !T.jump){                         // waits until the surface is on screen
       w.nextBig = w.t + rand(14, 26) * 60;
-      const kind = Math.random() < .55 ? "osprey" : "merganser";
-      if (hooked && T.phase === "reel" && (kind === "osprey" || fishLb(hooked) < 1.5)) startRaid(T, kind, hooked);
+      if (T.lake.ocean) w.nextBig = w.t + rand(8, 16) * 60;          // sea lions and pelicans are bolder than lake birds
+      const kind = T.lake.ocean ? (Math.random() < .5 ? "pelican" : "sealion") : Math.random() < .55 ? "osprey" : "merganser";
+      if (hooked && T.phase === "reel" && (kind === "osprey" || kind === "sealion" || fishLb(hooked) < 1.5)) startRaid(T, kind, hooked);
       else startShow(T, kind);
     } else if (w.t > w.nextSee && T.phase !== "fight"){
       w.nextSee = w.t + rand(4, 8) * 60;
-      const opts = ["heron", "turtle", "crawdad"].concat(isNight() ? ["bullfrog", "bullfrog"] : []);
+      const opts = T.lake.ocean ? ["dolphin", "gull"] : ["heron", "turtle", "crawdad"].concat(isNight() ? ["bullfrog", "bullfrog"] : []);
       const kind = opts[Math.floor(Math.random() * opts.length)];
-      T.wild = { kind, mode:"see", t:0, dur: kind === "crawdad" ? 16 : kind === "turtle" ? 14 : 12, dir: Math.random() < .5 ? 1 : -1 };
+      T.wild = { kind, mode:"see", t:0, dur: kind === "crawdad" ? 16 : kind === "turtle" || kind === "dolphin" ? 14 : 12, dir: Math.random() < .5 ? 1 : -1 };
       if (kind === "bullfrog") SFX.croak();
       wildSeen(kind);
     }
@@ -3457,24 +3805,24 @@ function updateWild(T, dt){
     else if (A.stage === "grab"){ if (A.t > .45){
         const i = T.caught.indexOf(A.f); if (i >= 0){ T.caught.splice(i, 1); T.lost++; T.chain = null; T.tired = false; }
         A.stage = "flee"; A.t = 0; A.carry = A.f; SFX.splash(); splashAt(T, T.hook.x, 0, 16); S.coins += 5; showCoins();
-        pop(T.hook.x, -60, (A.kind === "osprey" ? "🦅 The osprey" : "🦆 The duck") + " stole your fish! (+5 🪙 for the photo)", "#ffd0c8", 17); } }
+        pop(T.hook.x, -60, ({ osprey:"🦅 The osprey", pelican:"🐦 The pelican", sealion:"🦭 The sea lion" }[A.kind] || "🦆 The duck") + " stole your fish! (+5 🪙 for the photo)", "#ffd0c8", 17); } }
     else if (A.stage === "flee" && A.t > 2.2) T.wild = null;
   } else if (A.mode === "show"){                                      // a dive on a fish swimming near the top
     if (A.stage === "in" && A.t > A.din){ A.stage = "hit"; A.t = 0; SFX.splash(); splashAt(T, A.x, 0, 18);
       const i = T.fish.indexOf(A.f); if (i >= 0) T.fish.splice(i, 1); A.carry = A.f; }
-    else if (A.stage === "hit" && A.t > (A.kind === "merganser" ? 1.4 : .5)){ A.stage = "out"; A.t = 0; }
+    else if (A.stage === "hit" && A.t > (A.kind === "merganser" || A.kind === "sealion" ? 1.4 : .5)){ A.stage = "out"; A.t = 0; }
     else if (A.stage === "out" && A.t > 2.6) T.wild = null;
   } else if (A.t > A.dur) T.wild = null;
 }
 function startRaid(T, kind, f){
-  T.wild = { kind, mode:"raid", stage:"warn", t:0, f, taps:0, need: kind === "osprey" ? 8 : 6, win: 2.4, dir: T.hook.x < W/2 ? 1 : -1 };
+  T.wild = { kind, mode:"raid", stage:"warn", t:0, f, taps:0, need: kind === "sealion" ? 11 : kind === "osprey" || kind === "pelican" ? 8 : 6, win: 2.4, dir: T.hook.x < W/2 ? 1 : -1 };
   wildSeen(kind); SFX.screech(kind);
-  pop(W / 2, -150, kind === "osprey" ? "🦅 An osprey wants your fish!" : "🦆 A duck wants your fish!", "#ffe38a", 19);
+  pop(W / 2, -150, ({ osprey:"🦅 An osprey", pelican:"🐦 A pelican", sealion:"🦭 A sea lion" }[kind] || "🦆 A duck") + " wants your fish!", "#ffe38a", 19);
 }
 function startShow(T, kind){
   let f = T.fish.filter(x => !x.boss && !x.nightLegend && !x.nibbling && x.y < 7 * PPF && x.L < 70).sort((a, b) => a.y - b.y)[0];
   if (!f){ f = spawnFishFor(T.lake, 2.5 * PPF, null, true); f.x = rand(80, W - 80); T.fish.push(f); }   // a little fish right under the surface
-  T.wild = { kind, mode:"show", stage:"in", t:0, f, x: f.x, din: kind === "osprey" ? 2.2 : 3.2, dir: f.x < W/2 ? 1 : -1 };
+  T.wild = { kind, mode:"show", stage:"in", t:0, f, x: f.x, din: kind === "osprey" || kind === "pelican" ? 2.2 : 3.2, dir: f.x < W/2 ? 1 : -1 };
   wildSeen(kind); SFX.screech(kind);
 }
 // drawings (world coordinates through sy)
@@ -3516,6 +3864,43 @@ function drawHeron(x, y, s, t){ const g = wc || ctx; g.save(); g.translate(x, y)
 function drawFrog(x, y, s){ const g = wc || ctx; g.save(); g.translate(x, y); g.scale(s, s); g.fillStyle = "#3f7a3a"; g.beginPath(); g.ellipse(0, 0, 13, 3, 0, 0, 7); g.fill();    // lily pad
   g.fillStyle = "#5a8a3a"; g.beginPath(); g.ellipse(0, -4, 6, 4, 0, 0, 7); g.fill(); const pu = (Math.sin(performance.now() / 300) + 1) * 1.5; g.fillStyle = "#e8e2a0"; g.beginPath(); g.arc(4, -2, 2 + pu, 0, 7); g.fill();
   g.fillStyle = "#5a8a3a"; g.beginPath(); g.arc(2, -8, 2, 0, 7); g.arc(-2, -8, 2, 0, 7); g.fill(); g.fillStyle = "#111"; g.beginPath(); g.arc(2, -8.5, .9, 0, 7); g.arc(-2, -8.5, .9, 0, 7); g.fill(); g.restore(); }
+function drawPelican(x, y, s, flap, dir, dive){ const g = wc || ctx;
+  g.save(); g.translate(x, y); g.scale(dir * s, s); if (dive) g.rotate(1.1);
+  g.fillStyle = "#5a4e44"; g.beginPath(); g.moveTo(-16, 0); g.quadraticCurveTo(-4, -18 * flap - 4, 4, -2); g.quadraticCurveTo(12, -18 * flap - 4, 26, -1); g.lineTo(4, 3); g.fill();   // long wings
+  g.fillStyle = "#7d7064"; g.beginPath(); g.ellipse(2, 1, 11, 4.4, 0, 0, 7); g.fill();
+  g.fillStyle = "#f2ecd8"; g.beginPath(); g.arc(13, -2, 3.2, 0, 7); g.fill();                         // pale head
+  g.fillStyle = "#d9b25a"; g.beginPath(); g.moveTo(15, -2.5); g.lineTo(27, 0); g.lineTo(15, 1); g.fill();   // long bill
+  g.fillStyle = "#8a6a4a"; g.beginPath(); g.moveTo(15, 1); g.quadraticCurveTo(21, 4.5, 26, .4); g.fill();   // the pouch
+  g.fillStyle = "#222"; g.beginPath(); g.arc(13.6, -2.8, .7, 0, 7); g.fill();
+  g.restore();
+}
+function drawSeaLion(x, y, s, dir, under){ const g = wc || ctx;
+  g.save(); g.translate(x, y); g.scale(dir * s, s); if (under) g.rotate(.12);
+  g.fillStyle = "#6a4a2e"; g.beginPath(); g.moveTo(-18, 1); g.quadraticCurveTo(-8, -7, 6, -6); g.quadraticCurveTo(14, -6, 16, -2); g.quadraticCurveTo(10, 5, -6, 4); g.quadraticCurveTo(-14, 4, -18, 1); g.fill();
+  g.beginPath(); g.moveTo(-17, 1); g.lineTo(-24, -3); g.lineTo(-23, 4); g.fill();                    // back flippers
+  g.fillStyle = "#5a3e26"; g.beginPath(); g.ellipse(2, 4, 5, 1.8, .5 + Math.sin(performance.now() / 160) * .3, 0, 7); g.fill();   // front flipper
+  g.fillStyle = "#7a5636"; g.beginPath(); g.arc(15, -3.5, 3.6, 0, 7); g.fill(); g.beginPath(); g.ellipse(19, -2.5, 2.6, 1.7, 0, 0, 7); g.fill();   // head and snout
+  g.fillStyle = "#111"; g.beginPath(); g.arc(16, -5, .8, 0, 7); g.arc(21.3, -2.6, .6, 0, 7); g.fill();
+  g.strokeStyle = "rgba(240,230,210,.8)"; g.lineWidth = .4; g.beginPath(); g.moveTo(20, -1.6); g.lineTo(24, -.8); g.moveTo(20, -1.2); g.lineTo(23.6, .4); g.stroke();   // whiskers
+  g.restore();
+}
+function drawDolphin(x, y, s, dir, rot){ const g = wc || ctx;
+  g.save(); g.translate(x, y); g.scale(dir * s, s); g.rotate(rot || 0);
+  g.fillStyle = "#7d8c99"; g.beginPath(); g.moveTo(-18, 0); g.quadraticCurveTo(-4, -8, 10, -5); g.quadraticCurveTo(15, -4, 16, -2); g.lineTo(22, -1); g.lineTo(16, 1); g.quadraticCurveTo(4, 5, -14, 2); g.closePath(); g.fill();
+  g.fillStyle = "#c8d2da"; g.beginPath(); g.moveTo(-10, 2); g.quadraticCurveTo(4, 4.5, 15, .8); g.quadraticCurveTo(4, 2.4, -10, 2); g.fill();
+  g.fillStyle = "#6d7c89"; g.beginPath(); g.moveTo(-2, -6); g.quadraticCurveTo(0, -12, -6, -12); g.lineTo(-6, -6); g.fill();   // dorsal fin
+  g.beginPath(); g.moveTo(-17, 0); g.lineTo(-23, -4); g.lineTo(-21, 0); g.lineTo(-23, 4); g.fill();   // tail flukes
+  g.fillStyle = "#111"; g.beginPath(); g.arc(12, -2.6, .7, 0, 7); g.fill();
+  g.restore();
+}
+function drawGull(x, y, s, dir){ const g = wc || ctx, f = Math.sin(performance.now() / 120) * 5;
+  g.save(); g.translate(x, y); g.scale(dir * s, s);
+  g.fillStyle = "#8a949c"; g.beginPath(); g.moveTo(-2, 0); g.quadraticCurveTo(-10, -6 - f, -18, -2 - f); g.lineTo(-2, 2); g.moveTo(2, 0); g.quadraticCurveTo(10, -6 - f, 18, -2 - f); g.lineTo(2, 2); g.fill();
+  g.fillStyle = "#222"; g.beginPath(); g.arc(-17, -2 - f, 1.2, 0, 7); g.arc(17, -2 - f, 1.2, 0, 7); g.fill();
+  g.fillStyle = "#f4f4f4"; g.beginPath(); g.ellipse(0, 1, 6, 3, 0, 0, 7); g.fill(); g.beginPath(); g.arc(6, -.5, 2.4, 0, 7); g.fill();
+  g.fillStyle = "#e8b43a"; g.fillRect(8, -.6, 3, 1.2);
+  g.restore();
+}
 function drawWild(T, sy){
   const A = T.wild; if (!A) return;
   const t = A.t, flap = .5 + .5 * Math.sin(performance.now() / 70);
@@ -3526,10 +3911,13 @@ function drawWild(T, sy){
     if (A.kind === "turtle"){ const x = A.dir > 0 ? -30 + t * 40 : W + 30 - t * 40; drawTurtle(x, sy(3 * PPF + Math.sin(t) * 6), 1.3, A.dir, t); }
     if (A.kind === "crawdad"){ const x = A.dir > 0 ? 30 + t * 22 : W - 30 - t * 22; drawCrawdad(x, sy(T.bottom) + 2, 1.2, A.dir, t); }
     if (A.kind === "bullfrog") drawFrog(W * .7, sy(0) + 1, 1.3);
+    if (A.kind === "dolphin"){ for (let k = 0; k < 3; k++){ const x = (A.dir > 0 ? -60 + t * 70 : W + 60 - t * 70) - A.dir * k * 46, ph = (t * 1.6 + k * .7) % 2;   // a pod leaping past
+      if (ph < 1) drawDolphin(x, sy(0) - Math.sin(ph * Math.PI) * 26 + 6, 1.4, A.dir, (ph - .5) * 1.4); } }
+    if (A.kind === "gull") drawGull(A.dir > 0 ? -30 + t * 55 : W + 30 - t * 55, sy(0) - 70 - Math.sin(t * 1.3) * 14, 1.6, A.dir);
     ctx.restore(); return;
   }
   const hx = T.hook.x;
-  if (A.kind === "osprey"){
+  if (A.kind === "osprey" || A.kind === "pelican"){
     let x, y, dive = false;
     if (A.mode === "raid"){
       if (A.stage === "warn"){ const k = Math.min(1, t / 1); x = hx - A.dir * (260 - 200 * k) + Math.sin(t * 3) * 10; y = sy(-150 + 40 * k); }
@@ -3541,7 +3929,7 @@ function drawWild(T, sy){
       else { x = A.x + A.dir * t * 150; y = sy(-t * 110); }
     }
     if (A.carry && A.stage !== "warn") drawFish(ctx, A.carry.sp, x, y + 10, Math.min(46, A.carry.L * .6), A.dir, T.t * 2, { rot: .2 });
-    drawOsprey(x, y, 2.2, dive ? .2 : flap, A.dir, dive);
+    if (A.kind === "pelican") drawPelican(x, y, 2.2, dive ? .2 : flap, A.dir, dive); else drawOsprey(x, y, 2.2, dive ? .2 : flap, A.dir, dive);
     if (A.mode === "raid" && A.stage === "warn"){                    // the tap meter
       const w = 160, bx = W / 2 - w / 2, by = 128;
       ctx.fillStyle = "rgba(10,25,40,.8)"; roundRect(bx - 8, by - 22, w + 16, 40, 10); ctx.fill();
@@ -3561,7 +3949,7 @@ function drawWild(T, sy){
       else { x = A.x + A.dir * t * 70; y = sy(0); }
     }
     if (A.carry && (A.stage === "hit" || A.stage === "flee" || A.stage === "out")) drawFish(ctx, A.carry.sp, x + A.dir * 16, y + 2, Math.min(34, A.carry.L * .5), A.dir, T.t * 2, { rot: .3 });
-    drawDuck(x, y, 1.9, A.dir, under);
+    if (A.kind === "sealion") drawSeaLion(x, y, 1.9, A.dir, under); else drawDuck(x, y, 1.9, A.dir, under);
     if (under && Math.random() < .3) T.bubbles.push({ x, y: y + T.camY, r: rand(1, 2.5), v: rand(20, 40) });
     if (A.mode === "raid" && A.stage === "warn"){
       const w = 160, bx = W / 2 - w / 2, by = 128;
@@ -3581,6 +3969,10 @@ function wildIcon(kind, seen){
   if (kind === "turtle") drawTurtle(70, 40, 2.6, 1, 0);
   if (kind === "crawdad") drawCrawdad(66, 40, 2.6, 1, 0);
   if (kind === "bullfrog") drawFrog(75, 55, 2.8);
+  if (kind === "pelican") drawPelican(66, 44, 2.4, .7, 1, false);
+  if (kind === "sealion") drawSeaLion(72, 46, 2.4, 1, true);
+  if (kind === "dolphin") drawDolphin(75, 42, 2.4, 1, -.15);
+  if (kind === "gull") drawGull(72, 40, 2.6, 1);
   wc = null;
   if (!seen){ x.globalCompositeOperation = "source-atop"; x.fillStyle = "#1c2d3b"; x.fillRect(0, 0, 150, 80); }
   return c;
@@ -3607,7 +3999,9 @@ const MILESTONES = [
   { id:"wild6",   name:"Spot all 6 wildlife",          need:6,    coins:200, prog: g => Object.keys((g.wild || {}).seen || {}).length },
   { id:"boss6",   name:"Beat all 6 bosses",            need:6,    coins:300, prog: g => Object.keys(g.bosses || {}).length },
   { id:"chest10", name:"Find 10 treasure chests",      need:10,   coins:200, prog: g => g.treasures || 0 },
-  { id:"streak10",name:"Land fish on 10 casts in a row", need:10, coins:150, prog: g => g.bestStreak || 0 }
+  { id:"streak10",name:"Land fish on 10 casts in a row", need:10, coins:150, prog: g => g.bestStreak || 0 },
+  { id:"ocean7",  name:"Catch 7 kinds of ocean fish",  need:7,    coins:300, prog: g => OCEAN_DEX.filter(id => g.dex && g.dex[id]).length },
+  { id:"ocean14", name:"Fill the Ocean Fishdex",       need:14,   coins:800, prog: g => OCEAN_DEX.filter(id => g.dex && g.dex[id]).length }
 ];
 // the item a milestone unlocks, if any
 function prizeItem(id){ for (const [kind, T] of [["hat", HATS], ["rod", RODS], ["paint", PAINTS]]) for (const k in T) if (T[k].prize === id) return { kind, key:k, name: T[k].name }; return null; }
@@ -3803,7 +4197,7 @@ window.LL_KID = g => {
   const n = DEX_ORDER.filter(id => g.dex && g.dex[id]).length, bosses = Object.keys(g.bosses || {}).length;
   let big = null;
   for (const id of Object.keys(g.dex || {})){ const sp = SPECIES[id]; if (!sp) continue; const lb = weightLb(sp, g.dex[id].best); if (!big || lb > big.lb) big = { lb, name: sp.name, inches: g.dex[id].best }; }
-  return "🪙 " + (g.coins || 0) + " · 📖 " + n + "/" + DEX_ORDER.length + " fish · 🗺️ " + (g.lakes || []).length + "/" + LAKES.length + " lakes · ⚔️ " + bosses + "/6 bosses · 🐟 " + (g.landed || 0) + " landed"
+  return "🪙 " + (g.coins || 0) + " · 📖 " + n + "/" + DEX_ORDER.length + " fish · 🗺️ " + (g.lakes || []).length + "/" + LAKES.length + " lakes · ⚔️ " + bosses + "/" + LAKES.length + " bosses · 🐟 " + (g.landed || 0) + " landed"
     + (big ? "<br>Biggest: " + big.name + ", " + big.inches.toFixed(1) + " in (" + fmtLb(big.lb) + ")" : "");
 };
 { const p = LL.sessionPlayer(); if (p) signIn(p); else LL.profiles(signIn); }
