@@ -1,4 +1,4 @@
-/* Map music for Language Quest: three bright Arabic-style tunes plus one playful children's tune, each made live on the device with Web Audio (no audio
+/* Map music for Language Quest: two bright Arabic-style tunes plus one playful children's tune, each made live on the device with Web Audio (no audio
    files), so none of them repeats exactly. Each has a lead instrument, a plucked bass and a soft hand drum; there is no held
    background tone. The .5 steps in the scales are quarter tones. Plays on the world map only.
    Volume and tune are remembered on the device. window.LQMusic = { start, setVol, vol, tracks, track, setTrack, duck, mute }. */
@@ -10,10 +10,6 @@ const TRACKS=[
  {id:"oasis", name:"Oasis Morning", bpm:94, base:62, scale:[0,2,3.5,5,7,9,10.5], lead:"oud", bass:[50,57,50,55],
   drum:[[0,"d"],[1,"t"],[3,"t"],[4,"d"],[6,"t"]], rest:0.1,
   rhythms:[[2,2,4],[2,1,1,4],[1,1,2,4],[1,1,2,2,2],[3,1,2,2],[2,2,2,2],[1,1,1,1,4],[2,1,1,2,2],[1,1,1,1,2,2]]},
- // maqam Bayati on D, bright qanun lead, quick malfuf drum
- {id:"souq", name:"Souq Dance", bpm:108, base:74, scale:[0,1.5,3,5,7,8,10], lead:"qanun", bass:[50,50,55,57],
-  drum:[[0,"d"],[3,"t"],[6,"t"],[7,"t"]], rest:0.06, chords:true,
-  rhythms:[[1,1,2,1,1,2],[2,1,1,2,2],[1,1,1,1,2,2],[2,2,1,1,2],[1,1,2,4],[3,1,1,1,2],[2,2,2,2]]},
  // maqam Nahawand on G, flute-like ney lead over an oud pattern, saidi drum
  {id:"breeze", name:"Evening Breeze", bpm:84, base:67, scale:[0,2,3,5,7,8,10], lead:"ney", bass:[43,50,43,48],
   drum:[[0,"d"],[1,"t"],[3,"d"],[4,"d"],[6,"t"]], rest:0.12, arp:[0,4,7,4],
@@ -22,18 +18,7 @@ const TRACKS=[
  // "motif" makes it singable: a short phrase is played, repeated, answered and played again, like a nursery rhyme.
  {id:"play", name:"Playtime", bpm:112, base:72, scale:[0,2,4,5,7,9,11], lead:"bell", bass:[48,55,53,55],
   drum:[[0,"d"],[2,"t"],[4,"d"],[6,"t"]], rest:0, motif:true,
-  rhythms:[[2,2,2,2],[1,1,2,2,2],[2,1,1,2,2],[2,2,4],[1,1,1,1,2,2],[2,2,1,1,2]]},
- // Two traditional children's songs, played as fixed tunes. "tune" is a list of bars; each bar is [note, length in eighths]
- // pairs adding up to 8 (notes as MIDI numbers, .5 = quarter tone). Both melodies were written down from memory and
- // need checking by someone who knows them; correct the notes here.
- // Yalla tnam: the Levantine lullaby, slow, in maqam Bayati on D (E half-flat = 63.5)
- {id:"yalla", name:"Yalla Tnam (lullaby)", bpm:72, lead:"bell", bass:[50,50,55,50], drum:[[0,"d"]], soft:true,
-  tune:[[[69,1],[69,1],[67,1],[65,1],[67,2],[69,2]], [[67,1],[67,1],[65,1],[63.5,1],[65,2],[67,2]],
-        [[65,1],[65,1],[63.5,1],[62,1],[63.5,2],[65,2]], [[63.5,1],[63.5,1],[62,2],[62,4]]]},
- // Ya matar, hutti hutti: the rain chant, bouncy, on a few neighbouring notes
- {id:"matar", name:"Ya Matar (rain song)", bpm:112, lead:"bell", bass:[48,48,53,43], drum:[[0,"d"],[2,"t"],[4,"d"],[6,"t"]],
-  tune:[[[67,1],[67,1],[64,1],[69,1],[67,2],[64,2]], [[67,1],[67,1],[64,1],[69,1],[67,2],[64,2]],
-        [[69,1],[69,1],[67,1],[67,1],[64,1],[64,1],[67,2]], [[69,1],[67,1],[64,1],[62,1],[60,4]]]}
+  rhythms:[[2,2,2,2],[1,1,2,2,2],[2,1,1,2,2],[2,2,4],[1,1,1,1,2,2],[2,2,1,1,2]]}
 ];
 let vol=0.3; try{ const v=parseFloat(localStorage.getItem(KEY)); if(!isNaN(v)) vol=Math.max(0,Math.min(1,v)); }catch(e){}
 let T=TRACKS.find(t=>t.id==="play"); try{ T=TRACKS.find(t=>t.id===localStorage.getItem(TKEY))||T; }catch(e){}      // Playtime unless the player picked another
@@ -51,7 +36,6 @@ function voice(t,m,vol,len,parts,cut0,cut1,attack){      // a note: a few oscill
   f.connect(g); g.connect(duckG);
 }
 const oud=(t,m,v,len)=>voice(t,m,v,len,[["triangle",0,1],["sawtooth",5,0.28],["triangle",1200,0.12]],3600,1100,0.008);
-const qanun=(t,m,v,len)=>voice(t,m,v*0.8,Math.min(len,0.9),[["triangle",0,1],["square",1200,0.1],["sawtooth",-6,0.22],["triangle",1900,0.08]],5200,1500,0.004);
 function ney(t,m,v,len){                                   // breathy flute: slow start, a little vibrato, a puff of air
   const g=ctx.createGain(), o=ctx.createOscillator(), o2=ctx.createOscillator(), g2=ctx.createGain(), lfo=ctx.createOscillator(), lg=ctx.createGain();
   o.type="sine"; o.frequency.value=hz(m); o2.type="triangle"; o2.frequency.value=hz(m)*2; g2.gain.value=0.16;
@@ -62,7 +46,7 @@ function ney(t,m,v,len){                                   // breathy flute: slo
   ng.gain.setValueAtTime(v*0.12,t); ng.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(len,0.25)); s.connect(f); f.connect(ng); ng.connect(duckG); s.start(t); s.stop(t+len);
 }
 const bell=(t,m,v,len)=>voice(t,m,v*0.9,Math.max(0.6,Math.min(len,1.2)),[["sine",0,1],["sine",1200,0.35],["sine",1902,0.12],["triangle",0,0.2]],6000,2200,0.003);
-const LEAD={oud,qanun,ney,bell};
+const LEAD={oud,ney,bell};
 // a short singable phrase for the children's tune: small steps, staying inside one octave
 let motif=null;
 const phrase=()=>{ let d=pick([0,2,4]); return pick(T.rhythms).map(len=>{ const n={len,deg:d}; d=Math.max(0,Math.min(7,d+pick([-2,-1,-1,1,1,1,2,0]))); return n; }); };
@@ -77,7 +61,7 @@ function playBar(t){
   T.drum.forEach(([i,k])=>k==="d"?dum(t+i*E,T.soft?0.08:0.15):tek(t+i*E,0.05)); if(bar%2&&!T.soft) tek(t+7*E,0.03);
   oud(t,T.bass[bar%4],0.16,0.7); oud(t+4*E,T.bass[(bar+1)%4],0.11,0.6);                        // plucked bass, no held tone
   if(T.arp) T.arp.forEach((st,i)=>oud(t+(i*2+1)*E,T.bass[bar%4]+12+st,0.07,0.5));                // light oud pattern under the flute
-  if(T.chords&&bar%2===0) [0,2,4].forEach((d,i)=>qanun(t+i*0.03,pitch(d)-12,0.07,0.8));          // a soft strum to open the bar
+  // fixed tunes (a track with "tune": a list of bars of [note, eighths] pairs adding up to 8); none at the moment
   if(T.tune){ let at=0; T.tune[bar%T.tune.length].forEach(([m,len])=>{ if(m) play(t+at*E,m,T.soft?0.15:0.2,len*E*(T.soft?1.8:1.3)); at+=len; }); }
   else if(T.motif){ if(!motif||bar%16===0) motif={A:phrase(),B:phrase()};          // phrase, phrase again, an answer, phrase home
     const which=bar%4, notes=(which===2?motif.B:motif.A).map(n=>({len:n.len,deg:n.deg})); if(which===1) notes[notes.length-1].deg=4; if(which===3) notes[notes.length-1].deg=0;
