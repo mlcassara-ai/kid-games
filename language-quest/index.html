@@ -119,8 +119,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.02zc";</script>
-<script src="lq-core.js?v=2026.10.02zc"></script>
+<script>window.LQ_VER="2026.10.02zd";</script>
+<script src="lq-core.js?v=2026.10.02zd"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -233,7 +233,7 @@ const PROPS={
  coast:[["🐚","صَدَفَة","shell",3,26],["🦀","سَرَطَان","crab",2,28],["🌴","نَخْلَة","palm tree",2,54],["🪸","مَرْجَان","coral",1,30],["🪣","دَلْو","bucket",1,26]],
  sea:[["🐬","دُلْفِين","dolphin",1,44],["🐠","سَمَكَة","fish",2,30],["⛵","قَارِب","boat",1,44]],
  farm:[["🌳","زَيْتُونَة","olive tree",7,56],["🫒","زَيْتُون","olives",3,28],["🍊","بُرْتُقَال","orange",2,30],["🍋","لَيْمُون","lemon",2,28],["🍇","عِنَب","grapes",2,30],["🍅","طَمَاطِم","tomato",2,28],["🍆","بَاذِنْجَان","eggplant",1,30],["🥒","خِيَار","cucumber",1,28],["🌾","قَمْح","wheat",4,40],["🌿","زَعْتَر","za'atar (thyme)",2,28],["🐑","خَرُوف","sheep",2,38],["🐐","مَاعِز","goat",2,38],["🐔","دَجَاجَة","chicken",2,32],["🫏","حِمَار","donkey",1,46],["🐝","نَحْلَة","bee",1,22],["🌻","زَهْرَةُ الشَّمْس","sunflower",1,40],["🧺","سَلَّة","basket",1,28]],
- marsh:[["🐃","جَامُوس","water buffalo",2,48],["🦆","بَطَّة","duck",2,30],["🌾","قَصَب","reeds",5,40],["🦩","فْلَامِنْغُو","flamingo",1,42],["🐟","سَمَكَة","fish",1,28]]
+ marsh:[["🐃","جَامُوس","water buffalo",2,48],["🦆","بَطَّة","duck",2,30],["🌾","قَصَب","reeds",5,40],["🦩","فِلَامِنْغُو","flamingo",1,42],["🐟","سَمَكَة","fish",1,28]]
 };
 const COUNTS={farm:100,oasis:30,desert:80,forest:90,mountain:60,snow:40,falls:40,coast:40,sea:22,marsh:45};
 function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -276,11 +276,12 @@ function drawPad(l,time){
     ctx.strokeStyle="#fff"; ctx.lineWidth=4; ctx.setLineDash([10,8]); ctx.lineDashOffset=-time*30; ctx.beginPath(); ctx.ellipse(p.x,p.y,56,23,0,0,7); ctx.stroke(); ctx.setLineDash([]);
     const label="▶ Go in"; ctx.font='800 17px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText(label).width+22;
     ctx.fillStyle="#2FA894"; rr(p.x-w/2,p.y+30,w,28,14); ctx.fill(); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(label,p.x,p.y+45);
-  } else {
-    ctx.font='700 14px "Baloo Bhaijaan 2",system-ui,sans-serif'; const label="🔒 Coming soon"; const w=ctx.measureText(label).width+18;
-    ctx.fillStyle="rgba(18,35,61,.55)"; rr(p.x-w/2,p.y-6,w,24,12); ctx.fill(); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(label,p.x,p.y+6);
   }
 }
+function drawStartHere(time){ const p=LQ.player(); if(!p||Object.keys(p.abcStars||{}).length) return; const l=LANDMARKS.find(x=>x.id==="abc"); if(!l) return;
+  const k=(Math.sin(time*3)+1)/2, x=l.x, y=l.y-250-k*8; ctx.fillStyle=`rgba(242,177,52,${0.25+0.25*k})`; ctx.beginPath(); ctx.ellipse(l.x,l.y-60,150+10*k,120+8*k,0,0,7); ctx.fill();
+  ctx.font='800 22px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=ctx.measureText("⭐ Start here!").width+30; rr(x-w/2,y-20,w,40,20); ink("#F2B134");
+  ctx.fillStyle="#12233D"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⭐ Start here!",x,y); }
 function drawArrow(l,time){ if(!OPEN[l.id]) return; const b=Math.abs(Math.sin(time*3))*12, x=l.x, y=l.y-(l.id==="falls"?250:150)-b;
   ctx.fillStyle="#F2B134"; ctx.strokeStyle="#fff"; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(x-20,y-24); ctx.lineTo(x+20,y-24); ctx.lineTo(x+20,y-4); ctx.lineTo(x+32,y-4); ctx.lineTo(x,y+24); ctx.lineTo(x-32,y-4); ctx.lineTo(x-20,y-4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
 
@@ -430,7 +431,7 @@ cv.addEventListener("pointerup",e=>{
   closeCard();
   pendingFriend=null; pendingTeta=false; pendingJiddo=false; pendingFountain=false;
   cancelEnter();
-  for(const l of LANDMARKS){ const pd=padOf(l), onPad=Math.hypot((wx-pd.x)/1.6,wy-pd.y)<55, onBld=Math.abs(wx-l.x)<100 && wy>l.y-(l.id==="falls"?260:150) && wy<l.y+100;
+  for(const l of LANDMARKS){ if(!OPEN[l.id]) continue; const pd=padOf(l), onPad=Math.hypot((wx-pd.x)/1.6,wy-pd.y)<55, onBld=Math.abs(wx-l.x)<100 && wy>l.y-(l.id==="falls"?260:150) && wy<l.y+100;
     if(onPad||onBld){ pendingFriend=null; pendingTeta=false;
       if(OPEN[l.id]){ pendingLandmark=null; pendingEnterL=l; setTarget(pd.x,pd.y); }
       else { pendingEnterL=null; pendingLandmark=l; setTarget(pd.x,pd.y+40); }
@@ -714,8 +715,13 @@ function drawJiddo(time){
   const st=questState(); if(st==="new"||st==="ready"){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle=st==="ready"?"#2FA894":"#F2B134"; ctx.beginPath(); ctx.arc(JIDDO.x+38,JIDDO.y-128-b,17,0,7); ctx.fill();
     ctx.fillStyle=st==="ready"?"#fff":"#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText(st==="ready"?"✓":"!",JIDDO.x+38,JIDDO.y-127-b); }
 }
+function drawSignpost(l){ const x=l.x, y=l.y+40; shadow(x,y,26);
+  ctx.fillStyle="#6B4A2B"; ctx.fillRect(x-4,y-70,8,70);
+  ctx.font='800 14px "Baloo Bhaijaan 2",system-ui,sans-serif'; const w=Math.max(ctx.measureText(l.en).width,ctx.measureText("Coming soon").width)+26;
+  rr(x-w/2,y-118,w,52,10); ink("#E9D9B4"); ctx.fillStyle="#5B3A22"; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  ctx.fillText(l.en,x,y-97); ctx.font='700 12px "Baloo Bhaijaan 2",system-ui,sans-serif'; ctx.fillStyle="#7A6B45"; ctx.fillText("🔒 Coming soon",x,y-78); }
 function drawLandmark(l,time){
-  if(!OPEN[l.id]) ctx.globalAlpha=0.6;
+  if(!OPEN[l.id]) return drawSignpost(l);                      // not built yet: a small signpost, nothing to walk into
   if(l.id==="falls") drawWaterfall(l,time); else if(l.id==="souq") drawStall(l); else if(l.id==="farm") drawFarmhouse(l); else if(BUILDING[l.id]) BUILDING[l.id](l.x,l.y); else { shadow(l.x,l.y,60); drawEmoji(l.icon,l.x,l.y,110); }
   // signboard
   const sy=l.y+14; ctx.font=`800 18px ${'"Baloo Bhaijaan 2",system-ui,sans-serif'}`; const w1=ctx.measureText(l.en).width;
@@ -813,7 +819,7 @@ function jiddoTalk(){ LQ.mark("The Mukhtar"); closeCard(); const p=LQ.player(); 
     LQ.update(q=>{ q.quest={id:d.id,base:questCount(q,d.m),day:dayNow(),paid:false}; }); }
   const q=LQ.player().quest, d=QUESTS.find(x=>x.id===q.id), st=questState(), got=Math.min(d.need,questCount(LQ.player(),d.m)-q.base);
   const word=`<div class="arw" lang="ar">${d.kw}</div><p style="margin:0;color:var(--muted)">${d.kwEn}</p>`;
-  if(st==="ready"){ LQ.update(x=>{ x.quest.paid=true; x.quest.day=dayNow(); x.coins=(x.coins||0)+d.coins; }); hud(); say("أَحْسَنْتَ");
+  if(st==="ready"){ LQ.update(x=>{ x.quest.paid=true; x.quest.day=dayNow(); x.coins=(x.coins||0)+d.coins; }); hud(); say("مُمْتَاز");
     openFm(`${jiddoPic}<h2 style="margin:4px 0">Well done!</h2>${word}<p>You finished my quest. Here are <b>${d.coins} 🪙</b> for you!</p><p style="color:var(--muted)">Come back tomorrow for a new quest.</p>
       <div class="row"><button class="btn go" id="jOk">Thank you, Mukhtar!</button></div>`); }
   else if(st==="rest"){ say("أَهْلًا وَسَهْلًا");
@@ -855,7 +861,7 @@ function album(){ LQ.mark("Album");
     if(fd[f.ch]){ say(f.ar); document.getElementById("albHint").innerHTML=`${f.e} <span lang="ar">${f.ar}</span> (${f.en}) starts with <span lang="ar">${LNAME[f.ch]}</span>`; }
     else { say(LNAME[f.ch]); document.getElementById("albHint").innerHTML=`The <b><span lang="ar">${LNAME[f.ch]}</span></b> friend is hiding in <b>${BIOMES[biomeAt(f.x,f.y)].en}</b>.`; } });
 }
-function allFound(){ const p=LQ.player(); if(!p||p.friendsAll) return; LQ.update(q=>{ q.friendsAll=Date.now(); }); LQ.addCoins(100); hud(); say("أَحْسَنْتَ");
+function allFound(){ const p=LQ.player(); if(!p||p.friendsAll) return; LQ.update(q=>{ q.friendsAll=Date.now(); }); LQ.addCoins(100); hud(); say("مُمْتَاز");
   openFm(`<div class="big">🏆</div><h2>All 28 Letter Friends!</h2><p>You found every friend and know every letter. <b>+100 🪙</b> from Grandmother!</p><div class="row"><button class="btn go" id="wOk">Yay!</button></div>`);
   document.getElementById("wOk").onclick=closeFm; }
 /* ---- Wisdom Fountain ---- */
@@ -961,6 +967,7 @@ function frame(now){
   list.push({y:player.y,f:()=>drawPlayer(T)});
   list.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
   for(const l of LANDMARKS) drawArrow(l,T);
+  drawStartHere(T);
   drawBubble();
   drawMini();
   requestAnimationFrame(frame);
@@ -971,7 +978,7 @@ document.getElementById("startBtn").onclick=()=>{
   document.getElementById("start").remove();
   LQ.profiles(()=>{ hud(); LQ.mark("Map: signed in"); setTimeout(()=>showZone(biomeAt(player.x,player.y)),400); });
 };
-function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("meName").textContent=p?p.name:"Me"; /* the top bar shows who is playing */ }
+function hud(){ const p=LQ.player(); document.getElementById("coinPill").textContent="🪙 "+(p?p.coins||0:0); document.getElementById("meName").textContent=p?p.name:"Me"; document.getElementById("meBtn").style.visibility=document.getElementById("whoBtn").style.visibility=p?"visible":"hidden"; /* the top bar shows who is playing */ }
 LQ.onChange(hud); hud();
 // "Go" on the Me page for the two places that live on the map
 addEventListener("lq:goto",e=>{ if(e.detail==="album") album(); if(e.detail==="fountain"){ player.x=player.tx=FOUNTAIN.x; player.y=player.ty=FOUNTAIN.y+60; fountain(); } });
@@ -986,6 +993,8 @@ document.getElementById("whoBtn").onclick=()=>{ closeCard(); LQ.leave(); LQ.prof
   const h=document.getElementById("hint"); if(h) h.style.opacity=0;
   hud(); LQ.mark(l?"Map: back from "+l.en:"Map");
 })();
+// what the ❓ button reads on the map
+window.LQ_HELP=()=>"Tap anywhere to walk. Tap the animals and things you see to hear their names in Arabic. New here? Start at the Alphabet School, the house with the star. In the town square, the grandmother and the Mukhtar have things for you to do. Walk onto a green circle to go into a place.";
 /* sound: the voice and the map music each have their own volume, set from the menu the 🔊 button opens.
    The music starts with the first tap (browsers need one) and drops under the spoken Arabic. */
 const soundBtn=document.getElementById("soundBtn");

@@ -169,8 +169,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛵</div><h2>Story Harbor</h2><p class="muted">مِينَاءُ القِصَص — finish the stories!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02zc";</script>
-<script src="../lq-core.js?v=2026.10.02zc"></script>
+<script>window.LQ_VER="2026.10.02zd";</script>
+<script src="../lq-core.js?v=2026.10.02zd"></script>
 <script>
 /* ============ stories ============
    Short retellings of traditional tales. Each line: [Arabic with {} for the missing word, English with {}, scene picture,
@@ -180,8 +180,9 @@ const STORIES=[
  {ar:"جُحَا يَعُدُّ الحَمِير", en:"Juha counts the donkeys", icon:"🫏", lines:[
   ["جُحَا عِنْدَهُ عَشَرَةُ {}.","Juha has ten {}.","🧔🫏🫏🫏",[["حَمِير","donkeys","🫏"],["قِطَط","cats","🐈"],["طُيُور","birds","🐦"]]],
   ["رَكِبَ جُحَا حِمَارًا وَعَدَّ الحَمِير: {}!","Juha rode a donkey and counted the donkeys: {}!","🧔🫏☝️",[["تِسْعَة","nine","٩"],["عَشَرَة","ten","١٠"],["ثَلَاثَة","three","٣"]]],
-  ["نَزَلَ جُحَا وَعَدَّ مَرَّةً أُخْرَى: {}!","Juha got down and counted again: {}!","🧔👇🫏",[["عَشَرَة","ten","١٠"],["تِسْعَة","nine","٩"],["وَاحِد","one","١"]]],
   ["قَالَ جُحَا: أَيْنَ {}؟","Juha said: Where is {}?","🧔❓",[["حِمَارِي","my donkey","🫏"],["كِتَابِي","my book","📖"],["بَيْتِي","my house","🏠"]]],
+  ["نَزَلَ جُحَا وَعَدَّ مَرَّةً أُخْرَى: {}!","Juha got down and counted again: {}!","🧔👇🫏",[["عَشَرَة","ten","١٠"],["تِسْعَة","nine","٩"],["وَاحِد","one","١"]]],
+  ["رَكِبَ جُحَا مَرَّةً أُخْرَى وَعَدَّ: {}!","Juha got back on and counted: {}!","🧔🫏😕",[["تِسْعَة","nine","٩"],["عَشَرَة","ten","١٠"],["ثَلَاثَة","three","٣"]]],
   ["{} صَدِيقُهُ وَقَالَ: الحِمَارُ العَاشِرُ تَحْتَكَ!","His friend {} and said: The tenth donkey is under you!","🧑👉🫏",[["ضَحِكَ","laughed","😄"],["نَامَ","slept","😴"],["بَكَى","cried","😢"]]]]},
  {ar:"الحَمَامَاتُ وَالشَّبَكَة", en:"The doves and the net", icon:"🕊️", lines:[
   ["رَأَتِ الحَمَامَاتُ {} عَلَى الأَرْض.","The doves saw {} on the ground.","🕊️🕊️👀",[["حَبًّا","seeds","🌾"],["سَمَكًا","fish","🐟"],["ثَلْجًا","snow","❄️"]]],
@@ -200,7 +201,7 @@ const STORIES=[
   ["بَدَأَ السِّبَاق. جَرَى {} بَعِيدًا.","The race began. {} ran far ahead.","🏁💨",[["الأَرْنَبُ","The hare","🐇"],["السُّلَحْفَاةُ","The tortoise","🐢"],["الدِّيكُ","The rooster","🐓"]]],
   ["نَامَ الأَرْنَبُ تَحْتَ {}.","The hare slept under {}.","🐇😴",[["شَجَرَة","a tree","🌳"],["صَخْرَة","a rock","🪨"],["قَارِب","a boat","⛵"]]],
   ["مَشَتِ {} بِبُطْءٍ وَلَمْ تَقِفْ.","{} walked slowly and did not stop.","👣👣",[["السُّلَحْفَاةُ","The tortoise","🐢"],["الفَرَاشَةُ","The butterfly","🦋"],["البَطَّةُ","The duck","🦆"]]],
-  ["وَصَلَتِ السُّلَحْفَاةُ {}!","The tortoise arrived {}!","🐢🏁",[["أَوَّلًا","first","🥇"],["أَخِيرًا","last","🔚"],["غَدًا","tomorrow","📅"]]]]},
+  ["وَصَلَتِ السُّلَحْفَاةُ {}!","The tortoise arrived {}!","🐢🏁",[["أَوَّلًا","first","🥇"],["ثَانِيًا","second","🥈"],["غَدًا","tomorrow","📅"]]]]},
  {ar:"الأَرْنَبُ وَالأَسَدُ وَالبِئْر", en:"The hare, the lion and the well", icon:"🐇", lines:[
   ["كَانَ فِي الغَابَةِ أَسَدٌ {}.","In the forest there was a {} lion.","🌲🦁",[["جَائِع","hungry","🍽️"],["صَغِير","small","🤏"],["نَائِم","sleeping","😴"]]],
   ["قَالَ الأَرْنَب: رَأَيْتُ {} آخَرَ فِي البِئْر!","The hare said: I saw another {} in the well!","🐇💬🕳️",[["أَسَدًا","lion","🦁"],["جَمَلًا","camel","🐪"],["دِيكًا","rooster","🐓"]]],
@@ -211,6 +212,8 @@ const STORIES=[
 const full=l=>l[0].replace("{}",l[3][0][0]);                       // the finished sentence, as it is spoken
 // the words before and after the blank, each spoken as its own clip with a pause between them for the missing word
 const parts=l=>l[0].split("{}").map(t=>t.trim()).map(t=>/[\u0621-\u064A]/.test(t)?t:"");
+// what the ❓ button reads
+window.LQ_HELP=()=>document.getElementById("ln")?"Listen to the sentence. One word is missing. Tap the speaker on each picture to hear the words, then tap the word that fits. Tap the speaker next to the sentence to hear it again.":"Pick a book from the shelf. Each story has some words missing. Listen, and choose the right words to finish the story.";
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
 /* ============ save: the signed-in player (shared with the map through lq-core.js) ============ */
@@ -260,7 +263,7 @@ function story(i){ LQ.mark("Story "+(i+1)); const S=STORIES[i]; let k=0, misses=
     $("app").innerHTML=`<div class="panel"><p class="step">${S.icon} ${S.en} · line ${k+1} of ${S.lines.length}</p>
       <div class="scene" aria-hidden="true">${l[2]}</div>
       <div class="line" lang="ar"><button class="rd" id="rd" aria-label="Hear the sentence again">🔊</button><span id="ln">${l[0].replace("{}",`<span class="gap"></span>`)}</span></div>
-      <p class="en" id="en">${l[1].replace("{}","_____")}</p>
+      <p class="en" id="en"><button class="btn ghost" id="showEn" style="min-height:34px;padding:4px 14px;font-size:.9rem">Show the English</button></p>
       <div class="picks">${picks.map((o,j)=>`<div class="pickw"><button class="pick" data-j="${j}"><span class="e">${o.c[2]}</span><span class="w" lang="ar">${o.c[0]}</span><span class="t">${o.c[1]}</span></button>
         <button class="hear" data-j="${j}" aria-label="Hear this word">🔊</button></div>`).join("")}</div>
       <div class="actions"><button class="btn ghost" id="quit">All stories</button><button class="btn go" id="next" disabled>Next ▶</button></div></div>`;
@@ -269,7 +272,9 @@ function story(i){ LQ.mark("Story "+(i+1)); const S=STORIES[i]; let k=0, misses=
     const read=()=>{ if(solved) return say(full(l)); const [a,b]=parts(l), g=$("ln").querySelector(".gap"), gapOn=on=>{ if(g&&g.isConnected) g.classList.toggle("wait",on); };
       const rest=()=>{ gapOn(true); const id=sid; setTimeout(()=>{ gapOn(false); if(id===sid&&b) say(b); },900); };
       a?say(a,rest):rest(); };
-    $("rd").onclick=read; if(k===0&&!heardTitle){ heardTitle=true; say(S.ar,()=>setTimeout(read,400)); } else read();
+    $("rd").onclick=read;
+    // the English is hidden until the answer is found, so the Arabic has to do the work; a grown-up can still reveal it
+    $("showEn").onclick=()=>{ $("en").textContent=l[1].replace("{}","_____"); }; if(k===0&&!heardTitle){ heardTitle=true; say(S.ar,()=>setTimeout(read,400)); } else read();
     document.querySelectorAll(".hear").forEach(b=>b.onclick=()=>say(picks[+b.dataset.j].c[0]));
     document.querySelectorAll(".pick").forEach(b=>b.onclick=()=>{ if(solved) return; const o=picks[+b.dataset.j];
       if(!o.ok){ misses++; tried=true; missed.add(k); LQ.record("words",l[3][0][0],false,o.c[0]); b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong"); say(o.c[0]); return; }
@@ -296,7 +301,7 @@ function book(i,stars,missed){ const S=STORIES[i], last=i===STORIES.length-1; hu
   rows.forEach(r=>r.onclick=()=>{ const j=+r.dataset.j; light(j); say(full(S.lines[j]),()=>light(-1)); });
   const play=j=>{ if(j>=S.lines.length) return light(-1); light(j); rows[j].scrollIntoView({block:"nearest"}); say(full(S.lines[j]),()=>setTimeout(()=>play(j+1),350)); };
   $("all").onclick=()=>play(0); $("again").onclick=()=>story(i); $("home").onclick=()=>stars&&!last?story(i+1):home();
-  if(stars) say("أَحْسَنْتَ");
+  if(stars) say("مُمْتَاز");
 }
 persist(); home();
 </script>

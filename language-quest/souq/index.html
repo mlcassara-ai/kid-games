@@ -157,8 +157,8 @@ h3{margin:14px 0 8px; font-size:1.1rem}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🛍️</div><h2>The Souq</h2><p class="muted">السُّوق — count with the shopkeepers!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02zc";</script>
-<script src="../lq-core.js?v=2026.10.02zc"></script>
+<script>window.LQ_VER="2026.10.02zd";</script>
+<script src="../lq-core.js?v=2026.10.02zd"></script>
 <script>
 /* ============ numbers data ============
    Counting words in the form used when counting aloud. STALLS: [name, what it covers, kind, the numbers taught].
@@ -257,7 +257,7 @@ function finish(i,hearts){ LQ.mark("Stall "+(i+1)+(hearts>0?" won":" lost"));
       <div class="actions"><button class="btn boss" id="retry">Try again</button><button class="btn ghost" id="bk">Back to the stall</button></div></div>`;
     $("retry").onclick=()=>(STALLS[i][2]==="basket"?baskets:shop)(i); $("bk").onclick=()=>stall(i); return; }
   const stars=hearts, first=!save.souq[i], last=i===STALLS.length-1;
-  LQ.update(p=>{ p.souq=p.souq||{}; p.souq[i]=Math.max(p.souq[i]||0,stars); }); addCoins(first?30:10); persist(); say("أَحْسَنْتَ");
+  LQ.update(p=>{ p.souq=p.souq||{}; p.souq[i]=Math.max(p.souq[i]||0,stars); }); addCoins(first?30:10); persist(); say("مُمْتَاز");
   $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>The shopkeeper says thank you!</h2>
     <p style="font-size:2rem;color:var(--saffron);margin:0">${stars3(stars)}</p>
     <p class="muted">${last?"You can count all the way to one hundred. Amazing!":`The ${STALLS[i+1][0]} is now open!`}</p>
@@ -306,7 +306,7 @@ function baskets(i){ LQ.mark("Basket challenge");
     const move=(b,to)=>{ if(busy) return; $(to).appendChild(b); inB+=to==="basket"?1:-1; b.onclick=()=>move(b,to==="basket"?"shelf":"basket"); if(to==="basket"&&WORD[inB]) say(WORD[inB]); };
     document.querySelectorAll(".item").forEach(b=>b.onclick=()=>move(b,"basket"));
     $("ok").onclick=()=>{ if(busy) return; busy=true; const B=$("basket");
-      if(inB===n){ B.style.borderColor="var(--mint)"; hp--; addCoins(4); LQ.record("words",WORD[n],true); say("أَحْسَنْتَ"); }
+      if(inB===n){ B.style.borderColor="var(--mint)"; hp--; addCoins(4); LQ.record("words",WORD[n],true); say("مُمْتَاز"); }
       else { B.style.borderColor="var(--rose)"; hearts--; LQ.record("words",WORD[n],false,WORD[inB]||""); say(WORD[n]);
         $("app").querySelector(".q").innerHTML=`You put <b>${inB}</b>. <span lang="ar">${WORD[n]}</span> is <b>${ar(n)}</b> (${n}).`; }
       qn++; setTimeout(()=>{ busy=false; draw(); },inB===n?1100:2200); };

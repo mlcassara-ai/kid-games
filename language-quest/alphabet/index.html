@@ -147,8 +147,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🏫</div><h2>Alphabet School</h2><p class="muted">مَدْرَسَةُ الحُرُوف — meet the 28 letters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02zc";</script>
-<script src="../lq-core.js?v=2026.10.02zc"></script>
+<script>window.LQ_VER="2026.10.02zd";</script>
+<script src="../lq-core.js?v=2026.10.02zd"></script>
 <script>
 /* ============ the alphabet, at the most basic level ============
    Each letter on its own (no joined shapes; those are taught in the Letter Dunes): its name, its sound with fatha,
@@ -236,7 +236,7 @@ function song(){ LQ.mark("Alphabet song"); hush(); let stop=false;
     <p id="now" lang="ar" style="font-size:1.8rem;min-height:3rem;margin:10px 0 0;color:var(--sky)"></p>
     <div class="actions"><button class="btn ghost" id="again">↻ From the start</button><button class="btn ghost" id="bk">Back</button></div></div>`;
   const tiles=[...document.querySelectorAll(".song span")];
-  const play=i=>{ if(stop||!$("now")) return; tiles.forEach((t,x)=>t.classList.toggle("on",x===i)); if(i>=ABC.length){ $("now").textContent="أَحْسَنْتَ"; return say("أَحْسَنْتَ"); }
+  const play=i=>{ if(stop||!$("now")) return; tiles.forEach((t,x)=>t.classList.toggle("on",x===i)); if(i>=ABC.length){ $("now").textContent="مُمْتَاز"; return say("مُمْتَاز"); }
     $("now").textContent=ABC[i][1]; say(ABC[i][1],()=>setTimeout(()=>play(i+1),250)); };
   tiles.forEach(t=>t.onclick=()=>{ const i=+t.dataset.i; tiles.forEach((x,j)=>x.classList.toggle("on",j===i)); $("now").textContent=ABC[i][1]; say(ABC[i][1]); });
   $("again").onclick=()=>{ hush(); play(0); }; $("bk").onclick=()=>{ stop=true; home(); };
@@ -283,7 +283,7 @@ function game(g){ LQ.mark("Letter game "+(g+1)); hush(); const G=GROUPS[g]; let 
         <div class="actions"><button class="btn boss" id="retry">Try again</button><button class="btn ghost" id="bk">Back to the letters</button></div></div>`;
       $("retry").onclick=()=>game(g); $("bk").onclick=()=>group(g); return; }
     const stars=hearts, first=!save.stars[g]; LQ.mark("Letter game "+(g+1)+" won");
-    LQ.update(p=>{ p.abcStars=p.abcStars||{}; p.abcStars[g]=Math.max(p.abcStars[g]||0,stars); p.abc=p.abc||{}; G.letters.forEach(l=>p.abc[l[0]]=1); }); addCoins(first?20:5); persist(); say("أَحْسَنْتَ");
+    LQ.update(p=>{ p.abcStars=p.abcStars||{}; p.abcStars[g]=Math.max(p.abcStars[g]||0,stars); p.abc=p.abc||{}; G.letters.forEach(l=>p.abc[l[0]]=1); }); addCoins(first?20:5); persist(); say("مُمْتَاز");
     $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You know letters ${G.from+1} to ${G.to}!</h2><p style="font-size:2rem;color:var(--saffron);margin:0">${stars3(stars)}</p>
       <p class="muted">${g<3?"Next, meet the next seven letters.":"You have met all 28 letters. Now try the Letter Dunes, where letters change shape!"}</p>
       <div class="actions"><button class="btn go" id="next">${g<3?"Next letters":"All letters"}</button><button class="btn ghost" id="stay">Stay here</button></div></div>`;

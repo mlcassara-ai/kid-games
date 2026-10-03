@@ -12,9 +12,10 @@ These are our own short retellings of traditional tales. Please mark each senten
 |---|---|---|---|
 | 1 | جُحَا عِنْدَهُ عَشَرَةُ **حَمِير**. | Juha has ten **donkeys**. | حَمِير donkeys · قِطَط cats · طُيُور birds |
 | 2 | رَكِبَ جُحَا حِمَارًا وَعَدَّ الحَمِير: **تِسْعَة**! | Juha rode a donkey and counted the donkeys: **nine**! | تِسْعَة nine · عَشَرَة ten · ثَلَاثَة three |
-| 3 | نَزَلَ جُحَا وَعَدَّ مَرَّةً أُخْرَى: **عَشَرَة**! | Juha got down and counted again: **ten**! | عَشَرَة ten · تِسْعَة nine · وَاحِد one |
-| 4 | قَالَ جُحَا: أَيْنَ **حِمَارِي**؟ | Juha said: Where is **my donkey**? | حِمَارِي my donkey · كِتَابِي my book · بَيْتِي my house |
-| 5 | **ضَحِكَ** صَدِيقُهُ وَقَالَ: الحِمَارُ العَاشِرُ تَحْتَكَ! | His friend **laughed** and said: The tenth donkey is under you! | ضَحِكَ laughed · نَامَ slept · بَكَى cried |
+| 3 | قَالَ جُحَا: أَيْنَ **حِمَارِي**؟ | Juha said: Where is **my donkey**? | حِمَارِي my donkey · كِتَابِي my book · بَيْتِي my house |
+| 4 | نَزَلَ جُحَا وَعَدَّ مَرَّةً أُخْرَى: **عَشَرَة**! | Juha got down and counted again: **ten**! | عَشَرَة ten · تِسْعَة nine · وَاحِد one |
+| 5 | رَكِبَ جُحَا مَرَّةً أُخْرَى وَعَدَّ: **تِسْعَة**! | Juha got back on and counted: **nine**! | تِسْعَة nine · عَشَرَة ten · ثَلَاثَة three |
+| 6 | **ضَحِكَ** صَدِيقُهُ وَقَالَ: الحِمَارُ العَاشِرُ تَحْتَكَ! | His friend **laughed** and said: The tenth donkey is under you! | ضَحِكَ laughed · نَامَ slept · بَكَى cried |
 
 ## 2. الحَمَامَاتُ وَالشَّبَكَة — The doves and the net
 
@@ -44,7 +45,7 @@ These are our own short retellings of traditional tales. Please mark each senten
 | 2 | بَدَأَ السِّبَاق. جَرَى **الأَرْنَبُ** بَعِيدًا. | The race began. **The hare** ran far ahead. | الأَرْنَب the hare · السُّلَحْفَاة the tortoise · الدِّيك the rooster |
 | 3 | نَامَ الأَرْنَبُ تَحْتَ **شَجَرَة**. | The hare slept under a **tree**. | شَجَرَة a tree · صَخْرَة a rock · قَارِب a boat |
 | 4 | مَشَتِ **السُّلَحْفَاةُ** بِبُطْءٍ وَلَمْ تَقِفْ. | **The tortoise** walked slowly and did not stop. | السُّلَحْفَاة the tortoise · الفَرَاشَة the butterfly · البَطَّة the duck |
-| 5 | وَصَلَتِ السُّلَحْفَاةُ **أَوَّلًا**! | The tortoise arrived **first**! | أَوَّلًا first · أَخِيرًا last · غَدًا tomorrow |
+| 5 | وَصَلَتِ السُّلَحْفَاةُ **أَوَّلًا**! | The tortoise arrived **first**! | أَوَّلًا first · ثَانِيًا second · غَدًا tomorrow |
 
 ## 5. الأَرْنَبُ وَالأَسَدُ وَالبِئْر — The hare, the lion and the well
 

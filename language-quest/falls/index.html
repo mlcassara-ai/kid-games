@@ -102,8 +102,8 @@ h2{margin:4px 0 8px; font-size:1.3rem}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">💦</div><h2>Sound Falls</h2><p class="muted" lang="ar">شَلَّالُ الأَصْوَات</p><p class="muted">Add a little mark to a letter and it starts to sing!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02zc";</script>
-<script src="../lq-core.js?v=2026.10.02zc"></script>
+<script>window.LQ_VER="2026.10.02zd";</script>
+<script src="../lq-core.js?v=2026.10.02zd"></script>
 <script>
 const $=id=>document.getElementById(id);
 if(!LQ.player()) location.replace("../");
@@ -249,7 +249,7 @@ function challenge(i){ LQ.mark("Pool "+(i+1)+" challenge");
 }
 function finish(i,hearts){ LQ.mark("Pool "+(i+1)+" won");
   const P=POOLS[i], stars=hearts>=3?3:hearts===2?2:1, first=!falls()[P.id];
-  LQ.update(p=>{ p.falls=p.falls||{}; p.falls[P.id]=Math.max(p.falls[P.id]||0,stars); }); addCoins(first?30:10); say("أَحْسَنْتَ");
+  LQ.update(p=>{ p.falls=p.falls||{}; p.falls[P.id]=Math.max(p.falls[P.id]||0,stars); }); addCoins(first?30:10); say("مُمْتَاز");
   $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You beat the waterfall!</h2>
     <p style="font-size:2rem;color:var(--saffron);margin:0">${"★".repeat(stars)}${"☆".repeat(3-stars)}</p>
     <p class="muted">${i<POOLS.length-1?`The ${POOLS[i+1].nm} is now open!`:"You can read Arabic words now. Amazing!"}</p>

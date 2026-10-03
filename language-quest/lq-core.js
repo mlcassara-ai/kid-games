@@ -209,7 +209,8 @@ function createPlayer(){ let color=COLORS[state.players.length%COLORS.length];
     document.getElementById("lqNext").onclick=()=>{ const n=document.getElementById("lqName").value.trim(); if(!n){ document.getElementById("lqName").focus(); return; }
       const norm=x=>x.trim().toLowerCase().replace(/\s+/g," ");
       if(state.players.some(x=>norm(x.name)===norm(n))){ const i=document.getElementById("lqName"); i.style.borderColor="#E0607E"; document.getElementById("lqErr").textContent=`There's already a player called ${n}. Try adding a last initial, like "${n} B".`; i.focus(); return; }
-      const p=blankPlayer(n,color); state.players.push(p); save(); chooseLock(p,false); }; };
+      // the family's first player goes straight into the game; later players go back to the Parent Corner
+      const first=!state.players.length, p=blankPlayer(n,color); state.players.push(p); save(); chooseLock(p,false,first?()=>enter(p):null); }; };
   draw();
 }
 function chooseLock(p,isNew,done){ let pick=[]; const after=()=>done?done():isNew?enter(p):parentCorner();
@@ -330,6 +331,25 @@ function parentCorner(){
 
 /* ---------------- public API ---------------- */
 function cur(){ return state.players.find(p=>p.id===state.cur)||null; }
+/* ---------------- "❓" read the instructions aloud ----------------
+   Adds a ❓ button next to the sound button on every page. It reads the instructions on the current screen aloud in English,
+   with the device's English voice, for children who cannot read them yet. A page can supply its own text with window.LQ_HELP. */
+function helpText(){
+  if(typeof window.LQ_HELP==="function"){ try{ const t=window.LQ_HELP(); if(t) return t; }catch(e){} }
+  const app=document.getElementById("app"); if(!app) return "";
+  const pick=sel=>{ const e=app.querySelector(sel); return e?e.innerText:""; };
+  const parts=[pick("h2"), pick(".talk")||pick(".q")||pick(".panel p.muted")||pick(".panel p")];
+  return parts.filter(Boolean).join(". ");
+}
+function readHelp(){ if(!("speechSynthesis" in window)) return;
+  const t=helpText().replace(/[\u0600-\u06FF\u0640]+/g," ").replace(/[\u{1F000}-\u{1FAFF}\u2600-\u27BF\uFE0F]/gu," ").replace(/_{2,}/g,"blank").replace(/\s+/g," ").trim();
+  if(!t) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang="en-US"; u.rate=0.95;
+  const v=speechSynthesis.getVoices().find(v=>/^en(-|_)(US|GB)/i.test(v.lang)&&/Samantha|Karen|Daniel|Google|Female|Natural/i.test(v.name))||speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang)); if(v) u.voice=v;
+  speechSynthesis.speak(u); }
+function addHelpButton(){ if(document.getElementById("lqHelp")) return; const snd=document.getElementById("snd")||document.getElementById("soundBtn"); if(!snd) return;
+  const b=document.createElement("button"); b.id="lqHelp"; b.className="pill"; b.type="button"; b.textContent="❓"; b.setAttribute("aria-label","Read the instructions aloud");
+  b.onclick=e=>{ e.stopPropagation(); readHelp(); }; snd.parentNode.insertBefore(b,snd); }
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",addHelpButton); else addHelpButton();
 /* ---------------- drawn hero + costumes ----------------
    drawHero paints the player on any 2D canvas with the feet at (0,0), about 100 units tall, wearing p.wear.
    WEAR ids are saved in each player's wardrobe (p.own, p.wear), so never reuse or rename them. */

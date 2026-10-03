@@ -131,8 +131,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛺</div><h2>Letter Dunes</h2><p class="muted">كُثْبَانُ الحُرُوف — catch the letter shapeshifters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.02zc";</script>
-<script src="../lq-core.js?v=2026.10.02zc"></script>
+<script>window.LQ_VER="2026.10.02zd";</script>
+<script src="../lq-core.js?v=2026.10.02zd"></script>
 <script>
 /* ============ letters data ============
    [letter, name(with harakat), English name, joins-left?, look-alikes, words: [emoji, word, English, position 1=start 2=middle 3=end] ] */
@@ -330,7 +330,7 @@ function boss(c){ LQ.mark("Sand monster, camp "+(c+1));
       setTimeout(()=>{ busy=false; draw(); },900); });
   }
   function win(){ LQ.mark("Sand monster beaten"); const stars=hearts===3?3:hearts===2?2:1; const first=!save.camps[c]; LQ.update(p=>{ p.camps=p.camps||{}; p.camps[c]=Math.max(p.camps[c]||0,stars); }); addCoins(first?30:10); persist();
-    say("أَحْسَنْتَ");
+    say("مُمْتَاز");
     $("app").innerHTML=`<div class="panel center"><div style="font-size:4rem">🏆</div><h2>You beat the sand monster!</h2>
       <p style="font-size:2rem;color:var(--saffron);margin:0">${"★".repeat(stars)}${"☆".repeat(3-stars)}</p>
       <p class="muted">${c<6?`${CAMP_NAMES[c+1]} is now open!`:"You've caught all 28 letters. Amazing!"}</p>
@@ -358,7 +358,7 @@ function traceLetter(ch){ LQ.mark("Trace "+ch);
   const step=()=> k>=shapes.length ? finish() : traceForm(ch,shapes[k],k,shapes.length,s=>{ scores.push(s); k++; step(); });
   function finish(){
     const stars=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length), first=!((LQ.player()||{}).trace||{})[ch];
-    LQ.update(p=>{ p.trace=p.trace||{}; p.trace[ch]=Math.max(p.trace[ch]||0,stars); }); if(first) addCoins(10); persist(); say("أَحْسَنْتَ");
+    LQ.update(p=>{ p.trace=p.trace||{}; p.trace[ch]=Math.max(p.trace[ch]||0,stars); }); if(first) addCoins(10); persist(); say("مُمْتَاز");
     $("app").innerHTML=`<div class="panel center">${creature(ch)}<h2>You can write ${I.en}!</h2>
       <p style="font-size:2rem;color:var(--saffron);margin:0">${stars3(stars)}</p>
       <div class="actions"><button class="btn go" id="tent">Back to the tent</button><button class="btn ghost" id="again">Trace again</button></div></div>`;
