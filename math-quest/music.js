@@ -31,6 +31,9 @@ const TRACKS={
   prog:[[0,[0,3,7]],[0,[0,3,7]],[-4,[-4,0,3]],[-2,[-2,2,5]]],arp:[0,-1,-1,2,-1,1,-1,-1,3,-1,2,-1,-1,1,-1,0]},
  laser:{name:'⚡ Laser Lab',tech:1,bpm:128,root:55,gain:1.15,oct:12,cut:1900,drive:1,
   prog:[[0,[0,3,7]],[5,[5,8,12]],[-2,[-2,2,5]],[3,[3,7,10]]],arp:[0,1,2,3,2,1,0,1,2,3,2,1,0,3,2,1]},
+ /* EXPERIMENT (Oct 2026): a recorded track instead of live notes. The owner made it in Suno (his Pro licence) from a 5-minute render of
+    Neon Night. It plays through an <audio> element routed into Web Audio so the Music slider still sets its loudness, and it loops. */
+ neonStudio:{name:'🎧 Neon Night (studio)',file:'audio/neon-night-studio.mp3'},
  magma:{name:'🌋 Magma Deep',bpm:44,root:45,scale:[0,1,5,7,8],prog:[[0,7,12],[1,8,13],[-4,3,8],[0,7,12]],tone:'glass',rest:.6,padVol:.1,octave:12,padCut:380,rumble:.3}};
 const LEVEL=.34; // softer than sound effects
 const DAY_FROM=6,DUSK_FROM=17; // 6am–5pm = Morning Meadow, 5pm–6am = Quiet Dusk
@@ -161,8 +164,8 @@ function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.tech){if(nextT
     if(T.tone==='bell'&&R()<.25)note(T.root+T.octave+deg+12,t+beat*.5,beat,.05,'bell');}}
   step++;if(step%8===0)bar++;nextT+=beat;}}
 function choice(p){return (p&&p.music)||'auto';}
-function dChoice(p){const c=p&&p.dMusic;return c==='off'||c==='laser'?c:'auto';}
-function dTrack(p){const c=dChoice(p);if(c==='off')return null;if(c==='laser')return 'laser';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'dday':'dnight';}
+function dChoice(p){const c=p&&p.dMusic;return c==='off'||c==='laser'||c==='studio'?c:'auto';}
+function dTrack(p){const c=dChoice(p);if(c==='off')return null;if(c==='laser')return 'laser';if(c==='studio')return 'neonStudio';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'dday':'dnight';}
 function inDistrict(){return typeof curScreen!=='undefined'&&curScreen==='district'&&!document.hidden;}
 function trackFor(p){const c=choice(p);if(c==='off')return null;if(c==='stars')return 'stars';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'meadow':'dusk';}
 function mVol(){try{return state.musicVol==null?30:state.musicVol;}catch(e){return 30;}}
@@ -173,6 +176,15 @@ function start(id){if(!init())return;if(AC.state==='suspended')AC.resume();
  const go=()=>{cur=TRACKS[id];step=0;bar=0;mi=2;nextT=AC.currentTime+.1;clearInterval(timer);timer=setInterval(schedule,250);schedule();fadeTo(lvl(),2.5);playing=true;};
  if(playing&&cur){fadeTo(0,2);playing=false;setTimeout(go,2100);}else go();}
 function stop(){if(!AC||!playing)return;playing=false;fadeTo(0,1.2);setTimeout(()=>{if(!playing){clearInterval(timer);cur=null;}},1300);}
+/* ---------- recorded tracks (TRACKS[id].file) ---------- */
+let FA=null,FG=null,FID=null;
+function fileLvl(){const g=window.volGain?volGain(mVol()):mVol()/70;return LEVEL*g*.9;}
+function fileGo(id){const T=TRACKS[id];if(!init())return;if(AC.state==='suspended')AC.resume();
+ if(!FA||FID!==id){fileStop(true);FA=new Audio(T.file);FA.loop=true;FA.preload='auto';FID=id;
+  try{const src=AC.createMediaElementSource(FA);FG=AC.createGain();FG.gain.value=0;src.connect(FG);FG.connect(AC.destination);}catch(e){FG=null;}}
+ if(FG){const now=AC.currentTime;FG.gain.cancelScheduledValues(now);FG.gain.setValueAtTime(FG.gain.value,now);FG.gain.linearRampToValueAtTime(fileLvl(),now+1.5);}else FA.volume=Math.min(1,fileLvl()*2);
+ if(FA.paused){const pr=FA.play();if(pr&&pr.catch)pr.catch(()=>{});}} /* may wait for the next tap on an iPad (see the pointerdown listener) */
+function fileStop(now){if(!FA)return;const a=FA;if(FG&&AC&&!now){const t=AC.currentTime;FG.gain.cancelScheduledValues(t);FG.gain.setValueAtTime(FG.gain.value,t);FG.gain.linearRampToValueAtTime(0,t+1);setTimeout(()=>{if(FA===a&&!(want&&TRACKS[want]&&TRACKS[want].file))a.pause();},1100);}else a.pause();if(now){FA=null;FG=null;FID=null;}}
 let want=null;
 function update(){try{const p=typeof P==='function'&&state&&state.cur?P():null;
  const onMap=typeof curScreen!=='undefined'&&curScreen==='world'&&!document.hidden&&!window.trollBusy&&!document.getElementById('isRoot')&&!document.getElementById('cvRoot');
@@ -186,13 +198,14 @@ function update(){try{const p=typeof P==='function'&&state&&state.cur?P():null;
  const inRide=typeof curScreen!=='undefined'&&curScreen==='inner'&&!document.hidden&&!!document.getElementById('isRoot');if(inRide&&p&&choice(p)!=='off')id='inner';
  if(mVol()<=0)id=null;
  want=id;
+ if(id&&TRACKS[id].file){if(playing)stop();fileGo(id);return;}fileStop();
  if(!id){stop();return;}
  if(!AC||AC.state!=='running'){if(AC)AC.resume();if(!AC||AC.state!=='running')return;} // waits for the first tap (iPad rule)
  if(!playing||cur!==TRACKS[id])start(id);}catch(e){}}
 setInterval(update,1000);
 // iPads only allow sound after a tap: unlock on the first touch
-['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(!init())return;if(AC.state!=='running')AC.resume().then(update).catch(()=>{});},{passive:true}));
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(AC&&playing){playing=false;master.gain.value=0;clearInterval(timer);cur=null;}}else update();});
+['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(!init())return;if(FA&&FA.paused&&want&&TRACKS[want]&&TRACKS[want].file){const pr=FA.play();if(pr&&pr.catch)pr.catch(()=>{});} /* iPads only start recorded audio inside a tap */if(AC.state!=='running')AC.resume().then(update).catch(()=>{});},{passive:true}));
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(FA)FA.pause();if(AC&&playing){playing=false;master.gain.value=0;clearInterval(timer);cur=null;}}else update();});
 
 /* ---------- the Sound menu (from the 🔊 button) ---------- */
 function slider(k,title,sub,v){return `<div class="snd-sl"><div class="snd-slh"><b>${title}</b><span id="sv_${k}">${v===0?'Off':v+'%'}</span></div><small>${sub}</small><div class="snd-slr"><span aria-hidden="true">${v===0?'🔇':'🔈'}</span><input type="range" id="sl_${k}" min="0" max="100" step="5" value="${v}" aria-label="${title} volume" oninput="Music.vol('${k}',this.value,false)" onchange="Music.vol('${k}',this.value,true)"><span aria-hidden="true">🔊</span></div></div>`;}
@@ -219,6 +232,7 @@ function panel(where){const p=typeof P==='function'&&state&&state.cur?P():null;c
   where==='district'?`<div class="snd-lab">Music in Discovery District${p.name?` for ${esc(p.name)}`:''}</div>
   ${opt(dChoice(p)==='auto',"Music.dset('auto')",'☀️🌙 Daylight &amp; Neon',`A techno beat that changes with the time of day · now: ${day?'☀️ Daylight Circuit':'🌙 Neon Night'}`)}
   ${opt(dChoice(p)==='laser',"Music.dset('laser')",'⚡ Laser Lab','Faster and busier, all the time')}
+  ${opt(dChoice(p)==='studio',"Music.dset('studio')",'🎧 Neon Night (studio)','Experiment: a recorded version, made in Suno')}
   ${opt(dChoice(p)==='off',"Music.dset('off')",'🔇 No music','Quiet district · the village music is not changed')}`:
   `<div class="snd-lab">Music on the map${p.name?` for ${esc(p.name)}`:''}</div>
   ${opt(c==='auto',"Music.set('auto')",'🌿🌙 Morning &amp; Dusk',`Changes with the time of day · now: ${day?'🌿 Morning Meadow':'🌙 Quiet Dusk'}`)}
@@ -239,5 +253,5 @@ const st=document.createElement('style');st.textContent=`.snd-card{max-width:440
 .snd-sl{text-align:left;background:#f8f5ff;border-radius:16px;padding:10px 14px;margin:0 0 10px}.snd-slh{display:flex;justify-content:space-between;font-size:18px}.snd-slh span{font-weight:800;color:#7048e8;font-variant-numeric:tabular-nums}.snd-sl small{color:#6b5fa0;font-size:14px}
 .snd-slr{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:20px}.snd-slr input{flex:1;height:36px;accent-color:#7048e8}`;
 document.head.appendChild(st);
-window.Music={menu,panel,voice,caveSet,muted,set,dset,fx,vol,update,caveToggle,caveOn,trackFor,_state:()=>({playing,cur:cur&&cur.name,want,ac:AC&&AC.state})};
+window.Music={menu,panel,voice,caveSet,muted,set,dset,fx,vol,update,caveToggle,caveOn,trackFor,_state:()=>({playing,cur:cur&&cur.name,want,ac:AC&&AC.state,file:FA?{playing:!FA.paused,t:Math.round(FA.currentTime*10)/10,gain:FG?Math.round(FG.gain.value*1000)/1000:null}:null})};
 })();
