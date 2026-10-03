@@ -85,7 +85,11 @@ function initState(){
 }
 /* fossil pieces travel to the Museum whenever the hero is at camp; they never sit in the backpack (where the Lab can't see them) */
 let PEND_FOS=0;
-function deliverFossils(){const fos=(S.pack||[]).filter(p=>p.t==='f');if(!fos.length)return 0;S.fos=S.fos||{};fos.forEach(p=>{S.fos[p.id]=S.fos[p.id]||[];S.fos[p.id][p.i]=1;});S.pack=S.pack.filter(p=>p.t!=='f');try{save(true);}catch(e){}return fos.length;}
+function deliverTo(st){if(!st)return 0;const fos=(st.pack||[]).filter(p=>p&&p.t==='f');if(!fos.length)return 0;st.fos=st.fos||{};fos.forEach(p=>{st.fos[p.id]=st.fos[p.id]||[];st.fos[p.id][p.i]=1;});st.pack=st.pack.filter(p=>!(p&&p.t==='f'));return fos.length;}
+function deliverFossils(){const n=deliverTo(S);if(n){try{save(true);}catch(e){}}return n;}
+/* Oct 2026: a hero who CLIMBS back to camp (instead of beaming home) used to keep every fossil piece in the backpack: the Museum never got
+   them and the full pack stopped new finds. Now they are delivered the moment the hero is back on the surface, and again when the Museum or Lab opens. */
+function campFossils(){const n=deliverFossils();if(n)say(`🦴 ${n} fossil piece${n>1?'s':''} went to the 🏛️ Museum.`);return n;}
 /* battery charges over time — only at camp (or while the game is closed). Math power-ups charge it instantly. */
 const CHG=[{v:10,c:0,e:'🔌',n:'Basic Charger'},{v:15,c:250,r:10,e:'🔌',n:'Fast Charger'},{v:22,c:700,r:25,e:'⚡',n:'Turbo Charger'},{v:32,c:1600,r:50,e:'⚡',n:'Mega Charger'}];
 function now(){try{return H&&H.now?H.now():Date.now();}catch(e){return Date.now();}}
@@ -305,6 +309,7 @@ function after(){
  [[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{const j=idx(S.x+a,S.y+b);const c=W.items.get(j);if(!c||c.t!=='c'||S.x+a<=0)return;
   /* a new critter always opens its card; one you already have says 'Hello again!' once per dive for each kind */
   if(!S.crit[c.id]||!metNow.has(c.id))observe(j,c);});
+ if(S.y===0&&S.pack.some(p=>p&&p.t==='f'))campFossils();
  if(S.y>S.dive.d)S.dive.d=S.y;
  if(S.y>S.maxRow){S.maxRow=S.y;ev('depth',{row:S.y,km:rowKm(S.y)});}
  const L=layerOf(S.y);if(L&&!S.seen[L.id]){S.seen[L.id]=1;save(true);layerCard(L);}
@@ -624,7 +629,7 @@ const HB_OPT=['Your fingernail scratches it','Fingernail can\'t, but the copper 
 function speak(t){return;try{if(!window.speechSynthesis||!sndOK())return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/<[^>]+>/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]/gu,'').replace(/—/g,','));u.lang='en-US';u.rate=.9;try{u.volume=Math.min(1,Math.max(.25,window.fxLevel?fxLevel():1));}catch(e){}speechSynthesis.speak(u);}catch(e){}}
 function splits(t,C){return new Set(C.map(c=>JSON.stringify(tval(CD.MIN[c],t)))).size>1;}
 const TNAME={look:'🔍 Look closely',magnet:'🧲 Magnet',acid:'🧪 Vinegar drop',water:'💧 Water',streak:'⬜ Streak tile',hard:'💅 Scratch tools',uv:'🔦 UV lamp',break:'🔨 Hammer tap'};
-function openLab(){
+function openLab(){if(S.y===0)campFossils();
  const list=S.pack.filter(p=>p.t!=='f');
  const cards=list.map(p=>p.t==='g'?`<button class="cv-spec" data-k="g:${S.pack.indexOf(p)}"><span class="cv-big2">🔮</span><b>Geode</b><small>Crack it open!</small></button>`
   :`<button class="cv-spec" data-k="${p.k}">${rockSVG(p.k,54)}<b>${p.map?'🪨 Rock you brought':'Specimen #'+(S.pack.indexOf(p)+1)}</b><small>${(p.path||[]).length?(p.path.length+' step'+(p.path.length>1?'s':'')+' done'):'Not tested yet'}</small></button>`).join('');
@@ -821,7 +826,7 @@ function openJournal(tab){tab=tab||'min';const tabs=[['min','💎 Minerals'],['f
 const FPOS={smilodon:[[82,34],[48,44],[40,80],[12,40]],triceratops:[[82,34],[46,44],[42,82],[11,64]],pteranodon:[[62,18],[20,42],[50,52],[50,82]],stego:[[88,52],[46,18],[46,48],[42,82],[10,60]],mammoth:[[22,30],[12,60],[50,42],[55,80]],trex:[[16,28],[34,50],[52,45],[55,82],[86,40]],brachio:[[12,12],[28,34],[52,55],[55,85],[88,62]],ammonite:[[50,50],[32,34],[68,62]],trilobite:[[50,18],[50,50],[50,84]],stromatolite:[[50,84],[50,52],[50,20]]};
 const SLOTHINT={'Fang Skull':'head','Horned Skull':'head','Crested Skull':'head',Wings:'sides','Back Plates':'back','Spiky Tail':'back end',Skull:'head',Tusk:'face',Neck:'neck',Arms:'front',Ribs:'chest',Legs:'feet',Tail:'back end',Shell:'outside',Spiral:'middle',Chambers:'inside',Head:'front',Body:'middle',Base:'bottom',Layers:'middle',Top:'top'};
 function museumReady(){return CD.FOSSILS.some(f=>!S.ex[f.id]&&f.parts.every((_,i)=>(S.fos[f.id]||[])[i]));}
-function openMuseum(){
+function openMuseum(){deliverFossils();
  const ex=CD.FOSSILS.map(f=>{const got=S.fos[f.id]||[];const n=got.filter(Boolean).length;const done=S.ex[f.id];const ready=!done&&n===f.parts.length;
   return `<div class="cv-ex ${done?'done':''}"><div class="cv-exe">${n||done?femo(f):'❔'}</div><div><b>${n||done?esc(f.n):'Unknown fossil'}</b><small>${done?esc(f.age):`${n}/${f.parts.length} pieces${n?'':' · dig in the '+esc(CD.LAYERS.find(L=>L.id===f.L).n)}`}</small>${!done&&f.camp!=null?(got[f.camp]?`<small class="cv-campok">🏕️ ${esc(f.parts[f.camp])}: found by your camp crew!</small>`:`<small class="cv-camp">🏕️ The <b>${esc(f.parts[f.camp])}</b> is only found by your Adventure Camp crew!</small>`):''}</div>${ready?`<button class="cv-btn sm" data-as="${f.id}">🧩 Assemble!</button>`:done?`<button class="cv-btn sm" data-look="${f.id}">🔍 Look</button>`:''}</div>`;}).join('');
  const shown=CD.FOSSILS.filter(f=>S.ex[f.id]).sort((a,b)=>a.ageY-b.ageY);
@@ -1451,5 +1456,5 @@ let coreDbg=null;
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={mathQ,open,leave,summary,coreHint,_dbg:()=>({S,W,H,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
+window.Cave={mathQ,open,leave,summary,coreHint,deliverFossils:st=>deliverTo(st),_dbg:()=>({S,W,H,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
 })();

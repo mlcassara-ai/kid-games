@@ -182,7 +182,7 @@ function draw(){css();const p=P();if(!p||!hasKey(p)){go('world');return;}const s
   <div class="panel lb-st"><h3>🗺️ Dig Map</h3>${mapHTML(p)}</div>
  </div>`;}
 let GREET='';
-function open(){const p=P();if(!p||!hasKey(p)){go('world');return;}const s=Q(p);MM=null;FB='';GREET=greet(p);if(!DEMO){s.lab.visits=(s.lab.visits||0)+1;s.lab.last=dayKey();save();}
+function open(){const p=P();if(!p||!hasKey(p)){go('world');return;}const s=Q(p);try{if(window.Cave&&Cave.deliverFossils&&p.cave){const n=Cave.deliverFossils(p.cave);if(n){save();toast(`🦴 ${n} fossil piece${n>1?'s':''} from your backpack went to the 🏛️ Museum.`);}}}catch(e){} /* pieces left in the pack (see cave.js campFossils) */MM=null;FB='';GREET=greet(p);if(!DEMO){s.lab.visits=(s.lab.visits||0)+1;s.lab.last=dayKey();save();}
  try{if(typeof W!=='undefined'&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}draw();}
 
 /* ---------- styles ---------- */
