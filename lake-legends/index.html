@@ -115,6 +115,10 @@
   @keyframes glow { 50% { filter:brightness(1.3); } }
   @keyframes flash { 50% { filter:brightness(1.6); } }
   @keyframes shake { 0%{ margin-right:-2px } 50%{ margin-right:2px } 100%{ margin-right:-2px } }
+  .who { font:inherit; margin-top:1.4em; display:flex; align-items:center; gap:.5em; border:none; border-radius:1.2em; padding:.35em 1em .35em .5em; background:rgba(255,250,240,.92); color:var(--ink); cursor:pointer; box-shadow:0 .2em 0 rgba(0,0,0,.2); text-align:left; }
+  .who svg { width:2.6em; height:3em; display:block; }
+  .who b { display:block; font-size:1.15em; }
+  .who small { color:#5b6b76; font-size:.8em; }
   @media (prefers-reduced-motion: reduce) { #reelBtn.cast, #reelBtn.danger, #reelGfx.danger { animation:none; } }
 </style>
 </head>
@@ -155,6 +159,7 @@
     <p class="tagline">Fish real San Diego lakes!</p>
     <button class="btn" id="btnPlay" style="font-size:1.5em">🎣 Let's Fish!</button>
     <div style="margin-top:.6em"><button class="btn blue small" id="btnHow">How to play</button><button class="btn blue small" id="btnLakes">🗺️ Lakes</button></div>
+    <button class="who" id="btnWho"><span id="whoPic"></span><span><b id="whoName"></b><small>Not you? Switch player</small></span></button>
   </div>
 
   <!-- Lake map -->
@@ -179,7 +184,6 @@
     <div class="dexgrid" id="dexGrid"></div>
     <div class="sech">🏆 Boss Trophies</div>
     <div class="dexgrid" id="bossGrid"></div>
-    <button class="btn red small" id="btnReset" style="margin-top:1.5em;opacity:.7">Start over</button>
   </div>
 
   <!-- Results -->
@@ -195,6 +199,8 @@
   <button class="btn blue small mute" id="btnMute">🔊</button>
 </div>
 
+<script>window.LL_VER="2026.10.03a";</script>
+<script src="ll-core.js?v=2026.10.03a"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -423,20 +429,24 @@ const UPG = {
 // =====================================================================
 //  SAVE
 // =====================================================================
-const SAVE_KEY = "lakeLegendsDeepDrop_v1";
+// Each player's game lives in their player record (ll-core.js): LL.player().game. S points at it while they play.
 function defaultSave(){ return { coins:0, lakes:["dixon"], up:{line:0,stringer:0,reel:0,guard:0,lure:0}, dex:{}, trips:0, sound:true,
-  baits:["spinner","bread"], bait:"spinner", bobber:false, bobDepth:6, grandpa:false, grandpaBonus:false, lakeEarn:{}, bosses:{}, heavy:false, champ:false, day:{ lake:"dixon", kept:[] }, released:0, baitCount:{} }; }
-function loadSave(){
-  try { const s = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (s && s.up) { const d = defaultSave(); return Object.assign(d, s, { up:Object.assign(d.up, s.up) }); }
-  } catch(e) {}
-  return defaultSave();
+  baits:["spinner","bread"], bait:"spinner", bobber:false, bobDepth:6, grandpa:false, grandpaBonus:false, lakeEarn:{}, bosses:{}, heavy:false, champ:false, day:{ lake:"dixon", kept:[] }, released:0, baitCount:{},
+  landed:0 }; }
+// old saves and saves from older versions pick up any new fields; nothing already earned is ever lowered
+function normalizeSave(s){
+  const d = defaultSave();
+  if (!s || !s.up) return d;
+  const o = Object.assign(d, s, { up:Object.assign(d.up, s.up) });
+  for (const k of ["spinner","bread"]) if (!o.baits.includes(k)) o.baits.push(k);
+  if (!o.bait || o.bait === "bare") o.bait = "spinner";
+  for (const k of o.baits) if (BAITS[k] && BAITS[k].soft && o.baitCount[k] === undefined) o.baitCount[k] = BAITS[k].pack;
+  if (!o.landed) o.landed = Object.values(o.dex).reduce((n, d) => n + (d.n || 0), 0);
+  return o;
 }
-let S = loadSave();
-(function migrateBait(){
-  for (const k of ["spinner","bread"]) if (!S.baits.includes(k)) S.baits.push(k);
-  if (!S.bait || S.bait === "bare") S.bait = "spinner"; for (const k of (S.baits || [])) if (BAITS[k] && BAITS[k].soft && S.baitCount[k] === undefined) S.baitCount[k] = BAITS[k].pack; })();
-function save(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e) {} }
+let S = defaultSave();                     // a stand-in until a player signs in
+function bindPlayer(p){ p.game = normalizeSave(p.game); S = p.game; shownCoins = null; setMuteIcon(); }
+function save(){ if (window.LL && LL.player() && LL.player().game === S) LL.save(); }
 const upVal = k => UPG[k].vals[S.up[k]];
 
 // =====================================================================
@@ -923,11 +933,6 @@ function renderOptions(){
 function setMuteIcon(){ $("btnMute").textContent = S.sound ? "🔊" : "🔇"; }
 $("btnMute").onclick = () => { S.sound = !S.sound; save(); setMuteIcon(); SFX.click(); };
 setMuteIcon();
-let resetArmed = false;
-$("btnReset").onclick = () => {
-  if (!resetArmed){ resetArmed = true; $("btnReset").textContent = "Tap again to erase everything"; setTimeout(()=>{ resetArmed=false; $("btnReset").textContent="Start over"; }, 3000); return; }
-  S = defaultSave(); save(); resetArmed=false; $("btnReset").textContent="Start over"; setMuteIcon(); toast("Fresh start!"); showScreen("dex");
-};
 
 // size badges: bronze for any catch, silver and gold for bigger ones of that species
 const TIERS = [null, { icon:"🥉", name:"Bronze" }, { icon:"🥈", name:"Silver", at:.45, bonus:5 }, { icon:"🥇", name:"Gold", at:.75, bonus:15 }];
@@ -986,7 +991,7 @@ function renderShop(){
     d.querySelector(".row").appendChild(b); list.appendChild(d);
   });
   const h2 = document.createElement("div"); h2.className = "sech"; h2.textContent = "⚙️ Gear"; list.appendChild(h2);
-  Object.keys(UPG).filter(k => k !== "lure").forEach(k => {
+  Object.keys(UPG).forEach(k => {
     const u = UPG[k], lv = S.up[k], max = u.vals.length - 1;
     const d = document.createElement("div"); d.className = "card shopitem";
     d.innerHTML = `<div class="row"><div style="font-size:2em">${u.icon}</div><div class="grow">
@@ -1134,7 +1139,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   }
   const snags = [];
   // on the bottom: mostly sunken wood, plus cans, an old boot, the odd tire
-  const nBottom = dock ? 3 : Math.max(3, Math.round(bottom / 150));
+  const nBottom = dock ? 2 : Math.max(3, Math.round(bottom / 150));
   const bottomJunk = [{v:"log",w:5},{v:"branch",w:3},{v:"can",w:2},{v:"boot",w:1.5},{v:"tire",w:.6},{v:"cart",w:.2}];
   for (let i=0;i<nBottom;i++){
     const t = pickWeighted(bottomJunk), sg = makeSnag(t, rand(30, W-30), 0);
@@ -1142,7 +1147,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
     snags.push(sg);
   }
   // in the water column: plants growing up from the bottom and floating weed clumps
-  const nPlants = dock ? 2 : Math.max(2, Math.round(bottom / 260));
+  const nPlants = dock ? 1 : Math.max(2, Math.round(bottom / 260));
   for (let i=0;i<nPlants;i++){
     if (Math.random() < .6){ const sg = makeSnag("weed", rand(30, W-30), bottom); sg.h = rand(.25, dock ? .45 : .5) * bottom; sg.y = bottom - sg.h/2; snags.push(sg); }
     else snags.push(makeSnag("clump", rand(40, W-40), rand(bottom*.3, bottom*.75)));
@@ -1297,7 +1302,7 @@ function rollBait(){
   if (Math.random() < b.lose) T.baitLost = true;
 }
 function landFish(f){
-  rollBait();
+  rollBait(); S.landed = (S.landed || 0) + 1;
   trip.caught.push(f);
   const label = f.boss || f.sp.legend ? "⭐ " + f.sp.name.toUpperCase() + "! ⭐" : (f.rare ? "✨ RARE " : "") + (f.trophy ? "TROPHY " : "") + f.sp.name + "!";
   pop(trip.hook.x, trip.hook.y - 30, label, f.sp.legend ? "#ffd23f" : f.trophy ? "#e6c8ff" : "#fff", f.trophy || f.sp.legend ? 24 : 20);
@@ -1386,7 +1391,7 @@ function addScentFish(T, n){
 function startNibble(f, c){
   const T = trip, side = f.x < T.hook.x ? 1 : -1;
   T.nibble = { f, c, side, count:0, n: 2 + Math.floor(Math.random()*3), next: rand(.4,.7), stage:"nibble", t:0,
-               willBite: Math.random() < c, win: 1.0 };
+               willBite: Math.random() < c, win: 1.0 + .7 * Math.max(0, 1 - (S.landed || 0) / 20) };
   f.nibbling = true; f.dir = side; T.pending = 0;
 }
 function updateNibble(dt){
@@ -1407,9 +1412,12 @@ function updateNibble(dt){
     }
   } else if (N.t > N.win) endNibble("slow");
 }
+let earlyTaps = 0;
 function setHook(){
   const T = trip, N = T.nibble;
-  if (N.stage !== "bite"){ endNibble("early"); return; }
+  if (N.stage !== "bite"){ endNibble("early"); earlyTaps++;
+    if (earlyTaps === 3) toast("Tip: nibbles are just tasting. Wait for BITE! Then tap.", 3200); return; }
+  earlyTaps = 0;
   T.nibble = null; N.f.nibbling = false;
   pop(T.hook.x, T.hook.y - 60, "Got it!", "#bff5c8", 20);
   hookFish(N.f);
@@ -2144,11 +2152,12 @@ function drawAngler(ax, feet, surf){
   // legs (jeans)
   ctx.fillStyle = "#34506e"; ctx.fillRect(ax - 7, feet - 12, 6, 12); ctx.fillRect(ax + 1, feet - 12, 6, 12);
   ctx.fillStyle = "#2a2a2a"; ctx.fillRect(ax - 8, feet - 2, 7, 3); ctx.fillRect(ax + 1, feet - 2, 7, 3);
-  // shirt with shading
-  const sg = ctx.createLinearGradient(ax - 9, 0, ax + 9, 0); sg.addColorStop(0, "#2d6f9e"); sg.addColorStop(.6, "#3f88bd"); sg.addColorStop(1, "#285f88");
+  // shirt with shading, in the player's color
+  const shirt = (window.LL && LL.player() && LL.player().color) || "#3f88bd";
+  const sg = ctx.createLinearGradient(ax - 9, 0, ax + 9, 0); sg.addColorStop(0, shade(shirt, -.2)); sg.addColorStop(.6, shirt); sg.addColorStop(1, shade(shirt, -.3));
   ctx.fillStyle = sg; ctx.beginPath(); ctx.moveTo(ax - 9, feet - 12); ctx.lineTo(ax - 8, feet - 27); ctx.quadraticCurveTo(ax, feet - 31, ax + 8, feet - 27); ctx.lineTo(ax + 9, feet - 12); ctx.closePath(); ctx.fill();
   // arm reaching to the rod
-  ctx.strokeStyle = "#3f88bd"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(ax + 5, feet - 25); ctx.lineTo(ax + 9, feet - 18); ctx.stroke();
+  ctx.strokeStyle = shirt; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(ax + 5, feet - 25); ctx.lineTo(ax + 9, feet - 18); ctx.stroke();
   ctx.fillStyle = "#e9b98f"; ctx.beginPath(); ctx.arc(ax + 9, feet - 17, 2.2, 0, 7); ctx.fill();
   // head + cap
   ctx.fillStyle = "#e9b98f"; ctx.beginPath(); ctx.arc(ax, feet - 35, 6.5, 0, 7); ctx.fill();
@@ -2473,6 +2482,35 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+
+// =====================================================================
+//  PLAYERS: who's fishing? (accounts, picture locks and online save live in ll-core.js)
+// =====================================================================
+function showTitle(){
+  const p = LL.player();
+  if (p){ $("whoPic").innerHTML = LL.angler(p.color, 40); $("whoName").textContent = p.name; $("btnPlay").textContent = "🎣 Let's Fish, " + p.name + "!"; }
+  showScreen("title");
+}
+function signIn(p){ trip = null; visit = null; pending = null; modalQueue = []; $("modal").classList.remove("show"); bindPlayer(p); showTitle(); }
+function signOut(){ trip = null; visit = null; pending = null; modalQueue = []; $("modal").classList.remove("show"); LL.leave(); S = defaultSave(); showScreen("title"); LL.profiles(signIn); }
+$("btnWho").onclick = () => { SFX.click(); signOut(); };
+// an online sync can remove the player (a parent did it on another device) or a parent can start them over
+LL.onChange(() => {
+  const p = LL.player();
+  if (!p){ if (!document.getElementById("llOv")) signOut(); return; }
+  if (p.game !== S){ bindPlayer(p); if (state !== "title"){ trip = null; visit = null; showTitle(); } }
+});
+window.LL_SAFE = () => state !== "fishing" && state !== "results" && !$("modal").classList.contains("show");
+// one line per player for the Parent Corner
+window.LL_KID = g => {
+  if (!g || !g.up) return "";
+  const n = DEX_ORDER.filter(id => g.dex && g.dex[id]).length, bosses = Object.keys(g.bosses || {}).length;
+  let big = null;
+  for (const id of Object.keys(g.dex || {})){ const sp = SPECIES[id]; if (!sp) continue; const lb = weightLb(sp, g.dex[id].best); if (!big || lb > big.lb) big = { lb, name: sp.name, inches: g.dex[id].best }; }
+  return "🪙 " + (g.coins || 0) + " · 📖 " + n + "/" + DEX_ORDER.length + " fish · 🗺️ " + (g.lakes || []).length + "/" + LAKES.length + " lakes · ⚔️ " + bosses + "/6 bosses · 🐟 " + (g.landed || 0) + " landed"
+    + (big ? "<br>Biggest: " + big.name + ", " + big.inches.toFixed(1) + " in (" + fmtLb(big.lb) + ")" : "");
+};
+{ const p = LL.sessionPlayer(); if (p) signIn(p); else LL.profiles(signIn); }
 </script>
 </body>
 </html>
