@@ -175,8 +175,8 @@ const tests=[
   T.ok([[21,20],[23,20],[22,19],[22,21]].some(([x,y])=>W.T[y]&&W.T[y][x]&&!W.T[y][x].block&&!W.T[y][x].water),'truck cannot be reached on the map');
   wNpc('truck');T.ok(curScreen==='truck','tapping the truck on the map did not open it');window.MQ_TRUCK_BETA=false;}],
 
-['discovery district: open to everyone (and can still be switched off), walkable',async function(){
-  T.reset();const p=T.hero('District',3);state.cur=p.id;delete window.MQ_DISTRICT_BETA;try{localStorage.removeItem('mqDistrictBeta');}catch(e){}T.ok(Discovery.flag(),'Discovery District is not open to everyone');window.MQ_DISTRICT_BETA=false;
+['discovery district: hidden unless the preview switch is on, then walkable',async function(){
+  T.reset();const p=T.hero('District',3);state.cur=p.id;delete window.MQ_DISTRICT_BETA;try{localStorage.removeItem('mqDistrictBeta');}catch(e){}T.ok(!Discovery.flag(),'Discovery District is showing without the preview switch');window.MQ_DISTRICT_BETA=false;
   T.ok(!Discovery.flag(),'district preview is on without the switch');go('world');await T.wait(100);T.ok(W.T[13][28].npc!=='train','train shows on the map without the switch');
   go('district');T.ok(curScreen==='world','district opened without the switch');
   window.MQ_DISTRICT_BETA=true;go('world');await T.wait(100);T.ok(W.T[13][28].npc==='train','train station missing from the village');
