@@ -1,7 +1,7 @@
 /* ================= Discovery District (walk-around PREVIEW, hidden) =================
    A second neighborhood reached by train from Number Village: a station plaza and five physics areas.
-   This file is a look-and-feel preview only: you can ride the train, walk the map and tap things. There are no
-   battles, wild monsters or chests here yet. Only Munch-Bot, the hungry robot, is real: he takes coins and saves his fact cards (p.fizz). It draws its own map so the main world code is untouched.
+   You can ride the train, walk the map and tap things. The five zone signs open the physics games (physics.js);
+   Munch-Bot, the hungry robot, takes coins and saves his fact cards (p.fizz). Still no battles, wild monsters or chests here. It draws its own map so the main world code is untouched.
    HIDDEN: no entry point unless the game was opened once with ?district=1 on that device (or window.MQ_DISTRICT_BETA===true).
    Uses Math Quest globals: P, save, go, modal, closeModal, toast, esc, topbar, heroSVG, SFX, tone, say, speakable, speakToggle,
    youngReader, voiceOn, SCREENS, curScreen, W (main map tiles). */
@@ -18,7 +18,6 @@ const AREAS={
 /* plaza is 15x9 with Munch-Bot, the hungry robot, in the middle */
 const SPOTS=[{id:'fizz',x:22,y:14,e:'🤖',n:'Munch-Bot'},{id:'train',x:17,y:14,e:'🚂',n:'Train to Number Village'},{id:'board',x:27,y:14,e:'📜',n:'District Board'},{id:'scope',x:22,y:11,e:'🔭',n:''}];
 const LAKES=[[41,26,5.6],[4,25,3.4],[30,12,1.5]];
-const BAY_STOPS=[['Wobble Crab','Which side is heavier?'],['Tippy Gull','Make it level'],['See-Saw Seal','Find the weight'],['Heavy Hermit','Find the distance'],['Pulley Pelican','Levers and pulleys'],['Captain Counterweight (boss)','Everything, mixed']];
 const TRAIN_X=28,TRAIN_Y=13; /* the station tile on the main map (top-right of the village plaza, the side toward the district) */
 let D=null;
 function flag(){if(window.MQ_DISTRICT_BETA===true)return true;try{if(/[?&]district=1(&|$)/.test(location.search))localStorage.setItem('mqDistrictBeta','1');return localStorage.getItem('mqDistrictBeta')==='1';}catch(e){return false;}}
@@ -50,13 +49,9 @@ function pathTo(tx,ty){const k=(x,y)=>y*COLS+x,prev=new Map([[k(D.hx,D.hy),-1]])
 
 /* ---------- things you can tap ---------- */
 function useTile(x,y){const t=D.T[y]&&D.T[y][x];if(!t)return;try{SFX.tap();}catch(e){}
- if(t.gate){const B=AREAS[t.gate];
-  if(B.open)modal(`<div class="mcard"><div class="big-emoji">${B.art}</div><h2>${esc(B.name)}</h2><p>${esc(B.about)} This is the first area that will open. Its path would look like this:</p>
-   <ol style="text-align:left;margin:8px auto;max-width:330px;line-height:1.6">${BAY_STOPS.map(s=>`<li><b>${esc(s[0])}</b><br><span class="muted">${esc(s[1])}</span></li>`).join('')}</ol>
-   <p class="muted">Preview only: the battles are not built yet.</p><div class="row"><button class="btn green" onclick="closeModal()">OK</button></div></div>`);
-  else modal(`<div class="mcard"><div class="big-emoji">🚧</div><h2>${esc(B.name)}</h2><p>${esc(B.about)}</p><p><b>Coming soon!</b></p><div class="row"><button class="btn green" onclick="closeModal()">OK</button></div></div>`);return;}
+ if(t.gate){if(window.Physics){Physics.zone(t.gate);return;}const B=AREAS[t.gate];modal(`<div class="mcard"><div class="big-emoji">${B.art}</div><h2>${esc(B.name)}</h2><p>${esc(B.about)}</p><div class="row"><button class="btn green" onclick="closeModal()">OK</button></div></div>`);return;}
  if(t.spot==='train'){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>Ride back to Number Village?</h2><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green" onclick="closeModal();Discovery.ride('home')">All aboard!</button></div></div>`);return;}
- if(t.spot==='board'){modal(`<div class="mcard"><div class="big-emoji">📜</div><h2>District Board</h2><div style="text-align:left;max-width:340px;margin:0 auto">${Object.keys(AREAS).filter(k=>AREAS[k].zone).map(k=>{const B=AREAS[k];return `<p style="margin:6px 0">${B.art} <b>${esc(B.name)}</b> ${B.open?'<span style="color:#2f9e58">· opening first</span>':'<span class="muted">· coming soon</span>'}<br><span class="muted">${esc(B.about)}</span></p>`;}).join('')}</div><div class="row"><button class="btn green" onclick="closeModal()">OK</button></div></div>`);return;}
+ if(t.spot==='board'){const sm=window.Physics?Physics.summary(P()):[];modal(`<div class="mcard"><div class="big-emoji">📜</div><h2>District Board</h2><p class="muted" style="margin-top:0">Walk to a zone's sign to play. Each zone has 6 stops and a badge.</p><div style="text-align:left;max-width:360px;margin:0 auto">${sm.map(z=>`<p style="margin:8px 0"><button class="btn small" onclick="closeModal();Physics.zone('${z.id}')">${z.art} ${esc(z.name)}</button> ⭐ ${z.stars}/18${z.badge?' · 🏅':''}<br><span class="muted">${esc(z.about)}${z.next?` · next: ${esc(z.next)}`:''}</span></p>`).join('')}</div><div class="row"><button class="btn green" onclick="closeModal()">OK</button></div></div>`);return;}
  if(t.spot==='fizz'){fizzOpen();return;}
  if(t.spot==='scope')toast('🔭 Welcome to Discovery District!');}
 function tap(e){if(!D||document.querySelector('#modal.show'))return;const cv=e.currentTarget,r=cv.getBoundingClientRect(),[cx,cy]=cam();
@@ -187,7 +182,7 @@ function screen(){if(!flag()){HERE=false;go('world');return;}HERE=true;const p=P
  D.img=new Image();D.img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{spell:p.spell}));
  app.innerHTML=topbar()+`<div class="world" id="dworld"><canvas id="dcv" style="display:block;touch-action:none"></canvas>
  <div class="wtop"><div class="warea" id="darea"></div><button class="btn small" style="pointer-events:auto" onclick="Discovery.ride('home')">🚂 Number Village</button></div>
- <div class="whelp">Preview: tap anywhere to walk · tap a sign to look</div>
+ <div class="whelp">Tap anywhere to walk · walk to a zone's sign to play</div>
  <div class="dpad"><button data-d="0,-1" style="grid-area:u">▲</button><button data-d="-1,0" style="grid-area:l">◀</button><button data-d="1,0" style="grid-area:r">▶</button><button data-d="0,1" style="grid-area:d">▼</button></div></div>`;
  const tb=document.querySelector('.topbar'),wd=document.getElementById('dworld');if(tb&&wd)wd.style.height=`calc(100dvh - ${tb.offsetHeight}px)`;
  resize();document.getElementById('dcv').addEventListener('pointerdown',tap);

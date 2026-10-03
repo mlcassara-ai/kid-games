@@ -167,7 +167,7 @@ function schedule(){if(!cur)return;const T=cur,beat=60/T.bpm;if(T.tech){if(nextT
 function choice(p){return (p&&p.music)||'auto';}
 function dChoice(p){const c=p&&p.dMusic;return c==='off'||c==='laser'||c==='studio'?c:'auto';}
 function dTrack(p){const c=dChoice(p);if(c==='off')return null;if(c==='laser')return 'laser';if(c==='studio')return 'neonStudio';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'dday':'dnight';}
-function inDistrict(){return typeof curScreen!=='undefined'&&curScreen==='district'&&!document.hidden;}
+function inDistrict(){return typeof curScreen!=='undefined'&&(curScreen==='district'||curScreen==='phys')&&!document.hidden;} /* the zone games (physics.js) keep the district's music */
 function trackFor(p){const c=choice(p);if(c==='off')return null;if(c==='stars')return 'stars';if(c==='starsStudio')return 'starsStudio';const h=new Date().getHours();return h>=DAY_FROM&&h<DUSK_FROM?'meadow':'dusk';}
 function mVol(){try{return state.musicVol==null?30:state.musicVol;}catch(e){return 30;}}
 function lvl(){const g=window.volGain?volGain(mVol()):mVol()/70;return LEVEL*g*((cur&&cur.gain)||1);}

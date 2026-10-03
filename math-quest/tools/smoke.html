@@ -183,7 +183,7 @@ const tests=[
   go('district');T.ok(curScreen==='district'&&document.getElementById('dcv'),'district map did not open');
   const d=Discovery._dbg,D=d.state();Object.keys(d.AREAS).filter(k=>d.AREAS[k].zone).forEach(k=>{const c=d.AREAS[k].c;
    const ok=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const x=c[0]+dx,y=c[1]+dy;return D.T[y]&&D.T[y][x]&&!D.T[y][x].block&&d.pathTo(x,y);});T.ok(ok,'cannot walk to '+d.AREAS[k].name);});
-  d.useTile(d.AREAS.bay.c[0],d.AREAS.bay.c[1]);T.ok(/Balance Bay/.test(document.querySelector('#modal').innerText),'Balance Bay sign did not open');closeModal();
+  d.useTile(d.AREAS.bay.c[0],d.AREAS.bay.c[1]);T.ok(curScreen==='phys'&&/Balance Bay/.test(document.querySelector('#app').innerText),'Balance Bay sign did not open the zone');go('district');await T.wait(100);
   await T.wait(300);T.ok(document.getElementById('dcv').width>0,'district canvas has no size');
   {const f0=window.footstep;let n=0;window.footstep=t=>{n++;};const st=Discovery._dbg.state();const nb=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>[st.hx+dx,st.hy+dy]).find(([x,y])=>st.T[y]&&st.T[y][x]&&!st.T[y][x].block);if(nb){st.path=[nb];await T.wait(500);T.ok(n>=1,'no footstep sound when walking in the district');}window.footstep=f0;}
   /* while the hero is in the district, 'back to the World' from another screen comes back here; only the train goes to the village */
@@ -263,6 +263,24 @@ const tests=[
    go('map');P().quizStats['j-punct']={best:60,tries:1,stars:1,d:dayKey()};T.ok(/Pick your fun ➜/.test(card())&&/✅ 3 · School work/.test(card()),'the reward is not open after doing the school quiz today');
    const o=T.hero('Other',5);state.cur=o.id;Daily._dbg.tad(o).s=2;T.ok(!/School work/.test(card()),'School work shown to a hero without their own school content');}
   T.reset();const p=T.hero('Jibreel',5);state.cur=p.id;const ids=quizList(p).map(z=>z.id||z.key||z);T.ok(JSON.stringify(ids).includes('j-punct')&&JSON.stringify(ids).includes('j-matter'),'this week\'s quizzes do not reach Jibreel: '+JSON.stringify(ids).slice(0,200));
+ }],
+ ['discovery district games: every zone plays, scores, pays, unlocks and survives a sync',async function(){
+  const ans=async(right)=>{const R=Physics._dbg.run();const r=R.rounds[R.i];
+   if(right){if(r.kind==='num'){String(r.answer).split('').forEach(k=>Physics._dbg.key(k));Physics._dbg.key('go');}else Physics._dbg.answer(String(r.answer));}
+   else{const w=r.kind==='choice'?r.choices.find(c=>String(c)!==String(r.answer)):String(Number(r.answer)+1);Physics._dbg.answer(w);if(Physics._dbg.run().phase!=='a')Physics._dbg.answer(w);}
+   Physics._next();};
+  for(const g of [3,5]){T.reset();window.MQ_DISTRICT_BETA=true;const p=T.hero('Phys'+g,g);state.cur=p.id;T.ok(Physics.tierOf(p)===(g===3?1:2),'wrong tier for grade '+g);
+   for(const z of Physics.ZONES){Physics.zone(z.id);T.ok(curScreen==='phys'&&document.querySelectorAll('.ph-stop').length===6&&document.querySelectorAll('.ph-stop.lock').length===5,z.id+': path did not show 6 stops with 5 locked');
+    const c0=P().coins;Physics.play(z.id,0);T.ok(document.querySelector('.ph-svg')&&document.querySelector('.ph-q'),z.id+': no picture or question');
+    for(let i=0;i<5;i++)await ans(true);T.ok(P().phys[z.id][0]===3&&P().coins===c0+30,z.id+': all right did not give 3 stars and 30 coins: '+P().phys[z.id][0]+' '+(P().coins-c0));
+    T.ok(/Stop cleared/.test(document.querySelector('#app').innerText),z.id+': no results card');
+    Physics.play(z.id,1);for(let i=0;i<5;i++)await ans(false);T.ok(P().phys[z.id][1]===0,z.id+': all wrong still passed');
+    Physics.play(z.id,1);for(let i=0;i<5;i++)await ans(i<3);T.ok(P().phys[z.id][1]===1,z.id+': 3 of 5 did not give 1 star');}
+   /* an online sync replaces the hero object in the middle of a stop: the result must land on the new one */
+   Physics.play('bay',2);for(let i=0;i<4;i++)await ans(true);const old=P(),copy=JSON.parse(JSON.stringify(old));state.players=state.players.map(x=>x.id===old.id?copy:x);await ans(true);
+   T.ok(P()===copy&&P().phys.bay[2]===3,'a stop finished after a sync was lost');
+   T.ok(JSON.stringify(P().phys).length<200,'p.phys is too big');}
+  go('district');await T.wait(50);
  }],
  ['music: the login page plays the map tune, Discovery District has its own choices',async function(){
   T.reset();const p=T.hero('Tune',3);state.musicVol=30;state.cur=null;go('profiles');Music.update();T.ok(['meadow','dusk'].includes(Music._state().want),'no map tune on the login page: '+Music._state().want);
