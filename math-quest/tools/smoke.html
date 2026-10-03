@@ -137,14 +137,15 @@ const tests=[
   fleeBattle();T.ok(/Show me how/.test(document.querySelector('#modal').innerText),'help button missing');doFlee();T.ok(p.tad.owe&&p.tad.owe.zid==='castle','left monster not remembered');
   p.tad.s=2;const c0=p.coins;Daily.take('coins');T.ok(p.tad.s===3&&p.tad.stars===1&&p.coins===c0+30,'reward not given');closeModal();}],
 
-['pets and camp: trick, packing, loot, tied sacks',async function(){
+['pets and camp: trick, no math to send or unpack, trail pack, loot',async function(){
   T.reset();const p=T.hero('Camp',3);state.cur=p.id;go('pethome');try{closeModal();}catch(e){}
   T.ok(document.getElementById('tadTrick'),'trick panel missing');const pd=petData(p,p.pet),x0=pd.xp;Daily.trick();const card=document.getElementById('dqCard');Daily._k('7');T.ok(document.getElementById('dqCard')===card&&document.querySelector('#dqOv .dq-in').textContent==='7','a number press redrew the whole question card');Daily._k('del');
   T.answerAsk();T.ok(pd.xp>x0&&p.tad.tr===1,'trick gave no pet growth');
-  p.adv.crew=[p.pets[1],p.pets[2]];p.adv.len='short';p.adv.trip=null;go('camp');Adv.send();T.answerAsk();T.answerAsk(false);
-  await T.until(()=>p.adv.trip,5000,'trip to start');T.ok(p.adv.trip.pack===1,'packing bonus wrong: '+p.adv.trip.pack);
+  p.adv.crew=[p.pets[1],p.pets[2]];p.adv.len='short';p.adv.trip=null;p.adv.packB=1;go('camp');Adv.send();
+  await T.until(()=>p.adv.trip,5000,'trip to start');T.ok(!document.getElementById('dqOv'),'sending pets to camp asked a math question');T.ok(p.adv.trip.pack===1&&!p.adv.packB,'the Trail pack did not add its extra find: '+p.adv.trip.pack);
   p.adv.trip.end=Date.now()-1000;const res=Adv._fin();T.ok(res&&res.sacks.length===2,'no sacks came home');
-  T.ok(res.sacks.every(s=>Array.isArray(s.items)),'sack without items');}],
+  T.ok(res.sacks.every(s=>Array.isArray(s.items)),'sack without items');
+  try{Adv.openAll();}catch(e){}await T.wait(50);T.ok(!document.getElementById('dqOv'),'opening the sacks asked a math question');try{closeModal();}catch(e){}}],
 
 ['village plaza: every building is on the plaza, reachable and not crowded',async function(){
   T.reset();const p=T.hero('Plaza',3);state.cur=p.id;window.MQ_TRUCK_BETA=true;window.MQ_DISTRICT_BETA=true;window.MQ_BP_BETA=true;p.sci=p.sci||{};p.sci.key=1;W=null;go('world');await T.wait(150);

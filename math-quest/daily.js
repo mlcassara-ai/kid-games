@@ -6,8 +6,8 @@
                              this week's worksheets that isn't passed yet (80%+ first try), newest first; once a day
              4 Pick your fun a small reward for camp, pets or the coin purse, plus the day's Adventure Star
            Optional: nothing is locked behind it.
-   PART B  Math as the fuel: a few questions inside the places kids already visit.
-             Pet Home  "Teach a trick" (3 a day)          Camp  packing questions before a trip, sacks tied shut
+   PART B  Math as the fuel: Pet Home "Teach a trick" (3 a day, optional). Camp asks no questions: sending pets off and
+             opening their sacks never needs math (owner's request, Oct 2026).
            A wrong answer never takes anything away; it shows how to solve it and gives fewer extras.
    PART C  Battle exit: "Show me how" before leaving; a monster the kid leaves is tomorrow's Focus battle.
    PART D  Parent Corner summary (window.MQ_PARENT).
@@ -17,7 +17,7 @@
    champPts, youngReader, say, voiceOn, speakable, speakToggle, OPNAME, curRound, nextBattleFor, state, Adv.          */
 (function(){
 'use strict';
-const FIX_N=3, TRICKS=3, SACK_Q=3, MIN_BATTLES=3, BASIC=['add','sub','mul','div'];
+const FIX_N=3, TRICKS=3, MIN_BATTLES=3, BASIC=['add','sub','mul','div'];
 const TRICK_NAMES=['Roll over','Shake','Spin','High five','Sit','Play dead','Jump','Fetch','Wave','Speak','Twirl','Bow'];
 const today=()=>dayKey();
 function tad(p){const t=p.tad=p.tad||{};const d=today();
@@ -181,31 +181,20 @@ function trick(){const p=P();const pet=petOf(p);if(!pet)return;const t=tad(p);if
  ask(funQ(p),{kind:'fun',step:`Trick ${(t.tr||0)+1} of ${TRICKS}`,emoji:pet.e,title:`Teach ${esc(pet.name)}: ${name}!`,sub:`${esc(pet.name)} learns when you answer.`,tries:2,right:`${esc(pet.name)} learned ${name}! 🎉`,wrong:`${esc(pet.name)} will try again later.`,
   onDone:ok=>{const p=P(),t=tad(p);t.tr=(t.tr||0)+1;if(ok){const pd=petMood(petData(p,pet.id));pd.joy=Math.min(MOOD_MAX,pd.joy+1);try{petGain(p,pet,4);}catch(e){}try{questEvent(p,'petcare',1);}catch(e){}}save();if(curScreen==='pethome')goStay('pethome');if(ok)toast(`${pet.e} ${pet.name} learned ${name}! +4 pet XP`);}});}
 
-/* ---------- PART B: camp packing and tied sacks ---------- */
-function wrapAdv(){const A=window.Adv;if(!A||A.__daily)return;A.__daily=1;
- const send0=A.send,open0=A.open,all0=A.openAll;
- A.send=function(force){try{const p=P();const a=p.adv||{};const crew=(a.crew||[]).filter(id=>p.pets.includes(id));
-  if(a.trip||!crew.length||!show(p)||(!force&&crew.includes(p.pet)))return send0(force);
-  const n=a.len==='short'?2:3,qs=Array.from({length:n},()=>funQ(p));
-  series(qs,(i,m)=>({kind:'fun',step:`Packing · ${i+1} of ${m}`,emoji:'🎒',title:'Pack the trail bag',sub:'Each right answer packs one more find for the trip home.',tries:1,right:'Packed! 🎒',wrong:'The crew will manage without that one.'}),
-   right=>{const a=P().adv;a.pack=right+(a.packB?1:0);a.packB=0;save();send0(true);if(a.pack)setTimeout(()=>toast(`🎒 Packed for ${a.trip&&a.trip.pack||right} extra find${(a.trip&&a.trip.pack||right)>1?'s':''}!`),600);});
- }catch(e){return send0(force);}};
- const res=()=>{try{return P().adv.res||null;}catch(e){return null;}};
- const need=r=>Math.min(SACK_Q,(r.sacks||[]).length);
- A.open=function(i){try{const r=res();if(!r||(r.op||[]).includes(i)||(r.tq||0)>=need(r)||!show(P()))return open0(i);
-  ask(funQ(P()),{kind:'fun',step:'Welcome home',emoji:'🎒',title:'This sack is tied shut!',sub:'Untie it with the right answer.',tries:2,right:'Untied! 🎉',wrong:'The knot came loose anyway.',onDone:()=>{const r2=res()||r;r2.tq=(r2.tq||0)+1;try{save();}catch(e){}open0(i);}});
- }catch(e){return open0(i);}};
- A.openAll=function(){try{const r=res();if(!r||(r.tq||0)>=need(r)||!show(P()))return all0();
-  ask(funQ(P()),{kind:'fun',step:'Welcome home',emoji:'🎒',title:'The sacks are tied shut!',sub:'One right answer unties them all.',tries:2,right:'Untied! 🎉',wrong:'The knots came loose anyway.',onDone:()=>{const r2=res()||r;r2.tq=need(r2);try{save();}catch(e){}all0();}});
- }catch(e){return all0();}};}
+/* ---------- PART B: camp ----------
+   Oct 2026: the owner asked that nobody has to answer math to send pets to camp or to open the sacks when they come home, so the
+   packing questions and the tied sacks were removed. What is left: the Trail pack reward from Today's Adventure still adds one
+   extra find to the next trip (adv.js reads a.pack when the trip starts). */
+function wrapAdv(){const A=window.Adv;if(!A||A.__daily)return;A.__daily=1;const send0=A.send;
+ A.send=function(force){try{const a=P().adv;if(a&&a.packB&&!a.trip){a.pack=(a.pack||0)+1;a.packB=0;save();}}catch(e){}return send0(force);};}
 
 /* ---------- PART D: Parent Corner ---------- */
 function parentSection(){try{if(typeof state==='undefined'||!state.players)return '';const kids=state.players.filter(p=>p.setup&&p.tad);if(!kids.length)return '';const wk=weekKey();
  const rows=kids.map(p=>{const t=p.tad,w=t.w&&t.w.k===wk?t.w:{adv:0,fix:0,fun:0,funR:0};const days=(p.days||[]).filter(d=>d>=wk).length;
   const op=t.cur&&t.cur.op,s=op&&p.stats[op];const acc=s&&s.r+s.w?Math.round(100*s.r/(s.r+s.w)):null;
   return `<tr><td><b>${esc(p.name)}</b></td><td>${w.adv} of ${days} day${days===1?'':'s'}</td><td>${w.fix}</td><td>${op?`${esc((typeof OPNAME!=='undefined'&&OPNAME[op])||op)}${acc!=null?` (${acc}%)`:''}`:'—'}</td><td>${w.fun?`${w.funR} of ${w.fun} right`:'0'}</td></tr>`;}).join('');
- return `<div class="pp"><h3>🧭 Today's Adventure (this week)</h3><p class="muted">A short guided start: three missed problems to fix, one battle in the weakest skill, then a small reward. Pet tricks, camp packing and tied sacks each ask a question too.</p>
- <div style="overflow-x:auto"><table class="ptable" style="width:100%;text-align:left"><tr><th>Hero</th><th>Adventures finished</th><th>Missed problems fixed</th><th>Focus skill</th><th>Questions at pets and camp</th></tr>${rows}</table></div></div>`;}catch(e){return '';}}
+ return `<div class="pp"><h3>🧭 Today's Adventure (this week)</h3><p class="muted">A short guided start: three missed problems to fix, one battle in the weakest skill, then a small reward. Pet tricks ask a question too (optional).</p>
+ <div style="overflow-x:auto"><table class="ptable" style="width:100%;text-align:left"><tr><th>Hero</th><th>Adventures finished</th><th>Missed problems fixed</th><th>Focus skill</th><th>Pet trick questions</th></tr>${rows}</table></div></div>`;}catch(e){return '';}}
 
 /* ---------- wiring ---------- */
 window.MQ_HOOKS=window.MQ_HOOKS||[];
