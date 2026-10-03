@@ -167,6 +167,30 @@ const BOT = n => {
   ok(r3.mount, "a catch can be mounted on the Lodge wall");
   ok(r3.lodge, "the Lodge shows the wall and the family records");
   ok(r3.prize, "last week's Derby winner is paid once");
+  console.log("Depth bands, reports, update notice");
+  const r4 = await a.evaluate(() => {
+    const out = {};
+    // a catfish can't be teased up out of the deep (Mika's trick)
+    S.clock = 12; startTrip(lakeById("dixon"), 0, "boat", true);
+    const f = makeFish("channel", 50 * PPF); f.variant = null; f.sp = SPECIES.channel; f.x = 240; f.baseY = f.y = 50 * PPF; trip.fish = [f];
+    trip.bait = "worm"; trip.phase = "reel"; trip.hook.x = 250; trip.hook.y = 50 * PPF; let topY = f.baseY;
+    for (let i = 0; i < 1500; i++){ const hy = Math.max(2 * PPF, 50 * PPF - i * .8); trip.hook.y = hy; trip.pending = 0; btnHeld = false; trip.nibble = null; f.nibbling = false; f.sniffT = 0; f.fleeT = 0;
+      updateFishing(1/30); if (!trip) break; trip.hook.y = hy; trip.phase = "reel"; trip.caught = []; topY = Math.min(topY, f.baseY); }
+    out.band = topY > 30 * PPF && topY < 49 * PPF; out.topFt = Math.round(topY / PPF);
+    trip = null; visit = null; showScreen("title");
+    // a report is saved with the screen and version
+    LL.report(); document.getElementById("llRep").value = "The boat is upside down"; document.getElementById("llRepOk").click();
+    const rp = (LL.player().reports || [])[0]; out.report = !!rp && rp.m.includes("upside") && !!rp.v; document.getElementById("llRepDone").click();
+    out.bug = getComputedStyle($("btnBug")).display !== "none";
+    return out;
+  });
+  ok(r4.band, "a catfish won't follow the bait up out of its depth (stopped at " + r4.topFt + " ft)");
+  ok(r4.report, "a report or suggestion is saved with the screen and version");
+  ok(r4.bug, "the 🐞 Report button is on the menus");
+  await a.evaluate(() => { localStorage.removeItem("llUpdTry"); });
+  await a.route(/version\.json/, r => r.fulfill({ status:200, contentType:"application/json", body:'{"v":"2099.01.01a"}' }));
+  ok(await a.evaluate(async () => { await LL_UPDATE.check(); return true; }), "update check runs");
+  await a.unroute(/version\.json/);
   for (const [w, h] of [[1024, 768], [390, 844], [1440, 900]]){
     await a.setViewportSize({ width: w, height: h }); await a.waitForTimeout(100);
     const fit = await a.evaluate(() => { const r = $("wrap").getBoundingClientRect(); return { w: r.width / innerWidth, h: r.height / innerHeight }; });

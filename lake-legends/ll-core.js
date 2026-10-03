@@ -122,8 +122,11 @@ const CSS=`
 .ll-kid .ll-row{gap:6px}.ll-kid .ll-btn{font-size:.85rem;min-height:38px;padding:7px 11px;box-shadow:0 3px 0 #b9c9d8}
 .ll-small{font-size:.9rem;color:#5b6b76}
 .ll-cloud{font-size:.95rem;color:#e8f4fa;text-align:center;margin-top:12px}.ll-card .ll-cloud{color:#5b6b76;text-align:left}
+.ll-kind{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 10px;font-weight:700}.ll-kind label{display:flex;gap:6px;align-items:center;cursor:pointer}.ll-kind input{width:20px;height:20px}
+#llRep{width:100%;box-sizing:border-box;font:inherit;font-size:1.05rem;border:2px solid #d9e2ec;border-radius:14px;padding:10px;resize:vertical}
 .ll-code{font-weight:800;font-size:1.2rem;letter-spacing:.05rem;background:#e6f3fa;border-radius:12px;padding:8px 12px;text-align:center;margin:8px 0;word-break:break-all}
-@media (prefers-reduced-motion:reduce){.ll-shake{animation:none}}`;
+@keyframes llPulse{50%{box-shadow:0 6px 18px rgba(0,0,0,.3),0 0 0 6px rgba(245,184,46,.35)}}
+@media (prefers-reduced-motion:reduce){.ll-shake,#llUpd{animation:none!important}}`;
 function ensureCss(){ if(document.getElementById("llCss")) return; const s=document.createElement("style"); s.id="llCss"; s.textContent=CSS; document.head.appendChild(s); }
 function overlay(html){ ensureCss(); let o=document.getElementById("llOv"); if(!o){ o=document.createElement("div"); o.id="llOv"; document.body.appendChild(o); }
   o.innerHTML=`<div class="in">${html}</div>`; o.scrollTop=0; badge(); return o; }
@@ -231,6 +234,7 @@ function kidSummary(p){
   const errs=(p.errs||[]).slice().reverse();
   return `<div class="ll-kid"><h3>${esc(p.name)} <span class="ll-small">last fished ${agoText(Object.keys(p.days||{}).length?p.last:0)}</span></h3>
     <div class="ll-small">${extra||"Hasn't fished yet."}</div>
+    ${(p.reports||[]).length?`<details class="ll-small" style="margin-top:6px" open><summary>🐞 Reports and suggestions (${p.reports.length})</summary>${p.reports.slice().reverse().map(r=>`<div style="margin:5px 0;padding:6px 8px;background:#f1ece0;border-radius:10px"><div>${r.k==="idea"?"💡 Suggestion":"🐞 Problem"} · ${agoText(r.t)} · ${esc(r.s||"")} · ${esc(r.v||"")}</div><div style="color:#0f2a3d">${esc(r.m)}</div></div>`).join("")}</details>`:""}
     ${errs.length?`<details class="ll-small" style="margin-top:6px"><summary>Problems the game noticed (${errs.length})</summary>${errs.map(r=>`<div style="color:#b23a56;margin:3px 0">${agoText(r.t)} · ${esc(r.m)} · ${esc(r.at)} (${esc(r.v)})</div>`).join("")}</details>`:""}
     <div class="ll-row" style="justify-content:flex-start;margin-top:8px"><button class="ll-btn gh" data-lock="${p.id}">🔒 Secret pictures</button><button class="ll-btn gh" data-reset="${p.id}">Start ${esc(p.name)} over</button><button class="ll-btn gh" data-del="${p.id}">Remove player</button></div></div>`;
 }
@@ -268,10 +272,32 @@ function parentCorner(){ onProfiles=false;
       cloud.code=v; try{ localStorage.setItem(FAM_KEY,v); }catch(e){} merge(r,null); await syncNow(); parentCorner(); } catch(e){ alert("Couldn't reach the internet. Try again in a moment."); jb.textContent="Join"; } };
 }
 
+/* ---------------- 🐞 report a problem or make a suggestion (saved in the player's own save) ---------------- */
+function reportForm(){ const p=cur(); if(!p) return;
+  const scr=typeof window.LL_SCREEN==="function"?String(window.LL_SCREEN()||""):"";
+  overlay(`<div class="ll-card" style="max-width:520px;margin:20px auto">
+    <h2 style="margin-top:0">🐞 Tell us what you found</h2>
+    <p class="ll-small" style="margin:0 0 10px">Everything you send helps make Lake Legends better.</p>
+    <div class="ll-kind"><label><input type="radio" name="llk" value="problem" checked> 🐞 Something is wrong</label><label><input type="radio" name="llk" value="idea"> 💡 A suggestion</label></div>
+    <textarea id="llRep" maxlength="600" rows="5" placeholder="What happened, or what would make it better?"></textarea>
+    <div class="ll-small" style="margin-top:4px">We also save which screen you were on${scr?" ("+esc(scr)+")":""} and the game version.</div>
+    <div id="llRepErr" style="color:#c2476a;font-weight:700;min-height:1.2rem;margin-top:4px"></div>
+    <div class="ll-row"><button class="ll-btn gh" id="llRepNo">Cancel</button><button class="ll-btn g" id="llRepOk">Send ✓</button></div></div>`);
+  const box=document.getElementById("llRep"); setTimeout(()=>box.focus(),50);
+  document.getElementById("llRepNo").onclick=()=>closeOverlay();
+  document.getElementById("llRepOk").onclick=()=>{ const m=box.value.trim(); if(m.length<3){ document.getElementById("llRepErr").textContent="Please write a few words first."; box.focus(); return; }
+    const k=(document.querySelector('input[name="llk"]:checked')||{}).value||"problem";
+    const q=cur(); if(!q) return; const r=q.reports=q.reports||[]; r.push({t:Date.now(),k,m:m.slice(0,600),s:scr,v:window.LL_VER||"dev"}); if(r.length>30) r.splice(0,r.length-30);
+    stampChanges(false); saveLocal(); syncNow();
+    overlay(`<div class="ll-card" style="max-width:420px;margin:30px auto;text-align:center"><div style="font-size:3rem">🙏</div><h2>Thank you!</h2><p>We saved your ${k==="idea"?"suggestion":"report"}.</p>
+      <div class="ll-row"><button class="ll-btn g" id="llRepDone">Back to the game</button></div></div>`);
+    document.getElementById("llRepDone").onclick=()=>closeOverlay(); };
+}
+
 /* ---------------- public API ---------------- */
 function cur(){ return state.players.find(p=>p.id===state.cur)||null; }
 window.LL={
-  player:cur, players:()=>state.players.slice(), profiles, parentCorner:()=>askPin(parentCorner), save, syncNow, esc, angler,
+  player:cur, players:()=>state.players.slice(), profiles, report:reportForm, parentCorner:()=>askPin(parentCorner), save, syncNow, esc, angler,
   sessionPlayer(){ let id=null; try{ id=sessionStorage.getItem("ll.active"); }catch(e){} const p=cur(); return p&&p.id===id?p:null; },
   leave(){ state.cur=null; try{ sessionStorage.removeItem("ll.active"); }catch(e){} saveLocal(); },
   onChange:f=>listeners.push(f), cloudText, COLORS
@@ -301,8 +327,9 @@ if(cloud.code) syncNow();
     try{ if(pending) localStorage.setItem("llUpdTry",JSON.stringify({v:pending,t:Date.now()})); sessionStorage.setItem("ll.updated","1"); }catch(e){}
     const q=new URLSearchParams(location.search); q.set("r",Date.now()); location.replace(location.pathname+"?"+q.toString()+location.hash); }
   function banner(){ if(document.getElementById("llUpd")) return; const b=document.createElement("button"); b.id="llUpd"; b.type="button";
-    b.style.cssText="position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);z-index:90;border:0;border-radius:999px;padding:10px 18px;font:800 1rem 'Trebuchet MS',system-ui,sans-serif;background:#f5b82e;color:#3a2600;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer";
-    b.innerHTML="✨ New stuff in Lake Legends! <u>Tap to update</u>"; b.onclick=()=>reload(); document.body.appendChild(b); }
+    const box=document.getElementById("wrap");   // inside the game, just above the big reel button
+    b.style.cssText=(box?"position:absolute;bottom:7.6em;font-size:1em;":"position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);font-size:16px;")+"left:50%;transform:translateX(-50%);z-index:90;border:0;border-radius:999px;padding:.6em 1.1em;font-family:'Trebuchet MS',system-ui,sans-serif;font-weight:800;white-space:nowrap;background:#f5b82e;color:#3a2600;box-shadow:0 6px 18px rgba(0,0,0,.3);cursor:pointer;animation:llPulse 1.6s ease-in-out infinite";
+    ensureCss(); b.innerHTML="✨ New stuff in Lake Legends! <u>Tap to update</u>"; b.onclick=()=>reload(); (box||document.body).appendChild(b); }
   function toast(t){ const d=document.createElement("div"); d.textContent=t; d.style.cssText="position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 70px);z-index:90;background:#fff;color:#0f2a3d;border-radius:999px;padding:8px 16px;font:800 1rem 'Trebuchet MS',system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.2)"; document.body.appendChild(d); setTimeout(()=>d.remove(),2600); }
   (async()=>{ try{ if(sessionStorage.getItem("ll.updated")){ sessionStorage.removeItem("ll.updated"); const q=new URLSearchParams(location.search); if(q.has("r")){ q.delete("r"); history.replaceState(null,"",location.pathname+(q.toString()?"?"+q:"")+location.hash); } setTimeout(()=>toast("✨ Lake Legends is up to date!"),600); return; } }catch(e){}
     if(await check()) reload(); })();
@@ -310,6 +337,6 @@ if(cloud.code) syncNow();
   document.addEventListener("visibilitychange",async()=>{ if(document.hidden){ try{ localStorage.setItem("llHiddenAt",String(Date.now())); }catch(e){} return; }
     let hid=0; try{ hid=+localStorage.getItem("llHiddenAt")||0; }catch(e){} const away=Date.now()-hid;
     if(await check()){ (away>=AWAY_QUIET&&safeNow())?reload():banner(); } });
-  window.LL_UPDATE={check,reload,version:VER};
+  window.LL_UPDATE={check,reload,banner,version:VER};
 })();
 })();

@@ -106,6 +106,9 @@ Fishing game for ages 8–12 on six real San Diego County lakes; just for fun (n
 - The play area takes the screen's shape (`layout()`: `W` 480–1280, `H` 720 or taller on phones). `W`/`H` are variables; `SW` is the narrowest width. Anything cached by width (shore art) is keyed by `W`.
 - A new save field goes in `defaultSave()`; `normalizeSave()` fills it into old saves. Never lower anything already earned.
 - Function names must be unique in the file (a duplicate silently replaces the earlier one), and one syntax error stops the whole game.
+- Fish follow the bait only inside `fishBand()` (their species depth band, and at most about 8 ft above where they were swimming; an occasional bold bass or trout 18 ft). Keep it that way so fish can't be teased to the surface.
+- 🐞 Report (`LL.report()`) saves `reports` (last 30) in the player record with the screen and version; the Parent Corner shows them. To read a family's save from the terminal: `/usr/bin/python3 lake-legends/tools/peek.py FAMILY-CODE` (read-only; never store the code in a file).
+- When a new version is published, a "Tap to update" notice appears just above the reel button; tapping it saves, reloads and lands on the title screen.
 
 ### Release checklist
 
