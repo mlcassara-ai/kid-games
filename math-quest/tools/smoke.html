@@ -205,12 +205,14 @@ const tests=[
   BattlePets._pick('forest',1);T.ok(document.querySelectorAll('.bp2-slot').length===Math.min(5,3+Math.floor((P().level||1)/10))&&document.querySelectorAll('.bp2-slot.full').length>=1,'team picker did not fill the team');
   const D=BattlePets._dbg;BattlePets._start();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpQ').textContent.length>0,'the battle did not start');
   T.ok(G.team.every(s=>P().pets.includes(s.pet.id)),'the team is not the hero\'s own pets');
+  Music.update();T.ok(Music._state().want==='petBattle','the Pet Battle music is not chosen in a fight');{const r=await fetch('audio/pet-battle-studio.mp3',{method:'HEAD'});T.ok(r.ok,'audio/pet-battle-studio.mp3 is missing');}
   const t0=G.treats;String(G.q.answer).split('').forEach(k=>BattlePets._key(k));BattlePets._key('go');T.ok(G.treats>=t0+4&&G.right===1&&G.charge>0,'a right answer gave no treats or charge');
   BattlePets._key('9');BattlePets._key('9');BattlePets._key('9');BattlePets._key('9');BattlePets._key('9');BattlePets._key('go');T.ok(G.asked===2&&G.treats>=t0+4,'a wrong answer took treats away');
   G.treats=50;const sent0=G.sent;BattlePets._send(0);T.ok(G.sent===sent0+1&&G.pets.length===1,'a pet could not be sent');
   const kl=G.kl;BattlePets._kit();T.ok(G.kl===kl+1,'the Treat Kitchen did not upgrade');
   G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1,'Pet Pounce did not fire');
   for(let i=0;i<40;i++)D.step(.05);G.denHP=1;G.pets.forEach(u=>u.x=8);D.step(.1);T.ok(G.boss,'the boss did not come out');G.denHP=0;D.step(.05);T.ok(G.over&&G.win,'the den fell but the battle did not end');
+  Music.update();T.ok(Music._state().want===null,'battle music still playing after the battle ended');
   const pet0=G.team[0].pet.id,xp0=petData(P(),pet0).xp;D.finish();await T.wait(50);
   T.ok(P().bp2.c.forest===1&&petData(P(),pet0).xp>xp0&&P().bp.m.length===1&&P().bp.m[0][2]===1,'the win was not saved, or gave no pet XP');
   T.ok(JSON.stringify(P().bp2).length<200&&JSON.stringify(P().bp).length<400,'Battle Pets data is too big');BattlePets._back();
