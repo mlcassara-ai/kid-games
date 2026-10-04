@@ -381,6 +381,98 @@ const BOT = n => {
   ok(r7.lakeBaits, "ocean bait doesn't show at the lakes");
   ok(r7.dex, "the Fishdex has an ocean section");
 
+  console.log("Showdowns, events, gear, cabin and rewards");
+  const r9 = await a.evaluate(async () => {
+    const out = {}, bak = JSON.stringify(S), D = lakeById("dixon");
+    const reset = () => { trip = null; visit = null; $("modal").classList.remove("show"); modalQueue = []; };
+    // --- the Dock Showdown
+    S.coins = 100; S.sd = { wins:{}, played:0, cups:[] }; reset();
+    showdownOffer(lakeById("jennings")); out.locked = $("modalBox").textContent.includes("Local Derby first"); reset();
+    startShowdown(D); const sd = visit.sd;
+    out.started = !!sd && S.coins === 75 && sd.rivals.length === 2 && trip.mode === "dock" && sd.rivals.every(r => r.def.name);
+    for (let i = 0; i < 30 * 70; i++){ if (trip.phase !== "ready"){ trip.phase = "ready"; } updateFishing(1/30); }
+    out.rivalsFish = sd.rivals.some(r => r.fish.length > 0) && sd.left < SD_SECS - 60;
+    sd.mine.push({ id:"largemouth", lb: 99 }); sd.left = .01; updateFishing(1/30);
+    out.finished = !visit.sd && $("modalBox").textContent.includes("YOU WON") && S.sd.wins.local === 1 && S.sd.cups.length === 1 && S.coins === 75 + 75;
+    out.county = sdOpen(SD_TIERS[1]) && $("modalBox").textContent.includes("County Cup");
+    reset();
+    out.scores = sdScore("bag", [{id:"a",lb:1},{id:"b",lb:2},{id:"c",lb:3},{id:"d",lb:.5}]) === 6 && Math.floor(sdScore("kinds", [{id:"a",lb:1},{id:"a",lb:2},{id:"c",lb:3}])) === 2 && sdScore("big", [{id:"a",lb:1},{id:"b",lb:4}]) === 4 && sdScore("count", [{},{},{}]) === 3;
+    const other = LL.players().find(p => p.id !== LL.player().id);
+    if (other){ other.game = other.game || {}; const od = other.game.dex; other.game.dex = Object.assign({}, od, { bluegill:{ n:1, best:9 }, largemouth:{ n:1, best:20 } }); out.sib = (siblingRival(D) || {}).name === other.name; other.game.dex = od; }
+    // --- events
+    startVisit(D, "dock"); visit.ev = { clock: 0, next: 0, on: false, warn: 0, left: 0 };
+    const f0 = makeFish("bluegill", 60); trip.bait = "worm"; const c0 = interest(trip, f0);
+    for (let i = 0; i < 30 * 5; i++){ trip.phase = "ready"; updateFishing(1/30); }
+    out.frenzy = frenzyOn() && interest(trip, f0) > c0;
+    visit.ev.left = .01; trip.phase = "ready"; updateFishing(1/30); out.frenzyEnds = !frenzyOn();
+    const tg = tagInfo(); out.tagInfo = !!tg && !!SPECIES[tg.id] && S.lakes.includes(tg.lake.id);
+    reset(); startVisit(tg.lake, "dock"); const tf = makeFish(tg.id, 4 * PPF); tf.tagged = true; tf.variant = null; tf.sp = SPECIES[tg.id];
+    trip.fish.push(tf); trip.phase = "reel"; trip.hook.y = 4 * PPF; hookFish(tf); trip.fight = null; trip.phase = "reel"; if (!trip.caught.length) landFish(tf);
+    for (let i = 0; i < 600 && trip; i++){ crank(); updateFishing(1/30); }
+    out.tagged = !!(pending && pending.items.some(it => it.f.tagged && it.coins >= TAG_PRIZE)) && S.tag && S.tag.w === tg.w && tagInfo().caught;
+    pending = null; reset();
+    startVisit(D, "dock"); trip.phase = "ready"; visit.mode = "boat"; visit.weather = { target: 1, level: 1, next: Date.now() + 1e6, storm: { left: .05, flash: 0 } };
+    out.stormBite = stormOn(); updateWeather(.1); out.storm = visit.mode === "dock" && !stormOn();
+    out.moon = typeof fullMoon() === "boolean" && moonPhase() >= 0 && moonPhase() < 1;
+    reset();
+    // --- gear
+    S.coins = 5000; showScreen("shop"); const buy = name => { const row = [...document.querySelectorAll("#shopList .shopitem")].find(d => d.textContent.includes(name)); if (row) row.querySelector("button").click(); };
+    buy("Rod Holder"); buy("Landing Net"); buy("Live Well"); buy("Heavy Rod");
+    out.bought = S.holder && S.net && S.livewell && S.heavyRod && S.coins === 5000 - 400 - 250 - 300 - 600;
+    startVisit(D, "dock"); const l0 = S.landed || 0; visit.holder = { clock: 999, next: 1, bite: 0 }; trip.phase = "ready"; updateFishing(1/30);
+    syncReelBtn(); out.bell = visit.holder.bite > 0 && getComputedStyle($("bellBtn")).display !== "none";
+    $("bellBtn").click(); out.holder = (S.landed || 0) === l0 + 1 && visit.holder.bite === 0;
+    const nf = makeFish("channel", 3 * PPF); trip.fish.push(nf); trip.phase = "reel"; trip.hook.y = 3 * PPF; hookFish(nf);
+    trip.phase = "fight"; trip.fight = trip.fight || { f: nf, tension: 100, prog: 10, stage: 1, stages: 2, surge: 0, nextRun: 9, shake: 0 }; trip.fight.tension = 100; trip.hook.y = 3 * PPF; btnHeld = true; updateFight(1/30); btnHeld = false;
+    out.net = !!trip.fight && trip.fight.tension < 100;
+    reset();
+    // --- the cabin
+    S.coins = 5000; showScreen("lodge"); const cbtn = [...document.querySelectorAll("#lodgeBody button")].find(b => b.textContent === D.name); if (cbtn) cbtn.click();
+    out.cabin = S.cabin && S.cabin.lake === "dixon" && S.coins === 5000 - CABIN_COST;
+    const ubtn = name => { const row = [...document.querySelectorAll("#lodgeBody .row")].find(r => r.textContent.includes(name)); if (row) row.querySelector("button").click(); };
+    ubtn("Long dock"); ubtn("Bait fridge"); ubtn("Dock lights");
+    const w0 = S.baitCount.worm || 0; startVisit(D, "dock");
+    out.longDock = S.cabin.up.longdock && trip.bottom > 24 * PPF && (S.baitCount.worm || 0) >= w0 + 9;
+    await new Promise(r => setTimeout(r, 250));                                  // a few frames with the cabin drawn
+    reset();
+    // --- rewards
+    S.tmap = { pieces: 0 }; for (let i = 0; i < 200 && S.tmap.pieces < 4; i++) chestExtra();
+    out.map = S.tmap.pieces === 4 && !!lakeById(S.tmap.lake);
+    S.boatOwn = Math.max(1, S.boatOwn); S.lakes.includes(S.tmap.lake) || S.lakes.push(S.tmap.lake); startVisit(lakeById(S.tmap.lake), "boat");
+    out.goldSpot = trip.snags.some(sg => sg.gold);
+    const c1 = S.coins; openGoldChest(); out.gold = S.tmap.done && S.coins === c1 + 500 && S.vl.includes(29); reset();
+    out.lures = VLURES.length === 30 && S.vl.length >= 1;
+    S.bosses = Object.assign({}, S.bosses, { dixon: true }); showScreen("lodge");
+    const patch = [...document.querySelectorAll("#lodgeBody .patches button")].find(b => b.textContent.includes("Boss Beater")); if (patch) patch.click();
+    out.title = titleOf() === "Boss Beater"; showTitle(); out.titleShown = $("whoName").textContent.includes("Boss Beater");
+    showScreen("lodge"); out.cardsN = [Object.keys(S.cards).length, document.querySelectorAll("#lodgeBody .dexgrid canvas").length];
+    out.cards = out.cardsN[0] >= 1 && out.cardsN[1] >= VLURES.length + LAKES.length;
+    S.sd.wins = { local: 2, county: 1 }; S.sponsor = false; const sp = sponsorCheck(); S.sponsorDay = "x"; const c2 = S.coins; startVisit(D, "dock");
+    out.sponsor = !!sp && S.sponsor && S.coins === c2 + SPONSOR_PAY;
+    reset(); Object.keys(S).forEach(k => delete S[k]); Object.assign(S, JSON.parse(bak)); showScreen("title");
+    return out;
+  });
+  ok(r9.locked, "the County Cup is locked until you win a Local Derby");
+  ok(r9.started, "a Showdown takes the entry fee and puts you on the dock with 2 rivals");
+  ok(r9.rivalsFish, "the rivals catch fish while the clock runs");
+  ok(r9.finished, "when time's up the standings show, the winner gets 3x the entry and a cup");
+  ok(r9.county, "winning a Local Derby opens the County Cup");
+  ok(r9.scores, "each contest is scored its own way (bag, kinds, biggest, most)");
+  ok(r9.sib !== false, "a brother or sister can be your rival with their real best fish");
+  ok(r9.frenzy && r9.frenzyEnds, "a feeding frenzy starts, makes fish hungrier, and ends");
+  ok(r9.tagInfo && r9.tagged, "the tagged fish of the week pays " + 150 + " coins once");
+  ok(r9.stormBite && r9.storm, "a storm sends boats back to the dock when lightning hits");
+  ok(r9.moon, "the full moon follows the real moon");
+  ok(r9.bought, "the rod holder, net, live well and heavy rod are in the Tackle Shop");
+  ok(r9.bell && r9.holder, "the rod holder's bell rings and tapping it lands a fish");
+  ok(r9.net, "the landing net stops a snap near the top");
+  ok(r9.cabin && r9.longDock, "a lake cabin can be bought and upgraded (long dock, bait fridge)");
+  ok(r9.map && r9.goldSpot && r9.gold, "4 map pieces lead to a golden chest worth 500 coins and the Golden Spoon");
+  ok(r9.lures, "vintage lures are collected");
+  ok(r9.title && r9.titleShown, "vest patches give titles that show by your name");
+  ok(r9.cards, "postcards and the lure collection show in the Lodge (" + r9.cardsN + ")");
+  ok(r9.sponsor, "3 Showdown wins bring a sponsor who pays every day");
+
   console.log("Prizes");
   // device a (Ben signed in): a parent sets a prize for Ana; device b (Ana signed in) must get it, and earn it
   await a.evaluate(() => { trip = null; visit = null; showScreen("title"); LL.parentCorner(); });

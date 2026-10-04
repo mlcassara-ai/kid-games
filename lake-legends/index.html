@@ -130,6 +130,8 @@
   .sidebtn span { font-size:1.6em; line-height:1.1; }
   .sidebtn small { font-size:.68em; font-weight:bold; }
   #baitBtn { left:.8em; } #optBtn { right:.8em; } #trollBtn { right:.8em; bottom:6.4em; }
+  #bellBtn { left:.8em; bottom:6.4em; background:#ffe38a; animation: ring .35s infinite alternate; }
+  @keyframes ring { from { transform: rotate(-8deg) scale(1); } to { transform: rotate(8deg) scale(1.08); } }
   .tagline { color:#fff; font-weight:bold; font-size:1.2em; text-shadow:0 1px 3px #0b3a57; margin:.8em 0 1.4em; }
   #baitBar .lbl { width:100%; text-align:center; color:#fff; font-weight:bold; text-shadow:0 1px 3px #000; font-size:.95em; }
   .chip { font:inherit; font-size:.85em; font-weight:bold; border:none; border-radius:2em; padding:.4em .75em; background:rgba(255,250,240,.92); color:var(--ink); cursor:pointer; touch-action:manipulation; }
@@ -224,6 +226,7 @@
   <div id="optSheet"></div>
   <button class="sidebtn" id="baitBtn" aria-label="Bait"><span id="baitIcon">🥄</span><small id="baitLbl">Bait</small></button>
   <button class="sidebtn" id="optBtn" aria-label="More options"><span>☰</span><small>More</small></button>
+  <button class="sidebtn" id="bellBtn" aria-label="Rod holder bell"><span>🔔</span><small>Bell!</small></button>
   <button class="sidebtn" id="trollBtn" aria-label="Troll"><span id="trollIcon">🚤</span><small id="trollLbl">Troll</small></button>
   <!-- Reel control: the whole bottom strip -->
   <button id="reelBtn" aria-label="Reel"><span id="reelLabel">TAP TO CAST</span></button>
@@ -304,8 +307,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.03n";</script>
-<script src="ll-core.js?v=2026.10.03n"></script>
+<script>window.LL_VER="2026.10.04a";</script>
+<script src="ll-core.js?v=2026.10.04a"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -571,6 +574,47 @@ function rulesHtml(L){
     <div class="muted">${L.ocean ? "Based on California ocean rules, made simpler. You don't need a fishing license on a public pier, but you do on a boat. Always check the posted rules!" : "Based on California fishing rules. Always check the sign at the real lake!"}</div>`;
 }
 
+const HEAVY_SHAPES = ["cat", "sturgeon", "carp", "shark", "ray", "guitar", "flat"];
+// ---- extra gear: the rod holder with its bell, and the pontoon boat ----
+function holderUpdate(T, dt){
+  const Hd = visit.holder || (visit.holder = { clock: 0, next: rand(35, 80), bite: 0 });
+  Hd.clock += dt * (T.mode === "boat" && S.boatOwn >= 3 ? 2 : 1);
+  if (Hd.bite > 0){ Hd.bite -= dt; if (Hd.bite <= 0){ Hd.bite = 0; Hd.clock = 0; Hd.next = rand(35, 80); toast("🔔 Too slow! Something stole the bait off your holder rod.", 2200); } }
+  else if (Hd.clock > Hd.next){ Hd.bite = 4; SFX.bell(); }
+}
+function holderLand(T){
+  const Hd = visit.holder; Hd.bite = 0; Hd.clock = 0; Hd.next = rand(35, 80);
+  const f = spawnFishFor(T.lake, rand(70, T.bottom * .7), null, smallFor(T.lake, T.mode === "dock"));
+  if (f.tagged) f.tagged = false;
+  const sp = f.sp, prev = S.dex[f.id], isNew = !prev, coins = Math.max(1, Math.round(sp.val * .6 * (.6 + f.frac * .9)));
+  S.dex[f.id] = Object.assign({}, prev, { n: (prev ? prev.n : 0) + 1, best: Math.max(prev ? prev.best : 0, f.inches) });
+  S.lakeDex = S.lakeDex || {}; (S.lakeDex[T.lake.id] = S.lakeDex[T.lake.id] || {})[f.id] = 1;
+  S.landed = (S.landed || 0) + 1; S.coins += coins; save(); showCoins(); SFX.land();
+  splashAt(T, holderPos(T).wx, 0, 10);
+  pop(holderPos(T).x, -70, "🔔 " + sp.name + " " + f.inches.toFixed(1) + " in! +" + coins + " 🪙", "#ffe9a8", 16);
+  if (isNew) setTimeout(() => toast("📖 NEW FISH for your Fishdex: " + sp.name + "!", 2600), 600);
+}
+function holderPos(T){ return T.mode === "dock" ? (T.lake.ocean ? { x: 70, y: -64, wx: 40 } : { x: 70, y: -22, wx: 96 }) : { x: W / 2 + 62, y: -20, wx: W / 2 + 120 }; }
+function drawHolder(T, sy, surf){
+  const p = holderPos(T), Hd = visit.holder, biting = Hd && Hd.bite > 0, sh = biting ? Math.sin(T.t * 40) * 3 : 0;
+  const bx = p.x, by = sy(p.y), tx = bx + 34 + sh, ty = by - 40 + (biting ? 6 + Math.sin(T.t * 22) * 4 : 0);
+  ctx.fillStyle = "#6b6f73"; ctx.fillRect(bx - 2, by - 4, 4, 10);                                          // the holder
+  ctx.strokeStyle = "#2b2b2b"; ctx.lineWidth = 2.2; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(bx - 4, by + 4); ctx.quadraticCurveTo(bx + 16, by - 26, tx, ty); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.quadraticCurveTo(p.wx, ty + 10, p.wx, surf + 2); ctx.lineTo(p.wx, surf + (biting ? 60 : 40)); ctx.stroke();
+  ctx.fillStyle = "#e5b53a"; ctx.beginPath(); ctx.arc(tx, ty + 4, 3, 0, Math.PI); ctx.lineTo(tx - 3, ty + 1); ctx.fill();      // the little bell
+  if (biting){ ctx.fillStyle = "#ffe38a"; ctx.font = "bold 13px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; ctx.fillText("🔔 DING DING!", tx, ty - 10); }
+}
+function drawPontoon(bx, by, pc){
+  const canopy = pc || "#2f7fb5";
+  ctx.fillStyle = "rgba(20,30,40,.25)"; ctx.beginPath(); ctx.ellipse(bx - 6, by + 10, 72, 4, 0, 0, 7); ctx.fill();
+  const tg = ctx.createLinearGradient(0, by - 4, 0, by + 8); tg.addColorStop(0, "#e8ecef"); tg.addColorStop(1, "#8d979e");
+  ctx.fillStyle = tg; ctx.beginPath(); ctx.ellipse(bx - 6, by + 2, 70, 6, 0, 0, 7); ctx.fill();                  // the pontoon tubes
+  ctx.fillStyle = "#c9b48a"; ctx.fillRect(bx - 70, by - 8, 128, 6);                                            // deck
+  ctx.fillStyle = "#f2f4f6"; ctx.fillRect(bx - 70, by - 20, 128, 12); ctx.fillStyle = canopy; ctx.fillRect(bx - 70, by - 12, 128, 3);   // fence panels
+  ctx.strokeStyle = "#b8c0c6"; ctx.lineWidth = 1.5; for (const px of [bx - 64, bx + 52]){ ctx.beginPath(); ctx.moveTo(px, by - 20); ctx.lineTo(px, by - 50); ctx.stroke(); }
+  ctx.fillStyle = canopy; ctx.beginPath(); ctx.moveTo(bx - 70, by - 50); ctx.lineTo(bx + 58, by - 50); ctx.lineTo(bx + 52, by - 56); ctx.lineTo(bx - 64, by - 56); ctx.fill();   // sun roof
+  ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.fillRect(bx - 66, by - 55, 120, 2);
+}
 // ---- Boss fish (one per lake) ----
 const BOSSES = {
   dixon:    { name:"Dottie", fee:25, base:"largemouth", dex:"dottie", inches:28.5, lb:21.7, need:60, str:2.0, stages:3, reward:{bait:"swim"},
@@ -621,7 +665,7 @@ function clockText(){ const h = Math.floor(clockH()), m = Math.floor((clockH() %
 function updateClock(dt){
   if (!visit || (trip && trip.boss)) return;
   const was = dayPart(); S.clock = (clockH() + dt / (HOUR_SECS * (was === "night" ? NIGHT_SLOW : 1))) % 24; const now = dayPart();
-  if (now !== was) toast(now === "night" ? "🌙 Night falls. The catfish are coming up!" : now === "dawn" ? "🌅 Sunrise! Crappie love the first light."
+  if (now !== was) toast(now === "night" ? (fullMoon() ? "🌕 A full moon tonight! The Night Legends are restless..." : "🌙 Night falls. The catfish are coming up!") : now === "dawn" ? "🌅 Sunrise! Crappie love the first light."
     : now === "dusk" ? "🌇 Sunset. Fish get bold in the evening." : "☀️ Good morning!", 3000);
 }
 // at night the catfish rise and trout and sunfish go quiet
@@ -699,7 +743,18 @@ const PAINTS = { silver:{ name:"Bare aluminum", cost:0, col:null }, red:{ name:"
 const SALT_ROD_COST = 2500;
 const BOATS = [ { name:"Rental jon boat", cost:0, desc:"Rent one at each lake visit." },
   { name:"Your own jon boat", cost:150, desc:"No more rent! The boat is free at every lake." },
-  { name:"Bass boat", cost:450, desc:"A fast, sparkly bass boat. Free at every lake, and it trolls faster." } ];
+  { name:"Bass boat", cost:450, desc:"A fast, sparkly bass boat. Free at every lake, and it trolls faster." },
+  { name:"Pontoon boat", cost:900, desc:"A big flat party boat with a sun roof. Your rod holder gets bites twice as fast on it, and fish scent lasts twice as long." } ];
+// extra gear in the Tackle Shop
+const GEAR = [
+  { key:"holder",    icon:"🔔", name:"Rod Holder",      cost:400,  desc:"Set a second rod with a bell. When the bell rings, tap 🔔 fast to land a bonus fish (not in Showdowns or boss fights)." },
+  { key:"net",       icon:"🥅", name:"Landing Net",     cost:250,  desc:"Once a big fish is close to the top, your line can't snap. No more losing them at the last second!" },
+  { key:"livewell",  icon:"🪣", name:"Live Well",       cost:300,  desc:"Keeps your catch fresh: kept fish pay 20% more, and Showdown fish weigh in 5% heavier." },
+  { key:"finderPro", icon:"📡", name:"Fish Finder Pro", cost:350,  desc:"Stars the trophy, rare and tagged fish on your sonar, and works on the dock too.", need: () => S.finder, needTxt:"Needs the Fish Finder" },
+  { key:"ultra",     icon:"🪶", name:"Ultralight Rod",  cost:150,  desc:"A whippy little rod. Bluegill, sunfish and crappie pay 50% more because they're so much fun on it." },
+  { key:"heavyRod",  icon:"💪", name:"Heavy Rod",       cost:600,  desc:"A stout rod for catfish, carp, sturgeon, sharks and rays: they pull 20% less hard." },
+  { key:"skiff",     icon:"⛵", name:"Ocean Skiff",      cost:1500, desc:"Your own ocean boat: charter trips cost just 30 coins for gas.", need: () => S.saltRod, needTxt:"Needs the Saltwater Rod & Reel" }
+];
 const FINDER_COST = 180;
 const look = () => Object.assign({ hat:"cap", rod:"black", paint:"silver" }, S.look);
 function owns(kind, key){ const it = ({ hat:HATS, rod:RODS, paint:PAINTS })[kind][key]; if (!it) return false;
@@ -708,7 +763,7 @@ function owns(kind, key){ const it = ({ hat:HATS, rod:RODS, paint:PAINTS })[kind
 // a rod's paint: one color, or a rainbow
 function rodPaint(c, key, x0, y0, x1, y1){ const r = RODS[key] || RODS.black; if (!r.rainbow) return r.col;
   const g = c.createLinearGradient(x0, y0, x1, y1); ["#e0483a", "#f5b82e", "#3fa34d", "#2f7fb5", "#7a4cc2"].forEach((cl, i) => g.addColorStop(i / 4, cl)); return g; }
-const rentCost = L => L.ocean ? L.boat : S.boatOwn ? 0 : L.boat;         // your own boat stays home: the ocean needs a charter
+const rentCost = L => L.ocean ? (S.skiff ? 30 : L.boat) : S.boatOwn ? 0 : L.boat;         // your own boat stays home: the ocean needs a charter
 
 // hats, drawn on the canvas (x, y = middle of the head, r = head radius) and as SVG for the menus
 function drawHat(c, kind, x, y, r){
@@ -825,7 +880,7 @@ const UPG = {
 // Each player's game lives in their player record (ll-core.js): LL.player().game. S points at it while they play.
 function defaultSave(){ return { coins:0, lakes:["dixon"], up:{line:0,stringer:0,reel:0,guard:0,lure:0}, dex:{}, trips:0, sound:true,
   baits:["spinner","bread"], bait:"spinner", bobber:false, bobDepth:6, grandpa:false, grandpaBonus:false, lakeEarn:{}, bosses:{}, heavy:false, champ:false, day:{ lake:"dixon", kept:[] }, released:0, baitCount:{},
-  landed:0, streak:0, bestStreak:0, clock:7, legends:{}, treasures:0, look:{ hat:"cap", rod:"black", paint:"silver" }, owned:[], boatOwn:0, finder:false, jobs:null, wild:null, prizes:{}, mounts:[], derby:null, derbyLast:null, derbyPaid:{}, derbyWins:0 }; }
+  landed:0, streak:0, bestStreak:0, clock:7, legends:{}, treasures:0, look:{ hat:"cap", rod:"black", paint:"silver" }, owned:[], boatOwn:0, finder:false, jobs:null, wild:null, prizes:{}, mounts:[], derby:null, derbyLast:null, derbyPaid:{}, derbyWins:0, sd:{ wins:{}, played:0, cups:[] }, vl:[], cards:{}, tmap:{ pieces:0 }, ev:{} }; }
 // old saves and saves from older versions pick up any new fields; nothing already earned is ever lowered
 function normalizeSave(s){
   const d = defaultSave();
@@ -835,6 +890,8 @@ function normalizeSave(s){
   if (!o.bait || o.bait === "bare") o.bait = "spinner";
   for (const k of o.baits) if (BAITS[k] && BAITS[k].soft && o.baitCount[k] === undefined) o.baitCount[k] = BAITS[k].pack;
   if (!o.landed) o.landed = Object.values(o.dex).reduce((n, d) => n + (d.n || 0), 0);
+  o.sd = Object.assign({ wins:{}, played:0, cups:[] }, o.sd);
+  o.vl = o.vl || []; o.cards = o.cards || {}; o.tmap = o.tmap || { pieces: 0 }; o.ev = o.ev || {};
   if (o.bosses && o.bosses.otay && !o.lakes.includes("ocean")) o.lakes.push("ocean");   // the ocean came after some players had already beaten Otay
   return o;
 }
@@ -904,6 +961,8 @@ const SFX = {
   click(){ tone(600,.05,"triangle",.08); },
   whoosh(){ tone(700,.35,"sine",.07,-550); },
   thunk(){ tone(130,.12,"triangle",.16,-40); },
+  bell(){ [0, 160, 320].forEach(d => setTimeout(() => { tone(1568, .25, "sine", .08); tone(2350, .2, "sine", .04); }, d)); },
+  thunder(){ tick(90, .35, 0, .9); tick(60, .3, .15, 1.2); tone(55, 1.1, "sawtooth", .05, -20); },
   croak(){ [0, .35].forEach(d => setTimeout(() => { tone(95, .28, "sawtooth", .07, -25); tone(140, .2, "square", .03, -40); }, d * 1000)); },
   fanfare(){ [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, .22, "triangle", .11), i * 85));
     setTimeout(() => { [523, 659, 784].forEach(f => tone(f, .7, "triangle", .07)); tone(2093, .5, "sine", .04, 400); }, 470); },
@@ -1514,10 +1573,14 @@ function needSaltRod(){
 function startVisit(L, mode){
   if (L.ocean && !S.saltRod){ needSaltRod(); return; }
   if (mode === "boat"){ const c = rentCost(L); if (S.coins < c) return; if (c){ S.coins -= c; save(); SFX.coin(); toast(L.ocean ? "🛥️ Charter boat booked for your visit!" : "🚣 Boat rented for your whole visit!"); } else toast("🚤 " + BOATS[S.boatOwn].name + ", ready to go!"); }
-  visit = { lake: L, mode }; S.lastLake = L.id; save();
+  visit = { lake: L, mode }; S.lastLake = L.id;
+  arriveExtras(L, mode); save();
   startTrip(L, 0, mode);
+  if (stockDay(L)) setTimeout(() => toast("🚚 Trout stocking day! The truck just let fresh trout go here. Some are BIG.", 3600), 400);
+  const tg = tagInfo(); if (tg && !tg.caught && tg.lake === L) setTimeout(() => toast("🏷️ Pearl's tagged " + SPECIES[tg.id].name + " is somewhere in this lake! Look for the yellow tag.", 3600), stockDay(L) ? 4200 : 400);
 }
 function continueVisit(){
+  if (visit && visit.sd && visit.sd.left <= 0){ sdFinish(); return; }
   if (visit) startTrip(visit.lake, 0, visit.mode, true);
   else showScreen("map");
 }
@@ -1525,10 +1588,13 @@ function leaveLake(){
   if (!trip) return;
   if (trip.boss){ trip = null; toast("You left the boss fight. The entry fee is gone.", 2600); continueVisit(); return; }
   if (visit) returnBait(visit.hookBait);
+  if (visit && visit.sd) toast("🏆 You left the Showdown. The entry fee is gone.", 2600);
   save(); trip = null; visit = null; showScreen("map");
 }
 function toggleBoat(){
   if (!trip || trip.phase !== "ready" || !visit || trip.boss) return;
+  if (visit.sd){ toast("🏆 Showdowns are fished from the dock."); return; }
+  if (stormOn() && visit.mode === "dock"){ toast("⚡ Not in a storm! Wait for it to pass."); return; }
   const L = visit.lake;
   if (visit.mode === "dock"){
     const c = rentCost(L);
@@ -1542,6 +1608,7 @@ let uiSheet = null;
 function openSheet(which){ uiSheet = uiSheet === which ? null : which; SFX.click(); if (uiSheet === "bait") renderBaitBar(); if (uiSheet === "opt") renderOptions(); }
 $("baitBtn").onclick = () => openSheet("bait");
 $("optBtn").onclick = () => openSheet("opt");
+$("bellBtn").onclick = () => { if (!trip || !visit || !visit.holder || !(visit.holder.bite > 0)) return; holderLand(trip); };
 $("trollBtn").onclick = () => { SFX.click(); if (trip && trip.phase === "troll") stopTroll(); else startTroll(); };
 function renderOptions(){
   const box = $("optSheet"); box.innerHTML = "";
@@ -1556,7 +1623,7 @@ function renderOptions(){
   add("❓ How to play", () => infoModal(HOWTO_HTML, "Got it"));
   add("🐞 Report a problem or idea", () => LL.report());
   add(S.sound ? "🔊 Sound" : "🔇 Sound: off", () => soundPanel());
-  add(trip && trip.boss ? "🏳️ Give up the boss fight" : "🏁 Leave lake", leaveLake);
+  add(trip && trip.boss ? "🏳️ Give up the boss fight" : visit && visit.sd ? "🏳️ Quit the Showdown" : "🏁 Leave lake", leaveLake);
 }
 function setMuteIcon(){ $("btnMute").textContent = S.sound ? "🔊" : "🔇"; }
 $("btnMute").onclick = () => { audioCtx(); SFX.click(); soundPanel(); };
@@ -1634,6 +1701,8 @@ function renderMap(){
     const fi = fishIcon(fd, 90, 46); fi.style.width = "4.5em"; fi.style.flex = "none"; c.querySelector(".row").insertBefore(fi, c.querySelector(".row").firstChild);
     ex.appendChild(c);
     ex.insertAdjacentHTML("beforeend", derbyCard());
+    ex.insertAdjacentHTML("beforeend", ladderCard());
+    ex.insertAdjacentHTML("beforeend", eventsCard());
     const won = derbyPrize();
     if (won) setTimeout(() => infoModal(`<div style="font-size:3.5em">🏆</div><span class="tag new">DERBY CHAMPION!</span><h3>You won last week's Family Derby!</h3><p>${won.name}: you beat everyone in the family. <b>+100 🪙</b></p>`, "Woo-hoo!", () => renderMap()), 200); }
   $("champ").style.display = S.champ ? "inline-block" : "none";
@@ -1652,6 +1721,7 @@ function renderMap(){
       const b = document.createElement("button"); b.className = "btn"; b.textContent = L.ocean ? "🪵 Pier" : "🪵 Dock"; b.onclick = () => startVisit(L, "dock"); col.appendChild(b);
       const bb = document.createElement("button"); bb.className = "btn blue"; bb.textContent = L.ocean ? "🛥️ Charter 🪙" + rentCost(L) : rentCost(L) ? "🚣 Boat 🪙" + rentCost(L) : "🚤 Boat"; bb.disabled = S.coins < rentCost(L) && !(L.ocean && !S.saltRod);
       bb.onclick = () => startVisit(L, "boat"); col.appendChild(bb);
+      if (sdTier(L)){ const sb = document.createElement("button"); sb.className = "btn gold small"; sb.textContent = (sdOpen(sdTier(L)) ? "🏆 " : "🔒 ") + "Showdown"; sb.onclick = () => { SFX.click(); showdownOffer(L); }; col.appendChild(sb); }
       const ib = document.createElement("button"); ib.className = "btn small"; ib.style.cssText = "background:#dfeef7;color:#1d5680;box-shadow:none"; ib.textContent = "ℹ️";
       ib.onclick = () => { SFX.click(); infoModal(lakeInfoHtml(L), "Got it"); };
       d.querySelector(".row").insertBefore(ib, d.querySelector(".row").firstChild.nextSibling);
@@ -1716,6 +1786,8 @@ function renderShop(){
   BOATS.forEach((bt, i) => { if (!i) return;
     shopRow(i === 1 ? "🚣" : "🚤", bt.name, bt.desc, S.boatOwn >= i ? "Owned ✓" : "🪙" + bt.cost, S.boatOwn === i - 1 && S.coins >= bt.cost, () => { S.coins -= bt.cost; S.boatOwn = i; toast("🚤 " + bt.name + " is yours!"); }, S.boatOwn >= i); });
   shopRow("📡", "Fish Finder", "A sonar screen on your boat. It shows every fish, even at night and in the rain.", S.finder ? "Owned ✓" : "🪙" + FINDER_COST, S.coins >= FINDER_COST, () => { S.coins -= FINDER_COST; S.finder = true; toast("📡 Fish Finder installed!"); }, S.finder);
+  GEAR.forEach(g => { const ok = !g.need || g.need();
+    shopRow(g.icon, g.name, g.desc + (ok ? "" : " 🔒 " + g.needTxt + "."), S[g.key] ? "Owned ✓" : "🪙" + g.cost, ok && S.coins >= g.cost, () => { S.coins -= g.cost; S[g.key] = true; toast(g.icon + " " + g.name + " is yours!"); }, !!S[g.key]); });
   // style: hats, rods and boat paint
   const h4 = document.createElement("div"); h4.className = "sech"; h4.textContent = "🧢 Style"; list.appendChild(h4);
   const lk = look();
@@ -1853,18 +1925,22 @@ let trip = null;
 
 let spawnBoat = false;                       // true on a boat trip: the ocean's offshore fish only come to the charter
 const smallFor = (lake, dock) => dock && (lake.ocean ? .8 : true);   // dock fish run small; pier fish a little less so
+let spawnLakeNow = null;
 function spawnFishFor(lake, y, exclude, small){
+  spawnLakeNow = lake;
   const frac = y / (lake.depth*PPF);
   const lure = S.up.lure;
   const n = nightAmt(), cat = id => SPECIES[id].shape === "cat";
   let cands = lake.fish.concat(spawnBoat && lake.boatFish || []).filter(id => !SPECIES[id].legend && id !== exclude && frac >= SPECIES[id].d[0] * (cat(id) ? 1 - .6*n : 1) && frac <= SPECIES[id].d[1])   // catfish rise at night
-    .map(id => ({ v:id, w: SPECIES[id].rar * (SPECIES[id].rar <= 3 ? 1 + lure*.5 : 1) * lerp(1, NIGHT_FISH[id] || 1, n) }));
+    .map(id => ({ v:id, w: SPECIES[id].rar * (SPECIES[id].rar <= 3 ? 1 + lure*.5 : 1) * lerp(1, NIGHT_FISH[id] || 1, n) * (id === "trout" && stockDay(lake) ? 4 : 1) }));
   if (!cands.length){
     let best = null, bd = 9;
     lake.fish.forEach(id => { const s = SPECIES[id]; if (s.legend) return; const dd = frac < s.d[0] ? s.d[0]-frac : frac - s.d[1]; if (dd < bd){ bd = dd; best = id; } });
     cands = [{ v:best, w:1 }];
   }
-  if (lake.rare && Math.random() < RARE_CHANCE){                // every so often, a fish that's hard to find in this lake
+  const tg = tagInfo();
+  if (tg && !tg.caught && tg.lake === lake && Math.random() < .04 && !(visit && visit.sd)){ const f = makeFish(tg.id, y, small); f.tagged = true; return f; }
+  if (lake.rare && Math.random() < RARE_CHANCE * (cabinAt(lake) && S.cabin.up.feeder ? 2 : 1)){                // every so often, a fish that's hard to find in this lake
     const r = makeFish(lake.rare[Math.floor(Math.random() * lake.rare.length)], y, small); r.rare = true; return r;
   }
   return makeFish(pickWeighted(cands), y, small);
@@ -1873,7 +1949,8 @@ const RARE_CHANCE = .05;
 function makeFish(id, y, small){
   const sp = SPECIES[id];
   const f = Math.pow(Math.random(), 1.5 - S.up.lure*.17) * (small === true ? .55 : small || 1);   // dock fish run small
-  const inches = sp.legend ? rand(sp.min, sp.max) : lerp(sp.min, sp.max, f);
+  const brood = id === "trout" && stockDay(spawnLakeNow) && Math.random() < .15;   // the stocking truck brings a few big brood trout
+  const inches = sp.legend ? rand(sp.min, sp.max) : lerp(sp.min, sp.max, brood ? Math.max(f, rand(.7, 1)) : f);
   const dir = Math.random() < .5 ? -1 : 1;
   const L = fishPx(sp, inches);
   const v = VARIANTS[id] && Math.random() < variantChance();
@@ -1887,10 +1964,11 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   if (!S.day || S.day.lake !== lake.id) S.day = { lake: lake.id, kept: [] };   // new lake = new fishing day                 // boss fights always include a boat
   const dock = mode === "dock";
   spawnBoat = !dock;
-  const bottom = (dock ? (lake.pierDepth || Math.min(24, Math.round(lake.depth * .3))) : lake.depth) * PPF;
+  const home = cabinAt(lake), longDock = dock && home && S.cabin.up.longdock;
+  const bottom = (dock ? (lake.pierDepth || (longDock ? Math.min(40, Math.round(lake.depth * .5)) : Math.min(24, Math.round(lake.depth * .3)))) : lake.depth) * PPF;
   const fish = [];
   const n = Math.round((dock ? Math.max(10, bottom / 36) : bottom / 55) * Math.sqrt(W / SW) * (W > SW ? 1.15 : 1));
-  for (let i=0;i<n;i++) fish.push(spawnFishFor(lake, rand(dock ? 70 : 160, bottom - 15), null, smallFor(lake, dock)));
+  for (let i=0;i<n + (home && S.cabin.up.feeder ? 5 : 0);i++) fish.push(spawnFishFor(lake, rand(dock ? 70 : 160, bottom - 15), null, smallFor(lake, dock && !longDock)));
   let boss = null;
   if (bossFeePaid){
     const d = BOSSES[lake.id], sp = bossSp(lake.id);
@@ -1900,7 +1978,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
     fish.push({ id: d.dex || d.base, sp, inches:d.inches, frac:1, L, x:W/2, y, baseY:y, dir:1, speed:22, phase:0, trophy:false, boss:true, sniffT:0 });
     boss = { def:d, fee:bossFeePaid, left: BOSS_CASTS };
   }
-  if (!bossFeePaid && isNight() && LEGENDS[lake.id] && Math.random() < LEGEND_CHANCE){   // a Night Legend is down there tonight
+  if (!bossFeePaid && isNight() && LEGENDS[lake.id] && Math.random() < LEGEND_CHANCE * (fullMoon() ? 2.5 : 1)){   // a Night Legend is down there tonight
     const d = LEGENDS[lake.id], sp = legendSp(lake.id), maxY = Math.min(bottom - 10, upVal("line") * PPF);
     const y = rand(Math.min(maxY * .5, 200), maxY - 20);
     fish.push({ id: "legend_" + lake.id, sp, inches: d.inches, frac: 1, L: clamp(40 + d.inches * 2.2, 90, 200), x: rand(40, W - 40), y, baseY: y, dir: Math.random() < .5 ? -1 : 1, speed: 18, phase: 0, trophy: false, nightLegend: true });
@@ -1924,7 +2002,10 @@ function startTrip(lake, bossFeePaid, mode, quiet){
     if (Math.random() < .6){ const sg = makeSnag("weed", rand(30, W-30), bottom); sg.h = rand(.25, dock ? .45 : .5) * bottom; sg.y = bottom - sg.h/2; snags.push(sg); }
     else snags.push(makeSnag("clump", rand(40, W-40), rand(bottom*.3, bottom*.75)));
   }
-  if (!bossFeePaid && Math.random() < .12){            // now and then, a treasure chest on the bottom
+  if (!bossFeePaid && mode === "boat" && S.tmap && S.tmap.pieces >= 4 && !S.tmap.done && S.tmap.lake === lake.id){   // X marks the spot
+    const sg = makeSnag("chest", rand(W * .3, W * .8), 0); sg.gold = true; sg.w = 46; sg.h = 32; sg.y = bottom - sg.h/2 + 3; snags.push(sg);
+  }
+  else if (!bossFeePaid && Math.random() < .12){            // now and then, a treasure chest on the bottom
     const sg = makeSnag("chest", rand(40, W - 40), 0); sg.y = bottom - sg.h/2 + 3; snags.push(sg);
   }
   if (bossFeePaid) snags.length = 0;                  // boss fights: the boss is the only trouble down there
@@ -1939,6 +2020,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   if (visit && visit.hookBait !== undefined) trip.bait = visit.hookBait;
   else { trip.bait = S.bait && baitUnlocked(S.bait) && baitHere(S.bait, lake) && takeBait(S.bait) ? S.bait : "spinner"; if (visit) visit.hookBait = trip.bait; }
   if (scentOn() && !bossFeePaid) addScentFish(trip, 5);
+  if (frenzyOn() && !bossFeePaid) for (let i = 0; i < 6; i++) trip.fish.push(spawnFishFor(lake, rand(40, Math.min(bottom - 15, 12 * PPF)), null, smallFor(lake, dock)));
   if (visit && visit.lostMsg){ toast("🪝 " + visit.lostMsg + " Tap Bait.", 2600); visit.lostMsg = null; }
   btnHeld = false; uiSheet = bossFeePaid ? "bait" : null;          // boss fight: pick your bait first
   setBobDepth();
@@ -2094,6 +2176,9 @@ function interest(T, f){
   if (c > 0 && (f.id === "bcrappie" || f.id === "wcrappie")) c = Math.min(1, c + .18 * duskAmt());   // crappie bite at first and last light
   if (c > 0 && scentOn()) c = Math.min(1, c + .15);       // scent makes fish that already like your bait hungrier
   if (c > 0) c = Math.min(1, c + .1 * rainAmt());          // fish often bite better in the rain
+  if (c > 0 && frenzyOn()) c = Math.min(1, c + .35);        // feeding frenzy: everything is hungry
+  if (c > 0 && stormOn()) c = Math.min(1, c + .2);          // the bite before a storm
+  if (c > 0 && cabinAt(T.lake) && S.cabin.up.lights) c = Math.min(1, c + .15 * nightAmt());   // your dock lights draw fish in at night
   return c;
 }
 
@@ -2109,10 +2194,23 @@ function updateWeather(dt){
     const old = w.target, r = Math.random();
     w.target = r < .55 ? 0 : r < .83 ? .5 : 1;
     w.next = Date.now() + (w.target === 1 ? rand(45, 80) : rand(60, 120)) * 1000;
-    if (w.target === 1 && old !== 1) toast("🌧️ Rain! It's hard to see... but fish love it.", 2600);
+    if (w.target === 1 && old !== 1 && !w.storm && !(visit && visit.sd) && !(trip && trip.boss) && Math.random() < .4){
+      w.storm = { left: 60, flash: 0 }; w.next = Date.now() + 75000;
+      toast("⚡ STORM WARNING! Fish are biting like crazy... but lightning hits in 60 seconds. Boats, get back to the dock!", 4200); SFX.thunder();
+    }
+    else if (w.target === 1 && old !== 1) toast("🌧️ Rain! It's hard to see... but fish love it.", 2600);
     else if (old === 1 && w.target !== 1) toast("☀️ The rain stopped.");
   }
   w.level += (w.target - w.level) * Math.min(1, dt * .6);
+  if (w.storm){ const st = w.storm; st.left -= dt; st.flash = Math.max(0, st.flash - dt * 3);
+    if (Math.random() < dt * .25){ st.flash = 1; st.bx = rand(W * .2, W * .9); setTimeout(() => SFX.thunder(), rand(200, 900)); }
+    if (st.left <= 0){
+      w.storm = null; w.target = .5; w.next = Date.now() + rand(60, 100) * 1000; st.flash = 1;
+      if (visit && visit.mode === "boat" && !(trip && trip.boss)){ visit.mode = "dock"; SFX.thunder();
+        toast("⚡ CRACK! Lightning! The ranger called every boat back to the dock.", 3600);
+        if (trip && trip.phase === "ready") startTrip(visit.lake, 0, "dock", true); }
+      else toast("⛅ The storm moved on.", 2400);
+    } }
   // raindrop patter
   const rn = rainAmt();
   if (rn > .05 && S.sound){ w.acc = (w.acc || 0) + dt * 30 * rn; while (w.acc >= 1){ w.acc--; tick(rand(4000, 6500), .015 + .02*rn, Math.random()*.03, .008); } }
@@ -2159,7 +2257,7 @@ function useScent(){
   if (!trip || !visit || trip.boss || trip.phase !== "ready") return;
   if (S.coins < SCENT_COST){ toast("Fish scent costs 🪙" + SCENT_COST + "."); return; }
   S.coins -= SCENT_COST; save(); SFX.coin();
-  visit.scentUntil = Math.max(Date.now(), visit.scentUntil || 0) + SCENT_SECS*1000;
+  visit.scentUntil = Math.max(Date.now(), visit.scentUntil || 0) + SCENT_SECS * 1000 * (visit.mode === "boat" && S.boatOwn >= 3 ? 2 : 1);
   addScentFish(trip, 6);
   pop(trip.tipX, -60, "🧴 Fish scent!", "#d8ffd0", 16);
   renderBaitBar(); updateHud();
@@ -2233,7 +2331,7 @@ function checkSnags(T, hk){
     s.hitT = 1.2;
     if (s.type === "chest"){
       if (T.fouled || T.caught.length) continue;
-      T.snags.splice(T.snags.indexOf(s), 1); T.fouled = "chest"; T.phase = "reel"; T.pending = 0; SFX.coin();
+      T.snags.splice(T.snags.indexOf(s), 1); T.fouled = "chest"; T.goldChest = !!s.gold; T.phase = "reel"; T.pending = 0; SFX.coin();
       pop(hk.x, hk.y - 24, "🎁 A treasure chest! Reel it all the way in!", "#ffe38a", 17); return;
     }
     if (T.shields > 0){ T.shields--; SFX.shield(); pop(hk.x, hk.y-20, "🛡️ Shield!", "#9fe6ff"); hk.x += (hk.x < s.x ? -30 : 30); }
@@ -2350,6 +2448,9 @@ function fishBand(T, f){
 }
 function updateFishing(dt){
   const T = trip; T.t += dt;
+  if (visit && visit.sd && !T.boss){ sdUpdate(T, dt); if (!trip) return; }
+  if (visit && !T.boss && !visit.sd) evUpdate(T, dt);
+  if (visit && S.holder && !T.boss && !visit.sd) holderUpdate(T, dt); else if (visit && visit.holder) visit.holder.bite = 0;
   const hk = T.hook;
   // fish swimming
   const canAttract = (T.phase === "drop" || T.phase === "reel") && !T.caught.length && !T.nibble;
@@ -2530,7 +2631,7 @@ function updateFishing(dt){
 }
 
 function updateFight(dt){
-  const F = trip.fight, sp = F.f.sp, str = F.f.boss ? trip.boss.def.str : sp.str * (F.f.trophy ? 1.15 : 1);
+  const F = trip.fight, sp = F.f.sp, str = (F.f.boss ? trip.boss.def.str : sp.str * (F.f.trophy ? 1.15 : 1)) * (S.heavyRod && HEAVY_SHAPES.includes(sp.shape) ? .8 : 1);
   const hk = trip.hook;
   // boss runs: it drags the line toward the logs, steer the other way!
   if (F.f.boss){
@@ -2560,6 +2661,7 @@ function updateFight(dt){
   }
   if (surging){ F.tension += 10*dt; F.prog -= 3*dt; F.shake = 4; } else F.shake *= .8;
   F.tension = clamp(F.tension, 0, 100); F.prog = clamp(F.prog, 0, 100);
+  if (S.net && F.tension >= 100 && hk.y < 6 * PPF){ F.tension = 96; if (!F.netted){ F.netted = true; pop(hk.x, hk.y - 40, "🥅 Your landing net saves it!", "#bff5c8", 17); } }
   if (F.tension >= 100){
     SFX.snap(); trip.lost++;
     if (BAITS[trip.bait].soft){ trip.baitLost = true; trip.baitRolled = true; }   // the fish swam off with your live bait
@@ -2599,15 +2701,17 @@ function finishTrip(){
   if (T.fouled){
     pending = null;
     const j = JUNK[T.fouled];
-    if (j.treasure){ openChest(); continueVisit(); return; }
+    if (j.treasure){ if (T.goldChest) openGoldChest(); else openChest(); continueVisit(); return; }
     let msg = j.icon + " You reeled in " + j.name + ".";
     if (j.wood && BAITS[T.bait].soft && !T.baitLost && Math.random() < .5){ T.baitLost = true; T.baitRolled = true; endCastBait(T); if (visit) visit.lostMsg = null; msg += " Your " + BAITS[T.bait].name.toLowerCase() + " is gone."; }
     if (j.trash){ S.coins += 2; save(); msg += " +2 🪙 for cleaning the lake!"; }
+    if (Math.random() < .06){ const v = newVintage(); if (v){ S.vl.push(v.id); save(); msg += " 🪝 An old lure was tangled in it: the " + v.name + "! (Lodge)"; } }
     else msg += " Cleaned it off.";
     toast(msg, 2800); S.streak = 0;
     continueVisit();
     return;
   }
+  if (visit && visit.sd) T.caught.forEach(f => { if (!f.nightLegend) visit.sd.mine.push({ id: f.id, lb: weightLb(f.sp, f.inches) * (S.livewell ? 1.05 : 1) }); });
   if (!T.caught.length){
     pending = null; S.streak = 0;
     const tip = curBait(T) === "bare" ? "Your hook is bare! Tap Bait." : "No bite. Try again!";
@@ -2617,9 +2721,13 @@ function finishTrip(){
   }
   T.caught.forEach(f => {
     const sp = f.sp, lb = weightLb(sp, f.inches);
-    const coins = Math.round(sp.val * 1.2 * (.6 + f.frac*.9) * (f.trophy ? 1.5 : 1) * (f.rare ? 1.5 : 1) * (f.variant ? 2 : 1) * (f.id === fishOfDay() ? 2 : 1));
+    const coins = Math.round(sp.val * 1.2 * (S.ultra && sp.shape === "sun" ? 1.5 : 1) * (.6 + f.frac*.9) * (f.trophy ? 1.5 : 1) * (f.rare ? 1.5 : 1) * (f.variant ? 2 : 1) * (f.id === fishOfDay() ? 2 : 1));
     const v = verdict(T.lake.id, f);
-    const item = { f, v, coins, relCoins: Math.max(1, Math.ceil(coins * .5)), keep: v.st !== "release" };
+    const item = { f, v, coins: Math.round(coins * (S.livewell ? 1.2 : 1)), relCoins: Math.max(1, Math.ceil(coins * .5)), keep: v.st !== "release" };
+    if (frenzyOn()) S.ev.frenzy = (S.ev.frenzy || 0) + 1;
+    if (stormOn()) S.ev.storm = (S.ev.storm || 0) + 1;
+    if (f.nightLegend && fullMoon()) S.ev.moonLegend = 1;
+    if (f.tagged && tagInfo() && !tagInfo().caught){ S.ev.tags = (S.ev.tags || 0) + 1; S.tag = { w: tagInfo().w }; item.coins += TAG_PRIZE; item.relCoins += TAG_PRIZE; f._tag = true; setTimeout(() => SFX.fanfare(), 300); }
     pending.items.push(item);
     let isNew = false, pb = false;
     if (f.nightLegend){                                   // a Night Legend: its own trophy shelf, not the Fishdex
@@ -2662,7 +2770,7 @@ function finishTrip(){
     d.innerHTML = `🔥 <b>${S.streak} casts in a row! +${b} 🪙</b>`; list.appendChild(d); }
   { const best = pending.items.slice().sort((a, b) => weightLb(b.f.sp, b.f.inches) - weightLb(a.f.sp, a.f.inches))[0];
     const f = best.f, prevBest = (f._prevBest || 0);
-    const stamp = f.nightLegend ? ["🌙 NIGHT LEGEND!", "#3aa0d8"] : f._newLook ? ["✨ RARE LOOK!", "#b06cff"] : newOnes.includes(f.id) ? ["NEW FISH!", "#f5b82e"] : f.inches > prevBest && prevBest ? ["PERSONAL BEST!", "#b06cff"]
+    const stamp = f._tag ? ["🏷️ TAGGED FISH! +" + TAG_PRIZE, "#e0a020"] : f.nightLegend ? ["🌙 NIGHT LEGEND!", "#3aa0d8"] : f._newLook ? ["✨ RARE LOOK!", "#b06cff"] : newOnes.includes(f.id) ? ["NEW FISH!", "#f5b82e"] : f.inches > prevBest && prevBest ? ["PERSONAL BEST!", "#b06cff"]
       : tierUps.some(u => u.id === f.id && u.t === 3) ? ["🥇 GOLD!", "#f5b82e"] : f.rare ? ["✨ RARE!", "#b06cff"] : f.trophy ? ["TROPHY!", "#b06cff"] : null;
     list.insertBefore(bragCard(T.lake, f, stamp), list.firstChild); }
   if (T.chain && T.caught[0] === T.chain.pred){ pending.chain += 5; const d = document.createElement("div"); d.className = "card"; d.style.textAlign = "center"; d.innerHTML = `🐟➡️🐟 <b>Food chain bonus! +5 🪙</b>`; list.appendChild(d); }
@@ -2682,6 +2790,427 @@ function finishTrip(){
   save();
   showScreen("results");
 }
+// =====================================================================
+//  YOUR LAKE CABIN, and rewards besides fish: vest patches, titles, vintage lures, treasure maps, a sponsor and postcards
+// =====================================================================
+const CABIN_COST = 1500;
+const CABIN_UPS = [
+  { key:"lights",    icon:"💡", name:"Dock lights",  cost:300,  desc:"Fish bite better around your dock at night." },
+  { key:"feeder",    icon:"🌽", name:"Fish feeder",  cost:500,  desc:"More fish hang around your cabin, and rare fish show up twice as often." },
+  { key:"fridge",    icon:"🧊", name:"Bait fridge",  cost:400,  desc:"Free live bait every day you visit your cabin: 10 worms, plus nightcrawlers once you have them." },
+  { key:"longdock",  icon:"🪵", name:"Long dock",    cost:800,  desc:"Your dock reaches deep water. Dock fish at your cabin are full size." },
+  { key:"boathouse", icon:"🛶", name:"Boathouse",    cost:1200, desc:"Every boat trip from your cabin starts with free fish scent." }
+];
+const cabinAt = L => !!(S.cabin && L && S.cabin.lake === L.id);
+function arriveExtras(L, mode){
+  const today = dayKey(), msgs = [];
+  if (!S.cards[L.id]){ S.cards[L.id] = Date.now(); msgs.push("📮 Postcard from " + L.name + " added to your Lodge!"); }
+  if (cabinAt(L) && S.cabin.up.fridge && S.cabin.fridge !== today){ S.cabin.fridge = today;
+    S.baitCount.worm = (S.baitCount.worm || 0) + 10; if (!S.baits.includes("worm")) S.baits.push("worm");
+    if (S.baits.includes("crawler")) S.baitCount.crawler = (S.baitCount.crawler || 0) + 5;
+    msgs.push("🧊 Your bait fridge: +10 worms" + (S.baits.includes("crawler") ? " and +5 nightcrawlers" : "") + "!"); }
+  if (cabinAt(L) && S.cabin.up.boathouse && mode === "boat"){ visit.scentUntil = Date.now() + SCENT_SECS * 1000; msgs.push("🛶 Free fish scent from your boathouse!"); }
+  if (S.sponsor && S.sponsorDay !== today){ S.sponsorDay = today; S.coins += SPONSOR_PAY; msgs.push("🤝 Reel Deal Tackle paid you " + SPONSOR_PAY + " 🪙 for today!"); }
+  msgs.forEach((m, i) => setTimeout(() => toast(m, 2800), 900 + i * 3000));
+}
+function drawCabin(surf, t, night){                       // your log cabin on the shore behind the dock
+  const x = 34, y = surf - 30;
+  ctx.fillStyle = "#6b4528"; ctx.fillRect(x - 30, y - 30, 60, 30);
+  ctx.strokeStyle = "rgba(40,24,12,.5)"; ctx.lineWidth = 1; for (let k = 1; k < 6; k++){ ctx.beginPath(); ctx.moveTo(x - 30, y - 30 + k * 5); ctx.lineTo(x + 30, y - 30 + k * 5); ctx.stroke(); }
+  ctx.fillStyle = "#3e5a3a"; ctx.beginPath(); ctx.moveTo(x - 36, y - 30); ctx.lineTo(x, y - 52); ctx.lineTo(x + 36, y - 30); ctx.fill();
+  ctx.fillStyle = "#7a7a7a"; ctx.fillRect(x + 14, y - 52, 7, 14);
+  const lit = night > .2 ? "rgba(255,214,120," + (.5 + .5 * night).toFixed(2) + ")" : "#9cc4dc";
+  ctx.fillStyle = lit; ctx.fillRect(x - 22, y - 22, 10, 8); ctx.fillRect(x + 12, y - 22, 10, 8);
+  ctx.fillStyle = "#4a2e18"; ctx.fillRect(x - 5, y - 18, 10, 18);
+  if (night < .5){ ctx.fillStyle = "rgba(220,220,220,.5)"; for (let k = 0; k < 3; k++){ const sy0 = y - 56 - k * 9 - (t * 8 % 9); ctx.beginPath(); ctx.arc(x + 17 + Math.sin(t + k) * 3, sy0, 3 + k, 0, 7); ctx.fill(); } }   // chimney smoke
+}
+function drawCabinDock(surf, t, night){
+  const up = S.cabin.up;
+  if (up.lights) for (const lx of [60, 205]){ ctx.fillStyle = "#3a3f44"; ctx.fillRect(lx - 1, surf - 44, 2, 30); ctx.fillStyle = night > .2 ? "#fff3c4" : "#d8d2b8"; ctx.beginPath(); ctx.arc(lx, surf - 46, 3.5, 0, 7); ctx.fill();
+    if (night > .2){ const g = ctx.createRadialGradient(lx, surf - 46, 2, lx, surf, 90); g.addColorStop(0, "rgba(255,230,150," + (.45 * night).toFixed(2) + ")"); g.addColorStop(1, "rgba(255,230,150,0)"); ctx.fillStyle = g; ctx.fillRect(lx - 90, surf - 136, 180, 230); } }
+  if (up.feeder){ const fx = 250; ctx.fillStyle = "#5a3f25"; ctx.fillRect(fx - 2, surf - 20, 4, 40); ctx.fillStyle = "#c9302c"; ctx.fillRect(fx - 7, surf - 32, 14, 13); ctx.fillStyle = "#e8e2c8"; ctx.fillRect(fx - 7, surf - 28, 14, 3);
+    if (Math.sin(t * 1.3) > .9){ ctx.fillStyle = "rgba(240,210,120,.8)"; for (let k = 0; k < 6; k++) ctx.fillRect(fx - 10 + k * 4, surf - 2 + (k % 3), 1.6, 1.6); } }
+  if (up.boathouse){ const bx = 330; ctx.fillStyle = "#7a5634"; ctx.fillRect(bx, surf - 34, 64, 30); ctx.fillStyle = "#4b3a2e"; ctx.beginPath(); ctx.moveTo(bx - 4, surf - 34); ctx.lineTo(bx + 32, surf - 50); ctx.lineTo(bx + 68, surf - 34); ctx.fill();
+    ctx.fillStyle = "rgba(20,20,20,.55)"; ctx.fillRect(bx + 14, surf - 24, 36, 22); }
+}
+// vest patches: each one is also a title you can wear
+const PATCHES = [
+  { id:"firstboss", name:"Boss Beater",      title:"Boss Beater",     col:"#c9302c", desc:"Beat a lake boss",                  ok: () => Object.keys(S.bosses).length >= 1 },
+  { id:"allboss",   name:"Legend of the Lakes", title:"Lake Legend",  col:"#f5c242", desc:"Beat every boss",                   ok: () => Object.keys(S.bosses).length >= LAKES.length },
+  { id:"dex15",     name:"Fishdex Master",   title:"Fish Professor",  col:"#3f8f4a", desc:"Catch all 15 lake fish",            ok: () => dexCaughtCount() >= DEX_ORDER.length },
+  { id:"night",     name:"Night Owl",        title:"Night Owl",       col:"#2a3a7a", desc:"Catch 3 Night Legends",             ok: () => Object.keys(S.legends).length >= 3 },
+  { id:"moon",      name:"Moon Hunter",      title:"Moon Hunter",     col:"#e8e4f2", desc:"Catch a Night Legend on a full moon", ok: () => !!S.ev.moonLegend },
+  { id:"cats",      name:"Catfish King",     title:"Catfish King",    col:"#6b5a3a", desc:"Catch all 4 kinds of catfish",      ok: () => ["channel","bluecat","whitecat","bullhead"].every(id => S.dex[id]) },
+  { id:"local",     name:"Derby Winner",     title:"Derby Winner",    col:"#cd7f32", desc:"Win a Local Derby Showdown",        ok: () => (S.sd.wins.local || 0) > 0 },
+  { id:"county",    name:"County Champ",     title:"County Champ",    col:"#c0c0c0", desc:"Win a County Cup Showdown",         ok: () => (S.sd.wins.county || 0) > 0 },
+  { id:"state",     name:"State Champion",   title:"State Champion",  col:"#ffd23f", desc:"Win the State Championship",        ok: () => (S.sd.wins.state || 0) > 0 },
+  { id:"tag",       name:"Tag Hunter",       title:"Tag Hunter",      col:"#e0a020", desc:"Catch a tagged fish",               ok: () => (S.ev.tags || 0) > 0 },
+  { id:"frenzy",    name:"Frenzy Fiend",     title:"Frenzy Fiend",    col:"#ff7a3a", desc:"Land 10 fish in feeding frenzies",  ok: () => (S.ev.frenzy || 0) >= 10 },
+  { id:"storm",     name:"Storm Chaser",     title:"Storm Chaser",    col:"#5a6a7a", desc:"Land 5 fish before a storm hits",   ok: () => (S.ev.storm || 0) >= 5 },
+  { id:"ocean",     name:"Ocean Explorer",   title:"Ocean Explorer",  col:"#1f6fa8", desc:"Catch 5 kinds of ocean fish",       ok: () => OCEAN_DEX.filter(id => S.dex[id]).length >= 5 },
+  { id:"lures",     name:"Lure Collector",   title:"Lure Collector",  col:"#a0522d", desc:"Collect 10 vintage lures",          ok: () => S.vl.length >= 10 },
+  { id:"treasure",  name:"Treasure Hunter",  title:"Treasure Hunter", col:"#b8860b", desc:"Dig up the treasure map's chest",   ok: () => !!S.tmap.done },
+  { id:"cabin",     name:"Cabin Owner",      title:"Lake Neighbor",   col:"#3e5a3a", desc:"Buy a lake cabin",                  ok: () => !!S.cabin },
+  { id:"land1000",  name:"Thousand Fish",    title:"Fish Machine",    col:"#7a4cc2", desc:"Land 1,000 fish",                   ok: () => (S.landed || 0) >= 1000 }
+];
+const patchesEarned = () => PATCHES.filter(q => { try { return q.ok(); } catch (e) { return false; } });
+const titleOf = () => { const q = S.title && PATCHES.find(x => x.id === S.title); return q && q.ok() ? q.title : ""; };
+// vintage lures: found in treasure chests and tangled in snags
+const VLURES = [
+  ["Red-Eye Spoon", "#c9302c", "#f4f4f4", "spoon", 1952, "A spinning spoon with a red eye. Grandpas swear by it."],
+  ["Bomber Plug", "#2f6fb8", "#f5c242", "plug", 1958, "A chunky wooden plug that dives deep and wobbles hard."],
+  ["Jitterbug", "#222", "#f5c242", "popper", 1938, "It gurgles across the top at night. Bass can't stand it."],
+  ["Daredevle", "#c9302c", "#f4f4f4", "spoon", 1912, "Red and white stripes, one of the oldest lures there is."],
+  ["Hula Popper", "#3f8f4a", "#f4e04d", "popper", 1948, "It wears a little rubber skirt and goes POP."],
+  ["Lazy Ike", "#e8a33a", "#7a3a1a", "plug", 1940, "A banana-shaped wooden lure that wiggles slowly."],
+  ["Mepps Spinner", "#c0c0c0", "#c9302c", "spinner", 1951, "A shiny blade spins around a little body. Trout love it."],
+  ["Rapala Minnow", "#c0c0c0", "#1d2f55", "plug", 1936, "Carved from balsa wood to look like a real minnow."],
+  ["Lucky 13", "#f4f4f4", "#c9302c", "popper", 1920, "Supposedly very lucky. Or very unlucky. Nobody agrees."],
+  ["Flatfish", "#f5c242", "#222", "plug", 1933, "Shaped like a curved bean. It swims side to side."],
+  ["Beetle Spin", "#3f8f4a", "#f4e04d", "spinner", 1966, "A grub on a safety-pin spinner. Bluegill go nuts."],
+  ["Hawaiian Wiggler", "#ff7ab8", "#f4f4f4", "jig", 1932, "A wiggly lure with a rubber hula skirt."],
+  ["Johnson Silver Minnow", "#d8dee2", "#7a7a7a", "spoon", 1920, "A weedless spoon that slides right through the weeds."],
+  ["Heddon River Runt", "#7a5ab8", "#f4f4f4", "plug", 1929, "A small plug with a big wiggle."],
+  ["Crazy Crawler", "#222", "#c0c0c0", "popper", 1940, "Metal arms flap like a swimming bug."],
+  ["Swedish Pimple", "#c0c0c0", "#c9302c", "spoon", 1950, "A heavy spoon for jigging straight down."],
+  ["Bass Oreno", "#f4f4f4", "#c9302c", "plug", 1915, "A red-and-white classic carved from cedar."],
+  ["Creek Chub", "#8a6a3a", "#f5c242", "plug", 1916, "Painted to look like a creek chub minnow."],
+  ["Tiny Torpedo", "#222", "#f5c242", "popper", 1960, "A little propeller on the back spits water."],
+  ["Panther Martin", "#f5c242", "#222", "spinner", 1958, "Its blade spins right on the shaft."],
+  ["Sonic", "#3fa8a0", "#f4f4f4", "plug", 1955, "A rattling little plug you can hear underwater."],
+  ["Doll Fly", "#f4f4f4", "#ff7ab8", "jig", 1962, "A tiny feather jig for crappie."],
+  ["Water Witch", "#3f8f4a", "#222", "plug", 1924, "Glass eyes and a long lip. Spooky looking!"],
+  ["Pflueger Globe", "#e8a33a", "#c9302c", "plug", 1914, "A spinning metal collar on a wooden body."],
+  ["Shakespeare Mouse", "#7a7a7a", "#f4c4c4", "popper", 1930, "Shaped like a mouse with a leather tail."],
+  ["Al's Goldfish", "#f5b82e", "#c9302c", "spoon", 1930, "A gold spoon shaped like a little goldfish."],
+  ["Dardevle Imp", "#3f8f4a", "#f4e04d", "spoon", 1940, "The little brother of the Daredevle."],
+  ["Mister Twister", "#7a4cc2", "#f4f4f4", "jig", 1972, "A curly-tail grub that started a whole craze."],
+  ["Fred Arbogast Frog", "#3f8f4a", "#f4e04d", "popper", 1950, "A rubber frog that kicks across the lily pads."],
+  ["Golden Spoon", "#ffd23f", "#b8860b", "spoon", 1890, "Solid gold, lost on the lake bottom for over 100 years. The treasure map led you to it!"]
+].map(([name, col, col2, shape, year, story], i) => ({ id: i, name, col, col2, shape, year, story }));
+function newVintage(){ const left = VLURES.filter(v => v.id !== 29 && !S.vl.includes(v.id)); return left.length ? left[Math.floor(Math.random() * left.length)] : null; }
+function drawLure(c, v, w, h, sil){
+  c.save(); c.translate(w / 2, h / 2);
+  const C1 = sil ? "#1c2d3b" : v.col, C2 = sil ? "#1c2d3b" : v.col2;
+  c.strokeStyle = sil ? "#1c2d3b" : "#8a959c"; c.lineWidth = 1.5;
+  const hook = (x, y) => { c.beginPath(); c.moveTo(x, y); c.lineTo(x, y + 9); c.arc(x - 3, y + 9, 3, 0, Math.PI); c.stroke(); };
+  if (v.shape === "spoon"){ c.rotate(-.4); c.fillStyle = C1; c.beginPath(); c.ellipse(0, 0, 24, 10, 0, 0, 7); c.fill(); c.fillStyle = C2; for (let k = -1; k <= 1; k++){ c.fillRect(-18 + (k + 1) * 12, -8, 5, 16); } hook(22, 0); }
+  else if (v.shape === "plug"){ c.fillStyle = C1; c.beginPath(); c.ellipse(0, 0, 24, 8, 0, 0, 7); c.fill(); c.fillStyle = C2; c.beginPath(); c.ellipse(-8, -2, 14, 3, 0, 0, 7); c.fill();
+    c.fillStyle = sil ? "#1c2d3b" : "#c8d0d6"; c.beginPath(); c.moveTo(22, 2); c.lineTo(32, 8); c.lineTo(22, 6); c.fill(); c.fillStyle = sil ? "#1c2d3b" : "#111"; c.beginPath(); c.arc(16, -2, 2, 0, 7); c.fill(); hook(-6, 6); hook(10, 6); }
+  else if (v.shape === "popper"){ c.fillStyle = C1; c.beginPath(); c.moveTo(18, -9); c.lineTo(18, 9); c.quadraticCurveTo(-18, 10, -22, 0); c.quadraticCurveTo(-18, -10, 18, -9); c.fill(); c.fillStyle = C2; c.beginPath(); c.arc(8, -1, 4, 0, 7); c.fill(); hook(0, 8); }
+  else if (v.shape === "spinner"){ c.strokeStyle = sil ? "#1c2d3b" : "#8a959c"; c.beginPath(); c.moveTo(-26, 0); c.lineTo(20, 0); c.stroke(); c.fillStyle = C1; c.beginPath(); c.ellipse(-8, -6, 10, 6, -.5, 0, 7); c.fill(); c.fillStyle = C2; c.beginPath(); c.ellipse(8, 0, 8, 4, 0, 0, 7); c.fill(); hook(16, 0); }
+  else { c.fillStyle = C1; c.beginPath(); c.arc(-14, 0, 7, 0, 7); c.fill(); c.fillStyle = C2; for (let k = 0; k < 7; k++){ c.fillRect(-8, -6 + k * 2, 26 + (k % 2) * 4, 1.4); } hook(-14, 4); }
+  c.restore();
+}
+function lureIcon(v, got){ const cv = document.createElement("canvas"); cv.width = 160; cv.height = 80; const c = cv.getContext("2d"); c.scale(2, 2); drawLure(c, v, 80, 40, !got); return cv; }
+function chestExtra(){                                        // chests sometimes hold a vintage lure or a piece of a treasure map
+  const r = Math.random();
+  if (!S.tmap.done && S.tmap.pieces < 4 && r < .25){
+    S.tmap.pieces++;
+    if (S.tmap.pieces === 4){ const lakes = LAKES.filter(l => S.lakes.includes(l.id) && !l.ocean); S.tmap.lake = lakes[Math.floor(Math.random() * lakes.length)].id;
+      return `<div style="font-size:3.5em">🗺️</div><span class="tag trophy">THE MAP IS COMPLETE!</span><h3>X marks the spot!</h3><p>All 4 pieces fit together. The treasure is at the bottom of <b>${lakeById(S.tmap.lake).name}</b>. Take a <b>boat</b> out there and look for a golden glow on the bottom!</p>`; }
+    return `<div style="font-size:3.5em">🗺️</div><span class="tag new">TREASURE MAP!</span><h3>A piece of an old map</h3><p>Piece <b>${S.tmap.pieces} of 4</b>. Find them all to learn where the big treasure is hidden.</p>`;
+  }
+  if (r < .6){ const v = newVintage(); if (v){ S.vl.push(v.id);
+    return `<div id="vlPic"></div><span class="tag new">VINTAGE LURE!</span><h3>${v.name} (${v.year})</h3><p>${v.story}</p><div class="muted">Lure ${S.vl.length} of ${VLURES.length} in your Lodge collection.</div>`; } }
+  return null;
+}
+function openGoldChest(){
+  S.tmap.done = true; S.coins += 500; if (!S.vl.includes(29)) S.vl.push(29); S.treasures = (S.treasures || 0) + 1; save(); SFX.fanfare();
+  infoModal(`<div style="font-size:3.5em">👑🎁</div><span class="tag trophy">THE LOST TREASURE!</span><h3>You found it!</h3><p><b>500 🪙</b> and the legendary <b>Golden Spoon</b> (1890) for your lure collection!</p>`, "WOW!");
+}
+const SPONSOR_PAY = 40, SPONSOR_WINS = 3;
+function sponsorCheck(){
+  const wins = Object.values(S.sd.wins).reduce((a, b) => a + b, 0);
+  if (!S.sponsor && wins >= SPONSOR_WINS){ S.sponsor = true; S.sponsorDay = dayKey(); save();
+    return `<div style="font-size:3.5em">🤝</div><span class="tag trophy">YOU GOT A SPONSOR!</span><h3>Reel Deal Tackle wants YOU</h3><p>After ${SPONSOR_WINS} Showdown wins, Reel Deal Tackle will pay you <b>${SPONSOR_PAY} 🪙 every day</b> you go fishing. Look for their red patch on your vest!</p>`; }
+  return null;
+}
+function postcard(L, got){
+  const cv = document.createElement("canvas"); cv.width = 240; cv.height = 150; const c = cv.getContext("2d"), sc = SCENES[L.id] || SCENES.dixon;
+  const g = c.createLinearGradient(0, 0, 0, 100); g.addColorStop(0, sc.sky[0]); g.addColorStop(1, sc.sky[2]); c.fillStyle = g; c.fillRect(0, 0, 240, 100);
+  const sa = shoreArt(L); c.drawImage(sa, 0, 0, sa.width, sa.height, 0, 100 - SHORE_H * 240 / W, 240, SHORE_H * 240 / W);
+  const wg = c.createLinearGradient(0, 100, 0, 150); wg.addColorStop(0, L.water[0]); wg.addColorStop(1, mixHex(L.water[0], L.water[1], .5)); c.fillStyle = wg; c.fillRect(0, 100, 240, 50);
+  c.strokeStyle = "#fff"; c.lineWidth = 6; c.strokeRect(3, 3, 234, 144);
+  c.fillStyle = "rgba(255,255,255,.85)"; c.font = "bold 15px Trebuchet MS, sans-serif"; c.textAlign = "center"; c.fillText("Greetings from", 120, 122); c.font = "bold 19px Trebuchet MS, sans-serif"; c.fillText(L.name.toUpperCase(), 120, 141);
+  if (!got){ c.fillStyle = "rgba(28,45,59,.85)"; c.fillRect(0, 0, 240, 150); c.fillStyle = "#fff"; c.font = "bold 16px Trebuchet MS, sans-serif"; c.fillText("🔒 " + L.name, 120, 80); }
+  return cv;
+}
+function lodgeExtras(box){
+  // the cabin
+  const cb = document.createElement("div"); cb.className = "card";
+  if (!S.cabin){
+    const lakes = LAKES.filter(l => S.lakes.includes(l.id) && !l.ocean);
+    cb.innerHTML = `<b>🏡 Buy a lake cabin</b> <span class="muted">🪙${CABIN_COST}. Your own cabin and dock at the lake you pick, with upgrades: dock lights, a fish feeder, a bait fridge, a long dock and a boathouse.</span><div class="row" style="flex-wrap:wrap;gap:.4em;margin-top:.4em"></div>`;
+    const row = cb.querySelector(".row");
+    lakes.forEach(L => { const b = document.createElement("button"); b.className = "btn small gold"; b.textContent = L.name; b.disabled = S.coins < CABIN_COST;
+      b.onclick = () => { if (S.coins < CABIN_COST) return; S.coins -= CABIN_COST; S.cabin = { lake: L.id, up: {} }; save(); SFX.fanfare(); toast("🏡 Your cabin at " + L.name + " is ready!", 2600); renderLodge(); }; row.appendChild(b); });
+  } else {
+    const L = lakeById(S.cabin.lake);
+    cb.innerHTML = `<b>🏡 Your cabin at ${L.name}</b> <span class="muted">Fish from your own dock: go to ${L.name} and tap 🪵 Dock.</span>`;
+    CABIN_UPS.forEach(u => { const own = !!S.cabin.up[u.key], d = document.createElement("div"); d.className = "row"; d.style.marginTop = ".4em";
+      d.innerHTML = `<div style="font-size:1.6em;width:1.6em;text-align:center">${u.icon}</div><div class="grow"><b>${u.name}</b><div class="muted">${u.desc}</div></div>`;
+      const b = document.createElement("button"); b.className = "btn small" + (own ? "" : " gold"); b.textContent = own ? "Built ✓" : "🪙" + u.cost; b.disabled = own || S.coins < u.cost;
+      b.onclick = () => { if (own || S.coins < u.cost) return; S.coins -= u.cost; S.cabin.up[u.key] = true; save(); SFX.coin(); toast(u.icon + " " + u.name + " built!"); renderLodge(); };
+      d.appendChild(b); cb.appendChild(d); });
+  }
+  box.appendChild(cb);
+  // cups from Showdowns
+  if (S.sd.cups.length) box.insertAdjacentHTML("beforeend", `<div class="card"><b>🏆 Trophy case</b> <span class="muted">${S.sd.cups.length} Showdown ${S.sd.cups.length > 1 ? "cups" : "cup"}</span><div style="font-size:2em;letter-spacing:.1em">${S.sd.cups.map(c => (SD_TIERS.find(t => t.id === c.tier) || {}).cup).join("")}</div></div>`);
+  // vest and titles
+  const pt = patchesEarned(), vc = document.createElement("div"); vc.className = "card";
+  vc.innerHTML = `<b>🧥 Fishing vest</b> <span class="muted">${pt.length}/${PATCHES.length} patches. Tap one you've earned to wear its title.</span><div class="patches"></div>`;
+  const pg = vc.querySelector(".patches"); pg.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(7.5em,1fr));gap:.4em;margin-top:.4em";
+  PATCHES.forEach(q => { const got = pt.includes(q), b = document.createElement("button"); b.className = "chip"; b.style.cssText = "display:flex;flex-direction:column;align-items:center;padding:.4em;font-size:.8em;" + (S.title === q.id && got ? "outline:3px solid #f5c242;" : "") + (got ? "" : "opacity:.45;");
+    b.innerHTML = `<span style="display:inline-block;width:1.8em;height:1.8em;border-radius:50%;background:${got ? q.col : "#9aa"};border:2px dashed rgba(255,255,255,.8);box-shadow:0 0 0 2px ${got ? shade(q.col, -.3) : "#788"}"></span><b>${q.name}</b><span class="muted">${q.desc}</span>`;
+    b.onclick = () => { SFX.click(); if (!got){ toast("🔒 " + q.desc + " to earn this patch."); return; } S.title = S.title === q.id ? null : q.id; save(); toast(S.title ? "🎖️ Your title: " + q.title : "Title removed"); renderLodge(); };
+    pg.appendChild(b); });
+  box.appendChild(vc);
+  // sponsor
+  box.insertAdjacentHTML("beforeend", `<div class="card"><b>🤝 Sponsor</b> <span class="muted">${S.sponsor ? "Reel Deal Tackle pays you " + SPONSOR_PAY + " 🪙 every day you fish." : "Win " + SPONSOR_WINS + " Showdowns and a tackle company will sponsor you (" + Object.values(S.sd.wins).reduce((a, b) => a + b, 0) + "/" + SPONSOR_WINS + ")."}</span></div>`);
+  // treasure map
+  box.insertAdjacentHTML("beforeend", `<div class="card"><b>🗺️ Treasure map</b> <span class="muted">${S.tmap.done ? "You found the lost treasure! 👑" : S.tmap.pieces >= 4 ? "Complete! The treasure is at the bottom of " + lakeById(S.tmap.lake).name + ". Take a boat there and look for a golden glow." : "Pieces found: " + S.tmap.pieces + "/4. They turn up in treasure chests."}</span>
+    <div style="font-size:2em;letter-spacing:.15em">${[0, 1, 2, 3].map(i => i < S.tmap.pieces ? "🧩" : "▫️").join("")}</div></div>`);
+  // vintage lures
+  const lc = document.createElement("div"); lc.className = "card";
+  lc.innerHTML = `<b>🪝 Vintage lure collection</b> <span class="muted">${S.vl.length}/${VLURES.length}. Found in treasure chests and tangled in snags.</span><div class="dexgrid" style="margin-top:.4em"></div>`;
+  const lg = lc.querySelector(".dexgrid");
+  VLURES.forEach(v => { const got = S.vl.includes(v.id), c = document.createElement("div"); c.className = "dexcell" + (got ? "" : " unk"); c.appendChild(lureIcon(v, got));
+    const n = document.createElement("div"); n.textContent = got ? v.name : "???"; c.appendChild(n);
+    c.onclick = () => { SFX.click(); infoModal(got ? `<h3>🪝 ${v.name}</h3><div class="muted">${v.year}</div><p>${v.story}</p>` : `<h3>A missing lure</h3><p>Keep opening treasure chests and cleaning snags off your line.</p>`, "Close"); };
+    lg.appendChild(c); });
+  box.appendChild(lc);
+  // postcards
+  const pc = document.createElement("div"); pc.className = "card";
+  pc.innerHTML = `<b>📮 Postcards</b> <span class="muted">${Object.keys(S.cards).length}/${LAKES.length}. You get one the first time you fish each place.</span><div class="dexgrid" style="margin-top:.4em"></div>`;
+  const cg = pc.querySelector(".dexgrid");
+  LAKES.forEach(L => { const got = !!S.cards[L.id], c = document.createElement("div"); c.className = "dexcell" + (got ? "" : " unk"); const cv = postcard(L, got); cv.style.width = "100%"; c.appendChild(cv); cg.appendChild(c); });
+  box.appendChild(pc);
+}
+
+// =====================================================================
+//  EVENTS: feeding frenzies, the trout truck, the tagged fish of the week, full moons and storms
+// =====================================================================
+const FRENZY_SECS = 90, TAG_PRIZE = 150;
+const frenzyOn = () => !!(visit && visit.ev && visit.ev.on);
+const stormOn = () => !!(visit && visit.weather && visit.weather.storm);
+// the stocking truck comes to Dixon and Poway on different days
+function stockDay(L){ const d = sdDayNum(); return !!L && ((L.id === "dixon" && d % 4 === 0) || (L.id === "poway" && d % 4 === 2)); }
+// one tagged fish a week, in one of your lakes
+function tagInfo(){
+  const w = Math.floor(sdDayNum() / 7), lakes = LAKES.filter(l => S.lakes.includes(l.id) && (!l.ocean || S.saltRod));
+  if (!lakes.length) return null;
+  const lake = lakes[(w * 5 + 3) % lakes.length], pool = lake.fish.filter(id => !SPECIES[id].legend && SPECIES[id].rar >= 2);
+  return { w, lake, id: pool[(w * 7 + 1) % pool.length], caught: !!(S.tag && S.tag.w === w) };
+}
+// the real moon: full when it's within about 2 days of full
+function moonPhase(){ const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14); return (((Date.now() - ref) / 864e5 / syn) % 1 + 1) % 1; }
+const fullMoon = () => Math.abs(moonPhase() - .5) < .07;
+function evUpdate(T, dt){
+  const E = visit.ev || (visit.ev = { clock: 0, next: rand(5, 9) * 60, on: false, warn: 0, left: 0 });
+  if (visit.mode === "dock" || visit.mode === "boat") visit.truckT = (visit.truckT || 0) + dt;
+  E.clock += dt;
+  if (!E.on && !E.warn && E.clock > E.next){ E.warn = 4; toast("🌊 The water is starting to bubble...", 2600); }
+  else if (E.warn){ E.warn -= dt; if (E.warn <= 0){ E.warn = 0; E.on = true; E.left = FRENZY_SECS; SFX.bigSplash(); toast("🔥 FEEDING FRENZY! Everything is biting!", 2600);
+      for (let i = 0; i < 6; i++){ const f = spawnFishFor(T.lake, rand(40, Math.min(T.bottom - 15, 12 * PPF)), null, smallFor(T.lake, T.mode === "dock")); f.x = rand(40, W - 40); T.fish.push(f); } } }
+  else if (E.on){ E.left -= dt; if (Math.random() < dt * 6) ripple(T, rand(20, W - 20), Math.random() < .3);
+    if (Math.random() < dt * 1.2){ E.jump = { x: rand(60, W - 60), t: 0, sp: SPECIES[T.lake.fish[Math.floor(Math.random() * T.lake.fish.length)]] }; }
+    if (E.jump){ E.jump.t += dt; if (E.jump.t > .9) E.jump = null; }
+    if (E.left <= 0){ E.on = false; E.next = E.clock + rand(6, 10) * 60; toast("The frenzy is over. Phew!", 2000); } }
+}
+function drawEvents(T, sy){
+  const E = visit && visit.ev, st = visit && visit.weather && visit.weather.storm, lines = [];
+  if (E && E.on){ lines.push(["🔥 FEEDING FRENZY " + Math.ceil(E.left) + "s", "#ffb26b"]);
+    if (E.jump && E.jump.sp){ const k = E.jump.t / .9, jx = E.jump.x + k * 40, jy = sy(-Math.sin(Math.PI * k) * 40);   // little fish leaping out of the boil
+      drawFish(ctx, E.jump.sp, jx, jy, 26, 1, T.t, { rot: (k - .5) * 1.8 }); } }
+  if (st){ lines.push(["⚡ STORM: lightning in " + Math.ceil(st.left) + "s", "#ffe38a"]);
+    if (st.flash > .5 && st.bx){ ctx.strokeStyle = "rgba(255,255,230," + st.flash.toFixed(2) + ")"; ctx.lineWidth = 3; ctx.beginPath(); let x = st.bx, y = 0; ctx.moveTo(x, y);
+      while (y < sy(0)){ y += rand(18, 34); x += rand(-14, 14); ctx.lineTo(x, Math.min(y, sy(0))); } ctx.stroke(); } }
+  if (visit && stockDay(visit.lake) && (visit.truckT || 0) < 45 && sy(0) > 60) drawTruck(T, sy(0));
+  if (st && st.flash > 0){ ctx.fillStyle = "rgba(255,255,255," + (st.flash * .45).toFixed(2) + ")"; ctx.fillRect(0, 0, W, H); }
+  lines.forEach(([txt, col], i) => { ctx.font = "bold 14px Trebuchet MS, sans-serif"; const tw = ctx.measureText(txt).width + 22, y = 104 + i * 26;
+    ctx.fillStyle = "rgba(10,25,40,.8)"; roundRect(W / 2 - tw / 2, y, tw, 22, 11); ctx.fill(); ctx.fillStyle = col; ctx.textAlign = "center"; ctx.fillText(txt, W / 2, y + 16); });
+}
+function drawTruck(T, surf){                              // the stocking truck on the shore, pouring trout into the lake
+  const x = W - 150, y = surf - 22, t = T.t;
+  ctx.fillStyle = "#f4f6f8"; ctx.fillRect(x, y - 26, 62, 24); ctx.fillStyle = "#2f6fb8"; ctx.fillRect(x, y - 14, 62, 5);
+  ctx.fillStyle = "#2f6fb8"; ctx.font = "bold 9px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; ctx.fillText("TROUT", x + 31, y - 17);
+  ctx.fillStyle = "#e8eef2"; ctx.fillRect(x + 62, y - 20, 22, 18); ctx.fillStyle = "#8ac4e0"; ctx.fillRect(x + 70, y - 17, 11, 7);
+  ctx.fillStyle = "#222"; for (const wx of [x + 12, x + 46, x + 74]){ ctx.beginPath(); ctx.arc(wx, y - 1, 5, 0, 7); ctx.fill(); }
+  ctx.strokeStyle = "#8a959c"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x, y - 18); ctx.lineTo(x - 26, y + 6); ctx.stroke();   // the pipe
+  ctx.strokeStyle = "rgba(200,230,255,.8)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x - 26, y + 6); ctx.quadraticCurveTo(x - 34, y + 14, x - 36, surf + 2); ctx.stroke();
+  for (let i = 0; i < 2; i++){ const k = ((t * .9 + i * .5) % 1), fx = x - 26 - k * 22, fy = y + 6 + k * k * (surf - y);   // trout tumbling out
+    drawFish(ctx, SPECIES.trout, fx, fy, 22, -1, t, { rot: 1 + k }); }
+}
+function eventsCard(){
+  const out = [], today = LAKES.filter(l => S.lakes.includes(l.id) && stockDay(l)), tg = tagInfo();
+  if (today.length) out.push(`<div class="job"><span>🚚 Trout stocking today at <b>${today.map(l => l.name).join(", ")}</b></span><span>big trout!</span></div>`);
+  if (tg) out.push(`<div class="job${tg.caught ? " done" : ""}"><span>🏷️ Tagged fish this week: a <b>${SPECIES[tg.id].name}</b> in <b>${tg.lake.name}</b></span><span>${tg.caught ? "caught! ✅" : "🪙" + TAG_PRIZE}</span></div>`);
+  if (fullMoon()) out.push(`<div class="job"><span>🌕 Full moon tonight: Night Legends come out more often</span><span></span></div>`);
+  return out.length ? `<div class="card jobs"><b>📣 Happening now</b> <span class="muted">Feeding frenzies and storms can start any time you're fishing.</span><div style="margin-top:.3em">${out.join("")}</div></div>` : "";
+}
+
+// =====================================================================
+//  THE DOCK SHOWDOWN: a timed tournament on a long dock against two rivals
+// =====================================================================
+const SD_SECS = 240;
+const SD_TIERS = [
+  { id:"local",  name:"Local Derby",        lakes:["dixon","poway"],                fee:25,  need:null,     rate:.5,  size:.8,  cup:"🏅" },
+  { id:"county", name:"County Cup",         lakes:["jennings","cuyamaca","elcap"],  fee:75,  need:"local",  rate:.62, size:.9,  cup:"🎖️" },
+  { id:"state",  name:"State Championship", lakes:["otay"],                         fee:200, need:"county", rate:.85, size:1.05, cup:"🏆" }
+];
+const SD_TYPES = { bag:"Heaviest 3-fish bag", kinds:"Most kinds of fish", big:"Biggest single fish", count:"Most fish" };
+const SD_TYPE_ORDER = ["bag", "kinds", "big", "count"];
+const RIVALS = [
+  { name:"Lucky Lou", shirt:"#d9822b", hat:"bucket", rod:"red", rate:1.3, size:.75,
+    hi:"Y'all ready to lose? Heh, just kidding. Mostly.", brag:["Another one!", "Lucky me!", "Ha! Too easy!"], win:"Lucky again! Good fishing, kid.", lose:"Shucks! You out-fished ol' Lou!" },
+  { name:"Grandma June", shirt:"#9a5fb8", hat:"straw", rod:"gold", rate:.6, size:1.15,
+    hi:"Patience, dear. The big ones come to those who wait.", brag:["Oh my, a nice one!", "Patience pays!", "Look at this beauty!"], win:"Thank you for a lovely contest, sweetie.", lose:"My goodness, you're a natural!" },
+  { name:"Tex", shirt:"#b8402c", hat:"cowboy", rod:"black", rate:1, size:1.05,
+    hi:"Back home we call these bait, partner.", brag:["Yee-haw!", "Bigger in Texas!", "Watch and learn!"], win:"That's how it's done, partner!", lose:"Well, I'll be. Tip of the hat to ya." }
+];
+const sdDayNum = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 6e4) / 864e5);
+function sdTier(L){ return SD_TIERS.find(t => t.lakes.includes(L.id)); }
+function sdOpen(t){ return !t.need || (S.sd.wins[t.need] || 0) > 0; }
+function sdType(L){ return SD_TYPE_ORDER[(sdDayNum() + LAKES.indexOf(L)) % SD_TYPE_ORDER.length]; }
+function sdScore(type, fish){
+  if (type === "bag") return fish.map(f => f.lb).sort((a, b) => b - a).slice(0, 3).reduce((s, x) => s + x, 0);
+  if (type === "kinds") return new Set(fish.map(f => f.id)).size + Math.min(.99, fish.reduce((s, f) => s + f.lb, 0) / 100);   // ties go to total weight
+  if (type === "big") return fish.reduce((m, f) => Math.max(m, f.lb), 0);
+  return fish.length;
+}
+function sdFmt(type, v){ return type === "kinds" ? Math.floor(v) + (Math.floor(v) === 1 ? " kind" : " kinds") : type === "count" ? v + (v === 1 ? " fish" : " fish") : v.toFixed(1) + " lb"; }
+// a brother or sister in the family can be your rival: they fish with their real best catches
+function siblingRival(L){
+  const me = LL.player(); if (!me || !LL.players) return null;
+  const pool = LL.players().filter(p => p.id !== me.id && p.game && p.game.dex).map(p => ({ p, fish: Object.entries(p.game.dex).filter(([id]) => L.fish.includes(id) && SPECIES[id] && !SPECIES[id].legend).map(([id, d]) => ({ id, best: d.best })) })).filter(x => x.fish.length >= 2);
+  if (!pool.length) return null;
+  const x = pool[Math.floor(Math.random() * pool.length)], g = x.p.game, lk = Object.assign({ hat:"cap", rod:"black" }, g.look);
+  return { name: x.p.name, shirt: x.p.color || "#3f88bd", hat: lk.hat, rod: lk.rod, rate: 1, size: 1, ghost: x.fish, sib: true,
+    hi: "I'm fishing with " + x.p.name + "'s real best catches. Can you beat them?", brag: ["Got one!", "Beat that!", "Ha!"], win: x.p.name + " wins this time!", lose: "You beat " + x.p.name + "'s best!" };
+}
+function showdownOffer(L){
+  const t = sdTier(L);
+  if (!sdOpen(t)){ const nt = SD_TIERS.find(x => x.id === t.need);
+    infoModal(`<div style="font-size:3em">🔒🏆</div><h3>${t.name}</h3><p>Win a <b>${nt.name}</b> first (at ${nt.lakes.map(id => lakeById(id).name).join(" or ")}) to get into the ${t.name}.</p>`, "OK"); return; }
+  const type = sdType(L), wins = S.sd.wins[t.id] || 0;
+  const html = `<div style="font-size:3em">🏆🎣</div><span class="tag trophy">${t.cup} ${t.name.toUpperCase()}</span><h3>${L.name} Showdown</h3>
+    <p>Today's contest: <b>${SD_TYPES[type]}</b><br>⏱️ 4 minutes of fishing on the long dock against 2 rivals. Every fish you land counts (catch and release).</p>
+    <p>🎟️ Entry <b>${t.fee} 🪙</b> · 🥇 Win <b>${t.fee * 3} 🪙</b> + a ${t.cup} cup · 🥈 your entry back</p>
+    <div class="muted">${wins ? "You've won " + wins + (wins > 1 ? " times" : " time") + " at this level." : "The contest changes every day."}</div>`;
+  if (S.coins < t.fee) infoModal(html.replace("🎟️ Entry <b>", "🎟️ You need <b>"), "OK");
+  else infoModal(html, "Not now", null, { text: "Enter! (" + t.fee + " 🪙)", fn: () => startShowdown(L) });
+}
+function startShowdown(L){
+  const t = sdTier(L); if (S.coins < t.fee || (L.ocean && !S.saltRod)) return;
+  S.coins -= t.fee; S.sd.played++; SFX.coin();
+  const pool = RIVALS.slice().sort(() => Math.random() - .5), sib = Math.random() < .6 ? siblingRival(L) : null;
+  const picks = sib ? [pool[0], sib] : pool.slice(0, 2);
+  const type = sdType(L);
+  const rivals = picks.map((r, i) => ({ def: r, fish: [], score: 0, next: rand(15, 40) / (t.rate * r.rate), st: "wait", stT: 0, said: 0,
+    T: { mode: "dock", lake: L, ax: i ? W * .74 : W * .52, who: { shirt: r.shirt, hat: r.hat, rod: r.rod }, t: rand(0, 5), phase: "drop", caught: [], hook: { x: 0, y: 0 }, upSpeed: 0 } }));
+  visit = { lake: L, mode: "dock", sd: { tier: t, type, left: SD_SECS, el: 0, rivals, mine: [], boss: false } }; S.lastLake = L.id; save();
+  startTrip(L, 0, "dock");
+  rivals.forEach((r, i) => setTimeout(() => { if (trip && visit && visit.sd) pop(r.T.ax, -95 - i * 22, r.def.name + ": “" + r.def.hi + "”", "#fff7d6", 14); }, 600 + i * 2200));
+  toast("🏆 " + SD_TYPES[type] + " · 4 minutes. GO!", 2600);
+}
+function sdDockLen(){ return Math.min(W - 20, W * .74 + 70); }
+function rivalCatch(r, sd, T){
+  const t = sd.tier; let id, inches;
+  if (r.def.ghost && Math.random() < .85){ const g = r.def.ghost[Math.floor(Math.random() * r.def.ghost.length)]; id = g.id; inches = g.best * rand(.55, .95); }
+  else { const f = spawnFishFor(T.lake, rand(70, T.bottom - 15), null, true); id = f.id; inches = clamp(f.inches * t.size * r.def.size, SPECIES[id].min, SPECIES[id].max); }
+  const sp = SPECIES[id], lb = weightLb(sp, inches);
+  r.fish.push({ id, lb }); r.score = sdScore(sd.type, r.fish);
+  r.st = "reel"; r.stT = 0; r.catchSp = sp; r.catchIn = inches; r.lb = lb;
+}
+function sdUpdate(T, dt){
+  const sd = visit.sd;
+  if (!sd.done){ sd.left -= dt; sd.el += dt; }
+  for (const r of sd.rivals){
+    const R = r.T; R.t += dt; R.lastDt = dt; r.stT += dt;
+    const hx = R.ax + 58, depth = 9 * PPF;
+    if (r.st === "wait"){ R.phase = "drop"; R.caught = []; R.upSpeed = 0; R.hook = { x: hx, y: depth };
+      if (!sd.done && sd.el >= r.next){ rivalCatch(r, sd, T); r.next = sd.el + rand(.6, 1.5) * 60 / (sd.tier.rate * r.def.rate); } }
+    else if (r.st === "reel"){ R.phase = "reel"; R.caught = [1]; R.upSpeed = 60; R.hook = { x: hx, y: depth * Math.max(0, 1 - r.stT / 1.4) };
+      if (r.stT > 1.4){ r.st = "show"; r.stT = 0; splashAt(T, hx, 0, 10);
+        const say = Math.random() < .35 ? " " + r.def.brag[Math.floor(Math.random() * r.def.brag.length)] : "", ri = sd.rivals.indexOf(r);
+        pop(R.ax, -80 - ri * 14, r.def.name + " +" + fmtLb(r.lb) + "!" + say, "#ffe9a8", 15); } }
+    else if (r.st === "show"){ R.phase = "done"; R.caught = [1]; R.upSpeed = 0; R.hook = { x: hx, y: -6 }; if (r.stT > 1.6){ r.st = "cast"; r.stT = 0; R.castT = 0; } }
+    else if (r.st === "cast"){ R.phase = "cast"; R.caught = []; R.castT = r.stT; R.hook = { x: hx, y: 0 }; if (r.stT > .7){ r.st = "wait"; r.stT = 0; } }
+    anglerPose(R);
+  }
+  if (sd.left <= 0 && !sd.done){
+    sd.left = 0;
+    if (T.phase === "ready" || T.phase === "cast" || T.phase === "drop" || T.fouled){ sd.done = true; trip = null; sdFinish(); }
+    else if (!sd.buzzer){ sd.buzzer = true; pop(W / 2, -120, "⏰ TIME! Land this last one!", "#ffd0c8", 20); SFX.thunk(); }
+  }
+}
+function drawRivals(T, sy, surf){
+  for (const r of visit.sd.rivals){
+    const R = r.T; if (!R.pose) anglerPose(R);
+    drawAngler(R, sy, surf);
+    const P = R.pose, tip = { x: P.tip.x, y: sy(P.tip.y) };
+    ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = 1;
+    if (r.st === "wait"){                                                   // line to a bobber, bobbing on the waves
+      const bx = R.hook.x, by = surf + waveAt(bx, T.t) + Math.sin(T.t * 2 + bx) * 1.2;
+      ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.quadraticCurveTo((tip.x + bx) / 2, Math.max(tip.y, by) - 4, bx, by); ctx.stroke();
+      ctx.strokeStyle = "rgba(255,255,255,.3)"; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx, sy(R.hook.y)); ctx.stroke();
+      ctx.fillStyle = "#e23b2e"; ctx.beginPath(); ctx.arc(bx, by - 2, 4, Math.PI, 0); ctx.fill(); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(bx, by - 2, 4, 0, Math.PI); ctx.fill();
+    } else if (r.st === "reel"){                                            // the fish comes up on a tight line
+      const hy = sy(R.hook.y); ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.lineTo(R.hook.x, hy); ctx.stroke();
+      drawFish(ctx, r.catchSp, R.hook.x, hy + 8, clamp(fishPx(r.catchSp, r.catchIn), 22, 70), Math.sin(T.t * 9) > 0 ? 1 : -1, T.t * 2, { rot: -1.2 });
+    } else if (r.st === "show"){                                            // held up for everyone to see
+      const fy = tip.y + 16; ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.lineTo(tip.x, fy - 6); ctx.stroke();
+      drawFish(ctx, r.catchSp, tip.x, fy + 6, clamp(fishPx(r.catchSp, r.catchIn), 22, 70), 1, T.t, { rot: -1.45 });
+    }
+    ctx.fillStyle = "rgba(10,25,40,.6)"; ctx.font = "bold 11px Trebuchet MS, sans-serif"; ctx.textAlign = "center";   // name tag
+    const nm = r.def.name, tw = ctx.measureText(nm).width + 10, ny = sy(R.pose.b.feet) + 14;
+    roundRect(R.ax - tw / 2, ny, tw, 15, 7); ctx.fill(); ctx.fillStyle = "#fff"; ctx.fillText(nm, R.ax, ny + 11);
+  }
+}
+function sdStandings(sd){
+  const me = (window.LL && LL.player()) || {};
+  return [{ name: "You", you: true, score: sdScore(sd.type, sd.mine), n: sd.mine.length }].concat(sd.rivals.map(r => ({ name: r.def.name, score: r.score, n: r.fish.length, r })))
+    .sort((a, b) => b.score - a.score || (a.you ? -1 : 1));
+}
+function drawScoreboard(sd){
+  const rows = sdStandings(sd), w = 196, wide = W >= 700, x = wide ? W / 2 - w / 2 : W - w - 8, y = wide ? 10 : 140, m = Math.floor(sd.left / 60), s2 = Math.floor(sd.left % 60);
+  ctx.fillStyle = "rgba(10,25,40,.78)"; roundRect(x, y, w, 24 + rows.length * 19, 10); ctx.fill();
+  ctx.textAlign = "left"; ctx.font = "bold 12px Trebuchet MS, sans-serif"; ctx.fillStyle = sd.left < 30 ? (Math.sin(performance.now() / 120) > 0 ? "#ff8a7a" : "#fff") : "#ffe38a";
+  ctx.fillText("⏱ " + m + ":" + String(s2).padStart(2, "0") + "  " + SD_TYPES[sd.type], x + 9, y + 16);
+  rows.forEach((r, i) => { const ry = y + 34 + i * 19;
+    if (r.you){ ctx.fillStyle = "rgba(125,255,184,.18)"; ctx.fillRect(x + 4, ry - 13, w - 8, 18); }
+    ctx.fillStyle = r.you ? "#7dffb8" : "#fff"; ctx.font = (r.you ? "bold " : "") + "12px Trebuchet MS, sans-serif";
+    ctx.fillText(["🥇", "🥈", "🥉"][i] + " " + r.name, x + 9, ry); ctx.textAlign = "right"; ctx.fillText(sdFmt(sd.type, r.score), x + w - 9, ry); ctx.textAlign = "left"; });
+}
+function sdFinish(){
+  const sd = visit && visit.sd; if (!sd) return;
+  sd.done = true; trip = null;
+  const rows = sdStandings(sd), place = rows.findIndex(r => r.you) + 1, t = sd.tier, L = visit.lake;
+  let prize = 0, extra = "";
+  const wasOpen = SD_TIERS.filter(x => sdOpen(x)).length;
+  if (place === 1){ prize = t.fee * 3; S.sd.wins[t.id] = (S.sd.wins[t.id] || 0) + 1; S.sd.cups.push({ tier: t.id, lake: L.id, type: sd.type, t: Date.now() }); S.sd.cups = S.sd.cups.slice(-40); SFX.fanfare(); }
+  else if (place === 2){ prize = t.fee; SFX.land(); }
+  else { prize = 5; }
+  S.coins += prize;
+  const nowOpen = SD_TIERS.filter(x => sdOpen(x)).length;
+  if (nowOpen > wasOpen) extra = `<div style="margin-top:.4em">🔓 <b>${SD_TIERS[nowOpen - 1].name}</b> is open now!</div>`;
+  const rv = sd.rivals.map(r => { const beat = rows.findIndex(x => x.r === r) > place - 1; return `<div class="muted">${r.def.name}: “${beat ? r.def.lose : r.def.win}”</div>`; }).join("");
+  const table = rows.map((r, i) => `<div style="display:flex;justify-content:space-between;gap:1em;padding:.15em .4em;border-radius:6px;${r.you ? "background:#dff5e6;font-weight:bold" : ""}"><span>${["🥇", "🥈", "🥉"][i]} ${r.name}</span><span>${sdFmt(sd.type, r.score)} · ${r.n} fish</span></div>`).join("");
+  const head = place === 1 ? `<div style="font-size:3.2em">🏆</div><span class="tag trophy">YOU WON THE ${t.name.toUpperCase()}!</span>` : place === 2 ? `<div style="font-size:3em">🥈</div><span class="tag new">SECOND PLACE!</span>` : `<div style="font-size:3em">🎣</div><span class="tag">THIRD PLACE</span>`;
+  const boss = sd.boss;
+  delete visit.sd; save();
+  infoModal(`${head}<h3>${L.name} Showdown</h3><div style="text-align:left">${table}</div>${rv}<p><b>+${prize} 🪙</b>${place === 1 ? " and a cup for your Lodge!" : place === 2 ? " (your entry back)" : " for taking part"}</p>${extra}`,
+    "Keep fishing", () => { const sp = sponsorCheck(), go = () => { if (boss) bossOffer(L, continueVisit); else continueVisit(); }; if (sp) infoModal(sp, "Awesome!", go); else go(); }, { text: "🏁 Back to the lakes", fn: () => { trip = null; visit = null; showScreen("map"); const sp = sponsorCheck(); if (sp) infoModal(sp, "Awesome!"); } });
+}
+function ladderCard(){
+  const cups = S.sd.cups || [];
+  const rows = SD_TIERS.map(t => { const open = sdOpen(t), w = S.sd.wins[t.id] || 0;
+    return `<div class="job${w ? " done" : ""}"><span>${open ? t.cup : "🔒"} ${t.name} <span class="muted">${t.lakes.map(id => lakeById(id).name.replace("Lake ", "")).join(", ")}</span></span><span>${w ? w + (w > 1 ? " wins" : " win") : open ? "🪙" + t.fee : "locked"}</span></div>`; }).join("");
+  return `<div class="card jobs"><b>🏆 Showdown ladder</b> <span class="muted">4-minute contests against rivals on the long dock. Tap 🏆 Showdown on a lake.</span>
+    <div style="margin-top:.3em">${rows}</div>${cups.length ? `<div class="muted" style="margin-top:.3em">Your cups: ${cups.map(c => (SD_TIERS.find(t => t.id === c.tier) || {}).cup).join("")}</div>` : ""}</div>`;
+}
+
 // ---- Brag shot: your angler holds up the catch, the scale spins up to its weight ----
 // the angler holding a fish up with both hands (the hands are a second layer, drawn over the fish)
 function holdSvg(col, hands){
@@ -2728,6 +3257,8 @@ function bragCard(L, f, stamp){
 function legendPic(sp){ const lp = $("legPic"); if (!lp) return; const ic = fishIcon(sp, 300, 150); ic.style.maxWidth = "16em"; ic.style.margin = "0 auto"; lp.appendChild(ic); }
 // a treasure chest came up on the line
 function openChest(){
+  const extra = chestExtra(); if (extra){ S.treasures = (S.treasures || 0) + 1; save(); SFX.land(); infoModal(extra, "Sweet!");
+    const vp = $("vlPic"); if (vp){ const ic = lureIcon(VLURES[S.vl[S.vl.length - 1]], true); ic.style.width = "10em"; vp.appendChild(ic); } return; }
   const pr = chestPrize(); let txt;
   if (pr.coins){ S.coins += pr.coins; txt = `<b>${pr.coins} 🪙</b> inside!`; }
   else if (pr.worms){ S.baitCount.worm = (S.baitCount.worm || 0) + pr.worms; if (!S.baits.includes("worm")) S.baits.push("worm"); txt = `<b>${pr.worms} worms</b>, still wiggling!`; }
@@ -2770,7 +3301,7 @@ function applyPending(){
   P.items.forEach(it => { if (SPECIES[it.f.id] && !it.f.nightLegend){ S.lakeDex = S.lakeDex || {}; (S.lakeDex[L.id] = S.lakeDex[L.id] || {})[it.f.id] = 1; } });
   const bd = BOSSES[L.id];
   if (!S.bosses[L.id] && now >= lim){
-    if (kindsAt(L) >= kindsNeed(L)){ S.day = { lake: L.id, kept: [] }; q.push(nx => bossOffer(L, nx)); }
+    if (kindsAt(L) >= kindsNeed(L)){ S.day = { lake: L.id, kept: [] }; if (visit && visit.sd) visit.sd.boss = true; else q.push(nx => bossOffer(L, nx)); }
     else if (before < lim) q.push(nx => infoModal(`<div style="font-size:3em">🧺</div><h3>Limit reached!</h3><p>${bd.name} is watching... but won't come out until you've caught <b>${kindsNeed(L)} different kinds of fish</b> at ${L.name}. You have <b>${kindsAt(L)}</b>.</p><div class="muted">Try other baits, other depths, the boat, or fishing at night.</div>`, "I'm on it!", nx));
   } else if (before < lim && now >= lim){
     if (S.bosses[L.id]){
@@ -3072,9 +3603,9 @@ function drawSky(surf, t, L, n = 0, k = 0){
     ctx.fillStyle = "#fff";
     for (let i = 0; i < 46; i++){ ctx.globalAlpha = n * (.35 + .55 * Math.abs(Math.sin(t * (.5 + prand(i, 31)) + i))); ctx.fillRect(prand(i, 32) * W, surf - 240 + prand(i, 33) * 170, 1.6, 1.6); }
     ctx.globalAlpha = n;
-    const mx = 90, my = surf - 175, mg = ctx.createRadialGradient(mx, my, 4, mx, my, 60);
-    mg.addColorStop(0, "rgba(220,235,255,.5)"); mg.addColorStop(1, "rgba(220,235,255,0)"); ctx.fillStyle = mg; ctx.fillRect(mx - 60, my - 60, 120, 120);
-    ctx.fillStyle = "#f4f1e0"; ctx.beginPath(); ctx.arc(mx, my, 13, 0, 7); ctx.fill();
+    const fm = fullMoon(), mr = fm ? 20 : 13, gr = fm ? 110 : 60, mx = 90, my = surf - 175, mg = ctx.createRadialGradient(mx, my, 4, mx, my, gr);
+    mg.addColorStop(0, fm ? "rgba(235,240,255,.75)" : "rgba(220,235,255,.5)"); mg.addColorStop(1, "rgba(220,235,255,0)"); ctx.fillStyle = mg; ctx.fillRect(mx - gr, my - gr, gr * 2, gr * 2);
+    ctx.fillStyle = "#f4f1e0"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, 7); ctx.fill();
     ctx.fillStyle = "rgba(180,175,160,.5)"; ctx.beginPath(); ctx.arc(mx - 4, my - 3, 3, 0, 7); ctx.arc(mx + 5, my + 4, 2.2, 0, 7); ctx.fill();
     ctx.globalAlpha = 1;
   }
@@ -3104,7 +3635,14 @@ function drawSky(surf, t, L, n = 0, k = 0){
   });
   ctx.globalAlpha = 1;
 }
-function drawDock(surf, t){
+function drawDock(surf, t, len = 218){
+  if (len > 218){                                                    // tournament day: the dock runs out much farther
+    for (let px = 260; px < len; px += 65){ const pg = ctx.createLinearGradient(px - 4, 0, px + 4, 0); pg.addColorStop(0, "#4a3320"); pg.addColorStop(.5, "#7a5634"); pg.addColorStop(1, "#3e2a19");
+      ctx.fillStyle = pg; ctx.fillRect(px - 4, surf - 10, 8, 70); ctx.fillStyle = "rgba(40,70,30,.6)"; ctx.fillRect(px - 4, surf + 2, 8, 20); }
+    for (let bx = 218; bx < len; bx += 13){ const g = ctx.createLinearGradient(0, surf - 15, 0, surf - 5); g.addColorStop(0, "#b48a5c"); g.addColorStop(1, "#7f5c3a"); ctx.fillStyle = g; ctx.fillRect(bx, surf - 15, 12, 10); }
+    ctx.fillStyle = "#5a3f25"; ctx.fillRect(218, surf - 6, len - 218, 3); ctx.fillStyle = "rgba(60,40,25,.18)"; ctx.fillRect(218, surf + 1, len - 218, 8);
+    ctx.fillStyle = "#c9302c"; ctx.fillRect(len - 30, surf - 44, 2, 30); ctx.fillStyle = "#f5c242"; ctx.beginPath(); ctx.moveTo(len - 28, surf - 44); ctx.lineTo(len - 12, surf - 39); ctx.lineTo(len - 28, surf - 34); ctx.fill();   // tournament pennant
+  }
   // bank
   ctx.fillStyle = "#8a7550"; ctx.beginPath(); ctx.moveTo(0, surf - 34); ctx.quadraticCurveTo(28, surf - 30, 46, surf); ctx.lineTo(0, surf); ctx.fill();
   ctx.fillStyle = "#5f7a3a"; ctx.beginPath(); ctx.moveTo(0, surf - 36); ctx.quadraticCurveTo(22, surf - 36, 30, surf - 28); ctx.lineTo(0, surf - 30); ctx.fill();
@@ -3190,7 +3728,8 @@ function drawCharter(bx, by, t){
 }
 function drawBoat(bx, by){
   // your boat: an aluminum jon boat (rented or your own) or a bass boat, in your paint color
-  const pc = (PAINTS[look().paint] || PAINTS.silver).col, bass = S.boatOwn >= 2;
+  const pc = (PAINTS[look().paint] || PAINTS.silver).col, bass = S.boatOwn === 2;
+  if (S.boatOwn >= 3) return drawPontoon(bx, by, pc);
   const g = ctx.createLinearGradient(0, by - 15, 0, by + 7);
   g.addColorStop(0, pc ? shade(pc, .3) : "#d4dadf"); g.addColorStop(.45, pc ? pc : "#9aa5ad"); g.addColorStop(1, pc ? shade(pc, -.4) : "#5d6870");
   ctx.fillStyle = g; ctx.beginPath();
@@ -3228,7 +3767,7 @@ function drawBoat(bx, by){
 }
 // ---- The angler: a bigger, animated fisher who winds up, casts, cranks, leans into fights and cheers ----
 const AK = 1.45, ROD_LEN = 82, ROD_IDLE = 52 * Math.PI / 180;
-function anglerBase(T){ const oc = T.lake && T.lake.ocean;
+function anglerBase(T){ if (T.ax != null) return { ax: T.ax, feet: -14 }; const oc = T.lake && T.lake.ocean;
   if (T.mode === "dock") return { ax: 150, feet: oc ? -56 : -14 }; return { ax: W/2 + 7, feet: Math.sin((T.t || 0) * (oc ? 1.3 : 2)) * (oc ? 3 : 1.5) - 14 }; }   // world coords of the feet
 const gripLocal = { x: 9, y: -17 };
 function toWorld(b, lean, x, y){ const c = Math.cos(lean), s = Math.sin(lean), X = x * AK, Y = y * AK; return { x: b.ax + X*c - Y*s, y: b.feet + X*s + Y*c }; }
@@ -3260,7 +3799,7 @@ function anglerPose(T){
 }
 function drawAngler(T, sy, surf){
   const P = T.pose || anglerPose(T), b = P.b, onBoat = T.mode !== "dock", sk = "#e9b98f", skD = "#d59f74";
-  const shirt = (window.LL && LL.player() && LL.player().color) || "#3f88bd";
+  const who = T.who, shirt = who ? who.shirt : (window.LL && LL.player() && LL.player().color) || "#3f88bd";
   const W2S = (x, y) => { const w = toWorld(b, P.lean, x, y); return { x: w.x, y: sy(w.y) }; };
   ctx.save(); ctx.translate(b.ax, sy(b.feet)); ctx.rotate(P.lean); ctx.scale(AK, AK);
   ctx.lineCap = "round"; ctx.lineJoin = "round";
@@ -3278,7 +3817,12 @@ function drawAngler(T, sy, surf){
     ctx.fillStyle = "#f07a1e"; ctx.beginPath(); ctx.moveTo(-7.5, -13); ctx.lineTo(-7.2, -25); ctx.quadraticCurveTo(-4, -28, -1.5, -27); ctx.lineTo(-1.5, -13); ctx.closePath(); ctx.fill();
     ctx.beginPath(); ctx.moveTo(7.5, -13); ctx.lineTo(7.2, -25); ctx.quadraticCurveTo(4, -28, 1.5, -27); ctx.lineTo(1.5, -13); ctx.closePath(); ctx.fill();
     ctx.fillStyle = "#2b2b2b"; ctx.fillRect(-7.5, -18, 15, 1.2); ctx.fillRect(-7.5, -15, 15, 1.2);
-  } else { ctx.fillStyle = "rgba(255,255,255,.25)"; ctx.beginPath(); ctx.moveTo(-2.5, -28); ctx.lineTo(0, -25); ctx.lineTo(2.5, -28); ctx.fill(); }   // collar
+  } else { ctx.fillStyle = "rgba(255,255,255,.25)"; ctx.beginPath(); ctx.moveTo(-2.5, -28); ctx.lineTo(0, -25); ctx.lineTo(2.5, -28); ctx.fill();   // collar
+    if (!who){ const pt = patchesEarned(); if (pt.length){                                            // your fishing vest, covered in patches
+      ctx.fillStyle = "#b9a46a"; ctx.beginPath(); ctx.moveTo(-7.5, -13); ctx.lineTo(-7.2, -25); ctx.quadraticCurveTo(-4, -28, -2, -27); ctx.lineTo(-2, -13); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(7.5, -13); ctx.lineTo(7.2, -25); ctx.quadraticCurveTo(4, -28, 2, -27); ctx.lineTo(2, -13); ctx.closePath(); ctx.fill();
+      pt.slice(0, 6).forEach((q, i) => { ctx.fillStyle = q.col; ctx.beginPath(); ctx.arc(i % 2 ? 4.8 : -4.8, -24 + Math.floor(i / 2) * 3.4, 1.3, 0, 7); ctx.fill(); }); }
+      if (S.sponsor){ ctx.fillStyle = "#c9302c"; ctx.fillRect(-1.6, -23, 3.2, 2.4); } } }
   ctx.fillStyle = "#3a2a1c"; ctx.fillRect(-7.5, -13.5, 15, 1.6);         // belt
   // head
   ctx.fillStyle = sk; ctx.beginPath(); ctx.arc(0, -35, 6.6, 0, 7); ctx.fill();
@@ -3287,10 +3831,10 @@ function drawAngler(T, sy, surf){
   ctx.fillStyle = sk; ctx.beginPath(); ctx.arc(6.3, -34.3, 1.6, 0, 7); ctx.fill();                                                            // nose
   ctx.fillStyle = "#0f2a3d"; ctx.beginPath(); ctx.arc(3.4, -36.2, .95, 0, 7); ctx.fill();                                                     // eye
   ctx.strokeStyle = "#7a3a2a"; ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(3.6, -32.6, P.cheer > .5 ? 2 : 1.4, .2, P.cheer > .5 ? 2.6 : 1.9); ctx.stroke();   // smile (a big one when cheering)
-  drawHat(ctx, look().hat, 0, -35, 6.6);
+  drawHat(ctx, who ? who.hat : look().hat, 0, -35, 6.6);
   ctx.restore();
   // the rod: cork handle, reel underneath, a blank that bends toward the fish
-  const rc = rodPaint(ctx, look().rod, P.g.x, sy(P.g.y), P.tip.x, sy(P.tip.y)), g = { x: P.g.x, y: sy(P.g.y) }, t0 = { x: P.t0.x, y: sy(P.t0.y) }, tip = { x: P.tip.x, y: sy(P.tip.y) };
+  const rc = rodPaint(ctx, who ? who.rod : look().rod, P.g.x, sy(P.g.y), P.tip.x, sy(P.tip.y)), g = { x: P.g.x, y: sy(P.g.y) }, t0 = { x: P.t0.x, y: sy(P.t0.y) }, tip = { x: P.tip.x, y: sy(P.tip.y) };
   const ux = Math.cos(P.th), uy = -Math.sin(P.th), butt = { x: g.x - ux * 12, y: g.y - uy * 12 }, ctl = { x: g.x + (t0.x - g.x) * .55, y: g.y + (t0.y - g.y) * .55 };
   ctx.lineCap = "round";
   ctx.strokeStyle = rc; ctx.lineWidth = 3.2; ctx.beginPath(); ctx.moveTo(butt.x, butt.y); ctx.lineTo(g.x + ux * 14, g.y + uy * 14); ctx.stroke();
@@ -3353,7 +3897,11 @@ function renderScene(T, idle){
     rf.addColorStop(0, "rgba(70,95,60,.35)"); rf.addColorStop(1, "rgba(70,95,60,0)");
     ctx.fillStyle = rf; ctx.fillRect(0, surf, W, 26);
     let ax, feet;
-    if (T.mode === "dock"){ if (L.ocean) drawPier(surf, T.t); else drawDock(surf, T.t); ax = 150; feet = surf + anglerBase(T).feet; }
+    if (T.mode === "dock"){ const sd = T === trip && visit && visit.sd, home = T === trip && cabinAt(L);
+      if (home) drawCabin(surf, T.t, night);
+      if (L.ocean) drawPier(surf, T.t); else drawDock(surf, T.t, sd ? sdDockLen() : home && S.cabin.up.longdock ? 300 : 218); ax = 150; feet = surf + anglerBase(T).feet;
+      if (home) drawCabinDock(surf, T.t, night);
+      if (sd) drawRivals(T, sy, surf); }
     else {
       const bx = W/2 + 20, by = surf + (L.ocean ? Math.sin(T.t*1.3)*3 : Math.sin(T.t*2)*1.5), trolling = T.phase === "troll";
       if (trolling){                                          // foamy wake trailing off the stern
@@ -3367,6 +3915,7 @@ function renderScene(T, idle){
         ctx.fillStyle = "#2a2f33"; ctx.fillRect(bx + 53, by - 13, 3, trolling ? 16 : 12); }
       ax = bx - 13; feet = by - 14;
     }
+    if (T === trip && visit && S.holder && !T.boss && !visit.sd) drawHolder(T, sy, surf);
     if (T !== trip || !T.pose) anglerPose(T);          // a trip updates its own pose each frame
     drawAngler(T, sy, surf);
     if (night > .05){                                   // a lantern lights up the dock or the boat
@@ -3436,6 +3985,8 @@ function renderScene(T, idle){
     f.tt = (f.tt || 0) + fdt * (f.fleeT > 0 ? 2.4 : f.chasing || f.nibbling ? 1.6 : f.pauseT > 0 ? .45 : .9 + (f.cur || 0) / 60);
     const jab = (f.jab || 0) * 6 * (f.nibbling ? 1 : 0);
     drawFish(ctx, f.sp, f.x + jab * f.dir, y, f.L, f.dir, f.tt, { phase:f.phase, face:f.face, bend: f.fleeT > 0 ? 1.6 : f.pauseT > 0 ? .4 : 1 });
+    if (f.tagged){ const tx = f.x + jab * f.dir - f.dir * f.L * .05, ty = y - f.L * .16; ctx.strokeStyle = "#ffd23f"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(tx, ty + 3); ctx.lineTo(tx - f.dir * 3, ty - 4); ctx.stroke();
+      ctx.fillStyle = "#ffd23f"; ctx.fillRect(tx - f.dir * 3 - 4, ty - 8, 8, 5); ctx.fillStyle = "#c0392b"; ctx.fillRect(tx - f.dir * 3 - 1, ty - 7, 2, 3); }
     if (f.boss){ ctx.font = "bold 16px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0,0,0,.6)"; ctx.strokeText("⚔️ " + f.sp.name, f.x, y - f.L*.35 - 8); ctx.fillStyle = "#ffd0c8"; ctx.fillText("⚔️ " + f.sp.name, f.x, y - f.L*.35 - 8); } }
   if (idle) return;
   drawFog(T, sy, T.hook.x, sy(T.hook.y));
@@ -3489,8 +4040,10 @@ function renderScene(T, idle){
   ctx.globalAlpha = 1;
   drawWild(T, sy);
   drawRain(T.lastDt || 1/60);
-  if (S.finder && T.mode === "boat") drawFinder(T);
+  if (T === trip) drawEvents(T, sy);
+  if ((S.finder && T.mode === "boat") || (S.finderPro && T.mode === "dock")) drawFinder(T);
   if (F) drawFightUI(F);
+  if (T === trip && visit && visit.sd) drawScoreboard(visit.sd);
 }
 
 // far underwater: dim rock ridges and schools of little fish, moving slower than the foreground (depth)
@@ -3601,7 +4154,8 @@ function drawSnag(s, y, t){
   if (s.type==="log"){ ctx.rotate(s.rot); const lg = ctx.createLinearGradient(0, -s.h/2, 0, s.h/2); lg.addColorStop(0, "#7c5a3a"); lg.addColorStop(.5, "#5e4128"); lg.addColorStop(1, "#3a2817"); ctx.fillStyle = lg; ctx.fillRect(-s.w/2, -s.h/2, s.w, s.h);
     ctx.fillStyle = "rgba(60,90,40,.35)"; ctx.fillRect(-s.w/2, -s.h/2, s.w, 3); ctx.fillStyle = "#8a6440"; ctx.beginPath(); ctx.ellipse(s.w/2, 0, 6, s.h/2, 0, 0, 7); ctx.fill(); ctx.strokeStyle = "#4e331c"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-s.w/2+10, -3); ctx.lineTo(s.w/2-20, -3); ctx.moveTo(-s.w/2+25, 5); ctx.lineTo(s.w/2-10, 5); ctx.stroke(); ctx.fillStyle = "#6e4a2a"; ctx.fillRect(-10, -s.h/2-14, 5, 16); }
   if (s.type==="chest"){
-    ctx.fillStyle = "#6e4320"; ctx.fillRect(-s.w/2, -s.h/2 + 6, s.w, s.h - 6);
+    if (s.gold){ const gg = ctx.createRadialGradient(0, 0, 4, 0, 0, 70); gg.addColorStop(0, "rgba(255,225,120,.55)"); gg.addColorStop(1, "rgba(255,225,120,0)"); ctx.fillStyle = gg; ctx.fillRect(-70, -70, 140, 140); }
+    ctx.fillStyle = s.gold ? "#b8860b" : "#6e4320"; ctx.fillRect(-s.w/2, -s.h/2 + 6, s.w, s.h - 6);
     ctx.fillStyle = "#8a5a2c"; ctx.beginPath(); ctx.moveTo(-s.w/2, -s.h/2 + 7); ctx.quadraticCurveTo(0, -s.h/2 - 6, s.w/2, -s.h/2 + 7); ctx.closePath(); ctx.fill();
     ctx.fillStyle = "#e5b53a"; ctx.fillRect(-s.w/2, -s.h/2 + 6, s.w, 2.5); ctx.fillRect(-s.w/2 + 5, -s.h/2 + 2, 2.5, s.h - 2); ctx.fillRect(s.w/2 - 7.5, -s.h/2 + 2, 2.5, s.h - 2); ctx.fillRect(-3, -s.h/2 + 5, 6, 7);
     const gl = .5 + Math.sin(t*3 + s.x) * .5; ctx.fillStyle = "rgba(255,240,170," + (gl * .9).toFixed(2) + ")";     // a glint
@@ -3644,10 +4198,11 @@ function drawFinder(T){
   const sweep = (T.t * .8) % 1; ctx.fillStyle = "rgba(120,255,180,.12)"; ctx.fillRect(x + sweep * w - 6, y, 12, h);
   for (const f of T.fish){ const r = clamp(f.L / 30, 1.5, 4.5);
     ctx.fillStyle = f.sp.glow ? "rgba(" + f.sp.glow + ",1)" : f.boss ? "#ff7a6a" : r > 3 ? "#ffd166" : "#7dffb8";
-    ctx.beginPath(); ctx.ellipse(px(f.x), py(f.y), r * 1.5, r, 0, 0, 7); ctx.fill(); }
+    ctx.beginPath(); ctx.ellipse(px(f.x), py(f.y), r * 1.5, r, 0, 0, 7); ctx.fill();
+    if (S.finderPro && (f.trophy || f.rare || f.variant || f.tagged)){ ctx.fillStyle = f.tagged ? "#ffd23f" : "#ff9be0"; ctx.font = "bold 9px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; ctx.fillText("★", px(f.x), py(f.y) - 4); } }
   ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(px(T.hook.x), py(Math.max(0, T.hook.y)), 2.5, 0, 7); ctx.fill();
   ctx.restore();
-  ctx.fillStyle = "rgba(160,255,200,.9)"; ctx.font = "bold 9px Trebuchet MS, sans-serif"; ctx.textAlign = "left"; ctx.fillText("FISH FINDER", x + 7, y + 10);
+  ctx.fillStyle = "rgba(160,255,200,.9)"; ctx.font = "bold 9px Trebuchet MS, sans-serif"; ctx.textAlign = "left"; ctx.fillText(S.finderPro ? "FISH FINDER PRO" : "FISH FINDER", x + 7, y + 10);
 }
 function drawFightUI(F){
   const w = Math.min(W - 80, 520), x = (W - w) / 2, y = 175;
@@ -3687,6 +4242,7 @@ function syncReelBtn(){
   $("optBtn").classList.toggle("show", ready);
   const canTroll = !!(show && T.mode === "boat" && !T.boss && (T.phase === "ready" || (T.phase === "troll" && !T.strike)));
   $("trollBtn").classList.toggle("show", canTroll);
+  $("bellBtn").classList.toggle("show", !!(show && visit && visit.holder && visit.holder.bite > 0));
   if (canTroll){ const on = T.phase === "troll"; $("trollIcon").textContent = on ? "🛑" : "🚤"; $("trollLbl").textContent = on ? "Stop" : "Troll"; }
   $("reelGfx").classList.toggle("show", !!show);
   $("btnMute").style.display = state === "fishing" ? "none" : "";
@@ -4154,6 +4710,7 @@ function renderLodge(){
     wall.appendChild(pl);
   });
   box.appendChild(wall);
+  lodgeExtras(box);
   box.insertAdjacentHTML("beforeend", derbyCard());
   box.insertAdjacentHTML("beforeend", prizeLadderCard());
   // my records
@@ -4166,8 +4723,8 @@ function renderLodge(){
     <div class="job"><span>🐳 Biggest fish</span><span>${big ? big.name + ", " + fmtLb(big.lb) : "—"}</span></div>
     <div class="job"><span>🔥 Longest streak</span><span>${S.bestStreak || 0} casts</span></div>
     <div class="job"><span>✨ Rare looks</span><span>${looks}/${Object.keys(VARIANTS).length}</span></div>
-    <div class="job"><span>🌙 Night Legends</span><span>${Object.keys(S.legends || {}).length}/6</span></div>
-    <div class="job"><span>⚔️ Bosses</span><span>${Object.keys(S.bosses || {}).length}/6</span></div>
+    <div class="job"><span>🌙 Night Legends</span><span>${Object.keys(S.legends || {}).length}/${LAKES.length}</span></div>
+    <div class="job"><span>⚔️ Bosses</span><span>${Object.keys(S.bosses || {}).length}/${LAKES.length}</span></div>
     <div class="job"><span>🎁 Treasure chests</span><span>${S.treasures || 0}</span></div>
     <div class="job"><span>🏆 Derby wins</span><span>${S.derbyWins || 0}</span></div></div>`);
   // the family board: who holds the record for each fish
@@ -4183,7 +4740,7 @@ function renderLodge(){
 // =====================================================================
 function showTitle(){
   const p = LL.player();
-  if (p){ $("whoPic").innerHTML = avatarSvg(p, 40); $("whoName").textContent = p.name; $("btnPlay").textContent = "🎣 Let's Fish, " + p.name + "!"; }
+  if (p){ $("whoPic").innerHTML = avatarSvg(p, 40); $("whoName").textContent = p.name + (titleOf() ? " · " + titleOf() : ""); $("btnPlay").textContent = "🎣 Let's Fish, " + p.name + "!"; }
   showScreen("title");
 }
 function signIn(p){ trip = null; visit = null; pending = null; modalQueue = []; $("modal").classList.remove("show"); bindPlayer(p); showTitle(); }
