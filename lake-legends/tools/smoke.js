@@ -42,7 +42,7 @@ const BOT = n => {
     const T = trip, hk = T.hook;
     if (T.phase === "ready"){ out.casts++; T.wait = 0; T.goal = null; reelPress(); reelRelease(); }
     else if (T.nibble){ if (T.nibble.stage === "bite" && T.nibble.t > .15){ reelPress(); reelRelease(); } }
-    else if (T.phase === "fight"){ if (T.fight.tension > 70) reelRelease(); else btnHeld = true; }
+    else if (T.phase === "fight"){ if (T.fight.tension > 70 || (T.move && moveWant(T.move, true) === "idle")) reelRelease(); else btnHeld = true; }
     else if (T.phase === "drop"){
       // pick a fish that likes the bait and drop down to it
       if (!T.goal) T.goal = T.fish.filter(f => interest(T, f) > .2 && f.y < T.maxY).sort((x, y) => Math.abs(x.x - hk.x) - Math.abs(y.x - hk.x))[0] || { x: hk.x, y: T.maxY };
@@ -50,7 +50,7 @@ const BOT = n => {
       if (hk.y >= T.goal.y - 6){ reelPress(); reelRelease(); }
     }
     else if (T.phase === "reel"){
-      if (T.caught.length){ btnHeld = false; if (steps % 3 === 0) crank(); }
+      if (T.caught.length){ const w = T.move ? moveWant(T.move, false) : "tap"; btnHeld = w === "hold"; if (w === "tap" && steps % 3 === 0) crank(); }
       else { T.wait = (T.wait || 0) + 1/30; btnHeld = T.wait > 5 || !!T.fouled; }     // empty hook: give fish a few seconds, then reel up
     }
     updateFishing(1/30);
@@ -486,6 +486,54 @@ const BOT = n => {
   ok(r10.tap, "a quick tap casts anywhere");
   ok(r10.holding && r10.perfect, "holding fills the power bar; letting go at the top makes a long PERFECT cast");
   ok(r10.short, "letting go early makes a short cast");
+
+  console.log("Fish moves and hotspots");
+  const r11 = await a.evaluate(() => {
+    const out = {}, bakMoves = S.moves, bakBoat = S.boatOwn; S.boatOwn = 2; S.wild = Object.assign({}, S.wild, { nextBig: 1e9, nextSee: 1e9 });
+    const hook = (id, kind) => { trip = null; visit = null; startVisit(lakeById("dixon"), "boat"); visit.ev = { clock: 0, next: 1e9 };
+      const f = makeFish(id, 30 * PPF); f.variant = null; f.sp = SPECIES[id]; f.inches = SPECIES[id].max * .6; f.jumped = true; f.trophy = false; f.frac = .5; f.L = fishPx(f.sp, f.inches);
+      trip.fish.push(f); trip.phase = "reel"; trip.hook.y = 30 * PPF; trip.hook.x = W / 2 + 80; hookFish(f);
+      trip.moveF = f; trip.moveCD = 99; if (kind) trip.move = { kind, t: 0, stage: 0, toward: true, ok: true }; return f; };
+    S.moves = { shake: 20 };                                           // an experienced angler: no beginner help
+    let f = hook("largemouth", "shake");
+    for (let i = 0; i < 90 && trip.caught.length; i++){ if (i % 3 === 0) crank(); updateFishing(1/30); }
+    out.shakeLost = !trip.caught.includes(f) && trip.lost === 1;
+    f = hook("largemouth", "shake"); const n0 = S.moves.shake;
+    for (let i = 0; i < 50; i++){ btnHeld = false; updateFishing(1/30); }
+    out.shakeOk = trip.caught.includes(f) && S.moves.shake === n0 + 1 && f.worn === 1 && !trip.move;
+    f = hook("channel", "dive"); for (let i = 0; i < 60; i++){ btnHeld = true; updateFishing(1/30); } btnHeld = false;
+    out.dive = trip.caught.includes(f) && (S.moves.dive || 0) >= 1;
+    f = hook("trout", "zigzag"); updateFishing(.1); const t1 = trip.move.toward; trip.move.t = .65; updateFishing(.01); out.zig = t1 === true && trip.move.toward === false && moveWant(trip.move, false) === "idle";
+    f = hook("carp", "run"); for (let i = 0; i < 60; i++){ btnHeld = false; updateFishing(1/30); } out.run = trip.move && trip.move.stage === 1 && moveWant(trip.move, false) === "tap";
+    f = hook("bluecat"); out.fightFish = trip.phase === "fight"; trip.moveCD = 0; trip.hook.y = 20 * PPF; updateFishing(1/30); out.fightMove = !!trip.move;
+    if (trip.move){ trip.move.kind = "shake"; const t0 = trip.fight.tension; btnHeld = true; updateFight(.2); btnHeld = false; out.fightTension = trip.fight.tension > t0 + 10; }
+    f = hook("largemouth"); trip.tired = true; trip.moveCD = 0; updateFishing(1/30); out.tired = !trip.move;
+    // boss runs can be steered now
+    trip = null; visit = { lake: lakeById("dixon"), mode: "boat", ev: { clock: 0, next: 1e9 } }; S.coins = 999; startTrip(lakeById("dixon"), 25);
+    const bf = trip.fish.find(x => x.boss); trip.phase = "drop"; trip.hook.x = W / 2; trip.hook.y = bf.y; hookFish(bf); trip.fight.run = { dir: 1, t: 2 }; trip.fight.nextRun = 99; trip.move = null; trip.moveCD = 99;
+    pointerX = W * .15; for (let i = 0; i < 40; i++){ trip.moveCD = 99; updateFight(1/30); } out.steer = trip.hook.x < W / 2; pointerX = null;
+    // hotspots
+    trip = null; visit = null; startVisit(lakeById("dixon"), "boat"); visit.ev = { clock: 0, next: 1e9 };
+    trip.phase = "ready"; for (let i = 0; i < 30 * 5; i++) updateFishing(1/30);
+    out.spots = (visit.spots || []).length >= 1 && visit.spots.every(sp => SPOTS[sp.kind] && sp.x > 0 && sp.x < W);
+    syncReelBtn(); out.spotBtn = getComputedStyle($("spotBtn")).display !== "none";
+    const sp = visit.spots[0]; spotMenu(); out.menu = $("modalBox").textContent.includes(sp.name); $("modal").classList.remove("show");
+    goSpot(sp); for (let i = 0; i < 30 * 2; i++) updateFishing(1/30);
+    out.atSpot = visit.spot && visit.spot.kind === sp.kind && visit.spot.casts === SPOT_CASTS - 1 && visit.motorT === 0;
+    for (let k = 0; k < SPOT_CASTS - 1; k++) startTrip(visit.lake, 0, "boat", true);
+    out.coolOff = !visit.spot;
+    trip = null; visit = null; $("modal").classList.remove("show"); S.moves = bakMoves; S.boatOwn = bakBoat; showScreen("title");
+    return out; });
+  ok(r11.shakeLost, "reeling through a head shake throws the hook");
+  ok(r11.shakeOk, "letting go through a head shake keeps the fish and wears it out");
+  ok(r11.dive, "holding through a dive pumps the fish up");
+  ok(r11.zig, "a zig-zag switches between reel and wait");
+  ok(r11.run, "after a big run the fish turns and you reel fast");
+  ok(r11.fightFish && r11.fightMove && r11.fightTension, "big fish make moves in a fight too (holding through a shake raises tension)");
+  ok(r11.tired, "a fish you've beaten doesn't make moves on the way up");
+  ok(r11.steer, "you can steer a boss away from the logs");
+  ok(r11.spots && r11.spotBtn && r11.menu, "spots appear from the boat with a 🧭 Spots button");
+  ok(r11.atSpot && r11.coolOff, "motoring to a spot gives 4 casts there, then it cools off");
 
   console.log("Prizes");
   // device a (Ben signed in): a parent sets a prize for Ana; device b (Ana signed in) must get it, and earn it

@@ -130,6 +130,7 @@
   .sidebtn span { font-size:1.6em; line-height:1.1; }
   .sidebtn small { font-size:.68em; font-weight:bold; }
   #baitBtn { left:.8em; } #optBtn { right:.8em; } #trollBtn { right:.8em; bottom:6.4em; }
+  #spotBtn { right:.8em; bottom:12em; background:#dff3ff; }
   #bellBtn { left:.8em; bottom:6.4em; background:#ffe38a; animation: ring .35s infinite alternate; }
   @keyframes ring { from { transform: rotate(-8deg) scale(1); } to { transform: rotate(8deg) scale(1.08); } }
   .tagline { color:#fff; font-weight:bold; font-size:1.2em; text-shadow:0 1px 3px #0b3a57; margin:.8em 0 1.4em; }
@@ -226,6 +227,7 @@
   <div id="optSheet"></div>
   <button class="sidebtn" id="baitBtn" aria-label="Bait"><span id="baitIcon">🥄</span><small id="baitLbl">Bait</small></button>
   <button class="sidebtn" id="optBtn" aria-label="More options"><span>☰</span><small>More</small></button>
+  <button class="sidebtn" id="spotBtn" aria-label="Fishing spots"><span>🧭</span><small>Spots</small></button>
   <button class="sidebtn" id="bellBtn" aria-label="Rod holder bell"><span>🔔</span><small>Bell!</small></button>
   <button class="sidebtn" id="trollBtn" aria-label="Troll"><span id="trollIcon">🚤</span><small id="trollLbl">Troll</small></button>
   <!-- Reel control: the whole bottom strip -->
@@ -307,8 +309,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.04b";</script>
-<script src="ll-core.js?v=2026.10.04b"></script>
+<script>window.LL_VER="2026.10.04c";</script>
+<script src="ll-core.js?v=2026.10.04c"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -1508,7 +1510,7 @@ function reelPress(){
   if (T.wild && T.wild.mode === "raid" && T.wild.stage === "warn") T.wild.taps++;
   if (T.nibble){ setHook(); return; }
   if (T.phase === "troll"){ if (T.strike) trollHook(); return; }
-  if (T.phase === "ready") T.charge = { t: 0 };            // a quick tap casts anywhere; hold to aim with the power meter
+  if (T.phase === "ready" && !(visit && visit.motorT > 0)) T.charge = { t: 0 };            // a quick tap casts anywhere; hold to aim with the power meter
   else if (T.phase === "drop") startReel("Reeling up!");
   else if (T.phase === "reel" && !T.autoUp) crank();
 }
@@ -1540,7 +1542,7 @@ function crank(){
   const T = trip;
   let ft = 3 + T.lake.depth/40;                                               // empty hook
   if (T.caught.length) ft = clamp(3.6 / (1 + Math.sqrt(fishLb(T.caught[0]))*.3), 1.5, 3.2) * (.7 + T.lake.depth/150);
-  T.pending += ft * upVal("reel") * PPF;
+  T.pending += ft * upVal("reel") * PPF; T.lastCrank = T.t;
 }
 
 // =====================================================================
@@ -1579,6 +1581,8 @@ const HOWTO_HTML = `<h3>How to play</h3><ul style="text-align:left">
   <li>🎣 Tap the big <b>reel button</b> to cast and reel. Steer your bait with a finger on the water.</li>
   <li>🐟 Stop near fish. They <b>nibble</b>... wait for <b>BITE!</b> then tap fast.</li>
   <li>🔄 Tap to reel. Let go and the fish takes line!</li>
+  <li>🐟 Every fish has its own <b>moves</b>. A red sign means LET GO (head shakes, runs, rolls), blue means HOLD (dives, stuck on the bottom), green means TAP.</li>
+  <li>🧭 In a boat, look for <b>spots</b>: birds diving, fish boiling, weed edges and rocks. Tap 🧭 Spots to motor over.</li>
   <li>💪 Big fish: <b>hold</b>, and let go when the drag screams.</li>
   <li>🔴 In <b>Bait</b> you can add a <b>bobber</b> and set how deep your bait hangs. Watch it bob... when it goes under, tap!</li>
   <li>🥄 Tap <b>Bait</b> to change bait. Tap <b>More</b> for a boat, fish scent and lake rules.</li>
@@ -1632,6 +1636,7 @@ function openSheet(which){ uiSheet = uiSheet === which ? null : which; SFX.click
 $("baitBtn").onclick = () => openSheet("bait");
 $("optBtn").onclick = () => openSheet("opt");
 $("bellBtn").onclick = () => { if (!trip || !visit || !visit.holder || !(visit.holder.bite > 0)) return; holderLand(trip); };
+$("spotBtn").onclick = () => { SFX.click(); spotMenu(); };
 $("trollBtn").onclick = () => { SFX.click(); if (trip && trip.phase === "troll") stopTroll(); else startTroll(); };
 function renderOptions(){
   const box = $("optSheet"); box.innerHTML = "";
@@ -1971,7 +1976,7 @@ function spawnFishFor(lake, y, exclude, small){
 const RARE_CHANCE = .05;
 function makeFish(id, y, small){
   const sp = SPECIES[id];
-  const f = Math.pow(Math.random(), 1.5 - S.up.lure*.17) * (small === true ? .55 : small || 1);   // dock fish run small
+  const f = Math.min(1, Math.pow(Math.random(), 1.5 - S.up.lure*.17) * (small === true ? .55 : small || 1));   // dock fish run small
   const brood = id === "trout" && stockDay(spawnLakeNow) && Math.random() < .15;   // the stocking truck brings a few big brood trout
   const inches = sp.legend ? rand(sp.min, sp.max) : lerp(sp.min, sp.max, brood ? Math.max(f, rand(.7, 1)) : f);
   const dir = Math.random() < .5 ? -1 : 1;
@@ -1981,6 +1986,7 @@ function makeFish(id, y, small){
     speed: rand(18, 45) * (sp.shape==="sun" ? 1.2 : sp.shape==="sturgeon" ? .6 : 1), phase: rand(0,6), trophy: !sp.legend && f > .78 };
 }
 
+let quiet2spot = false;                     // set while the boat is only being redrawn (no new cast at the spot)
 function startTrip(lake, bossFeePaid, mode, quiet){
   if (!quiet) SFX.splash();
   mode = bossFeePaid ? "boat" : (mode || "dock");
@@ -2043,6 +2049,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   if (visit && visit.hookBait !== undefined) trip.bait = visit.hookBait;
   else { trip.bait = S.bait && baitUnlocked(S.bait) && baitHere(S.bait, lake) && takeBait(S.bait) ? S.bait : "spinner"; if (visit) visit.hookBait = trip.bait; }
   if (scentOn() && !bossFeePaid) addScentFish(trip, 5);
+  if (!bossFeePaid && !dock && visit && visit.spot && visit.lake === lake && !quiet2spot) spotFish(trip, visit.spot);
   if (frenzyOn() && !bossFeePaid) for (let i = 0; i < 6; i++) trip.fish.push(spawnFishFor(lake, rand(40, Math.min(bottom - 15, 12 * PPF)), null, smallFor(lake, dock)));
   if (visit && visit.lostMsg){ toast("🪝 " + visit.lostMsg + " Tap Bait.", 2600); visit.lostMsg = null; }
   btnHeld = false; uiSheet = bossFeePaid ? "bait" : null;          // boss fight: pick your bait first
@@ -2476,6 +2483,8 @@ function fishBand(T, f){
 function updateFishing(dt){
   const T = trip; T.t += dt;
   if (T.charge){ if (T.phase !== "ready") T.charge = null; else T.charge.t += dt; }
+  moveTick(T, dt); if (!trip) return;
+  if (visit && T.mode === "boat" && !T.boss && !visit.sd) spotTick(T, dt);
   if (visit && visit.sd && !T.boss){ sdUpdate(T, dt); if (!trip) return; }
   if (visit && !T.boss && !visit.sd) evUpdate(T, dt);
   if (visit && S.holder && !T.boss && !visit.sd) holderUpdate(T, dt); else if (visit && visit.holder) visit.holder.bite = 0;
@@ -2585,7 +2594,9 @@ function updateFishing(dt){
           if (T.surgeT <= 0){ T.surge = rand(.4, .8); T.surgeT = rand(2, 4); pop(hk.x, hk.y - 30, "It's running!", "#ffd0c8", 15); }
         }
         if (T.surge > 0){ T.surge -= dt; rate *= 3; T.pending = Math.max(0, T.pending - 200*dt); }
+        rate *= Math.pow(.88, f.worn || 0);                     // every move you handle wears the fish out a bit
         pull = rate * dt;
+        if (T.move){ const e = moveEffect(T, up, pull, dt); up = e.up; pull = e.pull; }
       }
       if (T.caught.length && !T.caught[0].jumped && hk.y < 9*PPF && hk.y > 3*PPF){       // near the top, a bass or trout may leap!
         const f = T.caught[0]; f.jumped = true;
@@ -2659,13 +2670,14 @@ function updateFishing(dt){
 }
 
 function updateFight(dt){
-  const F = trip.fight, sp = F.f.sp, str = (F.f.boss ? trip.boss.def.str : sp.str * (F.f.trophy ? 1.15 : 1)) * (S.heavyRod && HEAVY_SHAPES.includes(sp.shape) ? .8 : 1);
+  const F = trip.fight, sp = F.f.sp, str = (F.f.boss ? trip.boss.def.str : sp.str * (F.f.trophy ? 1.15 : 1)) * (S.heavyRod && HEAVY_SHAPES.includes(sp.shape) ? .8 : 1) * Math.pow(.92, F.f.worn || 0);   // handled moves wear it down
   const hk = trip.hook;
   // boss runs: it drags the line toward the logs, steer the other way!
   if (F.f.boss){
     F.nextRun -= dt;
     if (!F.run && F.nextRun <= 0){ F.run = { dir: hk.x < W/2 ? -1 : 1, t: rand(2.2, 3.2) }; if (Math.random() < .5) F.run.dir *= -1; }
     if (F.run){
+      steer(hk, dt, 1.2);                                         // your finger (or the arrow keys) pulls the other way
       hk.x += F.run.dir * (95 + str*15) * dt;
       F.run.t -= dt;
       if (hk.x < 42 || hk.x > W-42){
@@ -2677,6 +2689,10 @@ function updateFight(dt){
   F.nextSurge -= dt;
   if (F.nextSurge <= 0){ F.surge = rand(.4,.8); F.nextSurge = rand(1.2, 2.6) / Math.max(.8, str*.8); }
   const surging = F.surge > 0; F.surge = Math.max(0, F.surge - dt);
+  if (trip.move){ const w = moveWant(trip.move, true);
+    if (w === "idle" && holding()){ F.tension += 75 * dt; F.shake = 5; }
+    else if (w === "hold" && !holding()){ F.prog -= 7 * dt; hk.y = Math.min(trip.maxY, hk.y + 25 * dt); }
+    else if (w === "hold" && holding()) F.prog += 6 * dt; }
   if (holding()){
     F.prog += (40 * upVal("reel") / Math.pow(str, .7)) * dt;
     F.tension += (14 + str*10) * upVal("stringer") * (S.heavy ? .75 : 1) * dt * (surging ? 1.6 : 1);
@@ -2818,6 +2834,164 @@ function finishTrip(){
   save();
   showScreen("results");
 }
+// =====================================================================
+//  FISH MOVES: every kind of fish fights its own way, and each move has an answer
+// =====================================================================
+const MOVES = {
+  shake:  { icon:"💥", name:"HEAD SHAKE!",          want:"idle", dur:1.3, hint:"Let go! Reeling now pulls the hook out.",           strain:82 },
+  roll:   { icon:"🌀", name:"DEATH ROLL!",          want:"idle", dur:1.8, hint:"Let go until it stops rolling!",                     strain:62 },
+  run:    { icon:"🏃", name:"BIG RUN!",             want:"idle", dur:1.7, hint:"Let it run... then reel fast when it turns!",         strain:50 },
+  dive:   { icon:"⬇️", name:"DIVING DEEP!",         want:"hold", dur:1.8, hint:"HOLD to pump it up before it reaches the bottom!",    strain:45 },
+  sand:   { icon:"🪨", name:"STUCK ON THE BOTTOM!", want:"hold", dur:2,   hint:"HOLD to pump it off the bottom!",                     strain:40 },
+  zigzag: { icon:"↔️", name:"ZIG-ZAG!",             want:"zig",  dur:2.4, hint:"Reel only while the arrow is green!",                 strain:45 }
+};
+const MOVES_BY_SHAPE = { bass:["shake","run"], trout:["zigzag","run"], sun:["zigzag"], cat:["dive","run"], carp:["run","dive"], sturgeon:["dive","run"],
+  shark:["roll","run"], ray:["sand","run"], guitar:["sand","run"], flat:["sand","shake"] };
+const MOVES_BY_FISH = { smallmouth:["shake","zigzag","run"], bonito:["run","zigzag"], yellowtail:["run","dive","zigzag"], kelpbass:["dive","shake"], wsb:["run","shake"] };
+const fishMoves = f => MOVES_BY_FISH[f.id] || MOVES_BY_SHAPE[f.sp.shape] || ["run"];
+// what the player should be doing right now: "idle" (let go), "hold" or "tap" (in a fight, tapping means holding)
+function moveWant(M, fight){
+  let w = M.kind === "run" && M.stage === 1 ? "tap" : M.kind === "zigzag" ? (M.toward ? "tap" : "idle") : MOVES[M.kind].want;
+  return fight && w === "tap" ? "hold" : w;
+}
+function moveDoing(T){ const tapping = T.t - (T.lastCrank == null ? -9 : T.lastCrank) < .35; return tapping ? "tap" : btnHeld ? "hold" : "idle"; }
+function moveTick(T, dt){
+  const f = T.caught[0] || (T.phase === "fight" && T.fight && T.fight.f);
+  const on = f && ((T.phase === "reel" && !T.autoUp && !T.jump && !T.fouled && !T.tired) || (T.phase === "fight" && T.fight)) && !(T.wild && T.wild.mode !== "see");
+  if (!on){ T.move = null; if (!f) T.moveF = null; return; }
+  if (T.moveF !== f){ T.moveF = f; T.move = null; T.moveCD = rand(1.2, 2.5); T.strain = 0; }
+  const M = T.move;
+  if (!M){
+    T.strain = Math.max(0, (T.strain || 0) - 20 * dt); T.moveCD -= dt;
+    if (T.moveCD <= 0 && T.hook.y > 3 * PPF && (fishLb(f) >= .4 || f.boss)){
+      const list = fishMoves(f), kind = list[Math.floor(Math.random() * list.length)];
+      T.move = { kind, t: 0, stage: 0, toward: true, ok: true };
+      if (kind === "shake" || kind === "roll") SFX.splash(); else SFX.bite();
+    }
+    return;
+  }
+  const D = MOVES[M.kind]; M.t += dt; T.strain = T.strain || 0;
+  if (M.kind === "zigzag") M.toward = Math.floor(M.t / .6) % 2 === 0;
+  if (M.kind === "run" && M.stage === 0 && M.t > D.dur){ M.stage = 1; M.t = 0; SFX.bite(); }
+  const fight = T.phase === "fight", want = moveWant(M, fight), doing = moveDoing(T);
+  const right = want === "idle" ? doing === "idle" : want === "hold" ? (doing === "hold" || doing === "tap" && btnHeld) : doing === "tap" || (fight && btnHeld);
+  if (!fight){                                               // in the reel phase a wrong move strains the hook; in a fight the tension meter does that
+    if (right) T.strain = Math.max(0, T.strain - 30 * dt);
+    else if (want !== "tap") { const learning = Object.values(S.moves || {}).reduce((a, b) => a + b, 0) < 10; T.strain += D.strain * (learning ? .6 : 1) * dt; M.ok = false; }   // gentler while you're learning
+    if (T.strain >= 100){ loseToMove(T, f, D); return; }
+  }
+  const end = M.kind === "run" ? (M.stage === 1 && M.t > 1.2) : M.t > D.dur;
+  if (end){
+    if (M.ok || fight){ S.moves = S.moves || {}; S.moves[M.kind] = (S.moves[M.kind] || 0) + 1; f.worn = (f.worn || 0) + 1; pop(T.hook.x, T.hook.y - 40, "✓ Nice! It's getting tired.", "#bff5c8", 15); }
+    T.move = null; T.moveCD = f.boss ? rand(2, 3.5) : rand(3, 5.5);
+  }
+}
+function moveEffect(T, up, pull, dt){
+  const M = T.move, want = moveWant(M, false), doing = moveDoing(T), right = want === "idle" ? doing === "idle" : want === "hold" ? btnHeld : doing === "tap";
+  if (M.kind === "run" && M.stage === 0) pull *= 2.6;                            // it takes line no matter what
+  if (M.kind === "shake" || M.kind === "roll") pull *= 1.2;
+  if (want === "idle" && !right) up *= .2;                                      // you can't reel through a shake or a run
+  if (want === "hold"){ if (right){ pull = 0; up = Math.max(up, 45 * dt); } else if (M.kind === "dive") pull *= 2.5; else { up = 0; pull = 0; } }
+  if (want === "tap" && right) up *= 2.2;
+  return { up, pull };
+}
+function loseToMove(T, f, D){
+  const hk = T.hook, i = T.caught.indexOf(f); if (i < 0) return;
+  T.caught.splice(i, 1); T.lost++; T.chain = null; T.tired = false; T.move = null; T.strain = 0;
+  if (BAITS[T.bait] && BAITS[T.bait].soft && !T.baitLost){ T.baitLost = true; T.baitRolled = true; }
+  f.x = hk.x; f.baseY = hk.y + 30; f.fleeT = 3; f.sniffT = 5; T.fish.push(f);
+  SFX.snap(); pop(hk.x, hk.y - 40, "💔 It threw the hook! " + D.icon + " Next time: " + D.hint, "#ffb3a8", 16);
+}
+function drawMove(T){
+  const M = T.move, D = MOVES[M.kind], fight = T.phase === "fight", want = moveWant(M, fight), learned = ((S.moves || {})[M.kind] || 0) >= 3;
+  const big = M.kind === "run" && M.stage === 1 ? "🔄 IT TURNED! REEL FAST!" : D.icon + " " + D.name;
+  const sub = M.kind === "zigzag" ? (M.toward ? "⬆️ Coming toward you: REEL!" : "✋ Swimming away: WAIT!") : learned ? "" : (M.kind === "run" && M.stage === 1 ? "Tap tap tap!" : D.hint);
+  const y = fight ? 340 : Math.round(H * .34), w = Math.min(W - 30, 360), x = W / 2 - w / 2, h = sub ? 52 : 34;
+  ctx.fillStyle = want === "idle" ? "rgba(120,20,20,.82)" : want === "hold" ? "rgba(20,60,120,.82)" : "rgba(20,100,50,.82)"; roundRect(x, y, w, h + (T.strain > 4 && !fight ? 12 : 0), 12); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = "bold 18px Trebuchet MS, sans-serif"; ctx.fillText(big, W / 2, y + 23);
+  if (sub){ ctx.font = "bold 12px Trebuchet MS, sans-serif"; ctx.fillStyle = M.kind === "zigzag" ? (M.toward ? "#7dffb8" : "#ffb3a8") : "#ffe9c8"; ctx.fillText(sub, W / 2, y + 42); }
+  if (T.strain > 4 && !fight){ const by = y + h; ctx.fillStyle = "rgba(255,255,255,.25)"; roundRect(x + 14, by - 2, w - 28, 7, 3.5); ctx.fill();
+    ctx.fillStyle = T.strain > 70 ? "#ff6a5a" : "#ffd166"; roundRect(x + 14, by - 2, (w - 28) * Math.min(1, T.strain / 100), 7, 3.5); ctx.fill(); }
+}
+
+// =====================================================================
+//  HOTSPOTS: from the boat you can spot birds diving, fish breaking the surface, weed edges and rocky drop-offs, and motor over
+// =====================================================================
+const SPOTS = {
+  birds: { icon:"🐦", name:"Birds diving",      desc:"Birds are diving on baitfish. Bass and trout are feeding right under them!", ids: id => PREDATORS.includes(id) || ["mackerel","bonito","yellowtail","sardine","trout"].includes(id) },
+  boil:  { icon:"💥", name:"Fish boiling",      desc:"A whole school is breaking the surface!", school: true },
+  weeds: { icon:"🌿", name:"Weed edge",         desc:"Bass, sunfish and crappie hide along the weeds. Watch for snags!", ids: id => ["sun", "bass"].includes(SPECIES[id].shape), lake: L => !L.ocean },
+  rocks: { icon:"🪨", name:"Rocky drop-off",    desc:"Deep water by the rocks, where the big ones lurk.", ids: id => ["cat", "sturgeon", "bass", "carp", "flat", "shark"].includes(SPECIES[id].shape), big: true },
+  kelp:  { icon:"🌊", name:"Kelp bed",          desc:"Kelp bass, sand bass and opaleye live in the kelp.", ids: id => ["kelpbass","sandbass","opaleye","halibut"].includes(id), lake: L => !!L.ocean }
+};
+const SPOT_LIFE = 240, SPOT_CASTS = 4;
+function newSpot(L, taken){
+  const kinds = Object.keys(SPOTS).filter(k => (!SPOTS[k].lake || SPOTS[k].lake(L)) && !taken.includes(k));
+  const k = kinds[Math.floor(Math.random() * kinds.length)]; if (!k) return null;
+  const left = [W * .07, W / 2 - 120], right = [W / 2 + 160, W * .93];                 // never right on top of your boat
+  const side = left[1] - left[0] > 40 && (Math.random() < .5 || right[1] - right[0] < 40) ? left : right;
+  return Object.assign({ kind: k, x: rand(side[0], Math.max(side[0], side[1])), life: SPOT_LIFE * rand(.8, 1.2) }, SPOTS[k]);
+}
+function spotTick(T, dt){
+  if (!visit.spots){ visit.spots = []; visit.spotNext = 4; }
+  if (visit.motorT > 0){ visit.motorT -= dt; visit.scroll = (visit.scroll || 0) + 320 * dt;
+    if (visit.motorT <= 0){ visit.motorT = 0; quiet2spot = false; startTrip(visit.lake, 0, "boat", true); toast("📍 You're at the " + visit.spot.name.toLowerCase() + "! Cast here.", 2400); } return; }
+  for (const sp of visit.spots) sp.life -= dt;
+  visit.spots = visit.spots.filter(sp => sp.life > 0);
+  visit.spotNext -= dt;
+  if (visit.spotNext <= 0 && visit.spots.length < 2){
+    const sp = newSpot(T.lake, visit.spots.map(x => x.kind).concat(visit.spot ? [visit.spot.kind] : []));
+    if (sp){ visit.spots.push(sp); if (T.phase === "ready" || T.phase === "drop") toast(sp.icon + " " + sp.name + " out there! Tap 🧭 Spots to motor over.", 3000); }
+    visit.spotNext = rand(50, 100);
+  }
+}
+function spotMenu(){
+  if (!trip || !visit || trip.phase !== "ready") return;
+  const box = $("modalBox"); box.innerHTML = `<div style="font-size:2.6em">🧭</div><h3>Fishing spots</h3><p class="muted">Motor over and fish there for ${SPOT_CASTS} casts.</p>`;
+  visit.spots.forEach(sp => { const b = document.createElement("button"); b.className = "btn blue"; b.style.cssText = "display:block;width:100%;margin:.35em 0;text-align:left";
+    b.innerHTML = `${sp.icon} <b>${sp.name}</b><br><small style="font-weight:normal">${sp.desc}</small>`; b.onclick = () => { $("modal").classList.remove("show"); goSpot(sp); }; box.appendChild(b); });
+  const c = document.createElement("button"); c.className = "btn"; c.textContent = "Stay here"; c.onclick = () => { SFX.click(); $("modal").classList.remove("show"); }; box.appendChild(c);
+  $("modal").classList.add("show");
+}
+function goSpot(sp){
+  visit.spots.splice(visit.spots.indexOf(sp), 1);
+  visit.spot = Object.assign({}, sp, { casts: SPOT_CASTS }); visit.motorT = 1.6; quiet2spot = true;
+  SFX.click(); toast("🚤 Motoring over to the " + sp.name.toLowerCase() + "...", 1800);
+}
+function spotFish(T, sp){
+  const L = T.lake, pool = L.fish.concat(L.boatFish || []).filter(id => !SPECIES[id].legend);
+  const add = (id, y, small) => { const f = makeFish(id, y, small); f.x = rand(40, W - 40); T.fish.push(f); };
+  if (sp.school){ const pick = pool.filter(id => SPECIES[id].rar >= 2), id = pick[Math.floor(Math.random() * pick.length)];
+    const d = SPECIES[id].d, y0 = Math.max(60, d[0] * L.depth * PPF), y1 = Math.max(y0 + 40, Math.min(T.bottom - 15, d[1] * L.depth * PPF));
+    for (let i = 0; i < 9; i++) add(id, rand(y0, y1), 1.1); }
+  else { const ids = pool.filter(sp.ids); if (!ids.length) return;
+    for (let i = 0; i < 7; i++){ const id = ids[Math.floor(Math.random() * ids.length)], d = SPECIES[id].d;
+      const y = clamp(rand(d[0], d[1]) * L.depth * PPF, 60, T.bottom - 15); add(id, sp.kind === "birds" ? Math.min(y, 14 * PPF) : y, sp.big ? 1.25 : 1); } }
+  if (sp.kind === "weeds") for (let i = 0; i < 2; i++){ const sg = makeSnag("weed", rand(60, W - 60), T.bottom); sg.h = rand(.35, .6) * T.bottom; sg.y = T.bottom - sg.h/2; T.snags.push(sg); }
+  visit.spot.casts--;
+  if (visit.spot.casts <= 0){ setTimeout(() => toast("The spot cooled off. Look for another one! 🧭", 2600), 600); visit.spot = null; }
+}
+function drawSpots(T, sy){
+  const surf = sy(0); if (surf < 20 || surf > H) return;
+  for (const sp of visit.spots || []){
+    const x = sp.x, t = T.t; ctx.save(); ctx.translate(x, surf); ctx.scale(1.5, 1.5); ctx.translate(-x, -surf);
+    if (sp.kind === "birds"){ ctx.strokeStyle = "rgba(40,50,60,.85)"; ctx.lineWidth = 1.6;
+      for (let k = 0; k < 4; k++){ const a = t * 1.2 + k * 1.6, bx = x + Math.cos(a) * 26, by = surf - 34 - Math.sin(a) * 10 - (k === 0 && Math.sin(t * 2) > .7 ? -26 : 0), f = Math.sin(t * 8 + k) * 3;
+        ctx.beginPath(); ctx.moveTo(bx - 6, by - f); ctx.quadraticCurveTo(bx - 2, by - 3, bx, by); ctx.quadraticCurveTo(bx + 2, by - 3, bx + 6, by - f); ctx.stroke(); }
+      ctx.fillStyle = "rgba(220,235,240,.8)"; for (let k = 0; k < 6; k++) ctx.fillRect(x - 20 + prand(k, 7) * 40, surf + 2 + Math.sin(t * 6 + k) * 1.5, 3, 1.4); }
+    else if (sp.kind === "boil"){ ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = 1.5;
+      for (let k = 0; k < 4; k++){ const ph = (t * 1.3 + k * .27) % 1, sx = x - 24 + k * 16; ctx.globalAlpha = 1 - ph; ctx.beginPath(); ctx.ellipse(sx, surf + 1, 4 + ph * 14, 1.5 + ph * 3, 0, 0, 7); ctx.stroke();
+        if (ph < .35){ ctx.beginPath(); ctx.moveTo(sx, surf); ctx.lineTo(sx - 3, surf - 9 * (1 - ph * 2)); ctx.moveTo(sx, surf); ctx.lineTo(sx + 3, surf - 8 * (1 - ph * 2)); ctx.stroke(); } } ctx.globalAlpha = 1; }
+    else if (sp.kind === "weeds" || sp.kind === "kelp"){ ctx.fillStyle = sp.kind === "kelp" ? "rgba(150,112,40,.85)" : "rgba(70,130,60,.85)";
+      for (let k = 0; k < 7; k++){ ctx.beginPath(); ctx.ellipse(x - 30 + k * 10, surf + 1 + Math.sin(t + k) * .8, 7, 2.2, 0, 0, 7); ctx.fill(); } }
+    else if (sp.kind === "rocks"){ ctx.fillStyle = "#7d7a74"; for (const [dx, h] of [[-14, 7], [0, 11], [12, 6]]){ ctx.beginPath(); ctx.moveTo(x + dx - 8, surf + 2); ctx.lineTo(x + dx - 2, surf - h); ctx.lineTo(x + dx + 6, surf + 2); ctx.fill(); }
+      ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, surf + 2, 26, 3, 0, 0, 7); ctx.stroke(); }
+    ctx.restore();
+    ctx.font = "bold 11px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; const lab = sp.icon + " " + sp.name, tw = ctx.measureText(lab).width + 14, lx = clamp(x, tw / 2 + 4, W - tw / 2 - 4);
+    ctx.fillStyle = "rgba(10,25,40,.65)"; roundRect(lx - tw / 2, surf - 92, tw, 15, 7); ctx.fill(); ctx.fillStyle = "#fff"; ctx.fillText(lab, lx, surf - 81);
+  }
+}
+
 // =====================================================================
 //  YOUR LAKE CABIN, and rewards besides fish: vest patches, titles, vintage lures, treasure maps, a sponsor and postcards
 // =====================================================================
@@ -3055,6 +3229,8 @@ function drawEvents(T, sy){
     if (st.flash > .5 && st.bx){ ctx.strokeStyle = "rgba(255,255,230," + st.flash.toFixed(2) + ")"; ctx.lineWidth = 3; ctx.beginPath(); let x = st.bx, y = 0; ctx.moveTo(x, y);
       while (y < sy(0)){ y += rand(18, 34); x += rand(-14, 14); ctx.lineTo(x, Math.min(y, sy(0))); } ctx.stroke(); } }
   if (visit && stockDay(visit.lake) && (visit.truckT || 0) < 45 && sy(0) > 60) drawTruck(T, sy(0));
+  if (visit && T.mode === "boat" && !T.boss){ drawSpots(T, sy);
+    if (visit.spot) lines.push(["📍 " + visit.spot.icon + " " + visit.spot.name + " · " + visit.spot.casts + (visit.spot.casts === 1 ? " cast" : " casts") + " left", "#bfe8ff"]); }
   if (st && st.flash > 0){ ctx.fillStyle = "rgba(255,255,255," + (st.flash * .45).toFixed(2) + ")"; ctx.fillRect(0, 0, W, H); }
   lines.forEach(([txt, col], i) => { ctx.font = "bold 14px Trebuchet MS, sans-serif"; const tw = ctx.measureText(txt).width + 22, y = 104 + i * 26;
     ctx.fillStyle = "rgba(10,25,40,.8)"; roundRect(W / 2 - tw / 2, y, tw, 22, 11); ctx.fill(); ctx.fillStyle = col; ctx.textAlign = "center"; ctx.fillText(txt, W / 2, y + 16); });
@@ -3931,7 +4107,7 @@ function renderScene(T, idle){
       if (home) drawCabinDock(surf, T.t, night);
       if (sd) drawRivals(T, sy, surf); }
     else {
-      const bx = W/2 + 20, by = surf + (L.ocean ? Math.sin(T.t*1.3)*3 : Math.sin(T.t*2)*1.5), trolling = T.phase === "troll";
+      const bx = W/2 + 20, by = surf + (L.ocean ? Math.sin(T.t*1.3)*3 : Math.sin(T.t*2)*1.5), trolling = T.phase === "troll" || (T === trip && visit && visit.motorT > 0);
       if (trolling){                                          // foamy wake trailing off the stern
         ctx.strokeStyle = "rgba(255,255,255,.6)"; ctx.lineWidth = 1.5;
         for (let k = 0; k < 5; k++){ const x = bx + 60 + k*26 + (T.t*40 % 26); ctx.globalAlpha = .7 - k*.13; ctx.beginPath(); ctx.moveTo(x, surf + 2); ctx.quadraticCurveTo(x + 10, surf + 5 + k, x + 20, surf + 3); ctx.stroke(); }
@@ -4028,7 +4204,7 @@ function renderScene(T, idle){
   // line + hook
   const hk = T.hook, hx = hk.x, hy = sy(hk.y) + (T.jig ? Math.sin(T.t*45) * T.jig * 3 : 0);
   const tipX = T.vtip ? T.vtip.x : T.tipX, tipY = sy(T.vtip ? T.vtip.y : T.tipY);
-  const F = T.fight, shake = F ? (Math.random()-.5) * F.shake * 2 : 0;
+  const F = T.fight, mvShake = T.move && (T.move.kind === "shake" || T.move.kind === "roll") ? 7 : 0, shake = (F ? (Math.random()-.5) * F.shake * 2 : 0) + (Math.random() - .5) * mvShake * 2;
   ctx.strokeStyle = F && F.tension > 80 ? "#ff5a4a" : "rgba(255,255,255,.85)"; ctx.lineWidth = 1.5;
   let bob = null;
   if (T.bobber && T.phase !== "ready" && T.phase !== "cast"){
@@ -4073,6 +4249,7 @@ function renderScene(T, idle){
   if (F) drawFightUI(F);
   if (T === trip && visit && visit.sd) drawScoreboard(visit.sd);
   if (T === trip && T.charge && T.charge.t >= CAST_TAP && T.phase === "ready") drawCastMeter(T, sy);
+  if (T === trip && T.move) drawMove(T);
 }
 
 // far underwater: dim rock ridges and schools of little fish, moving slower than the foreground (depth)
@@ -4271,6 +4448,7 @@ function syncReelBtn(){
   $("optBtn").classList.toggle("show", ready);
   const canTroll = !!(show && T.mode === "boat" && !T.boss && (T.phase === "ready" || (T.phase === "troll" && !T.strike)));
   $("trollBtn").classList.toggle("show", canTroll);
+  $("spotBtn").classList.toggle("show", !!(show && T.mode === "boat" && T.phase === "ready" && !T.boss && visit && !visit.sd && (visit.spots || []).length && !(visit.motorT > 0)));
   $("bellBtn").classList.toggle("show", !!(show && visit && visit.holder && visit.holder.bite > 0));
   if (canTroll){ const on = T.phase === "troll"; $("trollIcon").textContent = on ? "🛑" : "🚤"; $("trollLbl").textContent = on ? "Stop" : "Troll"; }
   $("reelGfx").classList.toggle("show", !!show);
@@ -4282,6 +4460,8 @@ function syncReelBtn(){
   else if (T.nibble){ const b = T.nibble.stage === "bite"; mode = b ? "tap danger" : "out"; label = b ? "SET THE HOOK!" : "WAIT..."; }
   else if (T.phase === "drop"){ mode = "out"; label = "TAP TO STOP"; }
   else if (T.phase === "troll"){ mode = T.strike ? "tap danger" : "hold"; label = T.strike ? "STRIKE! TAP!" : btnHeld ? "LURE UP..." : "HOLD = LURE UP"; }
+  else if (T.move && T.caught.length && (T.phase === "reel" || T.phase === "fight")){ const w = moveWant(T.move, T.phase === "fight");
+    mode = w === "idle" ? "out danger" : w === "hold" ? "hold" : "tap"; label = w === "idle" ? "LET GO!" : w === "hold" ? "HOLD!" : "TAP TAP TAP!"; }
   else if (T.phase === "fight"){ mode = "fight" + (T.fight && T.fight.tension > 80 ? " danger" : ""); label = T.fight && T.fight.tension > 80 ? "LET GO!" : "HOLD!"; }
   else if (T.autoUp){ mode = "auto"; label = "REELING IN!"; }
   else if (T.caught.length){ mode = "tap"; label = "TAP TAP TAP!"; }
