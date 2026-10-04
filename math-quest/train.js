@@ -1,7 +1,7 @@
 /* ================= 🚂 the Town Train (Oct 2026) =================
-   A train line across the bottom of the village plaza, below the Wishing Fountain: a tunnel on each side (in little hills just
-   outside the plaza), the track between (it crosses the two paths at the plaza's sides, so every walking route stays open),
-   a platform under the fountain and a departure board 🚉 at its west end.
+   A train line across the bottom of the village plaza, below the Wishing Fountain: a grassy hill at each end of the square, seen
+   from the side with its tunnel's stone edge facing the station (the train slides out from behind one and into the other), the
+   track between, the platform (sidewalk) right beside the rails and a departure board 🚉 above its west end.
    The train comes out of the west tunnel on its own every 4–5 minutes of time on the map, slows into the station, waits
    about 16 s ("All aboard!" near the end, then a whistle) and leaves through the east tunnel. The board counts down to the
    next train. Tapping the board: 🔔 ring the bell (free; the train comes within 1 minute) or 🪙 CALL_COST to call it right now.
@@ -13,13 +13,16 @@
    Core hooks (index.html): MQ_WORLD (lay the tiles after buildWorld), MQ_MAPDRAW (draw each frame), MQ_NPC (tap handlers),
    and plaza decor skips t.rail tiles. */
 (function(){
-const ROW=21,X0=12,X1=33,PL0=19,PL1=26,BOARD=[18,20],CALL_COST=10,BELL_WAIT=60,EVERY=[240,300],FIRST=[45,90];
-const LEN=6.1,STOP=26.6,START=X0+.5,END=X1+.5+LEN,T_IN=7,T_STOP=16,T_OUT=7;
+/* the line sits inside the town square: a hill with a tunnel at each end (tiles 15–17 and 27–29), the visible track between the
+   tunnel faces (x 18 to 27), the platform right beside the rails and the departure board just above its west end */
+const ROW=21,HL0=15,HL1=17,HR0=27,HR1=29,FL=18,FR=27,X0=HL1,X1=HR0,PL0=18,PL1=26,BOARD=[18,19],CALL_COST=10,BELL_WAIT=60,EVERY=[240,300],FIRST=[45,90];
+const LEN=6.1,STOP=26.4,START=FL,END=FR+LEN+.2,T_IN=7,T_STOP=16,T_OUT=7;
 const TR={ph:'away',wait:FIRST[0]+Math.random()*(FIRST[1]-FIRST[0]),t:0,front:START,last:0,smoke:[],walkers:[],aboard:[],said:0,called:''};
 const rnd=(a,b)=>a+Math.random()*(b-a);
 /* ---------- tiles ---------- */
 function lay(T){const ok=t=>t&&!t.water&&!t.gate&&!t.chest&&!(t.npc&&t.npc!=='station');
- for(let x=X0;x<=X1;x++){const t=T[ROW]&&T[ROW][x];if(!ok(t))continue;t.o=null;t.deco=false;if(x===X0||x===X1){t.tunnel=true;t.block=true;}else{t.rail=true;t.block=false;}}
+ for(let x=HL0;x<=HR1;x++){const t=T[ROW]&&T[ROW][x];if(!ok(t))continue;t.o=null;t.deco=false;t.rail=true;if(x<=HL1||x>=HR0){t.tunnel=true;t.block=true;}else t.block=false;}
+ for(const x of [HL0,HL0+1,HL1,HR0,HR0+1,HR1]){const t=T[ROW-1][x];if(ok(t)){t.o=null;t.deco=false;t.rail=true;t.hill=true;t.block=true;}} /* the hills are two tiles tall */
  for(let x=PL0;x<=PL1;x++){const t=T[ROW-1][x];if(ok(t)){t.platform=true;t.o=null;t.deco=false;}}
  const b=T[BOARD[1]][BOARD[0]];if(ok(b)){b.o=null;b.npc='station';b.block=true;}}
 window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(lay);
@@ -104,21 +107,28 @@ function drawWalker(ctx,v,cx,cy,ts,now){const sx=v.x*ts-cx,sy=v.y*ts-cy,w=v.w,bo
  else{const s=ts*1.05;ctx.drawImage(wSprite(w.e||'🙂',Math.round(ts)),sx+ts/2-s/2,sy+ts*.95-s-bob,s,s);}
  ctx.restore();if(v.a>.6){try{wLabel(ctx,w.n,sx+ts/2,sy-ts*.62,'#fff','rgba(43,35,64,.82)');}catch(e){}if(v.sayT>0)bubble(ctx,v.say,sx+ts/2,sy-ts*.9,ts);}}
 function boardText(){if(TR.ph==='away'){const s=Math.max(0,Math.ceil(TR.wait));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}return TR.ph==='in'?'ARRIVING':TR.ph==='stop'?'BOARDING':'DEPARTED';}
-function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][X0+1].rail)return;const dt=TR.last?Math.min(.1,(now-TR.last)/1000):0;TR.last=now;tick(dt);
- const L=X0*ts-cx,R=(X1+1)*ts-cx,ty=ROW*ts-cy;if(R<-ts*3||L>W.vw+ts*3||ty>W.vh+ts*3||ty<-ts*4)return;
- /* platform */
- items.push({y:ROW-1.6,draw:()=>{const x0=PL0*ts-cx,w=(PL1-PL0+1)*ts,y0=(ROW-1)*ts-cy;ctx.fillStyle='#ced4da';ctx.fillRect(x0,y0+ts*.08,w,ts*.92);ctx.fillStyle='#adb5bd';for(let i=0;i<=PL1-PL0;i++)ctx.fillRect(x0+i*ts,y0+ts*.08,1.5,ts*.92);ctx.fillStyle='#ffd43b';ctx.fillRect(x0,y0+ts*.86,w,ts*.07);}});
- /* hills with the dark tunnel mouths (behind the train), the track */
- items.push({y:ROW-1.5,draw:()=>{[X0,X1].forEach(x=>{const mx=(x+.5)*ts-cx,my=(ROW+.3)*ts-cy;ctx.fillStyle='#5c9e45';ctx.beginPath();ctx.ellipse(mx,my,ts*1.25,ts*1.35,0,Math.PI,0);ctx.fill();ctx.fillStyle='#4c8a38';ctx.beginPath();ctx.ellipse(mx,my,ts*1.25,ts*.25,0,0,Math.PI);ctx.fill();
-   ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.moveTo(mx-ts*.55,(ROW+.9)*ts-cy);ctx.lineTo(mx-ts*.55,(ROW-.5)*ts-cy);ctx.arc(mx,(ROW-.5)*ts-cy,ts*.55,Math.PI,0);ctx.lineTo(mx+ts*.55,(ROW+.9)*ts-cy);ctx.fill();});
-  const y0=ROW*ts-cy;ctx.fillStyle='#b8a68a';ctx.fillRect(L+ts*.5,y0+ts*.48,R-L-ts,ts*.44);ctx.fillStyle='#7a5230';for(let x=L+ts*.5;x<R-ts*.5;x+=ts*.34)ctx.fillRect(x,y0+ts*.5,ts*.11,ts*.4);
-  ctx.fillStyle='#868e96';ctx.fillRect(L+ts*.5,y0+ts*.56,R-L-ts,ts*.06);ctx.fillRect(L+ts*.5,y0+ts*.78,R-L-ts,ts*.06);}});
- /* the train, clipped to between the tunnel mouths so it comes out of one and goes into the other */
- if(TR.ph!=='away')items.push({y:ROW+.3,draw:()=>{ctx.save();ctx.beginPath();ctx.rect((X0+1.05)*ts-cx,-1e4,(X1-X0-1.1)*ts,2e4);ctx.clip();drawTrain(ctx,cx,cy,ts,now);ctx.restore();drawSmoke(ctx,cx,cy,ts);
+/* one hill from the side: outer foot at xo, tunnel face at xf (d=1 when the face is on its right, -1 on its left) */
+function hill(ctx,cx,cy,ts,xo,xf,d){const X=x=>x*ts-cx,Y=y=>y*ts-cy,base=ROW+.98,top=ROW-1.12,face=ROW-.95,mid=xo+(xf-xo)*.42;
+ const g=ctx.createLinearGradient(0,Y(top),0,Y(base));g.addColorStop(0,'#74c05a');g.addColorStop(1,'#4f8f3c');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(X(xo),Y(base));
+ ctx.bezierCurveTo(X(xo+(mid-xo)*.35),Y(top+.3),X(mid-(mid-xo)*.3),Y(top),X(mid),Y(top));ctx.bezierCurveTo(X(mid+(xf-mid)*.55),Y(top),X(xf-.15*d),Y(face-.25),X(xf),Y(face));ctx.lineTo(X(xf),Y(base));ctx.closePath();ctx.fill();
+ ctx.fillStyle='rgba(255,255,255,.18)';ctx.beginPath();ctx.ellipse(X(mid-.2*d),Y(top+.32),ts*.5,ts*.14,0,0,7);ctx.fill();
+ [[.25,.55],[.6,.25]].forEach(([k,dy])=>{const bx=X(xo+(xf-xo)*k),by=Y(top+dy+.35);ctx.fillStyle='#3f7d31';ctx.beginPath();ctx.arc(bx,by,ts*.16,0,7);ctx.arc(bx+ts*.17,by+ts*.03,ts*.13,0,7);ctx.fill();});
+ /* the portal's stone edge: blocks seen side-on, with a cap */
+ const s0=Math.min(X(xf),X(xf-.36*d)),sw=ts*.36;ctx.fillStyle='#9a9a9a';ctx.fillRect(s0,Y(face),sw,Y(base)-Y(face));ctx.fillStyle='#7d7d7d';for(let y=face+.3;y<base;y+=.3)ctx.fillRect(s0,Y(y),sw,1.5);
+ ctx.fillRect(s0+sw/2-.75,Y(face),1.5,Y(base)-Y(face));ctx.fillStyle='#b5b5b5';ctx.fillRect(s0-ts*.05,Y(face)-ts*.1,sw+ts*.1,ts*.12);}
+function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)return;const dt=TR.last?Math.min(.1,(now-TR.last)/1000):0;TR.last=now;tick(dt);
+ const L=HL0*ts-cx,R=(HR1+1)*ts-cx,ty=ROW*ts-cy;if(R<-ts*3||L>W.vw+ts*3||ty>W.vh+ts*3||ty<-ts*4)return;
+ /* platform (the sidewalk), running right up to the rails */
+ items.push({y:ROW-1.6,draw:()=>{const x0=PL0*ts-cx,w=(PL1-PL0+1)*ts,y0=(ROW-1)*ts-cy+ts*.12,h=ts*1.3;ctx.fillStyle='#ced4da';ctx.fillRect(x0,y0,w,h);ctx.fillStyle='#adb5bd';for(let i=0;i<=PL1-PL0+1;i++)ctx.fillRect(x0+i*ts,y0,1.5,h);
+  ctx.fillRect(x0,y0+ts*.62,w,1.5);ctx.fillStyle='#ffd43b';ctx.fillRect(x0,y0+h-ts*.13,w,ts*.07);ctx.fillStyle='#868e96';ctx.fillRect(x0,y0+h-ts*.06,w,ts*.06);}});
+ /* the track, from inside one hill to inside the other */
+ items.push({y:ROW-1.5,draw:()=>{const y0=ROW*ts-cy,l=HL0*ts-cx,r=(HR1+1)*ts-cx;ctx.fillStyle='#b8a68a';ctx.fillRect(l,y0+ts*.42,r-l,ts*.5);ctx.fillStyle='#7a5230';for(let x=l;x<r;x+=ts*.34)ctx.fillRect(x,y0+ts*.45,ts*.11,ts*.44);
+  ctx.fillStyle='#868e96';ctx.fillRect(l,y0+ts*.53,r-l,ts*.06);ctx.fillRect(l,y0+ts*.78,r-l,ts*.06);}});
+ /* the train, clipped to between the tunnel faces so it slides out of one hill and into the other */
+ if(TR.ph!=='away')items.push({y:ROW+.3,draw:()=>{ctx.save();ctx.beginPath();ctx.rect(FL*ts-cx,-1e4,(FR-FL)*ts,2e4);ctx.clip();drawTrain(ctx,cx,cy,ts,now);ctx.restore();drawSmoke(ctx,cx,cy,ts);
   if(TR.bubble&&TR.ph==='stop')bubble(ctx,'🔔 '+TR.bubble,(TR.front-1.8)*ts-cx,(ROW-1.75)*ts-cy,ts);}});
- /* stone arches in front of the train */
- items.push({y:ROW+.6,draw:()=>{[X0,X1].forEach(x=>{const mx=(x+.5)*ts-cx,top=(ROW-.5)*ts-cy;ctx.strokeStyle='#8d8d8d';ctx.lineWidth=ts*.16;ctx.beginPath();ctx.moveTo(mx-ts*.6,(ROW+.9)*ts-cy);ctx.lineTo(mx-ts*.6,top);ctx.arc(mx,top,ts*.6,Math.PI,0);ctx.lineTo(mx+ts*.6,(ROW+.9)*ts-cy);ctx.stroke();
-   ctx.fillStyle='#adb5bd';ctx.fillRect(mx-ts*.09,top-ts*.72,ts*.18,ts*.2);});}});
+ /* the hills, seen from the side, in front of the train: a grassy mound with the tunnel's stone portal edge facing the station */
+ items.push({y:ROW+.65,draw:()=>{hill(ctx,cx,cy,ts,HL0-.15,FL,1);hill(ctx,cx,cy,ts,HR1+1.15,FR,-1);}});
  /* departure board */
  items.push({y:BOARD[1]+.02,draw:()=>{const sx=BOARD[0]*ts-cx,sy=BOARD[1]*ts-cy;ctx.fillStyle='#495057';ctx.fillRect(sx+ts*.45,sy+ts*.15,ts*.1,ts*.8);ctx.fillStyle='#212529';rr(ctx,sx-ts*.05,sy-ts*.42,ts*1.1,ts*.62,ts*.08);ctx.fill();
   ctx.strokeStyle='#ffd43b';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=TR.ph==='away'?'#ffd43b':'#69db7c';ctx.font=`800 ${Math.round(ts*(TR.ph==='away'?.3:.2))}px ui-monospace, Menlo, monospace`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText((TR.ph==='away'?'🚂 ':'')+boardText(),sx+ts/2,sy-ts*.11);
