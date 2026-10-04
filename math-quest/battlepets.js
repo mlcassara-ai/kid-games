@@ -363,7 +363,7 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-ent .tag{font-size:10px;font-weight:700;background:rgba(255,255,255,.8);border-radius:6px;padding:0 4px;margin-top:1px}
 .bp2-base{position:absolute;bottom:16px;font-size:72px;line-height:1;transform:translateX(-50%);z-index:1}.bp2-base:has(svg){line-height:0}
 .bp2-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.bp2-meter{flex:1 1 110px;max-width:300px;min-width:80px;height:22px;background:#fff3bf;border-radius:11px;overflow:hidden;position:relative;border:2px solid #f2b705}.bp2-meter i{display:block;height:100%;background:#f2b705}.bp2-meter span{position:absolute;inset:0;text-align:center;font-weight:800;font-size:13px;line-height:18px}
+.bp2-meter{flex:1 1 110px;min-width:80px;height:22px;background:#fff3bf;border-radius:11px;overflow:hidden;position:relative;border:2px solid #f2b705}.bp2-meter i{display:block;height:100%;background:#f2b705}.bp2-meter span{position:absolute;inset:0;text-align:center;font-weight:800;font-size:13px;line-height:18px}
 .bp2-btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:8px 12px;min-height:44px;cursor:pointer;background:#7048e8;color:#fff}.bp2-btn:disabled{opacity:.45;cursor:default}.bp2-btn.gold{background:#f08c00}
 .bp2-team{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 body.bp2-lock{overflow:hidden}

@@ -330,6 +330,7 @@ const tests=[
    BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();G=D.G();const tb=()=>(document.getElementById('bpTrain')||{}).textContent||'';
    T.ok(!G.trainer&&p.bp2.tr===2&&/2 sessions/.test(tb()),'the Trainer was on, or a session was used, before being switched on');
    T.ok(document.getElementById('bpTrain').previousElementSibling.id==='bpPounce'&&document.getElementById('bpTrain').nextElementSibling.id==='bpFix','the Trainer button is not between Pounce and Rebuild');
+   {const rr=document.getElementById('bpFix').getBoundingClientRect(),tr=document.querySelector('.bp2-team').getBoundingClientRect();T.ok(Math.abs(rr.right-tr.right)<3,'the button row does not end above the Mega card (the treats bar should fill the space)');}
    BattlePets._trainer();T.ok(G.trainer&&G.trainer.on&&p.bp2.tr===1&&/Trainer ON/.test(tb()),'switching the Trainer on did not use one session');
    BattlePets._trainer();T.ok(!G.trainer.on&&/Trainer OFF/.test(tb()),'the Trainer could not be switched off');BattlePets._trainer();T.ok(G.trainer.on&&p.bp2.tr===1,'switching the Trainer off and on again used another session');
    G.denHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp.m[p.bp.m.length-1][12]===1,'the play log does not say the Trainer was used');BattlePets._back();
