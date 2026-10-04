@@ -299,8 +299,12 @@ const tests=[
   T.ok(BPScene.themeOf({op:'mul'})==='volcano'&&BPScene.themeOf({id:'fossil'})==='fossil','the worlds are not matched to the stages');
   /* warn before a battle when flyers are coming and nobody can reach them */
   {const S0=BattlePets.stages()[1],t=D.autoPick(P(),S0);T.ok(t.length>=1&&t.length<=Math.min(5,3+Math.floor((P().level||1)/10))&&t.every(id=>P().pets.includes(id))&&new Set(t).size===t.length,'Pick for me built a bad team');
-   const pw=t=>t.reduce((a,id)=>a+D.powerOf(P(),PETS.find(x=>x.id===id)),0),aA=D.autoPick(P(),S0,3,4);let lo=0;for(let i=0;i<8;i++)lo+=pw(D.autoPick(P(),S0,1,0));
-   T.ok(pw(aA)>=lo/8-1e-9&&aA.join()===D.autoPick(P(),S0,3,4).join(),'Pick for me does not pick stronger pets for Ascend');}
+   /* about 80%: with a big stable of pets, picks land near a 4-in-5 chance and change from press to press; Ascend is harder, so the same pets score lower there */
+   {const q=P(),keep=q.pets.slice(),pd=JSON.stringify(q.petData||{});q.pets=PETS.filter(x=>x.tier!=='event'&&x.tier!=='mythic').map(x=>x.id);q.petData=q.petData||{};q.pets.forEach((id,i)=>{q.petData[id]=Object.assign({},q.petData[id]||{},{xp:[0,20,50,130][i%4]});});
+    const ch=t=>D.winChance(q,S0,t.map(id=>PETS.find(x=>x.id===id)),2,0),picks=[];for(let i=0;i<6;i++)picks.push(D.autoPick(q,S0,2,0));
+    T.ok(picks.every(t=>ch(t)>=.6&&ch(t)<=.95)&&new Set(picks.map(t=>t.slice().sort().join())).size>=3,'Pick for me does not land near 80%, or keeps picking the same team');
+    const t0=picks[0].map(id=>PETS.find(x=>x.id===id));T.ok(D.winChance(q,S0,t0,3,6)<D.winChance(q,S0,t0,2,0),'the win chance does not drop for harder levels');
+    q.pets=keep;q.petData=JSON.parse(pd);}}
   {G.foes.forEach(f=>{f.gone=true;});G.trainer={on:true,next:0};G.treats=99;G.team.forEach(t=>t.ready=0);const s0=G.sent,k0=G.kl;for(let i=0;i<8;i++){G.treats=99;G.trainer.next=0;D.trainer();}
    T.ok(G.sent>s0&&G.kl>k0,'the Pet Trainer did not upgrade the kitchen and send pets');
    D._spawn('basic');const tf=G.foes[G.foes.length-1];tf.x=70;tf.hp=tf.max=9999;G.charge=100;G.trainer.next=0;D.trainer();T.ok(!!G.slam,'the Pet Trainer did not pounce at a close critter');for(let i=0;i<30&&G.slam;i++)D.step(.05);
@@ -354,6 +358,14 @@ const tests=[
    T.ok(!D.G().trainer&&/no sessions/.test(tb()),'the Trainer switched on with no sessions');D.G().denHP=0;D.step(.05);D.finish();await T.wait(50);BattlePets._back();}
   {BattlePets._pick('forest',2);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();D.G().t=5;BattlePets._quit();T.ok(!!document.getElementById('bpQuit'),'Exit did not ask before leaving');
    BattlePets._leave();T.ok(!D.G()&&D.view().k==='team'&&D.view().id==='forest'&&D.view().crown===2&&!document.querySelector('.bp2-over')&&document.querySelectorAll('.bp2-slot').length>0,'leaving a battle did not go back to the team builder for that stage');BattlePets._back();}
+  {const fly=()=>{if(document.getElementById('bpFlyW'))BattlePets._flyGo();},ov=()=>(document.querySelector('.bp2-over')||{}).innerText||'';
+   go('bp');BattlePets._pick('forest',1);BattlePets._start();fly();const r0=Object.assign({},p.bp2.rec);D.G().denHP=0;D.step(.05);T.ok(D.G().fx.includes('denFall'),'no crash when the critter den fell');D.finish();await T.wait(50);
+   T.ok(p.bp2.rec.w===r0.w+1&&/Your pets won/.test(ov())&&new RegExp('Your record: 🏆 '+p.bp2.rec.w+' won').test(ov()),'a win was not counted, or the card does not say who won and the record');BattlePets._back();
+   BattlePets._pick('forest',1);BattlePets._start();fly();D.G().houseHP=0;D.step(.05);T.ok(D.G().fx.includes('houseFall'),'no crash when the Pet House fell');D.finish();await T.wait(50);
+   T.ok(p.bp2.rec.l===r0.l+1&&/critters won/.test(ov()),'a loss was not counted');BattlePets._back();
+   BattlePets._pick('forest',1);BattlePets._start();fly();D.G().t=5;BattlePets._quit();BattlePets._leave();T.ok(p.bp2.rec.q===r0.q+1,'leaving a battle was not counted as a quit');BattlePets._back();
+   BattlePets.openStage('forest');T.ok(D.view().k==='team','the world page Battle button did not open the team builder');BattlePets._back();T.ok(curScreen==='zone','Back did not return to the world page');
+   if(window.Lab){p.sci=p.sci||{};p.sci.key=1;BattlePets.openStage('fossil');BattlePets._back();T.ok(curScreen==='lab','Back from the Fossil Stage did not return to the Lab');}go('bp');}
  }],
  ['cave regrowth: a new trip refills a few old tunnels with finds, and camp says when a brand-new cave comes',async function(){
   T.reset();const p=T.hero('Digger2',5);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;p.sci.met=true;p.sci.rocks=0;p.sci.trips=6;p.sci.lab={ok:{},freeDay:''};p.cave={trips:6,stats:{dug:40}};
