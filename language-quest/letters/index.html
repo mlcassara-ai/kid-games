@@ -69,7 +69,7 @@ h2{margin:4px 0 8px; font-size:1.3rem}
 .orb.pop{visibility:hidden}
 .orb.nope{background:radial-gradient(circle,#FFD6DE,#F7A8B8)}
 .orb.glow{box-shadow:0 0 0 5px var(--saffron), 0 0 22px var(--saffron)}
-.words{display:grid; gap:10px; margin-top:8px}
+.words{display:grid; gap:18px; margin-top:12px}
 .word{display:flex; align-items:center; gap:12px; background:#FFF8E6; color:#12233D; border-radius:18px; padding:10px 14px; border:3px solid transparent; cursor:pointer; font:inherit; text-align:start}
 .word .em{font-size:2.2rem}
 .word .ar{font-size:2rem; line-height:1.5; direction:rtl}
@@ -131,8 +131,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛺</div><h2>Letter Dunes</h2><p class="muted">كُثْبَانُ الحُرُوف — catch the letter shapeshifters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.04a";</script>
-<script src="../lq-core.js?v=2026.10.04a"></script>
+<script>window.LQ_VER="2026.10.04b";</script>
+<script src="../lq-core.js?v=2026.10.04b"></script>
 <script>
 /* ============ letters data ============
    [letter, name(with harakat), English name, joins-left?, look-alikes, words: [emoji, word, English, position 1=start 2=middle 3=end] ] */
@@ -299,7 +299,7 @@ function wordsStep(ch){ LQ.mark("Words for "+ch);
       <span class="info"><span class="ar" lang="ar">${w[1]}</span><br><span class="where">${w[2]} · ${I.en} ${WHERE[w[3]]}</span></span>
       <span class="form" lang="ar">${f[w[3]]}</span></button>`).join("")}</div>
     <div class="actions"><button class="btn go" id="done" disabled>Done ✓</button></div></div>`;
-  document.querySelectorAll(".word").forEach(b=>b.onclick=()=>{ const j=+b.dataset.j; say(I.words[j][1]); b.classList.add("heard");
+  document.querySelectorAll(".word").forEach(b=>b.onclick=()=>{ const j=+b.dataset.j; say(I.words[j][1]); b.classList.add("heard"); LQ.markDone(b);
     if(!heard.has(j)){ heard.add(j); addCoins(3); }
     if(heard.size===3){ $("done").disabled=false; talk("You found me everywhere! Tap Done to go back to camp."); } });
   $("done").onclick=()=>{ if(!save.letters[ch]){ LQ.update(p=>{ p.letters=p.letters||{}; p.letters[ch]=1; }); addCoins(10); } persist(); camp(curCamp); };

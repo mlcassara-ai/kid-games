@@ -134,6 +134,14 @@ addEventListener("error",e=>{ try{ logErr(e.message,(e.filename||"").split("/").
 addEventListener("unhandledrejection",e=>{ try{ const r=e.reason; logErr(r&&r.message||r,"promise"); }catch(_){} });
 /* ---------------- UI ---------------- */
 const CSS=`
+.lq-done{position:relative; overflow:visible}
+.lq-loop{position:absolute; left:-9px; top:-9px; pointer-events:none; overflow:visible; z-index:1}
+.lq-loop path{fill:none; stroke:#F2B134; stroke-width:4.5; stroke-linecap:round; stroke-linejoin:round}
+.lq-loop.draw path{stroke-dasharray:1; stroke-dashoffset:1; animation:lqLoop .7s ease-out forwards}
+@keyframes lqLoop{to{stroke-dashoffset:0}}
+.lq-tick{position:absolute; top:-11px; right:-11px; width:28px; height:28px; border-radius:50%; background:#2FA894; color:#fff; font:900 17px/28px system-ui,sans-serif; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.3); pointer-events:none; z-index:2}
+.lq-loop.draw~.lq-tick{animation:lqPop .35s .55s ease-out both}
+@keyframes lqPop{from{transform:scale(0)} 70%{transform:scale(1.25)} to{transform:scale(1)}}
 #lqOv{position:fixed;inset:0;z-index:50;background:linear-gradient(180deg,#8FC6F0,#F7DFA8);overflow:auto;font-family:"Baloo Bhaijaan 2","Geeza Pro",system-ui,sans-serif;color:#12233D;-webkit-user-select:none;user-select:none}
 #lqOv .in{max-width:760px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 18px) 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
 #lqOv h1{margin:0;font-size:2rem;text-align:center;font-weight:800}
@@ -476,6 +484,17 @@ function mePage(){
 window.LQ={
   player:cur, profiles, me:mePage, mark,
   /* after an answer, wait for the child to tap Next instead of moving on by itself (added to the screen's row of buttons) */
+  /* mark a card as done: a hand-drawn loop around it, like a teacher circling it in marker, and a ✓ badge.
+     animate=false for cards that were already done when the page was drawn. */
+  markDone(el,animate=true){ if(!el||el.querySelector(".lq-loop")) return; ensureCss(); el.classList.add("lq-done");
+    const w=el.offsetWidth+18, h=el.offsetHeight+18, r=Math.min(26,h/3), j=()=>(Math.random()-0.5)*3, ns="http://www.w3.org/2000/svg";
+    // round the box once, a little wobbly, then run on past the start like a real pen stroke
+    const d=`M ${8+r+j()} ${6+j()} L ${w-r-6+j()} ${4+j()} Q ${w-4} ${5} ${w-6+j()} ${r+6} L ${w-5+j()} ${h-r-6+j()} Q ${w-6} ${h-4} ${w-r-6} ${h-6+j()} `+
+            `L ${r+6+j()} ${h-5+j()} Q ${5} ${h-6} ${6+j()} ${h-r-6} L ${4+j()} ${r+8+j()} Q ${6} ${6} ${r+10} ${8+j()} L ${r+46} ${11+j()}`;
+    const svg=document.createElementNS(ns,"svg"); svg.setAttribute("class","lq-loop"+(animate?" draw":"")); svg.setAttribute("width",w); svg.setAttribute("height",h); svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
+    const path=document.createElementNS(ns,"path"); path.setAttribute("d",d); path.setAttribute("pathLength","1"); svg.appendChild(path);
+    const tick=document.createElement("span"); tick.className="lq-tick"; tick.textContent="✓"; tick.setAttribute("aria-hidden","true");
+    el.appendChild(svg); el.appendChild(tick); },
   nextButton(go,label){ const app=document.getElementById("app"); if(!app) return go(); const row=app.querySelector(".actions"), b=document.createElement("button");
     b.className="btn go"; b.type="button"; b.textContent=label||"Next ▶"; b.onclick=()=>{ b.remove(); go(); }; (row||app).appendChild(b); return b; },
   /* how loud the spoken Arabic is, 0 to 1, remembered on the device (set from the map's sound menu) */

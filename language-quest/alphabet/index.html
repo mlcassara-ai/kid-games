@@ -69,7 +69,7 @@ h2{margin:4px 0 8px; font-size:1.3rem}
 .orb.pop{visibility:hidden}
 .orb.nope{background:radial-gradient(circle,#FFD6DE,#F7A8B8)}
 .orb.glow{box-shadow:0 0 0 5px var(--saffron), 0 0 22px var(--saffron)}
-.words{display:grid; gap:10px; margin-top:8px}
+.words{display:grid; gap:18px; margin-top:12px}
 .word{display:flex; align-items:center; gap:12px; background:#FFF8E6; color:#12233D; border-radius:18px; padding:10px 14px; border:3px solid transparent; cursor:pointer; font:inherit; text-align:start}
 .word .em{font-size:2.2rem}
 .word .ar{font-size:2rem; line-height:1.5; direction:rtl}
@@ -126,7 +126,7 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 .nums i{font-style:normal; font-size:.8rem; font-weight:800; color:var(--muted)}
 .groups{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-top:12px}
 .big-go{display:block; width:100%; margin-top:12px; font-size:1.2rem}
-.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-top:10px; direction:rtl}
+.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:18px; margin-top:14px; direction:rtl}
 .lc{background:#FFF8E6; color:#12233D; border:3px solid transparent; border-radius:20px; padding:8px 6px; cursor:pointer; font:inherit; text-align:center}
 .lc .ch{display:block; font-size:3.6rem; line-height:1.35; color:var(--sky); font-weight:700}
 .lc .nm{display:block; font-size:1.35rem; line-height:1.7}
@@ -153,8 +153,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">🏫</div><h2>Alphabet School</h2><p class="muted">مَدْرَسَةُ الحُرُوف — meet the 28 letters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.04a";</script>
-<script src="../lq-core.js?v=2026.10.04a"></script>
+<script>window.LQ_VER="2026.10.04b";</script>
+<script src="../lq-core.js?v=2026.10.04b"></script>
 <script>
 /* ============ the alphabet, at the most basic level ============
    Each letter on its own (no joined shapes; those are taught in the Letter Dunes): its name, its sound with fatha,
@@ -271,7 +271,8 @@ function group(g){ LQ.mark("Letter group "+(g+1)); hush(); const G=GROUPS[g], he
     <div class="actions"><button class="btn ghost" id="bk">All letters</button><button class="btn boss" id="play">🎲 Letter game</button></div></div>`;
   document.querySelectorAll(".lc").forEach(b=>b.onclick=()=>{ const l=ALL[IDX[b.dataset.c]]; document.querySelectorAll(".lc").forEach(x=>x.classList.toggle("on",x===b));
     say(l[1],()=>setTimeout(()=>say(l[3],()=>setTimeout(()=>say(l[5],()=>b.classList.remove("on")),300)),300));
-    b.classList.add("heard"); if(!metOf(l[0])){ LQ.update(p=>markMet(p,l[0])); addCoins(2); } heard.add(l[0]); });
+    b.classList.add("heard"); LQ.markDone(b); if(!metOf(l[0])){ LQ.update(p=>markMet(p,l[0])); addCoins(2); } heard.add(l[0]); });
+  document.querySelectorAll(".lc.heard").forEach(b=>LQ.markDone(b,false));      // already met: show the loop without drawing it again
   $("bk").onclick=home; $("play").onclick=()=>game(g);
 }
 /* ---- the game: hear a name and find the letter, or see a letter and pick its name ---- */
