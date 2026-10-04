@@ -493,6 +493,8 @@ function onKey(e){try{if(document.getElementById('bpSnd')&&(e.key==='Escape'||e.
  if(used){e.preventDefault();e.stopPropagation();}}catch(x){}}
 window.addEventListener('keydown',onKey,true);
 /* draw: one element per unit, moved every frame */
+/* buttons are redrawn every frame: only touch their HTML when it changes, or a click that lands mid-redraw is lost */
+const setH=(el,h)=>{if(el&&el._h!==h){el._h=h;el.innerHTML=h;}};
 function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)return;const all=G.pets.concat(G.foes);
  all.forEach(u=>{if(!u.el){u.el=document.createElement('div');u.el.className=`bp2-ent ${u.side==='p'?'pet r-'+((u.R&&u.R.id)||'x'):'foe t-'+(u.trait||'basic')}${u.boss?' boss':''}${u.fly?' fly':''}`;u.el.style.setProperty('--d',(-Math.random()*.9).toFixed(2)+'s');u.el.innerHTML=`<div class="hb"><i></i></div><span class="e">${u.mega?megaArt(u.R.id,130):u.boss?goblinArt(118):u.side==='p'?u.pet.e:u.e}</span>${u.side==='c'&&u.trait&&u.trait!=='boss'&&!u.notag?`<span class="tag">${u.trait}</span>`:''}`;f.appendChild(u.el);}
   if(u.gone){if(!u.dead){u.dead=1;if(!u.left)u.el.classList.add('ko');else u.el.style.opacity=0;const e=u.el;setTimeout(()=>e.remove(),450);if(!u.left){puff(u.x,'poof');if(Math.random()<.6)puff(u.x+(Math.random()*2-1),'dust');}}return;}
@@ -510,13 +512,13 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
   tc.style.height=(out?100:wait/span*100)+'%';tb.classList.toggle('poor',G.treats<M.cost||out||wait>0);tb.title=out?`${M.n} is fighting!`:wait>0?`${M.n} is coming in ${Math.ceil(wait)} s`:`Call ${M.n}!`;}}
  const q=id=>document.getElementById(id);q('bpDen').style.width=(G.denHP/G.denMax*100)+'%';q('bpHouse').style.width=(G.houseHP/G.houseMax*100)+'%';q('bpT').textContent=Math.floor(G.t)+'s';
  q('bpTreat').style.width=(G.treats/treatCap()*100)+'%';q('bpTreatT').textContent=`🍖 ${Math.floor(G.treats)} / ${treatCap()}`;
- const fb=q('bpFix'),fp=q('bpFixP'),cf=canFix();fb.innerHTML=`🧱 Rebuild <span class="bp2-key">R</span><br><small>${G.bricks} brick${G.bricks===1?'':'s'}</small>`;fb.disabled=!G.fixing&&!cf;fb.classList.toggle('hot',cf&&!G.fixing);
+ const fb=q('bpFix'),fp=q('bpFixP'),cf=canFix();setH(fb,`🧱 Rebuild <span class="bp2-key">R</span><br><small>${G.bricks} brick${G.bricks===1?'':'s'}</small>`);fb.disabled=!G.fixing&&!cf;fb.classList.toggle('hot',cf&&!G.fixing);
  if(fp){if(G.fixing!==G.shown){G.shown=G.fixing;fp.style.display=G.fixing?'':'none';if(G.fixing){showQ(false);try{fp.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(e){}}}const bk=q('bpBricks');if(bk)bk.textContent=`🧱 × ${G.bricks}`;}
  if(window.BPScene){BPScene.baseState(q('bpHouseB'),G.houseHP/G.houseMax);BPScene.baseState(q('bpDenB'),G.denHP/G.denMax);if(G.boss&&!G.bossDown)BPScene.grey(true);}
 
  const kb=q('bpKit');kb.textContent=G.kl>=4?'🍳 Kitchen max':`🍳 Kitchen ${G.kl+1}→${G.kl+2} · 🍖${kitchenCost()}`;kb.disabled=G.kl>=4||G.treats<kitchenCost();
- const tn=q('bpTrain');if(tn){if(G.trainer){const on=G.trainer.on;tn.innerHTML=`🧑‍🏫 Trainer ${on?'ON':'OFF'} <span class="bp2-key">A</span>`;tn.classList.toggle('on',on);tn.classList.remove('ask');tn.disabled=false;tn.setAttribute('aria-pressed',on?'true':'false');}
-  else{const n=(prog(me()||{}).tr)||0;tn.innerHTML=n?`🧑‍🏫 Trainer OFF<br><small>${n} session${n===1?'':'s'}</small>`:`🧑‍🏫 Trainer<br><small>no sessions</small>`;tn.classList.remove('on');tn.classList.toggle('nohire',!n);tn.title=n?'Switch the Trainer on (uses one session)':'Hire Trainer sessions on the team screen';}}
+ const tn=q('bpTrain');if(tn){if(G.trainer){const on=G.trainer.on;setH(tn,`🧑‍🏫 Trainer ${on?'ON':'OFF'} <span class="bp2-key">A</span>`);tn.classList.toggle('on',on);tn.classList.remove('ask');tn.disabled=false;tn.setAttribute('aria-pressed',on?'true':'false');}
+  else{const n=(prog(me()||{}).tr)||0;setH(tn,n?`🧑‍🏫 Trainer OFF<br><small>${n} session${n===1?'':'s'}</small>`:`🧑‍🏫 Trainer<br><small>no sessions</small>`);tn.classList.remove('on');tn.classList.toggle('nohire',!n);tn.title=n?'Switch the Trainer on (uses one session)':'Hire Trainer sessions on the team screen';}}
  const pb=q('bpPounce');pb.textContent=G.charge>=100?'🐾 POUNCE!':`🐾 ${Math.floor(G.charge)}%`;pb.disabled=G.charge<100;
  G.team.forEach((s,i)=>{const c=q('bpCd'+i),b=q('bpTc'+i);if(!c)return;const left=Math.max(0,s.ready-G.t);c.style.height=(left/s.R.cd*100)+'%';b.classList.toggle('poor',G.treats<s.R.cost);});
  while(G.fx.length){const k=G.fx.shift();try{if(k==='send')tone(440,.1,'square',.03);else if(k==='poof')tone(300,.12,'triangle',.04);else if(k==='trainerFix')topNote('🧑‍🏫 Trainer: your Pet House needs bricks! Tap 🧱 Rebuild: the math is your job.');else if(k==='downed')topNote('💫 The paw knocked the flyers to the ground! Hit them now, before they fly again.');else if(k==='pounce'){const x=G.slam?G.slam.x:50;[392,523,659,784].forEach((h,j)=>tone(h,.12,'triangle',.06,j*.06));flash('🐾 PET POUNCE!',true);
