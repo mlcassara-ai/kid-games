@@ -309,8 +309,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.04d";</script>
-<script src="ll-core.js?v=2026.10.04d"></script>
+<script>window.LL_VER="2026.10.04e";</script>
+<script src="ll-core.js?v=2026.10.04e"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -1510,8 +1510,13 @@ let btnHeld = false;
 const holding = () => btnHeld;
 const reelBtn = document.getElementById("reelBtn");
 const reelPointers = new Set();                          // two thumbs on the button count as one press
-reelBtn.addEventListener("pointerdown", e => { e.preventDefault(); try{ reelBtn.setPointerCapture(e.pointerId); }catch(_){} const first = !reelPointers.size; reelPointers.add(e.pointerId); if (first) reelPress(); });
-["pointerup","pointercancel","lostpointercapture"].forEach(ev => reelBtn.addEventListener(ev, e => { if (!reelPointers.delete(e.pointerId)) return; if (!reelPointers.size) reelRelease(); }));
+reelBtn.addEventListener("pointerdown", e => { e.preventDefault(); try{ reelBtn.setPointerCapture(e.pointerId); }catch(_){}
+  if (!btnHeld) reelPointers.clear();                    // a finger whose lift never arrived (iOS can lose it) must never block the next tap
+  const second = reelPointers.size > 0 && btnHeld && trip && trip.charge;   // only a real second thumb while aiming a cast is ignored
+  reelPointers.add(e.pointerId); if (!second) reelPress(); });
+const reelUp = e => { if (!reelPointers.delete(e.pointerId)) return; reelPointers.clear(); reelRelease(); };   // any lift lets go: a lost lift can never leave the reel stuck
+["pointerup","pointercancel","lostpointercapture"].forEach(ev => reelBtn.addEventListener(ev, reelUp));
+["pointerup","pointercancel"].forEach(ev => window.addEventListener(ev, reelUp));   // a lift anywhere on the screen counts too
 reelBtn.addEventListener("contextmenu", e => e.preventDefault());
 function reelPress(){
   if (state !== "fishing" || !trip) return;

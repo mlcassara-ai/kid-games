@@ -568,6 +568,16 @@ const BOT = n => {
     $("modal").classList.remove("show"); modalQueue = []; prizeQueue = [];
     Object.keys(S).forEach(k => delete S[k]); Object.assign(S, JSON.parse(bak)); showScreen("title");
     return out; });
+  const r13 = await a.evaluate(async () => {
+    trip = null; visit = null; startVisit(lakeById("dixon"), "dock"); const rb = $("reelBtn"), out = {};
+    const ev = (t, id) => rb.dispatchEvent(new PointerEvent(t, { pointerId: id, bubbles: true, pointerType: "touch" }));
+    ev("pointerdown", 71); trip.phase = "ready"; trip.charge = null; btnHeld = false;         // a finger lift iOS never delivered
+    ev("pointerdown", 72); ev("pointerup", 72); out.a = trip.phase === "cast";
+    startTrip(lakeById("dixon"), 0, "dock", true); trip.phase = "ready";
+    ev("pointerdown", 73); trip.phase = "reel"; trip.charge = null; trip.phase = "ready";       // lost while holding
+    ev("pointerdown", 74); ev("pointerup", 74); out.b = trip.phase === "cast";
+    trip = null; visit = null; btnHeld = false; showScreen("title"); return out; });
+  ok(r13.a && r13.b, "a lost finger-lift on the reel button never blocks the next cast");
   ok(r12.loop, "one error in a frame doesn't freeze the game");
   ok(r12.rentOnce, "a rented boat is paid for once per visit");
   ok(r12.motorUnlock, "going back to the dock while motoring to a spot doesn't block casting");
