@@ -131,8 +131,8 @@ path.tg.done{stroke:var(--sky)} circle.tg.done{fill:var(--sky)}
 </div>
 <div id="start"><div class="box"><div style="font-size:3rem">⛺</div><h2>Letter Dunes</h2><p class="muted">كُثْبَانُ الحُرُوف — catch the letter shapeshifters!</p><button class="btn go" id="go">▶ Tap to start</button></div></div>
 
-<script>window.LQ_VER="2026.10.03h";</script>
-<script src="../lq-core.js?v=2026.10.03h"></script>
+<script>window.LQ_VER="2026.10.03i";</script>
+<script src="../lq-core.js?v=2026.10.03i"></script>
 <script>
 /* ============ letters data ============
    [letter, name(with harakat), English name, joins-left?, look-alikes, words: [emoji, word, English, position 1=start 2=middle 3=end] ] */
@@ -227,7 +227,9 @@ function hop(){ const h=$("hero"); if(!h)return; h.classList.remove("happy"); vo
 function talk(h){ const t=$("talk"); if(t) t.innerHTML=h; }
 
 /* ============ screens ============ */
-function campUnlocked(c){ return c===0 || !!save.camps[c-1]; }
+/* testing: opening the Letter Dunes once with ?unlock=1 opens every camp on this device (?unlock=0 locks them again); nobody's save changes */
+const UNLOCK_ALL=(()=>{ try{ const q=new URLSearchParams(location.search).get("unlock"); if(q==="1") localStorage.setItem("lqUnlockAll","1"); if(q==="0") localStorage.removeItem("lqUnlockAll"); return localStorage.getItem("lqUnlockAll")==="1"; }catch(e){ return false; } })();
+function campUnlocked(c){ return UNLOCK_ALL || c===0 || !!save.camps[c-1]; }
 function home(){ LQ.mark("Letter Dunes: all camps");
   const html=CAMPS.map((ls,c)=>{ const open=campUnlocked(c), done=ls.filter(ch=>save.letters[ch]).length, stars=save.camps[c]||0;
     return `<button class="camp ${open?"":"locked"}" data-c="${c}" ${open?"":"aria-disabled=\"true\""}>

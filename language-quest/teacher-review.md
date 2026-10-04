@@ -36,14 +36,13 @@ Everything below is already in the game. The Arabic was written without a native
 - **Grandmother's basket** (opens after all 28 Letter Friends): one everyday object per letter: إِبْرِيق، بَاب، تُفَّاحَة، ثَوْب، جَرَس، حَقِيبَة، خُبْز، دَلْو، ذُرَة، رِيشَة، زَيْتُون، سَاعَة، شَمْعَة، صُنْدُوق، ضِمَادَة، طَبْل، ظَرْف، عِنَب، غَيْمَة، فِنْجَان، قَلَم، كُرَة، لَيْمُون، مِفْتَاح، نَجْمَة، هَدِيَّة، وَرْدَة، يَد. Better words for any letter, especially ث ذ ض ظ?
 - **Case endings:** phrases keep their endings inside, but the last word and single words are read without one (pausal form). Is that the convention you want?
 
-## Alphabet School letter families
+## Alphabet School letter groups
 
-The Alphabet School now teaches the letters in alphabet order, grouped into seven small families so that letters sharing a shape (differing only in dots) are learned together. Is this the grouping you would use, or would you change it?
+Set by the teacher on Oct 3 (numbers are each letter's place in the alphabet). The letter game no longer asks "which letter comes next", because the groups are not in alphabet order.
 
-1. ا ب ت ث
-2. ج ح خ
-3. د ذ ر ز و (و moved here: like the others it never joins the letter after it)
-4. س ش ص ض
-5. ط ظ ع غ
-6. ف ق ك ل
-7. م ن ه ي
+1. Alif and the Baa family: ا1 ب2 ت3 ث4 ن25 ي28
+2. The Jiim and Ayn family: ج5 ح6 خ7 ع18 غ19
+3. The letters that don't join: د8 ذ9 ر10 ز11 و27
+4. The Siin, Saad and Taa family: س12 ش13 ص14 ض15 ط16 ظ17
+5. Faa, Qaaf, Kaaf and Laam: ف20 ق21 ك22 ل23
+6. Miim, Haa and Hamza: م24 ه26 ء (hamza: name هَمْزَة, sound أَ, word أَرْنَب)
