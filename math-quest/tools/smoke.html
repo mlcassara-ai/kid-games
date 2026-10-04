@@ -82,11 +82,28 @@ const tests=[
    T.ok(B.streak===s0,'helped answer raised the streak');T.ok(p.coins===c0,'helped answer paid coins');T.ok(p.stats.add.r===r1,'helped answer counted as right');
    T.ok(B.mhp<hp0,'helped answer did no damage');T.ok(B.review.length===rv0+1||B.q.again,'helped problem was not queued to come back');T.ok(p.missed[qh.text],'helped problem not recorded');}
   const w0=p.stats.add.w,n0=Object.keys(p.missed).length;wrong();await T.until(()=>fbOpen,8000,'wrong-answer card');
-  T.ok(p.stats.add.w===w0+1&&Object.keys(p.missed).length===n0+1,'missed problem not stored');closeFeedback();
+  T.ok(p.stats.add.w===w0+1&&Object.keys(p.missed).length===n0+1,'missed problem not stored');
+  /* 🧠 Teach me on the wrong-answer card: a wrong step asks again, right steps walk to the answer, then a practice problem; no stats change */
+  {const qm=B.q;if(window.Teach&&Teach.can(qm)){T.ok(/Teach me/.test(document.querySelector('#modal').innerText),'the Teach me button is missing');
+    const D=Teach._dbg,typ=v=>{String(v).split('').forEach(k=>Teach._key(k));Teach._key('✓');},st0=JSON.stringify(p.stats),f0=(p.teach&&p.teach.f)||0;Teach._open();
+    T.ok(D.TM()&&D.TM().p.steps.length>=1,'Teach me did not open');typ(D.ans(D.TM().p.steps[0])+1);T.ok(D.TM().i===0&&/Try again/.test(document.querySelector('#modal').innerText),'a wrong step did not ask to try again');
+    for(let i=0;i<20&&D.TM().mode==='steps';i++)typ(D.ans(D.TM().p.steps[D.TM().i]));
+    T.ok(D.TM().mode==='done'&&document.querySelector('#modal').innerText.includes(qm.text+' = '+qm.answer),'Teach me did not finish with the answer');
+    Teach._prac();const pq=D.TM().prac;T.ok(pq&&pq.text!==qm.text&&pq.op===qm.op,'Try one like it gave no similar problem');typ(pq.answer);T.ok(D.TM().right,'the practice answer was not accepted');
+    T.ok(p.teach&&p.teach.f===f0+1&&p.teach.pr[0]>=1&&JSON.stringify(p.stats)===st0,'Teach me did not log, or it changed the battle stats');Teach._close();T.ok(!fbOpen,'Back to the battle did not close the card');}
+   else closeFeedback();}
   await T.until(ready,12000,'question after a miss');
   B.mhp=1;B.foes.forEach(f=>{f.hp=1;});right();
   await T.until(()=>p.battles>b0,20000,'battle win to be counted');T.ok(p.battles===b0+1,'battle win not counted');}],
 
+['teach me: every plain fact up to the thousands gets a strategy whose steps are right and end on the answer',async function(){
+  let n=0,bad=[];for(const op of ['add','sub','mul','div'])for(let L=1;L<=10;L++)for(let i=0;i<60;i++){const q=genQ(op,L),pl=Teach.plan(q);if(!pl){if(op==='mul'||op==='div'||L<=7)bad.push('no plan '+q.text);continue;}n++;
+   const c=(a,o,b)=>o==='+'?a+b:o==='−'?a-b:o==='×'?a*b:o==='÷'?a/b:a/2;pl.steps.forEach(s=>{if(c(s.a,s.op,s.b)!==s.r||s.r<0||!Number.isInteger(s.r))bad.push(q.text+' step '+s.a+s.op+s.b);});
+   if(Teach._dbg.ans(pl.steps[pl.steps.length-1])!==q.answer)bad.push(q.text+' ends on the wrong number');}
+  T.ok(n>1500&&!bad.length,'Teach me plans are wrong: '+bad.slice(0,4).join('; '));
+  const tx=t=>{const [a,o,b]=t.split(' '),op={'+':'add','−':'sub','×':'mul','÷':'div'}[o],A=+a,Bn=+b;return Teach.plan({op,a:A,b:Bn,L:5,text:t,answer:o==='+'?A+Bn:o==='−'?A-Bn:o==='×'?A*Bn:A/Bn}).name;};
+  T.ok(tx('8 + 5')==='Make a ten'&&tx('6 + 7')==='Near doubles'&&tx('13 − 5')==='Back through ten'&&tx('6 × 9')==='10s minus one group'&&tx('45 ÷ 5')==='Chunk it'&&tx('29 + 14')==='Round and adjust','a fact got the wrong strategy');
+ }],
 ['sync: field merge, duplicate heroes, removed groups',async function(){
   T.reset();const p=T.hero('Sync',3);const base=T.clone(p);BASE[p.id]=T.clone(base);
   p.coins=base.coins+40;p.upd=Date.now();const r=T.clone(base);r.grade=4;r.upd=Date.now()-5000;
@@ -314,6 +331,8 @@ const tests=[
    BattlePets._trainer();D.draw&&D.draw();T.ok(!G.trainer.on,'the Pet Trainer could not be switched off in the battle');BattlePets._trainer();T.ok(G.trainer.on,'the Pet Trainer could not be switched back on');
    G.denHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp.m[p.bp.m.length-1][12]===1,'the play log does not say the Pet Trainer was hired');BattlePets._back();
    BattlePets._pick('forest',1);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();T.ok(p.coins===120-D.TRAINER_COST&&!D.G().trainer,'the Pet Trainer was charged again without being hired');D.G().denHP=0;D.step(.05);D.finish();await T.wait(50);BattlePets._back();}
+  {BattlePets._pick('forest',2);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();D.G().t=5;BattlePets._quit();T.ok(!!document.getElementById('bpQuit'),'Exit did not ask before leaving');
+   BattlePets._leave();T.ok(!D.G()&&D.view().k==='team'&&D.view().id==='forest'&&D.view().crown===2&&!document.querySelector('.bp2-over')&&document.querySelectorAll('.bp2-slot').length>0,'leaving a battle did not go back to the team builder for that stage');BattlePets._back();}
  }],
  ['cave regrowth: a new trip refills a few old tunnels with finds, and camp says when a brand-new cave comes',async function(){
   T.reset();const p=T.hero('Digger2',5);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;p.sci.met=true;p.sci.rocks=0;p.sci.trips=6;p.sci.lab={ok:{},freeDay:''};p.cave={trips:6,stats:{dug:40}};
