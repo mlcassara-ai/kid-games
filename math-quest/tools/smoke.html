@@ -253,6 +253,12 @@ const tests=[
   {G.megaId='eagle';G.trollAt=0;G.treats=50;const before=G.trolls;D.callTroll();const eg=G.pets.find(u=>u.mega&&!u.gone&&u.R.id==='eagle');T.ok(eg&&G.trolls===before+1,'Skyla did not come');
    eg.stun=0;D._spawn('basic');const ef=G.foes[G.foes.length-1];ef.x=eg.x-8;const eh=ef.hp;let rose=false;for(let i=0;i<40&&!G.dives;i++){D.step(.05);if(eg.ph==='rise')rose=true;}
    T.ok(rose&&G.dives>=1&&(ef.hp<eh||ef.gone),'Skyla did not rise and dive onto the critter');eg.leave=G.t;D.step(.05);ef.gone=true;G.megaId='troll';G.trollAt=G.t+50;}
+  /* a critter past the front line shows an edge alert; hitting the Pet House glides the camera there once */
+  {G.foes.forEach(f=>f.gone=true);G.pets.forEach(u=>u.gone=true);D.step(.05);G.treats=50;G.team.forEach(t=>t.ready=0);D.send(0);const pu=G.pets[G.pets.length-1];pu.x=30;pu.stun=G.t+99;
+   D._spawn('basic');const cf=G.foes[G.foes.length-1];cf.x=80;cf.stun=G.t+99;const sc=document.getElementById('bpScroll');sc.scrollLeft=0;G.camAt=null;
+   const th=D.threats();T.ok(th.n>=1&&th.el&&/heading home/.test(document.getElementById('bpAlert').textContent),'no edge alert for a critter past the front line');
+   cf.x=93;cf.stun=0;for(let i=0;i<4;i++)D.step(.05);D.threats();T.ok(G.houseHit&&G.camAt&&G.camAt.x>80,'hitting the Pet House did not send the camera there');
+   cf.gone=true;pu.gone=true;D.step(.05);G.houseHP=G.houseMax;}
   /* the camera follows our lead pet (with no pets out it rests on the Pet House) */
   {const sc=document.getElementById('bpScroll');sc.scrollLeft=0;G.pets.forEach(u=>u.gone=true);D.step(.05);T.ok(D.leadX()>=90,'with no pets out the camera does not rest on the Pet House');const l0=sc.scrollLeft;for(let i=0;i<5;i++)BattlePets._cam();T.ok(sc.scrollLeft>l0,'the camera did not move to the lead pet');}
   /* the scenery: a world for the stage, drawn bases, the Goblin drains the colour */
@@ -267,6 +273,7 @@ const tests=[
   const kl=G.kl;BattlePets._kit();T.ok(G.kl===kl+1,'the Treat Kitchen did not upgrade');
   {D._spawn('basic');const pf=G.foes[G.foes.length-1];pf.x=50;const ph=pf.hp;G.charge=100;BattlePets._pounce();T.ok(G.charge===0&&G.pounces===1&&G.slam&&Math.abs(G.slam.x-50)<.01,'Pet Pounce did not aim at the lead critter');
    T.ok(pf.x===50,'the paw hit before it came down');for(let i=0;i<30&&G.slam;i++)D.step(.05);T.ok(!G.slam&&pf.x<50&&pf.hp<ph,'the paw did not slam the lead critter');pf.gone=true;}
+  {G.foes.forEach(f=>{f.gone=true;});D._spawn('basic');D._spawn('basic');const fa=G.foes[G.foes.length-2],fb=G.foes[G.foes.length-1];fa.x=60;fb.x=40;const hb=fb.hp;G.charge=100;BattlePets._pounce();fb.x=75;D.step(.02);T.ok(Math.abs(G.slam.x-fb.x)<1,'the falling paw did not switch to the critter closest to the Pet House');for(let i=0;i<30&&G.slam;i++)D.step(.05);T.ok(fb.hp<hb,'the paw did not land on the critter closest to the Pet House');fa.gone=true;fb.gone=true;}
   {const st=BattlePets.stages(),tr=id=>(st.find(s=>s.id===id)||{crit:[]}).crit;T.ok(tr('caves').every(c=>c[2]!=='flying'||c[1]==='🦇')&&!tr('volcano').some(c=>c[2]==='flying')&&tr('forest').some(c=>c[1]==='🐝'&&c[2]==='flying'),'a critter that cannot really fly is flying');}
   {const r=G.team[0].R;T.ok(D.petSpd(r,1)>D.petSpd(r,2)&&D.petSpd(r,1)<r.spd,'stronger pets do not walk slower');}
   for(let i=0;i<40;i++)D.step(.05);G.denHP=1;G.pets.forEach(u=>u.x=8);D.step(.1);T.ok(G.boss,'the boss did not come out');T.ok(G.foes.some(f=>f.boss&&f.name==='Grey Goblin'),'the boss is not the Grey Goblin');G.denHP=0;D.step(.05);T.ok(G.over&&G.win,'the den fell but the battle did not end');

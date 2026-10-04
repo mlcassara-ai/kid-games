@@ -173,7 +173,9 @@ function answer(ok){if(!G||G.over||!G.fixing||G.bricks<=0)return 0;G.asked++;if(
    Its shadow grows for a moment, then it SLAMS: every critter near that spot (flyers too) is hurt, knocked back and stunned. */
 function pounce(){if(!G||G.over||G.charge<100||G.slam)return false;const live=G.foes.filter(f=>!f.gone);if(!live.length)return false;
  const lead=live.reduce((a,b)=>b.x>a.x?b:a);G.charge=0;G.pounces++;G.slam={x:lead.x,at:G.t+TUNE.slamWait,n:G.pounces};G.camAt={x:lead.x,until:G.t+TUNE.slamWait+1};fx('pounce');return true;}
-function slam(){const s=G.slam;if(!s||G.t<s.at)return;G.slam=null;G.slamX=s.x;
+/* while the paw is coming down it keeps aiming at whichever critter is closest to the Pet House */
+function slamAim(){const s=G.slam;if(!s)return;const live=G.foes.filter(f=>!f.gone);if(!live.length)return;s.x=live.reduce((a,b)=>b.x>a.x?b:a).x;G.camAt={x:s.x,until:Math.max(G.camAt&&G.camAt.until||0,s.at+1)};}
+function slam(){const s=G.slam;if(!s)return;slamAim();if(G.t<s.at)return;G.slam=null;G.slamX=s.x;
  G.foes.forEach(f=>{if(f.gone||Math.abs(f.x-s.x)>TUNE.slamR)return;knock(f,-(f.boss?6:12));f.hp-=f.boss?90:45;f.stun=G.t+1.4;f.pawT=G.t;});fx('slam');}
 function spawn(kind){const S=G.stage,c=G.c;let def,name,e;
  if(kind==='boss'){def=TRAIT.boss;name=S.boss[0];e=S.boss[1];}else{const opts=S.crit.filter(x=>x[2]===kind),pick=opts.length?choose(opts):S.crit[0];def=TRAIT[pick[2]];name=pick[0];e=pick[1];}
@@ -198,7 +200,7 @@ function step(dt){if(!G||G.over)return;G.t+=dt;
  /* flyers drift over pets that can't reach them (like Battle Cats' floating enemies) and go for the Pet House */
  foes.forEach(f=>{if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>u.ph!=='rise'&&u.ph!=='dive'&&(!f.fly||u.R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
   if(tg.length){const u=tg.reduce((a,b)=>b.x<a.x?b:a);u.hp-=f.atk*dt;f.fight=true;if(Math.random()<.18*dt)knock(u,1.5+Math.random()*1.5);if(f.boss&&G.t>=(G.bossShake||0)){G.bossShake=G.t+1.4;fx('bossHit');}}
-  else if(HOUSE_X-f.x<=f.rng&&(f.fight=true))G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;
+  else if(HOUSE_X-f.x<=f.rng&&(f.fight=true)){G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;G.houseHit=G.t;}
   else{f.x+=f.spd*.8*dt;f.mv=true;}});
  /* knock-back each time a unit loses another third of its health */
  const bump=(u,dir)=>{const k=Math.floor((1-u.hp/u.max)*3);if(u.hp<=0||k<=u.kb)return;u.kb=k;u.stun=G.t+.4;knock(u,dir*(u.boss||u.mega?2:5));};
@@ -341,6 +343,8 @@ body.bp2-lock{overflow:hidden}
 .bp2-note-pop b{display:block;font-size:24px}.bp2-note-pop small{display:block;font-size:14px;opacity:.85;margin-top:4px}
 @keyframes bp2note{0%{opacity:0;scale:.7}12%{opacity:1;scale:1.05}20%{scale:1}80%{opacity:1}100%{opacity:0}}
 .bp2-padrow{display:flex;gap:6px;margin-top:6px}.bp2-padrow button{font:inherit;font-size:20px;font-weight:800;border:0;border-radius:12px;min-height:46px;cursor:pointer}.bp2-padrow .skip{flex:1;background:#e9ecef;color:#2b2340}.bp2-padrow .go{flex:3;background:#40c057;color:#fff}
+.bp2-alert{position:absolute;z-index:8;font:inherit;font-weight:700;border:3px solid #fff;background:#e03131;color:#fff;border-radius:14px;padding:6px 12px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.35);animation:bp2alert 1s ease-in-out infinite;max-width:46%}.bp2-alert[hidden]{display:none}
+@keyframes bp2alert{50%{translate:-6px 0}}
 .bp2-note{font-size:11px;opacity:.7;margin:0;text-align:center}.bp2-tc{font:inherit;position:relative;border:3px solid #d0bfff;border-radius:14px;background:#fff;min-height:84px;padding:4px 2px;cursor:pointer;color:#2b2340;overflow:hidden}
 .bp2-tc .pe{font-size:30px;display:block}.bp2-tc small{display:block;font-size:11px;font-weight:700}.bp2-tc .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(43,35,64,.35)}.bp2-tc.poor{opacity:.55}
 .bp2-q{display:flex;align-items:center;justify-content:center;gap:10px;font-size:28px;font-weight:800;flex-wrap:wrap}.bp2-q .box{min-width:90px;border:3px dashed #b197fc;border-radius:12px;text-align:center;background:#f8f5ff;padding:0 8px}
@@ -461,7 +465,7 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
   u.el.style.left=u.x+'%';u.el.classList.toggle('walk',!!u.mv&&!u.fight);if(u.mv&&!u.fly&&window.BPScene&&Math.random()<.025)BPScene.scuff(u.x);u.el.classList.toggle('fight',!!u.fight);if(u.flyer)u.el.classList.toggle('fly',!(u.fight&&!u.tgFly));u.el.classList.toggle('stun',!!(u.stun>G.t&&!u.mega&&!(u.leapT!==undefined&&G.t-u.leapT<1)));
   if(u.fight&&!u.mega&&now>(u.fxAt||0)){u.fxAt=now+900;if(u.R&&u.R.id==='archer')arrow(u);else if(u.R&&u.R.id==='medic')puffAny(u.x,'heal',70);}if(u.mega)u.el.classList.add('mega');u.el.querySelector('.hb i').style.width=Math.max(0,u.hp/u.max*100)+'%';});
  G.pets=G.pets.filter(u=>!(u.gone&&u.dead));G.foes=G.foes.filter(u=>!(u.gone&&u.dead));
- clash();baseSmoke();pawHits();camera();flyHint();
+ clash();baseSmoke();pawHits();pawFollow();threats();camera();flyHint();
  {const tb=document.getElementById('bpTroll'),tc=document.getElementById('bpTrollCd'),M=megaOf();if(tb&&tc){const out=trollOut(),wait=Math.max(0,G.trollAt-G.t),span=G.trolls?M.cd:M.first;
   tc.style.height=(out?100:wait/span*100)+'%';tb.classList.toggle('poor',G.treats<M.cost||out||wait>0);tb.title=out?`${M.n} is fighting!`:wait>0?`${M.n} is coming in ${Math.ceil(wait)} s`:`Call ${M.n}!`;}}
  const q=id=>document.getElementById(id);q('bpDen').style.width=(G.denHP/G.denMax*100)+'%';q('bpHouse').style.width=(G.houseHP/G.houseMax*100)+'%';q('bpT').textContent=Math.floor(G.t)+'s';
@@ -474,7 +478,7 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
  const pb=q('bpPounce');pb.textContent=G.charge>=100?'🐾 POUNCE!':`🐾 ${Math.floor(G.charge)}%`;pb.disabled=G.charge<100;
  G.team.forEach((s,i)=>{const c=q('bpCd'+i),b=q('bpTc'+i);if(!c)return;const left=Math.max(0,s.ready-G.t);c.style.height=(left/s.R.cd*100)+'%';b.classList.toggle('poor',G.treats<s.R.cost);});
  while(G.fx.length){const k=G.fx.shift();try{if(k==='send')tone(440,.1,'square',.03);else if(k==='poof')tone(300,.12,'triangle',.04);else if(k==='pounce'){const x=G.slam?G.slam.x:50;[392,523,659,784].forEach((h,j)=>tone(h,.12,'triangle',.06,j*.06));flash('🐾 PET POUNCE!',true);
-    const fl=document.getElementById('bpField');if(fl){const sh=document.createElement('div');sh.className='bp2-pshadow';sh.style.left=x+'%';const pw=document.createElement('div');pw.className='bp2-sky';pw.style.left=x+'%';pw.innerHTML=PAW;fl.appendChild(sh);fl.appendChild(pw);setTimeout(()=>{sh.remove();pw.remove();},1450);}
+    const fl=document.getElementById('bpField');if(fl){const sh=document.createElement('div');sh.className='bp2-pshadow';sh.style.left=x+'%';const pw=document.createElement('div');pw.className='bp2-sky';pw.style.left=x+'%';pw.innerHTML=PAW;fl.appendChild(sh);fl.appendChild(pw);G.slamEls=[sh,pw];setTimeout(()=>{sh.remove();pw.remove();},1450);}
     G.pets.forEach(u=>{if(u.el&&!u.gone&&!u.mega){u.el.classList.add('cheer');setTimeout(()=>{try{u.el.classList.remove('cheer');}catch(e){}},1300);}});}
    else if(k==='slam'){const x=G.slamX;shake();setTimeout(shake,180);tone(48,.6,'sine',.22);tone(90,.25,'square',.08);tone(1400,.18,'triangle',.03,.02);
     puffAny(x,'ring');setTimeout(()=>puffAny(x,'ring'),120);for(let i=0;i<6;i++)puffAny(x+(Math.random()*8-4),'dust');
@@ -497,6 +501,7 @@ function clash(){const now=performance.now();if(now<CLASH)return;CLASH=now+170;c
 /* a hurt base smokes: from 25% damage, more and darker smoke the more it is hurt, with embers near the end */
 let WSEEN=0;
 /* stars on every critter the paw hit */
+function pawFollow(){if(G.slam&&G.slamEls)G.slamEls.forEach(e=>{e.style.left=G.slam.x+'%';});}
 function pawHits(){G.foes.forEach(f=>{if(f.pawT&&f.pawT!==f.pawSeen&&!f.gone){f.pawSeen=f.pawT;puffAny(f.x,'star',60);puffAny(f.x,'dust');}});}
 /* effects that must show even when the screen is busy (the pounce) */
 function puffAny(x,kind,y){const f=document.getElementById('bpField');if(!f||PTS>60)return;const d=document.createElement('div');d.className='bp2-pt '+kind;d.style.left=x+'%';if(y!==undefined)d.style.bottom=y+'px';
@@ -519,6 +524,23 @@ function smoke(x,I,ember,y){if(SMKN>=44)return;const f=document.getElementById('
  if(!ember){d.style.width=d.style.height=sz+'px';d.style.background=`rgb(${g},${g},${g+6})`;d.style.setProperty('--op',(.55+.35*I).toFixed(2));d.style.setProperty('--dur',(1.7+1.1*I).toFixed(2)+'s');}
  d.style.setProperty('--dx',(Math.random()*60-30)+'px');d.style.setProperty('--rise',Math.round(100+80*I)+'px');SMKN++;f.appendChild(d);
  const done=()=>{if(d.parentNode){d.remove();SMKN--;}};d.addEventListener('animationend',done);setTimeout(done,3200);}
+/* critters that slip past the front line: an edge alert while they are off screen (tap it to look), and the first time they hit
+   the Pet House the camera glides over for about 3 seconds with an alarm, then back to the lead pet. Once per break-in: it re-arms
+   after the house has been left alone for 6 seconds. */
+function threats(){if(!G||G.over)return {n:0};const sc=document.getElementById('bpScroll'),full=document.getElementById('bpFull');if(!sc||!full)return {n:0};
+ const P2=G.pets.filter(u=>!u.gone);const lead=P2.length?Math.min(...P2.map(u=>u.x)):null;
+ const W2=sc.scrollWidth,right=(sc.scrollLeft+sc.clientWidth)/W2*100;
+ const past=lead==null?[]:G.foes.filter(f=>!f.gone&&f.x>lead+2&&f.x>right-1);
+ let el=document.getElementById('bpAlert');
+ if(past.length&&!(G.camAt&&G.t<G.camAt.until)){if(!el){el=document.createElement('button');el.id='bpAlert';el.className='bp2-alert';full.appendChild(el);
+   el.onclick=()=>{const g=G;if(!g)return;const f=g.foes.filter(x=>!x.gone).reduce((a,b)=>b.x>a.x?b:a,{x:HOUSE_X-6});g.camAt={x:Math.min(HOUSE_X-4,f.x),until:g.t+3};};}
+  el.hidden=false;el.textContent=`${past[0].e} → 🏡 ${past.length} critter${past.length>1?'s':''} heading home!`;
+  const fr=sc.getBoundingClientRect(),pr=full.getBoundingClientRect();el.style.top=(fr.top-pr.top+fr.height*.3)+'px';el.style.right=(pr.right-fr.right+8)+'px';}
+ else if(el)el.hidden=true;
+ if(G.houseHit&&G.t-G.houseHit<.3&&G.dangerArmed!==false){G.dangerArmed=false;G.camAt={x:HOUSE_X-5,until:G.t+3};shake();topNote('🚨 Critters are smashing your Pet House!');
+  try{[0,.18,.36].forEach((d,i)=>tone(i%2?660:880,.14,'square',.035,d));}catch(e){}}
+ if(G.dangerArmed===false&&(!G.houseHit||G.t-G.houseHit>6))G.dangerArmed=true;
+ return {n:past.length,el:!!el&&!el.hidden};}
 /* the first time a flyer slips past the front line, say how to stop it */
 function flyHint(){if(G.flyHint)return;const P2=G.pets.filter(u=>!u.gone&&!u.mega);if(!P2.length)return;const front=Math.min(...P2.map(u=>u.x));
  if(G.foes.some(f=>!f.gone&&f.fly&&f.x>front+3)){G.flyHint=true;topNote(G.team.some(s=>s.R.fly||flies(s.pet))?'🐝 Flyers float over pets that can\'t reach them! Send a flying pet 🪽, a Jumper 🦘 or an Archer 🏹.':'🐝 Flyers float over pets that can\'t reach them! Next time, bring a flying pet 🪽, a Jumper 🦘 or an Archer 🏹.');}}
@@ -595,5 +617,5 @@ window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 window.BattlePets={on,stats,stages,openStage,stageOpen,
  _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>trySend(i),_kit:()=>{if(upgradeKitchen())draw();},_sound:soundOpen,_report:()=>{if(!G||G.over||!window.MQReport)return;G.paused=true;MQReport.open(()=>{if(G){G.paused=false;LAST=performance.now();}});},_soundDone:soundDone,_vol:setVol,_song:setSong,songId,_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S);try{SFX.tap();}catch(e){}screen();},_mega:id=>{const p=me();if(!p||!MEGA[id])return;prog(p).mega=id;save();if(VIEW.k==='team')screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))topNote('No critters to pounce on yet!');},_key:key,_again:again,_back:backTo,_quit:quit,
  _say:()=>{try{if(G&&G.q)speakToggle(()=>say(speakable(qText(G.q)),.9));}catch(e){}},_sync:syncTile,
- _dbg:{TUNE,CROWN,TROLL,EAGLE,ascK,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
+ _dbg:{TUNE,CROWN,TROLL,EAGLE,threats:()=>threats(),ascK,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
 })();
