@@ -80,6 +80,14 @@ function css(){if(document.getElementById('mtCSS'))return;const s=document.creat
 .mt-hint{color:#d8d0ff;text-align:center;font-size:14px;margin:0}
 @media (prefers-reduced-motion:reduce){.mt-dot{animation:none}.mt-walker{transition:none}.mt-street{scroll-behavior:auto}}`;document.head.appendChild(s);}
 let TICK=0;
+/* a shop entered from Main Street comes back to Main Street: its "← World" back button becomes "← Town" (the top bar's World
+   button still goes to the map). The Fact Gym and Food Truck take a return screen, so they get 'town' directly. */
+let FROM=false;const SHOP_SCREENS=['backpack','pethome','cafe','village','library','lab'];
+function openShop(id){const p=me();FROM=true;try{if(p&&window.W&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}
+ if(id==='gym'&&window.Mastery){Mastery.open('town');return;}
+ if(id==='truck'&&window.Truck&&Truck.flag&&Truck.flag()){Truck.open('town');return;}
+ wNpc(id);}
+function backToTown(){app.querySelectorAll('.backbtn').forEach(b=>{const oc=b.getAttribute('onclick')||'';if(oc.includes("go('world')")){b.setAttribute('onclick',oc.replace("go('world')","go('town')"));b.innerHTML=b.innerHTML.replace(/World|Village/,'Town');}});}
 function screen(){const p=me();if(!p){go('world');return;}css();clearInterval(TICK);
  const blocks=BLOCKS.map(b=>({b,list:b.shops.filter(s=>shown(p,s))}));
  const today=[];BLOCKS.forEach(b=>b.shops.forEach(s=>{if(!shown(p,s))return;const d=need(p,s.id);if(!d)return;today.push(`<button class="mt-chip" data-go="${s.id}">${s.e} ${s.id==='spin'?'Spin ready':s.id==='mail'?'Gift waiting':d==='!'?esc(s.n)+': quest done':esc(s.n)+': new quest'}</button>`);}));
@@ -92,8 +100,8 @@ function screen(){const p=me();if(!p){go('world');return;}css();clearInterval(TI
    <div class="mt-walker" id="mtHero" style="left:30px">${(()=>{try{return heroSVG(p.look,{spell:p.spell});}catch(e){return '🧙';}})()}</div></div></div>
   <div class="mt-jump">${blocks.map(({b,list})=>{const n=list.filter(s=>need(p,s.id)).length;return `<button data-jump="${b.id}">${b.n}${n?`<i>${n}</i>`:''}</button>`;}).join('')}</div>
   <p class="mt-hint">Swipe along the street, or use the ← → keys. Tap a shop to go in.</p></div></div>`;
- app.querySelectorAll('.mt-shop').forEach(el=>el.onclick=()=>{if(el.dataset.teaser){toast('🔬 Dr. Quartz will find you out on the map. Keep exploring!');return;}walkTo(el,()=>wNpc(el.dataset.id));});
- app.querySelectorAll('[data-go]').forEach(el=>el.onclick=()=>{const s=app.querySelector(`.mt-shop[data-id="${el.dataset.go}"]`);if(s){s.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});walkTo(s,()=>wNpc(el.dataset.go));}else wNpc(el.dataset.go);});
+ app.querySelectorAll('.mt-shop').forEach(el=>el.onclick=()=>{if(el.dataset.teaser){toast('🔬 Dr. Quartz will find you out on the map. Keep exploring!');return;}walkTo(el,()=>openShop(el.dataset.id));});
+ app.querySelectorAll('[data-go]').forEach(el=>el.onclick=()=>{const s=app.querySelector(`.mt-shop[data-id="${el.dataset.go}"]`);if(s){s.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});walkTo(s,()=>openShop(el.dataset.go));}else openShop(el.dataset.go);});
  app.querySelectorAll('[data-jump]').forEach(el=>el.onclick=()=>{const b=document.getElementById('mtB-'+el.dataset.jump),st=document.getElementById('mtStreet');if(b&&st)st.scrollLeft=b.offsetLeft-24;});
  /* keep the red dots fresh after a spin, a gift or a quest */
  TICK=setInterval(()=>{if(typeof curScreen==='undefined'||curScreen!=='town'){clearInterval(TICK);return;}const q=me();if(!q)return;app.querySelectorAll('[data-dot]').forEach(d=>{const v=need(q,d.dataset.dot);d.hidden=!v;if(v)d.textContent=v;});},1500);}
@@ -102,5 +110,6 @@ function walkTo(el,done){const h=document.getElementById('mtHero'),row=document.
 window.addEventListener('keydown',e=>{try{if(typeof curScreen==='undefined'||curScreen!=='town'||document.querySelector('#modal.show'))return;const st=document.getElementById('mtStreet');if(!st)return;
  if(e.key==='ArrowRight'){st.scrollLeft+=300;e.preventDefault();}else if(e.key==='ArrowLeft'){st.scrollLeft-=300;e.preventDefault();}}catch(x){}});
 (function reg(){if(typeof SCREENS!=='undefined'){SCREENS.town=()=>screen();}else setTimeout(reg,30);})();
-window.TownView={draw,count,need,BLOCKS,_screen:screen};
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='town'||s==='world'){FROM=false;return;}if(!FROM)return;if(!SHOP_SCREENS.includes(s)){FROM=false;return;}backToTown();}});
+window.TownView={draw,count,need,BLOCKS,_screen:screen,_open:openShop};
 })();
