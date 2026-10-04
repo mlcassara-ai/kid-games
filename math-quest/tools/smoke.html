@@ -104,6 +104,22 @@ const tests=[
   const tx=t=>{const [a,o,b]=t.split(' '),op={'+':'add','−':'sub','×':'mul','÷':'div'}[o],A=+a,Bn=+b;return Teach.plan({op,a:A,b:Bn,L:5,text:t,answer:o==='+'?A+Bn:o==='−'?A-Bn:o==='×'?A*Bn:A/Bn}).name;};
   T.ok(tx('8 + 5')==='Make a ten'&&tx('6 + 7')==='Near doubles'&&tx('13 − 5')==='Back through ten'&&tx('6 × 9')==='10s minus one group'&&tx('45 ÷ 5')==='Chunk it'&&tx('29 + 14')==='Round and adjust','a fact got the wrong strategy');
  }],
+['town train: track, tunnels and a station on the plaza; the train comes, stops, cannot be ridden yet, leaves; free bell and paid call; visitors',async function(){
+  T.reset();const p=T.hero('Rider',3);p.coins=50;state.cur=p.id;p.wpos={x:22,y:19};go('world');await T.wait(300);
+  const D=Train._dbg,R=D.ROW,mt=()=>document.querySelector('#modal').innerText;
+  T.ok(W.T[R][D.X0].tunnel&&W.T[R][D.X1].tunnel&&W.T[R][20].rail&&!W.T[R][20].block&&W.T[D.BOARD[1]][D.BOARD[0]].npc==='station','the track, tunnels or station are missing');
+  W.hx=22;W.hy=19;const cut=Object.entries(W.gates).filter(([z,c])=>!wPathTo(c[0],c[1]).length).map(e=>e[0]);T.ok(!cut.length,'the track cut off a world: '+cut.join(', '));
+  D.TR.ph='away';D.TR.wait=.01;D.TR.walkers.length=0;D.tick(.05);T.ok(D.TR.ph==='in','the train did not come when its time was up');
+  for(let i=0;i<300&&D.TR.ph==='in';i++)D.tick(.05);T.ok(D.TR.ph==='stop'&&W.T[R][22].npc==='tride','the train did not stop at the station');
+  wNpc('tride');T.ok(/still building/.test(mt()),'getting on did not say the destination is coming soon');closeModal();
+  for(let i=0;i<500&&D.TR.ph==='stop';i++)D.tick(.05);T.ok(D.TR.ph==='out'&&!W.T[R][22].npc&&!W.T[R][22].block,'the train did not leave, or left its doors on the track');
+  for(let i=0;i<500&&D.TR.ph==='out';i++)D.tick(.05);T.ok(D.TR.ph==='away'&&D.TR.wait>=240&&D.TR.wait<=300,'the next train is not 4 to 5 minutes away');
+  wNpc('station');T.ok(/Number Town Station/.test(mt())&&/Coming soon/i.test(mt()),'the station card did not open');Train._bell();T.ok(D.TR.wait===D.BELL_WAIT&&p.coins===50,'the free bell did not bring the train within a minute');closeModal();
+  Train._call();T.ok(p.coins===50-D.CALL_COST&&D.TR.wait<=5,'a paid call did not bring the train right away');
+  p.coins=3;D.TR.wait=200;Train._call();T.ok(p.coins===3&&D.TR.wait===200,'a call went through without enough coins');
+  D.TR.walkers.length=0;for(let i=0;i<40&&!D.TR.walkers.length;i++)D.spawnRider();T.ok(D.TR.walkers.length===1,'no visitor got off the train');
+  for(let i=0;i<400&&D.TR.walkers.length;i++)D.tick(.05);T.ok(!D.TR.walkers.length,'the visitor never walked into town');
+ }],
 ['sync: field merge, duplicate heroes, removed groups',async function(){
   T.reset();const p=T.hero('Sync',3);const base=T.clone(p);BASE[p.id]=T.clone(base);
   p.coins=base.coins+40;p.upd=Date.now();const r=T.clone(base);r.grade=4;r.upd=Date.now()-5000;
@@ -167,7 +183,7 @@ const tests=[
 ['number town: one Town building on the plaza; Main Street has every place, each opens its screen',async function(){
   T.reset();const p=T.hero('Plaza',3);state.cur=p.id;window.MQ_TRUCK_BETA=true;window.MQ_DISTRICT_BETA=true;window.MQ_BP_BETA=true;p.sci=p.sci||{};p.sci.key=1;W=null;go('world');await T.wait(150);
   const bad=[];for(let y=TOWN_Y;y<TOWN_Y+3;y++)for(let x=TOWN_X;x<TOWN_X+5;x++){const t=W.T[y][x];if(!t.plaza)bad.push('town tile '+x+','+y+' is off the plaza');if(t.npc!=='town')bad.push('town tile '+x+','+y+' is missing');}
-  for(let y=0;y<W.T.length;y++)for(let x=0;x<W.T[y].length;x++){const t=W.T[y][x];if(t.npc&&t.npc!=='town'&&t.npc!=='fountain')bad.push('an old plaza building is still on the map: '+t.npc);}
+  for(let y=0;y<W.T.length;y++)for(let x=0;x<W.T[y].length;x++){const t=W.T[y][x];if(t.npc&&t.npc!=='town'&&t.npc!=='fountain'&&t.npc!=='station'&&t.npc!=='tride')bad.push('an old plaza building is still on the map: '+t.npc);}
   {const f=NPCS.find(n=>n.id==='fountain');if(W.T[f.y][f.x].npc!=='fountain')bad.push('the Wishing Fountain is not in front of the Town');}
   if(!wWalk(TOWN_X+2,TOWN_Y+3))bad.push('the Town door cannot be reached');
   PLAZA_DECOR.flat().forEach(([e,x,y])=>{if(!W.T[y][x].plaza||W.T[y][x].npc)bad.push('plaza decoration at '+x+','+y+' is misplaced');});
