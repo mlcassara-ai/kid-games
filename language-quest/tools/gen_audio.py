@@ -10,6 +10,9 @@ Run with /usr/bin/python3: the python.org Python has no root certificates instal
   /usr/bin/python3 gen_audio.py --check   list missing clips, change nothing
   /usr/bin/python3 gen_audio.py           record and upload missing clips
   /usr/bin/python3 gen_audio.py --all     re-record and upload every clip
+  /usr/bin/python3 gen_audio.py --only "زَرَافَة"   re-record and upload just that phrase
+
+Words the main voice says wrongly are recorded with the voice picked by ear in VOICE_FIX.
 """
 import base64, json, os, re, subprocess, sys, tempfile, urllib.error, urllib.request
 
@@ -19,6 +22,10 @@ BUCKET = "gs://kid-games-dc068-voices/" + FOLDER + "/"
 PUBLIC = "https://storage.googleapis.com/kid-games-dc068-voices/" + FOLDER + "/"
 WORD_VOICE, WORD_RATE = "ar-XA-Chirp3-HD-Puck", 0.85
 SHORT_VOICE, SHORT_RATE = "ar-XA-Wavenet-C", 0.8   # Chirp3-HD returns silent clips for single syllables
+# phrase -> (voice, rate), chosen by listening to samples
+VOICE_FIX = {
+    "زَرَافَة": ("ar-XA-Wavenet-B", 0.8),    # giraffe: Puck stressed the wrong syllable (Oct 3)
+}
 MARKS = re.compile("[ً-ْـ]")
 SILENT_BYTES = 4000
 
@@ -54,7 +61,10 @@ def main():
     bad = [w["t"] for w in words if key(w["t"]) != w["k"]]
     if bad:
         sys.exit("words.json keys don't match their text: " + ", ".join(bad))
-    todo = words if everything else [w for w in words if not exists(w["k"])]
+    only = sys.argv[sys.argv.index("--only") + 1] if "--only" in sys.argv else None
+    if only and not any(w["t"] == only for w in words):
+        sys.exit("not in words.json: " + only)
+    todo = [w for w in words if w["t"] == only] if only else words if everything else [w for w in words if not exists(w["k"])]
     print("%d phrases, %d to record" % (len(words), len(todo)))
     for w in todo:
         print("  ", w["k"], w["t"])
@@ -66,7 +76,9 @@ def main():
     out = tempfile.mkdtemp(prefix="lq-audio-")
     quiet = []
     for w in todo:
-        if len(MARKS.sub("", w["t"])) <= 2:
+        if w["t"] in VOICE_FIX:
+            audio = synth(w["t"], *VOICE_FIX[w["t"]], headers)
+        elif len(MARKS.sub("", w["t"])) <= 2:
             audio = synth(w["t"], SHORT_VOICE, SHORT_RATE, headers)
         else:
             try:
