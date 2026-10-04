@@ -25,6 +25,7 @@ SHORT_VOICE, SHORT_RATE = "ar-XA-Wavenet-C", 0.8   # Chirp3-HD returns silent cl
 # phrase -> (voice, rate), chosen by listening to samples
 VOICE_FIX = {
     "زَرَافَة": ("ar-XA-Wavenet-B", 0.8),    # giraffe: Puck stressed the wrong syllable (Oct 3)
+    "دَلْو": ("ar-XA-Chirp3-HD-Kore", 0.85),  # bucket: picked by ear (Oct 3)
 }
 MARKS = re.compile("[ً-ْـ]")
 SILENT_BYTES = 4000
