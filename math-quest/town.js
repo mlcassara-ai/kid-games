@@ -1,6 +1,7 @@
 /* ================= Number Town: Main Street (Oct 2026) =================
    The plaza's 13 buildings moved inside one Number Town building on the map (index.html places it: TOWN_X/TOWN_Y, 5x3 tiles).
    Walking into it opens Main Street: a street of drawn shopfronts in five colour blocks (Learning, Science, Pets, Shops, Fun).
+   The Wishing Fountain stays out on the map in front of the Town (a landmark kids walk past).
    Every shop opens exactly what its old plaza building opened, through the same wNpc(id), so quests, quest marks and Builder
    stars work as before. Places that were hidden before stay hidden: the Lab (Lab Key), the Train (Discovery District switch) and the
    Food Truck (its switch). Red dots show what needs the kid (spin ready, a gift, a quest to hand in); the map building shows the total.
@@ -28,8 +29,7 @@ const BLOCKS=[
   {id:'mail',e:'📮',n:'Gifts',s:'Presents from family'},
   {id:'truck',e:'🚚',n:'Food Truck',s:'Cook up orders',show:()=>!!(window.Truck&&Truck.flag&&Truck.flag())}]},
  {id:'fun',n:'Fun',wall:'#f8e3fc',aw:'#da77f2',ink:'#862e9c',shops:[
-  {id:'spin',e:'🎡',n:'Daily Spin',s:'One free spin a day'},
-  {id:'fountain',e:'⛲',n:'Wishing Fountain',s:'Make a wish'}]}];
+  {id:'spin',e:'🎡',n:'Daily Spin',s:'One free spin a day'}]}]; /* the Wishing Fountain stands outside, in front of the Town */
 const shown=(p,s)=>!s.show||s.show(p);
 /* what needs the kid: a quest to hand in (❗) or a new one to read (❔), the daily spin, a gift */
 function need(p,id){try{const qm=npcQuestMark(p,id);if(qm)return qm==='❗'?'!':'?';}catch(e){}
