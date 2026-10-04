@@ -19,7 +19,7 @@ const boot=()=>new Promise(res=>{frame.onload=()=>res();frame.src='../index.html
 await boot();
 const W=frame.contentWindow;
 /* the game finishes booting a moment after the page loads (it opens its local database first) */
-for(let i=0;i<200;i++){let up=false;try{up=W.eval("typeof state!=='undefined'&&!!state&&Array.isArray(state.players)&&document.querySelector('#app').innerText.length>20");}catch(e){}if(up)break;await new Promise(r=>setTimeout(r,50));}
+for(let i=0;i<200;i++){let up=false;try{up=W.eval("typeof state!=='undefined'&&!!state&&Array.isArray(state.players)&&document.body.innerText.length>20");}catch(e){}if(up)break;await new Promise(r=>setTimeout(r,50));}
 const errs=[];W.addEventListener('error',e=>errs.push(String(e.message||e)));W.addEventListener('unhandledrejection',e=>errs.push('rejection: '+String(e.reason&&e.reason.message||e.reason)));
 
 /* helpers that live inside the game's own page, so tests can use its top-level let/const globals */
@@ -39,7 +39,7 @@ const tests=[
   T.ok(v.v===APP_VER,'version.json '+v.v+' does not match APP_VER '+APP_VER);
   ['Adv','Cleanup','Lunch','Fade','PetCare','Mastery','Insights','Cave','Quartz','Lab','Inner','Music','Groups','Daily','Surprise','MQ_CONTENT','MORE_STORIES','ADV_TALES','CAVE_DATA','IS_DATA'].forEach(n=>T.ok(window[n],'add-on missing: '+n));
   T.ok(curScreen==='profiles','did not boot to the profiles screen');
-  T.ok(document.querySelector('#app').innerText.length>20,'profiles screen is empty');}],
+  T.ok(document.body.innerText.length>20,'profiles screen is empty');}],
 
 ['questions: every skill at every level',async function(){
   const bad=[];OPS.forEach(op=>{for(let L=1;L<=maxLv(op);L++)for(let k=0;k<25;k++){let q;try{q=genQ(op,L);}catch(e){bad.push(op+' L'+L+' threw '+e.message);break;}
@@ -57,7 +57,7 @@ const tests=[
 ['screens: every screen draws for a hero',async function(){
   T.reset();const p=T.hero('Screens',3);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;const bad=[];
   const skip=['rest','skillcheck','inner','cave','office','fade','truck','market','district']; /* these need their own setup; truck and district have their own tests */
-  for(const s of Object.keys(SCREENS)){if(skip.includes(s))continue;try{go(s,s==='zone'?'forest':undefined);T.ok(curScreen===s,'ended on '+curScreen);T.ok(document.querySelector('#app').innerText.length>10,'empty');}catch(e){bad.push(s+': '+e.message);}try{closeModal();}catch(e){}}
+  for(const s of Object.keys(SCREENS)){if(skip.includes(s))continue;try{go(s,s==='zone'?'forest':undefined);T.ok(curScreen===s,'ended on '+curScreen);T.ok(document.body.innerText.length>10,'empty');}catch(e){bad.push(s+': '+e.message);}try{closeModal();}catch(e){}}
   T.ok(!bad.length,bad.join(' | '));}],
 
 ['migrate: bare and old saves survive',async function(){
@@ -165,12 +165,12 @@ const tests=[
   go('town');p.spinDay='';go('town');T.ok(document.querySelector('.mt-shop[data-id="spin"] .mt-dot:not([hidden])')&&document.querySelector('.mt-chip'),'the Daily Spin has no red dot when a spin is ready');
   W=null;go('world');await T.wait(100);T.ok(TownView.count(P())>=1,'the Town building shows no badge when a spin is ready');
   T.ok(!NPCS.some(n=>n.id==='school'||n.id==='board'),'a menu-only building is back on the plaza');go('map');T.ok(document.querySelector('.qb-lead'),'Leaderboard button missing from the Quest Board');go('world');await T.wait(100);T.ok(/Quest Board/.test(document.querySelector('.wtop').innerText),'Quest Board button missing from the World screen');p.vil=p.vil||{};p.vil.portal=2;go('world');await T.wait(50);T.ok(/Quest Board ★2/.test(document.querySelector('.wtop').innerText),'Quest Portal stars missing from the Quest Board button');
-  {p.sci.rocks=0;p.sci.lab={ok:{}};go('lab');let t=document.querySelector('#app').innerText;T.ok(/one free ride today/.test(t),'the Lab does not offer the key\'s free ride');
-   p.sci.lab.freeDay=dayKey();go('lab');t=document.querySelector('#app').innerText;T.ok(/used today's free ride/.test(t)&&/you have none/.test(t)&&/Step 1/.test(t)&&/Buy a rock/.test(t),'the Lab does not say a rock is needed after the free ride');
-   p.sci.rocks=1;go('lab');t=document.querySelector('#app').innerText;T.ok(!/you have none/.test(t)&&/This ride uses a rock/.test(t),'the Lab is wrong when the hero has a rock and no free ride');
+  {p.sci.rocks=0;p.sci.lab={ok:{}};go('lab');let t=document.body.innerText;T.ok(/one free ride today/.test(t),'the Lab does not offer the key\'s free ride');
+   p.sci.lab.freeDay=dayKey();go('lab');t=document.body.innerText;T.ok(/used today's free ride/.test(t)&&/you have none/.test(t)&&/Step 1/.test(t)&&/Buy a rock/.test(t),'the Lab does not say a rock is needed after the free ride');
+   p.sci.rocks=1;go('lab');t=document.body.innerText;T.ok(!/you have none/.test(t)&&/This ride uses a rock/.test(t),'the Lab is wrong when the hero has a rock and no free ride');
    p.sci.lab.freeDay='';p.sci.trips=5;p.cave={trips:5,stats:{dug:12}};const r0=p.sci.rocks;go('lab');Lab.down();T.ok(curScreen==='cave'&&p.sci.rocks===r0&&p.sci.lab.freeDay===dayKey()&&p.sci.trips===6,'the free ride did not start a trip, or it spent a rock');
-   await T.wait(300);T.ok(/ride straight down/.test(document.querySelector('#app').innerText+document.body.innerText),'no welcome for a trip without a rock');go('world');try{closeModal();}catch(e){}}
-  go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.querySelector('#app').innerText),'the Fact Gym building did not open the fact grid');go('map');T.ok(!document.querySelector('.mq-hc'),'Mastery card is still on the Quest Board');go('world');await T.wait(50);
+   await T.wait(300);T.ok(/ride straight down/.test(document.body.innerText+document.body.innerText),'no welcome for a trip without a rock');go('world');try{closeModal();}catch(e){}}
+  go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.body.innerText),'the Fact Gym building did not open the fact grid');go('map');T.ok(!document.querySelector('.mq-hc'),'Mastery card is still on the Quest Board');go('world');await T.wait(50);
   T.ok(!document.querySelector('.topbar button.tb-hero')&&document.querySelectorAll('.topbar [onclick*="backpack"]').length===1,'the top bar has more than one way into the Bag');
   {const z=ZONES.find(x=>x.id==='garden');T.ok(zoneTag(p,z)==='','an untouched world shows progress');p.progress.garden=[3,2,1,0,0,0];T.ok(zoneTag(p,z)===' 3/6','world progress tag is wrong: '+zoneTag(p,z));p.progress.garden=[3,3,3,3,3,3];T.ok(/🥉 0\/6/.test(zoneTag(p,z)),'medal tag is wrong: '+zoneTag(p,z));}
   T.ok(wWalk(W.hx,W.hy),'hero starts on a blocked tile');T.ok(!bad.length,bad.slice(0,4).join(' | '));window.MQ_TRUCK_BETA=false;delete window.MQ_DISTRICT_BETA;W=null;}],
@@ -180,8 +180,8 @@ const tests=[
   window.MQ_TRUCK_BETA=false;try{localStorage.removeItem('mqTruckPreview');localStorage.setItem('mqTruckBeta','1');}catch(e){}
   T.ok(!Truck.flag(),'truck shows without the preview switch (an old preview must not count)');go('map');T.ok(!document.querySelector('.tk-hc'),'truck card shown while hidden');go('world');await T.wait(100);go('town');T.ok(!document.querySelector('.mt-shop[data-id="truck"]'),'truck on Main Street while hidden');go('world');
   window.MQ_TRUCK_BETA=true;go('map');T.ok(document.querySelector('.tk-hc'),'truck card missing from the Quest Board');
-  Truck.open();T.ok(curScreen==='truck'&&document.querySelector('#app').innerText.length>40,'truck screen is empty');try{closeModal();}catch(e){}
-  go('market');T.ok(curScreen==='market'&&document.querySelector('#app').innerText.length>20,'market screen is empty');
+  Truck.open();T.ok(curScreen==='truck'&&document.body.innerText.length>40,'truck screen is empty');try{closeModal();}catch(e){}
+  go('market');T.ok(curScreen==='market'&&document.body.innerText.length>20,'market screen is empty');
   go('town');const tb=document.querySelector('.mt-shop[data-id="truck"]');T.ok(tb,'truck is not on Main Street');
   try{closeModal();}catch(e){}wNpc(tb.dataset.id);T.ok(curScreen==='truck','the truck shop on Main Street did not open the truck'); /* (the truck's own popup timers make the walk-then-open click flaky here; clicks are tested on the Shop and Library) */window.MQ_TRUCK_BETA=false;}],
 
@@ -193,7 +193,7 @@ const tests=[
   go('district');T.ok(curScreen==='district'&&document.getElementById('dcv'),'district map did not open');
   const d=Discovery._dbg,D=d.state();Object.keys(d.AREAS).filter(k=>d.AREAS[k].zone).forEach(k=>{const c=d.AREAS[k].c;
    const ok=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const x=c[0]+dx,y=c[1]+dy;return D.T[y]&&D.T[y][x]&&!D.T[y][x].block&&d.pathTo(x,y);});T.ok(ok,'cannot walk to '+d.AREAS[k].name);});
-  d.useTile(d.AREAS.bay.c[0],d.AREAS.bay.c[1]);T.ok(curScreen==='phys'&&/Balance Bay/.test(document.querySelector('#app').innerText),'Balance Bay sign did not open the zone');go('district');await T.wait(100);
+  d.useTile(d.AREAS.bay.c[0],d.AREAS.bay.c[1]);T.ok(curScreen==='phys'&&/Balance Bay/.test(document.body.innerText),'Balance Bay sign did not open the zone');go('district');await T.wait(100);
   await T.wait(300);T.ok(document.getElementById('dcv').width>0,'district canvas has no size');
   {const f0=window.footstep;let n=0;window.footstep=t=>{n++;};const st=Discovery._dbg.state();const nb=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>[st.hx+dx,st.hy+dy]).find(([x,y])=>st.T[y]&&st.T[y][x]&&!st.T[y][x].block);if(nb){st.path=[nb];await T.wait(500);T.ok(n>=1,'no footstep sound when walking in the district');}window.footstep=f0;}
   /* while the hero is in the district, 'back to the World' from another screen comes back here; only the train goes to the village */
@@ -210,7 +210,7 @@ const tests=[
 ['battle pets demo: on the plaza for every hero; stages, team, a wide battle that follows the fight, 🧱 Rebuild math (keyboard too), last stand, the mega troll, rewards and the play log',async function(){
   T.reset();delete window.MQ_BP_BETA;const p=T.hero('Pets',5);state.cur=p.id;W=null;go('world');await T.wait(150);
   T.ok(W.T[20][28].npc!=='bp','the old Battle Pets building is still on the plaza');
-  go('bp');const txt=document.querySelector('#app').innerText;T.ok(/Fossil Stage/.test(txt)&&/Addition Forest/.test(txt)&&BattlePets.stages().length>=3,'stages missing');
+  go('bp');const txt=document.body.innerText;T.ok(/Fossil Stage/.test(txt)&&/Addition Forest/.test(txt)&&BattlePets.stages().length>=3,'stages missing');
   T.ok(document.querySelectorAll('.bp2-stage.locked').length===BattlePets.stages().length&&!document.querySelector('.bp2-crowns button'),'stages are open before their Legend round is beaten');
   {const m0=window.medal;window.medal=()=>5;go('bp');T.ok(document.querySelectorAll('.bp2-stage.locked').length===1,'beating Legend did not open the world stages (only the Fossil Stage should stay locked)');
    {const S0=BattlePets.stages()[0];P().cave=P().cave||{};P().cave.ex={trex:1,triceratops:1,stego:1};T.ok(!BattlePets.stageOpen(P(),S0),'the Fossil Stage opened with only 3 dinosaurs');P().cave.ex.brachio=1;T.ok(BattlePets.stageOpen(P(),S0),'the Fossil Stage did not open with all 4 dinosaur skeletons');P().cave.ex={};}
@@ -265,7 +265,13 @@ const tests=[
   T.ok(document.querySelector('#bpField .bps-scene .bps-far svg')&&document.querySelector('#bpHouseB svg')&&document.querySelector('#bpDenB svg'),'the battle scenery or the drawn bases are missing');
   T.ok(BPScene.themeOf({op:'mul'})==='volcano'&&BPScene.themeOf({id:'fossil'})==='fossil','the worlds are not matched to the stages');
   /* warn before a battle when flyers are coming and nobody can reach them */
-  {const S0=BattlePets.stages()[1],t=D.autoPick(P(),S0);T.ok(t.length>=1&&t.length<=Math.min(5,3+Math.floor((P().level||1)/10))&&t.every(id=>P().pets.includes(id))&&new Set(t).size===t.length,'Pick for me built a bad team');}
+  {const S0=BattlePets.stages()[1],t=D.autoPick(P(),S0);T.ok(t.length>=1&&t.length<=Math.min(5,3+Math.floor((P().level||1)/10))&&t.every(id=>P().pets.includes(id))&&new Set(t).size===t.length,'Pick for me built a bad team');
+   const pw=t=>t.reduce((a,id)=>a+D.powerOf(P(),PETS.find(x=>x.id===id)),0),aA=D.autoPick(P(),S0,3,4);let lo=0;for(let i=0;i<8;i++)lo+=pw(D.autoPick(P(),S0,1,0));
+   T.ok(pw(aA)>=lo/8-1e-9&&aA.join()===D.autoPick(P(),S0,3,4).join(),'Pick for me does not pick stronger pets for Ascend');}
+  {G.foes.forEach(f=>{f.gone=true;});G.trainer={on:true,next:0};G.treats=99;G.team.forEach(t=>t.ready=0);const s0=G.sent,k0=G.kl;for(let i=0;i<8;i++){G.treats=99;G.trainer.next=0;D.trainer();}
+   T.ok(G.sent>s0&&G.kl>k0,'the Pet Trainer did not upgrade the kitchen and send pets');
+   D._spawn('basic');const tf=G.foes[G.foes.length-1];tf.x=70;tf.hp=tf.max=9999;G.charge=100;G.trainer.next=0;D.trainer();T.ok(!!G.slam,'the Pet Trainer did not pounce at a close critter');for(let i=0;i<30&&G.slam;i++)D.step(.05);
+   G.trainer.on=false;G.treats=99;G.team.forEach(t=>t.ready=0);const s1=G.sent;G.trainer.next=0;D.trainer();T.ok(G.sent===s1,'the Pet Trainer kept playing after being switched off');tf.gone=true;G.trainer=null;G.pets.forEach(u=>{u.gone=true;});G.kl=k0;G.pounces=0;G.charge=0;}
   {const ow=PETS.find(x=>x.id==='owl'&&x.perk!=='lucky'&&x.perk!=='xp')||PETS.find(x=>x.id==='bee');const S1=BattlePets.stages()[1];if(ow)T.ok(!D.flyRisk(S1,[PETS.find(x=>x.perk==='shield'&&!['owl','bee','duck','parrot','flamingo','peacock','eagle','butterfly','dragon','skydragon'].includes(x.id)),ow]),'a flying pet does not count as stopping flyers');}
   {const wall=PETS.find(x=>x.perk==='shield'),hop=PETS.find(x=>x.perk==='lucky'),S0=BattlePets.stages()[1];T.ok(D.flyRisk(S0,[wall])&&!D.flyRisk(S0,[wall,hop]),'the flyer warning check is wrong');}
   {const keep=G.pets.slice();for(let i=0;i<12;i++)G.pets.push({side:'p',x:50,hp:1,max:1,R:G.team[0].R,pet:G.team[0].pet,kb:0,stun:0});G.treats=50;G.team.forEach(t=>t.ready=0);BattlePets._send(0);T.ok(document.querySelector('.bp2-note-pop'),'no Max pets notice when the field is full');G.pets=keep;document.querySelectorAll('.bp2-note-pop').forEach(x=>x.remove());}
@@ -302,6 +308,12 @@ const tests=[
   G.houseHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp2.asc.forest===1,'losing an Ascend level took the best away');BattlePets._back();
   {const m0=window.medal;window.medal=()=>5;go('bp');T.ok([...document.querySelectorAll('.bp2-crowns button.asc')].some(b=>/Ascend 2/.test(b.textContent)&&/best 1/.test(b.textContent)),'the stage list does not offer the next Ascend level');window.medal=m0;}
   T.ok(D.ascK(5).hp>D.ascK(1).hp&&D.ascK(30).gap>=.75,'Ascend does not climb, or the waves get impossibly fast');
+  {go('bp');p.coins=30;BattlePets._pick('forest',1);T.ok(/You need/.test(document.body.innerText),'the Pet Trainer was offered without enough coins');
+   p.coins=120;BattlePets._pick('forest',1);BattlePets._trainer();T.ok(D.view().trainer,'the Pet Trainer could not be hired');BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();G=D.G();
+   T.ok(p.coins===120-D.TRAINER_COST&&G.trainer&&G.trainer.on&&/Trainer ON/.test((document.getElementById('bpTrain')||{}).textContent||''),'hiring the Pet Trainer did not charge 50 coins and switch it on from the start');
+   BattlePets._trainer();D.draw&&D.draw();T.ok(!G.trainer.on,'the Pet Trainer could not be switched off in the battle');BattlePets._trainer();T.ok(G.trainer.on,'the Pet Trainer could not be switched back on');
+   G.denHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp.m[p.bp.m.length-1][12]===1,'the play log does not say the Pet Trainer was hired');BattlePets._back();
+   BattlePets._pick('forest',1);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();T.ok(p.coins===120-D.TRAINER_COST&&!D.G().trainer,'the Pet Trainer was charged again without being hired');D.G().denHP=0;D.step(.05);D.finish();await T.wait(50);BattlePets._back();}
  }],
  ['cave regrowth: a new trip refills a few old tunnels with finds, and camp says when a brand-new cave comes',async function(){
   T.reset();const p=T.hero('Digger2',5);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;p.sci.met=true;p.sci.rocks=0;p.sci.trips=6;p.sci.lab={ok:{},freeDay:''};p.cave={trips:6,stats:{dug:40}};
@@ -400,7 +412,7 @@ const tests=[
    for(const z of Physics.ZONES){Physics.zone(z.id);T.ok(curScreen==='phys'&&document.querySelectorAll('.ph-stop').length===6&&document.querySelectorAll('.ph-stop.lock').length===5,z.id+': path did not show 6 stops with 5 locked');
     const c0=P().coins;Physics.play(z.id,0);T.ok(document.querySelector('.ph-svg')&&document.querySelector('.ph-q'),z.id+': no picture or question');
     for(let i=0;i<5;i++)await ans(true);T.ok(P().phys[z.id][0]===3&&P().coins===c0+30,z.id+': all right did not give 3 stars and 30 coins: '+P().phys[z.id][0]+' '+(P().coins-c0));
-    T.ok(/Stop cleared/.test(document.querySelector('#app').innerText),z.id+': no results card');
+    T.ok(/Stop cleared/.test(document.body.innerText),z.id+': no results card');
     Physics.play(z.id,1);for(let i=0;i<5;i++)await ans(false);T.ok(P().phys[z.id][1]===0,z.id+': all wrong still passed');
     const need=Physics.passMark(Physics.tierOf(P()),1);Physics.play(z.id,1);for(let i=0;i<5;i++)await ans(i<need-1);T.ok(P().phys[z.id][1]===0,z.id+': one short of the pass mark still passed');
     Physics.play(z.id,1);for(let i=0;i<5;i++)await ans(i<need);T.ok(P().phys[z.id][1]===(need===4?2:1),z.id+': the pass mark did not pass ('+need+')');}
