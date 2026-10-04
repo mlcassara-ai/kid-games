@@ -305,6 +305,9 @@ const tests=[
     T.ok(picks.every(t=>ch(t)>=.6&&ch(t)<=.95)&&new Set(picks.map(t=>t.slice().sort().join())).size>=3,'Pick for me does not land near 80%, or keeps picking the same team');
     const t0=picks[0].map(id=>PETS.find(x=>x.id===id));T.ok(D.winChance(q,S0,t0,3,6)<D.winChance(q,S0,t0,2,0),'the win chance does not drop for harder levels');
     q.pets=keep;q.petData=JSON.parse(pd);}}
+  {const fl=document.getElementById('bpField');D._spawn('basic');const ff=G.foes[G.foes.length-1];ff.fly=true;ff.x=55;ff.hp=ff.max=9999;const u={x:60,R:{id:'archer',fly:true},rng:11,side:'p',el:document.createElement('div')};fl.appendChild(u.el);
+   const n0=fl.querySelectorAll('.bp2-arrow').length;D.arrow(u);T.ok(u.el.classList.contains('jumpshot'),'an archer on the ground did not jump to shoot a flyer');await T.wait(320);
+   const ar=[...fl.querySelectorAll('.bp2-arrow')].slice(n0);T.ok(ar.length===1&&Math.abs(parseFloat(ar[0].style.bottom)-fl.clientHeight*.48)<2,'the arrow did not start up in the air where the archer jumped');u.el.remove();ff.gone=true;}
   {G.foes.forEach(f=>{f.gone=true;});G.trainer={on:true,next:0};G.treats=99;G.team.forEach(t=>t.ready=0);const s0=G.sent,k0=G.kl;for(let i=0;i<8;i++){G.treats=99;G.trainer.next=0;D.trainer();}
    T.ok(G.sent>s0&&G.kl>k0,'the Pet Trainer did not upgrade the kitchen and send pets');
    D._spawn('basic');const tf=G.foes[G.foes.length-1];tf.x=70;tf.hp=tf.max=9999;G.charge=100;G.trainer.next=0;D.trainer();T.ok(!!G.slam,'the Pet Trainer did not pounce at a close critter');for(let i=0;i<30&&G.slam;i++)D.step(.05);
