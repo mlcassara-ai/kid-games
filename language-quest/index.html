@@ -128,8 +128,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.03j";</script>
-<script src="lq-core.js?v=2026.10.03j"></script>
+<script>window.LQ_VER="2026.10.04a";</script>
+<script src="lq-core.js?v=2026.10.04a"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -439,10 +439,37 @@ let pendingEnterL=null;
 let bubble=null, pendingLandmark=null, pendingFriend=null, pendingTeta=false, pendingJiddo=false, pendingFountain=false, pendingItem=null, currentZone=null, marker=null;
 
 /* ============ canvas ============ */
-const cv=document.getElementById("game"), ctx=cv.getContext("2d");
+const cv=document.getElementById("game"); let ctx=cv.getContext("2d");      // let: the drawing code is pointed at picture canvases while they are made (see "speed")
 let VW=0, VH=0, DPR=1, ZOOM=1;
 function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); VW=innerWidth; VH=innerHeight; cv.width=VW*DPR; cv.height=VH*DPR;
-  ZOOM = VW<600 ? 0.8 : 1; }
+  ZOOM = VW<600 ? 0.8 : 1; if(SC!==DPR*ZOOM){ SC=DPR*ZOOM; flushPictures(); } }
+
+/* ============ speed: draw the slow things once, then reuse them ============
+   iPad Safari is slow at drawing colour emoji and lots of shapes every frame (Math Quest avoids this the same way), so:
+   - the ground, decorations, trails, plaza, river and pond are painted once into 640x640 tiles;
+   - trees, rocks, flowers, emoji, buildings and signboards each become a small picture the first time they are drawn;
+   - only moving things (waves, river ripples, bridges over them, characters, sparkles) are drawn fresh each frame;
+   - when nothing is moving the map redraws about 20 times a second instead of 60. */
+let SC=0;                                         // screen pixels per world unit: DPR x ZOOM
+const pics=new Map(), tiles=new Map(), TILE=640;
+function flushPictures(){ pics.clear(); tiles.clear(); for(const q of (typeof props!=="undefined"?props:[])) q._pic=null; }
+function withCtx(c,fn){ const old=ctx; ctx=c; try{ fn(); } finally{ ctx=old; } }
+/* a picture of what fn draws inside the world box (x0,y0)-(x1,y1), as sharp as the screen */
+function makePic(x0,y0,x1,y1,fn){ const c=document.createElement("canvas"); c.width=Math.max(1,Math.ceil((x1-x0)*SC)); c.height=Math.max(1,Math.ceil((y1-y0)*SC));
+  const g=c.getContext("2d"); g.setTransform(SC,0,0,SC,-x0*SC,-y0*SC); withCtx(g,fn); return {c,x0,y0,w:c.width/SC,h:c.height/SC}; }
+function stamp(pc,dx,dy){ ctx.drawImage(pc.c,pc.x0+dx,pc.y0+dy,pc.w,pc.h); }
+function cached(key,make){ let pc=pics.get(key); if(!pc){ pc=make(); pics.set(key,pc); } return pc; }
+function tileAt(i,j){ const k=i+","+j; let t=tiles.get(k);
+  if(t){ tiles.delete(k); tiles.set(k,t); return t; }                      // most recently used goes last
+  const x0=i*TILE, y0=j*TILE; t=document.createElement("canvas"); t.width=t.height=Math.round(TILE*SC); const g=t.getContext("2d");
+  g.setTransform(SC,0,0,SC,-x0*SC,-y0*SC); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
+  withCtx(g,()=>{ ctx.drawImage(ground,0,0,W,H); drawDecor(0,x0-120,x0+TILE+120,y0-60,y0+TILE+160,"still"); drawTrails(); drawPlaza(); drawRiver(0,"water"); drawPond(); });
+  tiles.set(k,t); while(tiles.size>12) tiles.delete(tiles.keys().next().value); return t; }
+if(document.fonts){ document.fonts.ready.then(flushPictures); document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",flushPictures); }   // signboards made before the font arrived are redone
+/* ?fps=1 once on a device shows the frame rate in the corner (?fps=0 hides it again) */
+const FPS=(()=>{ try{ const q=new URLSearchParams(location.search).get("fps"); if(q==="1") localStorage.setItem("lqFps","1"); if(q==="0") localStorage.removeItem("lqFps"); return localStorage.getItem("lqFps")==="1"; }catch(e){ return false; } })();
+const fpsEl=FPS?Object.assign(document.body.appendChild(document.createElement("div")),{style:"position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:9;background:rgba(0,0,0,.65);color:#fff;font:700 13px system-ui;padding:4px 8px;border-radius:8px;pointer-events:none"}):null;
+let fpsN=0, fpsMs=0, fpsT=performance.now();
 addEventListener("resize",resize); resize();
 // start with the camera already on the player in the town square, instead of sliding over from the corner of the map
 cam.x=Math.max(0,Math.min(W-VW/ZOOM,player.x-VW/2/ZOOM)); cam.y=Math.max(0,Math.min(H-VH/ZOOM,player.y-VH/2/ZOOM));
@@ -538,15 +565,17 @@ document.getElementById("cEnter").onclick=()=>{ const ZONES=OPEN; if(cardLandmar
 /* ============ drawing ============ */
 const EMOJI='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 function shadow(x,y,w){ ctx.fillStyle="rgba(0,0,0,.18)"; ctx.beginPath(); ctx.ellipse(x,y,w,w*0.32,0,0,7); ctx.fill(); }
-function drawEmoji(e,x,y,s){ ctx.fillStyle="#000"; ctx.font=`${s}px ${EMOJI}`; ctx.textAlign="center"; ctx.textBaseline="bottom"; ctx.fillText(e,x,y+s*0.12); }
+function drawEmoji(e,x,y,s){ stamp(cached("e|"+e+"|"+s,()=>makePic(-s*0.85,-s*1.3,s*0.85,s*0.4,()=>drawEmojiText(e,0,0,s))),x,y); }
+function drawEmojiText(e,x,y,s){ ctx.fillStyle="#000"; ctx.font=`${s}px ${EMOJI}`; ctx.textAlign="center"; ctx.textBaseline="bottom"; ctx.fillText(e,x,y+s*0.12); }
 function rr(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,r) : ctx.rect(x,y,w,h); }
 
-function drawRiver(time){
+function drawRiver(time,part){
   ctx.lineCap="round"; ctx.lineJoin="round";
   const path=()=>{ ctx.beginPath(); ctx.moveTo(...RIVER[0]); for(let i=1;i<RIVER.length-1;i++){ const mx=(RIVER[i][0]+RIVER[i+1][0])/2, my=(RIVER[i][1]+RIVER[i+1][1])/2; ctx.quadraticCurveTo(RIVER[i][0],RIVER[i][1],mx,my);} ctx.lineTo(...RIVER[RIVER.length-1]); };
-  path(); ctx.strokeStyle="rgba(60,84,58,.4)"; ctx.lineWidth=58; ctx.stroke();
+  if(part!=="ripples"){ path(); ctx.strokeStyle="rgba(60,84,58,.4)"; ctx.lineWidth=58; ctx.stroke();
   path(); ctx.strokeStyle="#2F7FC4"; ctx.lineWidth=46; ctx.stroke();
-  path(); ctx.strokeStyle="#5BAEE6"; ctx.lineWidth=30; ctx.stroke();
+  path(); ctx.strokeStyle="#5BAEE6"; ctx.lineWidth=30; ctx.stroke(); }
+  if(part==="water") return;
   ctx.setLineDash([18,26]); ctx.lineDashOffset=-time*40; path(); ctx.strokeStyle="rgba(255,255,255,.5)"; ctx.lineWidth=4; ctx.stroke(); ctx.setLineDash([]);
 }
 function drawPond(){ ctx.fillStyle="rgba(60,84,58,.4)"; ctx.beginPath(); ctx.ellipse(POND.x,POND.y,POND.rx+15,POND.ry+14,0,0,7); ctx.fill(); ctx.fillStyle="#2F7FC4"; ctx.beginPath(); ctx.ellipse(POND.x,POND.y,POND.rx+8,POND.ry+8,0,0,7); ctx.fill();
@@ -585,7 +614,7 @@ function drawStall(l){
 function drawItem(it,got,time){
   if(!got){ const r=30+Math.sin(time*3+it.x)*4; ctx.fillStyle="rgba(255,214,90,.45)"; ctx.beginPath(); ctx.ellipse(it.x,it.y-4,r,r*0.45,0,0,7); ctx.fill(); }
   shadow(it.x,it.y,18); drawEmoji(it.e,it.x,it.y,46);
-  if(!got){ ctx.font=`22px ${EMOJI}`; ctx.fillStyle="#000"; ctx.textAlign="center"; ctx.textBaseline="bottom"; ctx.fillText("🌟",it.x+24,it.y-34+Math.sin(time*4+it.y)*3); }
+  if(!got){ drawEmoji("🌟",it.x+24,it.y-34+Math.sin(time*4+it.y)*3-22*0.12,22); }
   else { ctx.fillStyle="#2FA894"; ctx.strokeStyle="#fff"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(it.x+22,it.y-44,14,0,7); ctx.fill(); ctx.stroke();
     ctx.fillStyle="#fff"; ctx.font='500 18px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.direction="rtl"; ctx.fillText(it.ch,it.x+22,it.y-42); ctx.direction="ltr"; }
 }
@@ -593,7 +622,7 @@ function drawFriend(f,got,time){
   const bob=Math.sin(time*2.4+f.x)*3;
   if(!got){ const r=34+Math.sin(time*3+f.y)*4; ctx.fillStyle="rgba(242,177,52,.28)"; ctx.beginPath(); ctx.ellipse(f.x,f.y-4,r,r*0.42,0,0,7); ctx.fill(); }
   shadow(f.x,f.y,22); drawEmoji(f.e,f.x,f.y+bob,60);
-  if(!got){ ctx.font=`26px ${EMOJI}`; ctx.fillStyle="#000"; ctx.textAlign="center"; ctx.textBaseline="bottom"; ctx.fillText("✨",f.x+30,f.y-48+bob); }
+  if(!got){ drawEmoji("✨",f.x+30,f.y-48+bob-26*0.12,26); }
   else { ctx.fillStyle="#F2B134"; ctx.strokeStyle="#fff"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(f.x+28,f.y-58+bob,16,0,7); ctx.fill(); ctx.stroke();
     ctx.fillStyle="#12233D"; ctx.font='500 20px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.direction="rtl"; ctx.fillText(f.ch,f.x+28,f.y-56+bob); ctx.direction="ltr"; }
 }
@@ -724,8 +753,8 @@ function drawTrails(){ ctx.lineCap="round"; ctx.lineJoin="round";
 function drawBridges(){ for(const b of BRIDGES){ ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(b.a);
     rr(-50,-24,100,48,6); ink("#B07F45"); ctx.strokeStyle="rgba(60,40,20,.4)"; ctx.lineWidth=2; for(let i=-3;i<=3;i++){ ctx.beginPath(); ctx.moveTo(i*13,-24); ctx.lineTo(i*13,24); ctx.stroke(); }
     ctx.strokeStyle="#7A4B22"; ctx.lineWidth=6; ctx.lineCap="round"; for(const k of [-24,24]){ ctx.beginPath(); ctx.moveTo(-50,k); ctx.lineTo(50,k); ctx.stroke(); } ctx.restore(); } }
-function drawDecor(time,x0,x1,y0,y1){ ctx.lineCap="round";
-  for(const d of DECOR){ const x=d.x, y=d.y; if(x<x0||x>x1||y<y0||y>y1) continue;
+function drawDecor(time,x0,x1,y0,y1,part){ ctx.lineCap="round";
+  for(const d of DECOR){ const x=d.x, y=d.y; if(x<x0||x>x1||y<y0||y>y1) continue; if(part&&(d.t==="wave")!==(part==="waves")) continue;
     if(d.t==="dune"){ const w=d.w; ctx.beginPath(); ctx.moveTo(x-w/2+6,y+8); ctx.quadraticCurveTo(x,y-w*0.2+13,x+w/2-6,y+8); ctx.strokeStyle="rgba(176,126,66,.26)"; ctx.lineWidth=7; ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x-w/2,y); ctx.quadraticCurveTo(x,y-w*0.22,x+w/2,y); ctx.strokeStyle="rgba(255,246,218,.8)"; ctx.lineWidth=5; ctx.stroke(); }
     else if(d.t==="tuft"){ ctx.strokeStyle=d.c; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x-6,y); ctx.lineTo(x-9,y-10); ctx.moveTo(x,y); ctx.lineTo(x,y-14); ctx.moveTo(x+6,y); ctx.lineTo(x+9,y-10); ctx.stroke(); }
@@ -1041,7 +1070,7 @@ document.getElementById("enterGo").onclick=e=>{ e.stopPropagation(); if(entering
 document.getElementById("enterHear").onclick=e=>{ e.stopPropagation(); if(entering) say(entering.l.ar); };
 
 /* ============ loop ============ */
-let last=performance.now(), T=0, wasManual=false;
+let last=performance.now(), T=0, wasManual=false, lastDraw=0; const camWas={x:0,y:0};
 const WALK=420;
 /* step to (nx,ny); at the water's edge slide along it instead of stopping dead */
 function tryMove(nx,ny){ if(walkable(nx,ny)){ player.x=nx; player.y=ny; return true; }
@@ -1079,19 +1108,26 @@ function frame(now){
   cam.x+=(tx-cam.x)*Math.min(1,dt*5); cam.y+=(ty-cam.y)*Math.min(1,dt*5);
   cam.x=Math.max(0,Math.min(W-VW/ZOOM,cam.x)); cam.y=Math.max(0,Math.min(H-VH/ZOOM,cam.y));
   if(bubble) bubble.t+=dt;
+  // nothing moving: draw about 20 times a second instead of 60
+  const busy=player.moving||md||marker||(drag&&drag.on)||Math.abs(cam.x-camWas.x)+Math.abs(cam.y-camWas.y)>0.02; camWas.x=cam.x; camWas.y=cam.y;
+  if(!busy&&now-lastDraw<45){ requestAnimationFrame(frame); return; }
+  lastDraw=now; const t0=FPS?performance.now():0;
 
-  ctx.setTransform(DPR*ZOOM,0,0,DPR*ZOOM,-cam.x*DPR*ZOOM,-cam.y*DPR*ZOOM);
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
-  ctx.drawImage(ground,0,0,W,H);
+  // the ground tiles, lined up on whole pixels so no seams show between them
+  const ox=Math.round(cam.x*SC), oy=Math.round(cam.y*SC), TS=Math.round(TILE*SC);
+  ctx.setTransform(1,0,0,1,0,0); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
+  for(let j=Math.max(0,Math.floor(oy/TS)); j*TS<oy+cv.height && j*TILE<H; j++) for(let i=Math.max(0,Math.floor(ox/TS)); i*TS<ox+cv.width && i*TILE<W; i++) ctx.drawImage(tileAt(i,j),i*TS-ox,j*TS-oy);
+  ctx.setTransform(SC,0,0,SC,-ox,-oy);
   const vx0=cam.x-120, vx1=cam.x+VW/ZOOM+120, vy0=cam.y-60, vy1=cam.y+VH/ZOOM+160;
-  drawDecor(T,vx0,vx1,vy0,vy1); drawTrails(); drawPlaza();
-  drawRiver(T); drawPond(); drawBridges();
+  drawDecor(T,vx0,vx1,vy0,vy1,"waves"); drawRiver(T,"ripples"); drawBridges();
   for(const l of LANDMARKS) drawPad(l,T);
   if(marker){ marker.t+=dt; const r=14+Math.sin(marker.t*6)*4; ctx.strokeStyle="rgba(255,255,255,.9)"; ctx.lineWidth=4; ctx.beginPath(); ctx.ellipse(marker.x,marker.y,r,r*0.45,0,0,7); ctx.stroke(); }
   const list=[];
-  for(const p of props) if(p.x>vx0&&p.x<vx1&&p.y>vy0&&p.y<vy1) list.push({y:p.y,f:()=>{ if(p.b!=="sea") shadow(p.x,p.y,p.s*0.32); const bob=(p.b==="sea")?Math.sin(T*2+p.x)*3:0; drawProp(p,bob);} });
-  for(const q of PEAKS) if(q.x>vx0-100&&q.x<vx1+100&&q.y>vy0&&q.y<vy1+200) list.push({y:q.y,f:()=>sprPeak(q)});
-  for(const l of LANDMARKS) list.push({y:l.y,f:()=>drawLandmark(l,T)});
+  for(const p of props) if(p.x>vx0&&p.x<vx1&&p.y>vy0&&p.y<vy1) list.push({y:p.y,f:()=>{ const sea=p.b==="sea", s=p.s;
+    p._pic=p._pic||cached("p|"+p.e+"|"+s+"|"+p.b,()=>makePic(-s*0.9,-s*1.55,s*0.9,s*0.45,()=>{ if(!sea) shadow(0,0,s*0.32); drawProp({...p,x:0,y:0},0); }));
+    stamp(p._pic,p.x,p.y+(sea?Math.sin(T*2+p.x)*3:0)); } });
+  for(const q of PEAKS) if(q.x>vx0-100&&q.x<vx1+100&&q.y>vy0&&q.y<vy1+200) list.push({y:q.y,f:()=>{ q._pic=q._pic||cached("k|"+q.x+"|"+q.y,()=>makePic(q.x-q.s*0.6,q.y-q.s*1.0,q.x+q.s*0.6,q.y+6,()=>sprPeak(q))); stamp(q._pic,0,0); }});
+  for(const l of LANDMARKS) list.push({y:l.y,f:()=>l.id==="falls"?drawLandmark(l,T):stamp(cached("l|"+l.id,()=>makePic(l.x-190,l.y-240,l.x+190,l.y+110,()=>drawLandmark(l,0))),0,0)});
   const fd=found();
   for(const f of FRIENDS) if(f.x>vx0&&f.x<vx1&&f.y>vy0&&f.y<vy1) list.push({y:f.y,f:()=>drawFriend(f,!!fd[f.ch],T)});
   if(basketOpen()){ const bk=basket(); for(const it of ITEMS) if(it.x>vx0&&it.x<vx1&&it.y>vy0&&it.y<vy1) list.push({y:it.y,f:()=>drawItem(it,!!bk[it.ch],T)}); }
@@ -1103,6 +1139,7 @@ function frame(now){
   for(const l of LANDMARKS) drawArrow(l,T);
   drawStartHere(T);
   drawBubble();
+  if(FPS){ fpsN++; fpsMs+=performance.now()-t0; if(now-fpsT>1000){ fpsEl.textContent=`${Math.round(fpsN*1000/(now-fpsT))} fps · ${(fpsMs/fpsN).toFixed(1)} ms`; fpsN=0; fpsMs=0; fpsT=now; } }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
