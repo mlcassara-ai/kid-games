@@ -38,12 +38,12 @@ Everything below is already in the game. The Arabic was written without a native
 
 ## Alphabet School letter families
 
-The Alphabet School now teaches the letters in alphabet order, cut into seven small families so that letters sharing a shape (differing only in dots) are learned together. Is this the grouping you would use, or would you change it?
+The Alphabet School now teaches the letters in alphabet order, grouped into seven small families so that letters sharing a shape (differing only in dots) are learned together. Is this the grouping you would use, or would you change it?
 
 1. ا ب ت ث
 2. ج ح خ
-3. د ذ ر ز
+3. د ذ ر ز و (و moved here: like the others it never joins the letter after it)
 4. س ش ص ض
 5. ط ظ ع غ
 6. ف ق ك ل
-7. م ن ه و ي
+7. م ن ه ي
