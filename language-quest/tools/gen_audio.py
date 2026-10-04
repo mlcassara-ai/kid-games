@@ -29,6 +29,10 @@ VOICE_FIX = {
     "زَرَافَة": ("ar-XA-Wavenet-B", 0.8),    # giraffe: Puck stressed the wrong syllable (Oct 3)
     "دَلْو": ("ar-XA-Chirp3-HD-Kore", 0.85),  # bucket: picked by ear (Oct 3)
 }
+# clips fixed by hand (uploaded directly), which --all must leave alone
+HAND_FIXED = {
+    "زَيْتُون", "زَيْتُونَة",   # olives / olive tree: the recordings were swapped by hand (Oct 3)
+}
 MARKS = re.compile("[ً-ْـ]")
 SILENT_BYTES = 4000
 
@@ -68,7 +72,7 @@ def main():
     if only and not any(w["t"] == only for w in words):
         sys.exit("not in words.json: " + only)
     # --all leaves hand-picked clips alone: the same voice can come out differently each time
-    todo = [w for w in words if w["t"] == only] if only else [w for w in words if w["t"] not in VOICE_FIX or not exists(w["k"])] if everything else [w for w in words if not exists(w["k"])]
+    todo = [w for w in words if w["t"] == only] if only else [w for w in words if (w["t"] not in VOICE_FIX and w["t"] not in HAND_FIXED) or not exists(w["k"])] if everything else [w for w in words if not exists(w["k"])]
     print("%d phrases, %d to record" % (len(words), len(todo)))
     for w in todo:
         print("  ", w["k"], w["t"])
