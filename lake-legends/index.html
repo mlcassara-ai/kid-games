@@ -307,8 +307,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.04a";</script>
-<script src="ll-core.js?v=2026.10.04a"></script>
+<script>window.LL_VER="2026.10.04b";</script>
+<script src="ll-core.js?v=2026.10.04b"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -748,6 +748,7 @@ const BOATS = [ { name:"Rental jon boat", cost:0, desc:"Rent one at each lake vi
 // extra gear in the Tackle Shop
 const GEAR = [
   { key:"holder",    icon:"🔔", name:"Rod Holder",      cost:400,  desc:"Set a second rod with a bell. When the bell rings, tap 🔔 fast to land a bonus fish (not in Showdowns or boss fights)." },
+  { key:"castRod",   icon:"🎯", name:"Casting Rod",     cost:200,  desc:"A long, springy rod. Hold the reel button to aim: you can cast all the way across, and the PERFECT zone is bigger." },
   { key:"net",       icon:"🥅", name:"Landing Net",     cost:250,  desc:"Once a big fish is close to the top, your line can't snap. No more losing them at the last second!" },
   { key:"livewell",  icon:"🪣", name:"Live Well",       cost:300,  desc:"Keeps your catch fresh: kept fish pay 20% more, and Showdown fish weigh in 5% heavier." },
   { key:"finderPro", icon:"📡", name:"Fish Finder Pro", cost:350,  desc:"Stars the trophy, rare and tagged fish on your sonar, and works on the dock too.", need: () => S.finder, needTxt:"Needs the Fish Finder" },
@@ -1507,11 +1508,32 @@ function reelPress(){
   if (T.wild && T.wild.mode === "raid" && T.wild.stage === "warn") T.wild.taps++;
   if (T.nibble){ setHook(); return; }
   if (T.phase === "troll"){ if (T.strike) trollHook(); return; }
-  if (T.phase === "ready") doCast();
+  if (T.phase === "ready") T.charge = { t: 0 };            // a quick tap casts anywhere; hold to aim with the power meter
   else if (T.phase === "drop") startReel("Reeling up!");
   else if (T.phase === "reel" && !T.autoUp) crank();
 }
-function reelRelease(){ btnHeld = false; reelBtn.classList.remove("down"); }
+function reelRelease(){ btnHeld = false; reelBtn.classList.remove("down");
+  const T = trip; if (!T || !T.charge) return;
+  const c = T.charge; T.charge = null;
+  if (T.phase === "ready") doCast(c.t < CAST_TAP ? null : castPower(c.t));
+}
+function drawCastMeter(T, sy){
+  const p = castPower(T.charge.t), pa = perfectAt(), tx = castTarget(T, p), y0 = sy(0);
+  ctx.strokeStyle = "rgba(255,255,255,.6)"; ctx.lineWidth = 2; ctx.setLineDash([5, 6]);                 // where it will land
+  ctx.beginPath(); ctx.moveTo(T.tipX + 40, y0 - 4); ctx.quadraticCurveTo((T.tipX + tx) / 2, y0 - 70 - p * 50, tx, y0 - 4); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = p >= pa ? "#ffe38a" : "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(tx, y0 + 1, 14, 4, 0, 0, 7); ctx.stroke();
+  const w = 170, x = W / 2 - w / 2, y = Math.min(H - 190, Math.max(130, y0 + 40));                       // the power bar
+  ctx.fillStyle = "rgba(10,25,40,.8)"; roundRect(x - 8, y - 22, w + 16, 40, 10); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "bold 12px Trebuchet MS, sans-serif"; ctx.textAlign = "center"; ctx.fillText(p >= pa ? "🎯 PERFECT! LET GO!" : "LET GO AT THE TOP", W / 2, y - 7);
+  ctx.fillStyle = "rgba(255,255,255,.2)"; roundRect(x, y, w, 10, 5); ctx.fill();
+  ctx.fillStyle = "rgba(255,227,138,.45)"; ctx.fillRect(x + w * pa, y, w * (1 - pa), 10);
+  ctx.fillStyle = p >= pa ? "#ffe38a" : "#7dffb8"; roundRect(x, y, Math.max(8, w * p), 10, 5); ctx.fill();
+}
+// ---- Casting: a quick tap lands anywhere; hold and the power meter swings up and back, let go at the top for a long, soft "perfect" cast ----
+const CAST_TAP = .25;
+const castPower = t => { const u = ((t - CAST_TAP) / .8) % 2; return 1 - Math.abs(u - 1); };
+const perfectAt = () => S.castRod ? .82 : .88;
+function castTarget(T, p){ const from = T.tipX + 40, to = W - 40; return from + p * (S.castRod ? 1 : .8) * Math.max(0, to - from); }
 // how much line one crank brings in: less for heavier fish, a bit more on deeper lakes
 function fishLb(f){ return weightLb(f.sp, f.inches); }
 function crank(){
@@ -1553,6 +1575,7 @@ $("btnDex").onclick = () => { SFX.click(); showScreen("dex"); };
 $("btnLodge").onclick = () => { SFX.click(); showScreen("lodge"); };
 $("btnShop").onclick = () => { SFX.click(); showScreen("shop"); };
 const HOWTO_HTML = `<h3>How to play</h3><ul style="text-align:left">
+  <li>🎯 <b>Tap</b> the reel button to cast anywhere, or <b>hold</b> it and let go when the power bar is at the top for a long, soft <b>PERFECT</b> cast.</li>
   <li>🎣 Tap the big <b>reel button</b> to cast and reel. Steer your bait with a finger on the water.</li>
   <li>🐟 Stop near fish. They <b>nibble</b>... wait for <b>BITE!</b> then tap fast.</li>
   <li>🔄 Tap to reel. Let go and the fish takes line!</li>
@@ -2096,9 +2119,12 @@ function renderBaitBar(){
   }
   bar.appendChild(row);
 }
-function doCast(){
+function doCast(p){
   uiSheet = null;
-  const T = trip; T.phase = "cast"; T.castT = 0; T.castX = T.mode === "dock" ? rand(T.tipX + 50, W - 50) : rand(70, W-70); SFX.whoosh();
+  const T = trip; T.phase = "cast"; T.castT = 0; T.perfect = false;
+  if (p == null) T.castX = T.mode === "dock" ? rand(T.tipX + 50, W - 50) : rand(70, W-70);
+  else { T.castX = castTarget(T, p); if (p >= perfectAt()){ T.perfect = true; pop(T.castX, -70, "🎯 PERFECT CAST!", "#ffe38a", 20); SFX.bite(); } }
+  SFX.whoosh();
 }
 function startReel(msg){
   if (!trip || trip.phase !== "drop") return;
@@ -2177,6 +2203,7 @@ function interest(T, f){
   if (c > 0 && scentOn()) c = Math.min(1, c + .15);       // scent makes fish that already like your bait hungrier
   if (c > 0) c = Math.min(1, c + .1 * rainAmt());          // fish often bite better in the rain
   if (c > 0 && frenzyOn()) c = Math.min(1, c + .35);        // feeding frenzy: everything is hungry
+  if (c > 0 && T.perfect) c = Math.min(1, c + .1);          // a soft, perfect cast doesn't spook them
   if (c > 0 && stormOn()) c = Math.min(1, c + .2);          // the bite before a storm
   if (c > 0 && cabinAt(T.lake) && S.cabin.up.lights) c = Math.min(1, c + .15 * nightAmt());   // your dock lights draw fish in at night
   return c;
@@ -2448,6 +2475,7 @@ function fishBand(T, f){
 }
 function updateFishing(dt){
   const T = trip; T.t += dt;
+  if (T.charge){ if (T.phase !== "ready") T.charge = null; else T.charge.t += dt; }
   if (visit && visit.sd && !T.boss){ sdUpdate(T, dt); if (!trip) return; }
   if (visit && !T.boss && !visit.sd) evUpdate(T, dt);
   if (visit && S.holder && !T.boss && !visit.sd) holderUpdate(T, dt); else if (visit && visit.holder) visit.holder.bite = 0;
@@ -2516,7 +2544,7 @@ function updateFishing(dt){
     const c = T.castT;
     if (c < .4){ hk.x = T.vtip.x; hk.y = T.vtip.y + 20; T.relX = hk.x; T.relY = hk.y; }      // winding up: the lure swings with the rod
     else { const q = (c - .4) / .6; hk.x = lerp(T.relX, T.castX, q); hk.y = lerp(T.relY, 0, q) - Math.sin(Math.PI*q)*150; }
-    if (c >= 1){ hk.y = 0; T.phase = "drop"; T.bobX = hk.x; pointerX = null; SFX.splash(); ripple(T, hk.x, true); pop(hk.x, -10, T.bobber ? "Plunk!" : "Splash!", "#fff", 18); }
+    if (c >= 1){ hk.y = 0; T.phase = "drop"; T.bobX = hk.x; pointerX = null; SFX.splash(); ripple(T, hk.x, !T.perfect); pop(hk.x, -10, T.perfect ? "Plip! Soft landing." : T.bobber ? "Plunk!" : "Splash!", "#fff", 18); }
   }
   else if (T.phase === "fight"){ updateFight(dt); }
   else if (T.phase === "troll"){ updateTroll(dt); }
@@ -4044,6 +4072,7 @@ function renderScene(T, idle){
   if ((S.finder && T.mode === "boat") || (S.finderPro && T.mode === "dock")) drawFinder(T);
   if (F) drawFightUI(F);
   if (T === trip && visit && visit.sd) drawScoreboard(visit.sd);
+  if (T === trip && T.charge && T.charge.t >= CAST_TAP && T.phase === "ready") drawCastMeter(T, sy);
 }
 
 // far underwater: dim rock ridges and schools of little fish, moving slower than the foreground (depth)
@@ -4249,7 +4278,7 @@ function syncReelBtn(){
   $("btnBug").style.display = state === "fishing" || state === "results" ? "none" : "";
   if (!show) return;
   let mode, label;
-  if (T.phase === "ready" || T.phase === "cast"){ mode = "cast"; label = T.phase === "cast" ? "" : "TAP TO CAST"; }
+  if (T.phase === "ready" || T.phase === "cast"){ mode = "cast"; label = T.phase === "cast" ? "" : T.charge && T.charge.t >= CAST_TAP ? "LET GO!" : "TAP or HOLD"; }
   else if (T.nibble){ const b = T.nibble.stage === "bite"; mode = b ? "tap danger" : "out"; label = b ? "SET THE HOOK!" : "WAIT..."; }
   else if (T.phase === "drop"){ mode = "out"; label = "TAP TO STOP"; }
   else if (T.phase === "troll"){ mode = T.strike ? "tap danger" : "hold"; label = T.strike ? "STRIKE! TAP!" : btnHeld ? "LURE UP..." : "HOLD = LURE UP"; }

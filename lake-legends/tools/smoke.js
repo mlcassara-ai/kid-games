@@ -473,6 +473,20 @@ const BOT = n => {
   ok(r9.cards, "postcards and the lure collection show in the Lodge (" + r9.cardsN + ")");
   ok(r9.sponsor, "3 Showdown wins bring a sponsor who pays every day");
 
+  const r10 = await a.evaluate(() => {
+    const out = {}; trip = null; visit = null; startVisit(lakeById("dixon"), "dock");
+    reelPress(); reelRelease(); out.tap = trip.phase === "cast" && !trip.perfect;
+    startTrip(lakeById("dixon"), 0, "dock", true); trip.phase = "ready";
+    reelPress(); for (let i = 0; i < 31; i++) updateFishing(1/30); out.holding = trip.phase === "ready" && !!trip.charge;
+    while (castPower(trip.charge.t) < .99) updateFishing(1/120);
+    reelRelease(); out.perfect = trip.phase === "cast" && trip.perfect && trip.castX > W * .6;
+    startTrip(lakeById("dixon"), 0, "dock", true); trip.phase = "ready"; reelPress(); for (let i = 0; i < 12; i++) updateFishing(1/30); reelRelease();
+    out.short = trip.phase === "cast" && !trip.perfect && trip.castX < trip.tipX + 120;
+    trip = null; visit = null; showScreen("title"); return out; });
+  ok(r10.tap, "a quick tap casts anywhere");
+  ok(r10.holding && r10.perfect, "holding fills the power bar; letting go at the top makes a long PERFECT cast");
+  ok(r10.short, "letting go early makes a short cast");
+
   console.log("Prizes");
   // device a (Ben signed in): a parent sets a prize for Ana; device b (Ana signed in) must get it, and earn it
   await a.evaluate(() => { trip = null; visit = null; showScreen("title"); LL.parentCorner(); });
