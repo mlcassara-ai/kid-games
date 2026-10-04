@@ -37,8 +37,7 @@ function giveKey(p,done){css();try{const cur=P();if(cur&&p&&cur.id===p.id)p=cur;
 
 /* ---------- the building on the map (only for kids with a key) ---------- */
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[LAB_Y]&&W.T[LAB_Y][LAB_X];if(!t)return;const p=P();const on=hasKey(p);
- if(on){if(t.npc!=='lab'){if(W.hx===LAB_X&&W.hy===LAB_Y)return;t.npc='lab';t.block=true;}}
- else if(t.npc==='lab'){delete t.npc;t.block=false;}}catch(e){}}
+ if(t.npc==='lab'){delete t.npc;t.block=false;}}catch(e){}} /* Oct 2026: the Lab is a shop on Main Street (town.js), not a plaza building */
 
 /* ---------- lab greeting ---------- */
 function greet(p){const s=Q(p),L=s.lab,m=typeof Quartz!=='undefined'?Quartz.medals(p):0;

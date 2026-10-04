@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.03z';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="report.js?v='+MQV+'"><\/script>');document.write('<script src="bpscene.js?v='+MQV+'"><\/script>');document.write('<script src="battlepets.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');document.write('<script src="physics.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.04a';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="report.js?v='+MQV+'"><\/script>');document.write('<script src="town.js?v='+MQV+'"><\/script>');document.write('<script src="bpscene.js?v='+MQV+'"><\/script>');document.write('<script src="battlepets.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');document.write('<script src="physics.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -3210,6 +3210,7 @@ const BIOMES={
  station:{c:[46,11],g:'#d8c9a8',g2:'#d0c1a0',zone:'station',bl:['🌳','🚧'],de:['🛤️','🎟️']},
  fair:{c:[46,24],g:'#d3f9d8',g2:'#c3f0cc',zone:'fair',bl:['🏪','🌳'],de:['🥫','🏷️']},
  haunt:{c:[14,24],g:'#5a4a7e',g2:'#524373',zone:'haunt',overlay:true,rad:3.2,bl:['🪦'],de:['🎃','🕸️']}};
+const TOWN_X=20,TOWN_Y=13; /* the Number Town building's top-left tile (the plaza centre is 22,17) */
 const NPCS=[
  /* plaza layout (15x10), grouped by what things are for. The plaza is for places and characters; pure menus live in buttons,
     so the Quest Board and Leaderboard buildings were removed (Oct 2026): the World screen's Quest Board button reaches both.
@@ -3247,7 +3248,9 @@ function buildWorld(){
  // gates
  const gates={};for(const k of keys){const B=BIOMES[k];if(!B.zone)continue;const t=T[B.c[1]][B.c[0]];t.gate=B.zone;t.block=true;t.o=null;t.water=false;gates[B.zone]=B.c;}
  // npcs
- NPCS.forEach(n=>{const t=T[n.y][n.x];t.o=null;if(n.opt)return;t.npc=n.id;t.block=true;});
+ /* Oct 2026: the plaza's buildings moved inside one Number Town building (town.js: Main Street). Only the Town stands on the
+    map: 5x3 tiles over the plaza's north half; bumping any of them goes in. NPCS still names every place and wNpc still opens it. */
+ for(let y=TOWN_Y;y<TOWN_Y+3;y++)for(let x=TOWN_X;x<TOWN_X+5;x++){const t=T[y][x];t.o=null;t.npc='town';t.block=true;}
  // chests: one per wild biome, on a walkable non-path tile reachable (next to a path)
  const chests=[];for(const k of keys){if(k==='village')continue;let tries=0;while(tries++<400){const x=1+Math.floor(r()*(WCOLS-2)),y=1+Math.floor(r()*(WROWS-2));const t=T[y][x];
   if(t.b!==k||t.block||t.path||t.gate||t.plaza)continue;if(Math.hypot(x-BIOMES[k].c[0],y-BIOMES[k].c[1])<3)continue;
@@ -3370,7 +3373,8 @@ function wFrame(now){
     ctx.drawImage(wSprite(lock?'🔒':z.art,Math.round(ts*1.3)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.25+Math.sin(now/500)*2,s,s);
     wLabel(ctx,z.name+(lock?'':zoneTag(P(),z))+(z.event&&lock?(eventSoon()?' · Opens Oct 18':' · Closed'):'')+(!lock&&isBonusZ(P(),z.id)?' ⭐2×':''),sx+ts/2,sy-ts*.55,'#fff',z.event?'rgba(200,80,0,.9)':'rgba(40,20,80,.85)');}});}
   if(t.plaza&&!t.npc){const dc=plazaDecor(x,y);if(dc)items.push({y:y-.01,draw:()=>ctx.drawImage(wSprite(dc,Math.round(ts*.7)),sx+ts*.15,sy+ts*.05,ts*.7,ts*.7)});}
-  if(t.npc){const n=NPCS.find(q=>q.id===t.npc);const s=ts*(n.id==='fountain'?1.2:1.05);items.push({y,draw:()=>{ctx.drawImage(wSprite(n.e,Math.round(ts*.95)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.1,s,s);if(n.n){const vb=VIL.find(v=>v.npc===n.id);const vl=vb?vLv(P(),vb.id):0;wLabel(ctx,n.n+(vl?` ★${vl}`:''),sx+ts/2,sy-ts*.18,'#3b2b6b','rgba(255,255,255,.9)');}const qm=npcQuestMark(P(),n.id);if(qm){const rdy=qm==='❗',bob=Math.sin(now/300)*ts*.05,qs=Math.round(ts*.42),cx0=sx+ts/2,cy0=Math.max(ts*.34,sy-ts*.18-ts*.58+bob);ctx.beginPath();ctx.arc(cx0,cy0,ts*.3,0,7);ctx.fillStyle=rdy?'#ffd43b':'#7048e8';ctx.fill();ctx.lineWidth=Math.max(2,ts*.05);ctx.strokeStyle='#fff';ctx.stroke();ctx.drawImage(wSprite(rdy?'❗':'❓',qs),cx0-qs/2,cy0-qs/2,qs,qs);}}});}
+  if(t.npc==='town'){if(!items.town){items.town=1;const ax=sx-(x-TOWN_X)*ts,ay=sy-(y-TOWN_Y)*ts;items.push({y:TOWN_Y+2,draw:()=>{try{TownView.draw(ctx,ax,ay,ts,now);}catch(e){}}});}}
+  else if(t.npc&&NPCS.find(q=>q.id===t.npc)){const n=NPCS.find(q=>q.id===t.npc);const s=ts*(n.id==='fountain'?1.2:1.05);items.push({y,draw:()=>{ctx.drawImage(wSprite(n.e,Math.round(ts*.95)),sx+ts/2-s/2,sy+ts/2-s/2-ts*.1,s,s);if(n.n){const vb=VIL.find(v=>v.npc===n.id);const vl=vb?vLv(P(),vb.id):0;wLabel(ctx,n.n+(vl?` ★${vl}`:''),sx+ts/2,sy-ts*.18,'#3b2b6b','rgba(255,255,255,.9)');}const qm=npcQuestMark(P(),n.id);if(qm){const rdy=qm==='❗',bob=Math.sin(now/300)*ts*.05,qs=Math.round(ts*.42),cx0=sx+ts/2,cy0=Math.max(ts*.34,sy-ts*.18-ts*.58+bob);ctx.beginPath();ctx.arc(cx0,cy0,ts*.3,0,7);ctx.fillStyle=rdy?'#ffd43b':'#7048e8';ctx.fill();ctx.lineWidth=Math.max(2,ts*.05);ctx.strokeStyle='#fff';ctx.stroke();ctx.drawImage(wSprite(rdy?'❗':'❓',qs),cx0-qs/2,cy0-qs/2,qs,qs);}}});}
   if(t.chest){const done=wChestOpen(t.chest);items.push({y,draw:()=>{ctx.globalAlpha=done?.45:1;const bob=done?0:Math.sin(now/300)*2;ctx.drawImage(wSprite(done?'📦':'🎁',Math.round(ts*.75)),sx+ts*.1,sy+ts*.05+bob,ts*.8,ts*.8);ctx.globalAlpha=1;
    if(!done&&(Math.floor(now/400)%2)){ctx.drawImage(wSprite('✨',Math.round(ts*.35)),sx+ts*.6,sy-ts*.1,ts*.4,ts*.4);}}});}}
  W.mobs.forEach(m=>{if(m.x<x0-1||m.x>x1+1||m.y<y0-1||m.y>y1+1)return;let mx=m.x,my=m.y;if(m.mt&&now-m.mt<300){const k=(now-m.mt)/300;mx=m.fx+(m.x-m.fx)*k;my=m.fy+(m.y-m.fy)*k;}
@@ -3658,10 +3662,11 @@ function fountainJoke(){const p=P();const f=fnt(p);
  [523,659,784].forEach((x,k)=>tone(x,.18,'triangle',.07,k*.1));
  modal(`<div class="mcard fountain"><div class="fnt-pool splash"><span class="fnt-e big">⛲</span><span class="fnt-face">😜</span></div><h2>💦 SPLOOSH! The fountain has a joke for you!</h2>
  <div class="fnt-joke">${esc(q)}</div><div class="fnt-punch" id="fntPunch">${esc(a)}</div>
- <div class="row">${voiceOn()?`<button class="btn ghost dark" id="fntHear" onclick="speakToggle(()=>say(DAD_JOKES[${i}][0],.9))">🔊 Hear it</button>`:''}<button class="btn green big" id="fntTell" onclick="fountainPunch()">Tell me! 🤔</button></div>
+ <div class="row">${voiceOn()?`<button class="btn ghost dark" id="fntHear" data-j="${i}" onclick="speakToggle(()=>say(DAD_JOKES[${i}][0],.9))">🔊 Hear it</button>`:''}<button class="btn green big" id="fntTell" onclick="fountainPunch()">Tell me! 🤔</button></div>
  <p class="muted">🤣 Joke ${f.seen.length} of ${DAD_JOKES.length} found</p></div>`);
  sayV(q,.9);}
-function fountainPunch(){const el=$('#fntPunch');if(!el)return;el.classList.add('show');const b=$('#fntTell');if(b){b.textContent='😂 Ha! Again!';b.onclick=()=>fountainOpen();}
+function fountainPunch(){const el=$('#fntPunch');if(!el)return;el.classList.add('show');
+ {const h=$('#fntHear');if(h){const j=+h.dataset.j;h.onclick=()=>speakToggle(()=>say(DAD_JOKES[j][0]+' … '+DAD_JOKES[j][1],.9));}} /* after the punchline, Hear it reads the whole joke */const b=$('#fntTell');if(b){b.textContent='😂 Ha! Again!';b.onclick=()=>fountainOpen();}
  sayV(el.textContent,.9);setTimeout(()=>{tone(180,.08,'square',.06);tone(140,.08,'square',.06,.12);tone(1200,.35,'triangle',.04,.26);},1100);}
 /* ================= the Cafeteria: Ms. Rosa's daily lunch challenge ================= */
 const CAFE_FOODS={veg:[['🥦','Broccoli'],['🥕','Carrots'],['🌽','Corn'],['🥒','Cucumber'],['🍅','Tomato'],['🥬','Lettuce']],
@@ -3909,7 +3914,7 @@ const VIL_MAX=10;const PLAZA_NAMES=['🌷 Flowers','🏮 Lanterns','🌳 Trees',
 const vStars=l=>`${'★'.repeat(Math.min(5,l))}${'☆'.repeat(Math.max(0,5-l))}${l>5?' '+'🌟'.repeat(l-5):''} <small>Lv ${l}/${VIL_MAX}</small>`;
 const vLv=(p,id)=>((p&&p.vil)||{})[id]||0;
 const libPerDay=p=>2+(vLv(p,'library')>=3?1:0)+(vLv(p,'library')>=5?1:0)+(vLv(p,'library')>=8?1:0);
-const PLAZA_DECOR=[[['🌷',15,12],['🌷',29,12],['🌷',15,21],['🌷',29,21]],[['🏮',20,17],['🏮',24,17]],[['🌳',18,15],['🌳',26,19]],[['🗿',22,15]],[['🌈',21,12],['🎆',23,12]],[['🎈',20,15],['🎈',24,15]],[['🎠',18,18]],[['🦄',26,15]],[['🎪',26,17]],[['🏰',18,16]]];
+const PLAZA_DECOR=[[['🌷',15,12],['🌷',29,12],['🌷',15,21],['🌷',29,21]],[['🏮',20,17],['🏮',24,17]],[['🌳',18,15],['🌳',26,19]],[['🗿',22,17]],[['🌈',21,12],['🎆',23,12]],[['🎈',19,16],['🎈',25,16]],[['🎠',18,18]],[['🦄',26,15]],[['🎪',26,17]],[['🏰',18,16]]];
 function plazaDecor(x,y){const l=vLv(P(),'plaza');for(let i=0;i<l;i++)for(const [e,dx,dy] of PLAZA_DECOR[i])if(dx===x&&dy===y)return e;return null;}
 function vilUp(id){const p=P();const b=VIL.find(v=>v.id===id);const l=vLv(p,id);if(l>=VIL_MAX)return;const c=b.cost[l];if(p.coins<c){toast(`You need ${c-p.coins} more coins.`);return;}
  p.coins-=c;p.vil=p.vil||{};p.vil[id]=l+1;questEvent(p,'build',1);save();SFX.level();
@@ -4043,6 +4048,7 @@ function npcQuestCard(p,k,cont){const a=qState(p).active[k],d=qDef(a.c,a.i),N=QN
 function npcQuestGate(npcId,cont){const p=P();const k=npcQuestIdx(p,npcId);if(k<0||!qState(p).active[k].done)return false;const a=qState(p).active[k],N=QNPC[a.c];
  modal(`<div class="mcard"><div class="big-emoji">${N.e}</div><h2>${N.n}: "You did it!"</h2><p>You finished my quest, ${esc(p.name)}. Here's your reward!</p>${npcQuestCard(p,k,cont)}</div>`);return true;}
 function wNpc(id){const p=P();
+ if(id==='town'){p&&W&&(p.wpos={x:W.hx,y:W.hy});go('town');return;}
  if(id==='school'){if(W&&W.viaPad){W.path=[];modal(`<div class="mcard"><div class="big-emoji">🌀</div><h2>The Quest Board</h2><p>See your quests and all the math worlds?</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green big" onclick="closeModal();go('map')">🌀 Go!</button></div></div>`);return;}go('map');return;} // bumping it with the arrow pad asks first
  if(id==='shop'){go('backpack');return;}
  if(id==='pets'){if(npcQuestGate('pets',"go('pethome')"))return;go('pethome');return;}

@@ -72,6 +72,7 @@ Adaptive math battles plus a village of side activities, for grades 1–12 and a
 
 - `math-quest/index.html` — the whole core game (about 765 KB, many very long single lines; edit with exact-match scripted replacements, never retype blocks).
 - Add-ons are separate `.js` files loaded in order by the `document.write` loader line near the top of `index.html`. A new file must be added to that line.
+- `town.js` — Number Town: the plaza's buildings live inside one Town building on the map (`TOWN_X`/`TOWN_Y` in index.html, 5x3 tiles). Walking in opens Main Street, a swipeable street of drawn shopfronts in five blocks (Learning, Science, Pets, Shops, Fun); each shop calls the same `wNpc(id)` the old building did. The Lab, Train and Food Truck appear as shops only when switched on (their add-ons no longer place map tiles). Red dots: quest marks, the daily spin, gifts; the map building shows the total. Visitors still find the hero on the map. A new place gets a shop in `BLOCKS`, not a map tile.
 - `daily.js` — Today's Adventure, pet tricks, camp packing and tied sacks.
 - `truck.js` — Food Truck; hidden (no opening date) unless the device opened the game with `?truck=1`; `?truck=0` hides it again.
 - `district.js` — Discovery District, a second walkable map reached by train (its techno music lives in `music.js`), with its own map drawing; hidden unless the device opened the game once with `?district=1` (`?district=0` hides it again).

@@ -198,8 +198,7 @@ function ride(to){if(!flag())return;try{closeModal();}catch(e){}
  setTimeout(()=>{try{closeModal();}catch(e){}if(going){if(D){D.hx=AREAS.plaza.c[0]-4;D.hy=AREAS.plaza.c[1]+1;}go('district');}else{HERE=false;go('world');}},1500);}
 /* the station on the main map (same pattern as the Food Truck and Dr. Quartz's Lab) */
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[TRAIN_Y]&&W.T[TRAIN_Y][TRAIN_X];if(!t||t.water)return;
- if(flag()){if(!t.npc&&!t.chest&&!t.gate){if(W.hx===TRAIN_X&&W.hy===TRAIN_Y)return;t.npc='train';t.block=true;t.o=null;}}
- else if(t.npc==='train'){delete t.npc;t.block=false;}}catch(e){}}
+ if(t.npc==='train'){delete t.npc;t.block=false;}}catch(e){}} /* Oct 2026: the Train Station is a shop on Main Street (town.js) */
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();},session:()=>{HERE=false;syncTile();}});
 window.addEventListener('resize',()=>{try{if(typeof curScreen!=='undefined'&&curScreen==='district'&&D)resize();}catch(e){}});
 document.addEventListener('keydown',e=>{try{if(typeof curScreen==='undefined'||curScreen!=='district'||!D)return;const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!d)return;e.preventDefault();stepBy(d[0],d[1]);}catch(x){}});

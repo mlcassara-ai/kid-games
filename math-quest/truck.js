@@ -65,8 +65,7 @@ function flag(){if(window.MQ_TRUCK_BETA===true)return true;try{const m=/[?&]truc
 /* the truck parks on the village map once it is open (same pattern as Dr. Quartz's Lab) */
 const TK_X=25,TK_Y=17;
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[TK_Y]&&W.T[TK_Y][TK_X];if(!t||t.water)return;
- if(flag()){if(t.npc!=='truck'&&!t.npc&&!t.chest){if(W.hx===TK_X&&W.hy===TK_Y)return;t.npc='truck';t.block=true;t.o=null;}}
- else if(t.npc==='truck'){delete t.npc;t.block=false;}}catch(e){}}
+ if(t.npc==='truck'){delete t.npc;t.block=false;}}catch(e){}} /* Oct 2026: the Food Truck parks on Main Street (town.js) */
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world')syncTile();},session:()=>syncTile()});
 const enabled=p=>!!p&&flag()&&(p.battles||0)>=UNLOCK;
 function hs(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
