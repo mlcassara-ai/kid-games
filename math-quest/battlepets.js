@@ -20,7 +20,7 @@
    - Math: easy, quick facts of the stage's skill (Addition Forest = addition…); the Fossil Stage mixes them.
    A wrong answer never takes anything away: it just doesn't lay a brick.
    - Keyboard: 1–5 send pets, K kitchen, Space pounce, R rebuild, arrows scroll; while rebuilding, type the answer and press Enter (Esc closes).
-   SAVED: p.bp2 = {c:{stage: crowns beaten}, team:[pet ids]} and the play log p.bp (last 40 matches, for Parent Corner).
+   SAVED: p.bp2 = {c:{stage: crowns beaten}, team:[pet ids], tr: Trainer sessions hired and not used yet} and the play log p.bp (last 40 matches, for Parent Corner).
    Rewards feed the pets: pet XP for the team (a win gives more), and a snack the first time each crown is beaten.
    Uses Math Quest globals: P, state, save, go, topbar, toast, esc, SFX, tone, PETS, PET_TIERS, PERKS, petData, petStage, PET_STAGES, petLv,
    petGain, genQ, lvl, pickOpFair, ZONES, dayKey, say, speakable, speakToggle, voiceOn, W, SCREENS, curScreen, MQ_HOOKS, MQ_PARENT. */
@@ -176,7 +176,7 @@ function answer(ok){if(!G||G.over||!G.fixing||G.bricks<=0)return 0;G.asked++;if(
 function pounce(){if(!G||G.over||G.charge<100||G.slam)return false;const live=G.foes.filter(f=>!f.gone);if(!live.length)return false;
  const lead=live.reduce((a,b)=>b.x>a.x?b:a);G.charge=0;G.pounces++;G.slam={x:lead.x,at:G.t+TUNE.slamWait,n:G.pounces};G.camAt={x:lead.x,until:G.t+TUNE.slamWait+1};fx('pounce');return true;}
 /* while the paw is coming down it keeps aiming at whichever critter is closest to the Pet House */
-/* 🧑‍🏫 the Pet Trainer (like Battle Cats' CPU): hired for 🪙 50 coins before a battle, then plays it for the kid until switched off.
+/* 🧑‍🏫 the Pet Trainer (like Battle Cats' CPU): sessions hired ahead of time (🪙 50 each); switched on in a battle, it plays for the kid until switched off.
    A few times a second it pounces when critters bunch up or come close, calls the mega for the boss or a crowd, saves up for the
    Treat Kitchen while the field is calm, sends flyer-catchers, Brawlers and Walls when the fight needs them, and otherwise saves up for
    the strongest pet that is ready (spamming cheap pets stalls the line). Tested by simulation: about 84% of battles won overall (owner's
@@ -201,8 +201,13 @@ function trainer(){const T=G.trainer;if(!T||!T.on||G.over||G.t<(T.next||0))retur
  const best=G.team.filter(s=>s.ready<=G.t&&s.R.id!=='wall').sort((a,b)=>b.R.cost-a.R.cost)[0];
  if(best){if(G.treats>=best.R.cost){send(G.team.indexOf(best));return;}if(G.treats<treatCap()-1)return;}
  go(s=>s.R.id==='wall'&&out(u=>u.R.id==='wall')<3);}
-function trainerToggle(){if(VIEW.k==='team'){VIEW.trainer=!VIEW.trainer;try{SFX.tap();}catch(e){}screen();return;}
- if(!G||G.over||!G.trainer)return;G.trainer.on=!G.trainer.on;G.trainer.next=0;topNote(G.trainer.on?'🧑‍🏫 The Trainer is back in charge.':'🧑‍🏫 Trainer off: you\'re in charge!');draw();}
+/* sessions are hired ahead of time on the team screen (🪙 50 each, saved in p.bp2.tr); the first switch-on in a battle uses one,
+   and switching off and on again in that battle is free */
+function hire(){const p=me();if(!p||VIEW.k!=='team'||(p.coins||0)<TRAINER_COST)return;p.coins-=TRAINER_COST;const pr=prog(p);pr.tr=(pr.tr||0)+1;save();try{SFX.coin?SFX.coin():SFX.tap();}catch(e){}screen();}
+function trainerToggle(){if(!G||G.over)return;
+ if(!G.trainer){const p=me(),pr=p&&prog(p);if(!pr||(pr.tr||0)<1){topNote(`🧑‍🏫 No Trainer sessions left. Hire one on the team screen (🪙 ${TRAINER_COST}).`);return;}
+  pr.tr--;save();G.trainer={on:true,next:0,told:false};topNote(`🧑‍🏫 Trainer on! One session used${pr.tr?` (${pr.tr} left)`:''}. Switching off and on in this battle is free.`);draw();return;}
+ G.trainer.on=!G.trainer.on;G.trainer.next=0;topNote(G.trainer.on?'🧑‍🏫 The Trainer is back in charge.':'🧑‍🏫 Trainer off: you\'re in charge!');draw();}
 function slamAim(){const s=G.slam;if(!s)return;const live=G.foes.filter(f=>!f.gone);if(!live.length)return;s.x=live.reduce((a,b)=>b.x>a.x?b:a).x;G.camAt={x:s.x,until:Math.max(G.camAt&&G.camAt.until||0,s.at+1)};}
 function slam(){const s=G.slam;if(!s)return;slamAim();if(G.t<s.at)return;G.slam=null;G.slamX=s.x;
  G.foes.forEach(f=>{if(f.gone||Math.abs(f.x-s.x)>TUNE.slamR)return;knock(f,-(f.boss?6:12));f.hp-=f.boss?90:45;f.stun=G.t+1.4;f.pawT=G.t;if(f.fly||f.downUntil){f.fly=false;f.downUntil=G.t+TUNE.downFor;G.downed=(G.downed||0)+1;}});fx('slam');if(G.downed===1&&!G.downNote){G.downNote=true;fx('downed');}}
@@ -350,7 +355,7 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-scroll.shake{animation:bp2shake .32s linear}@keyframes bp2shake{20%{translate:-5px 2px}40%{translate:5px -2px}60%{translate:-4px 1px}80%{translate:3px 0}}
 .bp2-tc.mega{border-color:#7048e8;background:linear-gradient(#f3f0ff,#e5dbff)}.bp2-tc.mega .pe{font-size:34px}.bp2-team.six{grid-template-columns:repeat(6,1fr)}
 .bp2-ent.downed::before{content:'💫';position:absolute;top:-22px;font-size:22px;animation:bp2dizzy 1s linear infinite}@keyframes bp2dizzy{50%{transform:rotate(180deg) scale(1.15)}}
-.bp2-exit.on{background:#2f9e44}
+.bp2-btn.train{background:#5c7cfa;line-height:1.1}.bp2-btn.train.on{background:#2f9e44}.bp2-btn.train.nohire{background:#868e96;opacity:.6}
 .bp2-ent{position:absolute;bottom:28px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;transition:opacity .4s;z-index:2}.bp2-ent.mega{z-index:1}
 .bp2-ent .e{font-size:40px;line-height:1;display:inline-block}.bp2-ent.foe .e{transform:scaleX(-1)}.bp2-ent.boss .e{font-size:76px}.bp2-ent.fly{bottom:46%}
 .bp2-ent .hb{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.2);margin-bottom:2px;overflow:hidden}.bp2-ent .hb i{display:block;height:100%;background:#40c057}.bp2-ent.foe .hb i{background:#e8590c}
@@ -358,7 +363,7 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-ent .tag{font-size:10px;font-weight:700;background:rgba(255,255,255,.8);border-radius:6px;padding:0 4px;margin-top:1px}
 .bp2-base{position:absolute;bottom:16px;font-size:72px;line-height:1;transform:translateX(-50%);z-index:1}.bp2-base:has(svg){line-height:0}
 .bp2-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.bp2-meter{flex:1;min-width:160px;height:22px;background:#fff3bf;border-radius:11px;overflow:hidden;position:relative;border:2px solid #f2b705}.bp2-meter i{display:block;height:100%;background:#f2b705}.bp2-meter span{position:absolute;inset:0;text-align:center;font-weight:800;font-size:13px;line-height:18px}
+.bp2-meter{flex:1 1 110px;max-width:300px;min-width:80px;height:22px;background:#fff3bf;border-radius:11px;overflow:hidden;position:relative;border:2px solid #f2b705}.bp2-meter i{display:block;height:100%;background:#f2b705}.bp2-meter span{position:absolute;inset:0;text-align:center;font-weight:800;font-size:13px;line-height:18px}
 .bp2-btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:8px 12px;min-height:44px;cursor:pointer;background:#7048e8;color:#fff}.bp2-btn:disabled{opacity:.45;cursor:default}.bp2-btn.gold{background:#f08c00}
 .bp2-team{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 body.bp2-lock{overflow:hidden}
@@ -401,7 +406,7 @@ function pickStage(id,crown,asc){const p=me();if(!p)return;const pr=prog(p);if(c
 function teamView(p){const S=stages().find(s=>s.id===VIEW.id);if(!S){VIEW={k:'stages'};return screen();}const av=available(p),n=slots(p),team=VIEW.team;
  app.innerHTML=head(`${S.art} ${esc(S.name)} ${VIEW.asc?'✨ Ascend '+VIEW.asc:'👑'.repeat(VIEW.crown)}`,"BattlePets._back()")+`<div class="bp2"><div class="bp2-card"><b>Build your team</b> (up to ${n}). Tap a pet to add it, tap a team spot to take it out.
   <div class="bp2-mega"><b>Mega:</b> ${[['troll','🧌 Grumbleroot','roars critters back'],['eagle','🦅 Skyla','dives onto critters']].map(([id,t,sub])=>`<button class="${(prog(p).mega||'troll')===id?'on':''}" onclick="BattlePets._mega('${id}')">${t}<small>${sub}</small></button>`).join('')}<small class="muted">One mega per battle.</small></div>
-  <div class="bp2-mega"><b>Pet Trainer:</b><button class="${VIEW.trainer?'on':''}" onclick="BattlePets._trainer()" ${!VIEW.trainer&&(p.coins||0)<TRAINER_COST?'disabled':''}>🧑‍🏫 ${VIEW.trainer?'Hired ✓':'Hire'} · 🪙 ${TRAINER_COST}<small>plays the battle for you</small></button><small class="muted">${!VIEW.trainer&&(p.coins||0)<TRAINER_COST?`You need 🪙 ${TRAINER_COST} (you have ${p.coins||0}).`:`You have 🪙 ${p.coins||0}. Paid when the battle starts, for this one battle. The Trainer sends pets, upgrades the kitchen, pounces and calls the mega; you can switch it off and on during the battle. 🧱 Rebuild math is still your job!`}</small></div>
+  <div class="bp2-mega"><b>Pet Trainer:</b><button onclick="BattlePets._hire()" ${(p.coins||0)<TRAINER_COST?'disabled':''}>🧑‍🏫 Hire a session · 🪙 ${TRAINER_COST}<small>plays one battle for you</small></button><small class="muted">You have <b>${prog(p).tr||0}</b> session${(prog(p).tr||0)===1?'':'s'}${(p.coins||0)<TRAINER_COST?` (you need 🪙 ${TRAINER_COST} to hire one; you have ${p.coins||0})`:` · 🪙 ${p.coins||0}`}. In a battle, tap 🧑‍🏫 Trainer to switch it on or off. A session is used the first time you switch it on in a battle; switching it off and on again in that battle is free. 🧱 Rebuild math is still your job!</small></div>
   <div class="muted" style="font-size:13px;margin:4px 0 8px">Critters here: ${S.crit.map(c=>`${c[1]} ${esc(c[0])} <i>(${TRAIT[c[2]].tag||'plain'})</i>`).join(' · ')}</div>
   <div class="bp2-slots">${Array.from({length:n},(_,i)=>{const id=team[i],pet=id&&PETS.find(x=>x.id===id);return `<button class="bp2-slot ${pet?'full':''}" onclick="BattlePets._out(${i})" aria-label="${pet?'Take '+esc(pet.name)+' out':'Empty spot'}">${pet?pet.e:''}</button>`;}).join('')}
   <button class="bp2-btn" style="margin-left:auto" onclick="BattlePets._auto()" ${av.length?'':'disabled'}>🎲 Pick for me</button><button class="bp2-btn gold" ${team.length?'':'disabled'} onclick="BattlePets._start()">Start! ▶</button></div></div>
@@ -426,16 +431,15 @@ function teamIn(id){const p=me();if(!p||VIEW.k!=='team')return;const t=VIEW.team
 function teamOut(i){if(VIEW.k!=='team')return;VIEW.team.splice(i,1);screen();}
 function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;const S=stages().find(s=>s.id===VIEW.id);const team=VIEW.team.map(id=>PETS.find(x=>x.id===id)).filter(Boolean);
  if(!VIEW.flyOk&&flyRisk(S,team)){if(!document.getElementById('bpFlyW'))flyWarn();return;}
- const hired=!!VIEW.trainer&&(p.coins||0)>=TRAINER_COST;if(hired)p.coins-=TRAINER_COST;
  prog(p).team=VIEW.team.slice();const b=p.bp=p.bp||{s:0,m:[]};b.s=(b.s||0)+1;save();
- newBattle(p,S,VIEW.crown,team,VIEW.asc);G.megaId=prog(p).mega==='eagle'?'eagle':'troll';G.q=makeQ(p,S.op);G.songPick=Math.floor(Math.random()*3);if(hired)G.trainer={on:true,next:0,told:false};enterFS();VIEW={k:'fight',id:S.id,crown:G.crown,asc:G.asc};screen();}
+ newBattle(p,S,VIEW.crown,team,VIEW.asc);G.megaId=prog(p).mega==='eagle'?'eagle':'troll';G.q=makeQ(p,S.op);G.songPick=Math.floor(Math.random()*3);enterFS();VIEW={k:'fight',id:S.id,crown:G.crown,asc:G.asc};screen();}
 /* the battle takes over the whole screen: no menus, just ✕ Exit (and the browser goes full screen where it can) */
 function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
  app.innerHTML=`<div class="bp2-full" id="bpFull">
-  <div class="bp2-top"><button class="bp2-exit" onclick="BattlePets._quit()" aria-label="Exit the battle">✕ Exit</button><button class="bp2-exit" onclick="BattlePets._sound()" aria-label="Sound (pauses the battle)">🔊</button><button class="bp2-exit" onclick="BattlePets._report()" aria-label="Report a problem or a suggestion (pauses the battle)">🐞</button>${G.trainer?'<button class="bp2-exit" id="bpTrain" onclick="BattlePets._trainer()"></button>':''}<span class="bp2-title">${S.art} ${esc(S.name)} ${G.asc?'✨ Ascend '+G.asc:'👑'.repeat(G.crown)}</span>
+  <div class="bp2-top"><button class="bp2-exit" onclick="BattlePets._quit()" aria-label="Exit the battle">✕ Exit</button><button class="bp2-exit" onclick="BattlePets._sound()" aria-label="Sound (pauses the battle)">🔊</button><button class="bp2-exit" onclick="BattlePets._report()" aria-label="Report a problem or a suggestion (pauses the battle)">🐞</button><span class="bp2-title">${S.art} ${esc(S.name)} ${G.asc?'✨ Ascend '+G.asc:'👑'.repeat(G.crown)}</span>
   <div class="bp2-hud"><span>🏚️</span><div class="bp2-bar"><i id="bpDen" style="background:#e8590c"></i></div><span id="bpT" style="min-width:48px;text-align:center"></span><div class="bp2-bar"><i id="bpHouse" style="background:#40c057"></i></div><span>🏡</span></div></div>
   <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">${window.BPScene?BPScene.base('den',S):'🏚️'}</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">${window.BPScene?BPScene.base('house',S):'🏡'}</span></div></div>
-  <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button><button class="bp2-btn fix" id="bpFix" onclick="BattlePets._fix()"></button></div>
+  <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button><button class="bp2-btn train" id="bpTrain" onclick="BattlePets._trainer()"></button><button class="bp2-btn fix" id="bpFix" onclick="BattlePets._fix()"></button></div>
   <div class="bp2-team six">${G.team.map((s,i)=>`<button class="bp2-tc" id="bpTc${i}" onclick="BattlePets._send(${i})"><span class="pe">${s.pet.e}</span><small>${s.R.e} ${s.R.n}<span class="bp2-key">${i+1}</span></small><small>🍖 ${s.R.cost}</small><span class="cd" id="bpCd${i}"></span></button>`).join('')}
    <button class="bp2-tc mega" id="bpTroll" onclick="BattlePets._troll()" aria-label="Call ${megaOf().n}"><span class="pe">${megaArt(megaOf().id,46)}</span><small>MEGA<span class="bp2-key">T</span></small><small>🍖 ${megaOf().cost}</small><span class="cd" id="bpTrollCd"></span></button></div>
   <div class="bp2-card bp2-fix" id="bpFixP" style="display:none"><div class="bp2-row" style="justify-content:space-between"><b>🧱 Rebuild the Pet House</b><span class="bp2-bricks" id="bpBricks"></span><button class="btn small ghost dark" onclick="BattlePets._fixDone()">Done <span class="bp2-key">Esc</span></button></div>
@@ -485,7 +489,7 @@ function onKey(e){try{if(document.getElementById('bpSnd')&&(e.key==='Escape'||e.
  const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))return;const k=e.key;let used=true;
  if(k==='ArrowLeft')panBy(-320);else if(k==='ArrowRight')panBy(320);
  else if(G.fixing){if(/^[0-9]$/.test(k))key(k);else if(k==='.'||k===',')key('.');else if(k==='Backspace')key('⌫');else if(k==='Enter')key('go');else if(k===' ')key('skip');else if(k==='Escape')fixDone();else used=false;}
- else if(/^[1-5]$/.test(k))trySend(+k-1);else if(k==='k'||k==='K'){if(upgradeKitchen())draw();}else if(k===' '||k==='p'||k==='P'){if(pounce())draw();}else if(k==='r'||k==='R')fixOpen();else if(k==='s'||k==='S')soundOpen();else if(k==='t'||k==='T'){if(callTroll())draw();}else if((k==='a'||k==='A')&&G.trainer)trainerToggle();else used=false;
+ else if(/^[1-5]$/.test(k))trySend(+k-1);else if(k==='k'||k==='K'){if(upgradeKitchen())draw();}else if(k===' '||k==='p'||k==='P'){if(pounce())draw();}else if(k==='r'||k==='R')fixOpen();else if(k==='s'||k==='S')soundOpen();else if(k==='t'||k==='T'){if(callTroll())draw();}else if(k==='a'||k==='A')trainerToggle();else used=false;
  if(used){e.preventDefault();e.stopPropagation();}}catch(x){}}
 window.addEventListener('keydown',onKey,true);
 /* draw: one element per unit, moved every frame */
@@ -511,7 +515,8 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
  if(window.BPScene){BPScene.baseState(q('bpHouseB'),G.houseHP/G.houseMax);BPScene.baseState(q('bpDenB'),G.denHP/G.denMax);if(G.boss&&!G.bossDown)BPScene.grey(true);}
 
  const kb=q('bpKit');kb.textContent=G.kl>=4?'🍳 Kitchen max':`🍳 Kitchen ${G.kl+1}→${G.kl+2} · 🍖${kitchenCost()}`;kb.disabled=G.kl>=4||G.treats<kitchenCost();
- const tn=q('bpTrain');if(tn&&G.trainer){const on=G.trainer.on;tn.innerHTML=`🧑‍🏫 Trainer ${on?'ON':'OFF'} <span class="bp2-key">A</span>`;tn.classList.toggle('on',on);tn.setAttribute('aria-pressed',on?'true':'false');}
+ const tn=q('bpTrain');if(tn){if(G.trainer){const on=G.trainer.on;tn.innerHTML=`🧑‍🏫 Trainer ${on?'ON':'OFF'} <span class="bp2-key">A</span>`;tn.classList.toggle('on',on);tn.classList.remove('ask');tn.disabled=false;tn.setAttribute('aria-pressed',on?'true':'false');}
+  else{const n=(prog(me()||{}).tr)||0;tn.innerHTML=n?`🧑‍🏫 Trainer OFF<br><small>${n} session${n===1?'':'s'}</small>`:`🧑‍🏫 Trainer<br><small>no sessions</small>`;tn.classList.remove('on');tn.classList.toggle('nohire',!n);tn.title=n?'Switch the Trainer on (uses one session)':'Hire Trainer sessions on the team screen';}}
  const pb=q('bpPounce');pb.textContent=G.charge>=100?'🐾 POUNCE!':`🐾 ${Math.floor(G.charge)}%`;pb.disabled=G.charge<100;
  G.team.forEach((s,i)=>{const c=q('bpCd'+i),b=q('bpTc'+i);if(!c)return;const left=Math.max(0,s.ready-G.t);c.style.height=(left/s.R.cd*100)+'%';b.classList.toggle('poor',G.treats<s.R.cost);});
  while(G.fx.length){const k=G.fx.shift();try{if(k==='send')tone(440,.1,'square',.03);else if(k==='poof')tone(300,.12,'triangle',.04);else if(k==='trainerFix')topNote('🧑‍🏫 Trainer: your Pet House needs bricks! Tap 🧱 Rebuild: the math is your job.');else if(k==='downed')topNote('💫 The paw knocked the flyers to the ground! Hit them now, before they fly again.');else if(k==='pounce'){const x=G.slam?G.slam.x:50;[392,523,659,784].forEach((h,j)=>tone(h,.12,'triangle',.06,j*.06));flash('🐾 PET POUNCE!',true);
@@ -627,9 +632,9 @@ function again(){const g=G;document.querySelectorAll('.bp2-over').forEach(x=>x.r
  if(g.crown===3&&(g.win||g.asc))return pickStage(g.stage.id,3,g.win?(g.asc||0)+1:g.asc); /* after crown 3: on to the next Ascend level (or try this one again) */
  pickStage(g.stage.id,Math.min(c,(pr.c[g.stage.id]||0)+1));}
 function backTo(){stopLoop();unlock();document.querySelectorAll('#bpSnd').forEach(x=>x.remove());document.querySelectorAll('.bp2-over').forEach(x=>x.remove());G=null;VIEW={k:'stages'};screen();}
-/* ✕ Exit from a battle goes back to the team builder for the same stage and level (the Trainer must be hired again) */
+/* ✕ Exit from a battle goes back to the team builder for the same stage and level (unused Trainer sessions stay saved) */
 function leave(){const g=G;if(!g||!g.stage)return backTo();stopLoop();unlock();document.querySelectorAll('#bpSnd').forEach(x=>x.remove());document.querySelectorAll('.bp2-over').forEach(x=>x.remove());G=null;pickStage(g.stage.id,g.crown,g.asc||0);}
-function quit(){if(G&&!G.over&&G.t>3){if(!document.getElementById('bpQuit')){const ov=document.createElement('div');ov.className='bp2-over';ov.id='bpQuit';ov.innerHTML=`<div class="bp2-card"><h2>Leave this battle?</h2><p>${G.trainer?"Your pets are fine, but this battle won't count, and the Trainer's 🪙 "+TRAINER_COST+" are already spent.":"Nothing is lost, but this battle won't count."}</p><div class="row"><button class="btn green" onclick="this.closest('.bp2-over').remove()">Keep playing</button><button class="btn ghost dark" onclick="BattlePets._leave()">Leave</button></div></div>`;document.body.appendChild(ov);}return;}leave();}
+function quit(){if(G&&!G.over&&G.t>3){if(!document.getElementById('bpQuit')){const ov=document.createElement('div');ov.className='bp2-over';ov.id='bpQuit';ov.innerHTML=`<div class="bp2-card"><h2>Leave this battle?</h2><p>${G.trainer?"Your pets are fine, but this battle won't count, and the Trainer session is already used.":"Nothing is lost, but this battle won't count."}</p><div class="row"><button class="btn green" onclick="this.closest('.bp2-over').remove()">Keep playing</button><button class="btn ghost dark" onclick="BattlePets._leave()">Leave</button></div></div>`;document.body.appendChild(ov);}return;}leave();}
 
 /* ---------- the plaza building (demo access for every hero) ---------- */
 function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[BP_Y]&&W.T[BP_Y][BP_X];if(!t||t.water)return;
@@ -654,7 +659,7 @@ window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 
 (function reg(){if(typeof SCREENS!=='undefined'){SCREENS.bp=()=>screen();}else setTimeout(reg,30);})();
 window.BattlePets={on,stats,stages,openStage,stageOpen,
- _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>trySend(i),_kit:()=>{if(upgradeKitchen())draw();},_sound:soundOpen,_report:()=>{if(!G||G.over||!window.MQReport)return;G.paused=true;MQReport.open(()=>{if(G){G.paused=false;LAST=performance.now();}});},_soundDone:soundDone,_vol:setVol,_song:setSong,songId,_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S,VIEW.crown,VIEW.asc);try{SFX.tap();}catch(e){}screen();},_trainer:trainerToggle,_mega:id=>{const p=me();if(!p||!MEGA[id])return;prog(p).mega=id;save();if(VIEW.k==='team')screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))topNote('No critters to pounce on yet!');},_key:key,_again:again,_back:backTo,_leave:leave,_quit:quit,
+ _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>trySend(i),_kit:()=>{if(upgradeKitchen())draw();},_sound:soundOpen,_report:()=>{if(!G||G.over||!window.MQReport)return;G.paused=true;MQReport.open(()=>{if(G){G.paused=false;LAST=performance.now();}});},_soundDone:soundDone,_vol:setVol,_song:setSong,songId,_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S,VIEW.crown,VIEW.asc);try{SFX.tap();}catch(e){}screen();},_trainer:trainerToggle,_hire:hire,_mega:id=>{const p=me();if(!p||!MEGA[id])return;prog(p).mega=id;save();if(VIEW.k==='team')screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))topNote('No critters to pounce on yet!');},_key:key,_again:again,_back:backTo,_leave:leave,_quit:quit,
  _say:()=>{try{if(G&&G.q)speakToggle(()=>say(speakable(qText(G.q)),.9));}catch(e){}},_sync:syncTile,
  _dbg:{TRAINER_COST,TRAINER,trainer:()=>trainer(),TUNE,CROWN,TROLL,EAGLE,threats:()=>threats(),ascK,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
 })();

@@ -325,12 +325,16 @@ const tests=[
   G.houseHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp2.asc.forest===1,'losing an Ascend level took the best away');BattlePets._back();
   {const m0=window.medal;window.medal=()=>5;go('bp');T.ok([...document.querySelectorAll('.bp2-crowns button.asc')].some(b=>/Ascend 2/.test(b.textContent)&&/best 1/.test(b.textContent)),'the stage list does not offer the next Ascend level');window.medal=m0;}
   T.ok(D.ascK(5).hp>D.ascK(1).hp&&D.ascK(30).gap>=.75,'Ascend does not climb, or the waves get impossibly fast');
-  {go('bp');p.coins=30;BattlePets._pick('forest',1);T.ok(/You need/.test(document.body.innerText),'the Pet Trainer was offered without enough coins');
-   p.coins=120;BattlePets._pick('forest',1);BattlePets._trainer();T.ok(D.view().trainer,'the Pet Trainer could not be hired');BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();G=D.G();
-   T.ok(p.coins===120-D.TRAINER_COST&&G.trainer&&G.trainer.on&&/Trainer ON/.test((document.getElementById('bpTrain')||{}).textContent||''),'hiring the Pet Trainer did not charge 50 coins and switch it on from the start');
-   BattlePets._trainer();D.draw&&D.draw();T.ok(!G.trainer.on,'the Pet Trainer could not be switched off in the battle');BattlePets._trainer();T.ok(G.trainer.on,'the Pet Trainer could not be switched back on');
-   G.denHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp.m[p.bp.m.length-1][12]===1,'the play log does not say the Pet Trainer was hired');BattlePets._back();
-   BattlePets._pick('forest',1);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();T.ok(p.coins===120-D.TRAINER_COST&&!D.G().trainer,'the Pet Trainer was charged again without being hired');D.G().denHP=0;D.step(.05);D.finish();await T.wait(50);BattlePets._back();}
+  {go('bp');p.coins=30;BattlePets._pick('forest',1);BattlePets._hire();T.ok(p.coins===30&&!p.bp2.tr&&/you need/.test(document.body.innerText),'a Trainer session was hired without enough coins');
+   p.coins=120;BattlePets._pick('forest',1);BattlePets._hire();BattlePets._hire();T.ok(p.coins===120-2*D.TRAINER_COST&&p.bp2.tr===2&&/You have 2 sessions/.test(document.body.innerText),'two Trainer sessions could not be hired ahead of time');
+   BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();G=D.G();const tb=()=>(document.getElementById('bpTrain')||{}).textContent||'';
+   T.ok(!G.trainer&&p.bp2.tr===2&&/2 sessions/.test(tb()),'the Trainer was on, or a session was used, before being switched on');
+   T.ok(document.getElementById('bpTrain').previousElementSibling.id==='bpPounce'&&document.getElementById('bpTrain').nextElementSibling.id==='bpFix','the Trainer button is not between Pounce and Rebuild');
+   BattlePets._trainer();T.ok(G.trainer&&G.trainer.on&&p.bp2.tr===1&&/Trainer ON/.test(tb()),'switching the Trainer on did not use one session');
+   BattlePets._trainer();T.ok(!G.trainer.on&&/Trainer OFF/.test(tb()),'the Trainer could not be switched off');BattlePets._trainer();T.ok(G.trainer.on&&p.bp2.tr===1,'switching the Trainer off and on again used another session');
+   G.denHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp.m[p.bp.m.length-1][12]===1,'the play log does not say the Trainer was used');BattlePets._back();
+   p.bp2.tr=0;BattlePets._pick('forest',1);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();BattlePets._trainer();
+   T.ok(!D.G().trainer&&/no sessions/.test(tb()),'the Trainer switched on with no sessions');D.G().denHP=0;D.step(.05);D.finish();await T.wait(50);BattlePets._back();}
   {BattlePets._pick('forest',2);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();D.G().t=5;BattlePets._quit();T.ok(!!document.getElementById('bpQuit'),'Exit did not ask before leaving');
    BattlePets._leave();T.ok(!D.G()&&D.view().k==='team'&&D.view().id==='forest'&&D.view().crown===2&&!document.querySelector('.bp2-over')&&document.querySelectorAll('.bp2-slot').length>0,'leaving a battle did not go back to the team builder for that stage');BattlePets._back();}
  }],
