@@ -307,7 +307,10 @@ const tests=[
     q.pets=keep;q.petData=JSON.parse(pd);}}
   {const fl=document.getElementById('bpField');D._spawn('basic');const ff=G.foes[G.foes.length-1];ff.fly=true;ff.x=55;ff.hp=ff.max=9999;const u={x:60,R:{id:'archer',fly:true},rng:11,side:'p',el:document.createElement('div')};fl.appendChild(u.el);
    const n0=fl.querySelectorAll('.bp2-arrow').length;D.arrow(u);T.ok(u.el.classList.contains('jumpshot'),'an archer on the ground did not jump to shoot a flyer');await T.wait(320);
-   const ar=[...fl.querySelectorAll('.bp2-arrow')].slice(n0);T.ok(ar.length===1&&Math.abs(parseFloat(ar[0].style.bottom)-fl.clientHeight*.48)<2,'the arrow did not start up in the air where the archer jumped');u.el.remove();ff.gone=true;}
+   const ar=[...fl.querySelectorAll('.bp2-arrow')].slice(n0);T.ok(ar.length===1&&Math.abs(parseFloat(ar[0].style.bottom)-fl.clientHeight*.48)<2,'the arrow did not start up in the air where the archer jumped');
+   D._spawn('basic');const gf=G.foes[G.foes.length-1];gf.hp=gf.max=9999;await T.wait(120);const ge=gf.el,fe=ff.el;
+   if(ge&&fe){ge.classList.add('jumpshot');await T.wait(330);const dd=Math.abs(ge.querySelector('.e').getBoundingClientRect().bottom-fe.getBoundingClientRect().bottom);ge.classList.remove('jumpshot');T.ok(dd<20,'a jump does not reach the flyers\' height ('+Math.round(dd)+'px off)');}else T.ok(false,'no critters drawn for the jump check');
+   gf.gone=true;u.el.remove();ff.gone=true;}
   {G.foes.forEach(f=>{f.gone=true;});G.trainer={on:true,next:0};G.treats=99;G.team.forEach(t=>t.ready=0);const s0=G.sent,k0=G.kl;for(let i=0;i<8;i++){G.treats=99;G.trainer.next=0;D.trainer();}
    T.ok(G.sent>s0&&G.kl>k0,'the Pet Trainer did not upgrade the kitchen and send pets');
    D._spawn('basic');const tf=G.foes[G.foes.length-1];tf.x=70;tf.hp=tf.max=9999;G.charge=100;G.trainer.next=0;D.trainer();T.ok(!!G.slam,'the Pet Trainer did not pounce at a close critter');for(let i=0;i<30&&G.slam;i++)D.step(.05);

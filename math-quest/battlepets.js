@@ -351,11 +351,12 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-pt.poof{width:40px;height:40px;border-radius:50%;background:rgba(200,200,210,.85);box-shadow:14px -6px 0 -4px rgba(200,200,210,.8),-14px -4px 0 -6px rgba(200,200,210,.8);animation:bp2poof .7s ease-out forwards}
 .bp2-pt.star{font-size:24px;bottom:40px;animation:bp2pop .4s ease-out forwards}
 .bp2-pt.hit{width:34px;height:34px;margin-left:-2px;bottom:40px;background:radial-gradient(circle,#fff 0 18%,#ffe066 34%,#ff922b 52%,transparent 62%);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation:bp2pop .32s ease-out forwards;z-index:4}
-/* shooters on the ground jump up to flying critters to shoot, and jumpers leap up to hit them (--jh: the flyers' height, set by draw) */
+/* shooters on the ground jump up to flying critters to shoot, and jumpers leap up to hit them (--jh: the flyers' height, set by draw;
+   divided by --k, the full-screen size-up of every fighter, or the jump would be scaled up with it and overshoot) */
 .bp2-ent.jumpshot .e{animation:bp2jshot .62s ease-out!important}
-@keyframes bp2jshot{0%{translate:0 0;scale:1}15%{translate:0 4px;scale:1.12 .85}40%,62%{translate:0 var(--jh,-120px);scale:1}100%{translate:0 0;scale:1}}
+@keyframes bp2jshot{0%{translate:0 0;scale:1}15%{translate:0 4px;scale:1.12 .85}40%,62%{translate:0 calc(var(--jh,-120px)/var(--k,1));scale:1}100%{translate:0 0;scale:1}}
 .bp2-ent.fight.upfight .e{animation-name:bp2jumpatk!important;animation-duration:.9s!important}
-@keyframes bp2jumpatk{0%,100%{translate:0 0;scale:1}18%{translate:0 4px;scale:1.12 .85}48%{translate:calc(var(--dir)*6px) var(--jh,-120px);scale:.95 1.08}60%{translate:calc(var(--dir)*14px) var(--jh,-120px);scale:1.2 .88}78%{translate:0 calc(var(--jh,-120px)*.4);scale:1}}
+@keyframes bp2jumpatk{0%,100%{translate:0 0;scale:1}18%{translate:0 4px;scale:1.12 .85}48%{translate:calc(var(--dir)*6px) calc(var(--jh,-120px)/var(--k,1));scale:.95 1.08}60%{translate:calc(var(--dir)*14px) calc(var(--jh,-120px)/var(--k,1));scale:1.2 .88}78%{translate:0 calc(var(--jh,-120px)*.4/var(--k,1));scale:1}}
 .bp2-pt.ring{width:40px;height:14px;border-radius:50%;border:4px solid rgba(120,90,50,.7);bottom:18px;animation:bp2ring .55s ease-out forwards}
 @keyframes bp2dust{0%{opacity:.85;scale:.4;translate:0 0}100%{opacity:0;scale:1.9;translate:var(--dx,0px) -16px}}
 @keyframes bp2poof{0%{opacity:1;scale:.3}100%{opacity:0;scale:1.6;translate:0 -20px}}
