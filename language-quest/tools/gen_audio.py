@@ -13,6 +13,8 @@ Run with /usr/bin/python3: the python.org Python has no root certificates instal
   /usr/bin/python3 gen_audio.py --only "زَرَافَة"   re-record and upload just that phrase
 
 Words the main voice says wrongly are recorded with the voice picked by ear in VOICE_FIX.
+A voice can say a word slightly differently each time, so the approved sample file itself is uploaded
+over the clip, and --all never re-records those words.
 """
 import base64, json, os, re, subprocess, sys, tempfile, urllib.error, urllib.request
 
@@ -65,7 +67,8 @@ def main():
     only = sys.argv[sys.argv.index("--only") + 1] if "--only" in sys.argv else None
     if only and not any(w["t"] == only for w in words):
         sys.exit("not in words.json: " + only)
-    todo = [w for w in words if w["t"] == only] if only else words if everything else [w for w in words if not exists(w["k"])]
+    # --all leaves hand-picked clips alone: the same voice can come out differently each time
+    todo = [w for w in words if w["t"] == only] if only else [w for w in words if w["t"] not in VOICE_FIX or not exists(w["k"])] if everything else [w for w in words if not exists(w["k"])]
     print("%d phrases, %d to record" % (len(words), len(todo)))
     for w in todo:
         print("  ", w["k"], w["t"])
