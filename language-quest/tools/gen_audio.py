@@ -29,6 +29,7 @@ VOICE_FIX = {
     "زَرَافَة": ("ar-XA-Wavenet-B", 0.8),    # giraffe: Puck stressed the wrong syllable (Oct 3)
     "دَلْو": ("ar-XA-Chirp3-HD-Kore", 0.85),  # bucket: picked by ear (Oct 3)
     "تَاج": ("ar-XA-Wavenet-B", 0.8),        # crown: picked by ear (Oct 3)
+    "وِشَاح": ("ar-XA-Chirp3-HD-Charon", 0.85),  # scarf: picked by ear (Oct 3)
 }
 # clips fixed by hand (uploaded directly), which --all must leave alone
 HAND_FIXED = {
