@@ -15,7 +15,7 @@ Everything below is already in the game. The Arabic was written without a native
 
 ### Names and words that need your choice
 
-1. **The grandparent characters** are now الجَدَّة (the grandmother) and المُخْتَار (the Mukhtar, who gives daily quests). Are these right for your students?
+1. **The grandparent characters** are now الجَدَّة (Grandmother) and الجَدّ (Grandpa, who gives daily quests; renamed from the Mukhtar on Oct 3). Are these right for your students?
 2. **Hamzat al-wasl.** Some words are written with a kasra on the first alif (اِثْنَان، الاِتِّحَاد). Standard spelling leaves it bare. Which do you prefer for teaching? It will be made the same everywhere.
 3. **Alif examples.** The Alphabet School uses the sound أَ and the word أَسَد for alif, which really show hamza on alif. Would you prefer a word where alif is plainly a long "aa" (for example عَصَا at the end)? Also, ك is listed as a look-alike for ا; should it be removed?
 4. **Tanween.** All three kinds are labelled تَنْوِين. Name them separately (تَنْوِينُ الفَتْح، الكَسْر، الضَّمّ)?

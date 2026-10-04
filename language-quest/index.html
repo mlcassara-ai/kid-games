@@ -128,8 +128,8 @@ select.pill{border:0; font:inherit; font-size:.85rem; font-weight:700; max-width
   <div class="row"><button class="btn go" id="cEnter">Enter (coming soon)</button><button class="btn ghost" id="cClose">Close</button></div>
 </div>
 
-<script>window.LQ_VER="2026.10.03i";</script>
-<script src="lq-core.js?v=2026.10.03i"></script>
+<script>window.LQ_VER="2026.10.03j";</script>
+<script src="lq-core.js?v=2026.10.03j"></script>
 <script>document.write('<script src="music.js?v='+encodeURIComponent(window.LQ_VER)+'"><\/script>');</script>
 <script>
 /* ============ world setup ============ */
@@ -747,7 +747,7 @@ SPRITE.lamp=p=>{ const {x,y}=p; shadow(x,y,14); rr(x-3,y-78,6,78,3); ink("#4A4E5
 SPRITE.sign=p=>{ const {x,y}=p; ctx.fillStyle="#6B4A2B"; ctx.fillRect(x-4,y-44,8,44); rr(x-66,y-86,132,46,10); ink("#F7E2B5");
   ctx.fillStyle="#12233D"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.font='800 14px "Baloo Bhaijaan 2",system-ui,sans-serif'; ctx.fillText("Town Square",x,y-68);
   ctx.direction="rtl"; ctx.font='500 18px "Baloo Bhaijaan 2","Geeza Pro",sans-serif'; ctx.fillStyle="#1E5AA8"; ctx.fillText("سَاحَةُ البَلْدَة",x,y-48); ctx.direction="ltr"; };
-/* The Mukhtar (المُخْتَار), the village head who gives quests: white keffiyeh with a black band, grey moustache, striped robe, vest and a walking stick.
+/* Grandpa (الجَدّ), who gives quests: white keffiyeh with a black band, grey moustache, striped robe, vest and a walking stick.
    Draws on any 2D context with his feet at (0,0), about 112 units tall. */
 function jiddoArt(c,t){
   const O="rgba(46,36,26,.7)", inked=f=>{ c.fillStyle=f; c.fill(); c.strokeStyle=O; c.lineWidth=2; c.lineJoin="round"; c.lineCap="round"; c.stroke(); };
@@ -771,10 +771,10 @@ function jiddoArt(c,t){
   for(const k of [-1,1]){ c.beginPath(); c.ellipse(k*5,-78.5,6.2,2.8,k*0.25,0,7); inked("#D8D8DE"); }                                          // moustache
 }
 const JIDDO_IMG=(()=>{ try{ const c=document.createElement("canvas"); c.width=220; c.height=280; const g=c.getContext("2d"); g.translate(116,266); g.scale(2.25,2.25); jiddoArt(g,0); return c.toDataURL(); }catch(e){ return ""; } })();
-const jiddoPic=JIDDO_IMG?`<img src="${JIDDO_IMG}" alt="The Mukhtar" style="height:128px;display:block;margin:0 auto">`:`<div class="big">👴</div>`;
+const jiddoPic=JIDDO_IMG?`<img src="${JIDDO_IMG}" alt="Grandpa" style="height:128px;display:block;margin:0 auto">`:`<div class="big">👴</div>`;
 function drawJiddo(time){
   shadow(JIDDO.x,JIDDO.y,30); ctx.save(); ctx.translate(JIDDO.x,JIDDO.y); ctx.scale(1.05,1.05); jiddoArt(ctx,time); ctx.restore();
-  nameTag(JIDDO.x,JIDDO.y,"The Mukhtar","المُخْتَار");
+  nameTag(JIDDO.x,JIDDO.y,"Grandpa","الجَدّ");
   const st=questState(); if(st==="new"||st==="ready"){ const b=Math.abs(Math.sin(time*3))*6; ctx.fillStyle=st==="ready"?"#2FA894":"#F2B134"; ctx.beginPath(); ctx.arc(JIDDO.x+38,JIDDO.y-128-b,17,0,7); ctx.fill();
     ctx.fillStyle=st==="ready"?"#fff":"#12233D"; ctx.font='800 24px system-ui,sans-serif'; ctx.textBaseline="middle"; ctx.fillText(st==="ready"?"✓":"!",JIDDO.x+38,JIDDO.y-127-b); }
 }
@@ -880,7 +880,7 @@ const dayNow=()=>{ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+
 // "new" = Jiddo has a quest to give, "ready" = the quest is done and the reward is waiting, "busy" = in progress, "rest" = done for today
 function questState(){ const p=LQ.player(); if(!p) return ""; const q=p.quest, d=q&&QUESTS.find(x=>x.id===q.id);
   if(!q||!d||(q.paid&&q.day!==dayNow())) return "new"; if(q.paid) return "rest"; return questCount(p,d.m)-q.base>=d.need?"ready":"busy"; }
-function jiddoTalk(){ LQ.mark("The Mukhtar"); closeCard(); const p=LQ.player(); if(!p) return;
+function jiddoTalk(){ LQ.mark("Grandpa"); closeCard(); const p=LQ.player(); if(!p) return;
   if(questState()==="new"){ const prev=p.quest&&p.quest.id, pool=QUESTS.filter(d=>d.id!==prev&&questCount(p,d.m)+d.need<=d.max);
     // a brand-new player's first quest is always the Alphabet School, the place to start
     const d=(!p.quest&&questCount(p,"abc")+7<=28)?QUESTS.find(x=>x.id==="abc"):pool[Math.random()*pool.length|0]||QUESTS[QUESTS.length-1];
@@ -889,11 +889,11 @@ function jiddoTalk(){ LQ.mark("The Mukhtar"); closeCard(); const p=LQ.player(); 
   const word=`<div class="arw" lang="ar">${d.kw}</div><p style="margin:0;color:var(--muted)">${d.kwEn}</p>`;
   if(st==="ready"){ LQ.update(x=>{ x.quest.paid=true; x.quest.day=dayNow(); x.coins=(x.coins||0)+d.coins; }); hud(); say("مُمْتَاز");
     openFm(`${jiddoPic}<h2 style="margin:4px 0">Well done!</h2>${word}<p>You finished my quest. Here are <b>${d.coins} 🪙</b> for you!</p><p style="color:var(--muted)">Come back tomorrow for a new quest.</p>
-      <div class="row"><button class="btn go" id="jOk">Thank you, Mukhtar!</button></div>`); }
+      <div class="row"><button class="btn go" id="jOk">Thank you, Grandpa!</button></div>`); }
   else if(st==="rest"){ say("أَهْلًا وَسَهْلًا");
-    openFm(`${jiddoPic}<h2 style="margin:4px 0">Welcome back! You did today's quest.</h2><p>Rest, play, and come back tomorrow. I will have a new quest for you.</p><div class="row"><button class="btn go" id="jOk">OK, Mukhtar!</button></div>`); }
+    openFm(`${jiddoPic}<h2 style="margin:4px 0">Welcome back! You did today's quest.</h2><p>Rest, play, and come back tomorrow. I will have a new quest for you.</p><div class="row"><button class="btn go" id="jOk">OK, Grandpa!</button></div>`); }
   else { say(d.kw);
-    openFm(`${jiddoPic}<h2 style="margin:4px 0">Welcome! I am the Mukhtar, <span lang="ar">المُخْتَار</span>. I have a quest for you.</h2>${word}<p style="font-size:1.15rem"><b>${d.en}</b></p>
+    openFm(`${jiddoPic}<h2 style="margin:4px 0">Welcome! I am Grandpa, <span lang="ar">الجَدّ</span>. I have a quest for you.</h2>${word}<p style="font-size:1.15rem"><b>${d.en}</b></p>
       <p style="margin:0">Done so far: <b>${got} of ${d.need}</b> · Reward: <b>${d.coins} 🪙</b></p>
       <div class="row"><button class="btn ghost" id="jHear">🔊 Hear the word</button><button class="btn go" id="jOk">I'll do it!</button></div>`);
     document.getElementById("jHear").onclick=()=>say(d.kw); }
@@ -1127,7 +1127,7 @@ document.getElementById("whoBtn").onclick=()=>{ closeCard(); LQ.leave(); LQ.prof
   hud(); LQ.mark(l?"Map: back from "+l.en:"Map");
 })();
 // what the ❓ button reads on the map
-window.LQ_HELP=()=>"Tap anywhere to walk. Tap the animals and things you see to hear their names in Arabic. New here? Start at the Alphabet School, the house with the star. In the town square, the grandmother and the Mukhtar have things for you to do. Walk onto a green circle to go into a place.";
+window.LQ_HELP=()=>"Tap anywhere to walk. Tap the animals and things you see to hear their names in Arabic. New here? Start at the Alphabet School, the house with the star. In the town square, Grandmother and Grandpa have things for you to do. Walk onto a green circle to go into a place.";
 /* sound: the voice and the map music each have their own volume, set from the menu the 🔊 button opens.
    The music starts with the first tap (browsers need one) and drops under the spoken Arabic. */
 const soundBtn=document.getElementById("soundBtn");
