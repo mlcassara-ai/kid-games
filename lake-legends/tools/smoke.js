@@ -390,8 +390,8 @@ const BOT = n => {
     showdownOffer(lakeById("jennings")); out.locked = $("modalBox").textContent.includes("Local Derby first"); reset();
     startShowdown(D); const sd = visit.sd;
     out.started = !!sd && S.coins === 75 && sd.rivals.length === 2 && trip.mode === "dock" && sd.rivals.every(r => r.def.name);
-    for (let i = 0; i < 30 * 70; i++){ if (trip.phase !== "ready"){ trip.phase = "ready"; } updateFishing(1/30); }
-    out.rivalsFish = sd.rivals.some(r => r.fish.length > 0) && sd.left < SD_SECS - 60;
+    for (let i = 0; i < 30 * 150; i++){ if (trip.phase !== "ready"){ trip.phase = "ready"; } updateFishing(1/30); }
+    out.rivalsFish = sd.rivals.some(r => r.fish.length > 0) && sd.left < SD_SECS - 60 && sd.left > 0;
     sd.mine.push({ id:"largemouth", lb: 99 }); sd.left = .01; updateFishing(1/30);
     out.finished = !visit.sd && $("modalBox").textContent.includes("YOU WON") && S.sd.wins.local === 1 && S.sd.cups.length === 1 && S.coins === 75 + 75;
     out.county = sdOpen(SD_TIERS[1]) && $("modalBox").textContent.includes("County Cup");
@@ -492,7 +492,7 @@ const BOT = n => {
     const out = {}, bakMoves = S.moves, bakBoat = S.boatOwn; S.boatOwn = 2; S.wild = Object.assign({}, S.wild, { nextBig: 1e9, nextSee: 1e9 });
     const hook = (id, kind) => { trip = null; visit = null; startVisit(lakeById("dixon"), "boat"); visit.ev = { clock: 0, next: 1e9 };
       const f = makeFish(id, 30 * PPF); f.variant = null; f.sp = SPECIES[id]; f.inches = SPECIES[id].max * .6; f.jumped = true; f.trophy = false; f.frac = .5; f.L = fishPx(f.sp, f.inches);
-      trip.fish.push(f); trip.phase = "reel"; trip.hook.y = 30 * PPF; trip.hook.x = W / 2 + 80; hookFish(f);
+      trip.snags = []; trip.fish.push(f); trip.phase = "reel"; trip.hook.y = 30 * PPF; trip.hook.x = W / 2 + 80; hookFish(f);
       trip.moveF = f; trip.moveCD = 99; if (kind) trip.move = { kind, t: 0, stage: 0, toward: true, ok: true }; return f; };
     S.moves = { shake: 20 };                                           // an experienced angler: no beginner help
     let f = hook("largemouth", "shake");
@@ -535,6 +535,48 @@ const BOT = n => {
   ok(r11.spots && r11.spotBtn && r11.menu, "spots appear from the boat with a 🧭 Spots button");
   ok(r11.atSpot && r11.coolOff, "motoring to a spot gives 4 casts there, then it cools off");
 
+  console.log("Bug fixes from the full review");
+  const r12 = await a.evaluate(async () => {
+    const out = {}, bak = JSON.stringify(S), D = lakeById("dixon");
+    // the game keeps running after an error in a frame
+    const orig = window.renderScene; let thrown = 0; window.renderScene = function(){ if (!thrown++) throw new Error("test boom"); return orig.apply(this, arguments); };
+    const f0 = performance.now(); await new Promise(r => setTimeout(r, 400)); window.renderScene = orig;
+    let frames = 0; const cnt = () => { frames++; if (frames < 5) requestAnimationFrame(cnt); }; requestAnimationFrame(cnt); await new Promise(r => setTimeout(r, 400));
+    out.loop = thrown >= 1 && frames >= 5;
+    // a rented boat is paid once per visit
+    S.boatOwn = 0; S.coins = 100; trip = null; visit = null; startVisit(D, "boat"); const c1 = S.coins;
+    toggleBoat(); toggleBoat(); out.rentOnce = S.coins === c1 && visit.mode === "boat" && c1 === 100 - D.boat;
+    // going back to the dock while motoring to a spot doesn't lock casting
+    S.boatOwn = 2; trip = null; visit = null; startVisit(D, "boat"); visit.spots = [newSpot(D, [])]; goSpot(visit.spots[0]); toggleBoat();
+    trip.phase = "ready"; reelPress(); reelRelease(); out.motorUnlock = trip.phase === "cast" && !(visit.motorT > 0);
+    // leaving after a fish ate your worm doesn't give the worm back
+    trip = null; visit = null; S.baits = S.baits.concat("worm"); S.baitCount.worm = 5; S.bait = "worm"; startVisit(D, "dock"); const w0 = S.baitCount.worm; trip.baitLost = true; leaveLake();
+    out.noBaitRefund = S.baitCount.worm === w0;
+    // hooking a fish that's already gone never deletes a different fish
+    trip = null; visit = null; startVisit(D, "dock"); const n0 = trip.fish.length, ghost = makeFish("bluegill", 60); trip.phase = "drop"; hookFish(ghost); out.hookSafe = trip.fish.length === n0;
+    // Pearl's mystery gift never hands out a prize-only item
+    S.owned = []; S.prizes = {}; let bad = 0; for (let i = 0; i < 200; i++){ const before = S.owned.length; mysteryGift(); const g = S.owned[before]; if (g){ const [k, key] = g.split(":"); const T = ({ hat:HATS, rod:RODS, paint:PAINTS })[k]; if (T[key].prize || T[key].champ) bad++; } }
+    out.gift = bad === 0;
+    // rivals stop catching when time's up
+    trip = null; visit = null; S.coins = 500; S.sd = { wins:{}, played:0, cups:[] }; startShowdown(D); const sd = visit.sd;
+    trip.phase = "fight"; trip.fight = { f: makeFish("channel", 200), tension: 0, prog: 0, surge: 0, nextSurge: 99, stage: 1, stages: 1, shake: 0, nextRun: 99 }; sd.left = 0; sd.rivals.forEach(r => r.next = 0);
+    const before = sd.rivals.map(r => r.fish.length).join(); for (let i = 0; i < 30; i++){ sdUpdate(trip, 1/30); } out.overtime = sd.rivals.map(r => r.fish.length).join() === before;
+    trip = null; visit = null;
+    // a boss you can't afford waits: the basket stays full
+    S.coins = 0; S.bosses = {}; S.day = { lake: "dixon", kept: [{ id: "bluegill" }, { id: "bluegill" }] }; bossOffer(D, () => {}); $("modalBox").querySelector("button:last-child").click();
+    out.bossWaits = S.day.kept.length === 2;
+    $("modal").classList.remove("show"); modalQueue = []; prizeQueue = [];
+    Object.keys(S).forEach(k => delete S[k]); Object.assign(S, JSON.parse(bak)); showScreen("title");
+    return out; });
+  ok(r12.loop, "one error in a frame doesn't freeze the game");
+  ok(r12.rentOnce, "a rented boat is paid for once per visit");
+  ok(r12.motorUnlock, "going back to the dock while motoring to a spot doesn't block casting");
+  ok(r12.noBaitRefund, "leaving the lake doesn't give back bait a fish already ate");
+  ok(r12.hookSafe, "hooking never removes a different fish");
+  ok(r12.gift, "Pearl's mystery gift never gives a prize-only item");
+  ok(r12.overtime, "Showdown rivals stop catching when time's up");
+  ok(r12.bossWaits, "a boss you can't afford yet waits, and the basket stays full");
+
   console.log("Prizes");
   // device a (Ben signed in): a parent sets a prize for Ana; device b (Ana signed in) must get it, and earn it
   await a.evaluate(() => { trip = null; visit = null; showScreen("title"); LL.parentCorner(); });
@@ -556,7 +598,8 @@ const BOT = n => {
   ok(await b.isVisible("#cert .certpage") && (await b.textContent("#cert")).includes("Ana"), "a catch certificate is ready to print");
   await b.click("#certClose");
 
-  ok(!errs.length, "no page errors" + (errs.length ? ": " + errs.slice(0, 3).join(" | ") : ""));
+  const realErrs = errs.filter(e => !/test boom/.test(e));             // the frame-error test throws one on purpose
+  ok(!realErrs.length, "no page errors" + (realErrs.length ? ": " + realErrs.slice(0, 3).join(" | ") : ""));
   await browser.close(); server.close();
   console.log("\n" + checks + " checks, " + fails.length + " failed");
   console.log(fails.length ? "RESULT: FAIL" : "RESULT: PASS");

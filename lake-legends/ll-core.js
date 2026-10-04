@@ -90,7 +90,7 @@ function merge(remote,keepId){
   const del=Object.assign({},remote.deleted||{},state.deleted||{}); const map=new Map(), order=[];
   (remote.players||[]).forEach(p=>{ map.set(p.id,p); order.push(p.id); });
   state.players.forEach(p=>{ const r=map.get(p.id); if(!r){ map.set(p.id,p); order.push(p.id); return; }
-    const win=(p.id===keepId||(p.upd||0)>(r.upd||0))?p:r, lose=win===p?r:p; mergePrizes(win,lose); map.set(p.id,win); });
+    const pu=p.upd||0, ru=r.upd||0, win=(pu>ru||(pu===ru&&p.id===keepId))?p:r, lose=win===p?r:p;   /* the newer copy wins, even for this device's player (a stale tab must not overwrite play on another device) */ mergePrizes(win,lose); map.set(p.id,win); });
   const sig=()=>JSON.stringify(state.players,(k,v)=>k==="upd"?undefined:v); const before=sig();
   state.players=order.map(id=>map.get(id)).filter(p=>!(del[p.id]&&del[p.id]>=(p.upd||0))); state.deleted=del;
   if(remote.pin&&(!state.pin||(remote.pinUpd||0)>(state.pinUpd||0))){ state.pin=remote.pin; state.pinUpd=remote.pinUpd||0; }
@@ -242,8 +242,8 @@ function chooseLock(p,isNew,done){ let pick=[]; const after=()=>done?done():isNe
 }
 
 /* ---------------- parent PIN + Parent Corner ---------------- */
-function askPin(next){ onProfiles=false;
-  if(!state.pin){ let first=null;
+function askPin(next,change){ onProfiles=false;
+  if(!state.pin||change){ let first=null;
     const setP=(msg)=>{ overlay(`<div class="ll-card" style="max-width:380px;margin:40px auto;text-align:center"><h2>${first?"Type it again":"Create a parent PIN"}</h2>
       <p class="ll-small">${msg||"4 digits. Grown-ups use it to open the Parent Corner."}</p>
       <input id="llPin" inputmode="numeric" maxlength="4" style="text-align:center;letter-spacing:.5rem" autocomplete="off">
@@ -252,7 +252,7 @@ function askPin(next){ onProfiles=false;
       const go=()=>{ const v=i.value.trim(); if(!/^\d{4}$/.test(v)) return setP("Please use exactly 4 digits.");
         if(!first){ first=v; return setP(); } if(v!==first){ first=null; return setP("Those didn't match. Let's try again."); }
         state.pin=v; state.pinUpd=Date.now(); saveLocal(); scheduleSync(); next(); };
-      document.getElementById("llO").onclick=go; i.onkeydown=e=>{ if(e.key==="Enter") go(); }; document.getElementById("llC").onclick=()=>profiles(); };
+      document.getElementById("llO").onclick=go; i.onkeydown=e=>{ if(e.key==="Enter") go(); }; document.getElementById("llC").onclick=()=>change?parentCorner():profiles(); };
     return setP(); }
   overlay(`<div class="ll-card" style="max-width:380px;margin:40px auto;text-align:center"><h2>Parent PIN</h2>
     <input id="llPin" inputmode="numeric" maxlength="4" type="password" style="text-align:center;letter-spacing:.5rem" autocomplete="off">
@@ -320,7 +320,7 @@ function parentCorner(){ onProfiles=false;
     <div class="ll-card"><h2 style="text-align:left;margin-top:0">Parent PIN</h2><div class="ll-row" style="justify-content:flex-start"><button class="ll-btn gh" id="llChPin">Change PIN</button></div></div>
     <div class="ll-row"><button class="ll-btn" id="llDone">◀ Back to players</button></div>`);
   document.getElementById("llDone").onclick=()=>profiles();
-  document.getElementById("llChPin").onclick=()=>{ state.pin=null; askPin(parentCorner); };
+  document.getElementById("llChPin").onclick=()=>askPin(parentCorner,true);     /* the old PIN stays until the new one is confirmed */
   document.getElementById("llAddKid").onclick=()=>createPlayer();
   wireKidButtons();
   const on=document.getElementById("llOn"); if(on) on.onclick=async()=>{ cloud.code=genCode(); try{ localStorage.setItem(FAM_KEY,cloud.code); }catch(e){} cloud.status=""; parentCorner(); await syncNow(); parentCorner(); };

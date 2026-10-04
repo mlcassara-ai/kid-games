@@ -309,8 +309,8 @@
   <button class="btn blue small bug" id="btnBug" aria-label="Report a problem or a suggestion">🐞 Report</button>
 </div>
 
-<script>window.LL_VER="2026.10.04c";</script>
-<script src="ll-core.js?v=2026.10.04c"></script>
+<script>window.LL_VER="2026.10.04d";</script>
+<script src="ll-core.js?v=2026.10.04d"></script>
 <script>
 "use strict";
 // =====================================================================
@@ -557,7 +557,7 @@ function lakeInfoHtml(L){
 function rulesHtml(L){
   const lines = [];
   const seen = new Set();
-  L.fish.filter(id => !SPECIES[id].legend).forEach(id => {
+  [...new Set(L.fish.concat(L.rare || [], L.boatFish || []))].filter(id => !SPECIES[id].legend).forEach(id => {
     const r = ruleFor(L.id, id), nm = SPECIES[id].name;
     let t;
     if (r.release) t = "catch-and-release only";
@@ -590,6 +590,7 @@ function holderLand(T){
   if (f.tagged) f.tagged = false;
   const sp = f.sp, prev = S.dex[f.id], isNew = !prev, coins = Math.max(1, Math.round(sp.val * .6 * (.6 + f.frac * .9)));
   S.dex[f.id] = Object.assign({}, prev, { n: (prev ? prev.n : 0) + 1, best: Math.max(prev ? prev.best : 0, f.inches) });
+  if (f.variant){ S.dex[f.id].v = Object.assign({}, S.dex[f.id].v, { [f.variant]: 1 }); }
   S.lakeDex = S.lakeDex || {}; (S.lakeDex[T.lake.id] = S.lakeDex[T.lake.id] || {})[f.id] = 1;
   S.landed = (S.landed || 0) + 1; S.coins += coins; save(); showCoins(); SFX.land();
   splashAt(T, holderPos(T).wx, 0, 10);
@@ -862,9 +863,10 @@ function jobProgress(f, kept, lakeId, bait){
 }
 function mysteryGift(){
   const opts = [];
-  for (const k in HATS) if (!HATS[k].champ && !owns("hat", k)) opts.push(["hat", k, HATS[k].name]);
-  for (const k in RODS) if (!owns("rod", k)) opts.push(["rod", k, RODS[k].name]);
-  for (const k in PAINTS) if (!owns("paint", k)) opts.push(["paint", k, PAINTS[k].name + " boat paint"]);
+  const giftable = it => !it.champ && !it.prize;            // prize-ladder items can only be earned
+  for (const k in HATS) if (giftable(HATS[k]) && !owns("hat", k)) opts.push(["hat", k, HATS[k].name]);
+  for (const k in RODS) if (giftable(RODS[k]) && !owns("rod", k)) opts.push(["rod", k, RODS[k].name]);
+  for (const k in PAINTS) if (giftable(PAINTS[k]) && !owns("paint", k)) opts.push(["paint", k, PAINTS[k].name + " boat paint"]);
   if (!opts.length){ S.coins += 60; return "60 🪙"; }
   const g = opts[Math.floor(Math.random() * opts.length)]; S.owned = (S.owned || []).concat(g[0] + ":" + g[1]); return g[2];
 }
@@ -913,11 +915,12 @@ try { Object.assign(AV, JSON.parse(localStorage.getItem(AUDIO_KEY) || "{}")); } 
 function saveAV(){ try { localStorage.setItem(AUDIO_KEY, JSON.stringify(AV)); } catch(e) {} applyAV(); }
 try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch(e) {}   // iPad/iPhone: play even when the silent switch is on
 let AC = null, NOISE = null, BUS = null;
+document.addEventListener("visibilitychange", () => { if (!AC) return; try { const r = document.hidden ? AC.suspend() : AC.resume(); if (r && r.catch) r.catch(() => {}); } catch(e) {} });
 function audioCtx(){
   if (!S.sound) return null;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-    if (AC.state === "suspended") AC.resume();
+    if (AC.state !== "running" && AC.state !== "closed" && !document.hidden){ const r = AC.resume(); if (r && r.catch) r.catch(() => {}); }
     if (!NOISE){ NOISE = AC.createBuffer(1, Math.floor(AC.sampleRate*2), AC.sampleRate); const d = NOISE.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1; }
     if (!BUS){ BUS = {}; for (const k of ["sfx", "music", "amb"]){ BUS[k] = AC.createGain(); BUS[k].connect(AC.destination); } applyAV(); }
     return AC;
@@ -932,7 +935,7 @@ function tick(freq, vol, when=0, dur=.014){
     const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(), t = ac.currentTime + when;
     src.buffer = NOISE; f.type = "bandpass"; f.frequency.value = freq; f.Q.value = 5;
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t+dur);
-    src.connect(f); f.connect(g); g.connect(BUS.sfx); src.start(t, Math.random()*1.8); src.stop(t+dur+.01);
+    src.connect(f); f.connect(g); g.connect(BUS.sfx); src.start(t, Math.random() * Math.max(0, 1.95 - dur)); src.stop(t+dur+.01);
   } catch(e){}
 }
 // continuous reel sound: `rate` ticks per second
@@ -1475,6 +1478,7 @@ function layout(){
   const dpr = Math.min(2, window.devicePixelRatio||1);
   cv.width = Math.round(W*s*dpr); cv.height = Math.round(H*s*dpr);
   ctx.setTransform(cv.width/W,0,0,cv.height/H,0,0);
+  try { if (trip && trip.hook){ trip.hook.x = clamp(trip.hook.x, 12, W - 12); if (trip.bobX != null) trip.bobX = clamp(trip.bobX, 12, W - 12); if (trip.castX != null) trip.castX = clamp(trip.castX, 12, W - 12); } } catch (e) {}   // a rotated iPad keeps the hook on screen (trip isn't set up yet on the very first layout)
 }
 window.addEventListener("resize", layout); layout();
 
@@ -1486,11 +1490,16 @@ let pointerX = null, pointerDown = false;
 const typing = e => { const t = e.target; return !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable); };   // typing in a box: the keys are for the box, not the reel
 window.addEventListener("keydown", e => {
   if (typing(e)) return;
+  if ($("modal").classList.contains("show") && !keys[e.code]) return;   // a popup is open: the keys don't fish behind it
   keys[e.code] = true;
-  if (["Space","ArrowDown","ArrowUp","ArrowLeft","ArrowRight"].includes(e.code)) e.preventDefault();
+  if (state === "fishing" && ["Space","ArrowDown","ArrowUp","ArrowLeft","ArrowRight"].includes(e.code)) e.preventDefault();
   if (!e.repeat && (e.code==="Space" || e.code==="ArrowUp")) reelPress();
 });
 window.addEventListener("keyup", e => { if (typing(e)) return; keys[e.code] = false; if (e.code==="Space" || e.code==="ArrowUp") reelRelease(); });
+// leaving the window (Cmd-Tab, another app, the screen locks) lets go of everything, so a held key can't snap the line
+function releaseAll(){ for (const k in keys) keys[k] = false; reelPointers.clear(); if (btnHeld) reelRelease(); }
+window.addEventListener("blur", releaseAll);
+document.addEventListener("visibilitychange", () => { if (document.hidden) releaseAll(); });
 function toGameX(e){ const r = cv.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
 cv.addEventListener("pointermove", e => { pointerX = toGameX(e); });
 cv.addEventListener("pointerdown", e => { pointerDown = true; pointerX = toGameX(e); try{ cv.setPointerCapture(e.pointerId); }catch(_){} });
@@ -1500,8 +1509,9 @@ cv.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") pointe
 let btnHeld = false;
 const holding = () => btnHeld;
 const reelBtn = document.getElementById("reelBtn");
-reelBtn.addEventListener("pointerdown", e => { e.preventDefault(); try{ reelBtn.setPointerCapture(e.pointerId); }catch(_){} reelPress(); });
-["pointerup","pointercancel","lostpointercapture"].forEach(ev => reelBtn.addEventListener(ev, reelRelease));
+const reelPointers = new Set();                          // two thumbs on the button count as one press
+reelBtn.addEventListener("pointerdown", e => { e.preventDefault(); try{ reelBtn.setPointerCapture(e.pointerId); }catch(_){} const first = !reelPointers.size; reelPointers.add(e.pointerId); if (first) reelPress(); });
+["pointerup","pointercancel","lostpointercapture"].forEach(ev => reelBtn.addEventListener(ev, e => { if (!reelPointers.delete(e.pointerId)) return; if (!reelPointers.size) reelRelease(); }));
 reelBtn.addEventListener("contextmenu", e => e.preventDefault());
 function reelPress(){
   if (state !== "fishing" || !trip) return;
@@ -1510,7 +1520,7 @@ function reelPress(){
   if (T.wild && T.wild.mode === "raid" && T.wild.stage === "warn") T.wild.taps++;
   if (T.nibble){ setHook(); return; }
   if (T.phase === "troll"){ if (T.strike) trollHook(); return; }
-  if (T.phase === "ready" && !(visit && visit.motorT > 0)) T.charge = { t: 0 };            // a quick tap casts anywhere; hold to aim with the power meter
+  if (T.phase === "ready" && !(visit && visit.motorT > 0 && T.mode === "boat")) T.charge = { t: 0 };            // a quick tap casts anywhere; hold to aim with the power meter
   else if (T.phase === "drop") startReel("Reeling up!");
   else if (T.phase === "reel" && !T.autoUp) crank();
 }
@@ -1600,7 +1610,7 @@ function needSaltRod(){
 function startVisit(L, mode){
   if (L.ocean && !S.saltRod){ needSaltRod(); return; }
   if (mode === "boat"){ const c = rentCost(L); if (S.coins < c) return; if (c){ S.coins -= c; save(); SFX.coin(); toast(L.ocean ? "🛥️ Charter boat booked for your visit!" : "🚣 Boat rented for your whole visit!"); } else toast("🚤 " + BOATS[S.boatOwn].name + ", ready to go!"); }
-  visit = { lake: L, mode }; S.lastLake = L.id;
+  visit = { lake: L, mode, boatPaid: mode === "boat" && rentCost(L) > 0 }; S.lastLake = L.id;
   arriveExtras(L, mode); save();
   startTrip(L, 0, mode);
   if (stockDay(L)) setTimeout(() => toast("🚚 Trout stocking day! The truck just let fresh trout go here. Some are BIG.", 3600), 400);
@@ -1613,10 +1623,13 @@ function continueVisit(){
 }
 function leaveLake(){
   if (!trip) return;
-  if (trip.boss){ trip = null; toast("You left the boss fight. The entry fee is gone.", 2600); continueVisit(); return; }
+  if (trip.boss){ endCastBait(trip); trip = null; toast("You left the boss fight. The entry fee is gone.", 2600); continueVisit(); return; }
+  endCastBait(trip);                                      // a fish that already ate the bait keeps it
   if (visit) returnBait(visit.hookBait);
+  const sdBoss = visit && visit.sd && visit.sd.boss, L0 = visit && visit.lake;
   if (visit && visit.sd) toast("🏆 You left the Showdown. The entry fee is gone.", 2600);
   save(); trip = null; visit = null; showScreen("map");
+  if (sdBoss) setTimeout(() => bossOffer(L0, () => {}), 300);     // the boss you earned during the Showdown still shows up
 }
 function toggleBoat(){
   if (!trip || trip.phase !== "ready" || !visit || trip.boss) return;
@@ -1625,9 +1638,10 @@ function toggleBoat(){
   const L = visit.lake;
   if (visit.mode === "dock"){
     const c = rentCost(L);
-    if (S.coins < c){ toast("A boat costs 🪙" + c + "."); return; }
-    if (c){ S.coins -= c; save(); SFX.coin(); } visit.mode = "boat"; toast(L.ocean ? "🛥️ All aboard the charter!" : c ? "🚣 Boat rented!" : "🚤 Into your boat!");
-  } else { visit.mode = "dock"; toast(L.ocean ? "🪵 Back to the pier" : "🪵 Back to the dock"); }
+    const due = visit.boatPaid ? 0 : c;                   // you only pay once a visit
+    if (S.coins < due){ toast("A boat costs 🪙" + c + "."); return; }
+    if (due){ S.coins -= due; save(); SFX.coin(); } if (c) visit.boatPaid = true; visit.mode = "boat"; toast(L.ocean ? "🛥️ All aboard the charter!" : c ? "🚣 Boat rented!" : "🚤 Into your boat!");
+  } else { visit.mode = "dock"; visit.motorT = 0; quiet2spot = false; toast(L.ocean ? "🪵 Back to the pier" : "🪵 Back to the dock"); }
   startTrip(L, 0, visit.mode, true);
 }
 // bottom-row buttons: Bait and More open small pickers only when you want them
@@ -1644,7 +1658,8 @@ function renderOptions(){
     b.onclick = () => { uiSheet = null; fn(); }; box.appendChild(b); };
   if (trip && !trip.boss && visit){
     const oc = visit.lake.ocean;
-    add(visit.mode === "dock" ? (oc ? "🛥️ Charter boat · 🪙" + rentCost(visit.lake) : rentCost(visit.lake) ? "🚣 Rent a boat · 🪙" + rentCost(visit.lake) : "🚤 Take your boat out") : oc ? "🪵 Back to the pier" : "🪵 Back to the dock", toggleBoat, visit.mode === "dock" && S.coins < rentCost(visit.lake));
+    const rc = visit.boatPaid ? 0 : rentCost(visit.lake);
+    add(visit.mode === "dock" ? (oc ? "🛥️ Charter boat" + (rc ? " · 🪙" + rc : " (paid)") : rc ? "🚣 Rent a boat · 🪙" + rc : visit.boatPaid ? "🚣 Back in the boat (paid)" : "🚤 Take your boat out") : oc ? "🪵 Back to the pier" : "🪵 Back to the dock", toggleBoat, visit.mode === "dock" && (S.coins < rc || stormOn()));
     add(scentOn() ? "🧴 Fish scent · " + scentLeft() + "s left" : "🧴 Fish scent · 🪙" + SCENT_COST, useScent, scentOn() || S.coins < SCENT_COST);
     add("📋 Lake rules", () => infoModal(rulesHtml(visit.lake), "Got it"));
   }
@@ -1732,7 +1747,7 @@ function renderMap(){
     ex.insertAdjacentHTML("beforeend", ladderCard());
     ex.insertAdjacentHTML("beforeend", eventsCard());
     const won = derbyPrize();
-    if (won) setTimeout(() => infoModal(`<div style="font-size:3.5em">🏆</div><span class="tag new">DERBY CHAMPION!</span><h3>You won last week's Family Derby!</h3><p>${won.name}: you beat everyone in the family. <b>+100 🪙</b></p>`, "Woo-hoo!", () => renderMap()), 200); }
+    if (won){ prizeQueue.push(`<div style="font-size:3.5em">🏆</div><span class="tag new">DERBY CHAMPION!</span><h3>You won last week's Family Derby!</h3><p>${won.name}: you beat everyone in the family. <b>+100 🪙</b></p>`); $("mapCoins").textContent = "🪙 " + S.coins; } }   // queued, so it never covers another popup
   $("champ").style.display = S.champ ? "inline-block" : "none";
   const list = $("lakeList"); list.innerHTML = "";
   LAKES.forEach(L => {
@@ -1976,9 +1991,10 @@ function spawnFishFor(lake, y, exclude, small){
 const RARE_CHANCE = .05;
 function makeFish(id, y, small){
   const sp = SPECIES[id];
-  const f = Math.min(1, Math.pow(Math.random(), 1.5 - S.up.lure*.17) * (small === true ? .55 : small || 1));   // dock fish run small
+  let f = Math.min(1, Math.pow(Math.random(), 1.5 - S.up.lure*.17) * (small === true ? .55 : small || 1));   // dock fish run small
   const brood = id === "trout" && stockDay(spawnLakeNow) && Math.random() < .15;   // the stocking truck brings a few big brood trout
-  const inches = sp.legend ? rand(sp.min, sp.max) : lerp(sp.min, sp.max, brood ? Math.max(f, rand(.7, 1)) : f);
+  if (brood) f = Math.max(f, rand(.7, 1));
+  const inches = sp.legend ? rand(sp.min, sp.max) : lerp(sp.min, sp.max, f);
   const dir = Math.random() < .5 ? -1 : 1;
   const L = fishPx(sp, inches);
   const v = VARIANTS[id] && Math.random() < variantChance();
@@ -1993,7 +2009,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   if (!S.day || S.day.lake !== lake.id) S.day = { lake: lake.id, kept: [] };   // new lake = new fishing day                 // boss fights always include a boat
   const dock = mode === "dock";
   spawnBoat = !dock;
-  const home = cabinAt(lake), longDock = dock && home && S.cabin.up.longdock;
+  const home = cabinAt(lake) && !(visit && visit.sd), longDock = dock && home && S.cabin.up.longdock;   // Showdowns are fair: no cabin perks
   const bottom = (dock ? (lake.pierDepth || (longDock ? Math.min(40, Math.round(lake.depth * .5)) : Math.min(24, Math.round(lake.depth * .3)))) : lake.depth) * PPF;
   const fish = [];
   const n = Math.round((dock ? Math.max(10, bottom / 36) : bottom / 55) * Math.sqrt(W / SW) * (W > SW ? 1.15 : 1));
@@ -2034,7 +2050,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   if (!bossFeePaid && mode === "boat" && S.tmap && S.tmap.pieces >= 4 && !S.tmap.done && S.tmap.lake === lake.id){   // X marks the spot
     const sg = makeSnag("chest", rand(W * .3, W * .8), 0); sg.gold = true; sg.w = 46; sg.h = 32; sg.y = bottom - sg.h/2 + 3; snags.push(sg);
   }
-  else if (!bossFeePaid && Math.random() < .12){            // now and then, a treasure chest on the bottom
+  else if (!bossFeePaid && !(visit && visit.sd) && Math.random() < .12){            // now and then, a treasure chest on the bottom
     const sg = makeSnag("chest", rand(40, W - 40), 0); sg.y = bottom - sg.h/2 + 3; snags.push(sg);
   }
   if (bossFeePaid) snags.length = 0;                  // boss fights: the boss is the only trouble down there
@@ -2058,7 +2074,7 @@ function startTrip(lake, bossFeePaid, mode, quiet){
   S.trips++; save();
   showScreen("fishing");
   updateHud();
-  if (!bossFeePaid && dock && S.trips > 3 && Math.random() < .07) foundLoot();
+  if (!bossFeePaid && dock && S.trips > 3 && !(visit && visit.sd) && Math.random() < .07) foundLoot();
 }
 // every so often you find something on the dock
 function foundLoot(){
@@ -2173,7 +2189,7 @@ const PREDATORS = ["trout","largemouth","smallmouth","bcrappie","wcrappie","chan
 function canEat(pred, prey){ return PREDATORS.includes(pred.id) && prey.inches <= pred.inches * .45; }
 
 function hookFish(f){
-  trip.fish.splice(trip.fish.indexOf(f), 1);
+  { const i = trip.fish.indexOf(f); if (i >= 0) trip.fish.splice(i, 1); }
   trip.pending = 0; trip.tired = false; trip.surge = 0; trip.surgeT = rand(1.5, 3); trip.runDir = Math.random() < .5 ? -1 : 1; trip.spoolT = 0;
   SFX.bite();
   const needFight = f.boss || f.nightLegend || f.sp.legend || f.trophy || f.id==="sturgeon" || f.id==="bluecat" || (f.sp.fighter && f.frac > .35);
@@ -2195,7 +2211,7 @@ function rollBait(){
   if (Math.random() < b.lose) T.baitLost = true;
 }
 function landFish(f){
-  rollBait(); S.landed = (S.landed || 0) + 1; f.atNight = isNight();
+  rollBait(); f.atNight = isNight();                     // S.landed counts when the fish is really in (finishTrip)
   trip.caught.push(f);
   const label = f.boss || f.sp.legend ? "⭐ " + f.sp.name.toUpperCase() + "! ⭐" : (f.rare ? "✨ RARE " : "") + (f.trophy ? "TROPHY " : "") + f.sp.name + "!";
   pop(trip.hook.x, trip.hook.y - 30, label, f.sp.legend ? "#ffd23f" : f.trophy ? "#e6c8ff" : "#fff", f.trophy || f.sp.legend ? 24 : 20);
@@ -2209,9 +2225,9 @@ function interest(T, f){
   if (c > 0 && (f.id === "bcrappie" || f.id === "wcrappie")) c = Math.min(1, c + .18 * duskAmt());   // crappie bite at first and last light
   if (c > 0 && scentOn()) c = Math.min(1, c + .15);       // scent makes fish that already like your bait hungrier
   if (c > 0) c = Math.min(1, c + .1 * rainAmt());          // fish often bite better in the rain
-  if (c > 0 && frenzyOn()) c = Math.min(1, c + .35);        // feeding frenzy: everything is hungry
+  if (c > 0 && frenzyOn() && !f.boss) c = Math.min(1, c + .35);        // feeding frenzy: everything is hungry
   if (c > 0 && T.perfect) c = Math.min(1, c + .1);          // a soft, perfect cast doesn't spook them
-  if (c > 0 && stormOn()) c = Math.min(1, c + .2);          // the bite before a storm
+  if (c > 0 && stormOn() && !f.boss) c = Math.min(1, c + .2);          // the bite before a storm
   if (c > 0 && cabinAt(T.lake) && S.cabin.up.lights) c = Math.min(1, c + .15 * nightAmt());   // your dock lights draw fish in at night
   return c;
 }
@@ -2240,7 +2256,7 @@ function updateWeather(dt){
     if (Math.random() < dt * .25){ st.flash = 1; st.bx = rand(W * .2, W * .9); setTimeout(() => SFX.thunder(), rand(200, 900)); }
     if (st.left <= 0){
       w.storm = null; w.target = .5; w.next = Date.now() + rand(60, 100) * 1000; st.flash = 1;
-      if (visit && visit.mode === "boat" && !(trip && trip.boss)){ visit.mode = "dock"; SFX.thunder();
+      if (visit && visit.mode === "boat" && !(trip && trip.boss)){ visit.mode = "dock"; visit.motorT = 0; quiet2spot = false; SFX.thunder();
         toast("⚡ CRACK! Lightning! The ranger called every boat back to the dock.", 3600);
         if (trip && trip.phase === "ready") startTrip(visit.lake, 0, "dock", true); }
       else toast("⛅ The storm moved on.", 2400);
@@ -2289,6 +2305,7 @@ function scentOn(){ return !!(visit && visit.scentUntil && Date.now() < visit.sc
 function scentLeft(){ return scentOn() ? Math.ceil((visit.scentUntil - Date.now()) / 1000) : 0; }
 function useScent(){
   if (!trip || !visit || trip.boss || trip.phase !== "ready") return;
+  if (visit.sd){ toast("🏆 No fish scent in a Showdown!"); return; }
   if (S.coins < SCENT_COST){ toast("Fish scent costs 🪙" + SCENT_COST + "."); return; }
   S.coins -= SCENT_COST; save(); SFX.coin();
   visit.scentUntil = Math.max(Date.now(), visit.scentUntil || 0) + SCENT_SECS * 1000 * (visit.mode === "boat" && S.boatOwn >= 3 ? 2 : 1);
@@ -2368,6 +2385,7 @@ function checkSnags(T, hk){
       T.snags.splice(T.snags.indexOf(s), 1); T.fouled = "chest"; T.goldChest = !!s.gold; T.phase = "reel"; T.pending = 0; SFX.coin();
       pop(hk.x, hk.y - 24, "🎁 A treasure chest! Reel it all the way in!", "#ffe38a", 17); return;
     }
+    if (T.fouled) continue;                                 // already dragging junk: no shield wasted
     if (T.shields > 0){ T.shields--; SFX.shield(); pop(hk.x, hk.y-20, "🛡️ Shield!", "#9fe6ff"); hk.x += (hk.x < s.x ? -30 : 30); }
     else if (!T.fouled){
       SFX.snag();
@@ -2389,7 +2407,7 @@ function trollInterest(T, f){
   return Math.min(1, c);
 }
 function startTroll(){
-  const T = trip; if (!T || T.phase !== "ready" || T.mode !== "boat" || T.boss) return;
+  const T = trip; if (!T || T.phase !== "ready" || T.mode !== "boat" || T.boss || (visit && visit.motorT > 0)) return;
   if (!TROLL_LURES.includes(curBait(T))){ toast("Trolling needs a lure: 🥄 spinner, 🐠 crankbait or 🐟 swimbait. Tap Bait!", 2800); uiSheet = "bait"; renderBaitBar(); return; }
   uiSheet = null; T.phase = "troll"; T.trollSpd = S.boatOwn >= 2 ? 72 : 52; T.strike = null;
   T.hook.x = T.tipX + 40; T.hook.y = 0; SFX.splash();
@@ -2397,7 +2415,8 @@ function startTroll(){
 }
 function stopTroll(){
   const T = trip; if (!T || T.phase !== "troll") return;
-  T.strike = null; T.phase = "reel"; T.pending = 0; pop(T.hook.x, T.hook.y - 20, "Reeling in", "#fff", 15);
+  if (T.strike && T.strike.f) T.strike.f.nibbling = false;
+  T.strike = null; T.phase = "reel"; T.pending = 0; T.bobX = T.hook.x; pop(T.hook.x, T.hook.y - 20, "Reeling in", "#fff", 15);
 }
 function trollHook(){
   const T = trip, st = T.strike; if (!st) return;
@@ -2485,7 +2504,9 @@ function updateFishing(dt){
   if (T.charge){ if (T.phase !== "ready") T.charge = null; else T.charge.t += dt; }
   moveTick(T, dt); if (!trip) return;
   if (visit && T.mode === "boat" && !T.boss && !visit.sd) spotTick(T, dt);
+  if (trip !== T) return;                                    // arriving at a spot started a new cast
   if (visit && visit.sd && !T.boss){ sdUpdate(T, dt); if (!trip) return; }
+  if (visit) visit.truckT = (visit.truckT || 0) + dt;
   if (visit && !T.boss && !visit.sd) evUpdate(T, dt);
   if (visit && S.holder && !T.boss && !visit.sd) holderUpdate(T, dt); else if (visit && visit.holder) visit.holder.bite = 0;
   const hk = T.hook;
@@ -2545,7 +2566,8 @@ function updateFishing(dt){
 
   T.upSpeed = 0;
   T.jig = Math.max(0, (T.jig || 0) - dt*4);
-  updateWeather(dt); updateClock(dt); updateWild(T, dt); T.lastDt = dt;
+  updateWeather(dt); if (trip !== T) return;                 // lightning sent the boat back to the dock: a new cast has started
+  updateClock(dt); updateWild(T, dt); T.lastDt = dt;
   anglerPose(T);
   if (T.phase === "ready"){ hk.x = T.vtip.x + Math.sin(T.t*2)*3; hk.y = T.vtip.y + 24; }
   else if (T.phase === "cast"){
@@ -2758,12 +2780,13 @@ function finishTrip(){
   if (visit && visit.sd) T.caught.forEach(f => { if (!f.nightLegend) visit.sd.mine.push({ id: f.id, lb: weightLb(f.sp, f.inches) * (S.livewell ? 1.05 : 1) }); });
   if (!T.caught.length){
     pending = null; S.streak = 0;
-    const tip = curBait(T) === "bare" ? "Your hook is bare! Tap Bait." : "No bite. Try again!";
+    const tip = T.stolen ? T.stolen + " got away with your fish! Cast again." : curBait(T) === "bare" ? "Your hook is bare! Tap Bait." : "No bite. Try again!";
     toast(tip, 2600);
     continueVisit();
     return;
   }
   T.caught.forEach(f => {
+    S.landed = (S.landed || 0) + 1;
     const sp = f.sp, lb = weightLb(sp, f.inches);
     const coins = Math.round(sp.val * 1.2 * (S.ultra && sp.shape === "sun" ? 1.5 : 1) * (.6 + f.frac*.9) * (f.trophy ? 1.5 : 1) * (f.rare ? 1.5 : 1) * (f.variant ? 2 : 1) * (f.id === fishOfDay() ? 2 : 1));
     const v = verdict(T.lake.id, f);
@@ -2821,7 +2844,7 @@ function finishTrip(){
   if (T.lost) { const d = document.createElement("div"); d.className = "muted"; d.style.color = "#fff"; d.textContent = T.lost + " fish got away" + (T.baitLost && !T.caught.length ? " with your bait" : "") + ". Next time!"; list.appendChild(d); }
   const lim = DAY_LIMIT[T.lake.id];
   const dd = document.createElement("div"); dd.className = "muted"; dd.style.color = "#fff"; dd.style.marginTop = ".3em";
-  dd.textContent = "🧺 " + dayCount(T.lake.id) + "/" + lim; list.appendChild(dd);
+  dd.textContent = "🧺 " + Math.min(lim, dayCount(T.lake.id) + pending.items.filter(it => it.keep).length) + "/" + lim + " if you keep"; list.appendChild(dd);
   $("resTitle").textContent = T.lake.name + (T.caught.length ? " — Nice catch!" : "");
   pending.newOnes = newOnes;
   // one tap: keep the fish and cast again, or release it (half coins) and cast again
@@ -3210,7 +3233,6 @@ function moonPhase(){ const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 1
 const fullMoon = () => Math.abs(moonPhase() - .5) < .07;
 function evUpdate(T, dt){
   const E = visit.ev || (visit.ev = { clock: 0, next: rand(5, 9) * 60, on: false, warn: 0, left: 0 });
-  if (visit.mode === "dock" || visit.mode === "boat") visit.truckT = (visit.truckT || 0) + dt;
   E.clock += dt;
   if (!E.on && !E.warn && E.clock > E.next){ E.warn = 4; toast("🌊 The water is starting to bubble...", 2600); }
   else if (E.warn){ E.warn -= dt; if (E.warn <= 0){ E.warn = 0; E.on = true; E.left = FRENZY_SECS; SFX.bigSplash(); toast("🔥 FEEDING FRENZY! Everything is biting!", 2600);
@@ -3222,7 +3244,7 @@ function evUpdate(T, dt){
 }
 function drawEvents(T, sy){
   const E = visit && visit.ev, st = visit && visit.weather && visit.weather.storm, lines = [];
-  if (E && E.on){ lines.push(["🔥 FEEDING FRENZY " + Math.ceil(E.left) + "s", "#ffb26b"]);
+  if (E && E.on && !T.boss){ lines.push(["🔥 FEEDING FRENZY " + Math.ceil(E.left) + "s", "#ffb26b"]);
     if (E.jump && E.jump.sp){ const k = E.jump.t / .9, jx = E.jump.x + k * 40, jy = sy(-Math.sin(Math.PI * k) * 40);   // little fish leaping out of the boil
       drawFish(ctx, E.jump.sp, jx, jy, 26, 1, T.t, { rot: (k - .5) * 1.8 }); } }
   if (st){ lines.push(["⚡ STORM: lightning in " + Math.ceil(st.left) + "s", "#ffe38a"]);
@@ -3334,7 +3356,7 @@ function sdUpdate(T, dt){
     const R = r.T; R.t += dt; R.lastDt = dt; r.stT += dt;
     const hx = R.ax + 58, depth = 9 * PPF;
     if (r.st === "wait"){ R.phase = "drop"; R.caught = []; R.upSpeed = 0; R.hook = { x: hx, y: depth };
-      if (!sd.done && sd.el >= r.next){ rivalCatch(r, sd, T); r.next = sd.el + rand(.6, 1.5) * 60 / (sd.tier.rate * r.def.rate); } }
+      if (!sd.done && sd.left > 0 && sd.el >= r.next){ rivalCatch(r, sd, T); r.next = sd.el + rand(.6, 1.5) * 60 / (sd.tier.rate * r.def.rate); } }
     else if (r.st === "reel"){ R.phase = "reel"; R.caught = [1]; R.upSpeed = 60; R.hook = { x: hx, y: depth * Math.max(0, 1 - r.stT / 1.4) };
       if (r.stT > 1.4){ r.st = "show"; r.stT = 0; splashAt(T, hx, 0, 10);
         const say = Math.random() < .35 ? " " + r.def.brag[Math.floor(Math.random() * r.def.brag.length)] : "", ri = sd.rivals.indexOf(r);
@@ -3345,7 +3367,8 @@ function sdUpdate(T, dt){
   }
   if (sd.left <= 0 && !sd.done){
     sd.left = 0;
-    if (T.phase === "ready" || T.phase === "cast" || T.phase === "drop" || T.fouled){ sd.done = true; trip = null; sdFinish(); }
+    if (T.phase === "ready" || T.phase === "cast" || T.phase === "drop" || T.fouled || (T.phase === "reel" && !T.caught.length && !T.nibble)){
+      if (!$("modal").classList.contains("show")){ sd.done = true; if (trip) endCastBait(trip); trip = null; sdFinish(); } }   // wait for any open popup first
     else if (!sd.buzzer){ sd.buzzer = true; pop(W / 2, -120, "⏰ TIME! Land this last one!", "#ffd0c8", 20); SFX.thunk(); }
   }
 }
@@ -3399,13 +3422,14 @@ function sdFinish(){
   S.coins += prize;
   const nowOpen = SD_TIERS.filter(x => sdOpen(x)).length;
   if (nowOpen > wasOpen) extra = `<div style="margin-top:.4em">🔓 <b>${SD_TIERS[nowOpen - 1].name}</b> is open now!</div>`;
-  const rv = sd.rivals.map(r => { const beat = rows.findIndex(x => x.r === r) > place - 1; return `<div class="muted">${r.def.name}: “${beat ? r.def.lose : r.def.win}”</div>`; }).join("");
-  const table = rows.map((r, i) => `<div style="display:flex;justify-content:space-between;gap:1em;padding:.15em .4em;border-radius:6px;${r.you ? "background:#dff5e6;font-weight:bold" : ""}"><span>${["🥇", "🥈", "🥉"][i]} ${r.name}</span><span>${sdFmt(sd.type, r.score)} · ${r.n} fish</span></div>`).join("");
+  const rv = sd.rivals.map(r => { const beat = rows.findIndex(x => x.r === r) > place - 1; return `<div class="muted">${LL.esc(r.def.name)}: “${LL.esc(beat ? r.def.lose : r.def.win)}”</div>`; }).join("");
+  const table = rows.map((r, i) => `<div style="display:flex;justify-content:space-between;gap:1em;padding:.15em .4em;border-radius:6px;${r.you ? "background:#dff5e6;font-weight:bold" : ""}"><span>${["🥇", "🥈", "🥉"][i]} ${LL.esc(r.name)}</span><span>${sdFmt(sd.type, r.score)} · ${r.n} fish</span></div>`).join("");
   const head = place === 1 ? `<div style="font-size:3.2em">🏆</div><span class="tag trophy">YOU WON THE ${t.name.toUpperCase()}!</span>` : place === 2 ? `<div style="font-size:3em">🥈</div><span class="tag new">SECOND PLACE!</span>` : `<div style="font-size:3em">🎣</div><span class="tag">THIRD PLACE</span>`;
   const boss = sd.boss;
   delete visit.sd; save();
   infoModal(`${head}<h3>${L.name} Showdown</h3><div style="text-align:left">${table}</div>${rv}<p><b>+${prize} 🪙</b>${place === 1 ? " and a cup for your Lodge!" : place === 2 ? " (your entry back)" : " for taking part"}</p>${extra}`,
-    "Keep fishing", () => { const sp = sponsorCheck(), go = () => { if (boss) bossOffer(L, continueVisit); else continueVisit(); }; if (sp) infoModal(sp, "Awesome!", go); else go(); }, { text: "🏁 Back to the lakes", fn: () => { trip = null; visit = null; showScreen("map"); const sp = sponsorCheck(); if (sp) infoModal(sp, "Awesome!"); } });
+    "Keep fishing", () => { const sp = sponsorCheck(), go = () => { if (boss) bossOffer(L, continueVisit); else continueVisit(); }; if (sp) infoModal(sp, "Awesome!", go); else go(); }, { text: "🏁 Back to the lakes", fn: () => { if (visit) returnBait(visit.hookBait); trip = null; visit = null; showScreen("map"); const sp = sponsorCheck(), bo = () => { if (boss) bossOffer(L, () => {}); };
+      if (sp) infoModal(sp, "Awesome!", bo); else bo(); } });
 }
 function ladderCard(){
   const cups = S.sd.cups || [];
@@ -3505,7 +3529,7 @@ function applyPending(){
   P.items.forEach(it => { if (SPECIES[it.f.id] && !it.f.nightLegend){ S.lakeDex = S.lakeDex || {}; (S.lakeDex[L.id] = S.lakeDex[L.id] || {})[it.f.id] = 1; } });
   const bd = BOSSES[L.id];
   if (!S.bosses[L.id] && now >= lim){
-    if (kindsAt(L) >= kindsNeed(L)){ S.day = { lake: L.id, kept: [] }; if (visit && visit.sd) visit.sd.boss = true; else q.push(nx => bossOffer(L, nx)); }
+    if (kindsAt(L) >= kindsNeed(L)){ if (visit && visit.sd) visit.sd.boss = true; else q.push(nx => bossOffer(L, nx)); }
     else if (before < lim) q.push(nx => infoModal(`<div style="font-size:3em">🧺</div><h3>Limit reached!</h3><p>${bd.name} is watching... but won't come out until you've caught <b>${kindsNeed(L)} different kinds of fish</b> at ${L.name}. You have <b>${kindsAt(L)}</b>.</p><div class="muted">Try other baits, other depths, the boat, or fishing at night.</div>`, "I'm on it!", nx));
   } else if (before < lim && now >= lim){
     if (S.bosses[L.id]){
@@ -3521,8 +3545,9 @@ function bossOffer(L, nx){
   const html = `<span class="tag trophy">🧺 LIMIT REACHED!</span><h3>${d.name} is here!</h3><div id="bossPic"></div>
     <p>🎟️ Entry: <b>${fee} 🪙</b> for ${BOSS_CASTS} casts · 🏆 Win: 2× back + 50 + a prize</p>
     <div class="muted">💡 ${d.name} likes ${d.likes}. You\u2019ll pick your bait before you cast.</div>`;
-  if (S.coins < fee){ infoModal(html.replace("🎟️ Entry: <b>" + fee + " 🪙</b>", "🎟️ You need " + fee + " 🪙 to enter"), "Next time", nx); }
-  else infoModal(html, "Not today", nx, { text:"Challenge! (" + fee + " 🪙)", fn:() => { S.coins -= fee; save(); SFX.coin(); startTrip(L, fee); } });
+  const done = () => { S.day = { lake: L.id, kept: [] }; save(); };    // a new basket starts once you've decided
+  if (S.coins < fee){ infoModal(html.replace("🎟️ Entry: <b>" + fee + " 🪙</b>", "🎟️ You need " + fee + " 🪙 to enter") + `<div class="muted">Keep fishing: ${d.name} will wait until you have the coins.</div>`, "Next time", nx); }
+  else infoModal(html, "Not today", () => { done(); if (nx) nx(); }, { text:"Challenge! (" + fee + " 🪙)", fn:() => { if (S.coins < fee) return; done(); S.coins -= fee; save(); SFX.coin(); startTrip(L, fee); } });
   const ic = fishIcon(bossSp(L.id), 300, 150); ic.style.maxWidth = "16em"; ic.style.margin = "0 auto"; const bp = $("bossPic"); if (bp) bp.appendChild(ic);
 }
 function finishBoss(T){
@@ -3533,7 +3558,7 @@ function finishBoss(T){
   const ic = fishIcon(bossSp(L.id), 300, 150, false); ic.style.maxWidth = "14em"; ic.style.margin = "0 auto";
   if (won){
     const prize = T.boss.fee * 2 + 50;
-    S.coins += prize; S.bosses[L.id] = true;
+    S.coins += prize; S.bosses[L.id] = true; S.landed = (S.landed || 0) + 1;
     if (d.dex){ const p = S.dex[d.dex]; S.dex[d.dex] = { n:(p ? p.n : 0) + 1, best:Math.max(p ? p.best : 0, d.inches) }; if (!p) modalQueue.push(nx => showCard(d.dex, true, nx)); }
     if (d.reward.bait && !S.baits.includes(d.reward.bait)){ S.baits.push(d.reward.bait); if (BAITS[d.reward.bait].soft) S.baitCount[d.reward.bait] = (S.baitCount[d.reward.bait] || 0) + BAITS[d.reward.bait].pack; }
     if (d.reward.heavy) S.heavy = true;
@@ -3638,6 +3663,7 @@ function oceanShore(c, B){
   c.fillStyle = "#c9563c"; c.beginPath(); c.moveTo(sx - 14, B - 29); c.lineTo(sx + 17, B - 29); c.lineTo(sx + 12, B - 25); c.lineTo(sx - 10, B - 25); c.fill();
 }
 function shoreArt(L){
+  if (shoreCache._w !== W){ for (const k in shoreCache) delete shoreCache[k]; for (const k in shoreDarkCache) delete shoreDarkCache[k]; shoreCache._w = W; }   // keep only the current width (resizing a window used to pile up big canvases)
   const key = L.id + "|" + W; if (shoreCache[key]) return shoreCache[key];
   const sc = SCENES[L.id] || SCENES.dixon, S2 = 2, c0 = document.createElement("canvas");
   c0.width = W * S2; c0.height = SHORE_H * S2;
@@ -4446,7 +4472,7 @@ function syncReelBtn(){
   $("optSheet").classList.toggle("show", ready && uiSheet === "opt");
   $("baitBtn").classList.toggle("show", ready);
   $("optBtn").classList.toggle("show", ready);
-  const canTroll = !!(show && T.mode === "boat" && !T.boss && (T.phase === "ready" || (T.phase === "troll" && !T.strike)));
+  const canTroll = !!(show && T.mode === "boat" && !T.boss && !(visit && visit.motorT > 0) && (T.phase === "ready" || (T.phase === "troll" && !T.strike)));
   $("trollBtn").classList.toggle("show", canTroll);
   $("spotBtn").classList.toggle("show", !!(show && T.mode === "boat" && T.phase === "ready" && !T.boss && visit && !visit.sd && (visit.spots || []).length && !(visit.motorT > 0)));
   $("bellBtn").classList.toggle("show", !!(show && visit && visit.holder && visit.holder.bite > 0));
@@ -4460,6 +4486,8 @@ function syncReelBtn(){
   else if (T.nibble){ const b = T.nibble.stage === "bite"; mode = b ? "tap danger" : "out"; label = b ? "SET THE HOOK!" : "WAIT..."; }
   else if (T.phase === "drop"){ mode = "out"; label = "TAP TO STOP"; }
   else if (T.phase === "troll"){ mode = T.strike ? "tap danger" : "hold"; label = T.strike ? "STRIKE! TAP!" : btnHeld ? "LURE UP..." : "HOLD = LURE UP"; }
+  else if (T.phase === "snatch"){ mode = "out"; label = "WHOA!"; }
+  else if (T.wild && T.wild.mode === "raid" && T.wild.stage === "warn"){ mode = "tap danger"; label = "TAP TAP TAP!"; }
   else if (T.move && T.caught.length && (T.phase === "reel" || T.phase === "fight")){ const w = moveWant(T.move, T.phase === "fight");
     mode = w === "idle" ? "out danger" : w === "hold" ? "hold" : "tap"; label = w === "idle" ? "LET GO!" : w === "hold" ? "HOLD!" : "TAP TAP TAP!"; }
   else if (T.phase === "fight"){ mode = "fight" + (T.fight && T.fight.tension > 80 ? " danger" : ""); label = T.fight && T.fight.tension > 80 ? "LET GO!" : "HOLD!"; }
@@ -4498,8 +4526,12 @@ function updateIdle(dt){
 //  MAIN LOOP
 // =====================================================================
 let last = performance.now();
+let loopErr = "";
 function loop(now){
+  requestAnimationFrame(loop);                            // schedule the next frame first, so one error can't freeze the game
   const dt = Math.min(.05, (now - last) / 1000); last = now;
+  let saved = false;
+  try {
   ctx.clearRect(0,0,W,H);
   syncReelBtn();
   if (state === "fishing" && trip){
@@ -4507,13 +4539,18 @@ function loop(now){
     updateFishing(dt * slow);
     if (trip){
       const k = trip.kick || 0;
-      ctx.save(); if (k > .05) ctx.translate((Math.random() - .5) * k * 9, (Math.random() - .5) * k * 9);
-      renderScene(trip, false); ctx.restore();
+      ctx.save(); saved = true; if (k > .05) ctx.translate((Math.random() - .5) * k * 9, (Math.random() - .5) * k * 9);
+      renderScene(trip, false); ctx.restore(); saved = false;
       if (k > .5){ ctx.fillStyle = "rgba(255,255,255," + ((k - .5) * .35).toFixed(2) + ")"; ctx.fillRect(0, 0, W, H); }
     } else renderScene(idle, true);
   }
   else { updateIdle(dt); renderScene(idle, true); }
-  requestAnimationFrame(loop);
+  } catch (e){
+    if (saved) ctx.restore();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; ctx.setLineDash([]);
+    const msg = String(e && e.message || e);
+    if (msg !== loopErr){ loopErr = msg; setTimeout(() => { throw e; }, 0); }   // still reported once (ll-core logs it), but the game keeps running
+  }
 }
 requestAnimationFrame(loop);
 
@@ -4541,7 +4578,8 @@ function wildSeen(kind){
   if (first){ S.coins += 10; toast("📸 New in your Wildlife album: " + WILD[kind].icon + " " + WILD[kind].name + "! +10 🪙", 3200); SFX.land(); }
 }
 function updateWild(T, dt){
-  if (T.boss) return;
+  if (T.boss || (visit && visit.sd)) return;                           // no thieves during boss fights or Showdowns
+  if (!T.wild && (T.phase === "done" || T.phase === "snatch")) return;
   const w = wildClock(); w.t += dt;
   const A = T.wild;
   if (!A){
@@ -4552,7 +4590,7 @@ function updateWild(T, dt){
       const kind = T.lake.ocean ? (Math.random() < .5 ? "pelican" : "sealion") : Math.random() < .55 ? "osprey" : "merganser";
       if (hooked && T.phase === "reel" && (kind === "osprey" || kind === "sealion" || fishLb(hooked) < 1.5)) startRaid(T, kind, hooked);
       else startShow(T, kind);
-    } else if (w.t > w.nextSee && T.phase !== "fight"){
+    } else if (w.t > w.nextSee && T.phase !== "fight" && (T.phase === "ready" || T.hook.y / PPF < 8)){
       w.nextSee = w.t + rand(4, 8) * 60;
       const opts = T.lake.ocean ? ["dolphin", "gull"] : ["heron", "turtle", "crawdad"].concat(isNight() ? ["bullfrog", "bullfrog"] : []);
       const kind = opts[Math.floor(Math.random() * opts.length)];
@@ -4566,7 +4604,7 @@ function updateWild(T, dt){
   if (A.mode === "snatch"){                                           // a bird swoops down and grabs your fish right at the surface
     if (A.stage === "in" && A.t > .8){
       const i = T.caught.indexOf(A.f); if (i >= 0){ T.caught.splice(i, 1); T.lost++; T.chain = null; T.tired = false; }
-      A.stage = "out"; A.t = 0; A.carry = A.f; SFX.splash(); splashAt(T, A.x, 0, 14); S.coins += 5; showCoins();
+      A.stage = "out"; A.t = 0; A.carry = A.f; T.stolen = A.kind === "pelican" ? "🐦 The pelican" : "🦅 The osprey"; SFX.splash(); splashAt(T, A.x, 0, 14); S.coins += 5; showCoins();
       pop(W / 2, -70, (A.kind === "pelican" ? "🐦 A pelican" : "🦅 An osprey") + " stole your " + A.f.sp.name + "!!! (+5 🪙 for the photo)", "#ffd0c8", 18);
     } else if (A.stage === "out" && A.t > 1.8){ T.wild = null; T.phase = "done"; T.doneT = 0; }
     return;
@@ -4578,12 +4616,14 @@ function updateWild(T, dt){
       if (A.t > A.win){ A.stage = "grab"; A.t = 0; } }
     else if (A.stage === "grab"){ if (A.t > .45){
         const i = T.caught.indexOf(A.f); if (i >= 0){ T.caught.splice(i, 1); T.lost++; T.chain = null; T.tired = false; }
-        A.stage = "flee"; A.t = 0; A.carry = A.f; SFX.splash(); splashAt(T, T.hook.x, 0, 16); S.coins += 5; showCoins();
+        A.stage = "flee"; A.t = 0; A.carry = A.f; T.stolen = ({ osprey:"🦅 The osprey", pelican:"🐦 The pelican", sealion:"🦭 The sea lion" }[A.kind] || "🦆 The duck"); SFX.splash(); splashAt(T, T.hook.x, 0, 16); S.coins += 5; showCoins();
         pop(T.hook.x, -60, ({ osprey:"🦅 The osprey", pelican:"🐦 The pelican", sealion:"🦭 The sea lion" }[A.kind] || "🦆 The duck") + " stole your fish! (+5 🪙 for the photo)", "#ffd0c8", 17); } }
     else if (A.stage === "flee" && A.t > 2.2) T.wild = null;
   } else if (A.mode === "show"){                                      // a dive on a fish swimming near the top
+    if (A.stage === "in"){ if (T.fish.includes(A.f) && !A.f.nibbling) A.x += (A.f.x - A.x) * Math.min(1, dt * 2); }   // the bird follows its fish
     if (A.stage === "in" && A.t > A.din){ A.stage = "hit"; A.t = 0; SFX.splash(); splashAt(T, A.x, 0, 18);
-      const i = T.fish.indexOf(A.f); if (i >= 0) T.fish.splice(i, 1); A.carry = A.f; }
+      const busy = A.f.nibbling || (T.nibble && T.nibble.f === A.f) || (T.strike && T.strike.f === A.f) || T.caught.includes(A.f);
+      const i = T.fish.indexOf(A.f); if (i >= 0 && !busy){ T.fish.splice(i, 1); A.carry = A.f; } }   // a fish that's on your bait is yours: the bird comes up empty
     else if (A.stage === "hit" && A.t > (A.kind === "merganser" || A.kind === "sealion" ? 1.4 : .5)){ A.stage = "out"; A.t = 0; }
     else if (A.stage === "out" && A.t > 2.6) T.wild = null;
   } else if (A.t > A.dur) T.wild = null;
@@ -4607,8 +4647,8 @@ function startRaid(T, kind, f){
   pop(W / 2, -150, ({ osprey:"🦅 An osprey", pelican:"🐦 A pelican", sealion:"🦭 A sea lion" }[kind] || "🦆 A duck") + " wants your fish!", "#ffe38a", 19);
 }
 function startShow(T, kind){
-  let f = T.fish.filter(x => !x.boss && !x.nightLegend && !x.nibbling && x.y < 7 * PPF && x.L < 70).sort((a, b) => a.y - b.y)[0];
-  if (!f){ f = spawnFishFor(T.lake, 2.5 * PPF, null, true); f.x = rand(80, W - 80); T.fish.push(f); }   // a little fish right under the surface
+  let f = T.fish.filter(x => !x.boss && !x.nightLegend && !x.nibbling && !x.tagged && !x.rare && !x.variant && !x.trophy && x.y < 7 * PPF && x.L < 70).sort((a, b) => a.y - b.y)[0];
+  if (!f){ f = spawnFishFor(T.lake, 2.5 * PPF, null, true); f.tagged = false; f.rare = false; f.variant = null; f.x = rand(80, W - 80); T.fish.push(f); }   // a little fish right under the surface
   T.wild = { kind, mode:"show", stage:"in", t:0, f, x: f.x, din: kind === "osprey" || kind === "pelican" ? 2.2 : 3.2, dir: f.x < W/2 ? 1 : -1 };
   wildSeen(kind); SFX.screech(kind);
 }
@@ -4780,14 +4820,14 @@ const MILESTONES = [
   { id:"looks3",  name:"Find 3 rare looks",            need:3,    coins:150, prog: g => Object.values(g.dex || {}).filter(d => d.v).length },
   { id:"looks14", name:"Find all 14 rare looks",       need:14,   coins:600, prog: g => Object.values(g.dex || {}).filter(d => d.v).length },
   { id:"leg1",    name:"Catch a Night Legend",         need:1,    coins:150, prog: g => Object.keys(g.legends || {}).length },
-  { id:"leg6",    name:"Catch all 6 Night Legends",    need:6,    coins:600, prog: g => Object.keys(g.legends || {}).length },
+  { id:"leg6",    name:"Catch 6 Night Legends",    need:6,    coins:600, prog: g => Object.keys(g.legends || {}).length },
   { id:"gold5",   name:"Earn 5 gold badges",           need:5,    coins:200, prog: g => goldN(g) },
   { id:"gold15",  name:"Earn all 15 gold badges",      need:15,   coins:700, prog: g => goldN(g) },
   { id:"land100", name:"Land 100 fish",                need:100,  coins:100, prog: g => g.landed || 0 },
   { id:"land500", name:"Land 500 fish",                need:500,  coins:300, prog: g => g.landed || 0 },
   { id:"land1000",name:"Land 1,000 fish",              need:1000, coins:600, prog: g => g.landed || 0 },
-  { id:"wild6",   name:"Spot all 6 wildlife",          need:6,    coins:200, prog: g => Object.keys((g.wild || {}).seen || {}).length },
-  { id:"boss6",   name:"Beat all 6 bosses",            need:6,    coins:300, prog: g => Object.keys(g.bosses || {}).length },
+  { id:"wild6",   name:"Spot 6 kinds of wildlife",          need:6,    coins:200, prog: g => Object.keys((g.wild || {}).seen || {}).length },
+  { id:"boss6",   name:"Beat 6 bosses",            need:6,    coins:300, prog: g => Object.keys(g.bosses || {}).length },
   { id:"chest10", name:"Find 10 treasure chests",      need:10,   coins:200, prog: g => g.treasures || 0 },
   { id:"streak10",name:"Land fish on 10 casts in a row", need:10, coins:150, prog: g => g.bestStreak || 0 },
   { id:"ocean7",  name:"Catch 7 kinds of ocean fish",  need:7,    coins:300, prog: g => OCEAN_DEX.filter(id => g.dex && g.dex[id]).length },
@@ -4915,7 +4955,7 @@ function renderLodge(){
     pl.insertAdjacentHTML("beforeend", `<div class="brass">${sp.name}<br><small>${m.inches} in · ${fmtLb(m.lb)} · ${lakeById(m.lake).name}</small></div><button class="down" aria-label="Take it down">✕</button><button class="down pr" aria-label="Print a certificate">🖨️</button>`);
     pl.querySelector(".pr").onclick = () => printCertificate({ sp, inches: m.inches, lb: m.lb, lake: lakeById(m.lake).name, t: m.t });
     pl.querySelector(".down").onclick = () => { if (!pl.classList.contains("arm")){ pl.classList.add("arm"); pl.querySelector(".down").textContent = "Take down?"; return; }
-      S.mounts.splice(S.mounts.indexOf(m), 1); save(); renderLodge(); };
+      { const i = S.mounts.indexOf(m); if (i >= 0) S.mounts.splice(i, 1); } save(); renderLodge(); };
     wall.appendChild(pl);
   });
   box.appendChild(wall);
@@ -4952,8 +4992,10 @@ function showTitle(){
   if (p){ $("whoPic").innerHTML = avatarSvg(p, 40); $("whoName").textContent = p.name + (titleOf() ? " · " + titleOf() : ""); $("btnPlay").textContent = "🎣 Let's Fish, " + p.name + "!"; }
   showScreen("title");
 }
-function signIn(p){ trip = null; visit = null; pending = null; modalQueue = []; $("modal").classList.remove("show"); bindPlayer(p); showTitle(); }
-function signOut(){ trip = null; visit = null; pending = null; modalQueue = []; $("modal").classList.remove("show"); LL.leave(); S = defaultSave(); showScreen("title"); LL.profiles(signIn); }
+function resetPlay(){ if (trip && visit){ endCastBait(trip); returnBait(visit.hookBait); } trip = null; visit = null; pending = null; modalQueue = []; prizeQueue = []; uiSheet = null; btnHeld = false;
+  const c = $("cert"); if (c) c.style.display = "none"; }
+function signIn(p){ resetPlay(); $("modal").classList.remove("show"); bindPlayer(p); showTitle(); }
+function signOut(){ resetPlay(); $("modal").classList.remove("show"); LL.leave(); S = defaultSave(); showScreen("title"); LL.profiles(signIn); }
 $("btnWho").onclick = () => { SFX.click(); signOut(); };
 $("btnBug").onclick = () => { SFX.click(); LL.report(); };
 // "Get the app": install Lake Legends like an app (its own window and icon) on a Mac, PC, iPad or phone
@@ -4978,7 +5020,7 @@ window.LL_SCREEN = () => state === "fishing" && trip ? "fishing at " + trip.lake
 LL.onChange(() => {
   const p = LL.player();
   if (!p){ if (!document.getElementById("llOv")) signOut(); return; }
-  if (p.game !== S){ bindPlayer(p); if (state !== "title"){ trip = null; visit = null; showTitle(); } }
+  if (p.game !== S){ const was = state; resetPlay(); bindPlayer(p); if (was !== "title"){ $("modal").classList.remove("show"); showTitle(); } }
 });
 window.LL_AVATAR = (p, size) => avatarSvg(p, size);
 window.LL_SAFE = () => state !== "fishing" && state !== "results" && !$("modal").classList.contains("show");
