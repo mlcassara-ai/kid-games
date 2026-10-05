@@ -116,10 +116,10 @@ const CROWN={hp:[1,1.6,1.9],atk:[1,1.3,1.36],gap:[1,.85,.72],den:[1,1.3,1.6]};
 /* last stands: wind-up before the throw, flight time, how long a snack takes, sprint speed (× walking, at least min %/s), heal (pets only,
    of max health), where the snacks land (from..to % of the lane, measured from the thrower's opposite base), the Goblin's pause before joining */
 const LURE={wind:1,fly:1.2,eat:1.4,sprint:2.5,min:8,heal:.1,near:10,far:28,join:1.4,boss2:2};
-/* Oct 2026: with the Goblin joining at a quarter instead of bursting out at half, bossHp .68→1.2 and bossAtk 1.62→1.9 keep the balance
-   (simulated: kids within 1–2 points of before, the Trainer about 88%). */
+/* Oct 2026: with the Goblin joining at a quarter instead of bursting out at half, bossHp .68→1.05 keeps the balance
+   (with the last-stand pause; simulated: kids within 1–2 points of before, the Trainer about 84%). */
 const TUNE={trickle:.73,trickleKl:.31,charge:3.3,den:400,hp:1.15,atk:1.81,gap:3.79,bricks:5,brick:.4,repairAt:.5,house:480,siege:.58,foeCap:12,
- petHp:.66,bossHp:1.2,bossAtk:1.9,bossSiege:.81,rage:.87,calm:1.78,tired:240,petSpd:.75,slamWait:.6,slamR:9,downFor:7};
+ petHp:.66,bossHp:1.05,bossAtk:1.62,bossSiege:.81,rage:.87,calm:1.78,tired:240,petSpd:.75,slamWait:.6,slamR:9,downFor:7};
 
 /* ---------- saved progress ---------- */
 function prog(p){p.bp2=p.bp2||{c:{},team:[]};p.bp2.c=p.bp2.c||{};if(!Array.isArray(p.bp2.team))p.bp2.team=[];return p.bp2;}
@@ -170,7 +170,7 @@ function eagleStep(u,foes,dt){const E=EAGLE;
  if(ahead.length&&G.t>=(u.diveAt||0)){const t=ahead.reduce((a,b)=>b.x>a.x?b:a);u.tx=Math.max(DEN_X+2,t.x+.5);u.ph='rise';u.phT=G.t+E.rise;if(!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+E.life);}return;}
  const near=foes.filter(f=>!f.gone&&u.x-f.x>=-1&&u.x-f.x<=u.rng);
  if(near.length){u.fight=true;near[0].hp-=u.atk*.3*dt;return;}
- if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*.5*dt;return;}
+ if(u.x-DEN_X<=u.rng){u.fight=true;if(G.t>=(G.denSafe||0))G.denHP-=u.atk*.5*dt;return;}
  u.x-=u.spd*.8*dt*(u.met?1:MEGA_RUN);u.mv=true;}
 function eagleArt(){const e=window.MQ_EAGLE_SVG;if(!e)return `<span style="font-size:70px;line-height:1">${EAGLE.e}</span>`;return `<span class="eg-walk">${e.perch}</span><span class="eg-flyart">${e.fly}</span>`;}
 const megaArt=(id,w)=>id==='eagle'?(w<60&&window.MQ_EAGLE_SVG?`<span class="eg-btn">${window.MQ_EAGLE_SVG.perch}</span>`:w<60?`<span style="font-size:30px">${EAGLE.e}</span>`:eagleArt()):trollArt(w);
@@ -251,6 +251,9 @@ function lure(side){const d=side==='d',who=(d?G.pets.filter(u=>!u.gone):G.foes.f
  const n=Math.max(4,who.length);for(let i=0;i<n;i++){const k=(i+.2+Math.random()*.6)/n,off=LURE.near+(LURE.far-LURE.near)*k;L.items.push({x:d?HOUSE_X-off:DEN_X+off,dl:Math.random()*.35,id:Math.random()});}
  const order=d?L.items.slice().sort((a,b)=>a.x-b.x):L.items.slice().sort((a,b)=>a.x-b.x);
  who.forEach((u,i)=>{const it=order[Math.min(order.length-1,Math.round(i*(order.length-1)/Math.max(1,who.length-1)))];if(it.by)return;it.by=u;u.lr={it,L,ph:'wait'};});
+ /* a pause (owner, Oct 2026: the house fell before the coins landed): everyone it is meant for stops and stares until the snacks land,
+    and the base can't be hurt until a moment after, so a last stand can't be lost in the throw */
+ who.forEach(u=>{u.stun=Math.max(u.stun||0,L.land);});if(d)G.denSafe=L.land+1.2;else G.houseSafe=L.land+1.2;
  if(d)G.lureD=L;else G.lureH=L;G.camAt={x:d?DEN_X+10:HOUSE_X-10,until:L.throwAt+.2};fx(d?'gobOut':'heroOut');}
 /* one lured unit's move; true while it is busy with its snack (it doesn't fight then) */
 function lured(u,dt){const r=u.lr,L=r.L;if(G.t<L.land+r.it.dl)return false;
@@ -273,7 +276,7 @@ function step(dt){if(!G||G.over)return;G.t+=dt;G.minH=Math.min(G.minH===undefine
   if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];u.fight=true;u.tgFly=!!hit[0].fly;hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});
    if(Math.random()<.18*dt)knock(hit[0],-(1.5+Math.random()*1.5)*(hit[0].boss?.3:1)); /* now and then a hit shoves the critter back a little */
    if(u.mega&&!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+R.life);}}
-  else if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*dt*(G.bossDown||!G.peek?1:.5)*(G.t>TUNE.tired?1.6:1);}
+  else if(u.x-DEN_X<=u.rng){u.fight=true;if(G.t>=(G.denSafe||0))G.denHP-=u.atk*dt*(G.bossDown||!G.peek?1:.5)*(G.t>TUNE.tired?1.6:1);}
   else{u.x-=u.spd*.8*dt*(u.mega&&!u.met?MEGA_RUN:1);u.mv=true;}
   if(u.mega&&R.id==='troll'&&!u.poundAt&&G.t>=u.stompAt&&foes.some(f=>!f.gone&&u.x-f.x>=-2&&u.x-f.x<=6)){u.poundAt=G.t+TROLL.wind;u.windT=G.t;} /* he roars at any critter right in front of him, flyers too */
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
@@ -281,7 +284,7 @@ function step(dt){if(!G||G.over)return;G.t+=dt;G.minH=Math.min(G.minH===undefine
  /* a flyer the paw knocked down walks for a few seconds, then takes off again */
  foes.forEach(f=>{if(f.downUntil&&G.t>=f.downUntil){f.downUntil=0;f.fly=true;}if(f.stun>G.t)return;f.mv=false;if(f.lr&&lured(f,dt))return;const tg=pets.filter(u=>u.ph!=='rise'&&u.ph!=='dive'&&(!f.fly||u.R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
   if(tg.length){const u=tg.reduce((a,b)=>b.x<a.x?b:a);u.hp-=f.atk*dt;f.fight=true;if(Math.random()<.18*dt)knock(u,1.5+Math.random()*1.5);if(f.boss&&G.t>=(G.bossShake||0)){G.bossShake=G.t+1.4;fx('bossHit');}}
-  else if(HOUSE_X-f.x<=f.rng&&(f.fight=true)){G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;G.houseHit=G.t;}
+  else if(HOUSE_X-f.x<=f.rng&&(f.fight=true)){if(G.t>=(G.houseSafe||0)){G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;G.houseHit=G.t;}}
   else{f.x+=f.spd*.8*dt;f.mv=true;}});
  /* knock-back each time a unit loses another third of its health */
  const bump=(u,dir)=>{const k=Math.floor((1-u.hp/u.max)*3);if(u.hp<=0||k<=u.kb)return;u.kb=k;u.stun=G.t+.4;knock(u,dir*(u.boss||u.mega?2:5));};

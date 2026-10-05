@@ -345,7 +345,7 @@ const tests=[
   BattlePets._fix();T.ok(!G.fixing,'Rebuild opened with no bricks left');T.ok(D.TUNE.bricks*D.TUNE.brick>1.99&&D.TUNE.bricks*D.TUNE.brick<2.01,'the bricks are not exactly two full rebuilds');
   /* last stand: the first time the Pet House drops to 25%, the critters are thrown back (once) */
   G.pets.forEach(u=>u.gone=true);D.step(.05);G.houseHP=G.houseMax*.3;D._spawn('basic');const f0=G.foes[G.foes.length-1];f0.x=90;D._spawn('boss');const gob0=G.foes[G.foes.length-1];gob0.x=85;G.houseHP=G.houseMax*.2;D.step(.05);
-  T.ok(G.lsH&&G.lureH&&f0.lr,'at the last stand the hero did not throw chocolate coins for the critters');T.ok(gob0.lr,'the Goblin did not go for the chocolate coins');gob0.gone=true;G.spawnAt=1e9;
+  T.ok(G.lsH&&G.lureH&&f0.lr,'at the last stand the hero did not throw chocolate coins for the critters');{const h0=G.houseHP;f0.x=93;for(let i=0;i<30;i++)D.step(.05);T.ok(G.houseHP>=h0-0.01,'the Pet House kept losing health during the hero\'s throw');}T.ok(gob0.lr,'the Goblin did not go for the chocolate coins');gob0.gone=true;G.spawnAt=1e9;
   for(let i=0;i<300&&f0.lr;i++){G.houseHP=G.houseMax*.2;D.step(.05);}T.ok(!f0.lr&&f0.x<40&&G.lureH.items.some(it=>it.eaten),'the critter did not run back to the den side and eat its coin');
   G.houseHP=G.houseMax;G.foes.forEach(f=>f.gone=true);D.step(.05);
   /* the den's side: the Goblin peeks at half, at a quarter he throws treats, our pets run back, eat (a small heal), then he joins as the boss */
