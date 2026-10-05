@@ -1,6 +1,6 @@
 /* ================= 🚂 the Town Train (Oct 2026) =================
-   A train line across the bottom of the village plaza, below the Wishing Fountain: a grassy hill at each end of the square, seen
-   from the side with its tunnel's stone edge facing the station (the train slides out from behind one and into the other), the
+   A train line across the bottom of the village plaza, below the Wishing Fountain: the brick Depot at the west end, where the train
+   lives, and a grassy hill with a tunnel at the east end, both seen from the side (the train slides out of one and into the other), the
    track between (drawn from the side, like the train) and a departure board 🚉 near the middle,
    and signs on the hills: "Depot" (west) and "Discovery Zone" (east).
    The train comes out of the west tunnel on its own every 4–5 minutes of time on the map, slows into the station, waits
@@ -37,7 +37,8 @@ function tick(dt){TR.t+=dt;
   if(left<=0){TR.ph='out';TR.t=0;TR.bubble='';doors(false);}}
  else if(TR.ph==='out'){const k=Math.min(1,TR.t/T_OUT);TR.front=STOP+(END-STOP)*k*k;if(k>=1){TR.ph='away';TR.t=0;TR.wait=rnd(EVERY[0],EVERY[1]);TR.aboard=[];}}
  /* steam: puffs from the chimney, more when pulling away */
- if(TR.ph!=='away'&&Math.random()<(TR.ph==='stop'?1.2:4)*dt*3)TR.smoke.push({x:TR.front-.55,y:ROW-.85,r:.18,a:.7,vx:TR.ph==='stop'?0:-.4,vy:-.6});
+ const chim=TR.front-.55; /* no smoke while the chimney is inside the Depot or the tunnel */
+ if(TR.ph!=='away'&&chim>FL+.1&&chim<FR-.1&&Math.random()<(TR.ph==='stop'?1.2:4)*dt*3)TR.smoke.push({x:TR.front-.55,y:ROW-.85,r:.18,a:.7,vx:TR.ph==='stop'?0:-.4,vy:-.6});
  TR.smoke.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.r+=.35*dt;s.a-=.45*dt;});TR.smoke=TR.smoke.filter(s=>s.a>0);
  if(TR.ph!=='away'&&TR.ph!=='stop'&&near()){TR.chug=(TR.chug||0)+dt*(TR.ph==='in'?3.5-2.6*Math.min(1,TR.t/T_IN):1+3*Math.min(1,TR.t/T_OUT));if(TR.chug>=1){TR.chug=0;chug();}}
  walkTick(dt);}
@@ -123,6 +124,20 @@ function hill(ctx,cx,cy,ts,xo,xf,d,sign){const X=x=>x*ts-cx,Y=y=>y*ts-cy,base=RO
   ctx.fillStyle='#6b4423';ctx.fillRect(sxm-w*.32,by-h*.4,ts*.08,h*.75);ctx.fillRect(sxm+w*.32-ts*.08,by-h*.4,ts*.08,h*.75);
   ctx.fillStyle='#a0703c';rr(ctx,sxm-w/2,by-h*1.25,w,h,ts*.07);ctx.fill();ctx.strokeStyle='#5c3a1c';ctx.lineWidth=Math.max(1.5,ts*.04);ctx.stroke();
   ctx.fillStyle='#fff8e7';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(sign,sxm,by-h*.75+1);}}
+/* the Depot (west end): a brick train shed seen from the side, where the train lives; it rolls out of the doorway at xf */
+function depot(ctx,cx,cy,ts,xo,xf){const X=x=>x*ts-cx,Y=y=>y*ts-cy,l=X(xo+.1),r=X(xf),base=Y(ROW+.98),top=Y(ROW-1.2),face=ROW-.95;
+ ctx.fillStyle='#b4553a';ctx.fillRect(l,top,r-l,base-top);ctx.fillStyle='#8f3f29';const bh=ts*.16;let row=0;
+ for(let y=top+bh;y<base;y+=bh,row++){ctx.fillRect(l,y,r-l,1.2);for(let x=l+(row%2?ts*.16:0);x<r;x+=ts*.32)ctx.fillRect(x,y-bh,1.2,bh);}
+ ctx.fillStyle='#d9c7a7';ctx.fillRect(l,base-ts*.12,r-l,ts*.12);
+ /* roof with an overhang, and a brick chimney */
+ ctx.fillStyle='#5c3a2a';ctx.beginPath();ctx.moveTo(l-ts*.15,top+ts*.04);ctx.lineTo(l+ts*.25,top-ts*.42);ctx.lineTo(r-ts*.2,top-ts*.42);ctx.lineTo(r+ts*.12,top+ts*.04);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#7a4a33';ctx.fillRect(l-ts*.15,top,r-l+ts*.27,ts*.06);ctx.fillStyle='#9c4630';ctx.fillRect(l+ts*.45,top-ts*.72,ts*.24,ts*.34);ctx.fillStyle='#5c3a2a';ctx.fillRect(l+ts*.41,top-ts*.76,ts*.32,ts*.07);
+ /* two lit arched windows */
+ [.22,.5].forEach(k=>{const wx=l+(r-l)*k,wy=Y(ROW-.75),ww=ts*.36,wh=ts*.42;ctx.fillStyle='#e9e2d0';rr(ctx,wx-ts*.04,wy-ts*.04,ww+ts*.08,wh+ts*.08,ts*.16);ctx.fill();ctx.fillStyle='#ffe8a3';rr(ctx,wx,wy,ww,wh,ts*.14);ctx.fill();ctx.fillStyle='#e9e2d0';ctx.fillRect(wx+ww/2-1,wy,2,wh);ctx.fillRect(wx,wy+wh*.55,ww,2);});
+ /* the doorway's stone edge, where the train comes out, and the sign on the front */
+ const s0=X(xf-.36),sw=ts*.36;ctx.fillStyle='#9a9a9a';ctx.fillRect(s0,Y(face),sw,base-Y(face));ctx.fillStyle='#7d7d7d';for(let y=face+.3;y<ROW+.98;y+=.3)ctx.fillRect(s0,Y(y),sw,1.5);ctx.fillStyle='#b5b5b5';ctx.fillRect(s0-ts*.05,Y(face)-ts*.1,sw+ts*.1,ts*.12);
+ ctx.font=`800 ${Math.round(ts*.3)}px Fredoka, system-ui, sans-serif`;const tw=ctx.measureText('Depot').width+ts*.4,mx=(l+s0)/2,sy=top+ts*.08;ctx.fillStyle='#2b2340';rr(ctx,mx-tw/2,sy,tw,ts*.4,ts*.07);ctx.fill();ctx.strokeStyle='#ffd43b';ctx.lineWidth=2;ctx.stroke();
+ ctx.fillStyle='#ffd43b';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Depot',mx,sy+ts*.2+1);}
 function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)return;const dt=TR.last?Math.min(.1,(now-TR.last)/1000):0;TR.last=now;tick(dt);
  const L=HL0*ts-cx,R=(HR1+1)*ts-cx,ty=ROW*ts-cy;if(R<-ts*3||L>W.vw+ts*3||ty>W.vh+ts*3||ty<-ts*4)return;
  /* the track from the side: gravel bank, sleeper ends and the rail the wheels run on, from inside one hill to inside the other */
@@ -135,7 +150,7 @@ function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)retu
  if(TR.ph!=='away')items.push({y:ROW+.3,draw:()=>{ctx.save();ctx.beginPath();ctx.rect(FL*ts-cx,-1e4,(FR-FL)*ts,2e4);ctx.clip();drawTrain(ctx,cx,cy,ts,now);ctx.restore();drawSmoke(ctx,cx,cy,ts);
   if(TR.bubble&&TR.ph==='stop')bubble(ctx,'🔔 '+TR.bubble,(TR.front-1.8)*ts-cx,(ROW-1.75)*ts-cy,ts);}});
  /* the hills, seen from the side, in front of the train: a grassy mound with the tunnel's stone portal edge facing the station */
- items.push({y:ROW+.65,draw:()=>{hill(ctx,cx,cy,ts,HL0-.15,FL,1,'Depot');hill(ctx,cx,cy,ts,HR1+1.15,FR,-1,'Discovery Zone');}});
+ items.push({y:ROW+.65,draw:()=>{depot(ctx,cx,cy,ts,HL0-.15,FL);hill(ctx,cx,cy,ts,HR1+1.15,FR,-1,'Discovery Zone');}});
  /* departure board */
  items.push({y:BOARD[1]+.02,draw:()=>{const sx=BOARD[0]*ts-cx,sy=BOARD[1]*ts-cy,mid=sx+ts/2,txt=boardText();
   ctx.font=`800 ${Math.round(ts*.28)}px ui-monospace, Menlo, monospace`;const bw=Math.max(ts*1.3,ctx.measureText(txt).width+ts*.4),bh=ts*.62; /* the frame grows to fit the time or the word */
