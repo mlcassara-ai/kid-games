@@ -28,7 +28,7 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 .flag { height: 6.2vh; width: auto; border-radius: .6vh; box-shadow: 0 .4vh 1.2vh rgba(0,0,0,.35); flex: none; }
 .brand h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 5.4vh; line-height: .95; letter-spacing: .02em; }
 .brand p { margin: .3vh 0 0; font-size: 2.1vh; color: var(--ink-soft); letter-spacing: .14em; text-transform: uppercase; }
-.pill { margin-left: auto; font-family: var(--display); font-weight: 800; font-size: 2.8vh; padding: .5vh 1.6vw; border-radius: 99px;
+.pill { font-family: var(--display); font-weight: 800; font-size: 2.8vh; padding: .5vh 1.6vw; border-radius: 99px;
   background: rgba(255,255,255,.1); border: 1px solid var(--line); white-space: nowrap; }
 .pill.q { background: var(--red); border-color: transparent; }
 .pill.r { background: var(--cedar); border-color: transparent; }
@@ -93,6 +93,26 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 .rope .knot { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 5vh; line-height: 1; transition: left 1.4s cubic-bezier(.3,1.4,.5,1); }
 .rope .say { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 2.2vh; color: var(--gold); }
 .row .gd { display: block; font-size: 1.6vh; font-weight: 700; color: var(--ink-soft); line-height: 1.1; }
+/* ---------- rounds, double points, round champion ---------- */
+.tr { margin-left: auto; display: grid; justify-items: end; gap: .8vh; }
+.rnd { font-family: var(--display); font-weight: 800; font-size: 2.4vh; color: var(--ink-soft); white-space: nowrap; }
+.dbl { align-self: flex-start; background: var(--gold); color: #3a2600; border-radius: 99px; padding: .6vh 1.6vw; margin-bottom: 2vh;
+  font-family: var(--display); font-weight: 800; font-size: 3.4vh; letter-spacing: .04em; animation: zap 1s ease-in-out infinite alternate; }
+@keyframes zap { from { transform: scale(1); } to { transform: scale(1.06); } }
+.prize { margin-top: 1.4vh; font-family: var(--display); font-weight: 800; font-size: 2.8vh; color: var(--gold); }
+.row .fire { margin-right: .3vw; }
+.champ { position: absolute; inset: 0; z-index: 4; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 2.4vh;
+  background: radial-gradient(90% 80% at 50% 40%, rgba(246,185,59,.3), transparent 70%), #0a2a1f; text-align: center; }
+.champ.on { display: flex; animation: champIn .6s ease-out; }
+@keyframes champIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+.champ h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 8vh; line-height: 1; color: var(--gold); }
+.champ .sub { font-size: 2.8vh; color: var(--ink-soft); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.champ .win { display: grid; justify-items: center; gap: .6vh; }
+.champ .win .av { font-size: 18vh; line-height: 1; filter: drop-shadow(0 1vh 2vh rgba(0,0,0,.4)); }
+.champ .win .nm { font-family: var(--display); font-weight: 800; font-size: 6.4vh; line-height: 1; }
+.champ .win .pt { font-family: var(--display); font-weight: 800; font-size: 4vh; color: var(--gold); }
+.champ .rest { display: flex; gap: 3vw; font-size: 3vh; font-weight: 700; }
+.champ .rest span b { color: var(--gold); font-family: var(--display); }
 .toast { position: fixed; left: 3.6vw; bottom: 17vh; max-width: 40vw; background: var(--gold); color: #3a2600; border-radius: 1.4vh;
   padding: 1.2vh 1vw; font-weight: 700; font-size: 2.3vh; box-shadow: 0 1vh 2vh rgba(0,0,0,.35); transform: translateY(160%); opacity: 0; transition: transform .45s, opacity .45s; z-index: 5; }
 .toast.on { opacity: 1; }
@@ -108,10 +128,11 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
       <svg class="flag" viewBox="0 0 30 20" aria-label="Flag of Lebanon"><rect width="30" height="20" fill="#e23b2e"/><rect y="5" width="30" height="10" fill="#fff"/>
         <g fill="#1f9e5c"><path d="M15 5.6l2.6 3.2h-1.3l2.4 2.6h-1.5l2.6 2.4H10.2l2.6-2.4h-1.5l2.4-2.6h-1.3z"/><rect x="14.5" y="13.8" width="1" height="1.2"/></g></svg>
       <div class="brand"><h1>Discover Lebanon</h1><p>Family Heritage Night</p></div>
-      <div class="pill" id="pill">Did you know?</div>
+      <div class="tr"><div class="pill" id="pill">Did you know?</div><div class="rnd" id="rnd"></div></div>
     </div>
     <div class="bar"><i id="bar"></i></div>
     <div class="body" id="body"></div>
+    <div class="champ" id="champ" aria-live="polite"></div>
     <div class="tug" aria-label="Kids versus Grown-ups tug-of-war">
       <div class="team kid" id="tkid"><b>🧒 Kids</b><span id="tkidn"></span></div>
       <div class="rope"><div class="mid"></div><div class="knot" id="knot">🚩</div><div class="say" id="say"></div></div>
@@ -126,27 +147,36 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 </div>
 <div class="toast" id="toast"></div>
 <div class="net" id="net"></div>
-<script src="hn-core.js?v=3"></script>
+<script src="hn-core.js?v=4"></script>
 <script>
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var SHAPES = ['▲', '◆', '●', '■'];
-  var players = {}, lastRanks = {}, seen = null, shownKey = '', lastPoll = 0, polling = false, toastQ = [], toastBusy = false;
+  var players = {}, lastRanks = {}, seen = null, shownKey = '', lastPoll = 0, polling = false, toastQ = [], toastBusy = false, champFor = -1;
 
   function renderStage(ph) {
     var q = HN.questionFor(ph.cycle), key = ph.cycle + ph.name, body = $('body'), pill = $('pill');
     if (key !== shownKey) {
       shownKey = key;
+      var qn = HN.qInRound(ph.cycle), dbl = HN.isDouble(ph.cycle) && ph.name !== 'reveal' ? '<div class="dbl">⚡ DOUBLE POINTS!</div>' : '';
+      var rl = roundLabel(ph.cycle);
+      $('rnd').textContent = (rl ? 'Round ' + rl + ' · ' : '') + 'Question ' + qn + ' of ' + HN.ROUND;
+      $('champ').className = 'champ';
+      if (ph.name === 'reveal' && qn === HN.ROUND && champFor !== ph.cycle) {   // last question of the round: crown the champion
+        champFor = ph.cycle; lastPoll = 0;
+        setTimeout(function () { showChamp(ph.cycle); }, HN.FAST ? 900 : 1500);
+      }
       pill.className = 'pill' + (ph.name === 'question' ? ' q' : ph.name === 'reveal' ? ' r' : '');
       pill.textContent = ph.name === 'fact' ? 'Did you know?' : ph.name === 'question' ? 'Answer on your phone!' : 'Answer';
       if (ph.name === 'fact') {
+        var left = HN.ROUND - qn + 1;
         body.className = 'body';
-        body.innerHTML = '<div class="fact"><div class="emo">' + q.e + '</div><div><div class="kicker">Did you know?</div><div class="txt">' + HN.esc(q.f) +
-          '</div><div class="next" id="next"></div></div></div>';
+        body.innerHTML = dbl + '<div class="fact"><div class="emo">' + q.e + '</div><div><div class="kicker">Did you know?</div><div class="txt">' + HN.esc(q.f) +
+          '</div><div class="next" id="next"></div><div class="prize">' + (left === 1 ? 'Round Champion after this question! 🏆' : 'Next Round Champion in ' + left + ' questions! 🏆') + '</div></div></div>';
       } else {
         body.className = 'body' + (ph.name === 'reveal' ? ' reveal' : '');
-        body.innerHTML = '<h2 class="qtext">' + HN.esc(q.q) + '</h2><div class="opts">' + q.opts.map(function (o, i) {
+        body.innerHTML = dbl + '<h2 class="qtext">' + HN.esc(q.q) + '</h2><div class="opts">' + q.opts.map(function (o, i) {
           var cls = ph.name === 'reveal' ? (i === q.right ? ' yes' : ' no') : '';
           return '<div class="opt o' + i + cls + '"><span class="shp">' + SHAPES[i] + '</span><span>' + HN.esc(o) + '</span>' + (ph.name === 'reveal' && i === q.right ? '<span class="tick">✓</span>' : '') + '</div>';
         }).join('') + '</div><div class="status" id="status"></div>';
@@ -167,17 +197,36 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 
   function renderBoard() {
     renderTug();
-    var list = HN.rank(players), top = list.slice(0, 8), b = $('board');
+    var list = HN.rank(players), top = list.slice(0, 8), b = $('board'), cyc = HN.phase().cycle;
     $('count').textContent = list.length ? list.length + (list.length === 1 ? ' player' : ' players') : '';
     if (!list.length) return;
     var ranks = {};
     list.forEach(function (p, i) { ranks[p.id] = i; });
     b.innerHTML = top.map(function (p, i) {
       var was = lastRanks[p.id], up = was != null && was > i;
-      return '<li class="row' + (up ? ' new' : '') + '"><span class="rk">' + (i + 1) + '</span><span class="av">' + HN.esc(p.a) + '</span><span class="nm">' + HN.esc(p.n) + (p.g ? '<span class="gd">' + HN.esc(HN.gradeLabel(p.g)) + '</span>' : '') +
+      return '<li class="row' + (up ? ' new' : '') + '"><span class="rk">' + (i + 1) + '</span><span class="av">' + HN.esc(p.a) + '</span><span class="nm">' + (HN.onFire(p, cyc) ? '<span class="fire">🔥</span>' : '') + HN.esc(p.n) + (p.g ? '<span class="gd">' + HN.esc(HN.gradeLabel(p.g)) + '</span>' : '') +
         (up ? '<span class="up">▲</span>' : '') + '</span><span class="sc">' + p.s.toLocaleString() + '</span></li>';
     }).join('');
     lastRanks = ranks;
+  }
+
+  /* "Round X" counts from the first round this screen saw today (only the screen shows it; phones use the absolute round) */
+  var roundReset = new URLSearchParams(location.search).get('round') === '1';   // ?round=1 starts counting at Round 1 again
+  function roundLabel(cycle) {
+    if (!HN.isSynced()) return 0;   // wait for the server clock before fixing Round 1
+    var r = HN.roundOf(cycle), k = 'heritagenight.round0.' + HN.EVENT, st = HN.lsGet(k);
+    if (!st || r < st.r0 || r - st.r0 > 200 || roundReset) { roundReset = false; st = { r0: r }; HN.lsSet(k, st); }   // fresh start after ~12 hours away
+    return r - st.r0 + 1;
+  }
+  function showChamp(cycle) {
+    var ph = HN.phase(); if (ph.cycle !== cycle || ph.name !== 'reveal') return;
+    var top = HN.roundTop(players, HN.roundOf(cycle)).slice(0, 3), c = $('champ');
+    if (!top.length) return;
+    var w = top[0];
+    c.innerHTML = '<div class="sub">Round ' + (roundLabel(cycle) || '') + ' complete</div><h2>🏆 Round Champion!</h2>' +
+      '<div class="win"><div class="av">' + HN.esc(w.a) + '</div><div class="nm">' + HN.esc(w.n) + '</div><div class="pt">' + w.rs.toLocaleString() + ' points this round</div></div>' +
+      (top.length > 1 ? '<div class="rest">' + top.slice(1).map(function (p, i) { return '<span>' + (i ? '🥉' : '🥈') + ' ' + HN.esc(p.a + ' ' + p.n) + ' <b>' + p.rs.toLocaleString() + '</b></span>'; }).join('') + '</div>' : '');
+    c.className = 'champ on';
   }
 
   /* the rope's flag moves towards the side that is ahead (kids pull left); only moves outside the question, like the board */

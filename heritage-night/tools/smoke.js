@@ -13,7 +13,14 @@ const server = http.createServer((q, r) => {
 const fails = []; let checks = 0;
 const ok = (c, msg) => { checks++; if (!c) { fails.push(msg); console.log('  ✗ ' + msg); } else console.log('  ✓ ' + msg); };
 const STORE = new Map(); let conflicts = 0;
-const stamp = () => new Date(Date.now()).toISOString().replace('Z', '123Z') ; // server time, with extra digits like Firestore
+// The fake server clock is shifted so the test lands on the 10th question of a round that is a double-points question,
+// with two questions before it to build a 3-answer streak (same seeded generator as hn-core.js).
+const CYCLE = 4000 + 6000 + 3000;   // fast mode
+function rng(seed) { let a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const isDouble = c => rng(c * 7907 + 3)() < 1 / 8;
+let C = Math.floor(Date.now() / CYCLE) + 100; while (C % 10 !== 9 || !isDouble(C)) C++;
+let SHIFT = 0;   // set just before the phones join
+const stamp = () => new Date(Date.now() + SHIFT).toISOString().replace('Z', '123Z') ; // server time, with extra digits like Firestore
 async function fake(ctx) {
   await ctx.route(/fonts\.(googleapis|gstatic)/, r => r.fulfill({ status: 200, body: '' }));
   await ctx.route(/identitytoolkit|securetoken/, r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ idToken: 't', refreshToken: 'r', expiresIn: '3600', id_token: 't', refresh_token: 'r', expires_in: '3600' }) }));
@@ -52,6 +59,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
   const browser = await pw.chromium.launch({ executablePath: fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined });
   const errs = [];
   try {
+    SHIFT = (C - 2) * CYCLE - 9000 - Date.now();   // 9 s before the first streak question starts
     const scr = await page(browser, { width: 1920, height: 1080 }, errs, -47000);   // screen clock 47 s slow
     await scr.goto(base + 'screen.html?fast=1&e=test');
     const phones = [];
@@ -70,15 +78,30 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(cyc.every(c => c === cyc[0]), 'screen and phones agree on the cycle despite the screen clock being 47 s off');
     await scr.waitForFunction(() => document.querySelectorAll('.row').length === 3, null, { timeout: 8000 }).catch(() => {});
     ok(await scr.locator('.row').count() === 3, 'leaderboard lists 3 players');
-    await waitPhase(scr, 'fact'); await scr.waitForTimeout(800); await shot(scr, 'screen-fact'); await shot(phones[0], 'phone-fact');
-    await waitPhase(phones[0], 'question'); await phones[0].waitForSelector('.ans');
+    for (const p of phones) await p.waitForFunction(() => HN.isSynced(), null, { timeout: 8000 });
+    const atQ = (p, c) => p.waitForFunction(c => { const h = HN.phase(); return h.cycle === c && h.name === 'question'; }, c, { timeout: 40000 });
+    ok(await scr.evaluate(c => HN.qInRound(c) === 10 && HN.isDouble(c) && HN.roundOf(c) === HN.roundOf(c - 2), C), 'test lands on a double-points 10th question');
+    ok(await scr.evaluate(() => { let n = 0; for (let c = 0; c < 8000; c++) if (HN.isDouble(c)) n++; return n > 800 && n < 1200; }), 'about 1 in 8 questions is double points');
+    for (const c of [C - 2, C - 1]) {   // phone A builds a streak; phone B gets one right
+      await atQ(phones[0], c); await phones[0].waitForSelector('.ans');
+      const r = await phones[0].evaluate(() => HN.questionFor(HN.phase().cycle).right);
+      await phones[0].click('.ans.o' + r); if (c === C - 2) await phones[1].click('.ans.o' + r);
+    }
+    ok(await phones[0].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).st) === 2, 'streak counts 2 in a row');
+    await scr.waitForFunction(c => { const h = HN.phase(); return h.cycle === c && h.name === 'fact'; }, C, { timeout: 30000 }); await scr.waitForTimeout(600);
+    await shot(scr, 'screen-fact'); await shot(phones[0], 'phone-fact');
+    ok(/Round Champion after this question/.test(await scr.textContent('.prize')), 'fact card says the Round Champion comes after this question');
+    ok(/Question 10 of 10/.test(await scr.textContent('#rnd')), 'top bar shows the round and question number');
+    ok(await scr.locator('.dbl').count() === 1 && await phones[0].locator('.dbl').count() === 1, 'double points banner on the screen and the phone');
+    await atQ(phones[0], C); await phones[0].waitForSelector('.ans');
+    const nameA = await phones[0].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).n), before = await phones[0].textContent('#sc');
     const right = await phones[0].evaluate(() => HN.questionFor(HN.phase().cycle).right);
     await shot(scr, 'screen-question'); await shot(phones[0], 'phone-question');
     await phones[0].click('.ans.o' + right);
     await phones[1].waitForTimeout(700); await phones[1].click('.ans.o' + ((right + 1) % 4));
     await phones[1].waitForTimeout(400); await shot(phones[1], 'phone-locked');
     ok(await phones[0].locator('.locked').count() === 1, 'answer locks in');
-    ok(await phones[0].textContent('#sc') === '0', 'score hidden until the reveal');
+    ok(await phones[0].textContent('#sc') === before, 'score hidden until the reveal');
     await scr.waitForTimeout(3000);
     ok(/2/.test(await scr.textContent('#status')), 'screen counts 2 answered');
     await waitPhase(scr, 'reveal'); await scr.waitForTimeout(1600);
@@ -86,11 +109,20 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(/Correct/.test(await phones[0].textContent('.panel')), 'phone A sees Correct!');
     ok(/Not this time/.test(await phones[1].textContent('.panel')), 'phone B sees Not this time');
     ok(/Missed/.test(await phones[2].textContent('.panel')), 'phone C sees Missed');
-    const top = await scr.textContent('.row:first-child .nm'), a = await phones[0].textContent('.me .nm');
-    ok(a.startsWith(top.replace('▲', '')), 'fastest right answer tops the leaderboard (' + top + ')');
+    const top = await scr.textContent('.row:first-child .nm');
+    ok(top.replace('🔥', '').startsWith(nameA), 'fastest right answer tops the leaderboard (' + top + ')');
     ok(/#1/.test(await phones[0].textContent('#rank')), 'phone A told it is #1');
     const sc = +(await phones[0].textContent('#sc')).replace(/,/g, '');
-    ok(sc >= 500 && sc <= 1000, 'score in range (' + sc + ')');
+    const gain = +(await phones[0].textContent('.pts')).replace(/[^0-9]/g, '');
+    ok(gain >= 1200 && gain <= 2200 && gain % 2 === 0, 'double points with the streak bonus (' + gain + ')');
+    ok(/On fire! 3 in a row/.test(await phones[0].textContent('.panel')), 'phone shows the streak bonus');
+    ok(sc >= 2200 && sc <= 4200, 'score in range (' + sc + ')');
+    ok(/🔥/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows 🔥 for the streak');
+    await scr.waitForSelector('#champ.on', { timeout: 3000 }).catch(() => {}); await shot(scr, 'screen-champion');
+    const ch = await scr.textContent('#champ').catch(() => '');
+    ok(/Round Champion/.test(ch) && ch.includes(nameA), 'Round Champion overlay crowns phone A (' + nameA + ')');
+    ok(/🥈/.test(ch), 'runner-up shown');
+    ok(await phones[1].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).st) === 0, 'a wrong answer ends the streak');
     ok(/Fastest/.test(await scr.textContent('#status')), 'screen shows the fastest player');
     ok(/3rd/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows the grade');
     ok(/2 kids/.test(await scr.textContent('#tkidn')) && /1 grown-up \+ 🤖 4 robot helpers/.test(await scr.textContent('#tgrn')), 'tug-of-war counts kids, grown-ups and labelled robot helpers');
@@ -120,7 +152,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(tm.empty, 'empty game is neck and neck');
     // reload keeps the player
     await phones[0].reload(); await phones[0].waitForSelector('.me');
-    ok((await phones[0].textContent('.me .nm')).startsWith(top.replace('▲', '')), 'reload keeps the same player');
+    ok((await phones[0].textContent('.me .nm')).startsWith(nameA), 'reload keeps the same player');
     // every question renders
     ok(await scr.evaluate(() => { for (let c = 0; c < 200; c++) { const q = HN.questionFor(c); if (q.opts.length !== 4 || q.opts[q.right] !== HN.Q[q.id].o[0]) return false; } return true; }), 'shuffled answers keep the right one');
     // a burst of 30 more players writing at once

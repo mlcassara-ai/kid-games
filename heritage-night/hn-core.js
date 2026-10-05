@@ -118,6 +118,21 @@ function phase(t) {
 }
 function points(ms) { return 500 + Math.round(500 * Math.max(0, 1 - ms / T.q)); }
 
+/* ---------- rounds, streaks, double points (all from the cycle number, so every device agrees) ---------- */
+var ROUND = 10, STREAK_AT = 3, STREAK_BONUS = 100;
+function roundOf(cycle) { return Math.floor(cycle / ROUND); }
+function qInRound(cycle) { return ((cycle % ROUND) + ROUND) % ROUND + 1; }           // 1..10
+function isDouble(cycle) { return rng(cycle * 7907 + 3)() < 1 / 8; }                  // about 1 in 8
+/* points for a right answer: speed points, +100 once the streak (counting this answer) is 3+, all doubled on a double cycle */
+function award(ms, streak, cycle) { return (points(ms) + (streak >= STREAK_AT ? STREAK_BONUS : 0)) * (isDouble(cycle) ? 2 : 1); }
+/* top scorers of one round (rs only counts when r is that round) */
+function roundTop(players, round) {
+  return Object.keys(players).map(function (k) { var p = players[k]; return { id: k, n: p.n, a: p.a, g: p.g || '', rs: p.r === round ? p.rs || 0 : 0, j: p.j || 0 }; })
+    .filter(function (p) { return p.rs > 0; }).sort(function (x, y) { return y.rs - x.rs || x.j - y.j; });
+}
+/* a streak shows only if the player answered the last question (or this one) */
+function onFire(p, cycle) { return (p.st || 0) >= STREAK_AT && p.q >= cycle - 1; }
+
 /* ---------- avatars, names and grades ---------- */
 /* the player taps an avatar; the game makes the name (adjective + the avatar's noun), so nothing is ever typed */
 var ADJ = ['Happy', 'Brave', 'Speedy', 'Sunny', 'Jolly', 'Clever', 'Lucky', 'Bouncy', 'Sparkly', 'Mighty', 'Cozy', 'Zippy', 'Giggly', 'Swift', 'Golden', 'Fluffy', 'Daring', 'Cheerful', 'Snappy', 'Super', 'Rocket', 'Twinkly', 'Wiggly', 'Dancing'];
@@ -220,11 +235,11 @@ async function saveEntry(pid, entry) {
 async function syncClock() { try { await putDoc('clock', { at: Date.now() }, 'any'); } catch (e) { } }
 
 function rank(players) {
-  return Object.keys(players).map(function (k) { var p = players[k]; return { id: k, n: p.n, a: p.a, g: p.g || '', s: p.s || 0, c: p.c || 0, j: p.j || 0 }; })
+  return Object.keys(players).map(function (k) { var p = players[k]; return { id: k, n: p.n, a: p.a, g: p.g || '', st: p.st || 0, q: p.q, s: p.s || 0, c: p.c || 0, j: p.j || 0 }; })
     .sort(function (x, y) { return y.s - x.s || y.c - x.c || x.j - y.j; });
 }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
-window.HN = { Q: Q, T: T, EVENT: EVENT, FAST: FAST, PLAY_URL: PLAY_URL, questionFor: questionFor, phase: phase, now: now, points: points,
+window.HN = { Q: Q, T: T, EVENT: EVENT, FAST: FAST, PLAY_URL: PLAY_URL, questionFor: questionFor, phase: phase, now: now, points: points, ROUND: ROUND, STREAK_AT: STREAK_AT, roundOf: roundOf, qInRound: qInRound, isDouble: isDouble, award: award, roundTop: roundTop, onFire: onFire,
   isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, teams: teams, allPlayers: allPlayers, saveEntry: saveEntry, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
 })();
