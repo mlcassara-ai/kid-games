@@ -24,10 +24,12 @@ function tileCols(W,x,y){const G=W._gcol||(W._gcol={}),k=y*1000+x;if(G[k])return
 const ek=(x,y)=>y*1000+x;
 function buildWalls(W){const T=W.T,H=T.length,Wd=T[0].length,raw={},gate={};
  const walk=t=>!!t&&!t.block,spec=t=>!!t&&t.block&&!!(t.gate||t.npc||t.chest);
- const edges=[];for(let y=0;y<H;y++)for(let x=0;x<Wd;x++){const t=T[y][x];if(!land(t))continue;
-  const R=T[y][x+1],D=T[y+1]&&T[y+1][x];
-  if(land(R)&&R.b!==t.b){raw[ek(x,y)]=(raw[ek(x,y)]||0)|1;edges.push({x,y,d:1,p:[t.b,R.b].sort().join('|'),a:t,b:R});}
-  if(land(D)&&D.b!==t.b){raw[ek(x,y)]=(raw[ek(x,y)]||0)|2;edges.push({x,y,d:2,p:[t.b,D.b].sort().join('|'),a:t,b:D});}}
+ /* the town square counts as its own area, so it gets a wall around it too, with openings like any other border (owner, Oct 2026) */
+ const zone=t=>t&&!t.water?(t.plaza?'town':t.b):null;
+ const edges=[];for(let y=0;y<H;y++)for(let x=0;x<Wd;x++){const t=T[y][x],z=zone(t);if(!z)continue;
+  const R=T[y][x+1],D=T[y+1]&&T[y+1][x],zr=zone(R),zd=zone(D);
+  if(zr&&zr!==z){raw[ek(x,y)]=(raw[ek(x,y)]||0)|1;edges.push({x,y,d:1,p:[z,zr].sort().join('|'),a:t,b:R});}
+  if(zd&&zd!==z){raw[ek(x,y)]=(raw[ek(x,y)]||0)|2;edges.push({x,y,d:2,p:[z,zd].sort().join('|'),a:t,b:D});}}
  const open=e=>{gate[ek(e.x,e.y)]=(gate[ek(e.x,e.y)]||0)|e.d;};
  /* stretches of border: edges of the same pair of areas that touch at a corner */
  const ends=e=>e.d===1?[[e.x+1,e.y],[e.x+1,e.y+1]]:[[e.x,e.y+1],[e.x+1,e.y+1]],par=edges.map((_,i)=>i),find=i=>par[i]===i?i:(par[i]=find(par[i]));
@@ -62,18 +64,26 @@ function blocked(W,x1,y1,x2,y2){if(!W||!W.T)return false;if(Math.abs(x2-x1)+Math
  const [x,y,d]=x2>x1?[x1,y1,1]:x2<x1?[x2,y2,1]:y2>y1?[x1,y1,2]:[x2,y2,2];return !!(wallsOf(W,x,y)&d);}
 const WS={};
 const rr=(g,x,y,w,h,r)=>{g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}; /* roundRect is missing on older iPads */
-function wallSprite(ts,dir,v){const key=Math.round(ts)+dir+v;if(WS[key])return WS[key];const L=ts*1.14,Th=ts*.34,c=document.createElement('canvas');
- c.width=Math.ceil(dir==='h'?L:Th);c.height=Math.ceil(dir==='h'?Th:L);const g=c.getContext('2d'),n=4,GREY=['#a8a29a','#b5afa6','#9d968c','#bdb7ae','#a39d93'];
+/* age: 0 = clean, 1 = weathered (dirt stains, a crack), 2 = old and mossy (owner, Oct 2026: walls should look a little old). Chosen by
+   stretch of wall, so whole runs look mossy or dusty rather than every stone being different. */
+function wallSprite(ts,dir,v,age){const key=Math.round(ts)+dir+v+'a'+age;if(WS[key])return WS[key];const L=ts*1.14,Th=ts*.34,c=document.createElement('canvas');
+ c.width=Math.ceil(dir==='h'?L:Th);c.height=Math.ceil(dir==='h'?Th:L);const g=c.getContext('2d'),n=4,GREY=['#a8a29a','#b5afa6','#9d968c','#bdb7ae','#a39d93'],OLD=['#9d978c','#a49d90','#938c80','#aaa396','#968f84'];
  for(let i=0;i<n;i++){const hv=hash(v*17+i,dir==='h'?3:9),len=L/n*(1.02+hv*.12),u=(i+.5)*L/n+(hv-.5)*ts*.04,w=Th*(.78+hash(i,v*5)*.18);
-  const [x,y,ww,hh]=dir==='h'?[u-len/2,(Th-w)/2,len,w]:[(Th-w)/2,u-len/2,w,len],r=Math.min(ww,hh)*.42;
+  const [x,y,ww,hh]=dir==='h'?[u-len/2,(Th-w)/2,len,w]:[(Th-w)/2,u-len/2,w,len],r=Math.min(ww,hh)*.42,hs=hash(i*7+v*13,age*31+(dir==='h'?1:2));
   g.fillStyle='rgba(40,30,20,.22)';g.beginPath();rr(g,x+1,y+2.5,ww,hh,r);g.fill();
-  g.fillStyle=GREY[Math.floor(hash(i*3+v,7)*GREY.length)];g.strokeStyle='#5c544b';g.lineWidth=Math.max(1,ts*.025);g.beginPath();rr(g,x,y,ww,hh,r);g.fill();g.stroke();
-  g.fillStyle='rgba(255,255,255,.35)';g.beginPath();rr(g,x+ww*.18,y+hh*.14,ww*.5,hh*.28,r*.5);g.fill();}
+  g.fillStyle=(age?OLD:GREY)[Math.floor(hash(i*3+v,7)*GREY.length)];g.strokeStyle='#5c544b';g.lineWidth=Math.max(1,ts*.025);g.beginPath();rr(g,x,y,ww,hh,r);g.fill();g.stroke();
+  g.save();g.beginPath();rr(g,x,y,ww,hh,r);g.clip();
+  if(age&&hs<.75){g.fillStyle='rgba(96,72,44,.28)';g.beginPath();g.ellipse(x+ww*(.3+hs*.4),y+hh*.78,ww*.4,hh*.3,0,0,7);g.fill();} /* dirt along the bottom */
+  if(age===1&&hs>.6){g.strokeStyle='rgba(70,60,50,.55)';g.lineWidth=Math.max(1,ts*.018);g.beginPath();g.moveTo(x+ww*.55,y+hh*.12);g.lineTo(x+ww*.45,y+hh*.5);g.lineTo(x+ww*.6,y+hh*.85);g.stroke();} /* a crack */
+  if(age===2&&hs<.8){const m=2+Math.floor(hs*3);for(let k=0;k<m;k++){const mx=x+ww*hash(i*5+k,v+age*3),my=y+hh*(.05+.4*hash(k*3+i,v*7+1)),mr=Math.min(ww,hh)*(.18+.2*hash(k,i+v));
+    g.fillStyle=k%2?'rgba(104,148,62,.9)':'rgba(78,124,48,.9)';g.beginPath();g.arc(mx,my,mr,0,7);g.fill();}} /* moss on top */
+  g.restore();
+  if(age<2||hs>=.8){g.fillStyle='rgba(255,255,255,'+(age?.22:.35)+')';g.beginPath();rr(g,x+ww*.18,y+hh*.14,ww*.5,hh*.28,r*.5);g.fill();}}
  return WS[key]=c;}
 function drawWalls(ctx,W,x0,x1,y0,y1,cx,cy,ts){const o=ts*.07,Th=ts*.34,up=ts*.42;
- for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const m=wallsOf(W,x,y);if(!m)continue;const v=Math.floor(hash(x,y*3)*4);
-  if(m&1)ctx.drawImage(wallSprite(ts,'v',v),(x+1)*ts-cx-Th/2,y*ts-cy-o);
-  if(m&2)ctx.drawImage(wallSprite(ts,'h',v),x*ts-cx-o,(y+1)*ts-cy-Th/2);}
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const m=wallsOf(W,x,y);if(!m)continue;const v=Math.floor(hash(x,y*3)*4),ag=hash(Math.floor(x/4)*7+1,Math.floor(y/4)*5+3),age=ag<.35?0:ag<.65?1:2;
+  if(m&1)ctx.drawImage(wallSprite(ts,'v',v,age),(x+1)*ts-cx-Th/2,y*ts-cy-o);
+  if(m&2)ctx.drawImage(wallSprite(ts,'h',v,age),x*ts-cx-o,(y+1)*ts-cy-Th/2);}
  /* gates are plain openings in the wall (owner, Oct 2026: nothing drawn, so kids aren't confused) */}
 const N=4; /* small squares per tile side: 4×4 per tile (owner, Oct 2026: a quarter of the earlier 2×2) */
 function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2,q=ts/N;
