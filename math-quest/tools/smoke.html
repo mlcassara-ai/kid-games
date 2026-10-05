@@ -205,7 +205,8 @@ const tests=[
    await T.wait(300);T.ok(/ride straight down/.test(document.body.innerText+document.body.innerText),'no welcome for a trip without a rock');go('world');try{closeModal();}catch(e){}}
   go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.body.innerText),'the Fact Gym building did not open the fact grid');go('map');T.ok(!document.querySelector('.mq-hc'),'Mastery card is still on the Quest Board');go('world');await T.wait(50);
   T.ok(!document.querySelector('.topbar button.tb-hero')&&document.querySelectorAll('.topbar [onclick*="backpack"]').length===1,'the top bar has more than one way into the Bag');
-  {const z=ZONES.find(x=>x.id==='garden');T.ok(zoneTag(p,z)==='','an untouched world shows progress');p.progress.garden=[3,2,1,0,0,0];T.ok(zoneTag(p,z)===' 3/6','world progress tag is wrong: '+zoneTag(p,z));p.progress.garden=[3,3,3,3,3,3];T.ok(/🥉 0\/6/.test(zoneTag(p,z)),'medal tag is wrong: '+zoneTag(p,z));}
+  {const z=ZONES.find(x=>x.id==='garden');T.ok(zoneTag(p,z)===' (Level: Start)','an untouched world is not at Level: Start: '+zoneTag(p,z));p.progress.garden=[3,2,1,0,0,0];T.ok(zoneTag(p,z)===' (Level: Start)','a half-done first round is not still Start: '+zoneTag(p,z));p.progress.garden=[3,3,3,3,3,3];T.ok(zoneTag(p,z)===' (Level: Bronze)','the Bronze level tag is wrong: '+zoneTag(p,z));
+   const a0=p.asc;p.asc=Object.assign({},p.asc,{garden:{rank:2}});T.ok(zoneTag(p,z)===' (Level: Ascension 2)','the Ascension level tag is wrong: '+zoneTag(p,z));p.asc=a0;}
   T.ok(wWalk(W.hx,W.hy),'hero starts on a blocked tile');T.ok(!bad.length,bad.slice(0,4).join(' | '));window.MQ_TRUCK_BETA=false;delete window.MQ_DISTRICT_BETA;W=null;}],
 
 ['food truck: hidden unless the preview switch is on; then card, screens and map spot',async function(){
