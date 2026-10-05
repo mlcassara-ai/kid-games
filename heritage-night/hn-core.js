@@ -118,18 +118,36 @@ function phase(t) {
 }
 function points(ms) { return 500 + Math.round(500 * Math.max(0, 1 - ms / T.q)); }
 
-/* ---------- names ---------- */
+/* ---------- avatars, names and grades ---------- */
+/* the player taps an avatar; the game makes the name (adjective + the avatar's noun), so nothing is ever typed */
 var ADJ = ['Happy', 'Brave', 'Speedy', 'Sunny', 'Jolly', 'Clever', 'Lucky', 'Bouncy', 'Sparkly', 'Mighty', 'Cozy', 'Zippy', 'Giggly', 'Swift', 'Golden', 'Fluffy', 'Daring', 'Cheerful', 'Snappy', 'Super', 'Rocket', 'Twinkly', 'Wiggly', 'Dancing'];
-var NOUN = [['Cedar', '🌲'], ['Lemon', '🍋'], ['Fox', '🦊'], ['Dolphin', '🐬'], ['Turtle', '🐢'], ['Owl', '🦉'], ['Hedgehog', '🦔'], ['Bunny', '🐰'],
-  ['Butterfly', '🦋'], ['Bee', '🐝'], ['Falcon', '🦅'], ['Pita', '🥙'], ['Orange', '🍊'], ['Grape', '🍇'], ['Apple', '🍎'], ['Cucumber', '🥒'],
-  ['Palm Tree', '🌴'], ['Za’atar', '🌿'], ['Hummus', '🥣'], ['Baklava', '🍯'], ['Ma’amoul', '🍪'], ['Lion', '🦁'], ['Sailboat', '⛵'], ['Drummer', '🥁']];
+var AVATARS = [['🌲', 'Cedar'], ['🍋', 'Lemon'], ['🦊', 'Fox'], ['🐢', 'Sea Turtle'], ['🐱', 'Cat'], ['🐐', 'Mountain Goat'], ['🦉', 'Owl'], ['🦔', 'Hedgehog'],
+  ['🦋', 'Butterfly'], ['🐬', 'Dolphin'], ['🧆', 'Falafel'], ['🍪', 'Ma’amoul'], ['🥙', 'Pita'], ['🍇', 'Grape'], ['🥁', 'Drummer'], ['⛵', 'Sailboat']];
+var GRADES = [['tk', 'TK'], ['k', 'K'], ['1', '1st'], ['2', '2nd'], ['3', '3rd'], ['4', '4th'], ['5', '5th'], ['a', 'Grown-up']];
+function gradeLabel(g) { for (var i = 0; i < GRADES.length; i++) if (GRADES[i][0] === g) return GRADES[i][1]; return ''; }
+function isGrown(p) { return p && p.g === 'a'; }   // anyone without a grade counts as a kid
 function randInt(n) { return crypto.getRandomValues(new Uint32Array(1))[0] % n; }
-function newName(taken) {
-  for (var i = 0; i < 40; i++) {
-    var nn = NOUN[randInt(NOUN.length)], name = ADJ[randInt(ADJ.length)] + ' ' + nn[0];
-    if (!taken || !taken[name]) return { n: name, a: nn[1] };
-  }
-  var x = NOUN[randInt(NOUN.length)]; return { n: ADJ[randInt(ADJ.length)] + ' ' + x[0] + ' ' + (2 + randInt(98)), a: x[1] };
+function newName(taken, av) {
+  var x = AVATARS[av == null ? randInt(AVATARS.length) : av];
+  for (var i = 0; i < 40; i++) { var name = ADJ[randInt(ADJ.length)] + ' ' + x[1]; if (!taken || !taken[name]) return { n: name, a: x[0] }; }
+  return { n: ADJ[randInt(ADJ.length)] + ' ' + x[1] + ' ' + (2 + randInt(98)), a: x[0] };
+}
+
+/* ---------- Kids vs Grown-ups tug-of-war ----------
+   Each side's score is its average points per question answered, so the bigger side has no advantage.
+   Kids' average counts KID_BONUS times. When fewer than BOT_FILL real grown-ups have joined, labelled robot helpers
+   fill the grown-up side's head count. Robots only score when no real grown-up has answered yet, and then always a
+   little behind the kids, so they can never win. Once a real grown-up answers, it is a real contest. */
+var KID_BONUS = 1.25, BOT_FILL = 5;
+function teams(players, cycle) {
+  var k = { n: 0, pts: 0, ans: 0 }, g = { n: 0, pts: 0, ans: 0 };
+  for (var id in players) { var p = players[id], t = isGrown(p) ? g : k; t.n++; t.pts += p.s || 0; t.ans += p.na || 0; }
+  var kid = k.ans ? KID_BONUS * k.pts / k.ans : 0, bots = k.n ? Math.max(0, BOT_FILL - g.n) : 0, grown = 0;
+  if (g.ans) grown = g.pts / g.ans;
+  else if (bots && kid) grown = kid * (0.8 + 0.15 * rng((cycle || 0) * 131 + 7)());   // a close race the kids always lead
+  var tot = kid + grown, kidShare = tot ? kid / tot : 0.5;
+  return { kids: k.n, grown: g.n, bots: bots, kid: Math.round(kid), grownPts: Math.round(grown), kidShare: kidShare,
+    lead: Math.abs(kidShare - 0.5) < 0.01 ? '' : kidShare > 0.5 ? 'kids' : 'grown' };
 }
 
 /* ---------- Firestore over REST (anonymous auth, like the other games) ---------- */
@@ -202,11 +220,11 @@ async function saveEntry(pid, entry) {
 async function syncClock() { try { await putDoc('clock', { at: Date.now() }, 'any'); } catch (e) { } }
 
 function rank(players) {
-  return Object.keys(players).map(function (k) { var p = players[k]; return { id: k, n: p.n, a: p.a, s: p.s || 0, c: p.c || 0, j: p.j || 0 }; })
+  return Object.keys(players).map(function (k) { var p = players[k]; return { id: k, n: p.n, a: p.a, g: p.g || '', s: p.s || 0, c: p.c || 0, j: p.j || 0 }; })
     .sort(function (x, y) { return y.s - x.s || y.c - x.c || x.j - y.j; });
 }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
 window.HN = { Q: Q, T: T, EVENT: EVENT, FAST: FAST, PLAY_URL: PLAY_URL, questionFor: questionFor, phase: phase, now: now, points: points,
-  isSynced: function () { return synced; }, newName: newName, allPlayers: allPlayers, saveEntry: saveEntry, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
+  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, teams: teams, allPlayers: allPlayers, saveEntry: saveEntry, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
 })();

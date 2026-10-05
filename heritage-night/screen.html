@@ -78,7 +78,22 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 .join .qr svg { width: 100%; height: 100%; display: block; }
 .join b { font-family: var(--display); font-weight: 800; font-size: 3.4vh; line-height: 1; }
 .join span { font-size: 1.35vh; text-align: center; white-space: nowrap; color: #3d5a4e; }
-.toast { position: fixed; left: 3.6vw; bottom: 3vh; max-width: 40vw; background: var(--gold); color: #3a2600; border-radius: 1.4vh;
+/* ---------- Kids vs Grown-ups tug-of-war (bottom of the stage) ---------- */
+.tug { flex: none; display: grid; grid-template-columns: 27% 1fr 27%; align-items: center; gap: 1.4vw; margin-top: 2vh; padding: 1.4vh 1.4vw;
+  border-radius: 2vh; background: rgba(0,0,0,.22); border: 1px solid var(--line); }
+.team { display: grid; gap: .2vh; line-height: 1.05; }
+.team.gr { text-align: right; }
+.team b { font-family: var(--display); font-weight: 800; font-size: 3.6vh; }
+.team span { font-size: 1.9vh; color: var(--ink-soft); font-weight: 700; }
+.team.lead b { color: var(--gold); }
+.rope { position: relative; height: 9vh; }
+.rope::before { content: ""; position: absolute; left: 0; right: 0; top: 40%; height: 1.2vh; margin-top: -.6vh; border-radius: 99px;
+  background: repeating-linear-gradient(115deg, #c79a5b 0 1.1vh, #a87b40 1.1vh 2.2vh); box-shadow: 0 .4vh .8vh rgba(0,0,0,.35); }
+.rope .mid { position: absolute; left: 50%; top: 5%; bottom: 30%; width: .4vh; margin-left: -.2vh; background: rgba(255,255,255,.55); border-radius: 99px; }
+.rope .knot { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 5vh; line-height: 1; transition: left 1.4s cubic-bezier(.3,1.4,.5,1); }
+.rope .say { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 2.2vh; color: var(--gold); }
+.row .gd { display: block; font-size: 1.6vh; font-weight: 700; color: var(--ink-soft); line-height: 1.1; }
+.toast { position: fixed; left: 3.6vw; bottom: 17vh; max-width: 40vw; background: var(--gold); color: #3a2600; border-radius: 1.4vh;
   padding: 1.2vh 1vw; font-weight: 700; font-size: 2.3vh; box-shadow: 0 1vh 2vh rgba(0,0,0,.35); transform: translateY(160%); opacity: 0; transition: transform .45s, opacity .45s; z-index: 5; }
 .toast.on { opacity: 1; }
 .toast.on { transform: none; }
@@ -97,6 +112,11 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
     </div>
     <div class="bar"><i id="bar"></i></div>
     <div class="body" id="body"></div>
+    <div class="tug" aria-label="Kids versus Grown-ups tug-of-war">
+      <div class="team kid" id="tkid"><b>🧒 Kids</b><span id="tkidn"></span></div>
+      <div class="rope"><div class="mid"></div><div class="knot" id="knot">🚩</div><div class="say" id="say"></div></div>
+      <div class="team gr" id="tgr"><b>Grown-ups 🧑</b><span id="tgrn"></span></div>
+    </div>
   </section>
   <aside class="side">
     <h2>Leaderboard <small id="count"></small></h2>
@@ -106,7 +126,7 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 </div>
 <div class="toast" id="toast"></div>
 <div class="net" id="net"></div>
-<script src="hn-core.js?v=2"></script>
+<script src="hn-core.js?v=3"></script>
 <script>
 (function () {
   'use strict';
@@ -146,6 +166,7 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
   }
 
   function renderBoard() {
+    renderTug();
     var list = HN.rank(players), top = list.slice(0, 8), b = $('board');
     $('count').textContent = list.length ? list.length + (list.length === 1 ? ' player' : ' players') : '';
     if (!list.length) return;
@@ -153,10 +174,21 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
     list.forEach(function (p, i) { ranks[p.id] = i; });
     b.innerHTML = top.map(function (p, i) {
       var was = lastRanks[p.id], up = was != null && was > i;
-      return '<li class="row' + (up ? ' new' : '') + '"><span class="rk">' + (i + 1) + '</span><span class="av">' + HN.esc(p.a) + '</span><span class="nm">' + HN.esc(p.n) +
+      return '<li class="row' + (up ? ' new' : '') + '"><span class="rk">' + (i + 1) + '</span><span class="av">' + HN.esc(p.a) + '</span><span class="nm">' + HN.esc(p.n) + (p.g ? '<span class="gd">' + HN.esc(HN.gradeLabel(p.g)) + '</span>' : '') +
         (up ? '<span class="up">▲</span>' : '') + '</span><span class="sc">' + p.s.toLocaleString() + '</span></li>';
     }).join('');
     lastRanks = ranks;
+  }
+
+  /* the rope's flag moves towards the side that is ahead (kids pull left); only moves outside the question, like the board */
+  function renderTug() {
+    var t = HN.teams(players, HN.phase().cycle), pos = Math.max(8, Math.min(92, 50 - (t.kidShare - 0.5) * 200));
+    $('knot').style.left = pos + '%';
+    $('tkidn').textContent = t.kids + (t.kids === 1 ? ' kid' : ' kids');
+    $('tgrn').textContent = t.grown + (t.grown === 1 ? ' grown-up' : ' grown-ups') + (t.bots ? ' + 🤖 ' + t.bots + ' robot helper' + (t.bots === 1 ? '' : 's') : '');
+    $('tkid').className = 'team kid' + (t.lead === 'kids' ? ' lead' : '');
+    $('tgr').className = 'team gr' + (t.lead === 'grown' ? ' lead' : '');
+    $('say').textContent = !t.kids && !t.grown ? 'Kids vs Grown-ups!' : t.lead === 'kids' ? 'Kids are pulling ahead!' : t.lead === 'grown' ? 'Grown-ups are pulling ahead!' : 'Neck and neck!';
   }
 
   function toast(msg) { toastQ.push(msg); if (!toastBusy) nextToast(); }

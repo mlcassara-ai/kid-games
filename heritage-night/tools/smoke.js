@@ -59,7 +59,11 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await phones[0].waitForSelector('#go'); await shot(phones[0], 'phone-join');
     const n1 = await phones[0].textContent('.big-nm'); await phones[0].click('#reroll');
     ok((await phones[0].textContent('.big-nm')).length > 3, 'name re-roll gives a name (' + n1 + ')');
-    for (const p of phones) await p.click('#go');
+    ok(await phones[0].locator('#go[disabled]').count() === 1, 'cannot join before picking a grade');
+    await phones[0].click('[data-av="3"]');
+    ok(/Sea Turtle$/.test(await phones[0].textContent('.big-nm')), 'picking an avatar makes a matching name');
+    const grades = ['3', 'k', 'a'];   // phones A and B are kids, phone C is a grown-up
+    for (let i = 0; i < 3; i++) { await phones[i].click('[data-g="' + grades[i] + '"]'); await phones[i].click('#go'); }
     await scr.waitForTimeout(1500);
     ok(await scr.evaluate(() => HN.isSynced()), 'screen clock synced to server time');
     const cyc = await Promise.all([scr, ...phones].map(p => p.evaluate(() => HN.phase().cycle)));
@@ -88,6 +92,32 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     const sc = +(await phones[0].textContent('#sc')).replace(/,/g, '');
     ok(sc >= 500 && sc <= 1000, 'score in range (' + sc + ')');
     ok(/Fastest/.test(await scr.textContent('#status')), 'screen shows the fastest player');
+    ok(/3rd/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows the grade');
+    ok(/2 kids/.test(await scr.textContent('#tkidn')) && /1 grown-up \+ 🤖 4 robot helpers/.test(await scr.textContent('#tgrn')), 'tug-of-war counts kids, grown-ups and labelled robot helpers');
+    ok(/Kids are pulling ahead/.test(await scr.textContent('#say')), 'kids lead while only robots score for the grown-ups');
+    await phones[0].waitForSelector('#team:not(:empty)', { timeout: 5000 }).catch(() => {});
+    ok(/winning/.test(await phones[0].textContent('#team')) && /behind/.test(await phones[2].textContent('#team')), 'phones say which team is winning');
+    // team maths, straight from the engine
+    const tm = await scr.evaluate(() => {
+      const mk = (g, s, na) => ({ g, s, na }), r = {};
+      // robots never win: one kid, no real grown-up answers, every cycle
+      r.botsLose = true; for (let c = 0; c < 500; c++) { const t = HN.teams({ k: mk('2', 300, 3) }, c); if (t.lead !== 'kids' || t.bots !== 5) r.botsLose = false; }
+      // averages, not head count: 10 kids averaging 600 (x1.25 = 750) lose to 1 grown-up averaging 800
+      const many = {}; for (let i = 0; i < 10; i++) many['k' + i] = mk('4', 1200, 2); many.g = mk('a', 800, 1);
+      const t2 = HN.teams(many, 1); r.avg = t2.lead === 'grown' && t2.bots === 4;
+      // the kid bonus: kids 700 avg (875) beat a grown-up at 800
+      r.bonus = HN.teams({ k: mk('1', 700, 1), g: mk('a', 800, 1) }, 1).lead === 'kids';
+      // five real grown-ups: no robots
+      const five = { k: mk('5', 100, 1) }; for (let i = 0; i < 5; i++) five['g' + i] = mk('a', 0, 0);
+      r.noBots = HN.teams(five, 1).bots === 0;
+      r.empty = HN.teams({}, 1).lead === '';
+      return r;
+    });
+    ok(tm.botsLose, 'robot helpers never beat the kids');
+    ok(tm.avg, 'team score is the average, not the head count');
+    ok(tm.bonus, 'kids get their bonus');
+    ok(tm.noBots, 'no robot helpers once 5 real grown-ups join');
+    ok(tm.empty, 'empty game is neck and neck');
     // reload keeps the player
     await phones[0].reload(); await phones[0].waitForSelector('.me');
     ok((await phones[0].textContent('.me .nm')).startsWith(top.replace('▲', '')), 'reload keeps the same player');

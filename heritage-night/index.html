@@ -38,6 +38,16 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 .btn.go { background: var(--gold); color: #3a2600; }
 .btn.alt { background: rgba(255,255,255,.12); font-size: 1.1rem; padding: 12px; box-shadow: none; }
 .btn:focus-visible, .ans:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.pick-lbl { color: var(--ink-soft); font-weight: 700; font-size: .95rem; justify-self: start; }
+.avs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; }
+.avs button, .grades button { background: rgba(255,255,255,.09); border-radius: 14px; border: 2px solid transparent; }
+.avs button { font-size: 2.2rem; line-height: 1; padding: 10px 0; }
+.grades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; }
+.grades button { font-family: var(--display); font-weight: 800; font-size: 1.25rem; padding: 10px 0; }
+.grades button.wide { grid-column: span 4; }
+.avs button.on, .grades button.on { border-color: var(--gold); background: rgba(246,185,59,.22); }
+.btn.go:disabled { opacity: .45; box-shadow: none; transform: none; }
+.team { background: rgba(255,255,255,.08); border-radius: 14px; padding: 10px 14px; font-weight: 700; font-size: 1rem; }
 .how { color: var(--ink-soft); font-size: .95rem; line-height: 1.45; text-align: left; margin: 0; padding-left: 1.2em; }
 
 /* play */
@@ -73,7 +83,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 </head>
 <body>
 <div class="app" id="app"></div>
-<script src="hn-core.js?v=2"></script>
+<script src="hn-core.js?v=3"></script>
 <script>
 (function () {
   'use strict';
@@ -81,11 +91,11 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   var SHAPES = ['▲', '◆', '●', '■'];
   var KEY = 'heritagenight.me.' + HN.EVENT;
   var FLAG = '<svg class="flag" viewBox="0 0 30 20" aria-label="Flag of Lebanon"><rect width="30" height="20" fill="#e23b2e"/><rect y="5" width="30" height="10" fill="#fff"/><g fill="#1f9e5c"><path d="M15 5.6l2.6 3.2h-1.3l2.4 2.6h-1.5l2.6 2.4H10.2l2.6-2.4h-1.5l2.4-2.6h-1.3z"/><rect x="14.5" y="13.8" width="1" height="1.2"/></g></svg>';
-  var me = HN.lsGet(KEY), draft = null, taken = {}, shownKey = '', dirty = false, saving = false, rankInfo = null, rankFor = -1;
+  var me = HN.lsGet(KEY), draft = null, pickAv = 0, pickG = '', taken = {}, shownKey = '', dirty = false, saving = false, rankInfo = null, rankFor = -1, teamLine = '';
 
   function save() { HN.lsSet(KEY, me); }
   function rid(n) { var a = new Uint8Array(n), s = ''; crypto.getRandomValues(a); for (var i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz0123456789'[a[i] % 36]; return s; }
-  function entry() { return { n: me.n, a: me.a, s: me.s, c: me.c, j: me.j, q: me.q == null ? -1 : me.q, k: !!me.k, t: me.t || 0 }; }
+  function entry() { return { n: me.n, a: me.a, g: me.g, na: me.na || 0, s: me.s, c: me.c, j: me.j, q: me.q == null ? -1 : me.q, k: !!me.k, t: me.t || 0 }; }
   async function push() {
     if (saving) { dirty = true; return; }
     saving = true; dirty = false;
@@ -98,16 +108,28 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   function wake() { try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {} }
 
   /* ---------- join ---------- */
+  /* avatar -> the game makes a matching name (🎲 for another), then the grade (TK-5th or Grown-up) picks the team.
+     A player saved before grades existed only sees the grade step. */
   function joinView() {
-    if (!draft) draft = HN.newName(taken);
+    var regrade = !!(me && me.pid);
+    if (!regrade && !draft) { pickAv = Math.floor(Math.random() * HN.AVATARS.length); draft = HN.newName(taken, pickAv); }
+    var shown = regrade ? me : draft;
     app.innerHTML = '<div class="head">' + FLAG + '<div><h1>Discover Lebanon</h1><div class="sub">Family Heritage Night</div></div></div>' +
-      '<div class="card"><div class="lbl">Your player name</div><div class="big-av">' + HN.esc(draft.a) + '</div><div class="big-nm">' + HN.esc(draft.n) + '</div>' +
-      '<button class="btn alt" id="reroll">🎲 Pick a different name</button><button class="btn go" id="go">Let’s play!</button></div>' +
-      '<ol class="how"><li>Read the fun fact on the big screen.</li><li>When the question comes, tap your answer here.</li><li>Right answers score points. Faster answers score more!</li></ol>' +
+      '<div class="card"><div class="big-av">' + HN.esc(shown.a) + '</div><div class="big-nm">' + HN.esc(shown.n) + '</div>' +
+      (regrade ? '' : '<button class="btn alt" id="reroll">🎲 Different name</button><div class="pick-lbl">Pick your buddy</div><div class="avs">' +
+        HN.AVATARS.map(function (x, i) { return '<button data-av="' + i + '" class="' + (i === pickAv ? 'on' : '') + '" aria-label="' + HN.esc(x[1]) + '">' + x[0] + '</button>'; }).join('') + '</div>') +
+      '<div class="pick-lbl">What grade are you in?</div><div class="grades">' +
+        HN.GRADES.map(function (g) { return '<button data-g="' + g[0] + '" class="' + (g[0] === 'a' ? 'wide ' : '') + (g[0] === pickG ? 'on' : '') + '">' + (g[0] === 'a' ? '🧑 I’m a grown-up' : g[1]) + '</button>'; }).join('') + '</div>' +
+      '<button class="btn go" id="go"' + (pickG ? '' : ' disabled') + '>' + (pickG ? (pickG === 'a' ? 'Play for the Grown-ups!' : 'Play for the Kids!') : 'Pick your grade') + '</button></div>' +
+      '<ol class="how"><li>Read the fun fact on the big screen.</li><li>When the question comes, tap your answer here.</li><li>Right answers score points. Faster answers score more!</li><li>Kids and grown-ups pull a tug-of-war on the big screen. Help your team win!</li></ol>' +
       '<div class="net" id="net"></div>';
-    document.getElementById('reroll').onclick = function () { draft = HN.newName(taken); joinView(); };
+    var rr = document.getElementById('reroll'); if (rr) rr.onclick = function () { draft = HN.newName(taken, pickAv); joinView(); };
+    Array.prototype.forEach.call(app.querySelectorAll('[data-av]'), function (b) { b.onclick = function () { pickAv = +b.getAttribute('data-av'); draft = HN.newName(taken, pickAv); joinView(); }; });
+    Array.prototype.forEach.call(app.querySelectorAll('[data-g]'), function (b) { b.onclick = function () { pickG = b.getAttribute('data-g'); joinView(); }; });
     document.getElementById('go').onclick = function () {
-      me = { pid: rid(16), n: draft.n, a: draft.a, s: 0, c: 0, j: Date.now(), q: -1 };
+      if (!pickG) return;
+      if (regrade) me.g = pickG;
+      else me = { pid: rid(16), n: draft.n, a: draft.a, g: pickG, s: 0, c: 0, na: 0, j: Date.now(), q: -1 };
       save(); wake(); shownKey = ''; push(); tick();
     };
   }
@@ -115,21 +137,27 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   /* ---------- play ---------- */
   function header(ph) {
     var r = rankInfo ? ' · #' + rankInfo.r + ' of ' + rankInfo.n : '';
-    return '<div class="me"><span class="av">' + HN.esc(me.a) + '</span><span class="nm">' + HN.esc(me.n) + '<small>' + me.c + ' right' + r + '</small></span><span class="sc" id="sc">' + (me.shown || 0).toLocaleString() + '</span></div>' +
+    return '<div class="me"><span class="av">' + HN.esc(me.a) + '</span><span class="nm">' + HN.esc(me.n) + '<small>' + HN.esc(HN.gradeLabel(me.g)) + ' · ' + me.c + ' right' + r + '</small></span><span class="sc" id="sc">' + (me.shown || 0).toLocaleString() + '</span></div>' +
       '<div class="bar"><i id="bar"></i></div>';
   }
   function answer(ph, i) {
     var cur = HN.phase();
     if (cur.name !== 'question' || cur.cycle !== ph.cycle || me.q === ph.cycle) return;
     var q = HN.questionFor(ph.cycle), ms = Math.max(0, HN.now() - cur.qStart), ok = i === q.right;
-    me.q = ph.cycle; me.pick = i; me.k = ok; me.t = ms; me.gain = ok ? HN.points(ms) : 0;
+    me.q = ph.cycle; me.na = (me.na || 0) + 1; me.pick = i; me.k = ok; me.t = ms; me.gain = ok ? HN.points(ms) : 0;
     if (ok) { me.s += me.gain; me.c++; }
     save(); push(); shownKey = ''; render(cur);
+  }
+  function teamText(t) {
+    var mine = me.g === 'a' ? 'grown' : 'kids';
+    if (!t.lead) return '🪢 Kids and Grown-ups are neck and neck!';
+    return t.lead === mine ? '💪 Your team is winning the tug-of-war!' : '😬 Your team is behind in the tug-of-war. Pull harder!';
   }
   async function fetchRank(cycle) {
     rankFor = cycle;
     try {
-      var list = HN.rank(await HN.allPlayers()), idx = -1;
+      var all = await HN.allPlayers(), list = HN.rank(all), idx = -1;
+      teamLine = teamText(HN.teams(all, cycle)); var tb = document.getElementById('team'); if (tb) tb.textContent = teamLine;
       list.forEach(function (p, i) { if (p.id === me.pid) idx = i; });
       if (idx >= 0) { rankInfo = { r: idx + 1, n: list.length }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = 'You’re <b>#' + rankInfo.r + '</b> of ' + rankInfo.n; }
     } catch (e) {}
@@ -152,7 +180,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
         html = '<div class="result">' + (!did ? '<div class="emo">⏰</div><div class="t">Missed that one</div><p class="soft">The answer was <b>' + HN.esc(q.opts[q.right]) + '</b>. Get ready for the next one!</p>'
           : me.k ? '<div class="emo">🎉</div><div class="t">Correct!</div><div class="pts">+' + me.gain.toLocaleString() + '</div>'
           : '<div class="emo">🌲</div><div class="t">Not this time</div><p class="soft">The answer was <b>' + HN.esc(q.opts[q.right]) + '</b>.</p>') +
-          '<div class="rankbox" id="rank">' + (rankInfo ? 'You’re <b>#' + rankInfo.r + '</b> of ' + rankInfo.n : 'Checking your place…') + '</div></div>';
+          '<div class="rankbox" id="rank">' + (rankInfo ? 'You’re <b>#' + rankInfo.r + '</b> of ' + rankInfo.n : 'Checking your place…') + '</div><div class="team" id="team">' + HN.esc(teamLine) + '</div></div>';
         if (rankFor !== ph.cycle) setTimeout(function () { fetchRank(ph.cycle); }, 1200);
       }
       app.innerHTML = header(ph) + '<div class="panel">' + html + '</div><div class="net" id="net"></div>';
@@ -165,12 +193,12 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
     var nx = document.getElementById('next'); if (nx) nx.textContent = 'Question in ' + Math.ceil(ph.left / 1000) + '… look up at the big screen!';
     var bar = document.getElementById('bar'); if (bar) bar.style.transform = 'scaleX(' + Math.max(0, ph.left / ph.len) + ')';
   }
-  function tick() { if (me) render(HN.phase()); }
+  function tick() { if (me && me.g) render(HN.phase()); }
 
-  if (me && me.pid) { me.shown = me.shown == null ? me.s : me.shown; push(); tick(); }
+  if (me && me.pid && me.g) { me.shown = me.shown == null ? me.s : me.shown; push(); tick(); }
   else {
     joinView();
-    HN.allPlayers().then(function (all) { for (var k in all) taken[all[k].n] = 1; if (draft && taken[draft.n] && !me) { draft = HN.newName(taken); joinView(); } }).catch(function () {});
+    HN.allPlayers().then(function (all) { for (var k in all) taken[all[k].n] = 1; if (draft && taken[draft.n] && !me) { draft = HN.newName(taken, pickAv); joinView(); } }).catch(function () {});
   }
   setInterval(tick, 200);
   document.addEventListener('visibilitychange', function () { if (!document.hidden && me) { wake(); shownKey = ''; tick(); } });
