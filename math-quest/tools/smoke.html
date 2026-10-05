@@ -304,6 +304,7 @@ const tests=[
    {const S0=BattlePets.stages()[0];P().cave=P().cave||{};P().cave.ex={trex:1,triceratops:1,stego:1};T.ok(!BattlePets.stageOpen(P(),S0),'the Fossil Stage opened with only 3 dinosaurs');P().cave.ex.brachio=1;T.ok(BattlePets.stageOpen(P(),S0),'the Fossil Stage did not open with all 4 dinosaur skeletons');P().cave.ex={};}
    T.ok([...document.querySelectorAll('.bp2-crowns button')].some(b=>b.disabled),'crown 2 is open before crown 1 is beaten');window.medal=m0;}
   BattlePets._pick('forest',1);T.ok(document.querySelectorAll('.bp2-slot').length===Math.min(5,3+Math.floor((P().level||1)/10))&&document.querySelectorAll('.bp2-slot.full').length>=1,'team picker did not fill the team');
+  T.ok(BattlePets._dbg.airborne({fly:true})&&BattlePets._dbg.airborne({flyer:true})&&BattlePets._dbg.airborne({mega:true,R:{id:'eagle'}})&&!BattlePets._dbg.airborne({side:'p'}),'flyers would leave footprints on the ground');
   const D=BattlePets._dbg;BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();const G=D.G();T.ok(curScreen==='bp'&&G&&document.getElementById('bpField')&&document.getElementById('bpScroll'),'the battle did not start');
   {const sc=document.getElementById('bpScroll');T.ok(sc.scrollWidth>sc.clientWidth+100,'the battlefield is not wider than the screen');}
   T.ok(document.getElementById('bpFull')&&!document.querySelector('#app .topbar')&&document.querySelector('.bp2-exit')&&document.body.classList.contains('bp2-lock'),'the battle is not a full-screen takeover with only Exit');
