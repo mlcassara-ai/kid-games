@@ -278,17 +278,19 @@ function newName(taken, av) {
 
 /* ---------- Kids vs Grown-ups tug-of-war ----------
    Every question is one pull: the side with the higher average points on THAT question pulls the rope one notch.
-   A side's average covers everyone on it who answered (wrong = 0) plus its robot helpers; kids' average counts KID_BONUS times
+   A side's average covers everyone on it who is playing now (answered this question or one of the 5 before it; a wrong
+   answer or a skipped question counts 0, so guessing never hurts the team more than skipping) plus its robot helpers; kids' average counts KID_BONUS times
    (tuned by simulation for a close night). Each side is topped up to BOT_FILL with labelled robot helpers until enough real
    players join. Robots are not very smart (ROBOT_RIGHT chance, slow answers, seeded so every device agrees), never appear on
    the leaderboard, and a pull won by a side with no real answer can't give that side the lead (the screen enforces this). */
-var KID_BONUS = 1.5, BOT_FILL = 5, ROBOT_RIGHT = 0.35;
+var KID_BONUS = 1.6, BOT_FILL = 5, ROBOT_RIGHT = 0.35;
 function robotPts(cycle, side, i) { var r = rng(cycle * 92821 + side * 613 + i * 37 + 11); return r() < ROBOT_RIGHT ? 50 + Math.round(50 * 0.15 * r()) : 0; }
 function pull(players, cycle) {
-  var t = [{ n: 0, pts: 0, ans: 0 }, { n: 0, pts: 0, ans: 0 }];   // 0 = kids, 1 = grown-ups
+  var t = [{ n: 0, pts: 0, ans: 0, real: 0 }, { n: 0, pts: 0, ans: 0, real: 0 }];   // 0 = kids, 1 = grown-ups
   for (var id in players) {
     var p = players[id], x = t[isGrown(p) ? 1 : 0]; x.n++;
-    if (p.q === cycle) { x.ans++; if (p.k) x.pts += award(p.t || 0, p.st || 0, cycle); }
+    if (p.q === cycle) { x.ans++; x.real++; if (p.k) x.pts += award(p.t || 0, p.st || 0, cycle); }
+    else if (p.q >= cycle - 5) x.ans++;   // playing now but skipped this one: counts 0
   }
   var avg = t.map(function (x, side) {
     x.bots = Math.max(0, BOT_FILL - x.n); var pts = x.pts, n = x.ans;
@@ -297,7 +299,7 @@ function pull(players, cycle) {
   });
   var kid = KID_BONUS * avg[0], gr = avg[1], winner = kid > gr ? 'kids' : gr > kid ? 'grown' : '';
   return { kids: t[0].n, grown: t[1].n, kidBots: t[0].bots, grownBots: t[1].bots, winner: winner,
-    robotOnly: winner === 'kids' ? !t[0].ans : winner === 'grown' ? !t[1].ans : false };
+    robotOnly: winner === 'kids' ? !t[0].real : winner === 'grown' ? !t[1].real : false };
 }
 /* the rope after one pull: notches from -8 (grown-ups) to +8 (kids); a robots-only win can't put its side ahead */
 function movePos(pos, pl) {

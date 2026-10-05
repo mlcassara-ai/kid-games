@@ -171,9 +171,8 @@ body.mouse { cursor: auto; }
 <div class="toast" id="toast"></div>
 <div class="net" id="net"></div>
 <div class="tools"><button class="reset" id="reset" title="Clear every score and start a new game">🔄 Reset</button>
-  <button class="reset" id="full" title="Full screen (or press F)">⛶ Full screen</button>
   <button class="reset inst" id="install" hidden title="Put this on your desktop as an app">💻 Install app</button></div>
-<script src="hn-core.js?v=6"></script>
+<script src="hn-core.js?v=7"></script>
 <script>
 (function () {
   'use strict';
@@ -335,7 +334,6 @@ body.mouse { cursor: auto; }
     if (d.fullscreenElement || d.webkitFullscreenElement) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
     else { var el = d.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen).call(el); }
   }
-  $('full').onclick = function () { try { toggleFull(); } catch (e) {} };
   document.addEventListener('keydown', function (e) { if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey) { try { toggleFull(); } catch (er) {} } });
   var installEvt = null;
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvt = e; $('install').hidden = false; });
