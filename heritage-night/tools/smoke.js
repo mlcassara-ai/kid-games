@@ -92,6 +92,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await shot(scr, 'screen-fact'); await shot(phones[0], 'phone-fact');
     ok(/Round Champion after this question/.test(await scr.textContent('.prize')), 'fact card says the Round Champion comes after this question');
     ok(/Question 10 of 10/.test(await scr.textContent('#rnd')), 'top bar shows the round and question number');
+    ok(/Grown-ups/.test(await scr.textContent('#who')) && /side gr/.test(await scr.getAttribute('.side', 'class')), 'side board takes its grown-up turn on an odd question');
     ok(await scr.locator('.dbl').count() === 1 && await phones[0].locator('.dbl').count() === 1, 'double points banner on the screen and the phone');
     await atQ(phones[0], C); await phones[0].waitForSelector('.ans');
     const nameA = await phones[0].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).n), before = await phones[0].textContent('#sc');
@@ -124,6 +125,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(/🥈/.test(ch), 'runner-up shown');
     ok(await phones[1].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).st) === 0, 'a wrong answer ends the streak');
     ok(/Fastest/.test(await scr.textContent('#status')), 'screen shows the fastest player');
+    ok(/Kids/.test(await scr.textContent('#who')), 'answer reveal always shows the kids board');
     ok(/3rd/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows the grade');
     ok(await scr.locator('.row').count() === 2 && /2 playing/.test(await scr.textContent('#count')), 'Playing Now lists the 2 kids who answered (the grown-up is not on it)');
     ok(/All-night stars/.test(await scr.textContent('#stars')) && (await scr.textContent('#stars')).includes(nameA), 'All-night stars shows the top kid');

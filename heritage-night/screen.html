@@ -64,6 +64,12 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 /* ---------- leaderboard ---------- */
 .side { display: flex; flex-direction: column; background: var(--panel); border-left: 1px solid var(--line); padding: calc(3.2 * var(--u)) calc(1.4 * var(--w)) calc(2.4 * var(--u)); min-width: 0; min-height: 0; overflow: hidden; }
 .side h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: calc(4.2 * var(--u)); display: flex; align-items: baseline; gap: calc(.6 * var(--w)); }
+.side .who { font-family: var(--display); font-weight: 800; font-size: calc(2.4 * var(--u)); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); line-height: 1; }
+.side.gr .who { color: #7fb8ff; }
+.side.gr .stars { background: rgba(47,127,216,.14); border-color: rgba(127,184,255,.4); } .side.gr .stars h3 { color: #7fb8ff; }
+.side.gr .row:nth-child(1) .rk { background: #7fb8ff; color: #0b2340; }
+.board.swap, .stars.swap { animation: swapIn .6s ease-out; }
+@keyframes swapIn { from { opacity: 0; transform: translateX(calc(4 * var(--w))); } to { opacity: 1; transform: none; } }
 .side h2 small { margin-left: auto; font-family: var(--body); font-weight: 700; font-size: calc(2 * var(--u)); color: var(--ink-soft); }
 .board { list-style: none; margin: calc(1.6 * var(--u)) 0 0; padding: 0; display: flex; flex-direction: column; gap: calc(.7 * var(--u)); flex: 1; min-height: 0; overflow: hidden; }
 .row { display: grid; grid-template-columns: calc(4.4 * var(--u)) calc(4.4 * var(--u)) 1fr auto; align-items: center; gap: calc(.8 * var(--w)); padding: calc(.55 * var(--u)) calc(.6 * var(--w)); border-radius: calc(1.2 * var(--u));
@@ -162,6 +168,7 @@ body.mouse { cursor: auto; }
     </div>
   </section>
   <aside class="side">
+    <div class="who" id="who">🧒 Kids</div>
     <h2>Playing Now <small id="count"></small></h2>
     <ol class="board" id="board"><li class="empty">No players yet. Scan the code to join!</li></ol>
     <div class="stars" id="stars" hidden></div>
@@ -178,7 +185,7 @@ body.mouse { cursor: auto; }
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var SHAPES = ['▲', '◆', '●', '■'];
-  var players = {}, lastRanks = {}, seen = null, shownKey = '', lastPoll = 0, polling = false, toastQ = [], toastBusy = false, champFor = -1;
+  var players = {}, seen = null, shownKey = '', lastPoll = 0, polling = false, toastQ = [], toastBusy = false, champFor = -1;
 
   function renderStage(ph) {
     var q = HN.questionFor(ph.cycle), key = ph.cycle + ph.name, body = $('body'), pill = $('pill');
@@ -203,6 +210,7 @@ body.mouse { cursor: auto; }
         body.className = 'body';
         body.innerHTML = dbl + '<div class="fact"><div class="emo">' + q.e + '</div><div><div class="kicker">Did you know?</div><div class="txt">' + HN.esc(q.f) +
           '</div><div class="next" id="next"></div><div class="prize">' + (left === 1 ? 'Round Champion after this question! 🏆' : 'Next Round Champion in ' + left + ' questions! 🏆') + '</div></div></div>';
+        renderBoard();   // the side board may change turn (Kids / Grown-ups) with each new question
       } else {
         body.className = 'body' + (ph.name === 'reveal' ? ' reveal' : '');
         body.innerHTML = dbl + '<h2 class="qtext">' + HN.esc(q.q) + '</h2><div class="opts">' + q.opts.map(function (o, i) {
@@ -224,29 +232,42 @@ body.mouse { cursor: auto; }
     }
   }
 
+  /* The side board takes turns, F1-style: Kids on even questions, Grown-ups on odd ones (during the fact and question only;
+     every answer reveal shows Kids). The grown-up turn is skipped until a real grown-up has joined. */
+  var boardView = 'kids', lastRanksBy = { kids: {}, grown: {} };
+  function viewFor(ph, all) {
+    var hasGrown = all.some(function (p) { return p.g === 'a'; });
+    return hasGrown && ph.name !== 'reveal' && ph.cycle % 2 ? 'grown' : 'kids';
+  }
   function renderBoard() {
     renderTug();
-    /* "Playing now": kids who answered at least one of the last 5 questions, ranked by their all-night points.
+    /* "Playing now": players of this view who answered at least one of the last 5 questions, ranked by their all-night points.
        Someone who stops drops off and comes back with their points the moment they answer again. */
-    var cyc = HN.phase().cycle, active = function (p) { return p.q >= cyc - 5; };
-    var all = HN.rank(players), kids = HN.kidsOnly(all), list = kids.filter(active), top = list.slice(0, 12), b = $('board');
-    var now = all.filter(active).length;
-    $('count').textContent = all.length ? now + ' playing' : '';
-    var st = $('stars'), best = kids.filter(function (p) { return p.s > 0; }).slice(0, 3);
+    var ph = HN.phase(), cyc = ph.cycle, active = function (p) { return p.q >= cyc - 5; };
+    var all = HN.rank(players), view = viewFor(ph, all), grown = view === 'grown';
+    var group = all.filter(function (p) { return (p.g === 'a') === grown; }), list = group.filter(active), top = list.slice(0, 12), b = $('board');
+    var switched = view !== boardView; boardView = view;
+    var lastRanks = lastRanksBy[view];
+    document.querySelector('.side').className = 'side' + (grown ? ' gr' : '');
+    $('who').textContent = grown ? '🧑 Grown-ups' : '🧒 Kids';
+    $('count').textContent = group.length ? list.length + ' playing' : '';
+    var st = $('stars'), best = group.filter(function (p) { return p.s > 0; }).slice(0, 3);
     st.hidden = !best.length;
     st.innerHTML = '<h3>⭐ All-night stars</h3>' + best.map(function (p, i) {
       return '<div><span>' + ['🥇', '🥈', '🥉'][i] + '</span><span>' + HN.esc(p.a) + '</span><span class="nm">' + HN.esc(p.n) + '</span><span class="sc">' + p.s.toLocaleString() + '</span></div>';
     }).join('');
-    if (!list.length) { b.innerHTML = '<li class="empty">' + (all.length ? 'Answer a question on your phone to get on the board!' : 'No players yet. Scan the code to join!') + '</li>'; lastRanks = {}; return; }
+    if (switched) { [b, st].forEach(function (el) { el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap'); }); }
+    if (!list.length) { b.innerHTML = '<li class="empty">' + (all.length ? 'Answer a question on your phone to get on the board!' : 'No players yet. Scan the code to join!') + '</li>'; lastRanksBy[view] = {}; return; }
     var ranks = {};
     list.forEach(function (p, i) { ranks[p.id] = i; });
     b.innerHTML = top.map(function (p, i) {
-      var was = lastRanks[p.id], up = was != null && was > i;
-      return '<li class="row' + (up ? ' new' : '') + '"><span class="rk">' + (i + 1) + '</span><span class="av">' + HN.esc(p.a) + '</span><span class="nm">' + (HN.onFire(p, cyc) ? '<span class="fire">🔥</span>' : '') + HN.esc(p.n) + (p.g ? '<span class="gd">' + HN.esc(HN.gradeLabel(p.g)) + '</span>' : '') +
+      var was = lastRanks[p.id], up = !switched && was != null && was > i;
+      return '<li class="row' + (up ? ' new' : '') + '"><span class="rk">' + (i + 1) + '</span><span class="av">' + HN.esc(p.a) + '</span><span class="nm">' + (HN.onFire(p, cyc) ? '<span class="fire">🔥</span>' : '') + HN.esc(p.n) + (p.g && !grown ? '<span class="gd">' + HN.esc(HN.gradeLabel(p.g)) + '</span>' : '') +
         (up ? '<span class="up">▲</span>' : '') + '</span><span class="sc">' + p.s.toLocaleString() + '</span></li>';
     }).join('');
-    lastRanks = ranks;
+    lastRanksBy[view] = ranks;
   }
+
 
   /* "Round X" counts from the first round this screen saw today (only the screen shows it; phones use the absolute round) */
   var roundReset = new URLSearchParams(location.search).get('round') === '1';   // ?round=1 starts counting at Round 1 again
@@ -303,7 +324,7 @@ body.mouse { cursor: auto; }
       players = await HN.allPlayers();
       if (seen) { var fresh = Object.keys(players).filter(function (k) { return !seen[k]; }); fresh.slice(0, 6).forEach(function (k) { toast(players[k].a + ' ' + players[k].n + ' joined!'); }); }
       seen = {}; for (var k in players) seen[k] = 1;
-      var ph = HN.phase(); if (ph.name !== 'question' || !Object.keys(lastRanks).length) renderBoard();
+      var ph = HN.phase(); if (ph.name !== 'question' || !Object.keys(lastRanksBy[boardView]).length) renderBoard();
       $('net').textContent = '';
     } catch (e) { $('net').textContent = 'Reconnecting…'; }
     polling = false;
@@ -319,7 +340,7 @@ body.mouse { cursor: auto; }
     $('reset').disabled = true;
     try {
       await HN.resetAll();
-      players = {}; lastRanks = {}; seen = null; roundReset = true; champFor = -1;
+      players = {}; lastRanksBy = { kids: {}, grown: {} }; seen = null; roundReset = true; champFor = -1;
       rope = { c: HN.phase().cycle, pos: 0, say: '' }; HN.lsSet(ROPE_KEY, rope);
       $('board').innerHTML = '<li class="empty">No players yet. Scan the code to join!</li>';
       renderBoard(); shownKey = ''; toast('🔄 New game! Scan the code to join.');
