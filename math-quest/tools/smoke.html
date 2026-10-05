@@ -120,6 +120,12 @@ const tests=[
   D.TR.walkers.length=0;for(let i=0;i<40&&!D.TR.walkers.length;i++)D.spawnRider();T.ok(D.TR.walkers.length===1,'no visitor got off the train');
   for(let i=0;i<400&&D.TR.walkers.length;i++)D.tick(.05);T.ok(!D.TR.walkers.length,'the visitor never walked into town');
  }],
+['map ground: the finer floor and trails draw the whole map without errors and leave the walking grid alone',async function(){
+  T.reset();const p=T.hero('Walker',3);state.cur=p.id;go('world');await T.wait(200);T.ok(!!window.MQ_GROUND,'ground.js is not loaded');
+  const blocks=JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)));const c=document.createElement('canvas');c.width=400;c.height=300;let err='';
+  try{MQ_GROUND.draw(c.getContext('2d'),W,0,WCOLS-1,0,WROWS-1,0,0,20,performance.now());}catch(e){err=String(e);}
+  T.ok(!err,'drawing the ground failed: '+err);T.ok(JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)))===blocks,'drawing the ground changed where you can walk');
+ }],
 ['world entrance art: the Subtraction Caves (Cave Mouth) and Addition Forest (Treehouse) pictures exist and load',async function(){
   for(const k of ['caves','forest','castle','volcano']){const g=window.MQ_GATE_ART&&MQ_GATE_ART[k];T.ok(!!g&&g.w>1&&g.ar>0,'no entrance art for '+k);if(!g)continue;const im=g.img();
    await T.until(()=>im.complete,4000,'the '+k+' picture');T.ok(im.naturalWidth>0,'the '+k+' picture did not load (a broken SVG?)');}
