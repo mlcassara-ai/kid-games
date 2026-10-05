@@ -142,6 +142,7 @@ const tests=[
  }],
 ['world entrance art: the Subtraction Caves (Cave Mouth) and Addition Forest (Treehouse) pictures exist and load',async function(){
   for(const z of ZONES.filter(z=>Object.values(BIOMES).some(b=>b.zone===z.id)))T.ok(!!(MQ_GATE_ART[z.id]),'no drawn entrance for '+z.name);
+  {const fi=window.MQ_FOUNTAIN_ART&&MQ_FOUNTAIN_ART.img();T.ok(!!fi,'no drawn Wishing Fountain');if(fi){await T.until(()=>fi.complete,3000,'fountain picture');T.ok(fi.naturalWidth>0,'the fountain picture does not load');}}
   for(const k of Object.keys(MQ_GATE_ART)){const g=window.MQ_GATE_ART&&MQ_GATE_ART[k];T.ok(!!g&&g.w>1&&g.ar>0,'no entrance art for '+k);if(!g)continue;const im=g.img();
    await T.until(()=>im.complete,4000,'the '+k+' picture');T.ok(im.naturalWidth>0,'the '+k+' picture did not load (a broken SVG?)');}
  }],

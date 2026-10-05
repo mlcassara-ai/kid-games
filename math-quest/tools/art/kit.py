@@ -10,7 +10,7 @@
 """
 import sys,os,importlib,subprocess,base64,json
 O='#3b2a1e'  # the outline colour everything uses
-GROUND={'village':('#a4d86e','#9ccf66'),'forest':('#5fae4b','#58a545'),'caves':('#8f93a6','#878b9e'),'castle':('#a296bd','#9a8eb5'),'tower':('#5f4fa6','#58489e'),
+GROUND={'town':('#e8dcc0','#e2d5b6'),'village':('#a4d86e','#9ccf66'),'forest':('#5fae4b','#58a545'),'caves':('#8f93a6','#878b9e'),'castle':('#a296bd','#9a8eb5'),'tower':('#5f4fa6','#58489e'),
  'volcano':('#a45a42','#9a523b'),'farm':('#bddc6e','#b4d466'),'market':('#e6c48f','#dfbd87'),'temple':('#f0d49c','#e9cd94'),'vault':('#bfe4f5','#b4dbee'),
  'mesa':('#e0a070','#d89868'),'summit':('#eef4fb','#e4ecf6'),'garden':('#b8e39a','#afdb90'),'reef':('#9fe0e8','#94d6df'),'station':('#d8c9a8','#d0c1a0'),
  'fair':('#d3f9d8','#c3f0cc'),'haunt':('#5a4a7e','#524373')}
