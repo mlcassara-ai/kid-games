@@ -196,7 +196,27 @@ var Q = [
  { e: "🏃", f: "Every fall, thousands of people run the Beirut Marathon through the city, and kids join in with a shorter fun run!",
    q: "What race happens in Beirut every fall?", o: ["A marathon", "A camel race", "A car race", "A snail race"] },
  { e: "🤼", f: "Lebanon has won Olympic medals in wrestling and weightlifting, sports where you have to be super strong!",
-   q: "In which sports has Lebanon won Olympic medals?", o: ["Wrestling and weightlifting", "Swimming and diving", "Gymnastics", "Surfing"] }
+   q: "In which sports has Lebanon won Olympic medals?", o: ["Wrestling and weightlifting", "Swimming and diving", "Gymnastics", "Surfing"] },
+ { e: "🚗", f: "Driving from the top of Lebanon to the bottom takes about as long as driving from San Diego to Los Angeles. The whole country is only about 140 miles long!",
+   q: "Driving the whole length of Lebanon is about like driving from San Diego to…", o: ["Los Angeles", "New York", "Hawaii", "The moon"] },
+ { e: "👨‍👩‍👧", f: "Lebanon is smaller than San Diego County, but more people live there: over 5 million, compared to about 3 million in San Diego County!",
+   q: "Which has more people: Lebanon or San Diego County?", o: ["Lebanon", "San Diego County", "They are exactly the same", "Nobody lives in either"] },
+ { e: "⏰", f: "Lebanon is 10 hours ahead of San Diego. When you eat breakfast at 7 in the morning, kids in Lebanon are getting ready for dinner at 5 in the evening!",
+   q: "When it is 7 in the morning in San Diego, what time is it in Lebanon?", o: ["5 in the evening", "7 in the morning", "Midnight", "Noon"] },
+ { e: "🌍", f: "Beirut and San Diego are almost the same distance from the equator, so they get a lot of the same sunshine and warm weather.",
+   q: "What do Beirut and San Diego have in common?", o: ["They are about the same distance from the equator", "They are both on an island", "They both get snow every day", "They are both in the desert"] },
+ { e: "🍋", f: "Lebanon’s coast and San Diego have the same kind of weather: warm, dry summers and mild, rainy winters. Lemons, olives, figs and avocados grow in both places!",
+   q: "Which fruit grows in both Lebanon and San Diego?", o: ["Lemons", "Bananas from the snow", "Coconuts on icebergs", "None at all"] },
+ { e: "⛰️", f: "Lebanon’s highest mountain is over 10,000 feet tall. That is about one and a half times as tall as Cuyamaca Peak, one of the tallest mountains in San Diego County!",
+   q: "How does Lebanon’s highest mountain compare to Cuyamaca Peak?", o: ["About 1½ times as tall", "About the same", "Half as tall", "100 times as tall"] },
+ { e: "✈️", f: "Lebanon is more than 7,000 miles from San Diego. Flying there takes a whole day with stops along the way!",
+   q: "About how far is Lebanon from San Diego?", o: ["More than 7,000 miles", "7 miles", "70 miles", "700 miles"] },
+ { e: "🏠", f: "Old Lebanese houses are made of stone with red tile roofs and three arched windows in a row. Lots of San Diego houses have red tile roofs too!",
+   q: "What do many old Lebanese houses and San Diego houses both have?", o: ["Red tile roofs", "Grass roofs", "Igloo walls", "Glass floors"] },
+ { e: "🏢", f: "In Lebanese cities, many families live in tall apartment buildings, and grandparents, aunts and cousins often live in the same building or just down the street.",
+   q: "In Lebanese cities, where do grandparents and cousins often live?", o: ["In the same building or nearby", "On another planet", "Only on boats", "In tree houses"] },
+ { e: "👕", f: "Many Lebanese kids wear a school uniform every day, with the school’s colors and logo.",
+   q: "What do many Lebanese kids wear to school every day?", o: ["A school uniform", "Pajamas", "Superhero capes", "Swimsuits"] }
 ];
 
 /* ---------- seeded randomness so every device agrees ---------- */
