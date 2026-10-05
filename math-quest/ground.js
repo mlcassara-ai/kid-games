@@ -15,16 +15,52 @@ const land=t=>t&&!t.water&&!t.plaza;
 /* colours of a tile's small squares, worked out once and kept (the ground never changes) */
 function tileCols(W,x,y){const G=W._gcol||(W._gcol={}),k=y*1000+x;if(G[k])return G[k];const p=pal(W.T[y][x].b),out=[];
  for(let j=0;j<N;j++)for(let i=0;i<N;i++)out.push(pick(p,hash(x*N+i,y*N+j)));return G[k]=out;}
-/* low dry-stone walls where two areas meet (owner, Oct 2026: "little rock walls" instead of the ground fading or jagging into each other).
-   Drawn on the edge between two land tiles of different areas, with an odd gap here and there, and none within about 2 tiles of an
-   entrance so the gate art stays clear. Drawing only: walls don't block walking. Each tile's edges are worked out once (W._wall), and
-   the stones are a few pre-drawn pictures (one row of stones per tile edge, across or down) reused every frame. */
-function wallsOf(W,x,y){const G=W._wall||(W._wall={}),k=y*1000+x;if(k in G)return G[k];const T=W.T,t=T[y][x];let m=0;
- const nearGate=(ex,ey)=>Object.values(W.gates||{}).some(c=>Math.hypot(c[0]+.5-ex,c[1]+.5-ey)<2.4);
- const R=T[y][x+1],D=T[y+1]&&T[y+1][x];
- if(land(t)&&land(R)&&R.b!==t.b&&hash(x*7+3,y*11)>.1&&!nearGate(x+1,y+.5))m|=1;
- if(land(t)&&land(D)&&D.b!==t.b&&hash(x*5,y*13+1)>.1&&!nearGate(x+.5,y+1))m|=2;
- return G[k]=m;}
+/* low dry-stone walls where two areas meet (owner, Oct 2026: "little rock walls" between areas). Since 2026.10.05x they BLOCK walking,
+   except at gates: every stretch of border gets a gate (where the old road crosses if it does, else near its middle; long stretches get
+   two), every pair of neighbouring areas gets at least one, and a last check opens an extra gate wherever a wall would cut off anything
+   the hero could reach before (an entrance, a chest, a patch of ground). All worked out once per map (W._walls) from the map itself,
+   with no randomness, so the gates are always in the same places. Core walking asks MQ_GROUND.blocked(W,x1,y1,x2,y2).
+   Edge bits per tile: 1 = its right edge, 2 = its bottom edge. */
+const ek=(x,y)=>y*1000+x;
+function buildWalls(W){const T=W.T,H=T.length,Wd=T[0].length,raw={},gate={};
+ const walk=t=>!!t&&!t.block,spec=t=>!!t&&t.block&&!!(t.gate||t.npc||t.chest);
+ const edges=[];for(let y=0;y<H;y++)for(let x=0;x<Wd;x++){const t=T[y][x];if(!land(t))continue;
+  const R=T[y][x+1],D=T[y+1]&&T[y+1][x];
+  if(land(R)&&R.b!==t.b){raw[ek(x,y)]=(raw[ek(x,y)]||0)|1;edges.push({x,y,d:1,p:[t.b,R.b].sort().join('|'),a:t,b:R});}
+  if(land(D)&&D.b!==t.b){raw[ek(x,y)]=(raw[ek(x,y)]||0)|2;edges.push({x,y,d:2,p:[t.b,D.b].sort().join('|'),a:t,b:D});}}
+ const open=e=>{gate[ek(e.x,e.y)]=(gate[ek(e.x,e.y)]||0)|e.d;};
+ /* stretches of border: edges of the same pair of areas that touch at a corner */
+ const ends=e=>e.d===1?[[e.x+1,e.y],[e.x+1,e.y+1]]:[[e.x,e.y+1],[e.x+1,e.y+1]],par=edges.map((_,i)=>i),find=i=>par[i]===i?i:(par[i]=find(par[i]));
+ const byPt={};edges.forEach((e,i)=>ends(e).forEach(([px,py])=>{const k=e.p+'@'+px+','+py;if(k in byPt)par[find(i)]=find(byPt[k]);else byPt[k]=i;}));
+ const comp={};edges.forEach((e,i)=>{(comp[find(i)]=comp[find(i)]||[]).push(e);});
+ const good=e=>walk(e.a)&&walk(e.b)&&!e.a.water&&!e.b.water,mid=e=>e.d===1?[e.x+1,e.y+.5]:[e.x+.5,e.y+1],pairGates={};
+ Object.values(comp).forEach(L=>{const c=L.filter(good);if(L.length<3||!c.length)return;const roads=c.filter(e=>e.a.path||e.b.path),pool=roads.length?roads:c;
+  const cx=L.reduce((s,e)=>s+mid(e)[0],0)/L.length,cy=L.reduce((s,e)=>s+mid(e)[1],0)/L.length,d2=(e,q)=>Math.hypot(mid(e)[0]-q[0],mid(e)[1]-q[1]);
+  const g1=pool.reduce((a,e)=>d2(e,[cx,cy])<d2(a,[cx,cy])?e:a);open(g1);pairGates[L[0].p]=1;
+  if(L.length>14){const g2=c.reduce((a,e)=>d2(e,mid(g1))>d2(a,mid(g1))?e:a);if(d2(g2,mid(g1))>7)open(g2);}});
+ /* every pair of neighbouring areas: at least one gate */
+ const pairs={};edges.forEach(e=>(pairs[e.p]=pairs[e.p]||[]).push(e));
+ Object.entries(pairs).forEach(([p,L])=>{if(pairGates[p])return;const c=L.filter(good);if(c.length)open(c[Math.floor(c.length/2)]);});
+ /* nothing the hero could reach before may be cut off */
+ const wallAt=(x1,y1,x2,y2,useGates)=>{const [x,y,d]=x2>x1?[x1,y1,1]:x2<x1?[x2,y2,1]:y2>y1?[x1,y1,2]:[x2,y2,2];const m=(raw[ek(x,y)]||0)&d;return !!m&&!(useGates&&((gate[ek(x,y)]||0)&d));};
+ let st=null;for(let y=0;y<H&&!st;y++)for(let x=0;x<Wd;x++){const t=T[y][x];if(t.plaza&&walk(t)){st=[x,y];break;}}
+ if(!st){W._walls={wall:raw,gate};return;}
+ const reach=walls=>{const seen=new Set([ek(st[0],st[1])]),q=[st];while(q.length){const [x,y]=q.pop();for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,t=T[ny]&&T[ny][nx],k=ek(nx,ny);
+   if(!t||seen.has(k)||!(walk(t)||spec(t))||(walls&&wallAt(x,y,nx,ny,true)))continue;seen.add(k);if(walk(t))q.push([nx,ny]);}}return seen;};
+ const before=reach(false);
+ for(let n=0;n<400;n++){const now=reach(true);let fixed=false;
+  for(const k of before){if(now.has(k))continue;const x=k%1000,y=Math.floor(k/1000);
+   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,t=T[ny]&&T[ny][nx];if(!now.has(ek(nx,ny))||!walk(t)||!wallAt(nx,ny,x,y,true))continue;
+    const [ex,ey,d]=x>nx?[nx,ny,1]:x<nx?[x,y,1]:y>ny?[nx,ny,2]:[x,y,2];gate[ek(ex,ey)]=(gate[ek(ex,ey)]||0)|d;fixed=true;break;}
+   if(fixed)break;}
+  if(!fixed)break;}
+ const wall={};for(const k in raw){const m=raw[k]&~(gate[k]||0);if(m)wall[k]=m;}
+ W._walls={wall,gate};}
+const wallsOf=(W,x,y)=>{if(!W._walls)buildWalls(W);return W._walls.wall[ek(x,y)]||0;};
+const gatesOf=(W,x,y)=>{if(!W._walls)buildWalls(W);return W._walls.gate[ek(x,y)]||0;};
+/* is there a wall (not a gate) between two side-by-side tiles? */
+function blocked(W,x1,y1,x2,y2){if(!W||!W.T)return false;if(Math.abs(x2-x1)+Math.abs(y2-y1)!==1)return false;
+ const [x,y,d]=x2>x1?[x1,y1,1]:x2<x1?[x2,y2,1]:y2>y1?[x1,y1,2]:[x2,y2,2];return !!(wallsOf(W,x,y)&d);}
 const WS={};
 const rr=(g,x,y,w,h,r)=>{g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}; /* roundRect is missing on older iPads */
 function wallSprite(ts,dir,v){const key=Math.round(ts)+dir+v;if(WS[key])return WS[key];const L=ts*1.14,Th=ts*.34,c=document.createElement('canvas');
@@ -35,14 +71,30 @@ function wallSprite(ts,dir,v){const key=Math.round(ts)+dir+v;if(WS[key])return W
   g.fillStyle=GREY[Math.floor(hash(i*3+v,7)*GREY.length)];g.strokeStyle='#5c544b';g.lineWidth=Math.max(1,ts*.025);g.beginPath();rr(g,x,y,ww,hh,r);g.fill();g.stroke();
   g.fillStyle='rgba(255,255,255,.35)';g.beginPath();rr(g,x+ww*.18,y+hh*.14,ww*.5,hh*.28,r*.5);g.fill();}
  return WS[key]=c;}
-function drawWalls(ctx,W,x0,x1,y0,y1,cx,cy,ts){const o=ts*.07,Th=ts*.34;
+/* a gate: two stone pillars at the ends of the edge with the wooden gate leaves standing open against them */
+const GS={};
+function gateSprite(ts,dir){const key=Math.round(ts)+dir;if(GS[key])return GS[key];const L=ts*1.14,Th=ts*.34,up=ts*.42,c=document.createElement('canvas');
+ const cw=dir==='h'?L:Th*1.5,ch=dir==='h'?Th+up:L+up;c.width=Math.ceil(cw);c.height=Math.ceil(ch);const g=c.getContext('2d'),lw=Math.max(1,ts*.025);
+ const pillar=(px,pb)=>{const w=Th*1.05,h=Th*.9+up;g.fillStyle='rgba(40,30,20,.25)';g.beginPath();rr(g,px-w/2+1.5,pb-h+3,w,h,w*.25);g.fill();
+  g.fillStyle='#b5afa6';g.strokeStyle='#5c544b';g.lineWidth=lw;g.beginPath();rr(g,px-w/2,pb-h,w,h,w*.25);g.fill();g.stroke();
+  g.strokeStyle='rgba(92,84,75,.6)';g.beginPath();g.moveTo(px-w/2,pb-h*.55);g.lineTo(px+w/2,pb-h*.55);g.moveTo(px,pb-h*.55);g.lineTo(px,pb-h*.1);g.stroke();
+  g.fillStyle='#d6d0c6';g.strokeStyle='#5c544b';g.beginPath();rr(g,px-w*.62,pb-h-w*.18,w*1.24,w*.36,w*.15);g.fill();g.stroke();};
+ const leaf=(x0,y0,w,h)=>{g.fillStyle='#a8743f';g.strokeStyle='#4a3020';g.lineWidth=lw;g.beginPath();rr(g,x0,y0,w,h,Math.min(w,h)*.2);g.fill();g.stroke();
+  g.strokeStyle='rgba(74,48,32,.6)';g.beginPath();if(w>h){g.moveTo(x0+2,y0+h/2);g.lineTo(x0+w-2,y0+h/2);}else{g.moveTo(x0+w/2,y0+2);g.lineTo(x0+w/2,y0+h-2);}g.stroke();};
+ if(dir==='h'){const pb=up+Th*.85;leaf(L*.09,pb-Th*.75,L*.2,Th*.42);leaf(L*.71,pb-Th*.75,L*.2,Th*.42);pillar(L*.07,pb);pillar(L*.93,pb);}
+ else{const x=Th*.75;leaf(x-Th*.2,up+L*.08,Th*.4,L*.22);leaf(x-Th*.2,up+L*.7,Th*.4,L*.22);pillar(x,up+L*.1);pillar(x,up+L*.97);}
+ return GS[key]=c;}
+function drawWalls(ctx,W,x0,x1,y0,y1,cx,cy,ts){const o=ts*.07,Th=ts*.34,up=ts*.42;
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const m=wallsOf(W,x,y);if(!m)continue;const v=Math.floor(hash(x,y*3)*4);
   if(m&1)ctx.drawImage(wallSprite(ts,'v',v),(x+1)*ts-cx-Th/2,y*ts-cy-o);
-  if(m&2)ctx.drawImage(wallSprite(ts,'h',v),x*ts-cx-o,(y+1)*ts-cy-Th/2);}}
+  if(m&2)ctx.drawImage(wallSprite(ts,'h',v),x*ts-cx-o,(y+1)*ts-cy-Th/2);}
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const g=gatesOf(W,x,y);if(!g)continue; /* gates after walls, so their pillars stand over the wall ends */
+  if(g&1)ctx.drawImage(gateSprite(ts,'v'),(x+1)*ts-cx-Th*.75,y*ts-cy-o-up);
+  if(g&2)ctx.drawImage(gateSprite(ts,'h'),x*ts-cx-o,(y+1)*ts-cy-up-Th*.31);}}
 const N=4; /* small squares per tile side: 4×4 per tile (owner, Oct 2026: a quarter of the earlier 2×2) */
 function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2,q=ts/N;
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const t=T[y][x],sx=x*ts-cx,sy=y*ts-cy;
-  if(t.plaza){ctx.fillStyle=PLAZA[(x+y)%2];ctx.fillRect(sx,sy,ts+1,ts+1);continue;}
+  if(t.plaza){const h=ts/2;for(let j=0;j<2;j++)for(let i=0;i<2;i++){ctx.fillStyle=PLAZA[(i+j)%2];ctx.fillRect(sx+i*h,sy+j*h,h+.6,h+.6);}continue;} /* town paving: half-size squares (owner, Oct 2026) */
   const C=tileCols(W,x,y);for(let j=0;j<N;j++)for(let i=0;i<N;i++){ctx.fillStyle=C[j*N+i];ctx.fillRect(sx+i*q,sy+j*q,q+.6,q+.6);}
   }
  drawWater(ctx,T,x0,x1,y0,y1,cx,cy,ts,now);
@@ -105,5 +157,5 @@ function drawRoutes(ctx,W,cx,cy,ts,x0,x1,y0,y1){const RS=routes(W);ctx.save();ct
  for(const r of RS)for(const o of [-.17,.17]){let on=false;ctx.beginPath();for(let i=1;i<r.P.length-1;i++){const p=r.P[i],use=Math.sin(r.D[i]*.45+sh(r.zid)*9)>.35&&vis(p);
    if(!use){on=false;continue;}const q=r.P[i+1],dx=q[0]-r.P[i-1][0],dy=q[1]-r.P[i-1][1],l=Math.hypot(dx,dy)||1,pt=[p[0]-dy/l*o,p[1]+dx/l*o];if(!on){ctx.moveTo(X(pt),Y(pt));on=true;}else ctx.lineTo(X(pt),Y(pt));}ctx.stroke();}
  ctx.restore();}
-window.MQ_GROUND={draw,routes};
+window.MQ_GROUND={draw,routes,blocked,walls:W=>{if(!W._walls)buildWalls(W);return W._walls;}};
 })();

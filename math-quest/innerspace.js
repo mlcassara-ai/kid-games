@@ -76,7 +76,7 @@ function spawn(){if(typeof W==='undefined'||!W||!W.T)return;if(W.mobs.some(m=>m.
   return;}}
 function pathTo(sx,sy,tx,ty){const key=(x,y)=>x+','+y;const prev={};prev[key(sx,sy)]=null;const q=[[sx,sy]];
  while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty)break;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=key(nx,ny);if(k in prev)continue;
-  const t=W.T[ny]&&W.T[ny][nx];if(!(nx===tx&&ny===ty)&&(!t||t.block||t.water||t.npc||t.gate||t.chest))continue;prev[k]=[x,y];q.push([nx,ny]);}if(q.length>3000)break;}
+  const t=W.T[ny]&&W.T[ny][nx];if(!(nx===tx&&ny===ty)&&(!t||t.block||t.water||t.npc||t.gate||t.chest))continue;if(window.MQ_GROUND&&MQ_GROUND.blocked&&MQ_GROUND.blocked(W,x,y,nx,ny))continue;prev[k]=[x,y];q.push([nx,ny]);}if(q.length>3000)break;}
  if(!(key(tx,ty) in prev))return null;const out=[];let c=[tx,ty];while(c&&!(c[0]===sx&&c[1]===sy)){out.unshift(c);c=prev[key(c[0],c[1])];}return out;}
 function walk(now){const m=W.mobs.find(o=>o.ozzy);if(!m)return;
  if(Math.abs(m.x-W.hx)+Math.abs(m.y-W.hy)<=1){if(!W.moving&&!document.querySelector('#modal.show'))meet();return;}

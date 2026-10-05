@@ -762,7 +762,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.05w';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="report.js?v='+MQV+'"><\/script>');document.write('<script src="teach.js?v='+MQV+'"><\/script>');document.write('<script src="train.js?v='+MQV+'"><\/script>');document.write('<script src="gateart.js?v='+MQV+'"><\/script>');document.write('<script src="ground.js?v='+MQV+'"><\/script>');document.write('<script src="decor.js?v='+MQV+'"><\/script>');document.write('<script src="ambient.js?v='+MQV+'"><\/script>');document.write('<script src="town.js?v='+MQV+'"><\/script>');document.write('<script src="bpscene.js?v='+MQV+'"><\/script>');document.write('<script src="battlepets.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');document.write('<script src="physics.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.05x';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="report.js?v='+MQV+'"><\/script>');document.write('<script src="teach.js?v='+MQV+'"><\/script>');document.write('<script src="train.js?v='+MQV+'"><\/script>');document.write('<script src="gateart.js?v='+MQV+'"><\/script>');document.write('<script src="ground.js?v='+MQV+'"><\/script>');document.write('<script src="decor.js?v='+MQV+'"><\/script>');document.write('<script src="ambient.js?v='+MQV+'"><\/script>');document.write('<script src="town.js?v='+MQV+'"><\/script>');document.write('<script src="bpscene.js?v='+MQV+'"><\/script>');document.write('<script src="battlepets.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');document.write('<script src="physics.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -3301,6 +3301,8 @@ function buildWorld(){
  wSpawnAll();
 }
 function wWalk(x,y){const t=W.T[y]&&W.T[y][x];return t&&!t.block;}
+/* the stone walls between areas block walking except at their gates (ground.js, Oct 2026) */
+const wWall=(x1,y1,x2,y2)=>!!(window.MQ_GROUND&&MQ_GROUND.blocked&&MQ_GROUND.blocked(W,x1,y1,x2,y2));
 /* wandering map monsters: off for now (owner, Oct 2026). Visitors (Principal Wise, Dr. Quartz, the Troll…) still use W.mobs. While off, the
    'Into the Wild' quest counts any battle win instead (questEvent below). */
 const MAP_MOBS=false;
@@ -3350,7 +3352,7 @@ function wPathTo(tx,ty){
  if(goal.block&&!special)return [];
  const prev={},q=[[W.hx,W.hy]];const key=(x,y)=>x+','+y;prev[key(W.hx,W.hy)]=null;
  while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty)break;
-  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;const k=key(nx,ny);if(k in prev)continue;if(!(nx===tx&&ny===ty)&&!wWalk(nx,ny))continue;if(nx<0||ny<0||nx>=WCOLS||ny>=WROWS)continue;prev[k]=[x,y];q.push([nx,ny]);}
+  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;const k=key(nx,ny);if(k in prev)continue;if(!(nx===tx&&ny===ty)&&!wWalk(nx,ny))continue;if(wWall(x,y,nx,ny))continue;if(nx<0||ny<0||nx>=WCOLS||ny>=WROWS)continue;prev[k]=[x,y];q.push([nx,ny]);}
   if(q.length>4000)break;}
  if(!(key(tx,ty) in prev))return [];
  const path=[];let c=[tx,ty];while(c&&!(c[0]===W.hx&&c[1]===W.hy)){path.unshift(c);c=prev[key(c[0],c[1])];}return path;}
@@ -3374,6 +3376,7 @@ function wStep(dx,dy,held){
  if(!W||W.moving||curScreen!=='world'||$('#modal.show')||window.trollBusy)return;
  const nx=W.hx+dx,ny=W.hy+dy;const t=W.T[ny]&&W.T[ny][nx];if(!t)return;
  if(dx)W.dir=dx;
+ if(wWall(W.hx,W.hy,nx,ny)){W.path=[];return;}
  if(held&&(t.npc||t.gate||t.chest)){W.path=[];if(Date.now()-wDoorTip>6000){wDoorTip=Date.now();toast(t.chest?'🎁 Press again to open the treasure!':t.npc?'👋 Press again to say hi!':'🚪 Press again to go in!');}return;}
  const mob=W.mobs.find(m=>m.x===nx&&m.y===ny);if(mob){wFight(mob);return;}
  if(t.npc){W.path=[];wNpc(t.npc);return;}
@@ -3394,7 +3397,7 @@ function wFrame(now){
  if(W.moving){const k=Math.min(1,(now-W.mt)/140);W.drawX=W.fx+(W.hx-W.fx)*k;W.drawY=W.fy+(W.hy-W.fy)*k;}else{W.drawX=W.hx;W.drawY=W.hy;}
  // mobs wander
  if(now-W.mobT>900){W.mobT=now;principalCheckLeave();W.mobs.forEach(m=>{if(m.quartz||m.mod)return;if(Math.random()<(m.principal?.65:.5))return;const [dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]);const nx=m.x+dx,ny=m.y+dy;const t=W.T[ny]&&W.T[ny][nx];
-  if(!t||t.block||t.water||(!m.principal&&(t.plaza||t.b!==m.b))||W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;
+  if(!t||t.block||t.water||wWall(m.x,m.y,nx,ny)||(!m.principal&&(t.plaza||t.b!==m.b))||W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;
   if(m.x===W.hx&&m.y===W.hy&&!$('#modal.show'))setTimeout(()=>wFight(m),50);});}
  const [cx,cy]=wCam();
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W.vw,W.vh);

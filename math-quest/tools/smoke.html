@@ -126,7 +126,18 @@ const tests=[
   const blocks=JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)));const c=document.createElement('canvas');c.width=400;c.height=300;let err='';
   try{MQ_GROUND.draw(c.getContext('2d'),W,0,WCOLS-1,0,WROWS-1,0,0,20,performance.now());}catch(e){err=String(e);}
   T.ok(!err,'drawing the ground failed: '+err);T.ok(JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)))===blocks,'drawing the ground changed where you can walk');
-  T.ok(Object.values(W._wall||{}).some(m=>m),'no stone walls drawn between areas');
+  {const WL=MQ_GROUND.walls(W);T.ok(Object.keys(WL.wall).length>20&&Object.keys(WL.gate).length>5,'no stone walls or gates between areas');
+   /* a wall blocks a step; a gate lets you through */
+   const k=+Object.keys(WL.wall).find(k=>{const x=k%1000,y=Math.floor(k/1000),m=WL.wall[k],t=W.T[y][x],u=m&1?W.T[y][x+1]:W.T[y+1][x];return t&&u&&!t.block&&!u.block;});
+   const x=k%1000,y=Math.floor(k/1000),d=WL.wall[k]&1?[1,0]:[0,1];T.ok(MQ_GROUND.blocked(W,x,y,x+d[0],y+d[1]),'a wall does not block');
+   W.hx=x;W.hy=y;W.moving=false;W.path=[];wStep(d[0],d[1]);T.ok(W.hx===x&&W.hy===y,'the hero walked through a stone wall');
+   const gk=+Object.keys(WL.gate)[0],gx=gk%1000,gy=Math.floor(gk/1000),gd=WL.gate[gk]&1?[1,0]:[0,1];T.ok(!MQ_GROUND.blocked(W,gx,gy,gx+gd[0],gy+gd[1]),'a gate blocks');
+   /* nothing reachable before the walls is cut off, and every world entrance can be walked to from the town square */
+   let st=null;for(let yy=0;yy<WROWS&&!st;yy++)for(let xx=0;xx<WCOLS;xx++){const t=W.T[yy][xx];if(t.plaza&&!t.block){st=[xx,yy];break;}}
+   const reach=wl=>{const seen=new Set([st+'']),q=[st];while(q.length){const [a,b]=q.pop();for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=a+dx,ny=b+dy,t=W.T[ny]&&W.T[ny][nx];if(!t||seen.has(nx+','+ny))continue;
+     if(t.block&&!(t.gate||t.npc||t.chest))continue;if(wl&&MQ_GROUND.blocked(W,a,b,nx,ny))continue;seen.add(nx+','+ny);if(!t.block)q.push([nx,ny]);}}return seen;};
+   const r0=reach(false),r1=reach(true);T.ok(r0.size===r1.size,'the walls cut off '+(r0.size-r1.size)+' places the hero could reach before');
+   for(const [zid,c] of Object.entries(W.gates)){W.hx=st[0];W.hy=st[1];T.ok(wPathTo(c[0],c[1]).length>0,'cannot walk to the '+zid+' entrance past the walls');}}
  }],
 ['event worlds: Haunted Hollow and Harvest Hollow open on their own dates; Harvest Hollow gives Gobble the Turkey, then the Pilgrim Hat',async function(){
   T.reset();const p=T.hero('Feast',3);state.cur=p.id;const dk=window.dayKey,hv=ZONES.find(z=>z.id==='harvest'),hh=ZONES.find(z=>z.id==='haunt');T.ok(hv&&hv.event,'Harvest Hollow is missing');
