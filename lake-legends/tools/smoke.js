@@ -313,7 +313,10 @@ const BOT = n => {
   await b.evaluate(() => { startVisit(lakeById("dixon"), "dock"); });
   await b.evaluate(() => LL.syncNow()); await b.waitForTimeout(500);
   ok(!(await b.$("#llNoteRead")), "a reply waits while the player is fishing");
-  await b.evaluate(() => { trip = null; visit = null; showScreen("title"); }); await b.waitForTimeout(5600);
+  const blocker = await b.evaluate(() => { trip = null; visit = null; showScreen("title"); const m = $("modal").classList.contains("show") ? $("modalBox").textContent.slice(0, 60) : "";
+    $("modal").classList.remove("show"); modalQueue = []; prizeQueue = []; return m; });      // any other popup (a prize, an event) is closed first
+  if (blocker) console.log("    (closed a popup first: " + blocker + ")");
+  for (let i = 0; i < 30 && !(await b.$("#llNoteRead")); i++) await b.waitForTimeout(500);
   ok(await b.isVisible("#llNoteRead") && (await b.textContent("#llOv")).includes("We fixed it!") && (await b.textContent("#llOv")).includes("upside"), "the reply pops up with the report and the answer");
   await b.click("#llNoteRead"); await b.waitForTimeout(400);
   ok(!!JSON.parse(STORE.get(mid)).msgs[0].readBy[ana], "tapping it records that the player saw it");
@@ -392,7 +395,8 @@ const BOT = n => {
     out.started = !!sd && S.coins === 75 && sd.rivals.length === 2 && trip.mode === "dock" && sd.rivals.every(r => r.def.name);
     for (let i = 0; i < 30 * 150; i++){ if (trip.phase !== "ready"){ trip.phase = "ready"; } updateFishing(1/30); }
     out.rivalsFish = sd.rivals.some(r => r.fish.length > 0) && sd.left < SD_SECS - 60 && sd.left > 0;
-    sd.mine.push({ id:"largemouth", lb: 99 }); sd.left = .01; updateFishing(1/30);
+    Object.keys(SPECIES).slice(0, 20).forEach(id => sd.mine.push({ id, lb: 99 }));            // wins whatever the Showdown type (most, biggest, bag, kinds)
+    $("modal").classList.remove("show"); trip.phase = "ready"; sd.left = .01; updateFishing(1/30);
     out.finished = !visit.sd && $("modalBox").textContent.includes("YOU WON") && S.sd.wins.local === 1 && S.sd.cups.length === 1 && S.coins === 75 + 75;
     out.county = sdOpen(SD_TIERS[1]) && $("modalBox").textContent.includes("County Cup");
     reset();
@@ -479,12 +483,21 @@ const BOT = n => {
     startTrip(lakeById("dixon"), 0, "dock", true); trip.phase = "ready";
     reelPress(); for (let i = 0; i < 31; i++) updateFishing(1/30); out.holding = trip.phase === "ready" && !!trip.charge;
     while (castPower(trip.charge.t) < .99) updateFishing(1/120);
-    reelRelease(); out.perfect = trip.phase === "cast" && trip.perfect && trip.castX > W * .6;
+    reelRelease(); out.farMiss = trip.phase === "cast" && !trip.perfect;              // the target starts mid-lake, so the farthest cast misses it
+    // move the target close in with a tap on the water, then hit it
+    startTrip(lakeById("dixon"), 0, "dock", true); trip.phase = "ready"; const want = castTarget(trip, .3);
+    const a0 = aimX(trip); keys.ArrowRight = true; updateFishing(1/30); keys.ArrowRight = false; out.keys = aimX(trip) > a0;
+    pointerDown = true; pointerX = want; updateFishing(1/30); pointerDown = false; pointerX = null; out.moved = Math.abs(aimX(trip) - want) < 1;
+    reelPress(); for (let i = 0; i < 400 && !castPerfect(trip, castPower(trip.charge.t)); i++) updateFishing(1/120);
+    reelRelease(); out.perfect = trip.phase === "cast" && trip.perfect && Math.abs(trip.castX - want) < 1;
+    startTrip(lakeById("dixon"), 0, "dock", true); out.remember = Math.abs(aimX(trip) - want) < 2;
     startTrip(lakeById("dixon"), 0, "dock", true); trip.phase = "ready"; reelPress(); for (let i = 0; i < 12; i++) updateFishing(1/30); reelRelease();
     out.short = trip.phase === "cast" && !trip.perfect && trip.castX < trip.tipX + 120;
     trip = null; visit = null; showScreen("title"); return out; });
   ok(r10.tap, "a quick tap casts anywhere");
-  ok(r10.holding && r10.perfect, "holding fills the power bar; letting go at the top makes a long PERFECT cast");
+  ok(r10.holding && r10.perfect, "holding fills the power bar; letting go on the target makes a PERFECT cast");
+  ok(r10.farMiss, "the farthest cast is not automatically perfect");
+  ok(r10.moved && r10.keys && r10.remember, "the target moves with a tap on the water or the arrow keys, and stays put for the next cast");
   ok(r10.short, "letting go early makes a short cast");
 
   console.log("Fish moves and hotspots");
@@ -578,6 +591,29 @@ const BOT = n => {
     ev("pointerdown", 74); ev("pointerup", 74); out.b = trip.phase === "cast";
     trip = null; visit = null; btnHeld = false; showScreen("title"); return out; });
   ok(r13.a && r13.b, "a lost finger-lift on the reel button never blocks the next cast");
+  const r14 = await a.evaluate(() => {
+    const out = {}; for (let tries = 0; tries < 6 && !(out.stops && out.pulls); tries++){
+    trip = null; visit = null; startVisit(lakeById("dixon"), "dock");
+    const f = makeFish("channel", 30 * PPF); f.inches = 20; trip.snags = []; trip.fish.push(f); trip.phase = "reel"; trip.hook.y = 30 * PPF; trip.hook.x = W / 2;
+    hookFish(f); trip.fight = null; trip.phase = "reel"; trip.move = null; trip.moveCD = 1e9; trip.surgeT = 1e9; trip.surge = 0; btnHeld = false;
+    for (let i = 0; i < 180 && trip.caught.length; i++){ if (i % 3 === 0) crank(); updateFishing(1/60); }     // 3 s of fast tapping
+    const y0 = trip.hook.y; for (let i = 0; i < 21; i++) updateFishing(1/60); const y1 = trip.hook.y;     // stop: 0.35 s later
+    for (let i = 0; i < 3; i++) updateFishing(1/60); const y2 = trip.hook.y;
+    for (let i = 0; i < 60; i++) updateFishing(1/60); const y3 = trip.hook.y;
+    const on = trip.caught[0] === f && trip.phase === "reel";
+    out.stops = on && y0 - y1 < 3 * PPF && y2 >= y1 - .01; out.pulls = on && y3 > y2 + 2; out.v = [y0, y1, y2, y3].map(v => Math.round(v)); }
+    trip = null; visit = null; showScreen("title"); return out; });
+  const r15 = await a.evaluate(() => {
+    const out = {}, bak = S.boatOwn; S.boatOwn = 2; trip = null; visit = null; startVisit(lakeById("jennings"), "boat");
+    visit.spots = [Object.assign({ kind: "rocks", x: 100, life: 999 }, SPOTS.rocks)]; visit.spotNext = 1e9; visit.spotScroll = null; trip.phase = "ready";
+    updateFishing(1/30); visit.scroll = (visit.scroll || 0) + 50; updateFishing(1/30); out.slides = visit.spots.length === 1 && Math.abs(visit.spots[0].x - 150) < 1;
+    visit.scroll += W; updateFishing(1/30); out.behind = visit.spots.length === 0;
+    // rain stops at the surface
+    rainDrops.length = 0; rainRings.length = 0; rainDrops.push({ x: 100, y: 95, v: 800 }); drawRain(1/60, 100); out.rain = rainDrops.length === 0 && rainRings.length === 1;
+    trip = null; visit = null; S.boatOwn = bak; showScreen("title"); return out; });
+  ok(r15.slides && r15.behind, "hotspots stay put on the lake and slide by when the boat moves");
+  ok(r15.rain, "rain stops at the water's surface");
+  ok(r14.stops && r14.pulls, "stop tapping and the reel stops at once, then the fish pulls back (" + r14.v + ")");
   ok(r12.loop, "one error in a frame doesn't freeze the game");
   ok(r12.rentOnce, "a rented boat is paid for once per visit");
   ok(r12.motorUnlock, "going back to the dock while motoring to a spot doesn't block casting");
