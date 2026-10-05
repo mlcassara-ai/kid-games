@@ -14,12 +14,20 @@ const hash=(x,y)=>{let h=(x*73856093^y*19349663)|0;h=(h^(h>>>13))*1274126177|0;r
 /* size in tiles (w, h) and how much higher than the tile's foot it stands */
 const SZ={cwall:[1.15,.95],ctower:[.85,1.4],catapult:[1.15,.95],knight:[.7,1.2],balls:[1.05,.62],pennant:[.45,.72],torch:[.36,.72],shield:[.5,.5],rubble:[.62,.4],candles:[.42,.5],stones:[.42,.26],weed:[.42,.32],pine:[1.05,1.26],pine2:[1,1.2],oak:[1.1,1.32],birch:[1,1.2],bush:[.95,.76],berry:[.95,.76],fbush:[.95,.76],toad:[.55,.55],brown:[.55,.55],fern:[.6,.6],daisy:[.55,.55],bell:[.55,.55],tuft:[.42,.32],flower:[.42,.32]};
 const SET={castle:{block:['cwall','cwall','ctower','catapult','knight','balls'],deco:['pennant','torch','shield','rubble','candles'],extra:['stones','weed','stones']},forest:{block:['pine','pine','oak','oak','birch','pine2','bush','berry','fbush'],deco:['toad','brown','fern','daisy','bell'],extra:['tuft','flower','tuft']}};
+/* decluttered (owner, Oct 2026): the big pieces (trees, bushes, walls, towers…) competed with the area's entrance, the small plants are
+   loved. So when the map is built, no big piece stands within CLEAR tiles of the area's entrance, only `block` of the rest is kept (a fixed
+   hash, the same every time; the others become open ground to walk on), and every small plant stays. extra = the share of open tiles that
+   get a small flower, tuft or stone. */
+const THIN={forest:{block:.6,extra:.16,clear:3},castle:{block:.55,extra:.12,clear:3}};
+window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(T=>{for(let y=0;y<T.length;y++)for(let x=0;x<T[y].length;x++){const t=T[y][x],th=THIN[t.b];
+ if(!th||!t.o||t.deco||t.gate||t.npc||t.chest)continue;const c=(window.BIOMES&&BIOMES[t.b]&&BIOMES[t.b].c)||[-99,-99];
+ if(Math.hypot(x-c[0],y-c[1])<=th.clear||hash(x*7+5,y*11+3)>=th.block){t.o=null;t.block=false;}}});
 function choose(list,x,y,s){return list[Math.floor(hash(x+s,y-s)*list.length)%list.length];}
 function paint(ctx,k,sx,sy,ts,dx){const i=img(k);if(!i.complete||!i.naturalWidth)return false;const [w,h]=SZ[k];ctx.drawImage(i,sx+ts/2-w*ts/2+(dx||0)*ts,sy+ts*.98-h*ts,w*ts,h*ts);return true;}
 function get(t,x,y){const S=SET[t.b];if(!S||!t.o)return null;const k=choose(t.deco?S.deco:S.block,x,y,t.deco?7:3);return img(k).complete&&img(k).naturalWidth?k:null;}
 window.MQ_DECOR={
  draw(t,x,y){const k=get(t,x,y);return k?(ctx,sx,sy,ts)=>paint(ctx,k,sx,sy,ts,t.deco?(hash(x,y)-.5)*.3:0):null;},
- extra(t,x,y){const S=SET[t.b];if(!S||t.o||t.block||t.path||t.plaza||t.water||t.gate||t.npc||t.chest)return null;if(hash(x*3+1,y*7+2)>.16)return null;const k=choose(S.extra,x,y,11);
+ extra(t,x,y){const S=SET[t.b];if(!S||t.o||t.block||t.path||t.plaza||t.water||t.gate||t.npc||t.chest)return null;if(hash(x*3+1,y*7+2)>((THIN[t.b]||{}).extra||.16))return null;const k=choose(S.extra,x,y,11);
   return (ctx,sx,sy,ts)=>paint(ctx,k,sx,sy-ts*(hash(x,y)*.3),ts,(hash(y,x)-.5)*.5);},
- ART,SZ,SET};
+ ART,SZ,SET,THIN};
 })();
