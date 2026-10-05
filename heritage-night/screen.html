@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Discover Lebanon — Big Screen</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0c3326">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
@@ -117,14 +121,17 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 .champ .rest { display: flex; gap: 3vw; font-size: 3vh; font-weight: 700; }
 .champ .rest span b { color: var(--gold); font-family: var(--display); }
 body.mouse { cursor: auto; }
-.reset { position: fixed; left: 1vw; bottom: .8vh; z-index: 6; font: inherit; font-size: 1.5vh; font-weight: 700; color: var(--ink-soft); background: rgba(255,255,255,.08);
+.tools { position: fixed; left: 1vw; bottom: .8vh; z-index: 6; display: flex; gap: .5vw; }
+.reset { font: inherit; font-size: 1.5vh; font-weight: 700; color: var(--ink-soft); background: rgba(255,255,255,.08);
   border: 1px solid var(--line); border-radius: 99px; padding: .4vh 1vw; cursor: pointer; opacity: .35; transition: opacity .3s; }
 .reset:hover, .reset:focus-visible { opacity: 1; }
+.reset.inst { opacity: .9; background: var(--gold); color: #3a2600; border-color: transparent; }
+.reset[hidden] { display: none; }
 .toast { position: fixed; left: 3.6vw; bottom: 17vh; max-width: 40vw; background: var(--gold); color: #3a2600; border-radius: 1.4vh;
   padding: 1.2vh 1vw; font-weight: 700; font-size: 2.3vh; box-shadow: 0 1vh 2vh rgba(0,0,0,.35); transform: translateY(160%); opacity: 0; transition: transform .45s, opacity .45s; z-index: 5; }
 .toast.on { opacity: 1; }
 .toast.on { transform: none; }
-.net { position: fixed; left: 7vw; bottom: .8vh; font-size: 1.5vh; color: var(--ink-soft); opacity: .7; }
+.net { position: fixed; left: 24vw; bottom: .8vh; font-size: 1.5vh; color: var(--ink-soft); opacity: .7; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -154,7 +161,9 @@ body.mouse { cursor: auto; }
 </div>
 <div class="toast" id="toast"></div>
 <div class="net" id="net"></div>
-<button class="reset" id="reset" title="Clear every score and start a new game">🔄 Reset</button>
+<div class="tools"><button class="reset" id="reset" title="Clear every score and start a new game">🔄 Reset</button>
+  <button class="reset" id="full" title="Full screen (or press F)">⛶ Full screen</button>
+  <button class="reset inst" id="install" hidden title="Put this on your desktop as an app">💻 Install app</button></div>
 <script src="hn-core.js?v=5"></script>
 <script>
 (function () {
@@ -302,6 +311,19 @@ body.mouse { cursor: auto; }
   };
   var mouseT = 0;   // the mouse pointer shows for a few seconds after it moves, so the Reset button can be reached
   document.addEventListener('mousemove', function () { document.body.classList.add('mouse'); clearTimeout(mouseT); mouseT = setTimeout(function () { document.body.classList.remove('mouse'); }, 3000); });
+  /* full screen (button or F) and installing as a desktop app (Chrome / Edge) */
+  function toggleFull() {
+    var d = document;
+    if (d.fullscreenElement || d.webkitFullscreenElement) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+    else { var el = d.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen).call(el); }
+  }
+  $('full').onclick = function () { try { toggleFull(); } catch (e) {} };
+  document.addEventListener('keydown', function (e) { if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey) { try { toggleFull(); } catch (er) {} } });
+  var installEvt = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvt = e; $('install').hidden = false; });
+  window.addEventListener('appinstalled', function () { $('install').hidden = true; });
+  $('install').onclick = function () { if (installEvt) { installEvt.prompt(); installEvt = null; $('install').hidden = true; } };
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(function () {});
   HN.syncClock(); setInterval(HN.syncClock, 5 * 60000);
   try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
   tick(); setInterval(tick, 200);
