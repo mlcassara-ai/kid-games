@@ -11,7 +11,8 @@ var qs = new URLSearchParams(location.search);
 var FAST = qs.get('fast') === '1';                       // testing: short phases
 var EVENT = (qs.get('e') || 'oct2026').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) || 'oct2026';
 var SHARDS = 8;
-var T = FAST ? { fact: 4000, q: 6000, reveal: 3000 } : { fact: 13000, q: 16000, reveal: 7000 };
+/* fact card, question, answer reveal; the 10th question of each round gets a longer reveal (`champ`) for the Round Champion */
+var T = FAST ? { fact: 4000, q: 6000, reveal: 3000, champ: 5000 } : { fact: 13000, q: 16000, reveal: 3500, champ: 9000 };
 T.cycle = T.fact + T.q + T.reveal;
 var PLAY_URL = 'https://mlcassara-ai.github.io/kid-games/heritage-night/';
 
@@ -238,11 +239,14 @@ function serverMs(ts) { var m = /^(.*\.\d{3})\d*Z$/.exec(ts); return Date.parse(
 function noteServerTime(ts, t0, t1) { var s = serverMs(ts); if (!isNaN(s)) { offset = s - (t0 + t1) / 2; synced = true; } }
 function phase(t) {
   t = t == null ? now() : t;
-  var cycle = Math.floor(t / T.cycle), pos = t - cycle * T.cycle, name, left, len;
+  // a round is ROUND cycles; the last one's reveal is T.champ long instead of T.reveal
+  var RL = ROUND * T.cycle - T.reveal + T.champ, r = Math.floor(t / RL), rp = t - r * RL;
+  var i = Math.min(ROUND - 1, Math.floor(rp / T.cycle)), start = r * RL + i * T.cycle, cl = i === ROUND - 1 ? T.cycle - T.reveal + T.champ : T.cycle;
+  var cycle = r * ROUND + i, pos = t - start, name, left, len;
   if (pos < T.fact) { name = 'fact'; left = T.fact - pos; len = T.fact; }
   else if (pos < T.fact + T.q) { name = 'question'; left = T.fact + T.q - pos; len = T.q; }
-  else { name = 'reveal'; left = T.cycle - pos; len = T.reveal; }
-  return { cycle: cycle, name: name, left: left, len: len, qStart: cycle * T.cycle + T.fact };
+  else { name = 'reveal'; left = cl - pos; len = cl - T.fact - T.q; }
+  return { cycle: cycle, name: name, left: left, len: len, qStart: start + T.fact };
 }
 function points(ms) { return 50 + Math.round(50 * Math.max(0, 1 - ms / T.q)); }   // right: 50, plus up to 50 for speed
 

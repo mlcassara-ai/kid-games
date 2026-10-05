@@ -15,10 +15,11 @@ const ok = (c, msg) => { checks++; if (!c) { fails.push(msg); console.log('  ✗
 const STORE = new Map(); let conflicts = 0;
 // The fake server clock is shifted so the test lands on the 10th question of a round that is a double-points question,
 // with two questions before it to build a 3-answer streak (same seeded generator as hn-core.js).
-const CYCLE = 4000 + 6000 + 3000;   // fast mode
+const CYCLE = 4000 + 6000 + 3000, RL = 10 * CYCLE - 3000 + 5000;   // fast mode; the 10th reveal is 5 s
+const startOf = c => Math.floor(c / 10) * RL + (c % 10) * CYCLE;
 function rng(seed) { let a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const isDouble = c => rng(c * 7907 + 3)() < 1 / 8;
-let C = Math.floor(Date.now() / CYCLE) + 100; while (C % 10 !== 9 || !isDouble(C)) C++;
+let C = Math.floor(Date.now() / RL) * 10 + 100; while (C % 10 !== 9 || !isDouble(C)) C++;
 let SHIFT = 0;   // set just before the phones join
 const stamp = () => new Date(Date.now() + SHIFT).toISOString().replace('Z', '123Z') ; // server time, with extra digits like Firestore
 async function fake(ctx) {
@@ -59,7 +60,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
   const browser = await pw.chromium.launch({ executablePath: fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined });
   const errs = [];
   try {
-    SHIFT = (C - 2) * CYCLE - 9000 - Date.now();   // 9 s before the first streak question starts
+    SHIFT = startOf(C - 2) - 9000 - Date.now();   // 9 s before the first streak question starts
     const scr = await page(browser, { width: 1920, height: 1080 }, errs, -47000);   // screen clock 47 s slow
     await scr.goto(base + 'screen.html?fast=1&e=test');
     const phones = [];
@@ -82,6 +83,11 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     const atQ = (p, c) => p.waitForFunction(c => { const h = HN.phase(); return h.cycle === c && h.name === 'question'; }, c, { timeout: 40000 });
     ok(await scr.evaluate(c => HN.qInRound(c) === 10 && HN.isDouble(c) && HN.roundOf(c) === HN.roundOf(c - 2), C), 'test lands on a double-points 10th question');
     ok(await scr.evaluate(() => { let n = 0; for (let c = 0; c < 8000; c++) if (HN.isDouble(c)) n++; return n > 800 && n < 1200; }), 'about 1 in 8 questions is double points');
+    ok(await scr.evaluate(() => {   // every phase lines up: normal reveals are short, the 10th question's reveal is long
+      const T = HN.T, t0 = 5e12; let prev = HN.phase(t0), lens = {};
+      for (let t = t0; t < t0 + 3 * (10 * T.cycle + T.champ); t += 250) { const p = HN.phase(t); if (p.cycle < prev.cycle || p.cycle > prev.cycle + 1) return false; if (p.name === 'reveal') lens[HN.qInRound(p.cycle)] = p.len; prev = p; }
+      return lens[1] === T.reveal && lens[10] === T.champ;
+    }), 'the 10th question gets the long Round Champion reveal');
     for (const c of [C - 2, C - 1]) {   // phone A builds a streak; phone B gets one right
       await atQ(phones[0], c); await phones[0].waitForSelector('.ans');
       const r = await phones[0].evaluate(() => HN.questionFor(HN.phase().cycle).right);
