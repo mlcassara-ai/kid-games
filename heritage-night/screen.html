@@ -120,7 +120,16 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 .rope .say { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; font-family: var(--display); font-weight: 800; font-size: calc(2.2 * var(--u)); color: var(--gold); }
 .row .gd { display: block; font-size: calc(1.6 * var(--u)); font-weight: 700; color: var(--ink-soft); line-height: 1.1; }
 /* ---------- rounds, double points, round champion ---------- */
-.tr { margin-left: auto; display: grid; justify-items: end; gap: calc(.8 * var(--u)); }
+.clock { position: relative; flex: none; margin-left: auto; width: calc(9.5 * var(--u)); height: calc(9.5 * var(--u)); }
+.clock svg { width: 100%; height: 100%; display: block; transform: rotate(-90deg); }
+.clock .bg { fill: rgba(0,0,0,.25); stroke: rgba(255,255,255,.12); stroke-width: 8; }
+.clock .arc { fill: none; stroke: var(--gold); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .2s linear, stroke .3s; }
+.clock.q .arc { stroke: var(--red); } .clock.r .arc { stroke: var(--cedar); }
+.clock b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: calc(4.2 * var(--u)); line-height: 1; font-variant-numeric: tabular-nums; }
+.clock.q.hurry b { color: #ffb3ab; animation: tick 1s ease-in-out infinite; }
+@keyframes tick { 50% { transform: scale(1.12); } }
+.clock + .tr { margin-left: calc(1.4 * var(--w)); }
+.tr { margin-left: auto; min-width: calc(21.5 * var(--w)); display: grid; justify-items: end; gap: calc(.8 * var(--u)); }
 .rnd { font-family: var(--display); font-weight: 800; font-size: calc(2.4 * var(--u)); color: var(--ink-soft); white-space: nowrap; }
 .dbl { align-self: flex-start; background: var(--gold); color: #3a2600; border-radius: 99px; padding: calc(.6 * var(--u)) calc(1.6 * var(--w)); margin-bottom: calc(2 * var(--u));
   font-family: var(--display); font-weight: 800; font-size: calc(3.4 * var(--u)); letter-spacing: .04em; animation: zap 1s ease-in-out infinite alternate; }
@@ -161,6 +170,7 @@ body.mouse { cursor: auto; }
       <svg class="flag" viewBox="0 0 30 20" aria-label="Flag of Lebanon"><rect width="30" height="20" fill="#e23b2e"/><rect y="5" width="30" height="10" fill="#fff"/>
         <g fill="#1f9e5c"><path d="M15 5.6l2.6 3.2h-1.3l2.4 2.6h-1.5l2.6 2.4H10.2l2.6-2.4h-1.5l2.4-2.6h-1.3z"/><rect x="14.5" y="13.8" width="1" height="1.2"/></g></svg>
       <div class="brand"><h1>Discover Lebanon</h1><p>Family Heritage Night</p></div>
+      <div class="clock" id="clock" aria-label="Seconds left"><svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="44"/><circle class="arc" id="arc" cx="50" cy="50" r="44" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/></svg><b id="secs"></b></div>
       <div class="tr"><div class="pill" id="pill">Did you know?</div><div class="rnd" id="rnd"></div></div>
     </div>
     <div class="bar"><i id="bar"></i></div>
@@ -225,14 +235,19 @@ body.mouse { cursor: auto; }
         renderBoard(); // scores only move on screen once the answer is shown
       }
     }
-    var nx = $('next'); if (nx) nx.textContent = 'Question in ' + Math.ceil(ph.left / 1000) + '…';
+    var nx = $('next'); if (nx) nx.textContent = 'Get ready, the question is next!';
     $('bar').style.transform = 'scaleX(' + Math.max(0, ph.left / ph.len) + ')';
+    /* the countdown clock: seconds left in this part (fact, question or answer), coloured to match */
+    var secs = Math.max(0, Math.ceil(ph.left / 1000));
+    $('secs').textContent = secs;
+    $('arc').setAttribute('stroke-dashoffset', (100 * (1 - Math.max(0, ph.left / ph.len))).toFixed(1));
+    $('clock').className = 'clock' + (ph.name === 'question' ? ' q' + (secs <= 5 ? ' hurry' : '') : ph.name === 'reveal' ? ' r' : '');
     var st = $('status');
     if (st) {
       var answered = 0, right = 0, fast = null;
       for (var k in players) { var p = players[k]; if (p.q === ph.cycle) { answered++; if (p.k) { right++; if (!HN.isGrown(p) && (!fast || p.t < fast.t)) fast = p; } } }
       st.innerHTML = ph.name === 'question'
-        ? '<span>⏱ <b>' + Math.ceil(ph.left / 1000) + '</b></span><span>✋ <b>' + answered + '</b> answered</span>'
+        ? '<span>✋ <b>' + answered + '</b> answered</span>'
         : '<span>🎉 <b>' + right + '</b> got it right</span>' + (fast ? '<span class="fast">⚡ Fastest: ' + HN.esc(fast.a + ' ' + fast.n) + '</span>' : '');
     }
   }

@@ -98,6 +98,8 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await shot(scr, 'screen-fact'); await shot(phones[0], 'phone-fact');
     ok(/Round Champion after this question/.test(await scr.textContent('.prize')), 'fact card says the Round Champion comes after this question');
     ok(/Question 10 of 10/.test(await scr.textContent('#rnd')), 'top bar shows the round and question number');
+    const clk = async () => ({ n: +(await scr.textContent('#secs')), c: await scr.getAttribute('#clock', 'class') });
+    const cf = await clk(); ok(cf.n >= 1 && cf.n <= 4 && cf.c === 'clock', 'countdown clock on the fact card (' + cf.n + ' s)');
     ok(/Grown-ups/.test(await scr.textContent('#who')) && /side gr/.test(await scr.getAttribute('.side', 'class')), 'side board takes its grown-up turn on an odd question');
     ok(await scr.locator('.dbl').count() === 1 && await phones[0].locator('.dbl').count() === 1, 'double points banner on the screen and the phone');
     await atQ(phones[0], C); await phones[0].waitForSelector('.ans');
@@ -108,6 +110,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await phones[1].waitForTimeout(700); await phones[1].click('.ans.o' + ((right + 1) % 4));
     await phones[1].waitForTimeout(400); await shot(phones[1], 'phone-locked');
     ok(await phones[0].locator('.locked').count() === 1, 'answer locks in');
+    const cq = await clk(); ok(/ q/.test(cq.c) && cq.n >= 1 && cq.n <= 6, 'countdown clock on the question, in red (' + cq.n + ' s)');
     ok(await phones[0].textContent('#sc') === before, 'score hidden until the reveal');
     await scr.waitForTimeout(3000);
     ok(/2/.test(await scr.textContent('#status')), 'screen counts 2 answered');
@@ -132,6 +135,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(await phones[1].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).st) === 0, 'a wrong answer ends the streak');
     ok(/Fastest/.test(await scr.textContent('#status')), 'screen shows the fastest player');
     ok(/Kids/.test(await scr.textContent('#who')), 'answer reveal always shows the kids board');
+    const cr = await clk(); ok(/ r$/.test(cr.c) && cr.n >= 1 && cr.n <= 5, 'countdown clock on the answer, in green (' + cr.n + ' s)');
     ok(/3rd/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows the grade');
     ok(await scr.locator('.row').count() === 2 && /2 playing/.test(await scr.textContent('#count')), 'Playing Now lists the 2 kids who answered (the grown-up is not on it)');
     ok(/All-night stars/.test(await scr.textContent('#stars')) && (await scr.textContent('#stars')).includes(nameA), 'All-night stars shows the top kid');
