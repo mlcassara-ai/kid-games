@@ -172,7 +172,11 @@ function css(){if(document.getElementById('bpsCSS'))return;const s=document.crea
 .bps-flame{animation:bpsflame .35s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 100%}@keyframes bpsflame{from{transform:scale(1,1)}to{transform:scale(.85,1.15)}}
 .bps-flag,.bps-wave{animation:bpsflag 1s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0 50%}@keyframes bpsflag{from{transform:skewY(-8deg)}to{transform:skewY(8deg)}}
 .bps-win{animation:bpswin 3s ease-in-out infinite alternate}@keyframes bpswin{from{opacity:.75}to{opacity:1}}
-.bps-eyes{animation:bpsblink 4s infinite}@keyframes bpsblink{0%,92%,100%{opacity:1}94%,97%{opacity:0}}
+.bps-eyes{animation:bpsblink 4s infinite}
+.bps-gate .gate-art{filter:grayscale(.85) brightness(.82);transition:filter 1.8s ease-out}.bps-gate.freed .gate-art{filter:none}
+.bps-gate .cap>*{transform-box:view-box;transition:transform 1.2s cubic-bezier(.5,0,.9,.5),opacity 1.2s}.bps-gate.freed .cap .dk{opacity:0;transition:opacity .9s .3s}
+.bps-gate.freed .cap .bn{transform:translate(0,190px) rotate(18deg);opacity:0}.bps-gate.freed .cap .bd1{transform:translate(-40px,150px) rotate(-50deg);opacity:0}
+.bps-gate.freed .cap .bd2{transform:translate(40px,150px) rotate(45deg);opacity:0;transition-delay:.15s}.bps-gate.freed .crk{opacity:0 !important;transition:opacity 1s .4s}.bps-gate.freed .cap .bps-eyes{animation:none;opacity:0;transition:opacity .5s}@keyframes bpsblink{0%,92%,100%{opacity:1}94%,97%{opacity:0}}
 .bps-far.shimmer{animation:bpsshim 3s ease-in-out infinite alternate}@keyframes bpsshim{from{filter:none}to{filter:blur(.6px)}}
 .bps-base{display:block;overflow:visible}.bps-base .crk{opacity:0;transition:opacity .4s}.d1 .bps-base .crk1,.d2 .bps-base .crk1,.d2 .bps-base .crk2,.d3 .bps-base .crk{opacity:1}
 .bps-tremor{animation:bpstrem .5s linear}@keyframes bpstrem{25%{translate:-3px 1px}50%{translate:3px -1px}75%{translate:-2px 0}}
@@ -221,8 +225,34 @@ function rainbow(){if(!S)return;grey(false);const r=document.createElement('div'
 function scuff(x){if(!S||!S.marks)return;const m=document.createElement('i');m.className='bps-mark';m.style.left=x+'%';m.style.bottom=(14+Math.random()*24)+'px';m.style.rotate=(Math.random()*40-20)+'deg';
  S.marks.appendChild(m);if(++S.nMarks>110){S.marks.firstChild.remove();S.nMarks--;}}
 /* bases: drawn pictures, cracking as they are hurt */
-function base(kind,stage){css();return kind==='house'?house():den(themeOf(stage));}
+/* ---------- the captured entrance (owner, Oct 2026) ----------
+   A world's stage uses that world's own entrance from the map (gateart.js) as the critters' base, shown captured by the Grey Goblin:
+   colours greyed, a goblin banner over the round math sign (a flag on top where there is no sign), the door boarded up with eyes
+   peeking out, cracking as it is hurt. When the den falls the world is freed: boards and banner drop, the colour floods back.
+   The Fossil Stage (no map entrance) keeps its den. Sign and door positions are read from the entrance picture itself. */
+const GATE_FIX={caves:{flag:[120,34]}};
+function gateBase(id){const G2=window.MQ_GATE_ART&&window.MQ_GATE_ART[id];if(!G2||!G2.svg)return null;const v=G2.svg,O2='#3b2a1e',f2=n=>(+n).toFixed(1);
+ const pq=/<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)" fill="#efe3c2"/.exec(v),dm=/<path d="M([\d.]+) ([\d.]+) L[\d.]+ ([\d.]+) A([\d.]+) [\d.]+ 0 0 1 ([\d.]+) [\d.]+ L[\d.]+ [\d.]+ Z"/.exec(v);
+ let src='';try{src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(v)));}catch(e){return null;}
+ let cap='';
+ if(dm){const a=+dm[1],yb=+dm[2],yt=+dm[3],rx=+dm[4],b=+dm[5],w=b-a,cx=(a+b)/2,h=yb-yt;
+  cap+=`<path class="dk" d="M${a} ${yb} L${a} ${yt} A${rx} ${rx} 0 0 1 ${b} ${yt} L${b} ${yb} Z" fill="#120c08"/>`;
+  cap+=`<g class="bps-eyes dk"><circle cx="${f2(cx-w*.18)}" cy="${f2(yb-h*.3)}" r="3" fill="#ffe066"/><circle cx="${f2(cx-w*.05)}" cy="${f2(yb-h*.3)}" r="3" fill="#ffe066"/><circle cx="${f2(cx+w*.12)}" cy="${f2(yt+h*.15)}" r="2.4" fill="#ffd43b"/><circle cx="${f2(cx+w*.22)}" cy="${f2(yt+h*.15)}" r="2.4" fill="#ffd43b"/></g>`;
+  const plank=(y,rot,k)=>`<g class="bd${k}"><g transform="rotate(${rot} ${f2(cx)} ${f2(y)})"><rect x="${f2(a-7)}" y="${f2(y-5)}" width="${f2(w+14)}" height="10" rx="2" fill="#8a5a2b" stroke="${O2}" stroke-width="2.5"/><path d="M${f2(a-2)} ${f2(y-1)} h${f2(w*.4)}" stroke="#b07a42" stroke-width="2"/><circle cx="${f2(a-2)}" cy="${f2(y)}" r="1.6" fill="${O2}"/><circle cx="${f2(b+2)}" cy="${f2(y)}" r="1.6" fill="${O2}"/></g></g>`;
+  cap+=plank(yt+h*.42,-9,1)+plank(yb-h*.2,7,2);}
+ const emblem=(x,y,k)=>`<g transform="translate(${f2(x)} ${f2(y)}) scale(${k})"><path d="M-9 -2 L-16 -9 L-7 -6 Z M9 -2 L16 -9 L7 -6 Z" fill="#9aa39a" stroke="${O2}" stroke-width="1.5" stroke-linejoin="round"/><ellipse rx="9" ry="8" fill="#9aa39a" stroke="${O2}" stroke-width="1.8"/><circle cx="-3.4" cy="-1.5" r="1.8" fill="#ffe066"/><circle cx="3.4" cy="-1.5" r="1.8" fill="#ffe066"/><path d="M-4.5 3 Q0 6.5 4.5 3" stroke="${O2}" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M-2 3.6 l1 1.8 1 -1.8 M1 3.6 l1 1.8 1 -1.8" fill="#fff"/></g>`;
+ const cloth=(x0,y0,w,h)=>`<path d="M${f2(x0)} ${f2(y0)} H${f2(x0+w)} V${f2(y0+h*.86)} L${f2(x0+w*.82)} ${f2(y0+h)} L${f2(x0+w*.62)} ${f2(y0+h*.84)} L${f2(x0+w*.42)} ${f2(y0+h)} L${f2(x0+w*.2)} ${f2(y0+h*.86)} L${f2(x0)} ${f2(y0+h)} Z" fill="#4f5b3e" stroke="${O2}" stroke-width="2.5" stroke-linejoin="round"/>`;
+ if(pq){const x=+pq[1],y=+pq[2],r=+pq[3],w=r*2.8,h=r*2.9,x0=x-w/2,y0=y-r*1.45;
+  cap+=`<g class="bn"><path d="M${f2(x0-4)} ${f2(y0)} H${f2(x0+w+4)}" stroke="#5c3d1e" stroke-width="4" stroke-linecap="round"/>${cloth(x0,y0,w,h)}${emblem(x,y0+h*.45,r/11)}</g>`;}
+ else{const F=(GATE_FIX[id]||{}).flag||[120,30],x=F[0],y=F[1];
+  cap+=`<g class="bn"><path d="M${x} ${y} V${y-34}" stroke="#5c3d1e" stroke-width="3.5" stroke-linecap="round"/>${cloth(x+1,y-33,30,22)}${emblem(x+16,y-23,.85)}</g>`;}
+ return `<svg class="bps-base bps-gate" viewBox="0 -6 240 206" width="160" height="137" aria-hidden="true"><ellipse cx="120" cy="190" rx="100" ry="7" fill="rgba(0,0,0,.25)"/>
+  <g class="gate-art"><image href="${src}" x="0" y="0" width="240" height="200"/></g><g class="cap">${cap}</g>
+  ${CRACKS('<path d="M40 120 l14 12 l-6 12 l8 10"/>','<path d="M196 110 l-12 10 l6 12 l-8 14"/><path d="M70 70 l8 12 l-4 8"/>','<path d="M160 60 l-8 18 l12 8 l-6 16"/><path d="M30 160 l14 -6 l6 12"/><path d="M200 150 l-14 4"/>')}</svg>`;}
+function base(kind,stage){css();if(kind==='house')return house();const g=stage&&stage.id!=='fossil'?gateBase(stage.id):null;return g||den(themeOf(stage));}
+/* the den fell: a captured entrance is freed */
+function free(el){const g=el&&el.querySelector('.bps-gate');if(g)g.classList.add('freed');return !!g;}
 function baseState(el,hp){if(!el)return;const d=hp<.25?3:hp<.5?2:hp<.75?1:0;if(el._d===d)return;el._d=d;el.classList.remove('d1','d2','d3');if(d)el.classList.add('d'+d);}
 function stop(){if(S&&S.timer)clearInterval(S.timer);if(S&&S.erupt)clearInterval(S.erupt);S=null;}
-window.BPScene={build,parallax,grey,rainbow,scuff,base,baseState,stop,themeOf,_s:()=>S};
+window.BPScene={build,parallax,grey,rainbow,scuff,base,baseState,stop,themeOf,free,gateBase,_s:()=>S};
 })();
