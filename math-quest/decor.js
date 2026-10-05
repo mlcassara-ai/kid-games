@@ -27,6 +27,8 @@ window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(T=>{const G=[],H=T.leng
  for(let y=0;y<H;y++)for(let x=0;x<Wd;x++)if(T[y][x].gate)G.push([x,y]);
  const q=[];for(let y=1;y<H-1;y++)for(let x=1;x<Wd-1;x++)if(T[y][x].water&&G.some(g=>Math.hypot(g[0]-x,g[1]-y)<=2.2))q.push([x,y]);
  while(q.length){const [x,y]=q.pop(),t=T[y][x];if(!t.water||!inner(x,y))continue;t.water=false;t.block=false;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(T[y+dy]&&T[y+dy][x+dx]&&T[y+dy][x+dx].water)q.push([x+dx,y+dy]);}});
+/* an entrance standing in the town square (the Haunted Hollow) keeps the plaza's own decorations out from under its picture */
+window.MQ_WORLD.push(T=>{for(let y=0;y<T.length;y++)for(let x=0;x<T[y].length;x++){if(!T[y][x].gate||!T[y][x].plaza)continue;for(let dy=-2;dy<=0;dy++)for(let dx=-1;dx<=1;dx++){const u=T[y+dy]&&T[y+dy][x+dx];if(u)u.nodecor=true;}}});
 window.MQ_WORLD.push(T=>{for(let y=0;y<T.length;y++)for(let x=0;x<T[y].length;x++){const t=T[y][x],th=thinOf(t.b);
  if(!th||!t.o||t.deco||t.gate||t.npc||t.chest)continue;const c=(window.BIOMES&&BIOMES[t.b]&&BIOMES[t.b].c)||[-99,-99];
  if(Math.hypot(x-c[0],y-c[1])<=th.clear||hash(x*7+5,y*11+3)>=th.block){t.o=null;t.block=false;}}});
