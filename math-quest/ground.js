@@ -57,7 +57,6 @@ function buildWalls(W){const T=W.T,H=T.length,Wd=T[0].length,raw={},gate={};
  const wall={};for(const k in raw){const m=raw[k]&~(gate[k]||0);if(m)wall[k]=m;}
  W._walls={wall,gate};}
 const wallsOf=(W,x,y)=>{if(!W._walls)buildWalls(W);return W._walls.wall[ek(x,y)]||0;};
-const gatesOf=(W,x,y)=>{if(!W._walls)buildWalls(W);return W._walls.gate[ek(x,y)]||0;};
 /* is there a wall (not a gate) between two side-by-side tiles? */
 function blocked(W,x1,y1,x2,y2){if(!W||!W.T)return false;if(Math.abs(x2-x1)+Math.abs(y2-y1)!==1)return false;
  const [x,y,d]=x2>x1?[x1,y1,1]:x2<x1?[x2,y2,1]:y2>y1?[x1,y1,2]:[x2,y2,2];return !!(wallsOf(W,x,y)&d);}
@@ -71,26 +70,11 @@ function wallSprite(ts,dir,v){const key=Math.round(ts)+dir+v;if(WS[key])return W
   g.fillStyle=GREY[Math.floor(hash(i*3+v,7)*GREY.length)];g.strokeStyle='#5c544b';g.lineWidth=Math.max(1,ts*.025);g.beginPath();rr(g,x,y,ww,hh,r);g.fill();g.stroke();
   g.fillStyle='rgba(255,255,255,.35)';g.beginPath();rr(g,x+ww*.18,y+hh*.14,ww*.5,hh*.28,r*.5);g.fill();}
  return WS[key]=c;}
-/* a gate: two stone pillars at the ends of the edge with the wooden gate leaves standing open against them */
-const GS={};
-function gateSprite(ts,dir){const key=Math.round(ts)+dir;if(GS[key])return GS[key];const L=ts*1.14,Th=ts*.34,up=ts*.42,c=document.createElement('canvas');
- const cw=dir==='h'?L:Th*1.5,ch=dir==='h'?Th+up:L+up;c.width=Math.ceil(cw);c.height=Math.ceil(ch);const g=c.getContext('2d'),lw=Math.max(1,ts*.025);
- const pillar=(px,pb)=>{const w=Th*1.05,h=Th*.9+up;g.fillStyle='rgba(40,30,20,.25)';g.beginPath();rr(g,px-w/2+1.5,pb-h+3,w,h,w*.25);g.fill();
-  g.fillStyle='#b5afa6';g.strokeStyle='#5c544b';g.lineWidth=lw;g.beginPath();rr(g,px-w/2,pb-h,w,h,w*.25);g.fill();g.stroke();
-  g.strokeStyle='rgba(92,84,75,.6)';g.beginPath();g.moveTo(px-w/2,pb-h*.55);g.lineTo(px+w/2,pb-h*.55);g.moveTo(px,pb-h*.55);g.lineTo(px,pb-h*.1);g.stroke();
-  g.fillStyle='#d6d0c6';g.strokeStyle='#5c544b';g.beginPath();rr(g,px-w*.62,pb-h-w*.18,w*1.24,w*.36,w*.15);g.fill();g.stroke();};
- const leaf=(x0,y0,w,h)=>{g.fillStyle='#a8743f';g.strokeStyle='#4a3020';g.lineWidth=lw;g.beginPath();rr(g,x0,y0,w,h,Math.min(w,h)*.2);g.fill();g.stroke();
-  g.strokeStyle='rgba(74,48,32,.6)';g.beginPath();if(w>h){g.moveTo(x0+2,y0+h/2);g.lineTo(x0+w-2,y0+h/2);}else{g.moveTo(x0+w/2,y0+2);g.lineTo(x0+w/2,y0+h-2);}g.stroke();};
- if(dir==='h'){const pb=up+Th*.85;leaf(L*.09,pb-Th*.75,L*.2,Th*.42);leaf(L*.71,pb-Th*.75,L*.2,Th*.42);pillar(L*.07,pb);pillar(L*.93,pb);}
- else{const x=Th*.75;leaf(x-Th*.2,up+L*.08,Th*.4,L*.22);leaf(x-Th*.2,up+L*.7,Th*.4,L*.22);pillar(x,up+L*.1);pillar(x,up+L*.97);}
- return GS[key]=c;}
 function drawWalls(ctx,W,x0,x1,y0,y1,cx,cy,ts){const o=ts*.07,Th=ts*.34,up=ts*.42;
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const m=wallsOf(W,x,y);if(!m)continue;const v=Math.floor(hash(x,y*3)*4);
   if(m&1)ctx.drawImage(wallSprite(ts,'v',v),(x+1)*ts-cx-Th/2,y*ts-cy-o);
   if(m&2)ctx.drawImage(wallSprite(ts,'h',v),x*ts-cx-o,(y+1)*ts-cy-Th/2);}
- for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const g=gatesOf(W,x,y);if(!g)continue; /* gates after walls, so their pillars stand over the wall ends */
-  if(g&1)ctx.drawImage(gateSprite(ts,'v'),(x+1)*ts-cx-Th*.75,y*ts-cy-o-up);
-  if(g&2)ctx.drawImage(gateSprite(ts,'h'),x*ts-cx-o,(y+1)*ts-cy-up-Th*.31);}}
+ /* gates are plain openings in the wall (owner, Oct 2026: nothing drawn, so kids aren't confused) */}
 const N=4; /* small squares per tile side: 4×4 per tile (owner, Oct 2026: a quarter of the earlier 2×2) */
 function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2,q=ts/N;
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const t=T[y][x],sx=x*ts-cx,sy=y*ts-cy;
