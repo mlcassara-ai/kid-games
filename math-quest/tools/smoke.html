@@ -132,13 +132,15 @@ const tests=[
 ['map scenery: every drawn forest tree, bush and plant loads, at least 3 of each kind, on the same tiles as before',async function(){
   const D=window.MQ_DECOR;T.ok(!!D,'decor.js is not loaded');if(!D)return;const S=D.SET.forest;
   T.ok(new Set(S.block.filter(k=>/pine|oak|birch/.test(k))).size>=3&&new Set(S.block.filter(k=>/bush|berry/.test(k))).size>=3&&new Set(S.deco).size>=3,'the forest has fewer than 3 kinds of trees, bushes or plants');
+  for(const [z,S] of Object.entries(D.SET))T.ok(new Set(S.block).size>=3&&new Set(S.deco).size>=3&&S.block.concat(S.deco,S.extra).every(k=>D.ART[k]&&D.SZ[k]),'the '+z+' scenery set is short or names a missing drawing');
   {const C=D.SET.castle;T.ok(C&&new Set(C.block).size>=3&&new Set(C.deco).size>=3&&!C.block.concat(C.deco).some(k=>/grave|tomb|brick/.test(k)),'the Division Castle does not have 3+ kinds of castle scenery');}
   for(const k of Object.keys(D.ART)){const i=new Image();i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(D.ART[k]);await T.until(()=>i.complete,3000,k);T.ok(i.naturalWidth>0,'the '+k+' drawing does not load');}
   T.reset();const p=T.hero('Woods',3);state.cur=p.id;go('world');await T.wait(300);let n=0,blockOk=true;for(let y=0;y<WROWS;y++)for(let x=0;x<WCOLS;x++){const t=W.T[y][x];if(t.b==='forest'&&t.o){n++;if(!!t.block===!!t.deco)blockOk=false;}}
   T.ok(n>10&&blockOk,'forest scenery tiles changed (trees must still block, plants must not)');
  }],
 ['world entrance art: the Subtraction Caves (Cave Mouth) and Addition Forest (Treehouse) pictures exist and load',async function(){
-  for(const k of ['caves','forest','castle','volcano']){const g=window.MQ_GATE_ART&&MQ_GATE_ART[k];T.ok(!!g&&g.w>1&&g.ar>0,'no entrance art for '+k);if(!g)continue;const im=g.img();
+  for(const z of ZONES.filter(z=>Object.values(BIOMES).some(b=>b.zone===z.id)))T.ok(!!(MQ_GATE_ART[z.id]),'no drawn entrance for '+z.name);
+  for(const k of Object.keys(MQ_GATE_ART)){const g=window.MQ_GATE_ART&&MQ_GATE_ART[k];T.ok(!!g&&g.w>1&&g.ar>0,'no entrance art for '+k);if(!g)continue;const im=g.img();
    await T.until(()=>im.complete,4000,'the '+k+' picture');T.ok(im.naturalWidth>0,'the '+k+' picture did not load (a broken SVG?)');}
  }],
 ['cafeteria week planner: a grid of days by food groups; picking a food fills the square and moves along the row',async function(){
