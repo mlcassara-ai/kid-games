@@ -156,7 +156,7 @@ function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)retu
   ctx.font=`800 ${Math.round(ts*.28)}px ui-monospace, Menlo, monospace`;const bw=Math.max(ts*1.3,ctx.measureText(txt).width+ts*.4),bh=ts*.62; /* the frame grows to fit the time or the word */
   ctx.fillStyle='#495057';const py=(ROW+.86)*ts-cy;ctx.fillRect(mid-ts*.05,sy+ts*.15,ts*.1,py-sy-ts*.15);ctx.fillRect(mid-ts*.14,py-ts*.04,ts*.28,ts*.05); /* the post runs down to the track, with a little foot */ctx.fillStyle='#212529';rr(ctx,mid-bw/2,sy-ts*.42,bw,bh,ts*.08);ctx.fill();
   ctx.strokeStyle='#ffd43b';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=TR.ph==='away'?'#ffd43b':TR.ph==='out'?'#ff922b':'#69db7c';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,mid,sy-ts*.11);
-  try{wLabel(ctx,'Next train',sx+ts/2,sy-ts*.66,'#fff','rgba(43,35,64,.85)');}catch(e){}}});
+  try{wLabel(ctx,TR.ph==='stop'?'In station':'Next train',sx+ts/2,sy-ts*.66,'#fff','rgba(43,35,64,.85)');}catch(e){}}});
  TR.walkers.forEach(v=>items.push({y:v.y+.01,draw:()=>drawWalker(ctx,v,cx,cy,ts,now)}));}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
 /* ---------- the station card ---------- */
