@@ -76,8 +76,8 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(await scr.evaluate(() => HN.isSynced()), 'screen clock synced to server time');
     const cyc = await Promise.all([scr, ...phones].map(p => p.evaluate(() => HN.phase().cycle)));
     ok(cyc.every(c => c === cyc[0]), 'screen and phones agree on the cycle despite the screen clock being 47 s off');
-    await scr.waitForFunction(() => document.querySelectorAll('.row').length === 3, null, { timeout: 8000 }).catch(() => {});
-    ok(await scr.locator('.row').count() === 2 && /3 players/.test(await scr.textContent('#count')), 'leaderboard lists the 2 kids only (3 players in all)');
+    await scr.waitForFunction(() => /Answer a question/.test(document.getElementById('board').textContent), null, { timeout: 8000 }).catch(() => {});
+    ok(await scr.locator('.row').count() === 0 && /Answer a question/.test(await scr.textContent('#board')), 'Playing Now board waits for a first answer');
     for (const p of phones) await p.waitForFunction(() => HN.isSynced(), null, { timeout: 8000 });
     const atQ = (p, c) => p.waitForFunction(c => { const h = HN.phase(); return h.cycle === c && h.name === 'question'; }, c, { timeout: 40000 });
     ok(await scr.evaluate(c => HN.qInRound(c) === 10 && HN.isDouble(c) && HN.roundOf(c) === HN.roundOf(c - 2), C), 'test lands on a double-points 10th question');
@@ -125,6 +125,8 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(await phones[1].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).st) === 0, 'a wrong answer ends the streak');
     ok(/Fastest/.test(await scr.textContent('#status')), 'screen shows the fastest player');
     ok(/3rd/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows the grade');
+    ok(await scr.locator('.row').count() === 2 && /2 playing/.test(await scr.textContent('#count')), 'Playing Now lists the 2 kids who answered (the grown-up is not on it)');
+    ok(/All-night stars/.test(await scr.textContent('#stars')) && (await scr.textContent('#stars')).includes(nameA), 'All-night stars shows the top kid');
     ok(/2 kids \+ 🤖 3/.test(await scr.textContent('#tkidn')) && /1 grown-up \+ 🤖 4/.test(await scr.textContent('#tgrn')), 'tug-of-war tops both sides up with robot helpers');
     ok(/🌲/.test(await scr.textContent('#knot')) && /🧒/.test(await scr.textContent('#plk')), 'cedar on the rope, pullers at the ends');
     ok(/pull/.test(await scr.textContent('#say')), 'screen says who won the pull (' + await scr.textContent('#say') + ')');
