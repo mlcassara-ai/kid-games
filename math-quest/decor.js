@@ -20,10 +20,13 @@ const SET={reef:{block:['reef_brain', 'reef_branch', 'reef_clam', 'reef_anemone'
    get a small flower, tuft or stone. */
 const THIN={forest:{block:.6,extra:.16,clear:3},castle:{block:.55,extra:.12,clear:3},village:{block:.75,extra:.12,clear:0}},THIN_DEF={block:.6,extra:.12,clear:3};
 const thinOf=b=>THIN[b]||(SET[b]?THIN_DEF:null); /* every area with drawn scenery is decluttered the same way unless it has its own numbers */
-/* entrances stand on dry ground: two old ponds sat right on the Estimation Station and Average Shoppe gates; water within 2.2 tiles of a gate
-   becomes land (a little more room to walk, nothing lost) */
-window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(T=>{const G=[];for(let y=0;y<T.length;y++)for(let x=0;x<T[y].length;x++)if(T[y][x].gate)G.push([x,y]);
- for(let y=1;y<T.length-1;y++)for(let x=1;x<T[y].length-1;x++){const t=T[y][x];if(t.water&&G.some(g=>Math.hypot(g[0]-x,g[1]-y)<=2.2)){t.water=false;t.block=false;}}});
+/* entrances stand on dry ground: old ponds sat right on or beside some gates (Estimation Station, Average Shoppe, Time Temple). A pond any
+   part of which is within 2.2 tiles of a gate is turned into land as a whole (never the sea around the map's edge; a little more room to
+   walk, nothing lost) */
+window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(T=>{const G=[],H=T.length,Wd=T[0].length,inner=(x,y)=>x>0&&y>0&&x<Wd-1&&y<H-1;
+ for(let y=0;y<H;y++)for(let x=0;x<Wd;x++)if(T[y][x].gate)G.push([x,y]);
+ const q=[];for(let y=1;y<H-1;y++)for(let x=1;x<Wd-1;x++)if(T[y][x].water&&G.some(g=>Math.hypot(g[0]-x,g[1]-y)<=2.2))q.push([x,y]);
+ while(q.length){const [x,y]=q.pop(),t=T[y][x];if(!t.water||!inner(x,y))continue;t.water=false;t.block=false;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(T[y+dy]&&T[y+dy][x+dx]&&T[y+dy][x+dx].water)q.push([x+dx,y+dy]);}});
 window.MQ_WORLD.push(T=>{for(let y=0;y<T.length;y++)for(let x=0;x<T[y].length;x++){const t=T[y][x],th=thinOf(t.b);
  if(!th||!t.o||t.deco||t.gate||t.npc||t.chest)continue;const c=(window.BIOMES&&BIOMES[t.b]&&BIOMES[t.b].c)||[-99,-99];
  if(Math.hypot(x-c[0],y-c[1])<=th.clear||hash(x*7+5,y*11+3)>=th.block){t.o=null;t.block=false;}}});

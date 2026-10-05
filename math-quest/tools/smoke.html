@@ -129,6 +129,10 @@ const tests=[
   {const R=MQ_GROUND.routes(W),G=Object.keys(W.gates).length,last=r=>r.P[r.P.length-1],gd=r=>{const g=W.gates[r.zid];return Math.hypot(last(r)[0]-g[0]-.5,last(r)[1]-g[1]-.5);};
    T.ok(R.length===G&&R.some(r=>gd(r)>3)&&R.some(r=>gd(r)<1),'the trails are missing, or none (or all) stop short of an entrance');}T.ok(JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)))===blocks,'drawing the ground changed where you can walk');
  }],
+['map life: tiny themed critters (butterflies, bubbles, embers, snow…) appear near the hero and never block',async function(){
+  T.reset();const p=T.hero('Looker',3);state.cur=p.id;go('world');await T.wait(200);W.hx=BIOMES.forest.c[0]+1;W.hy=BIOMES.forest.c[1]+1;await T.wait(2500);
+  T.ok(window.MQ_AMBIENT&&MQ_AMBIENT.count()>0&&MQ_AMBIENT.count()<=18,'no ambient life near the hero, or too much ('+(window.MQ_AMBIENT?MQ_AMBIENT.count():'none')+')');
+ }],
 ['map scenery: every drawn forest tree, bush and plant loads, at least 3 of each kind, on the same tiles as before',async function(){
   const D=window.MQ_DECOR;T.ok(!!D,'decor.js is not loaded');if(!D)return;const S=D.SET.forest;
   T.ok(new Set(S.block.filter(k=>/pine|oak|birch/.test(k))).size>=3&&new Set(S.block.filter(k=>/bush|berry/.test(k))).size>=3&&new Set(S.deco).size>=3,'the forest has fewer than 3 kinds of trees, bushes or plants');
