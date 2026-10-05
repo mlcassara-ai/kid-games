@@ -16,7 +16,7 @@
 (function(){
 /* the line sits inside the town square: a hill with a tunnel at each end (tiles 15–17 and 27–29), the visible track between the
    tunnel faces (x 18 to 27) and the departure board near the middle */
-const ROW=21,HL0=15,HL1=17,HR0=27,HR1=29,FL=18,FR=27,X0=HL1,X1=HR0,PL0=18,PL1=26,BOARD=[21,19],CALL_COST=10,BELL_WAIT=60,EVERY=[240,300],FIRST=[45,90];
+const ROW=21,HL0=15,HL1=17,HR0=27,HR1=29,FL=18,FR=27,X0=HL1,X1=HR0,PL0=18,PL1=26,BOARD=[20,20],CALL_COST=10,BELL_WAIT=60,EVERY=[240,300],FIRST=[45,90];
 const LEN=6.1,STOP=26.4,START=FL,END=FR+LEN+.2,T_IN=7,T_STOP=16,T_OUT=7;
 const TR={ph:'away',wait:FIRST[0]+Math.random()*(FIRST[1]-FIRST[0]),t:0,front:START,last:0,smoke:[],walkers:[],aboard:[],said:0,called:''};
 const rnd=(a,b)=>a+Math.random()*(b-a);
