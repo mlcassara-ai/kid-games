@@ -113,16 +113,16 @@ const tests=[
   for(let i=0;i<300&&D.TR.ph==='in';i++)D.tick(.05);T.ok(D.TR.ph==='stop'&&W.T[R][22].npc==='tride','the train did not stop at the station');
   wNpc('tride');T.ok(/Discovery Zone will open October 15th/.test(mt()),'getting on did not say the destination is coming soon');closeModal();
   for(let i=0;i<500&&D.TR.ph==='stop';i++)D.tick(.05);T.ok(D.TR.ph==='out'&&!W.T[R][22].npc&&!W.T[R][22].block,'the train did not leave, or left its doors on the track');
-  for(let i=0;i<500&&D.TR.ph==='out';i++)D.tick(.05);T.ok(D.TR.ph==='away'&&D.TR.wait>=240&&D.TR.wait<=300,'the next train is not 4 to 5 minutes away');
+  for(let i=0;i<500&&D.TR.ph==='out';i++)D.tick(.05);T.ok(D.TR.ph==='away'&&Math.abs(D.TR.wait-900)<1,'the next train is not 15 minutes away');
   wNpc('station');T.ok(/Number Town Station/.test(mt())&&/Coming soon/i.test(mt()),'the station card did not open');Train._bell();T.ok(D.TR.wait===D.BELL_WAIT&&p.coins===50,'the free bell did not bring the train within a minute');closeModal();
   Train._call();T.ok(p.coins===50-D.CALL_COST&&D.TR.wait<=5,'a paid call did not bring the train right away');
   p.coins=3;D.TR.wait=200;Train._call();T.ok(p.coins===3&&D.TR.wait===200,'a call went through without enough coins');
   D.TR.walkers.length=0;for(let i=0;i<40&&!D.TR.walkers.length;i++)D.spawnRider();T.ok(D.TR.walkers.length===1,'no visitor got off the train');
   for(let i=0;i<400&&D.TR.walkers.length;i++)D.tick(.05);T.ok(!D.TR.walkers.length,'the visitor never walked into town');
  }],
-['world entrance art: the Subtraction Caves draw their Cave Mouth picture, and it loads',async function(){
-  const g=window.MQ_GATE_ART&&MQ_GATE_ART.caves;T.ok(!!g&&g.w>1&&g.ar>0,'no entrance art for the Subtraction Caves');if(!g)return;const im=g.img();
-  await T.until(()=>im.complete,4000,'the cave picture');T.ok(im.naturalWidth>0,'the cave picture did not load (a broken SVG?)');
+['world entrance art: the Subtraction Caves (Cave Mouth) and Addition Forest (Treehouse) pictures exist and load',async function(){
+  for(const k of ['caves','forest']){const g=window.MQ_GATE_ART&&MQ_GATE_ART[k];T.ok(!!g&&g.w>1&&g.ar>0,'no entrance art for '+k);if(!g)continue;const im=g.img();
+   await T.until(()=>im.complete,4000,'the '+k+' picture');T.ok(im.naturalWidth>0,'the '+k+' picture did not load (a broken SVG?)');}
  }],
 ['cafeteria week planner: a grid of days by food groups; picking a food fills the square and moves along the row',async function(){
   T.reset();const p=T.hero('Chef',5);state.cur=p.id;closeModal();Lunch.week();await T.wait(120);closeModal();

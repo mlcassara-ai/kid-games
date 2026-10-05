@@ -3,7 +3,7 @@
    lives, and a grassy hill with a tunnel at the east end, both seen from the side (the train slides out of one and into the other), the
    track between (drawn from the side, like the train) and a departure board 🚉 near the middle,
    and signs on the hills: "Depot" (west) and "Discovery Zone" (east).
-   The train comes out of the west tunnel on its own every 4–5 minutes of time on the map, slows into the station, waits
+   The train comes out of the Depot on its own every 15 minutes of time on the map (the first one 1–15 minutes in), slows into the station, waits
    about 16 s ("All aboard!" near the end, then a whistle) and leaves through the east tunnel. The board counts down to the
    next train. Tapping the board: 🔔 ring the bell (free; the train comes within 1 minute) or 🪙 CALL_COST to call it right now.
    COMING SOON: the destination is not built yet. Walking onto the stopped train says so; everything else works.
@@ -16,7 +16,7 @@
 (function(){
 /* the line sits inside the town square: a hill with a tunnel at each end (tiles 15–17 and 27–29), the visible track between the
    tunnel faces (x 18 to 27) and the departure board near the middle */
-const ROW=21,HL0=15,HL1=17,HR0=27,HR1=29,FL=18,FR=27,X0=HL1,X1=HR0,PL0=18,PL1=26,BOARD=[20,20],CALL_COST=10,BELL_WAIT=60,EVERY=[240,300],FIRST=[45,90];
+const ROW=21,HL0=15,HL1=17,HR0=27,HR1=29,FL=18,FR=27,X0=HL1,X1=HR0,PL0=18,PL1=26,BOARD=[20,20],CALL_COST=10,BELL_WAIT=60,EVERY=[900,900],FIRST=[60,900]; /* a train every 15 minutes on the map (owner, Oct 2026); the first one 1–15 minutes after arriving */
 const LEN=6.1,STOP=26.4,START=FL,END=FR+LEN+.2,T_IN=7,T_STOP=16,T_OUT=7;
 const TR={ph:'away',wait:FIRST[0]+Math.random()*(FIRST[1]-FIRST[0]),t:0,front:START,last:0,smoke:[],walkers:[],aboard:[],said:0,called:''};
 const rnd=(a,b)=>a+Math.random()*(b-a);
