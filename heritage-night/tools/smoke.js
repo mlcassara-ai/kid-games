@@ -20,6 +20,7 @@ async function fake(ctx) {
   await ctx.route(/firestore\.googleapis\.com/, async r => {
     if (r.request().method() !== 'GET') await new Promise(res => setTimeout(res, 30));
     const u = r.request().url(), id = decodeURIComponent(u.split('/families/')[1].split('?')[0]), cur = STORE.get(id);
+    if (id.length < 16) return r.fulfill({ status: 403, body: 'PERMISSION_DENIED' });   // like the real rules
     if (r.request().method() === 'GET') {
       if (!cur) return r.fulfill({ status: 404, body: '{}' });
       return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ fields: { data: { stringValue: cur.data } }, updateTime: cur.ut }) });
