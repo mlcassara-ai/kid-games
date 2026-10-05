@@ -1,6 +1,6 @@
 # kid-games
 
-Plain HTML/CSS/JS games served by GitHub Pages from `main` at https://mlcassara-ai.github.io/kid-games/. No build step, no JS libraries. Games: `language-quest/` (active work), `math-quest/`, `castle-quest/`, `lake-legends/`, `beat-the-bully/`, plus the hub `index.html`.
+Plain HTML/CSS/JS games served by GitHub Pages from `main` at https://mlcassara-ai.github.io/kid-games/. No build step, no JS libraries. Games: `language-quest/` (active work), `math-quest/`, `castle-quest/`, `lake-legends/`, `beat-the-bully/`, `heritage-night/`, plus the hub `index.html`.
 
 **Read `HANDOFF.md` in the repo root before non-trivial work.** It holds the full architecture, external resources, decisions, and backlog. It is deliberately excluded from git (it names children and family members and this repo is public) — never commit it or copy personal details from it into tracked files.
 
@@ -135,3 +135,18 @@ Fishing game for ages 8–12 on six real San Diego County lakes; just for fun (n
 1. Run `node lake-legends/tools/smoke.js` on its own (fakes Firebase, plays the game in headless Chromium). It must print `RESULT: PASS`. Add a check there for each new feature.
 2. `/usr/bin/python3 lake-legends/tools/release.py` bumps `version.json`, `window.LL_VER` and `ll-core.js?v=` together.
 3. Commit, push to `main`, and confirm the Pages build succeeded and serves the new `version.json`.
+
+## Heritage Night (Discover Lebanon)
+
+A live classroom-event quiz: one big screen plus any number of phones, no host. Not linked from the hub on purpose.
+
+- `heritage-night/screen.html` — the TV page (1920×1080, sized in vh). Left 3/4: fact card → question → answer reveal. Right 1/4: top-8 leaderboard, player count, QR code (inline SVG of the phone URL `https://mlcassara-ai.github.io/kid-games/heritage-night/`; regenerate with Python `qrcode` if the URL ever changes). Join toasts bottom-left.
+- `heritage-night/index.html` — the phone page: random cute name (adjective + Lebanon-themed noun/animal, 🎲 to re-roll, no typed names so no bad words), then fact / four big answer buttons / result with rank. Player kept in localStorage per event.
+- `heritage-night/hn-core.js` — shared engine (`window.HN`): the 36 fact+question pairs (`Q`, first option is the right one), names, timing, scoring, Firestore.
+- Timing: every device derives the current cycle from the clock alone (`phase()`); fact 13 s, question 16 s, reveal 7 s. Question order reshuffles each loop and answer order each cycle with a seeded PRNG so all devices agree. Clocks are lined up with Firestore server time from write responses (`updateTime`); the screen writes `hn_<event>_clock` every 5 min for this.
+- Scoring: right = 500 + up to 500 for speed (`points()`). The phone hides its new score until the reveal; the screen only re-sorts the leaderboard outside the question phase.
+- Backend: same project and pattern as the other games (anonymous auth, Firestore REST, `families` collection, `{data,updated,v}` shape). Players are spread over 8 shard docs `hn_<event>_s0`…`s7` (`{p:{pid:{n,a,s,c,j,q,k,t}}}`), written with `currentDocument.updateTime` preconditions and retried on conflict. The screen polls all shards every 2.5 s.
+- URL switches: `?e=<name>` uses a separate event (separate leaderboard; default `oct2026`, which the QR code uses); `?fast=1` short phases for testing. Use `?e=test` when testing so the real leaderboard stays clean.
+- Test: `node heritage-night/tools/smoke.js [screenshotDir]` (fakes Firebase with preconditions and a server clock, skews the screen clock 47 s, three phones, one full question, a 30-player join burst). Must print `RESULT: PASS`.
+- Release: no version file; bump `hn-core.js?v=` in both pages when `hn-core.js` changes, push, then open the live screen with `?e=test&fast=1` and one phone to confirm.
+
