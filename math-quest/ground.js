@@ -32,10 +32,13 @@ function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2;
  for(const [w,col] of [[.66,'#b8975c'],[.5,'#dcc38d']]){ctx.fillStyle=col;const r=ts*w/2;
   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){const t=T[y][x];if(!t.path)continue;const mx=x*ts-cx+h2,my=y*ts-cy+h2;
    ctx.beginPath();ctx.arc(mx,my,r,0,7);ctx.fill();
-   const R=T[y][x+1],D=T[y+1]&&T[y+1][x],L=T[y][x-1],U=T[y-1]&&T[y-1][x];
-   if(link(R))ctx.fillRect(mx,my-r,R.path?ts:h2,2*r);if(link(D))ctx.fillRect(mx-r,my,2*r,D.path?ts:h2);
+   const R=T[y][x+1],D=T[y+1]&&T[y+1][x],L=T[y][x-1],U=T[y-1]&&T[y-1][x],P=u=>!!(u&&u.path);
+   /* a trail only runs into the town square where it heads into it, not all along a trail that passes beside it */
+   const into=(u,back,s1,s2)=>u&&(u.gate||(u.plaza&&(P(back)||(!P(s1)&&!P(s2)))));
+   if(P(R))ctx.fillRect(mx,my-r,ts,2*r);else if(into(R,L,U,D))ctx.fillRect(mx,my-r,h2,2*r);
+   if(P(D))ctx.fillRect(mx-r,my,2*r,ts);else if(into(D,U,L,R))ctx.fillRect(mx-r,my,2*r,h2);
    if(R&&R.path&&D&&D.path&&T[y+1][x+1]&&T[y+1][x+1].path)ctx.fillRect(mx,my,ts,ts); /* a 2-wide road: fill the middle of each 2×2 block */
-   if(L&&(L.gate||L.plaza))ctx.fillRect(mx-h2,my-r,h2,2*r);if(U&&(U.gate||U.plaza))ctx.fillRect(mx-r,my-h2,2*r,h2);}}
+   if(into(L,R,U,D))ctx.fillRect(mx-h2,my-r,h2,2*r);if(into(U,D,L,R))ctx.fillRect(mx-r,my-h2,2*r,h2);}}
  ctx.fillStyle='#c4a46c';for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(!T[y][x].path)continue;const h=hash(x*5+3,y*5+1);if(h<.55){const px=x*ts-cx+ts*(.3+h*.5),py=y*ts-cy+ts*(.35+hash(x,y*3)*.35);ctx.beginPath();ctx.arc(px,py,Math.max(1.5,ts*.035),0,7);ctx.fill();}}}
 window.MQ_GROUND={draw};
 })();

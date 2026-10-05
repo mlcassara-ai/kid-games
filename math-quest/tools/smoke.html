@@ -129,6 +129,7 @@ const tests=[
 ['map scenery: every drawn forest tree, bush and plant loads, at least 3 of each kind, on the same tiles as before',async function(){
   const D=window.MQ_DECOR;T.ok(!!D,'decor.js is not loaded');if(!D)return;const S=D.SET.forest;
   T.ok(new Set(S.block.filter(k=>/pine|oak|birch/.test(k))).size>=3&&new Set(S.block.filter(k=>/bush|berry/.test(k))).size>=3&&new Set(S.deco).size>=3,'the forest has fewer than 3 kinds of trees, bushes or plants');
+  {const C=D.SET.castle;T.ok(C&&new Set(C.block).size>=3&&new Set(C.deco).size>=3&&!C.block.concat(C.deco).some(k=>/grave|tomb|brick/.test(k)),'the Division Castle does not have 3+ kinds of castle scenery');}
   for(const k of Object.keys(D.ART)){const i=new Image();i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(D.ART[k]);await T.until(()=>i.complete,3000,k);T.ok(i.naturalWidth>0,'the '+k+' drawing does not load');}
   T.reset();const p=T.hero('Woods',3);state.cur=p.id;go('world');await T.wait(300);let n=0,blockOk=true;for(let y=0;y<WROWS;y++)for(let x=0;x<WCOLS;x++){const t=W.T[y][x];if(t.b==='forest'&&t.o){n++;if(!!t.block===!!t.deco)blockOk=false;}}
   T.ok(n>10&&blockOk,'forest scenery tiles changed (trees must still block, plants must not)');
