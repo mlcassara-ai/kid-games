@@ -19,7 +19,8 @@
    - Last stands (Oct 2026, owner's idea): when the den drops to a quarter, the Goblin steps out from behind it and throws treats over the
      battle towards the Pet House; your pets can't resist, run back, eat (a small heal) and march back, and the Goblin sighs and joins the
      battle as the boss. When the Pet House drops to a quarter, the hero steps out from behind it and throws chocolate coins towards the
-     den; the critters run back for them (no heal). The boss and the megas can't be bribed. Ascend 6+: a second Goblin, angry that his
+     den; the critters run back for them (no heal). Everyone goes for the snacks, megas and the Goblin too
+     (owner: otherwise Grumbleroot just keeps smashing the den). Ascend 6+: a second Goblin, angry that his
      brother lost, comes out when the first is beaten.
    - Crowns: each stage can be beaten at 1, 2 and 3 crowns (tougher critters, faster waves).
    - Math: easy, quick facts of the stage's skill (Addition Forest = addition…); the Fossil Stage mixes them.
@@ -159,6 +160,7 @@ function send(i){const s=G&&!G.over&&G.team[i];if(!s||G.treats<s.R.cost||s.ready
  G.treats-=s.R.cost;s.ready=G.t+s.R.cd;G.sent++;const R=s.R,m=s.m;
  G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m*TUNE.petHp,max:R.hp*m*TUNE.petHp,atk:R.atk*m,rng:R.rng,spd:petSpd(R,m),kb:0,stun:0,flyer:flies(s.pet),id:Math.random()});fx('send');return true;}
 const trollOut=()=>!!G&&G.pets.some(u=>u.mega&&!u.gone);
+const MEGA_RUN=3; /* a mega's charge speed (× walking) until he first meets a critter */
 const MEGA={troll:TROLL,eagle:EAGLE},megaOf=()=>MEGA[G&&G.megaId]||TROLL;
 function eagleStep(u,foes,dt){const E=EAGLE;
  if(u.ph==='rise'){if(G.t>=u.phT){u.ph='dive';u.phT=G.t+E.fall;u.x0=u.x;fx('swoop');}return;}
@@ -169,12 +171,14 @@ function eagleStep(u,foes,dt){const E=EAGLE;
  const near=foes.filter(f=>!f.gone&&u.x-f.x>=-1&&u.x-f.x<=u.rng);
  if(near.length){u.fight=true;near[0].hp-=u.atk*.3*dt;return;}
  if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*.5*dt;return;}
- u.x-=u.spd*.8*dt;u.mv=true;}
+ u.x-=u.spd*.8*dt*(u.met?1:MEGA_RUN);u.mv=true;}
 function eagleArt(){const e=window.MQ_EAGLE_SVG;if(!e)return `<span style="font-size:70px;line-height:1">${EAGLE.e}</span>`;return `<span class="eg-walk">${e.perch}</span><span class="eg-flyart">${e.fly}</span>`;}
 const megaArt=(id,w)=>id==='eagle'?(w<60&&window.MQ_EAGLE_SVG?`<span class="eg-btn">${window.MQ_EAGLE_SVG.perch}</span>`:w<60?`<span style="font-size:30px">${EAGLE.e}</span>`:eagleArt()):trollArt(w);
 function callTroll(){const M=megaOf();if(!G||G.over||G.t<G.trollAt||G.treats<M.cost||trollOut())return false;G.treats-=M.cost;G.trollAt=G.t+M.cd;G.trolls++;
- const m=1+.35*G.c;const lead=G.pets.filter(u=>!u.gone&&!u.mega),to=lead.length?Math.min(HOUSE_X-2,Math.min(...lead.map(u=>u.x))+2.5):HOUSE_X-2;
- G.pets.push({side:'p',mega:true,leapT:G.t,stun:G.t+.95,pet:{id:M.id,e:M.e,name:M.n},R:M,x:to,hp:M.hp*m,max:M.hp*m,atk:M.atk*m,rng:M.rng,spd:M.spd,kb:0,leave:G.t+M.maxLife,stompAt:0,poundAt:0,ph:'walk',diveAt:0,id:Math.random()});fx(M.id==='eagle'?'eagle':'troll');return true;}
+ /* he comes out of the Pet House like everyone else (owner, Oct 2026: no leap across the board) and charges at 3× speed until he meets a
+    critter; his time out is counted from when he would reach the front */
+ const m=1+.35*G.c;const lead=G.pets.filter(u=>!u.gone&&!u.mega),front=lead.length?Math.min(...lead.map(u=>u.x)):HOUSE_X-2,to=HOUSE_X-2,travel=Math.max(0,(to-front)/(M.spd*.8*MEGA_RUN));
+ G.pets.push({side:'p',mega:true,leapT:G.t,stun:G.t+.95,pet:{id:M.id,e:M.e,name:M.n},R:M,x:to,hp:M.hp*m,max:M.hp*m,atk:M.atk*m,rng:M.rng,spd:M.spd,kb:0,leave:G.t+M.maxLife+travel,stompAt:0,poundAt:0,ph:'walk',diveAt:0,id:Math.random()});fx(M.id==='eagle'?'eagle':'troll');return true;}
 /* the giant pounce paw */
 const PAW='<svg class="paw" viewBox="0 0 200 200" aria-hidden="true"><g fill="#ffb627" stroke="#fff" stroke-width="7"><ellipse cx="100" cy="128" rx="54" ry="46"/><ellipse cx="42" cy="78" rx="20" ry="27" transform="rotate(-24 42 78)"/>'+
  '<ellipse cx="80" cy="48" rx="21" ry="28" transform="rotate(-8 80 48)"/><ellipse cx="122" cy="48" rx="21" ry="28" transform="rotate(8 122 48)"/><ellipse cx="160" cy="78" rx="20" ry="27" transform="rotate(24 160 78)"/></g>'+
@@ -241,8 +245,8 @@ function spawn(kind){const S=G.stage,c=G.c;let def,name,e;
  if(kind==='boss'){def=TRAIT.boss;name=S.boss[0];e=S.boss[1];}else{const opts=S.crit.filter(x=>x[2]===kind),pick=opts.length?choose(opts):S.crit[0];def=TRAIT[pick[2]];name=pick[0];e=pick[1];}
  const n=def.group||1,ak=ascK(G.asc||0),bh=(def.boss?TUNE.bossHp:1)*ak.hp,ba=(def.boss?TUNE.bossAtk:1)*ak.atk;for(let i=0;i<n;i++)G.foes.push({side:'c',name,e,trait:def.tag||'',notag:i>0,x:DEN_X+2+i*1.3,hp:def.hp*CROWN.hp[c]*TUNE.hp*bh,max:def.hp*CROWN.hp[c]*TUNE.hp*bh,atk:def.atk*CROWN.atk[c]*TUNE.atk*ba,rng:def.rng,spd:def.spd*(1+.08*c)*ak.spd,fly:!!def.fly,armor:!!def.armor,boss:!!def.boss,kb:0,stun:0,id:Math.random()});}
 /* a last stand's throw: side 'd' = the Goblin throws treats towards the Pet House for our pets; side 'h' = the hero throws chocolate coins
-   towards the den for the critters. Everyone it is meant for (not the boss, not the megas) runs to their own snack once the snacks land. */
-function lure(side){const d=side==='d',who=(d?G.pets.filter(u=>!u.gone&&!u.mega):G.foes.filter(f=>!f.gone&&!f.boss)).sort((a,b)=>a.x-b.x);
+   towards the den for the critters. Everyone it is meant for (megas and the Goblin too) runs to their own snack once the snacks land. */
+function lure(side){const d=side==='d',who=(d?G.pets.filter(u=>!u.gone):G.foes.filter(f=>!f.gone)).sort((a,b)=>a.x-b.x);
  const L={side,t0:G.t,throwAt:G.t+LURE.wind,land:G.t+LURE.wind+LURE.fly,items:[]};L.join=L.land+LURE.join;
  const n=Math.max(4,who.length);for(let i=0;i<n;i++){const k=(i+.2+Math.random()*.6)/n,off=LURE.near+(LURE.far-LURE.near)*k;L.items.push({x:d?HOUSE_X-off:DEN_X+off,dl:Math.random()*.35,id:Math.random()});}
  const order=d?L.items.slice().sort((a,b)=>a.x-b.x):L.items.slice().sort((a,b)=>a.x-b.x);
@@ -250,7 +254,7 @@ function lure(side){const d=side==='d',who=(d?G.pets.filter(u=>!u.gone&&!u.mega)
  if(d)G.lureD=L;else G.lureH=L;G.camAt={x:d?DEN_X+10:HOUSE_X-10,until:L.throwAt+.2};fx(d?'gobOut':'heroOut');}
 /* one lured unit's move; true while it is busy with its snack (it doesn't fight then) */
 function lured(u,dt){const r=u.lr,L=r.L;if(G.t<L.land+r.it.dl)return false;
- if(r.ph==='wait'){r.ph='run';u.alertT=G.t;}
+ if(r.ph==='wait'){r.ph='run';u.alertT=G.t;if(u.mega&&u.R.id==='eagle')u.ph='walk';}
  if(r.ph==='run'){const dx=r.it.x-u.x,v=Math.max(u.spd*LURE.sprint,LURE.min)*dt;u.back=(u.side==='p')===(dx>0);if(Math.abs(dx)<=v){u.x=r.it.x;r.ph='eat';r.until=G.t+LURE.eat;}else{u.x+=Math.sign(dx)*v;u.mv=true;}return true;}
  if(G.t<r.until){u.eating=true;return true;}
  u.eating=false;u.back=false;r.it.eaten=true;if(L.side==='d')u.hp=Math.min(u.max,u.hp+u.max*LURE.heal);u.lr=null;return false;}
@@ -270,7 +274,7 @@ function step(dt){if(!G||G.over)return;G.t+=dt;G.minH=Math.min(G.minH===undefine
    if(Math.random()<.18*dt)knock(hit[0],-(1.5+Math.random()*1.5)*(hit[0].boss?.3:1)); /* now and then a hit shoves the critter back a little */
    if(u.mega&&!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+R.life);}}
   else if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*dt*(G.bossDown||!G.peek?1:.5)*(G.t>TUNE.tired?1.6:1);}
-  else{u.x-=u.spd*.8*dt;u.mv=true;}
+  else{u.x-=u.spd*.8*dt*(u.mega&&!u.met?MEGA_RUN:1);u.mv=true;}
   if(u.mega&&R.id==='troll'&&!u.poundAt&&G.t>=u.stompAt&&foes.some(f=>!f.gone&&u.x-f.x>=-2&&u.x-f.x<=6)){u.poundAt=G.t+TROLL.wind;u.windT=G.t;} /* he roars at any critter right in front of him, flyers too */
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
  /* flyers drift over pets that can't reach them (like Battle Cats' floating enemies) and go for the Pet House */

@@ -331,17 +331,17 @@ const tests=[
   G.bricks=1;G.houseHP=G.houseMax*.3;String(G.q.answer).split('').forEach(k=>BattlePets._key(k));BattlePets._key('go');T.ok(G.bricks===0&&!G.fixing,'the last brick did not close Rebuild');
   BattlePets._fix();T.ok(!G.fixing,'Rebuild opened with no bricks left');T.ok(D.TUNE.bricks*D.TUNE.brick>1.99&&D.TUNE.bricks*D.TUNE.brick<2.01,'the bricks are not exactly two full rebuilds');
   /* last stand: the first time the Pet House drops to 25%, the critters are thrown back (once) */
-  G.pets.forEach(u=>u.gone=true);D.step(.05);G.houseHP=G.houseMax*.3;D._spawn('basic');const f0=G.foes[G.foes.length-1];f0.x=90;G.houseHP=G.houseMax*.2;D.step(.05);
-  T.ok(G.lsH&&G.lureH&&f0.lr,'at the last stand the hero did not throw chocolate coins for the critters');G.spawnAt=1e9;
+  G.pets.forEach(u=>u.gone=true);D.step(.05);G.houseHP=G.houseMax*.3;D._spawn('basic');const f0=G.foes[G.foes.length-1];f0.x=90;D._spawn('boss');const gob0=G.foes[G.foes.length-1];gob0.x=85;G.houseHP=G.houseMax*.2;D.step(.05);
+  T.ok(G.lsH&&G.lureH&&f0.lr,'at the last stand the hero did not throw chocolate coins for the critters');T.ok(gob0.lr,'the Goblin did not go for the chocolate coins');gob0.gone=true;G.spawnAt=1e9;
   for(let i=0;i<300&&f0.lr;i++){G.houseHP=G.houseMax*.2;D.step(.05);}T.ok(!f0.lr&&f0.x<40&&G.lureH.items.some(it=>it.eaten),'the critter did not run back to the den side and eat its coin');
   G.houseHP=G.houseMax;G.foes.forEach(f=>f.gone=true);D.step(.05);
   /* the den's side: the Goblin peeks at half, at a quarter he throws treats, our pets run back, eat (a small heal), then he joins as the boss */
-  {G.treats=99;G.team.forEach(s=>s.ready=0);T.ok(D.send(0),'could not send a pet');const u0=G.pets[G.pets.length-1];u0.x=12;u0.hp=u0.max*.5;u0.stun=0;
+  {G.treats=99;G.team.forEach(s=>s.ready=0);T.ok(D.send(0),'could not send a pet');const u0=G.pets[G.pets.length-1];u0.x=12;u0.hp=u0.max*.5;u0.stun=0;G.trollAt=0;D.callTroll();const m0=G.pets.find(u=>u.mega&&!u.gone);m0.x=10;m0.stun=0;
    G.denHP=G.denMax*.45;D.step(.05);T.ok(G.peek&&!G.boss,'the Goblin did not peek out at half (or came out to fight too early)');
-   G.denHP=G.denMax*.2;D.step(.05);T.ok(G.lureD&&u0.lr&&!G.boss,'at a quarter the Goblin did not throw treats for our pets');
+   G.denHP=G.denMax*.2;D.step(.05);T.ok(G.lureD&&u0.lr&&!G.boss,'at a quarter the Goblin did not throw treats for our pets');T.ok(m0.lr,'the mega did not go for the treats (he would smash the den alone)');
    for(let i=0;i<400&&(u0.lr||!G.boss);i++){G.denHP=G.denMax*.2;D.step(.05);}
    T.ok(G.boss&&!u0.lr&&u0.x>60&&u0.hp>u0.max*.55,'our pet did not run back, eat and get its small heal, or the Goblin did not join the battle');
-   G.pets.forEach(u=>u.gone=true);G.foes.forEach(f=>f.gone=true);G.denHP=G.denMax;G.spawnAt=G.t+4;G.boss=false;G.bossDown=false;G.lsD=false;G.lureD=null;G.peek=0;D.step(.05);}
+   G.pets.forEach(u=>u.gone=true);G.foes.forEach(f=>f.gone=true);G.denHP=G.denMax;G.spawnAt=G.t+4;G.boss=false;G.bossDown=false;G.lsD=false;G.lureD=null;G.peek=0;G.trolls=0;G.trollAt=0;D.step(.05);}
   /* 🧌 the mega troll: a long wait before he comes, one at a time, a big cooldown, then he stomps home */
   G.treats=50;G.trollAt=G.t+5;T.ok(!D.callTroll()&&document.getElementById('bpTroll'),'the troll came before his wait was over, or has no button');
   G.trollAt=0;BattlePets._troll();const tr=G.pets.find(u=>u.mega&&!u.gone);T.ok(tr&&G.trollAt>=G.t+90&&G.trolls===1,'the troll did not come, or his cooldown is short');
