@@ -124,7 +124,9 @@ const tests=[
   T.reset();const p=T.hero('Walker',3);state.cur=p.id;go('world');await T.wait(200);T.ok(!!window.MQ_GROUND,'ground.js is not loaded');
   const blocks=JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)));const c=document.createElement('canvas');c.width=400;c.height=300;let err='';
   try{MQ_GROUND.draw(c.getContext('2d'),W,0,WCOLS-1,0,WROWS-1,0,0,20,performance.now());}catch(e){err=String(e);}
-  T.ok(!err,'drawing the ground failed: '+err);T.ok(JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)))===blocks,'drawing the ground changed where you can walk');
+  T.ok(!err,'drawing the ground failed: '+err);
+  {const R=MQ_GROUND.routes(W),G=Object.keys(W.gates).length,last=r=>r.P[r.P.length-1],gd=r=>{const g=W.gates[r.zid];return Math.hypot(last(r)[0]-g[0]-.5,last(r)[1]-g[1]-.5);};
+   T.ok(R.length===G&&R.some(r=>r.style==='cobble')&&R.some(r=>r.style==='dirt')&&R.some(r=>gd(r)>3)&&R.some(r=>gd(r)<1),'the trails are missing, all one kind, or none stop short of an entrance');}T.ok(JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)))===blocks,'drawing the ground changed where you can walk');
  }],
 ['map scenery: every drawn forest tree, bush and plant loads, at least 3 of each kind, on the same tiles as before',async function(){
   const D=window.MQ_DECOR;T.ok(!!D,'decor.js is not loaded');if(!D)return;const S=D.SET.forest;
