@@ -331,7 +331,16 @@ const tests=[
   BattlePets._fix();T.ok(!G.fixing,'Rebuild opened with no bricks left');T.ok(D.TUNE.bricks*D.TUNE.brick>1.99&&D.TUNE.bricks*D.TUNE.brick<2.01,'the bricks are not exactly two full rebuilds');
   /* last stand: the first time the Pet House drops to 25%, the critters are thrown back (once) */
   G.pets.forEach(u=>u.gone=true);D.step(.05);G.houseHP=G.houseMax*.3;D._spawn('basic');const f0=G.foes[G.foes.length-1];f0.x=90;G.houseHP=G.houseMax*.2;D.step(.05);
-  T.ok(G.lsH&&f0.x<90-(90-8)*.45,'the last stand did not throw the critters back');G.houseHP=G.houseMax;G.foes.forEach(f=>f.gone=true);D.step(.05);
+  T.ok(G.lsH&&G.lureH&&f0.lr,'at the last stand the hero did not throw chocolate coins for the critters');G.spawnAt=1e9;
+  for(let i=0;i<300&&f0.lr;i++){G.houseHP=G.houseMax*.2;D.step(.05);}T.ok(!f0.lr&&f0.x<40&&G.lureH.items.some(it=>it.eaten),'the critter did not run back to the den side and eat its coin');
+  G.houseHP=G.houseMax;G.foes.forEach(f=>f.gone=true);D.step(.05);
+  /* the den's side: the Goblin peeks at half, at a quarter he throws treats, our pets run back, eat (a small heal), then he joins as the boss */
+  {G.treats=99;G.team.forEach(s=>s.ready=0);T.ok(D.send(0),'could not send a pet');const u0=G.pets[G.pets.length-1];u0.x=12;u0.hp=u0.max*.5;u0.stun=0;
+   G.denHP=G.denMax*.45;D.step(.05);T.ok(G.peek&&!G.boss,'the Goblin did not peek out at half (or came out to fight too early)');
+   G.denHP=G.denMax*.2;D.step(.05);T.ok(G.lureD&&u0.lr&&!G.boss,'at a quarter the Goblin did not throw treats for our pets');
+   for(let i=0;i<400&&(u0.lr||!G.boss);i++){G.denHP=G.denMax*.2;D.step(.05);}
+   T.ok(G.boss&&!u0.lr&&u0.x>60&&u0.hp>u0.max*.55,'our pet did not run back, eat and get its small heal, or the Goblin did not join the battle');
+   G.pets.forEach(u=>u.gone=true);G.foes.forEach(f=>f.gone=true);G.denHP=G.denMax;G.spawnAt=G.t+4;G.boss=false;G.bossDown=false;G.lsD=false;G.lureD=null;G.peek=0;D.step(.05);}
   /* 🧌 the mega troll: a long wait before he comes, one at a time, a big cooldown, then he stomps home */
   G.treats=50;G.trollAt=G.t+5;T.ok(!D.callTroll()&&document.getElementById('bpTroll'),'the troll came before his wait was over, or has no button');
   G.trollAt=0;BattlePets._troll();const tr=G.pets.find(u=>u.mega&&!u.gone);T.ok(tr&&G.trollAt>=G.t+90&&G.trolls===1,'the troll did not come, or his cooldown is short');
@@ -381,7 +390,7 @@ const tests=[
   {G.foes.forEach(f=>{f.gone=true;});D._spawn('basic');const ff=G.foes[G.foes.length-1];ff.fly=true;ff.x=60;ff.hp=ff.max=9999;G.charge=100;BattlePets._pounce();for(let i=0;i<30&&G.slam;i++)D.step(.05);T.ok(!ff.fly&&ff.downUntil>G.t,'the paw did not knock the flyer to the ground');const tUp=ff.downUntil;ff.x=40;G.t=tUp+.01;D.step(.02);T.ok(ff.fly&&!ff.downUntil,'a knocked-down flyer never flew again');ff.gone=true;}
   {const st=BattlePets.stages(),tr=id=>(st.find(s=>s.id===id)||{crit:[]}).crit;T.ok(tr('caves').every(c=>c[2]!=='flying'||c[1]==='🦇')&&!tr('volcano').some(c=>c[2]==='flying')&&tr('forest').some(c=>c[1]==='🐝'&&c[2]==='flying'),'a critter that cannot really fly is flying');}
   {const r=G.team[0].R;T.ok(D.petSpd(r,1)>D.petSpd(r,2)&&D.petSpd(r,1)<r.spd,'stronger pets do not walk slower');}
-  for(let i=0;i<40;i++)D.step(.05);G.denHP=1;G.pets.forEach(u=>u.x=8);D.step(.1);T.ok(G.boss,'the boss did not come out');T.ok(G.foes.some(f=>f.boss&&f.name==='Grey Goblin'),'the boss is not the Grey Goblin');G.denHP=0;D.step(.05);T.ok(G.over&&G.win,'the den fell but the battle did not end');
+  for(let i=0;i<40;i++)D.step(.05);G.denHP=1;G.pets.forEach(u=>u.x=8);D.step(.1);for(let i=0;i<200&&!G.boss;i++){G.denHP=G.denMax*.2;D.step(.05);}T.ok(G.boss,'the boss did not come out after his throw');T.ok(G.foes.some(f=>f.boss&&f.name==='Grey Goblin'),'the boss is not the Grey Goblin');G.denHP=0;D.step(.05);T.ok(G.over&&G.win,'the den fell but the battle did not end');
   Music.update();T.ok(Music._state().want===null,'battle music still playing after the battle ended');
   const pet0=G.team[0].pet.id,xp0=petData(P(),pet0).xp;D.finish();await T.wait(50);
   T.ok(P().bp2.c.forest===1&&petData(P(),pet0).xp>xp0&&P().bp.m.length===1&&P().bp.m[0][2]===1,'the win was not saved, or gave no pet XP');

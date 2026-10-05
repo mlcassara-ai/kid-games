@@ -15,7 +15,12 @@
      lucky = Jumper (reaches flyers, lucky hits), xp = Archer (long range, reaches flyers), coins = Stomper (hits a whole group).
      Rarity and the pet's growth (Baby to Mighty, plus Mighty levels) make it stronger.
    - Critters have traits: swarm (many weak ones: Stompers), flying (only Jumpers and Archers reach them), armoured (Brawlers),
-     speedy. When the den drops to half, the boss bursts out with a shockwave that knocks your pets back.
+     speedy. When the den drops to half, the Grey Goblin peeks out from behind it and shakes his fist (a warning, nothing moves).
+   - Last stands (Oct 2026, owner's idea): when the den drops to a quarter, the Goblin steps out from behind it and throws treats over the
+     battle towards the Pet House; your pets can't resist, run back, eat (a small heal) and march back, and the Goblin sighs and joins the
+     battle as the boss. When the Pet House drops to a quarter, the hero steps out from behind it and throws chocolate coins towards the
+     den; the critters run back for them (no heal). The boss and the megas can't be bribed. Ascend 6+: a second Goblin, angry that his
+     brother lost, comes out when the first is beaten.
    - Crowns: each stage can be beaten at 1, 2 and 3 crowns (tougher critters, faster waves).
    - Math: easy, quick facts of the stage's skill (Addition Forest = addition…); the Fossil Stage mixes them.
    A wrong answer never takes anything away: it just doesn't lay a brick.
@@ -107,8 +112,13 @@ const CROWN={hp:[1,1.6,1.9],atk:[1,1.3,1.36],gap:[1,.85,.72],den:[1,1.3,1.6]};
    - treats trickle in (the Kitchen adds more), Pounce charges in about 30 s, the Grey Goblin boss is the big push,
      critters spawn faster while the boss is out and slower once it is down; after 4 minutes they tire (no endless tug-of-war).
    - bricks: 5 per battle, each +40% of the house = exactly two full rebuilds. */
+/* last stands: wind-up before the throw, flight time, how long a snack takes, sprint speed (× walking, at least min %/s), heal (pets only,
+   of max health), where the snacks land (from..to % of the lane, measured from the thrower's opposite base), the Goblin's pause before joining */
+const LURE={wind:1,fly:1.2,eat:1.4,sprint:2.5,min:8,heal:.1,near:10,far:28,join:1.4,boss2:2};
+/* Oct 2026: with the Goblin joining at a quarter instead of bursting out at half, bossHp .68→1.2 and bossAtk 1.62→1.9 keep the balance
+   (simulated: kids within 1–2 points of before, the Trainer about 88%). */
 const TUNE={trickle:.73,trickleKl:.31,charge:3.3,den:400,hp:1.15,atk:1.81,gap:3.79,bricks:5,brick:.4,repairAt:.5,house:480,siege:.58,foeCap:12,
- petHp:.66,bossHp:.68,bossAtk:1.62,bossSiege:.81,rage:.87,calm:1.78,tired:240,petSpd:.75,slamWait:.6,slamR:9,downFor:7};
+ petHp:.66,bossHp:1.2,bossAtk:1.9,bossSiege:.81,rage:.87,calm:1.78,tired:240,petSpd:.75,slamWait:.6,slamR:9,downFor:7};
 
 /* ---------- saved progress ---------- */
 function prog(p){p.bp2=p.bp2||{c:{},team:[]};p.bp2.c=p.bp2.c||{};if(!Array.isArray(p.bp2.team))p.bp2.team=[];return p.bp2;}
@@ -230,26 +240,42 @@ function slam(){const s=G.slam;if(!s)return;slamAim();if(G.t<s.at)return;G.slam=
 function spawn(kind){const S=G.stage,c=G.c;let def,name,e;
  if(kind==='boss'){def=TRAIT.boss;name=S.boss[0];e=S.boss[1];}else{const opts=S.crit.filter(x=>x[2]===kind),pick=opts.length?choose(opts):S.crit[0];def=TRAIT[pick[2]];name=pick[0];e=pick[1];}
  const n=def.group||1,ak=ascK(G.asc||0),bh=(def.boss?TUNE.bossHp:1)*ak.hp,ba=(def.boss?TUNE.bossAtk:1)*ak.atk;for(let i=0;i<n;i++)G.foes.push({side:'c',name,e,trait:def.tag||'',notag:i>0,x:DEN_X+2+i*1.3,hp:def.hp*CROWN.hp[c]*TUNE.hp*bh,max:def.hp*CROWN.hp[c]*TUNE.hp*bh,atk:def.atk*CROWN.atk[c]*TUNE.atk*ba,rng:def.rng,spd:def.spd*(1+.08*c)*ak.spd,fly:!!def.fly,armor:!!def.armor,boss:!!def.boss,kb:0,stun:0,id:Math.random()});}
+/* a last stand's throw: side 'd' = the Goblin throws treats towards the Pet House for our pets; side 'h' = the hero throws chocolate coins
+   towards the den for the critters. Everyone it is meant for (not the boss, not the megas) runs to their own snack once the snacks land. */
+function lure(side){const d=side==='d',who=(d?G.pets.filter(u=>!u.gone&&!u.mega):G.foes.filter(f=>!f.gone&&!f.boss)).sort((a,b)=>a.x-b.x);
+ const L={side,t0:G.t,throwAt:G.t+LURE.wind,land:G.t+LURE.wind+LURE.fly,items:[]};L.join=L.land+LURE.join;
+ const n=Math.max(4,who.length);for(let i=0;i<n;i++){const k=(i+.2+Math.random()*.6)/n,off=LURE.near+(LURE.far-LURE.near)*k;L.items.push({x:d?HOUSE_X-off:DEN_X+off,dl:Math.random()*.35,id:Math.random()});}
+ const order=d?L.items.slice().sort((a,b)=>a.x-b.x):L.items.slice().sort((a,b)=>a.x-b.x);
+ who.forEach((u,i)=>{const it=order[Math.min(order.length-1,Math.round(i*(order.length-1)/Math.max(1,who.length-1)))];if(it.by)return;it.by=u;u.lr={it,L,ph:'wait'};});
+ if(d)G.lureD=L;else G.lureH=L;G.camAt={x:d?DEN_X+10:HOUSE_X-10,until:L.throwAt+.2};fx(d?'gobOut':'heroOut');}
+/* one lured unit's move; true while it is busy with its snack (it doesn't fight then) */
+function lured(u,dt){const r=u.lr,L=r.L;if(G.t<L.land+r.it.dl)return false;
+ if(r.ph==='wait'){r.ph='run';u.alertT=G.t;}
+ if(r.ph==='run'){const dx=r.it.x-u.x,v=Math.max(u.spd*LURE.sprint,LURE.min)*dt;u.back=(u.side==='p')===(dx>0);if(Math.abs(dx)<=v){u.x=r.it.x;r.ph='eat';r.until=G.t+LURE.eat;}else{u.x+=Math.sign(dx)*v;u.mv=true;}return true;}
+ if(G.t<r.until){u.eating=true;return true;}
+ u.eating=false;u.back=false;r.it.eaten=true;if(L.side==='d')u.hp=Math.min(u.max,u.hp+u.max*LURE.heal);u.lr=null;return false;}
 function nextKind(){const t=G.t,has=k=>G.stage.crit.some(c=>c[2]===k),w={basic:has('basic')?4:2,swarm:t>8&&has('swarm')?2:0,speedy:t>15&&has('speedy')?2:0,flying:t>20&&has('flying')?2:0,armored:t>30&&has('armored')?2:0};const tot=Object.values(w).reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(const k in w){r-=w[k];if(r<=0)return k;}return 'basic';}
 function step(dt){if(!G||G.over)return;G.t+=dt;G.minH=Math.min(G.minH===undefined?1:G.minH,G.houseHP/G.houseMax);
  G.treats=Math.min(treatCap(),G.treats+treatRate()*dt);if(!G.slam)G.charge=Math.min(100,G.charge+TUNE.charge*dt);slam();trainer();
- if(G.t>=G.spawnAt&&G.foes.filter(f=>!f.gone).length<TUNE.foeCap){spawn(nextKind());G.gap=Math.max(1.6,G.gap*.97);G.spawnAt=G.t+G.gap*(G.boss&&!G.bossDown?TUNE.rage:G.bossDown?TUNE.calm:1)*(G.t>TUNE.tired?1.7:1)*(.8+Math.random()*.4);} /* after 4 minutes the critters get sleepy, so no battle drags on forever */
+ if(G.t>=G.spawnAt&&G.foes.filter(f=>!f.gone).length<TUNE.foeCap){spawn(nextKind());G.gap=Math.max(1.6,G.gap*.97);G.spawnAt=G.t+G.gap*(G.peek&&!G.bossDown?TUNE.rage:G.bossDown?TUNE.calm:1)*(G.t>TUNE.tired?1.7:1)*(.8+Math.random()*.4);} /* after 4 minutes the critters get sleepy, so no battle drags on forever */
  if(!G.tiredSaid&&G.t>TUNE.tired){G.tiredSaid=true;fx('tired');}
- if(G.asc>=6&&G.bossDown&&!G.boss2&&G.denHP<=G.denMax*.2){G.boss2=true;G.bossDown=false;spawn('boss');G.pets.forEach(p=>{if(p.gone)return;knock(p,8);p.stun=G.t+.6;});fx('boss');} /* Ascend 6+: a second Goblin */
- if(!G.boss&&G.denHP<=G.denMax*.5){G.boss=true;spawn('boss');G.pets.forEach(p=>{if(p.gone)return;knock(p,12);p.stun=G.t+.8;});fx('boss');} /* the boss's shockwave */
+ if(G.asc>=6&&G.bossDown&&!G.boss2){if(!G.boss2At)G.boss2At=G.t+LURE.boss2;if(G.t>=G.boss2At){G.boss2=true;G.bossDown=false;spawn('boss');fx('boss2');}} /* Ascend 6+: a second Goblin, angry that his brother lost */
+ if(!G.peek&&G.denHP<=G.denMax*.5){G.peek=G.t;fx('peek');} /* half way: the Goblin peeks out and shakes his fist; from now until he is beaten his critters
+    come faster and the den is boarded up (takes half damage), as when he used to burst out here */
+ if(G.lureD&&!G.boss&&G.t>=G.lureD.join){G.boss=true;spawn('boss');fx('boss');} /* after his throw, the Goblin joins the battle */
  const pets=G.pets.filter(x=>!x.gone),foes=G.foes.filter(x=>!x.gone);
  G.pets.forEach(u=>{u.fight=false;});G.foes.forEach(f=>{f.fight=false;});
- pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx(u.R.id==='eagle'?'eaglebye':'trollbye');return;}if(u.stun>G.t)return;u.mv=false;const R=u.R;if(u.mega&&R.id==='eagle'){eagleStep(u,foes,dt);return;}const reach=f=>(!f.fly||R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
+ pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx(u.R.id==='eagle'?'eaglebye':'trollbye');return;}if(u.stun>G.t)return;u.mv=false;if(u.lr&&lured(u,dt))return;const R=u.R;if(u.mega&&R.id==='eagle'){eagleStep(u,foes,dt);return;}const reach=f=>(!f.fly||R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
   if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];u.fight=true;u.tgFly=!!hit[0].fly;hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});
    if(Math.random()<.18*dt)knock(hit[0],-(1.5+Math.random()*1.5)*(hit[0].boss?.3:1)); /* now and then a hit shoves the critter back a little */
    if(u.mega&&!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+R.life);}}
-  else if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*dt*(G.bossDown||!G.boss?1:.5)*(G.t>TUNE.tired?1.6:1);}
+  else if(u.x-DEN_X<=u.rng){u.fight=true;G.denHP-=u.atk*dt*(G.bossDown||!G.peek?1:.5)*(G.t>TUNE.tired?1.6:1);}
   else{u.x-=u.spd*.8*dt;u.mv=true;}
   if(u.mega&&R.id==='troll'&&!u.poundAt&&G.t>=u.stompAt&&foes.some(f=>!f.gone&&u.x-f.x>=-2&&u.x-f.x<=6)){u.poundAt=G.t+TROLL.wind;u.windT=G.t;} /* he roars at any critter right in front of him, flyers too */
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
  /* flyers drift over pets that can't reach them (like Battle Cats' floating enemies) and go for the Pet House */
  /* a flyer the paw knocked down walks for a few seconds, then takes off again */
- foes.forEach(f=>{if(f.downUntil&&G.t>=f.downUntil){f.downUntil=0;f.fly=true;}if(f.stun>G.t)return;f.mv=false;const tg=pets.filter(u=>u.ph!=='rise'&&u.ph!=='dive'&&(!f.fly||u.R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
+ foes.forEach(f=>{if(f.downUntil&&G.t>=f.downUntil){f.downUntil=0;f.fly=true;}if(f.stun>G.t)return;f.mv=false;if(f.lr&&lured(f,dt))return;const tg=pets.filter(u=>u.ph!=='rise'&&u.ph!=='dive'&&(!f.fly||u.R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
   if(tg.length){const u=tg.reduce((a,b)=>b.x<a.x?b:a);u.hp-=f.atk*dt;f.fight=true;if(Math.random()<.18*dt)knock(u,1.5+Math.random()*1.5);if(f.boss&&G.t>=(G.bossShake||0)){G.bossShake=G.t+1.4;fx('bossHit');}}
   else if(HOUSE_X-f.x<=f.rng&&(f.fight=true)){G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;G.houseHit=G.t;}
   else{f.x+=f.spd*.8*dt;f.mv=true;}});
@@ -258,9 +284,11 @@ function step(dt){if(!G||G.over)return;G.t+=dt;G.minH=Math.min(G.minH===undefine
  pets.forEach(u=>bump(u,1));foes.forEach(f=>bump(f,-1));
  G.foes.forEach(f=>{if(!f.gone&&f.hp<=0){f.gone=true;if(f.boss){if(!G.foes.some(o=>o!==f&&o.boss&&!o.gone&&o.hp>0)){G.bossDown=true;fx('bossdown');}}else fx('poof');}});
  G.pets.forEach(u=>{if(!u.gone&&u.hp<=0){u.gone=true;fx('sleepy');}}); /* a pet is retired: it goes home for a nap */
- /* last stand: the first time a base drops to 25%, every attacker near it is thrown 50–90% of the way back home (once per base) */
- if(!G.lsH&&G.houseHP>0&&G.houseHP<=G.houseMax*.25){G.lsH=true;G.foes.forEach(f=>{if(f.gone)return;knock(f,-(f.x-DEN_X-2)*(.5+Math.random()*.4));f.stun=G.t+1;});fx('standH');}
- if(!G.lsD&&G.denHP>0&&G.denHP<=G.denMax*.25){G.lsD=true;G.pets.forEach(u=>{if(u.gone)return;knock(u,(HOUSE_X-2-u.x)*(.5+Math.random()*.4));u.stun=G.t+1;});fx('standD');}
+ /* last stands (once per base): at a quarter, the base's owner comes out and throws snacks the attackers can't resist */
+ [G.lureD,G.lureH].forEach(L=>{if(L&&!L.thrown&&G.t>=L.throwAt){L.thrown=true;const xs=L.items.map(i=>i.x);G.camAt={x:(Math.min(...xs)+Math.max(...xs))/2,until:L.land+1};fx(L.side==='d'?'gobThrow':'heroThrow');}
+  if(L&&L.side==='d'&&!L.said&&G.t>=L.join-.9){L.said=true;fx('gobFine');}});
+ if(!G.lsH&&G.houseHP>0&&G.houseHP<=G.houseMax*.25){G.lsH=true;lure('h');}
+ if(!G.lsD&&G.denHP>0&&G.denHP<=G.denMax*.25){G.lsD=true;lure('d');}
  if(G.denHP<=0){G.denHP=0;G.over=true;G.win=true;fx('denFall');}else if(G.houseHP<=0){G.houseHP=0;G.over=true;G.win=false;fx('houseFall');}}
 function fx(k){if(SIM||!G)return;G.fx.push(k);}
 
@@ -359,6 +387,24 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 @keyframes bp2streak{from{opacity:1;scale:1 1}to{opacity:0;scale:1.6 .4;translate:40px 0}}
 .bp2-pounce-t{font-size:44px !important;color:#ffd43b !important;-webkit-text-stroke:2px #7048e8;letter-spacing:2px}.bp2-ent.mega .hb{width:70px;height:6px}.bp2-ent.mega .hb i{background:#7048e8}
 .bp2-ent.boss .hb{width:64px;height:6px}
+.bp2-actor{position:absolute;bottom:22px;transform:translateX(-50%);z-index:0;pointer-events:none;transition:left .7s ease-out,opacity .4s;scale:var(--k,1);transform-origin:50% 100%}
+.bp2-actor .bd{display:block;line-height:0;transform-origin:50% 100%}.bp2-actor svg{width:100%;height:auto;display:block;overflow:visible}
+.bp2-actor.gob{width:96px}.bp2-actor.hero{width:74px}.bp2-actor.out{z-index:6}
+.bp2-actor.wind .bd{animation:bp2wind .9s ease-in-out forwards}.bp2-actor.hero.wind .bd{animation-name:bp2windR}
+.bp2-actor.toss .bd{animation:bp2toss .45s ease-out}.bp2-actor.hero.toss .bd{animation-name:bp2tossR}
+.bp2-actor.fist .bd{animation:bp2fist .35s ease-in-out 5 alternate}.bp2-actor.wave .bd{animation:bp2fist .3s ease-in-out 4 alternate}
+.bp2-say{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:6px;background:#fff;color:#2b2250;font:800 14px Fredoka,system-ui,sans-serif;padding:5px 10px;border-radius:12px;white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.2);animation:bp2pop .3s ease-out}
+.bp2-say:after{content:'';position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:#fff}
+.gob .bp2-say{left:62%;transform:none}.gob .bp2-say:after{left:14px}.hero .bp2-say{left:auto;right:58%;transform:none}.hero .bp2-say:after{left:auto;right:14px}
+@keyframes bp2wind{0%{rotate:0deg}100%{rotate:14deg;translate:-6px 0}}@keyframes bp2windR{0%{rotate:0deg}100%{rotate:-14deg;translate:6px 0}}
+@keyframes bp2toss{0%{rotate:14deg}40%{rotate:-18deg;translate:10px 0}100%{rotate:0deg}}@keyframes bp2tossR{0%{rotate:-14deg}40%{rotate:18deg;translate:-10px 0}100%{rotate:0deg}}
+@keyframes bp2fist{0%{rotate:-6deg;translate:0 0}100%{rotate:6deg;translate:0 -6px}}
+.bp2-snack{position:absolute;bottom:26px;width:26px;height:26px;margin-left:-13px;font-size:24px;line-height:26px;text-align:center;z-index:5;pointer-events:none}
+.bp2-snack svg{width:100%;height:100%;display:block}.bp2-snack.down{z-index:1;filter:drop-shadow(0 3px 2px rgba(0,0,0,.3))}.bp2-snack.fade{opacity:0;transition:opacity .6s}
+.bp2-ent.back .e{scale:-1 1}.bp2-ent.eat .e{animation:bp2munch .25s ease-in-out infinite alternate !important}
+@keyframes bp2munch{0%{translate:0 0;rotate:0deg}100%{translate:0 4px;rotate:8deg}}
+.bp2-pt.alert{font-size:26px;bottom:80px;animation:bp2pop .9s ease-out forwards;z-index:7}.bp2-pt.yum{font-size:20px;bottom:70px;animation:bp2pop .9s ease-out forwards;z-index:7}
+.bp2-pt.crumb{width:6px;height:6px;border-radius:2px;background:#8a5a24;animation:bp2dust .6s ease-out forwards}
 .bp2-pt{position:absolute;bottom:24px;pointer-events:none;transform:translateX(-50%);z-index:3}
 .bp2-pt.dust{width:20px;height:20px;border-radius:50%;background:rgba(150,120,80,.55);animation:bp2dust .65s ease-out forwards}
 .bp2-pt.poof{width:40px;height:40px;border-radius:50%;background:rgba(200,200,210,.85);box-shadow:14px -6px 0 -4px rgba(200,200,210,.8),-14px -4px 0 -6px rgba(200,200,210,.8);animation:bp2poof .7s ease-out forwards}
@@ -546,6 +592,8 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
   if(u.mega&&u.R.id==='eagle'){u.el.classList.toggle('air',u.ph==='rise');u.el.classList.toggle('diving',u.ph==='dive');}
   if(u.mega&&u.windT!==u.windSeen){u.windSeen=u.windT;u.el.classList.remove('roar');void u.el.offsetWidth;u.el.classList.add('roar');}
   u.el.style.left=u.x+'%';u.el.classList.toggle('walk',!!u.mv&&!u.fight);if(u.mv&&!u.fly&&window.BPScene&&Math.random()<.025)BPScene.scuff(u.x);u.el.classList.toggle('fight',!!u.fight);if(u.flyer)u.el.classList.toggle('fly',!(u.fight&&!u.tgFly));if(u.side==='c'){u.el.classList.toggle('fly',!!u.fly);u.el.classList.toggle('downed',!!(u.downUntil&&u.downUntil>G.t));}u.el.classList.toggle('stun',!!(u.stun>G.t&&!u.mega&&!(u.leapT!==undefined&&G.t-u.leapT<1)));
+  u.el.classList.toggle('back',!!u.back);u.el.classList.toggle('eat',!!u.eating);if(u.alertT&&u.alertT!==u.alertSeen){u.alertSeen=u.alertT;puffAny(u.x,'alert',Math.round((u.el.offsetHeight||60)+30));if(Math.random()<.5)tone(880+Math.random()*200,.06,'triangle',.02);}
+  if(u.eating&&now>(u.munchAt||0)){u.munchAt=now+260;puffAny(u.x+(Math.random()*1.2-.6),'crumb',30);if(Math.random()<.35)puffAny(u.x,'yum',Math.round((u.el.offsetHeight||60)+20));munch();}
   u.el.classList.toggle('upfight',!!(u.side==='p'&&u.fight&&u.tgFly&&!u.flyer&&!u.mega&&u.R&&u.R.id!=='archer'));
   if(u.fight&&!u.mega&&now>(u.fxAt||0)){u.fxAt=now+900;if(u.R&&u.R.id==='archer')arrow(u);else if(u.R&&u.R.id==='medic')puffAny(u.x,'heal',70);
    else{const up=u.side==='p'?!!(u.tgFly||u.el.classList.contains('fly')):!!u.fly,hx=u.x+(u.side==='p'?-1.6:1.6),big=!!u.boss;setTimeout(()=>{try{puffAny(hx,'hit',up?Math.round((G&&G.fh||300)*.46+20):40);hitSound(big?1.8:1);}catch(e){}},Math.random()*250);}}
@@ -555,7 +603,7 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
    if(u.fight&&!eg&&now>(u.bigAt||0)){u.bigAt=now+(u.boss?1400:1100);heavy();puffAny(u.x+(u.side==='p'?-2.6:2.6),'hit',60);}
    if(eg&&(u.ph==='rise'||u.mv)&&now>(u.flapAt||0)){u.flapAt=now+430;flap();}}if(u.mega)u.el.classList.add('mega');u.el.querySelector('.hb i').style.width=Math.max(0,u.hp/u.max*100)+'%';});
  G.pets=G.pets.filter(u=>!(u.gone&&u.dead));G.foes=G.foes.filter(u=>!(u.gone&&u.dead));
- clash();baseSmoke();pawHits();pawFollow();threats();camera();flyHint();
+ lureDraw(f);clash();baseSmoke();pawHits();pawFollow();threats();camera();flyHint();
  {const tb=document.getElementById('bpTroll'),tc=document.getElementById('bpTrollCd'),M=megaOf();if(tb&&tc){const out=trollOut(),wait=Math.max(0,G.trollAt-G.t),span=G.trolls?M.cd:M.first;
   tc.style.height=(out?100:wait/span*100)+'%';tb.classList.toggle('poor',G.treats<M.cost||out||wait>0);tb.title=out?`${M.n} is fighting!`:wait>0?`${M.n} is coming in ${Math.ceil(wait)} s`:`Call ${M.n}!`;}}
  const q=id=>document.getElementById(id);q('bpDen').style.width=(G.denHP/G.denMax*100)+'%';q('bpHouse').style.width=(G.houseHP/G.houseMax*100)+'%';q('bpT').textContent=Math.floor(G.t)+'s';
@@ -574,7 +622,10 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
     G.pets.forEach(u=>{if(u.el&&!u.gone&&!u.mega){u.el.classList.add('cheer');setTimeout(()=>{try{u.el.classList.remove('cheer');}catch(e){}},1300);}});}
    else if(k==='slam'){const x=G.slamX;shake();setTimeout(shake,180);tone(48,.6,'sine',.22);tone(90,.25,'square',.08);tone(1400,.18,'triangle',.03,.02);
     puffAny(x,'ring');setTimeout(()=>puffAny(x,'ring'),120);for(let i=0;i<6;i++)puffAny(x+(Math.random()*8-4),'dust');
-    const fl=document.getElementById('bpField');if(fl){const b=document.createElement('div');b.className='bp2-blast';b.style.setProperty('--bx',x+'%');fl.appendChild(b);setTimeout(()=>b.remove(),600);}}else if(k==='boss'){shake();if(window.BPScene)BPScene.grey(true);tone(110,.6,'sawtooth',.06);setTimeout(cackle,500);flash(`The ${G.stage.boss[0]} bursts out!`);}else if(k==='bossdown'){if(window.BPScene)BPScene.rainbow();flash('🌈 The colors are back! Knock over the den!');}else if(k==='kitchen')SFX.coin();else if(k==='brick')tone(660,.08,'square',.04);else if(k==='standH'){shake();flash('🏡 LAST STAND! Critters thrown back!');[392,523,659].forEach((h,j)=>tone(h,.15,'square',.06,j*.08));}else if(k==='standD')flash('🏚️ The den shakes your pets back!');else if(k==='tired')topNote('😴 The critters are getting sleepy. Push now!');
+    const fl=document.getElementById('bpField');if(fl){const b=document.createElement('div');b.className='bp2-blast';b.style.setProperty('--bx',x+'%');fl.appendChild(b);setTimeout(()=>b.remove(),600);}}else if(k==='boss'){shake();if(window.BPScene)BPScene.grey(true);tone(110,.6,'sawtooth',.06);setTimeout(cackle,500);actorGone('gob');flash(`👺 The ${G.stage.boss[0]} joins the battle!`);}else if(k==='bossdown'){if(window.BPScene)BPScene.rainbow();flash('🌈 The colors are back! Knock over the den!');}else if(k==='kitchen')SFX.coin();else if(k==='brick')tone(660,.08,'square',.04);else if(k==='peek'){actor('gob','peek');grumble();}else if(k==='gobOut'){actor('gob','throw');grumble();flash(`👺 The ${G.stage.boss[0]} comes out!`);}else if(k==='heroOut'){actor('hero','throw');[392,523,659].forEach((h,j)=>tone(h,.15,'square',.06,j*.08));flash('🏡 LAST STAND! Here comes the hero!');}
+   else if(k==='gobThrow'||k==='heroThrow'){actorToss(k==='gobThrow'?'gob':'hero');whoosh();if(k==='gobThrow')topNote('🍪 The Goblin threw treats! Your pets can\'t resist them.');else topNote('🍫 Chocolate coins! The critters can\'t resist them.');}
+   else if(k==='gobFine'){actorSay('gob','Fine! I\'ll do it myself!');}
+   else if(k==='boss2'){shake();if(window.BPScene)BPScene.grey(true);tone(110,.6,'sawtooth',.06);setTimeout(cackle,500);flash(`😠 His brother is ANGRY! Another ${G.stage.boss[0]}!`);}else if(k==='tired')topNote('😴 The critters are getting sleepy. Push now!');
    else if(k==='troll'){shake();flash(`🧌 ${TROLL.n} stomps in!`);tone(70,.5,'sawtooth',.08);tone(55,.6,'square',.05,.2);}
    else if(k==='roar'){const t=G.pets.find(u=>u.mega&&!u.gone);if(t){[0,110,220,330].forEach(ms=>setTimeout(()=>puffAny(t.x-1.6,'sound',78),ms));puffAny(t.x-2.5,'word',150);puffAny(t.x-3,'dust');puffAny(t.x-5,'dust');}shake();setTimeout(shake,250);roarSound();}
    else if(k==='trollbye')topNote(`🧌 ${TROLL.n} stomps home. He'll be back!`);
@@ -611,6 +662,32 @@ function pawHits(){G.foes.forEach(f=>{if(f.pawT&&f.pawT!==f.pawSeen&&!f.gone){f.
 function puffAny(x,kind,y){const f=document.getElementById('bpField');if(!f||PTS>60)return;const d=document.createElement('div');d.className='bp2-pt '+kind;d.style.left=x+'%';if(y!==undefined)d.style.bottom=y+'px';
  if(kind==='star')d.textContent=Math.random()<.5?'💥':'⭐';if(kind==='word')d.textContent='RRROOAAARR!';if(kind==='heal')d.textContent=Math.random()<.5?'✚':'💚';if(kind==='dust')d.style.setProperty('--dx',(Math.random()*30)+'px');PTS++;f.appendChild(d);
  const done=()=>{if(d.parentNode){d.remove();PTS--;}};d.addEventListener('animationend',done);setTimeout(done,900);}
+/* ---------- last-stand actors: the Grey Goblin behind the den, the hero behind the Pet House ---------- */
+const ACT={};
+function actor(who,mode){const f=document.getElementById('bpField');if(!f||!G)return;actorGone(who,true);const gob=who==='gob',p=me();
+ const d=document.createElement('div');d.className='bp2-actor '+who;const art=gob?(window.MQ_GOBLIN_SVG?window.MQ_GOBLIN_SVG():'<span style="font-size:70px">👺</span>'):(typeof heroSVG==='function'&&p&&p.look?heroSVG(p.look):'<span style="font-size:60px">🧙</span>');
+ d.innerHTML=`<span class="bd">${art}</span>`;const x0=gob?DEN_X:HOUSE_X;d.style.left=x0+'%';f.appendChild(d);ACT[who]={el:d,mode};void d.offsetWidth;
+ const out=gob?Math.max(1.9,DEN_X-3.6):Math.min(98.6,HOUSE_X+4.4);setTimeout(()=>{d.classList.add('out');d.style.left=out+'%';},30);
+ const mine=()=>ACT[who]&&ACT[who].el===d;if(mode==='peek'){setTimeout(()=>{if(mine()){d.classList.add('fist');actorSay(who,'Grrr! Leave my den alone!');}},700);setTimeout(()=>{if(mine())actorGone(who);},3200);return;}
+ setTimeout(()=>{if(mine()){d.classList.add('wind');if(!gob)actorSay(who,'Hey critters! Chocolate coins!');else actorSay(who,'Here! Treats! Now go away!');}},500);}
+function actorToss(who){const a=ACT[who];if(!a)return;const d=a.el;d.classList.remove('wind');void d.offsetWidth;d.classList.add('toss');
+ if(who==='hero'){const mine=()=>ACT.hero&&ACT.hero.el===d;setTimeout(()=>{if(mine()){d.classList.remove('toss');d.classList.add('wave');actorSay('hero','Good luck, pets!');}},1400);setTimeout(()=>{if(mine())actorGone('hero');},3400);}}
+function actorSay(who,t){const a=ACT[who];if(!a)return;a.el.querySelectorAll('.bp2-say').forEach(x=>x.remove());const b=document.createElement('span');b.className='bp2-say';b.textContent=t;a.el.appendChild(b);}
+function actorGone(who,now){const a=ACT[who];if(!a)return;delete ACT[who];const d=a.el;if(now){d.remove();return;}d.querySelectorAll('.bp2-say').forEach(x=>x.remove());d.classList.remove('out');d.style.left=(who==='gob'?DEN_X:HOUSE_X)+'%';d.style.opacity=0;setTimeout(()=>d.remove(),700);}
+/* the snacks: thrown in an arc from the thrower, then lying on the ground until someone eats them */
+const COIN='<svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="#f2c14e" stroke="#8a5a14" stroke-width="2.5"/><circle cx="15" cy="15" r="8.5" fill="none" stroke="#c98a2a" stroke-width="2"/><path d="M15 9.5l1.7 3.5 3.8.5-2.8 2.6.7 3.8-3.4-1.9-3.4 1.9.7-3.8-2.8-2.6 3.8-.5z" fill="#fff3bf"/><path d="M8 9q3-3.6 7-3.6" stroke="#fff" stroke-opacity=".75" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+function lureDraw(f){[G.lureD,G.lureH].forEach(L=>{if(!L)return;const d=L.side==='d',W2=f.scrollWidth||f.clientWidth||2200,sx=d?Math.max(1.9,DEN_X-3.6):Math.min(98.6,HOUSE_X+4.4);
+ L.items.forEach(it=>{if(it.gone)return;
+  if(!it.el&&L.thrown){const e=document.createElement('div');e.className='bp2-snack';e.style.left=it.x+'%';
+   const foods=(typeof PET_FOODS!=='undefined'&&PET_FOODS.length?PET_FOODS.map(x=>x.e):['🍎','🥕','🍪']);e.innerHTML=d?choose(foods):COIN;f.appendChild(e);it.el=e;
+   const ms=Math.max(200,(L.land+it.dl-G.t)*1000),dx=(sx-it.x)/100*W2,h=150+Math.random()*60,kf=[];for(let i=0;i<=10;i++){const t=i/10;kf.push({transform:`translate(${(1-t)*dx}px,${-4*h*t*(1-t)}px) rotate(${t*(d?540:720)}deg)`});}
+   try{e.animate(kf,{duration:ms,easing:'linear',fill:'forwards'});}catch(x){}setTimeout(()=>{try{e.classList.add('down');puffAny(it.x,'dust');plink(d);}catch(x){}},ms);}
+  if(it.el&&it.eaten){it.gone=true;const e=it.el;puffAny(it.x,'crumb',30);puffAny(it.x+.4,'crumb',34);e.remove();}
+  else if(it.el&&(!it.by||it.by.gone||!it.by.lr)&&G.t>L.land+5){it.gone=true;const e=it.el;e.classList.add('fade');setTimeout(()=>e.remove(),700);}});});}
+function grumble(){try{[[140,0],[118,.12],[150,.26],[105,.4]].forEach(([h,d])=>tone(h,.13,'sawtooth',.035,d));}catch(e){}}
+function whoosh(){try{[500,700,900,1100].forEach((h,i)=>tone(h,.08,'triangle',.014,i*.04));}catch(e){}}
+function plink(d){try{if(d)tone(320+Math.random()*80,.07,'sine',.04);else{tone(1900+Math.random()*300,.06,'triangle',.022);tone(2500,.05,'triangle',.012,.04);}}catch(e){}}
+let MUNCH=0;function munch(){const n=performance.now();if(n<MUNCH)return;MUNCH=n+220;try{tone(170+Math.random()*60,.05,'square',.012);}catch(e){}}
 /* Grumbleroot's roar, made live: a growl that falls in pitch, rough breath noise and a deep rumble */
 function roarSound(){try{if(typeof state!=='undefined'&&!state.sound)return;const ctx=AC||(AC=new(window.AudioContext||window.webkitAudioContext)());const out=fxOut(ctx),t=ctx.currentTime;
  const nb=ctx.createBuffer(1,ctx.sampleRate*1.3,ctx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
@@ -747,5 +824,5 @@ window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 window.BattlePets={on,stats,stages,openStage,stageOpen,
  _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>trySend(i),_kit:()=>{if(upgradeKitchen())draw();},_sound:soundOpen,_report:()=>{if(!G||G.over||!window.MQReport)return;G.paused=true;MQReport.open(()=>{if(G){G.paused=false;LAST=performance.now();}});},_soundDone:soundDone,_vol:setVol,_song:setSong,songId,_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S,VIEW.crown,VIEW.asc);try{SFX.tap();}catch(e){}screen();},_trainer:trainerToggle,_hire:hire,_mega:id=>{const p=me();if(!p||!MEGA[id])return;prog(p).mega=id;save();if(VIEW.k==='team')screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))topNote('No critters to pounce on yet!');},_key:key,_again:again,_lvl:(c,a)=>{if(VIEW.k!=='team')return;const t=VIEW.team.slice(),fl=VIEW.fly;pickStage(VIEW.id,c,a,VIEW.tk);if(VIEW.k==='team'){VIEW.team=t;VIEW.fly=fl;screen();}},_back:backTo,_leave:leave,_quit:quit,
  _say:()=>{try{if(G&&G.q)speakToggle(()=>say(speakable(qText(G.q)),.9));}catch(e){}},_sync:syncTile,
- _dbg:{tickets,ticketLevels,starsFor,STAR_T,arrow:u=>arrow(u),winChance,WINM,teamFeat,TRAINER_COST,TRAINER,trainer:()=>trainer(),TUNE,CROWN,TROLL,EAGLE,threats:()=>threats(),ascK,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
+ _dbg:{LURE,draw:()=>draw(),tickets,ticketLevels,starsFor,STAR_T,arrow:u=>arrow(u),winChance,WINM,teamFeat,TRAINER_COST,TRAINER,trainer:()=>trainer(),TUNE,CROWN,TROLL,EAGLE,threats:()=>threats(),ascK,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
 })();
