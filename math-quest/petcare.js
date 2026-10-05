@@ -358,7 +358,7 @@ function offerNow(){const p=P(),su=sitUntil(p);if(!su)return;homePets(p).forEach
 const PERK_LONG={coins:'You earn extra coins in battles while it is your battle buddy.',power:'Your spells hit harder while it is your battle buddy.',
  shield:'It sometimes blocks a monster\'s hit for you.',xp:'You level up faster while it is your battle buddy.',lucky:'You find more eggs while it is your battle buddy.',
  heal:'It heals you when you get answers right in a row.'};
-function joinHow(x){if(!x)return 'joined your team';if(x.tier==='mythic')return 'unlocked by the Gold Family Goal';if(x.tier==='event')return 'won in the Halloween event';
+function joinHow(x){if(!x)return 'joined your team';if(x.tier==='mythic')return 'unlocked by the Gold Family Goal';if(x.tier==='event')return 'won in the '+(x.ev==='harvest'?'Thanksgiving':'Halloween')+' event';
  if(x.fade)return 'rescued in the Great Fade';if(x.cleanup)return 'found in a camp cleanup';if(x.prize)return 'won as a prize';if(x.id==='sorty')return 'joined from the Sorting game';return 'hatched from an egg';}
 function noteJoins(p){try{if(!p||!Array.isArray(p.pets))return;let ch=false;
  if(!p.petJoinInit){p.petJoinInit=1;p.petJoin=p.petJoin||{};p.pets.forEach(id=>{if(!p.petJoin[id])p.petJoin[id]={o:1};});ch=true;}

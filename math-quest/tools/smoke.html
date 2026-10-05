@@ -126,6 +126,24 @@ const tests=[
   const blocks=JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)));const c=document.createElement('canvas');c.width=400;c.height=300;let err='';
   try{MQ_GROUND.draw(c.getContext('2d'),W,0,WCOLS-1,0,WROWS-1,0,0,20,performance.now());}catch(e){err=String(e);}
   T.ok(!err,'drawing the ground failed: '+err);T.ok(JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)))===blocks,'drawing the ground changed where you can walk');
+  T.ok(Object.values(W._wall||{}).some(m=>m),'no stone walls drawn between areas');
+ }],
+['event worlds: Haunted Hollow and Harvest Hollow open on their own dates; Harvest Hollow gives Gobble the Turkey, then the Pilgrim Hat',async function(){
+  T.reset();const p=T.hero('Feast',3);state.cur=p.id;const dk=window.dayKey,hv=ZONES.find(z=>z.id==='harvest'),hh=ZONES.find(z=>z.id==='haunt');T.ok(hv&&hv.event,'Harvest Hollow is missing');
+  try{
+   window.dayKey=()=>'2026-11-20';T.ok(eventOpen('harvest')&&!eventOpen('haunt')&&!eventOpen()&&!zoneLocked(hv,p)&&zoneLocked(hh,p),'Harvest Hollow is not open on Nov 20 (or Haunted Hollow is)');
+   T.ok(/Harvest Hollow is open/.test(eventBanner(p))&&/Gobble the Turkey/.test(eventBanner(p)),'no Harvest Hollow banner on Nov 20');
+   window.dayKey=()=>'2026-10-20';T.ok(eventOpen('haunt')&&eventOpen()&&!eventOpen('harvest')&&eventSoon('harvest')&&/Opens Nov 15/.test(hv.lockMsg),'Halloween dates broke, or Harvest Hollow is not coming soon');
+   T.ok(/Haunted Hollow is open/.test(eventBanner(p)),'the Haunted Hollow banner is missing on Oct 20');
+   window.dayKey=()=>'2026-12-02';T.ok(!eventOpen('harvest')&&!eventSoon('harvest')&&/Closed until next Thanksgiving/.test(hv.lockMsg),'Harvest Hollow is not closed in December');
+  }finally{window.dayKey=dk;}
+  T.ok(/Gobble/.test(eventPrize(p,1,hv))&&p.pets.includes('gobble'),'the first Harvest Hollow boss win does not give Gobble the Turkey');
+  T.ok(/Pilgrim Hat/.test(eventPrize(p,2,hv))&&p.owned.hats.includes('pilgrim'),'the second boss win does not give the Pilgrim Hat');
+  T.ok(/Boo/.test(eventPrize(p,1,hh))&&p.pets.includes('boo'),'Haunted Hollow no longer gives Boo');
+  for(const [op,a,b] of [['add',7,5],['sub',9,4],['mul',6,3],['div',12,4]]){const st=feastStory({op,a,b,answer:1});T.ok(st&&st.includes('<b>'+a+'</b>')&&st.includes('<b>'+b+'</b>'),'no feast word problem for '+op);}
+  T.ok(MON_ART['🌾']&&attackOf('🌾').n==='Straw storm','the Scarecrow King has no art or attack');
+  go('world');await T.wait(150);T.ok(W.gates.harvest&&W.gates.harvest[0]===17&&W.T[15][17].gate==='harvest'&&window.MQ_GATE_ART&&MQ_GATE_ART.harvest,'the Harvest Hollow entrance is not left of Number Town');
+  p.look.hat='pilgrim';T.ok(/fcc419/.test(heroSVG(p.look)),'the Pilgrim Hat does not draw');
  }],
 ['map life: tiny themed critters (butterflies, bubbles, embers, snow…) appear near the hero and never block',async function(){
   T.reset();const p=T.hero('Looker',3);state.cur=p.id;go('world');await T.wait(200);W.hx=BIOMES.forest.c[0]+1;W.hy=BIOMES.forest.c[1]+1;await T.wait(2500);

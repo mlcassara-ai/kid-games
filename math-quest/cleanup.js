@@ -82,7 +82,7 @@ const LITTER=[
 ].map(([id,e,n,b,f,alt])=>({id,e,n,b,f,alt}));
 const LIT_BY={};LITTER.forEach(x=>LIT_BY[x.id]=x);
 /* a little flavor: each place leaves its own kind of mess */
-const PLACE={meadow:['core','peel','napkin','juice','berry','grass'],woods:['orange','chips','pstick','nut','can'],cove:['pbottle','cap','plbag','straw','can','cup'],caves:['crayon','brush','sponge','jar','news'],peaks:['candy','gum','balloon','homework','box'],volcano:['can','chips','cob','crust','fork'],haunt:['candy','gum','core','box','pbag']};
+const PLACE={meadow:['core','peel','napkin','juice','berry','grass'],woods:['orange','chips','pstick','nut','can'],cove:['pbottle','cap','plbag','straw','can','cup'],caves:['crayon','brush','sponge','jar','news'],peaks:['candy','gum','balloon','homework','box'],volcano:['can','chips','cob','crust','fork'],haunt:['candy','gum','core','box','pbag'],harvest:['core','peel','napkin','juice','berry']};
 const icon=x=>x&&x.e&&x.e[0]==='@'?ART[x.e.slice(1)]:(x?x.e:'❓');
 
 /* ---------- the rewards track ----------

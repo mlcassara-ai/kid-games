@@ -1,7 +1,7 @@
 /* ================= the map's ground (Oct 2026) =================
    The owner asked for a finer, more varied floor and real-looking trails. Every map tile is drawn as N×N smaller squares (N=4: a sixteenth of the
-   size) in 4 shades of its area's colours, picked by a fixed hash so the floor never flickers; where two areas meet the small squares mix
-   for a soft border; water gets shades and a light foam edge on the shore. Trails: see routes() below.
+   size) in 4 shades of its area's colours, picked by a fixed hash so the floor never flickers; where two areas meet a low stone wall
+   runs along the border (drawWalls); water gets shades and a light foam edge on the shore. Trails: see routes() below.
    Drawing only: walking is unchanged (the trail is still the same path tiles, and kids can still walk off the trail anywhere they could).
    The core map (index.html, wFrame) calls MQ_GROUND.draw for the ground when this file is loaded. About 16 fills per visible tile a frame. */
 (function(){
@@ -12,18 +12,33 @@ function pal(b){if(PAL[b])return PAL[b];const B=BIOMES[b]||BIOMES.village;return
 const PLAZA=['#e8dcc0','#e2d5b6'];
 const pick=(p,h)=>h<.5?p[0]:h<.75?p[1]:h<.9?p[2]:p[3];
 const land=t=>t&&!t.water&&!t.plaza;
-/* colours of a tile's small squares, worked out once and kept (the ground never changes). Owner, Oct 2026: borders between areas should
-   fade smoothly, not jag. Each small square blends its own shade with any different neighbouring area by how close it is to that side
-   (half-and-half right at the edge, nothing by the middle), the same from both sides, so colours fade across about one tile each way. */
-const rgbOf=c=>{if(c[0]==='#'){const n=parseInt(c.slice(1),16);return [n>>16,(n>>8)&255,n&255];}return c.match(/\d+/g).map(Number);};
-const PRGB={};const palRGB=b=>PRGB[b]||(PRGB[b]=pal(b).map(rgbOf));
-const ew=u=>Math.max(0,.5-u);
-function tileCols(W,x,y){const G=W._gcol||(W._gcol={}),k=y*1000+x;if(G[k])return G[k];const T=W.T,own=T[y][x].b,P=palRGB(own),out=[],nb=[];
- for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const u=(dx||dy)&&T[y+dy]&&T[y+dy][x+dx];if(land(u)&&u.b!==own)nb.push([dx,dy,palRGB(u.b)[0]]);}
- for(let j=0;j<N;j++)for(let i=0;i<N;i++){const fx=(i+.5)/N,fy=(j+.5)/N,h=hash(x*N+i,y*N+j),c=P[h<.5?0:h<.75?1:h<.9?2:3];let r=0,g=0,bl=0,ws=0;
-  for(const [dx,dy,m] of nb){const wx=dx<0?ew(fx):ew(1-fx),wy=dy<0?ew(fy):ew(1-fy),w=dx&&dy?2*wx*wy:dx?wx:wy;if(w<=0)continue;r+=m[0]*w;g+=m[1]*w;bl+=m[2]*w;ws+=w;}
-  const a=Math.min(ws,.5),o=ws?a/ws:0;out.push(`rgb(${Math.round(c[0]*(1-a)+r*o)},${Math.round(c[1]*(1-a)+g*o)},${Math.round(c[2]*(1-a)+bl*o)})`);}
- return G[k]=out;}
+/* colours of a tile's small squares, worked out once and kept (the ground never changes) */
+function tileCols(W,x,y){const G=W._gcol||(W._gcol={}),k=y*1000+x;if(G[k])return G[k];const p=pal(W.T[y][x].b),out=[];
+ for(let j=0;j<N;j++)for(let i=0;i<N;i++)out.push(pick(p,hash(x*N+i,y*N+j)));return G[k]=out;}
+/* low dry-stone walls where two areas meet (owner, Oct 2026: "little rock walls" instead of the ground fading or jagging into each other).
+   Drawn on the edge between two land tiles of different areas, with an odd gap here and there, and none within about 2 tiles of an
+   entrance so the gate art stays clear. Drawing only: walls don't block walking. Each tile's edges are worked out once (W._wall), and
+   the stones are a few pre-drawn pictures (one row of stones per tile edge, across or down) reused every frame. */
+function wallsOf(W,x,y){const G=W._wall||(W._wall={}),k=y*1000+x;if(k in G)return G[k];const T=W.T,t=T[y][x];let m=0;
+ const nearGate=(ex,ey)=>Object.values(W.gates||{}).some(c=>Math.hypot(c[0]+.5-ex,c[1]+.5-ey)<2.4);
+ const R=T[y][x+1],D=T[y+1]&&T[y+1][x];
+ if(land(t)&&land(R)&&R.b!==t.b&&hash(x*7+3,y*11)>.1&&!nearGate(x+1,y+.5))m|=1;
+ if(land(t)&&land(D)&&D.b!==t.b&&hash(x*5,y*13+1)>.1&&!nearGate(x+.5,y+1))m|=2;
+ return G[k]=m;}
+const WS={};
+const rr=(g,x,y,w,h,r)=>{g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}; /* roundRect is missing on older iPads */
+function wallSprite(ts,dir,v){const key=Math.round(ts)+dir+v;if(WS[key])return WS[key];const L=ts*1.14,Th=ts*.34,c=document.createElement('canvas');
+ c.width=Math.ceil(dir==='h'?L:Th);c.height=Math.ceil(dir==='h'?Th:L);const g=c.getContext('2d'),n=4,GREY=['#a8a29a','#b5afa6','#9d968c','#bdb7ae','#a39d93'];
+ for(let i=0;i<n;i++){const hv=hash(v*17+i,dir==='h'?3:9),len=L/n*(1.02+hv*.12),u=(i+.5)*L/n+(hv-.5)*ts*.04,w=Th*(.78+hash(i,v*5)*.18);
+  const [x,y,ww,hh]=dir==='h'?[u-len/2,(Th-w)/2,len,w]:[(Th-w)/2,u-len/2,w,len],r=Math.min(ww,hh)*.42;
+  g.fillStyle='rgba(40,30,20,.22)';g.beginPath();rr(g,x+1,y+2.5,ww,hh,r);g.fill();
+  g.fillStyle=GREY[Math.floor(hash(i*3+v,7)*GREY.length)];g.strokeStyle='#5c544b';g.lineWidth=Math.max(1,ts*.025);g.beginPath();rr(g,x,y,ww,hh,r);g.fill();g.stroke();
+  g.fillStyle='rgba(255,255,255,.35)';g.beginPath();rr(g,x+ww*.18,y+hh*.14,ww*.5,hh*.28,r*.5);g.fill();}
+ return WS[key]=c;}
+function drawWalls(ctx,W,x0,x1,y0,y1,cx,cy,ts){const o=ts*.07,Th=ts*.34;
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const m=wallsOf(W,x,y);if(!m)continue;const v=Math.floor(hash(x,y*3)*4);
+  if(m&1)ctx.drawImage(wallSprite(ts,'v',v),(x+1)*ts-cx-Th/2,y*ts-cy-o);
+  if(m&2)ctx.drawImage(wallSprite(ts,'h',v),x*ts-cx-o,(y+1)*ts-cy-Th/2);}}
 const N=4; /* small squares per tile side: 4×4 per tile (owner, Oct 2026: a quarter of the earlier 2×2) */
 function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2,q=ts/N;
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const t=T[y][x],sx=x*ts-cx,sy=y*ts-cy;
@@ -31,6 +46,7 @@ function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2,q=ts/N;
   const C=tileCols(W,x,y);for(let j=0;j<N;j++)for(let i=0;i<N;i++){ctx.fillStyle=C[j*N+i];ctx.fillRect(sx+i*q,sy+j*q,q+.6,q+.6);}
   }
  drawWater(ctx,T,x0,x1,y0,y1,cx,cy,ts,now);
+ drawWalls(ctx,W,Math.max(0,x0-1),x1,Math.max(0,y0-1),y1,cx,cy,ts);
  if(TRAILS)drawRoutes(ctx,W,cx,cy,ts,x0,x1,y0,y1);}
 /* ponds and the sea (owner, Oct 2026: square ponds looked blocky): each water tile is a slightly wobbly round blob joined to its water
    neighbours, first a pale foam ring, then the water, so shorelines are rounded with land showing around them. Water still blocks the

@@ -24,7 +24,9 @@ const DESTS=[
  {id:'volcano',e:'🌋',n:'Dragon Volcano',need:14,c1:'#ff8787',c2:'#c92a2a',sky:'#ffc9c9',home:['dragon','skydragon','rex','titan','lion','tiger'],
   cur:[['warm','🔥','Toasty Rock'],['pepper','🌶️','Fire Pepper'],['glass','🔶','Lava Glass'],['scale','🐉','Dragon Scale',1]]},
  {id:'haunt',e:'🎃',n:'Haunted Hollow',need:0,event:1,c1:'#ffa94d',c2:'#5f3dc4',sky:'#e5dbff',home:['owl','wolf','raccoon','boo'],
-  cur:[['batdoodle','🦇','Bat Doodle'],['pumpkin','🎃','Tiny Pumpkin'],['web','🕸️','Spider Web'],['lantern','🏮','Glowing Lantern',1]]}];
+  cur:[['batdoodle','🦇','Bat Doodle'],['pumpkin','🎃','Tiny Pumpkin'],['web','🕸️','Spider Web'],['lantern','🏮','Glowing Lantern',1]]},
+ {id:'harvest',e:'🦃',n:'Harvest Hollow',need:0,event:1,c1:'#ffc078',c2:'#a5491f',sky:'#fff4e6',home:['gobble','fox','hedgehog','mouse','pig'],
+  cur:[['goldacorn','🌰','Golden Acorn'],['mapleleaf','🍁','Red Maple Leaf'],['paintcorn','🌽','Painted Corn'],['tinypie','🥧','Tiny Pie',1]]}];
 /* odd stuff from anywhere: collectible curiosities for the shelf (the first 8 are the originals; ids never change so old shelves keep their counts).
    Litter the crew picks up (gum wrappers, banana peels…) is NOT here: it lives in cleanup.js and goes to the kid's sorting bins. */
 const JUNK=[['sock','🧦','Odd Sock'],['pebble','🪨','Smooth Pebble'],['stick','🪵','Very Good Stick'],['button','🔘','Shiny Button'],['leaf','🍂','Crunchy Leaf'],['feather','🪶','Feather'],['spoon','🥄','Lost Spoon'],['candycorn','🍬','Candy Corn (ew)'],
@@ -43,17 +45,18 @@ const DIARY_PLACE={
  caves:['In {D} everything echoed… echoed… echoed…','{C} tiptoed past a sleeping bat in {D}.','The crystals in {D} sparkled like a disco, so {C} danced.','{C} found old cave drawings in {D}. One looked like a sandwich.'],
  peaks:['At {D}, {C} bounced on a cloud like a trampoline.','{C} made snow angels at the top of {D}.','The wind at {D} was so strong that {C} almost flew away.','{C} waved at an eagle in {D}. The eagle waved back. Probably.'],
  volcano:['{D} was SO warm that {C} roasted marshmallows on a rock.','{C} hopped over warm rocks at {D}. Hot, hot, hot!','A baby dragon at {D} sneezed a tiny smoke ring at {C}.','{C} watched the lava glow at {D}. Very orange.'],
- haunt:['In {D} a friendly ghost said BOO. {C} screamed, then laughed.','{C} carved a pumpkin in {D}. It came out smiling.','A skeleton in {D} asked {C} to borrow a blanket.','{C} went trick-or-treating in {D} and got a tiny spider web.']};
+ haunt:['In {D} a friendly ghost said BOO. {C} screamed, then laughed.','{C} carved a pumpkin in {D}. It came out smiling.','A skeleton in {D} asked {C} to borrow a blanket.','{C} went trick-or-treating in {D} and got a tiny spider web.'],
+ harvest:['{C} jumped into a giant leaf pile in {D}. Only a tail stuck out.','{C} helped bake a pie in {D}. Most of the pie made it to the table.','A turkey in {D} taught {C} how to gobble. {C} is now very good at it.','{C} picked apples in {D} and ate one of every three.']};
 /* capital letter at the start of every sentence (a pal like "a very chatty frog" can start one), skipping over tags like <b> */
 const capS=t=>String(t).replace(/(^|[.!?]\s+|<br>\s*)((?:<[^>]+>)*)([a-z])/g,(m,a,b,c)=>a+b+c.toUpperCase());
-const DOING={meadow:['chasing butterflies','rolling down a flower hill','having a picnic','counting ladybugs'],woods:['climbing trees','hunting for acorns','telling stories by a stump','following a squirrel'],cove:['splashing in the waves','building a sandcastle','looking in tide pools','racing a crab'],caves:['exploring a tunnel','making echoes','digging for crystals','looking at old cave drawings'],peaks:['bouncing on a cloud','sliding down a rainbow','looking for eagle nests','making snow angels'],volcano:['roasting marshmallows','hopping over warm rocks','looking for dragon scales','watching the lava glow'],haunt:['trick-or-treating','hiding from a friendly ghost','carving a pumpkin','telling spooky stories']};
+const DOING={meadow:['chasing butterflies','rolling down a flower hill','having a picnic','counting ladybugs'],woods:['climbing trees','hunting for acorns','telling stories by a stump','following a squirrel'],cove:['splashing in the waves','building a sandcastle','looking in tide pools','racing a crab'],caves:['exploring a tunnel','making echoes','digging for crystals','looking at old cave drawings'],peaks:['bouncing on a cloud','sliding down a rainbow','looking for eagle nests','making snow angels'],volcano:['roasting marshmallows','hopping over warm rocks','looking for dragon scales','watching the lava glow'],haunt:['trick-or-treating','hiding from a friendly ghost','carving a pumpkin','telling spooky stories'],harvest:['jumping in leaf piles','picking apples','baking a pie','setting the feast table']};
 const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const pk=a=>a[Math.floor(Math.random()*a.length)];
 const wpick=o=>{let t=0;for(const k in o)t+=o[k];let r=Math.random()*t;for(const k in o){r-=o[k];if(r<=0)return k;}return Object.keys(o)[0];};
 const petE=id=>{const x=PETS.find(q=>q.id===id);return x?x.e:'🐾';};
 const petN=id=>{const x=PETS.find(q=>q.id===id);return x?x.name:'?';};
 const dest=id=>DESTS.find(d=>d.id===id)||DESTS[0];
-const destOpen=(a,d)=>d.event?(typeof eventOpen==='function'&&eventOpen()):a.trips>=d.need;
+const destOpen=(a,d)=>d.event?(typeof eventOpen==='function'&&eventOpen(d.id)):a.trips>=d.need;
 const fmtLeft=ms=>{ms=Math.max(0,ms);const h=Math.floor(ms/36e5),m=Math.ceil((ms%36e5)/6e4);return h?`${h}h ${Math.min(59,m)}m`:`${Math.max(1,m)}m`;};
 const fmtClock=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 const dayWord=t=>new Date(t).toDateString()===new Date().toDateString()?'today':'tomorrow';
@@ -309,7 +312,7 @@ function campHTML(p,a){const tr=a.trip,d=dest(tr?tr.dest:a.dest),n=slots(p);
   <div class="adv-opt">${Object.values(TRIPS).map(t=>`<button class="adv-optb ${a.len===t.id?'on':''}" onclick="Adv.set('len','${t.id}')"><span class="e">${t.e}</span><b>${t.n}</b><small>${t.hrs} hour${t.hrs>1?'s':''}</small><span style="font-size:12px">${'🐾'.repeat(t.paws)}<span style="opacity:.25">${'🐾'.repeat(3-t.paws)}</span></span></button>`).join('')}</div>
   <p class="muted" style="margin:0">Longer trips bring back more stuff, and better stuff!</p>
   <h3 style="margin-top:12px">🧭 Where to?</h3>
-  <div class="adv-dests">${DESTS.filter(x=>!x.event||destOpen(a,x)).map(x=>{const ok=destOpen(a,x);const c=a.crew.filter(id=>x.home.includes(id)).length;return `<button class="adv-dest ${a.dest===x.id?'on':''} ${ok?'':'lock'}" style="background:linear-gradient(160deg,${x.c1},${x.c2})" onclick="${ok?`Adv.set('dest','${x.id}')`:`toast('🔒 ${x.n} opens after ${x.need} adventures. You've been on ${a.trips}.')`}"><span class="e">${ok?x.e:'🔒'}</span><b>${x.n}</b><small>${x.event?'Halloween only!':ok?(c?`⭐ ${c===a.crew.length&&c>1?'Your whole crew loves':c===1?`${esc(petN(a.crew.find(id=>x.home.includes(id))))} loves`:`${c} of your crew love`} it`:'Explore!'):`after ${x.need} trips`}</small></button>`;}).join('')}</div>
+  <div class="adv-dests">${DESTS.filter(x=>!x.event||destOpen(a,x)).map(x=>{const ok=destOpen(a,x);const c=a.crew.filter(id=>x.home.includes(id)).length;return `<button class="adv-dest ${a.dest===x.id?'on':''} ${ok?'':'lock'}" style="background:linear-gradient(160deg,${x.c1},${x.c2})" onclick="${ok?`Adv.set('dest','${x.id}')`:`toast('🔒 ${x.n} opens after ${x.need} adventures. You've been on ${a.trips}.')`}"><span class="e">${ok?x.e:'🔒'}</span><b>${x.n}</b><small>${x.event?(x.id==='harvest'?'Thanksgiving only!':'Halloween only!'):ok?(c?`⭐ ${c===a.crew.length&&c>1?'Your whole crew loves':c===1?`${esc(petN(a.crew.find(id=>x.home.includes(id))))} loves`:`${c} of your crew love`} it`:'Explore!'):`after ${x.need} trips`}</small></button>`;}).join('')}</div>
   ${home.length?`<div class="adv-note">⭐ ${home.map(id=>esc(petN(id))).join(', ')} ${home.length>1?'love':'loves'} ${d.n} and will find an extra treasure!</div>`:''}
 </div>
   <div class="panel"><h3>🐾 Your pets</h3><p class="muted" style="margin:0 0 6px">Tap a pet to add it to the crew. Tap again to take it out.</p>
