@@ -124,6 +124,16 @@ const tests=[
   const g=window.MQ_GATE_ART&&MQ_GATE_ART.caves;T.ok(!!g&&g.w>1&&g.ar>0,'no entrance art for the Subtraction Caves');if(!g)return;const im=g.img();
   await T.until(()=>im.complete,4000,'the cave picture');T.ok(im.naturalWidth>0,'the cave picture did not load (a broken SVG?)');
  }],
+['cafeteria week planner: a grid of days by food groups; picking a food fills the square and moves along the row',async function(){
+  T.reset();const p=T.hero('Chef',5);state.cur=p.id;closeModal();Lunch.week();await T.wait(120);closeModal();
+  const cells=()=>[...document.querySelectorAll('.ln-wgrid .ln-wc')],lab=c=>c.getAttribute('aria-label');
+  T.ok(cells().length===25&&document.querySelectorAll('.ln-wgrid .ln-wg').length===5,'the week planner is not a 5-day by 5-group grid');
+  const open=cells().filter(c=>!c.disabled&&/ Protein:/.test(lab(c))).map(c=>lab(c).split(' ')[0]);
+  if(open.length>=2){cells().find(c=>lab(c).startsWith(open[0]+' Protein'))["click"]();await T.wait(40);T.ok(/Pick a protein for /.test(document.querySelector('.ln-h:last-of-type')?document.body.innerText:''),'tapping a square did not ask for that food');
+   document.querySelector('.ln-cards .ln-card').click();await T.wait(40);const now=cells();
+   T.ok(!/not chosen/.test(lab(now.find(c=>lab(c).startsWith(open[0]+' Protein'))))&&lab(now.find(c=>c.classList.contains('on'))).startsWith(open[1]+' Protein'),'picking did not fill the square and move to the next day in the same row');}
+  Lunch.wback();
+ }],
 ['sync: field merge, duplicate heroes, removed groups',async function(){
   T.reset();const p=T.hero('Sync',3);const base=T.clone(p);BASE[p.id]=T.clone(base);
   p.coins=base.coins+40;p.upd=Date.now();const r=T.clone(base);r.grade=4;r.upd=Date.now()-5000;

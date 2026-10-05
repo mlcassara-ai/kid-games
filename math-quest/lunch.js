@@ -290,8 +290,13 @@ function weekView(p){const W=wkDraft(p);const act=wkActive(p,W);const g=weekGoal
  const say=`Plan <b>${act.length&&act.length<5?`${DAYF[act[0]]} to Friday`:'Monday to Friday'}</b>${thisWk?' for this week':' for next week'}! Meet every goal and I'll give you a <b>🪙 ${WEEK_BONUS} bonus</b> when you serve the week.`;
  const goal=(ok,t)=>`<div class="ln-goal ${ok?'ok':''}"><span class="ck">${ok?'✓':''}</span>${t}</div>`;
  const pct=Math.min(100,g.bud?g.tot/g.bud*100:0);
- const tabs=DAYN.map((n,i)=>{const m=W.days[i];const dd=new Date(mon);dd.setDate(mon.getDate()+i);const isPast=W.served[i]==null&&!act.includes(i);return `<button class="${i===di?'on':''} ${W.served[i]!=null?'served':''} ${isPast?'past':''}" onclick="Lunch.wday(${i})"><b>${n}</b><small>${dd.getMonth()+1}/${dd.getDate()}</small><span>${GROUPS.map(gg=>m&&ITEM[m[gg]]?ITEM[m[gg]].e:'·').join('')}</span>${W.served[i]!=null?'<em>served</em>':isPast?'<em>over</em>':''}</button>`;}).join('');
- const slots=GROUPS.map(gg=>{const x=dm&&ITEM[dm[gg]];return `<button class="ln-wslot ${UI.wgrp===gg?'on':''}" onclick="Lunch.wgrp('${gg}')" ${locked?'disabled':''}><span>${x?x.e:GI[gg]}</span><small>${x?x.n:GN[gg]}</small>${x?`<em>${money(x.pr)}</em>`:''}</button>`;}).join('');
+ /* the week grid (owner, Oct 2026): days across the top, food groups down the side, every choice visible at once; tap a square to
+    choose for it, and picking moves along the row to the next day, so filling every day's protein is five taps */
+ const cell=(i,gg)=>{const m=W.days[i],x=m&&ITEM[m[gg]],srv=W.served[i]!=null,isPast=!srv&&!act.includes(i),on=i===di&&gg===UI.wgrp;
+  return `<button class="ln-wc ${on?'on':''} ${x?'full':''} ${srv?'served':''} ${isPast?'past':''}" ${srv||isPast?'disabled':''} onclick="Lunch.wcell(${i},'${gg}')" aria-label="${DAYF[i]} ${GN[gg]}: ${x?esc(x.n):'not chosen'}"><span>${x?x.e:'+'}</span><small>${x?esc(x.n):''}</small></button>`;};
+ const grid=`<div class="ln-wgrid"><div></div>${DAYN.map((n,i)=>{const dd=new Date(mon);dd.setDate(mon.getDate()+i);const m=W.days[i],srv=W.served[i]!=null,isPast=!srv&&!act.includes(i),c=m?GROUPS.reduce((a,gg)=>a+(ITEM[m[gg]]?ITEM[m[gg]].pr:0),0):0;
+   return `<div class="ln-wday ${i===di?'on':''} ${isPast?'past':''}"><b>${n}</b><small>${dd.getMonth()+1}/${dd.getDate()}</small><em>${srv?'served':isPast?'over':c?money(c):''}</em></div>`;}).join('')}
+  ${GROUPS.map(gg=>`<div class="ln-wg ${gg===UI.wgrp?'on':''}"><span>${GI[gg]}</span><small>${GN[gg]}</small></div>${DAYN.map((_,i)=>cell(i,gg)).join('')}`).join('')}</div>`;
  const pool=DB[UI.wgrp].map(r=>ITEM[r[0]]);
  const dayCost=dm?GROUPS.reduce((a,gg)=>a+(ITEM[dm[gg]]?ITEM[dm[gg]].pr:0),0):0;
  return `${head(p,say,'bubw')}<div class="ln-two week"><div class="ln-panel"><h3 class="ln-h">🗓️ Weekly goals</h3><div class="ln-goals">
@@ -299,7 +304,7 @@ function weekView(p){const W=wkDraft(p);const act=wkActive(p,W);const g=weekGoal
   ${g.n<5?`<p class="muted" style="margin:6px 0 0;font-size:14px">Days that are already over this week don't need a plan.</p>`:''}
   <div class="ln-meter"><b>💵 Budget (one plate each day)</b><div class="bar"><i style="width:${pct}%;background:${g.budget?'#40c057':'#fa5252'}"></i></div><small>${money(g.tot)} of ${money(g.bud)} ${g.budget?'':' · over budget!'}</small></div>
   <div class="row" style="margin-top:10px"><button class="btn ${g.full?'green':'ghost dark'} big" ${g.full?'':'disabled'} onclick="Lunch.wsave()">💾 Save my week plan</button><button class="btn ghost dark small backbtn" onclick="Lunch.wback()">← Kitchen</button></div></div>
-  <div class="ln-panel"><div class="ln-gstrip">${[[g.full,'🍽️'],[g.mains,'🍗'],[g.veg,'🥦'],[g.fish,'🐟'],[g.treat,'🎉'],[g.budget,'💵']].map(([o,e])=>`<span class="${o?'ok':''}">${e}${o?'✓':'…'}</span>`).join('')}<b>${money(g.tot)}</b></div><div class="ln-days">${tabs}</div><h3 class="ln-h">${DAYF[di]} ${locked?'🔒 already served':past?'· already over':''} <small class="muted">${money(dayCost)}</small></h3><div class="ln-wslots">${slots}</div>
+  <div class="ln-panel"><div class="ln-gstrip">${[[g.full,'🍽️'],[g.mains,'🍗'],[g.veg,'🥦'],[g.fish,'🐟'],[g.treat,'🎉'],[g.budget,'💵']].map(([o,e])=>`<span class="${o?'ok':''}">${e}${o?'✓':'…'}</span>`).join('')}<b>${money(g.tot)}</b></div>${grid}<h3 class="ln-h">${locked?`${DAYF[di]} 🔒 already served`:past?`${DAYF[di]} · already over`:`${GI[UI.wgrp]} Pick ${/^[aeiou]/i.test(GN[UI.wgrp])?'an':'a'} ${GN[UI.wgrp].toLowerCase()} for ${DAYF[di]}`} <small class="muted">${money(dayCost)}</small></h3>
   ${locked?'<div class="ln-lockmsg">This day was already served, so it can\'t change.</div>':past?'<div class="ln-lockmsg">This day is already over, so you don\'t need to plan it. Pick a day that\'s still coming up!</div>':`<div class="ln-cards">${pool.map(x=>`<button class="ln-card ${dm&&dm[x.g]===x.id?'on':''} ${isTreat(x)?'treat':''}" onclick="Lunch.wpick('${x.id}')">${card(x,false,true)}</button>`).join('')}</div>${legend}`}</div></div>`;}
 
 /* ---------- compliments around town ---------- */
@@ -373,9 +378,13 @@ function week(){UI.view='week';UI.wd=null;UI.serve=null;try{SFX.tap();}catch(e){
 function wback(){UI.view=null;go('cafe');}
 function wday(i){UI.wday=i;stay();}
 function wgrp(g){UI.wgrp=g;stay();}
+function wcell(i,g){if(GROUPS.includes(g)&&i>=0&&i<5){UI.wday=i;UI.wgrp=g;try{SFX.tap();}catch(e){}stay();}}
 function wpick(id){const p=P(),W=UI.wd,x=ITEM[id];if(!W||!x||W.served[UI.wday]!=null)return;const act=wkActive(p,W);if(!act.includes(UI.wday))return;const m=W.days[UI.wday]=W.days[UI.wday]||{};
  if(m[x.g]===id){delete m[x.g];wkKeep(p);stay();return;}const wasFull=GROUPS.every(g=>m[g]);m[x.g]=id;try{SFX.tap();}catch(e){}
- const nx=GROUPS.find(g=>!m[g]);if(nx)UI.wgrp=nx;else if(!wasFull){const nd=act.find(i=>i>UI.wday&&W.served[i]==null&&!GROUPS.every(g=>(W.days[i]||{})[g]));if(nd!=null){UI.wday=nd;UI.wgrp='fruit';}}wkKeep(p);stay();}
+ /* move along the row: the next day still needing this food group; when the row is full, the first empty square in the grid */
+ const open=i=>W.served[i]==null&&act.includes(i),nd=act.find(i=>i>UI.wday&&open(i)&&!(W.days[i]||{})[x.g]);
+ if(nd!=null)UI.wday=nd;else{let f=null;for(const g of GROUPS){const d=act.find(i=>open(i)&&!(W.days[i]||{})[g]);if(d!=null){f=[d,g];break;}}if(f){UI.wday=f[0];UI.wgrp=f[1];}}
+ void wasFull;wkKeep(p);stay();}
 function wsave(){const p=P(),W=UI.wd;if(!W)return;const g=weekGoals(W.days,wkActive(p,W));if(!g.full)return;
  const old=p.lunchWeek&&p.lunchWeek.wk===W.wk?p.lunchWeek:null;const thisWk=W.wk===monKey();
  let left=5;if(thisWk){const i=wdIdx();left=Math.max(0,5-i-(doneToday(p)&&!(old&&old.served&&old.served[i]!=null)?1:0));/* days still to serve, counting today unless today's lunch is already done */}
@@ -460,6 +469,14 @@ let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElem
 .ln-star span{font-size:34px;display:block;line-height:1.1}.ln-star small{font-weight:800;font-size:13px}
 .ln-reward{margin-top:4px}.ln-unlock{max-width:640px;margin:0 auto 12px;background:#d3f9d8;border:3px solid #40c057;border-radius:16px;padding:10px 14px;text-align:center;font-size:17px}
 .ln-note{background:#fff9db;border-radius:14px;padding:10px 12px;margin-bottom:8px}.ln-donestars{text-align:center;font-size:34px;margin-top:8px}
+.ln-wgrid{display:grid;grid-template-columns:62px repeat(5,minmax(0,1fr));gap:4px;margin-bottom:10px}
+.ln-wday{text-align:center;border-radius:10px;padding:3px 0;display:flex;flex-direction:column;line-height:1.1}.ln-wday b{font-size:14px}.ln-wday small{font-size:11px;color:#8a7b5a}.ln-wday em{font-size:10.5px;font-style:normal;font-weight:800;color:#2b8a3e;min-height:12px}
+.ln-wday.on{background:#ffd43b}.ln-wday.past{opacity:.5}
+.ln-wg{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:#fff4e6;line-height:1.1}.ln-wg span{font-size:22px}.ln-wg small{font-size:10.5px;font-weight:800}.ln-wg.on{background:#ffd43b}
+.ln-wc{font:inherit;color:var(--ink);border:2px dashed #ffd8a8;background:#fffdf8;border-radius:10px;min-height:58px;padding:3px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
+.ln-wc span{font-size:24px;line-height:1}.ln-wc:not(.full) span{color:#e8a87c;font-weight:800}.ln-wc small{font-size:10px;font-weight:800;line-height:1.05;text-align:center;overflow:hidden;max-width:100%;max-height:2.2em}
+.ln-wc.full{border-style:solid;background:#fff}.ln-wc.on{border:3px solid #e8590c;background:#fff4e6}.ln-wc.served{background:#d3f9d8;border-color:#b2f2bb;cursor:default}.ln-wc.past{background:#f1f3f5;border-color:#dee2e6;opacity:.55;cursor:default}
+@media (max-width:560px){.ln-wgrid{grid-template-columns:44px repeat(5,minmax(0,1fr))}.ln-wc small,.ln-wg small{display:none}.ln-wc{min-height:46px}}
 .ln-days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-bottom:8px}
 .ln-days button{font:inherit;border:2px solid #ffd8a8;background:#fff9f0;border-radius:12px;padding:5px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;color:var(--ink);min-width:0;overflow:hidden}
 .ln-days button.on{background:#ffd43b;border-color:#e8590c}.ln-days button.served{background:#d3f9d8}.ln-days button.past{background:#f1f3f5;border-color:#dee2e6;opacity:.6}.ln-days b{font-size:14px}.ln-days small{font-size:11px;color:#8a7b5a}.ln-days span{font-size:11px;letter-spacing:-2px;white-space:nowrap;max-width:100%;overflow:hidden}.ln-days em{font-size:10px;font-style:normal;color:#2b8a3e;font-weight:800}
@@ -478,6 +495,6 @@ let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElem
 window.MQ_HOOKS=window.MQ_HOOKS||[];
 window.MQ_HOOKS.push({screen:s=>{if(s==='world')setTimeout(fbCheck,1600);}});
 setInterval(()=>{try{if(typeof curScreen!=='undefined'&&curScreen==='world')fbCheck();}catch(e){}},30e3);
-window.Lunch={read,start,grp,pick:pickItem,clear,send,key,check,next,week,wback,wday,wgrp,wpick,wsave,
+window.Lunch={read,start,grp,pick:pickItem,clear,send,key,check,next,week,wback,wday,wgrp,wcell,wpick,wsave,
  _fbDone:()=>{fbShowing=false;try{const v=VQ();if(v)v.release('lunch');}catch(e){}},_fbCheck:fbCheck,_dayPlan:dayPlan,_eval:evalPlate,_makeQs:makeQs,_weekGoals:weekGoals,_ITEM:ITEM,_NEEDS:NEEDS,_UI:()=>UI,_reset:()=>{DAYC={};fresh();},monKey,planWk,WEEK_BUDGET};
 })();
