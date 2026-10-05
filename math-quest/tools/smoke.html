@@ -125,9 +125,7 @@ const tests=[
   T.reset();const p=T.hero('Walker',3);state.cur=p.id;go('world');await T.wait(200);T.ok(!!window.MQ_GROUND,'ground.js is not loaded');
   const blocks=JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)));const c=document.createElement('canvas');c.width=400;c.height=300;let err='';
   try{MQ_GROUND.draw(c.getContext('2d'),W,0,WCOLS-1,0,WROWS-1,0,0,20,performance.now());}catch(e){err=String(e);}
-  T.ok(!err,'drawing the ground failed: '+err);
-  {const R=MQ_GROUND.routes(W),G=Object.keys(W.gates).length,last=r=>r.P[r.P.length-1],gd=r=>{const g=W.gates[r.zid];return Math.hypot(last(r)[0]-g[0]-.5,last(r)[1]-g[1]-.5);};
-   T.ok(R.length===G&&R.some(r=>gd(r)>3)&&R.some(r=>gd(r)<1),'the trails are missing, or none (or all) stop short of an entrance');}T.ok(JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)))===blocks,'drawing the ground changed where you can walk');
+  T.ok(!err,'drawing the ground failed: '+err);T.ok(JSON.stringify(W.T.map(r=>r.map(t=>t.block?1:0)))===blocks,'drawing the ground changed where you can walk');
  }],
 ['map life: tiny themed critters (butterflies, bubbles, embers, snow…) appear near the hero and never block',async function(){
   T.reset();const p=T.hero('Looker',3);state.cur=p.id;go('world');await T.wait(200);W.hx=BIOMES.forest.c[0]+1;W.hy=BIOMES.forest.c[1]+1;await T.wait(2500);

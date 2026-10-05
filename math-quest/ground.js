@@ -27,7 +27,8 @@ function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2,q=ts/N;
   if(t.water){ctx.fillStyle='rgba(214,240,255,.75)';const e=Math.max(2,ts*.05);
    if(land(T[y-1]&&T[y-1][x]))ctx.fillRect(sx,sy,ts,e);if(land(T[y+1]&&T[y+1][x]))ctx.fillRect(sx,sy+ts-e,ts,e);if(land(T[y][x-1]))ctx.fillRect(sx,sy,e,ts);if(land(T[y][x+1]))ctx.fillRect(sx+ts-e,sy,e,ts);
    if((x*13+y*7)%11===0){ctx.globalAlpha=.5+.3*Math.sin(now/600+x);ctx.drawImage(wSprite('〰️',ts*.5),sx+ts*.2,sy+ts*.2,ts*.6,ts*.6);ctx.globalAlpha=1;}}}
- drawRoutes(ctx,W,cx,cy,ts,x0,x1,y0,y1);}
+ if(TRAILS)drawRoutes(ctx,W,cx,cy,ts,x0,x1,y0,y1);}
+const TRAILS=false; /* owner, Oct 2026: no trails on the map (the routes code stays, switched off) */
 /* trails (owner, Oct 2026: not all 90° turns, dirt only, with natural variety; some stop short of their entrance). Each world gets one
    route from the town square to its entrance, found along the old road tiles, then drawn as a smooth curve: corners rounded wide and long
    straight runs given a gentle wander. The dirt swells and narrows, has lighter and darker patches, faint wheel ruts in places, a slightly
