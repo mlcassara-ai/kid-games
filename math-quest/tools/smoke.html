@@ -334,11 +334,20 @@ const tests=[
   /* switching heroes ends a battle in progress */
   BattlePets._pick('forest',1);BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();const q2=T.hero('Other',3);state.cur=q2.id;go('world');await T.wait(50);T.ok(!document.querySelector('.bp2-over'),'a results card was left on screen');
  }],
- ['battle pets on the world page: locked until the Legend round, then a Battle button',async function(){
-  T.reset();delete window.MQ_BP_BETA;const p=T.hero('Zoner',4);state.cur=p.id;go('zone','forest');await T.wait(60);
-  T.ok(document.getElementById('bpZone')&&/Legend/.test(document.getElementById('bpZone').textContent)&&!document.querySelector('#bpZone button'),'the world page does not say how to unlock Battle Pets');
-  const m0=window.medal;window.medal=()=>5;go('zone','forest');await T.wait(60);const b=document.querySelector('#bpZone button');T.ok(b&&/Battle Pets/.test(b.textContent),'no Battle button after the Legend round');
-  window.medal=m0;BattlePets.openStage('forest');await T.wait(60);T.ok(curScreen==='bp'&&BattlePets._dbg.view().k==='team'&&BattlePets._dbg.view().id==='forest','the Battle button did not open the stage');
+ ['battle pets on the world page: a battle ticket per medal (a loss gives one retry), a Trainer session for Diamond, every level after Legend',async function(){
+  T.reset();delete window.MQ_BP_BETA;const p=T.hero('Zoner',4);state.cur=p.id;const D=BattlePets._dbg,m0=window.medal,zb=()=>document.getElementById('bpZone'),fly=()=>{if(document.getElementById('bpFlyW'))BattlePets._flyGo();},ov=()=>(document.querySelector('.bp2-over')||{}).innerText||'';
+  go('zone','forest');await T.wait(60);T.ok(zb()&&/Bronze/.test(zb().textContent)&&!zb().querySelector('button'),'with no medal the world page does not say how to earn a battle');
+  window.medal=()=>2;go('zone','forest');await T.wait(60);T.ok(zb().querySelector('button')&&/2 battles ready/.test(zb().textContent)&&/Legend/.test(zb().textContent),'Bronze and Silver did not give two battles');
+  BattlePets.openStage('forest');await T.wait(60);T.ok(curScreen==='bp'&&D.view().k==='team'&&D.view().tk&&D.view().crown===1&&document.querySelectorAll('.bp2-lvrow button').length===2,'the ticket battle did not open at crown 1 with two battles listed');
+  BattlePets._start();fly();D.G().houseHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp2.tk.forest[1]==='x'&&/one more try/.test(ov()),'a lost ticket battle did not give one retry');
+  BattlePets._again();T.ok(D.view().tk&&D.view().crown===1,'Try again did not reopen the same level');BattlePets._start();fly();D.G().houseHP=0;D.step(.05);D.finish();await T.wait(50);
+  T.ok(p.bp2.tk.forest[1]==='u'&&/last try/.test(ov()),'the retry did not use up the ticket');BattlePets._again();T.ok(D.view().crown===2,'the next ticket (crown 2) did not open');
+  BattlePets._start();fly();D.G().t=5;BattlePets._quit();BattlePets._leave();T.ok(p.bp2.tk.forest[2]==='x','leaving a started ticket battle did not count as a try');
+  BattlePets._start();fly();D.G().denHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp2.tk.forest[2]==='u'&&p.bp2.c.forest===2&&/Battle won/.test(ov())&&!document.querySelector('.bp2-over .btn.green'),'a ticket win was not saved, or offered another battle with none left');BattlePets._back();
+  go('zone','forest');await T.wait(60);T.ok(!zb().querySelector('button')&&/played your/.test(zb().textContent),'used tickets still show a Battle button');
+  const tr0=p.bp2.tr||0;window.medal=()=>4;go('zone','forest');await T.wait(60);go('zone','forest');await T.wait(60);T.ok(p.bp2.tr===tr0+1&&p.bp2.tk.forest[3]==='r','Diamond did not give exactly one Trainer session, or Gold gave no battle');
+  window.medal=()=>5;go('zone','forest');await T.wait(60);const b=zb().querySelector('button');T.ok(b&&/Battle Pets/.test(b.textContent)&&!/ready/.test(b.textContent),'no free Battle button after the Legend round');
+  BattlePets.openStage('forest');await T.wait(60);T.ok(D.view().k==='team'&&!D.view().tk,'after Legend the stage still opens in ticket mode');window.medal=m0;
   go('zone','temple');await T.wait(60);T.ok(!document.getElementById('bpZone'),'a world without a Battle Pets stage shows the button');BattlePets._back();
  }],
  ['battle pets ascend: endless levels after crown 3, each harder; a win raises the best, a loss keeps it',async function(){
@@ -375,7 +384,7 @@ const tests=[
    BattlePets._pick('forest',1);BattlePets._start();fly();D.G().houseHP=0;D.step(.05);T.ok(D.G().fx.includes('houseFall'),'no crash when the Pet House fell');D.finish();await T.wait(50);
    T.ok(p.bp2.rec.l===r0.l+1&&/critters won/.test(ov()),'a loss was not counted');BattlePets._back();
    BattlePets._pick('forest',1);BattlePets._start();fly();D.G().t=5;BattlePets._quit();BattlePets._leave();T.ok(p.bp2.rec.q===r0.q+1,'leaving a battle was not counted as a quit');BattlePets._back();
-   BattlePets.openStage('forest');T.ok(D.view().k==='team','the world page Battle button did not open the team builder');BattlePets._back();T.ok(curScreen==='zone','Back did not return to the world page');
+   {const m0=window.medal;window.medal=()=>5;BattlePets.openStage('forest');T.ok(D.view().k==='team','the world page Battle button did not open the team builder');BattlePets._back();T.ok(curScreen==='zone','Back did not return to the world page');window.medal=m0;}
    if(window.Lab){p.sci=p.sci||{};p.sci.key=1;BattlePets.openStage('fossil');BattlePets._back();T.ok(curScreen==='lab','Back from the Fossil Stage did not return to the Lab');}go('bp');}
  }],
  ['cave regrowth: a new trip refills a few old tunnels with finds, and camp says when a brand-new cave comes',async function(){
