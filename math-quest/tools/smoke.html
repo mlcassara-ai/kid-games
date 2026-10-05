@@ -111,7 +111,7 @@ const tests=[
   W.hx=22;W.hy=19;const cut=Object.entries(W.gates).filter(([z,c])=>!wPathTo(c[0],c[1]).length).map(e=>e[0]);T.ok(!cut.length,'the track cut off a world: '+cut.join(', '));
   D.TR.ph='away';D.TR.wait=.01;D.TR.walkers.length=0;D.tick(.05);T.ok(D.TR.ph==='in','the train did not come when its time was up');
   for(let i=0;i<300&&D.TR.ph==='in';i++)D.tick(.05);T.ok(D.TR.ph==='stop'&&W.T[R][22].npc==='tride','the train did not stop at the station');
-  wNpc('tride');T.ok(/still building/.test(mt()),'getting on did not say the destination is coming soon');closeModal();
+  wNpc('tride');T.ok(/Discovery Zone will open October 15th/.test(mt()),'getting on did not say the destination is coming soon');closeModal();
   for(let i=0;i<500&&D.TR.ph==='stop';i++)D.tick(.05);T.ok(D.TR.ph==='out'&&!W.T[R][22].npc&&!W.T[R][22].block,'the train did not leave, or left its doors on the track');
   for(let i=0;i<500&&D.TR.ph==='out';i++)D.tick(.05);T.ok(D.TR.ph==='away'&&D.TR.wait>=240&&D.TR.wait<=300,'the next train is not 4 to 5 minutes away');
   wNpc('station');T.ok(/Number Town Station/.test(mt())&&/Coming soon/i.test(mt()),'the station card did not open');Train._bell();T.ok(D.TR.wait===D.BELL_WAIT&&p.coins===50,'the free bell did not bring the train within a minute');closeModal();

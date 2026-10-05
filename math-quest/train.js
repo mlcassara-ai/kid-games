@@ -1,21 +1,21 @@
 /* ================= 🚂 the Town Train (Oct 2026) =================
    A train line across the bottom of the village plaza, below the Wishing Fountain: a grassy hill at each end of the square, seen
    from the side with its tunnel's stone edge facing the station (the train slides out from behind one and into the other), the
-   track between, the platform (sidewalk) right beside the rails and a departure board 🚉 near the middle,
+   track between (drawn from the side, like the train) and a departure board 🚉 near the middle,
    and signs on the hills: "Depot" (west) and "Discovery Zone" (east).
    The train comes out of the west tunnel on its own every 4–5 minutes of time on the map, slows into the station, waits
    about 16 s ("All aboard!" near the end, then a whistle) and leaves through the east tunnel. The board counts down to the
    next train. Tapping the board: 🔔 ring the bell (free; the train comes within 1 minute) or 🪙 CALL_COST to call it right now.
    COMING SOON: the destination is not built yet. Walking onto the stopped train says so; everything else works.
    Visitors: now and then someone steps off and walks into Number Town, or comes out of Town to catch the train
-   (the Kind Teacher, Dr. Quartz, Principal Wise, Ms. Rosa, Elder Wiz, the Pet Keeper). Riders just appear on the platform beside the
+   (the Kind Teacher, Dr. Quartz, Principal Wise, Ms. Rosa, Elder Wiz, the Pet Keeper). Riders just appear beside the
    stopped train; people catching it walk up to it and vanish (nobody is drawn inside). They are scenery: they don't stop the hero.
    Nothing is saved except the coins spent on a call. The clock only runs while the map is on screen.
    Core hooks (index.html): MQ_WORLD (lay the tiles after buildWorld), MQ_MAPDRAW (draw each frame), MQ_NPC (tap handlers),
    and plaza decor skips t.rail tiles. */
 (function(){
 /* the line sits inside the town square: a hill with a tunnel at each end (tiles 15–17 and 27–29), the visible track between the
-   tunnel faces (x 18 to 27), the platform right beside the rails and the departure board just above its west end */
+   tunnel faces (x 18 to 27) and the departure board near the middle */
 const ROW=21,HL0=15,HL1=17,HR0=27,HR1=29,FL=18,FR=27,X0=HL1,X1=HR0,PL0=18,PL1=26,BOARD=[21,19],CALL_COST=10,BELL_WAIT=60,EVERY=[240,300],FIRST=[45,90];
 const LEN=6.1,STOP=26.4,START=FL,END=FR+LEN+.2,T_IN=7,T_STOP=16,T_OUT=7;
 const TR={ph:'away',wait:FIRST[0]+Math.random()*(FIRST[1]-FIRST[0]),t:0,front:START,last:0,smoke:[],walkers:[],aboard:[],said:0,called:''};
@@ -24,7 +24,6 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 function lay(T){const ok=t=>t&&!t.water&&!t.gate&&!t.chest&&!(t.npc&&t.npc!=='station');
  for(let x=HL0;x<=HR1;x++){const t=T[ROW]&&T[ROW][x];if(!ok(t))continue;t.o=null;t.deco=false;t.rail=true;if(x<=HL1||x>=HR0){t.tunnel=true;t.block=true;}else t.block=false;}
  for(const x of [HL0,HL0+1,HL1,HR0,HR0+1,HR1]){const t=T[ROW-1][x];if(ok(t)){t.o=null;t.deco=false;t.rail=true;t.hill=true;t.block=true;}} /* the hills are two tiles tall */
- for(let x=PL0;x<=PL1;x++){const t=T[ROW-1][x];if(ok(t)){t.platform=true;t.o=null;t.deco=false;}}
  const b=T[BOARD[1]][BOARD[0]];if(ok(b)){b.o=null;b.npc='station';b.block=true;}}
 window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(lay);
 /* ---------- the schedule ---------- */
@@ -126,12 +125,12 @@ function hill(ctx,cx,cy,ts,xo,xf,d,sign){const X=x=>x*ts-cx,Y=y=>y*ts-cy,base=RO
   ctx.fillStyle='#fff8e7';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(sign,sxm,by-h*.75+1);}}
 function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)return;const dt=TR.last?Math.min(.1,(now-TR.last)/1000):0;TR.last=now;tick(dt);
  const L=HL0*ts-cx,R=(HR1+1)*ts-cx,ty=ROW*ts-cy;if(R<-ts*3||L>W.vw+ts*3||ty>W.vh+ts*3||ty<-ts*4)return;
- /* platform (the sidewalk), running right up to the rails */
- items.push({y:ROW-1.6,draw:()=>{const x0=PL0*ts-cx,w=(PL1-PL0+1)*ts,y0=(ROW-1)*ts-cy+ts*.12,h=ts*1.3;ctx.fillStyle='#ced4da';ctx.fillRect(x0,y0,w,h);ctx.fillStyle='#adb5bd';for(let i=0;i<=PL1-PL0+1;i++)ctx.fillRect(x0+i*ts,y0,1.5,h);
-  ctx.fillRect(x0,y0+ts*.62,w,1.5);ctx.fillStyle='#ffd43b';ctx.fillRect(x0,y0+h-ts*.13,w,ts*.07);ctx.fillStyle='#868e96';ctx.fillRect(x0,y0+h-ts*.06,w,ts*.06);}});
- /* the track, from inside one hill to inside the other */
- items.push({y:ROW-1.5,draw:()=>{const y0=ROW*ts-cy,l=HL0*ts-cx,r=(HR1+1)*ts-cx;ctx.fillStyle='#b8a68a';ctx.fillRect(l,y0+ts*.42,r-l,ts*.5);ctx.fillStyle='#7a5230';for(let x=l;x<r;x+=ts*.34)ctx.fillRect(x,y0+ts*.45,ts*.11,ts*.44);
-  ctx.fillStyle='#868e96';ctx.fillRect(l,y0+ts*.53,r-l,ts*.06);ctx.fillRect(l,y0+ts*.78,r-l,ts*.06);}});
+ /* the track from the side: gravel bank, sleeper ends and the rail the wheels run on, from inside one hill to inside the other */
+ items.push({y:ROW-1.5,draw:()=>{const Y=y=>y*ts-cy,l=HL0*ts-cx,r=(HR1+1)*ts-cx;
+  ctx.fillStyle='#a89878';ctx.beginPath();ctx.moveTo(l,Y(ROW+.99));ctx.lineTo(l+ts*.1,Y(ROW+.86));ctx.lineTo(r-ts*.1,Y(ROW+.86));ctx.lineTo(r,Y(ROW+.99));ctx.closePath();ctx.fill();
+  ctx.fillStyle='#8a7a5c';for(let x=l+ts*.07;x<r;x+=ts*.23)ctx.fillRect(x,Y(ROW+.91)+((x/ts*7|0)%3),2,2);
+  ctx.fillStyle='#6b4423';for(let x=l+ts*.1;x<r-ts*.1;x+=ts*.42)ctx.fillRect(x,Y(ROW+.86),ts*.2,ts*.07);
+  ctx.fillStyle='#5f666d';ctx.fillRect(l,Y(ROW+.8),r-l,ts*.06);ctx.fillStyle='#ced4da';ctx.fillRect(l,Y(ROW+.8),r-l,ts*.018);}});
  /* the train, clipped to between the tunnel faces so it slides out of one hill and into the other */
  if(TR.ph!=='away')items.push({y:ROW+.3,draw:()=>{ctx.save();ctx.beginPath();ctx.rect(FL*ts-cx,-1e4,(FR-FL)*ts,2e4);ctx.clip();drawTrain(ctx,cx,cy,ts,now);ctx.restore();drawSmoke(ctx,cx,cy,ts);
   if(TR.bubble&&TR.ph==='stop')bubble(ctx,'🔔 '+TR.bubble,(TR.front-1.8)*ts-cx,(ROW-1.75)*ts-cy,ts);}});
@@ -153,12 +152,12 @@ function cardHTML(){const p=P(),coins=(p&&p.coins)||0,here=TR.ph==='stop',coming
  <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
   <button class="btn green big" ${TR.ph!=='away'||soon?'disabled':''} onclick="Train._bell()">🔔 Ring the bell<small style="display:block;font-size:14px">Free · the train comes within 1 minute</small></button>
   <button class="btn ghost dark" ${TR.ph!=='away'||TR.wait<=5||coins<CALL_COST?'disabled':''} onclick="Train._call()">🪙 ${CALL_COST} · Call it right now${coins<CALL_COST?` (you have ${coins})`:''}</button>
- </div><p class="muted" style="font-size:15px;margin-top:10px">🚧 Coming soon: we're still building where this train goes. You can watch it, call it and wave to visitors, but you can't ride it yet. Check again soon!</p>
+ </div><p class="muted" style="font-size:15px;margin-top:10px">🚧 Coming soon: the <b>Discovery Zone</b> opens <b>October 15th</b>. Until then you can watch the train, call it and wave to visitors, but you can't ride it yet.</p>
  <button class="btn ghost dark" onclick="closeModal()">Close</button></div>`;}
 function open(){modal(`<div class="mcard">${cardHTML()}</div>`);clearInterval(TICK);TICK=setInterval(()=>{const el=document.querySelector('#modal.show .tr-card');if(!el){clearInterval(TICK);return;}const w=document.getElementById('trWhen');if(w){const h=cardHTML().match(/<p id="trWhen">([\s\S]*?)<\/p>/);if(h&&w.innerHTML!==h[1])w.innerHTML=h[1];}},500);}
 function ring(){if(TR.ph!=='away'||TR.wait<=BELL_WAIT)return;TR.wait=BELL_WAIT;TR.called='bell';bell();try{toast('🔔 Ding ding! The train will be here in 1 minute.');}catch(e){}open();}
 function call(){const p=P();if(!p||TR.ph!=='away'||TR.wait<=5||(p.coins||0)<CALL_COST)return;p.coins-=CALL_COST;save();TR.wait=4;TR.called='paid';bell();try{closeModal();toast(`🚂 Here it comes! (−${CALL_COST} 🪙)`);}catch(e){}}
-function ride(){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>All aboard?</h2><p>The conductor says: "Sorry! We're still building where this train goes. Check again soon!"</p><p class="muted">🚧 Coming soon</p><button class="btn green big" onclick="closeModal()">OK</button></div>`);}
+function ride(){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>All aboard?</h2><p>The conductor says: "Not yet! The <b>Discovery Zone</b> will open <b>October 15th</b>."</p><p class="muted">🚧 Coming soon</p><button class="btn green big" onclick="closeModal()">OK</button></div>`);}
 window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=open;window.MQ_NPC.tride=ride;
 window.Train={_bell:ring,_call:call,_open:open,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();
