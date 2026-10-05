@@ -366,7 +366,12 @@ const tests=[
    BattlePets._leave();T.ok(!D.G()&&D.view().k==='team'&&D.view().id==='forest'&&D.view().crown===2&&!document.querySelector('.bp2-over')&&document.querySelectorAll('.bp2-slot').length>0,'leaving a battle did not go back to the team builder for that stage');BattlePets._back();}
   {const fly=()=>{if(document.getElementById('bpFlyW'))BattlePets._flyGo();},ov=()=>(document.querySelector('.bp2-over')||{}).innerText||'';
    go('bp');BattlePets._pick('forest',1);BattlePets._start();fly();const r0=Object.assign({},p.bp2.rec);D.G().denHP=0;D.step(.05);T.ok(D.G().fx.includes('denFall'),'no crash when the critter den fell');D.finish();await T.wait(50);
-   T.ok(p.bp2.rec.w===r0.w+1&&/Your pets won/.test(ov())&&new RegExp('Your record: 🏆 '+p.bp2.rec.w+' won').test(ov()),'a win was not counted, or the card does not say who won and the record');BattlePets._back();
+   T.ok(p.bp2.rec.w===r0.w+1&&/Your pets won/.test(ov())&&new RegExp('Your record: 🏆 '+p.bp2.rec.w+' won').test(ov()),'a win was not counted, or the card does not say who won and the record');
+   T.ok(p.bp2.st&&p.bp2.st['forest:1']===3&&/⭐⭐⭐/.test(ov()),'a fast win did not earn and show 3 stars');
+   {const sf=D.starsFor,T1=D.STAR_T[1];T.ok(sf({win:true,crown:1,t:T1[0]-1})===3&&sf({win:true,crown:1,t:T1[1]-1})===2&&sf({win:true,crown:1,t:T1[1]+5})===1&&sf({win:true,crown:1,t:10,minH:.3})===2&&sf({win:true,crown:1,t:T1[1]+5,minH:.2})===1&&sf({win:false})===0,'the star rules are wrong');}
+   BattlePets._back();BattlePets._pick('forest',1);const lv=[...document.querySelectorAll('.bp2-lvrow button')];
+   T.ok(lv.length>=4&&/⭐⭐⭐/.test(lv[0].textContent)&&lv.some(b=>/✨ 1/.test(b.textContent)),'the level row is missing crowns, Ascend levels or stars');
+   const tm=D.view().team.slice();BattlePets._lvl(2,0);T.ok(D.view().crown===2&&D.view().team.join()===tm.join(),'choosing a level did not switch to it, or lost the team');BattlePets._lvl(3,1);T.ok(D.view().crown===3&&D.view().asc===1,'an Ascend level could not be chosen');
    BattlePets._pick('forest',1);BattlePets._start();fly();D.G().houseHP=0;D.step(.05);T.ok(D.G().fx.includes('houseFall'),'no crash when the Pet House fell');D.finish();await T.wait(50);
    T.ok(p.bp2.rec.l===r0.l+1&&/critters won/.test(ov()),'a loss was not counted');BattlePets._back();
    BattlePets._pick('forest',1);BattlePets._start();fly();D.G().t=5;BattlePets._quit();BattlePets._leave();T.ok(p.bp2.rec.q===r0.q+1,'leaving a battle was not counted as a quit');BattlePets._back();
