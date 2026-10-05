@@ -120,6 +120,10 @@ const tests=[
   D.TR.walkers.length=0;for(let i=0;i<40&&!D.TR.walkers.length;i++)D.spawnRider();T.ok(D.TR.walkers.length===1,'no visitor got off the train');
   for(let i=0;i<400&&D.TR.walkers.length;i++)D.tick(.05);T.ok(!D.TR.walkers.length,'the visitor never walked into town');
  }],
+['world entrance art: the Subtraction Caves draw their Cave Mouth picture, and it loads',async function(){
+  const g=window.MQ_GATE_ART&&MQ_GATE_ART.caves;T.ok(!!g&&g.w>1&&g.ar>0,'no entrance art for the Subtraction Caves');if(!g)return;const im=g.img();
+  await T.until(()=>im.complete,4000,'the cave picture');T.ok(im.naturalWidth>0,'the cave picture did not load (a broken SVG?)');
+ }],
 ['sync: field merge, duplicate heroes, removed groups',async function(){
   T.reset();const p=T.hero('Sync',3);const base=T.clone(p);BASE[p.id]=T.clone(base);
   p.coins=base.coins+40;p.upd=Date.now();const r=T.clone(base);r.grade=4;r.upd=Date.now()-5000;
