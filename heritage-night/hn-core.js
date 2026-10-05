@@ -155,7 +155,8 @@ function token() {
   tokP.then(function () { setTimeout(function () { tokP = null; }, 5 * 60000); }, function () { tokP = null; });
   return tokP;
 }
-function docId(name) { return 'hn_' + EVENT + '_' + name; }
+/* the Firestore rules only allow doc ids of 16+ characters, so the name is padded out with 'leaderboard' */
+function docId(name) { return 'hn_' + EVENT + '_leaderboard_' + name; }
 async function getDoc(name) {
   var t = await token();
   var r = await fetch(BASE + docId(name), { headers: { Authorization: 'Bearer ' + t }, cache: 'no-store' });
