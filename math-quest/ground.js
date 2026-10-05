@@ -12,17 +12,23 @@ function pal(b){if(PAL[b])return PAL[b];const B=BIOMES[b]||BIOMES.village;return
 const PLAZA=['#e8dcc0','#e2d5b6'];
 const pick=(p,h)=>h<.5?p[0]:h<.75?p[1]:h<.9?p[2]:p[3];
 const land=t=>t&&!t.water&&!t.plaza;
+/* colours of a tile's small squares, worked out once and kept (the ground never changes). Owner, Oct 2026: borders between areas should
+   fade smoothly, not jag. Each small square blends its own shade with any different neighbouring area by how close it is to that side
+   (half-and-half right at the edge, nothing by the middle), the same from both sides, so colours fade across about one tile each way. */
+const rgbOf=c=>{if(c[0]==='#'){const n=parseInt(c.slice(1),16);return [n>>16,(n>>8)&255,n&255];}return c.match(/\d+/g).map(Number);};
+const PRGB={};const palRGB=b=>PRGB[b]||(PRGB[b]=pal(b).map(rgbOf));
+const ew=u=>Math.max(0,.5-u);
+function tileCols(W,x,y){const G=W._gcol||(W._gcol={}),k=y*1000+x;if(G[k])return G[k];const T=W.T,own=T[y][x].b,P=palRGB(own),out=[],nb=[];
+ for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const u=(dx||dy)&&T[y+dy]&&T[y+dy][x+dx];if(land(u)&&u.b!==own)nb.push([dx,dy,palRGB(u.b)[0]]);}
+ for(let j=0;j<N;j++)for(let i=0;i<N;i++){const fx=(i+.5)/N,fy=(j+.5)/N,h=hash(x*N+i,y*N+j),c=P[h<.5?0:h<.75?1:h<.9?2:3];let r=0,g=0,bl=0,ws=0;
+  for(const [dx,dy,m] of nb){const wx=dx<0?ew(fx):ew(1-fx),wy=dy<0?ew(fy):ew(1-fy),w=dx&&dy?2*wx*wy:dx?wx:wy;if(w<=0)continue;r+=m[0]*w;g+=m[1]*w;bl+=m[2]*w;ws+=w;}
+  const a=Math.min(ws,.5),o=ws?a/ws:0;out.push(`rgb(${Math.round(c[0]*(1-a)+r*o)},${Math.round(c[1]*(1-a)+g*o)},${Math.round(c[2]*(1-a)+bl*o)})`);}
+ return G[k]=out;}
 const N=4; /* small squares per tile side: 4×4 per tile (owner, Oct 2026: a quarter of the earlier 2×2) */
 function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2,q=ts/N;
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const t=T[y][x],sx=x*ts-cx,sy=y*ts-cy;
   if(t.plaza){ctx.fillStyle=PLAZA[(x+y)%2];ctx.fillRect(sx,sy,ts+1,ts+1);continue;}
-  const nL=T[y][x-1],nR=T[y][x+1],nU=T[y-1]&&T[y-1][x],nD=T[y+1]&&T[y+1][x];
-  for(let j=0;j<N;j++)for(let i=0;i<N;i++){const hx=x*N+i,hy=y*N+j,h=hash(hx,hy);let col;
-   {let b=t.b; /* water tiles get land underneath too: the pond is drawn over it as a rounded blob (drawWater) */const nx=i<N/2?nL:nR,ny=j<N/2?nU:nD,di=Math.min(i,N-1-i),dj=Math.min(j,N-1-j),pe=[.5,.22]; /* soft borders: more mixing nearer the edge */
-    if(land(nx)&&nx.b!==b&&hash(hx+91,hy)<(pe[di]||0))b=nx.b;else if(land(ny)&&ny.b!==b&&hash(hx,hy+57)<(pe[dj]||0))b=ny.b;
-    col=pick(pal(b),h);}
-   ctx.fillStyle=col;ctx.fillRect(sx+i*q,sy+j*q,q+.6,q+.6);
-   if(!t.water&&h>.985){ctx.fillStyle='rgba(0,0,0,.06)';ctx.fillRect(sx+i*q+q*.3,sy+j*q+q*.3,Math.max(1.5,q*.35),Math.max(1.5,q*.35));}} /* tiny specks */
+  const C=tileCols(W,x,y);for(let j=0;j<N;j++)for(let i=0;i<N;i++){ctx.fillStyle=C[j*N+i];ctx.fillRect(sx+i*q,sy+j*q,q+.6,q+.6);}
   }
  drawWater(ctx,T,x0,x1,y0,y1,cx,cy,ts,now);
  if(TRAILS)drawRoutes(ctx,W,cx,cy,ts,x0,x1,y0,y1);}
