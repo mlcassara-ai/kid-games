@@ -115,7 +115,7 @@ const CROWN={hp:[1,1.6,1.9],atk:[1,1.3,1.36],gap:[1,.85,.72],den:[1,1.3,1.6]};
    - bricks: 5 per battle, each +40% of the house = exactly two full rebuilds. */
 /* last stands: wind-up before the throw, flight time, how long a snack takes, sprint speed (× walking, at least min %/s), heal (pets only,
    of max health), where the snacks land (from..to % of the lane, measured from the thrower's opposite base), the Goblin's pause before joining */
-const LURE={wind:1,fly:1.2,eat:1.4,sprint:2.5,min:8,heal:.1,near:10,far:28,join:1.4,boss2:2};
+const LURE={wind:2.4,fly:1.2,eat:1.4,sprint:2.5,min:8,heal:.1,near:10,far:28,join:1.4,boss2:2};
 /* Oct 2026: with the Goblin joining at a quarter instead of bursting out at half, bossHp .68→1.05 keeps the balance
    (with the last-stand pause; simulated: kids within 1–2 points of before, the Trainer about 84%). */
 const TUNE={trickle:.73,trickleKl:.31,charge:3.3,den:400,hp:1.15,atk:1.81,gap:3.79,bricks:5,brick:.4,repairAt:.5,house:480,siege:.58,foeCap:12,
@@ -254,7 +254,7 @@ function lure(side){const d=side==='d',who=(d?G.pets.filter(u=>!u.gone):G.foes.f
  /* a pause (owner, Oct 2026: the house fell before the coins landed): everyone it is meant for stops and stares until the snacks land,
     and the base can't be hurt until a moment after, so a last stand can't be lost in the throw */
  who.forEach(u=>{u.stun=Math.max(u.stun||0,L.land);});if(d)G.denSafe=L.land+1.2;else G.houseSafe=L.land+1.2;
- if(d)G.lureD=L;else G.lureH=L;G.camAt={x:d?DEN_X+10:HOUSE_X-10,until:L.throwAt+.2};fx(d?'gobOut':'heroOut');}
+ if(d)G.lureD=L;else G.lureH=L;G.camAt={x:d?DEN_X:HOUSE_X,until:L.throwAt+.2}; /* the camera centres on the thrower and waits so kids can read what they say (owner, Oct 2026) */fx(d?'gobOut':'heroOut');}
 /* one lured unit's move; true while it is busy with its snack (it doesn't fight then) */
 function lured(u,dt){const r=u.lr,L=r.L;if(G.t<L.land+r.it.dl)return false;
  if(r.ph==='wait'){r.ph='run';u.alertT=G.t;if(u.mega&&u.R.id==='eagle')u.ph='walk';}
@@ -276,15 +276,18 @@ function step(dt){if(!G||G.over)return;G.t+=dt;G.minH=Math.min(G.minH===undefine
   if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];u.fight=true;u.tgFly=!!hit[0].fly;hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});
    if(Math.random()<.18*dt)knock(hit[0],-(1.5+Math.random()*1.5)*(hit[0].boss?.3:1)); /* now and then a hit shoves the critter back a little */
    if(u.mega&&!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+R.life);}}
-  else if(u.x-DEN_X<=u.rng){u.fight=true;if(G.t>=(G.denSafe||0))G.denHP-=u.atk*dt*(G.bossDown||!G.peek?1:.5)*(G.t>TUNE.tired?1.6:1);}
+  else if(u.x-DEN_X<=u.rng){u.fight=true;u.tgFly=false; /* flying pets come down to hit the den */if(G.t>=(G.denSafe||0))G.denHP-=u.atk*dt*(G.bossDown||!G.peek?1:.5)*(G.t>TUNE.tired?1.6:1);}
   else{u.x-=u.spd*.8*dt*(u.mega&&!u.met?MEGA_RUN:1);u.mv=true;}
   if(u.mega&&R.id==='troll'&&!u.poundAt&&G.t>=u.stompAt&&foes.some(f=>!f.gone&&u.x-f.x>=-2&&u.x-f.x<=6)){u.poundAt=G.t+TROLL.wind;u.windT=G.t;} /* he roars at any critter right in front of him, flyers too */
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
  /* flyers drift over pets that can't reach them (like Battle Cats' floating enemies) and go for the Pet House */
  /* a flyer the paw knocked down walks for a few seconds, then takes off again */
- foes.forEach(f=>{if(f.downUntil&&G.t>=f.downUntil){f.downUntil=0;f.fly=true;}if(f.stun>G.t)return;f.mv=false;if(f.lr&&lured(f,dt))return;const tg=pets.filter(u=>u.ph!=='rise'&&u.ph!=='dive'&&(!f.fly||u.R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
+ foes.forEach(f=>{if(f.downUntil&&G.t>=f.downUntil){f.downUntil=0;if(!f.landed)f.fly=true;}
+  /* a flyer attacking the Pet House lands to do it (owner, Oct 2026), so ground pets can hit it there; it takes off again when it is moved away */
+  if(f.landed&&HOUSE_X-f.x>f.rng+.5){f.landed=false;if(!f.downUntil)f.fly=true;}
+  if(f.stun>G.t)return;f.mv=false;if(f.lr&&lured(f,dt))return;const tg=pets.filter(u=>u.ph!=='rise'&&u.ph!=='dive'&&(!f.fly||u.R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=f.rng);
   if(tg.length){const u=tg.reduce((a,b)=>b.x<a.x?b:a);u.hp-=f.atk*dt;f.fight=true;if(Math.random()<.18*dt)knock(u,1.5+Math.random()*1.5);if(f.boss&&G.t>=(G.bossShake||0)){G.bossShake=G.t+1.4;fx('bossHit');}}
-  else if(HOUSE_X-f.x<=f.rng&&(f.fight=true)){if(G.t>=(G.houseSafe||0)){G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;G.houseHit=G.t;}}
+  else if(HOUSE_X-f.x<=f.rng&&(f.fight=true)){if(f.fly&&!f.landed){f.fly=false;f.landed=true;}if(G.t>=(G.houseSafe||0)){G.houseHP-=f.atk*(f.boss?TUNE.bossSiege:TUNE.siege)*dt;G.houseHit=G.t;}}
   else{f.x+=f.spd*.8*dt;f.mv=true;}});
  /* knock-back each time a unit loses another third of its health */
  const bump=(u,dir)=>{const k=Math.floor((1-u.hp/u.max)*3);if(u.hp<=0||k<=u.kb)return;u.kb=k;u.stun=G.t+.4;knock(u,dir*(u.boss||u.mega?2:5));};
@@ -678,7 +681,7 @@ function actor(who,mode){const f=document.getElementById('bpField');if(!f||!G)re
  d.innerHTML=`<span class="bd">${art}</span>`;const x0=gob?DEN_X:HOUSE_X;d.style.left=x0+'%';f.appendChild(d);ACT[who]={el:d,mode};void d.offsetWidth;
  const out=gob?Math.max(1.9,DEN_X-3.6):Math.min(98.6,HOUSE_X+4.4);setTimeout(()=>{d.classList.add('out');d.style.left=out+'%';},30);
  const mine=()=>ACT[who]&&ACT[who].el===d;if(mode==='peek'){setTimeout(()=>{if(mine()){d.classList.add('fist');actorSay(who,'Grrr! Leave my den alone!');}},700);setTimeout(()=>{if(mine())actorGone(who);},3200);return;}
- setTimeout(()=>{if(mine()){d.classList.add('wind');if(!gob)actorSay(who,'Hey critters! Chocolate coins!');else actorSay(who,'Here! Treats! Now go away!');}},500);}
+ setTimeout(()=>{if(mine()){setTimeout(()=>{if(mine())d.classList.add('wind');},1300);if(!gob)actorSay(who,'Hey critters! Chocolate coins!');else actorSay(who,'Here! Treats! Now go away!');}},500);}
 function actorToss(who){const a=ACT[who];if(!a)return;const d=a.el;d.classList.remove('wind');void d.offsetWidth;d.classList.add('toss');
  if(who==='hero'){const mine=()=>ACT.hero&&ACT.hero.el===d;setTimeout(()=>{if(mine()){d.classList.remove('toss');d.classList.add('wave');actorSay('hero','Good luck, pets!');}},1400);setTimeout(()=>{if(mine())actorGone('hero');},3400);}}
 function actorSay(who,t){const a=ACT[who];if(!a)return;a.el.querySelectorAll('.bp2-say').forEach(x=>x.remove());const b=document.createElement('span');b.className='bp2-say';b.textContent=t;a.el.appendChild(b);}
