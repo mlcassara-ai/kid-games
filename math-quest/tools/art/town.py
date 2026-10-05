@@ -25,7 +25,7 @@ def town():
 {low(40,34)}{low(246,34)}
 <path d="M98 96 l10 -14 l10 14 M202 96 l10 -14 l10 14" fill="#ffd43b" stroke="{O}" stroke-width="3" stroke-linejoin="round"/>'''
     return svg('0 0 320 214',body,defs)
-def fountain():
+def fountain():  # the water itself is drawn animated in the game (gateart.js MQ_FOUNTAIN_ART.anim)
     defs=grad('st','#ece6d6','#b9ae98','#d6cdb8')+grad('wt','#a5d8ff','#4dabf7','#74c0fc',0,1)
     body=f'''{shadow(60,113,50)}
 <path d="M10 92 q0 -14 50 -14 q50 0 50 14 v12 q0 12 -50 12 q-50 0 -50 -12 Z" fill="url(#st)" stroke="{O}" stroke-width="4" stroke-linejoin="round"/>
@@ -36,9 +36,6 @@ def fountain():
 <path d="M32 58 q0 -9 28 -9 q28 0 28 9 v4 q0 8 -28 8 q-28 0 -28 -8 Z" fill="url(#st)" stroke="{O}" stroke-width="3.5" stroke-linejoin="round"/>
 <ellipse cx="60" cy="58" rx="24" ry="5.5" fill="url(#wt)" stroke="{O}" stroke-width="2.5"/>
 <rect x="56" y="30" width="8" height="26" rx="3" fill="url(#st)" stroke="{O}" stroke-width="3"/>
-<path d="M60 30 q-14 -14 -26 4 M60 30 q14 -14 26 4 M60 30 v-14" fill="none" stroke="#74c0fc" stroke-width="4.5" stroke-linecap="round"/>
-<path d="M60 30 q-14 -14 -26 4 M60 30 q14 -14 26 4 M60 30 v-14" fill="none" stroke="#e7f5ff" stroke-width="1.6" stroke-linecap="round"/>
-<path d="M34 60 q-10 6 -16 26 M86 60 q10 6 16 26" fill="none" stroke="#74c0fc" stroke-width="3.5" stroke-linecap="round" opacity=".9"/>
-<circle cx="60" cy="14" r="3" fill="#e7f5ff" stroke="#4dabf7" stroke-width="1.5"/>'''
+
     return svg('0 0 120 120',body,defs)
 ENTRANCE=None;BLOCK=[('town_hall',town(),5,5*214/320),('town_fountain',fountain(),1.8,1.8)];DECO=[];EXTRA=[]

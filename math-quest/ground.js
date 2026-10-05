@@ -9,7 +9,7 @@ const hash=(x,y)=>{let h=(x*374761393+y*668265263)|0;h=(h^(h>>>13))*1274126177|0
 const shade=(hex,k)=>{const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;const f=c=>Math.max(0,Math.min(255,Math.round(k>0?c+(255-c)*k:c*(1+k))));return `rgb(${f(r)},${f(g)},${f(b)})`;};
 const PAL={};
 function pal(b){if(PAL[b])return PAL[b];const B=BIOMES[b]||BIOMES.village;return PAL[b]=[B.g,shade(B.g,-.018),shade(B.g,.03),B.g2];} /* close shades (owner: the floor must read as background, not noise) */
-const WATER=['#4aa3df','#47a0dc','#4ea7e2','#459bd6'],PLAZA=['#e8dcc0','#e2d5b6'];
+const PLAZA=['#e8dcc0','#e2d5b6'];
 const pick=(p,h)=>h<.5?p[0]:h<.75?p[1]:h<.9?p[2]:p[3];
 const land=t=>t&&!t.water&&!t.plaza;
 const N=4; /* small squares per tile side: 4×4 per tile (owner, Oct 2026: a quarter of the earlier 2×2) */
@@ -18,16 +18,25 @@ function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2,q=ts/N;
   if(t.plaza){ctx.fillStyle=PLAZA[(x+y)%2];ctx.fillRect(sx,sy,ts+1,ts+1);continue;}
   const nL=T[y][x-1],nR=T[y][x+1],nU=T[y-1]&&T[y-1][x],nD=T[y+1]&&T[y+1][x];
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const hx=x*N+i,hy=y*N+j,h=hash(hx,hy);let col;
-   if(t.water)col=WATER[h<.4?0:h<.75?1:h<.9?2:3];
-   else{let b=t.b;const nx=i<N/2?nL:nR,ny=j<N/2?nU:nD,di=Math.min(i,N-1-i),dj=Math.min(j,N-1-j),pe=[.5,.22]; /* soft borders: more mixing nearer the edge */
+   {let b=t.b; /* water tiles get land underneath too: the pond is drawn over it as a rounded blob (drawWater) */const nx=i<N/2?nL:nR,ny=j<N/2?nU:nD,di=Math.min(i,N-1-i),dj=Math.min(j,N-1-j),pe=[.5,.22]; /* soft borders: more mixing nearer the edge */
     if(land(nx)&&nx.b!==b&&hash(hx+91,hy)<(pe[di]||0))b=nx.b;else if(land(ny)&&ny.b!==b&&hash(hx,hy+57)<(pe[dj]||0))b=ny.b;
     col=pick(pal(b),h);}
    ctx.fillStyle=col;ctx.fillRect(sx+i*q,sy+j*q,q+.6,q+.6);
    if(!t.water&&h>.985){ctx.fillStyle='rgba(0,0,0,.06)';ctx.fillRect(sx+i*q+q*.3,sy+j*q+q*.3,Math.max(1.5,q*.35),Math.max(1.5,q*.35));}} /* tiny specks */
-  if(t.water){ctx.fillStyle='rgba(214,240,255,.75)';const e=Math.max(2,ts*.05);
-   if(land(T[y-1]&&T[y-1][x]))ctx.fillRect(sx,sy,ts,e);if(land(T[y+1]&&T[y+1][x]))ctx.fillRect(sx,sy+ts-e,ts,e);if(land(T[y][x-1]))ctx.fillRect(sx,sy,e,ts);if(land(T[y][x+1]))ctx.fillRect(sx+ts-e,sy,e,ts);
-   if((x*13+y*7)%11===0){ctx.globalAlpha=.5+.3*Math.sin(now/600+x);ctx.drawImage(wSprite('〰️',ts*.5),sx+ts*.2,sy+ts*.2,ts*.6,ts*.6);ctx.globalAlpha=1;}}}
+  }
+ drawWater(ctx,T,x0,x1,y0,y1,cx,cy,ts,now);
  if(TRAILS)drawRoutes(ctx,W,cx,cy,ts,x0,x1,y0,y1);}
+/* ponds and the sea (owner, Oct 2026: square ponds looked blocky): each water tile is a slightly wobbly round blob joined to its water
+   neighbours, first a pale foam ring, then the water, so shorelines are rounded with land showing around them. Water still blocks the
+   whole tile for walking, as before. */
+function drawWater(ctx,T,x0,x1,y0,y1,cx,cy,ts,now){const Wt=(x,y)=>!!(T[y]&&T[y][x]&&T[y][x].water),X0=Math.max(0,x0-1),X1=Math.min(T[0].length-1,x1+1),Y0=Math.max(0,y0-1),Y1=Math.min(T.length-1,y1+1),h2=ts/2;
+ for(const [k,col] of [[.64,'#d6f0ff'],[.53,'#4aa3df']]){ctx.fillStyle=col;
+  for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){if(!Wt(x,y))continue;const r=ts*(k+(hash(x*3+1,y*5+2)-.5)*.1),mx=x*ts-cx+h2,my=y*ts-cy+h2;
+   ctx.beginPath();ctx.arc(mx,my,r,0,7);ctx.fill();if(Wt(x+1,y))ctx.fillRect(mx,my-r,ts,2*r);if(Wt(x,y+1))ctx.fillRect(mx-r,my,2*r,ts);if(Wt(x+1,y)&&Wt(x,y+1)&&Wt(x+1,y+1))ctx.fillRect(mx,my,ts,ts);
+   /* inside corners: where two water neighbours meet around a land corner, round it off so the pond reads as one soft shape */
+   for(const [dx,dy] of [[1,1],[-1,1],[1,-1],[-1,-1]])if(Wt(x+dx,y)&&Wt(x,y+dy)&&!Wt(x+dx,y+dy)){ctx.beginPath();ctx.arc(mx+dx*h2,my+dy*h2,r*.78,0,7);ctx.fill();}}}
+ /* the moving wave marks */
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(!Wt(x,y)||(x*13+y*7)%11)continue;ctx.globalAlpha=.5+.3*Math.sin(now/600+x);ctx.drawImage(wSprite('〰️',ts*.5),x*ts-cx+ts*.2,y*ts-cy+ts*.2,ts*.6,ts*.6);ctx.globalAlpha=1;}}
 const TRAILS=false; /* owner, Oct 2026: no trails on the map (the routes code stays, switched off) */
 /* trails (owner, Oct 2026: not all 90° turns, dirt only, with natural variety; some stop short of their entrance). Each world gets one
    route from the town square to its entrance, found along the old road tiles, then drawn as a smooth curve: corners rounded wide and long
