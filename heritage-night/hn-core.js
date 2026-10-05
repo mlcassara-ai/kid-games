@@ -88,7 +88,115 @@ var Q = [
  { e: '💰', f: 'The money in Lebanon is called the Lebanese pound. People also call it the lira.',
    q: 'What is the money in Lebanon called?', o: ['The Lebanese pound', 'The dollar', 'The yen', 'The peso'] },
  { e: '🤍', f: 'On the flag, white stands for peace, and the green cedar stands for strength and living a long time.',
-   q: 'What does white stand for on Lebanon’s flag?', o: ['Peace', 'Snow days', 'Milk', 'Clouds'] }
+   q: 'What does white stand for on Lebanon’s flag?', o: ['Peace', 'Snow days', 'Milk', 'Clouds'] },
+ { e: "🗣️", f: "Lots of Lebanese people greet each other with “Hi, kifak, ça va?” That is English, Arabic and French, all in one sentence!",
+   q: "What is special about the greeting “Hi, kifak, ça va?”", o: ["It mixes three languages", "It is a secret code", "It is sung, not said", "It is only for babies"] },
+ { e: "💛", f: "“Habibi” (said to a boy) and “Habibti” (said to a girl) mean “my dear.” Families say it all day long!",
+   q: "What does “habibi” mean?", o: ["My dear", "Hurry up", "Good night", "I’m hungry"] },
+ { e: "👵", f: "Lebanese kids call their grandma “Teta” and their grandpa “Jiddo.”",
+   q: "What do Lebanese kids call their grandma?", o: ["Teta", "Mama Bear", "Nana-Banana", "Jiddo"] },
+ { e: "🏔️", f: "The name “Lebanon” comes from an old word that means “white,” because the tops of its mountains are covered in snow.",
+   q: "Where does the name “Lebanon” come from?", o: ["A word meaning “white,” for its snowy mountains", "A famous king named Leb", "A word meaning “lemon”", "A type of fish"] },
+ { e: "💯", f: "Many Lebanese schools grade tests out of 20, not 100. Getting 20 out of 20 is a perfect score!",
+   q: "In many Lebanese schools, what is a perfect score on a test?", o: ["20 out of 20", "100 out of 100", "5 gold stars", "An A+++"] },
+ { e: "📚", f: "Many Lebanese kids learn three languages at school: Arabic, plus French or English, or both!",
+   q: "How many languages do many Lebanese kids learn at school?", o: ["Three", "One", "Ten", "None"] },
+ { e: "🍽️", f: "In Lebanon, the biggest meal of the day is lunch, often eaten at home with family after school.",
+   q: "What is the biggest meal of the day in Lebanon?", o: ["Lunch", "Breakfast", "A midnight snack", "Dessert"] },
+ { e: "🥣", f: "Labneh is a thick, creamy yogurt spread. A labneh sandwich with cucumbers or olives is a classic school lunch.",
+   q: "What is labneh?", o: ["A thick, creamy yogurt spread", "A kind of candy", "A soccer team", "A hat"] },
+ { e: "🧀", f: "Knefeh is a favorite Lebanese dessert: warm, gooey melted cheese under a crunchy top, soaked in sweet syrup. Some people eat it for breakfast!",
+   q: "What is inside knefeh?", o: ["Warm, gooey cheese", "Ice cream", "Peanut butter", "Jelly beans"] },
+ { e: "🍰", f: "Sfouf is a bright yellow cake. Its sunny color comes from a spice called turmeric, not from food coloring.",
+   q: "What makes sfouf cake bright yellow?", o: ["A spice called turmeric", "Bananas", "Yellow paint", "Lemons"] },
+ { e: "🎩", f: "Tarboosh is a famous Lebanese treat: a fluffy marshmallow on a cookie, dipped in chocolate. It is named after a tall, round hat because that is what it looks like!",
+   q: "Why is the Tarboosh treat called that?", o: ["It looks like a hat called a tarboosh", "It was invented by a cat", "It tastes like tar", "It is shaped like a boat"] },
+ { e: "🙈", f: "In Lebanon, hide-and-seek is called “ghommayda,” which comes from the word for closing your eyes.",
+   q: "What is “ghommayda”?", o: ["Hide-and-seek", "Tag", "Jump rope", "A tickle fight"] },
+ { e: "🥚", f: "At Easter, kids dye eggs and have egg battles: two kids tap their eggs together, and whoever’s egg does not crack wins!",
+   q: "How do you win the Easter egg battle?", o: ["Your egg doesn’t crack", "You eat the most eggs", "You hide the egg best", "You throw it farthest"] },
+ { e: "⚽", f: "Soccer (called “football”) is the most popular sport in Lebanon. Basketball is a big favorite too.",
+   q: "What is the most popular sport in Lebanon?", o: ["Soccer (football)", "Ice hockey", "Baseball", "Surfing"] },
+ { e: "🎲", f: "Tawleh (backgammon) is a board game with dice. Grandpas teach it to kids, and games get loud with lots of slapping of pieces and friendly teasing!",
+   q: "What is tawleh?", o: ["A board game with dice (backgammon)", "A kind of bread", "A dance", "A bicycle race"] },
+ { e: "🎄", f: "In Lebanon, both Christmas and Eid are public holidays, so lots of kids get days off from school for both!",
+   q: "Which holidays do Lebanese kids get off from school?", o: ["Both Christmas and Eid", "Only Halloween", "Only Thanksgiving", "None at all"] },
+ { e: "💰", f: "On Eid, kids visit relatives and often get “eidiyeh”: a gift of money from grown-ups. Cha-ching!",
+   q: "What is “eidiyeh”?", o: ["A money gift for kids on Eid", "A special Eid hat", "A kind of cookie", "A song"] },
+ { e: "🎃", f: "On December 4 many Lebanese kids celebrate Eid il-Burbara. They dress up in costumes and go house to house, a lot like Halloween! The special treat is boiled wheat with sugar and pomegranate seeds.",
+   q: "Eid il-Burbara is a lot like which holiday?", o: ["Halloween", "The Fourth of July", "Valentine’s Day", "Groundhog Day"] },
+ { e: "💐", f: "In Lebanon, Mother’s Day is on March 21, the first day of spring.",
+   q: "When is Mother’s Day in Lebanon?", o: ["March 21, the first day of spring", "December 25", "July 4", "October 31"] },
+ { e: "☀️", f: "No tooth fairy here! A traditional Arab custom is to throw your baby tooth toward the sun and ask it to swap your tooth for a strong, pretty gazelle’s tooth.",
+   q: "In the old custom, where do kids throw a lost baby tooth?", o: ["Toward the sun", "Into the ocean", "Under the bed", "Into a cake"] },
+ { e: "🎂", f: "The Arabic birthday song is “Sana helwa ya jamil,” which means “Have a sweet year, beautiful one!”",
+   q: "What does the Arabic birthday song wish you?", o: ["A sweet year", "A big cake", "Lots of homework", "A long nap"] },
+ { e: "🕷️", f: "Lebanon has no giant hunting spiders like Australia, but it does have camel spiders. With their legs, they can be bigger than your hand! They are fast and scary-looking, but they are not venomous.",
+   q: "What is true about Lebanon’s camel spiders?", o: ["They can be bigger than your hand but aren’t venomous", "They ride on camels", "They spin webs as big as houses", "They glow in the dark"] },
+ { e: "🦎", f: "Lebanon’s black tarantula is big enough to catch and eat lizards! Its bite hurts but is not dangerous to people.",
+   q: "What can Lebanon’s black tarantula eat?", o: ["Lizards", "Cars", "Pizza", "Elephants"] },
+ { e: "🦂", f: "More than 10 kinds of scorpions live in Lebanon. One, the deathstalker, is one of the most venomous scorpions in the world, so people shake out their shoes in dry areas!",
+   q: "Why do some people in Lebanon shake out their shoes?", o: ["To check for scorpions", "To dry their socks", "To make music", "To find coins"] },
+ { e: "🐾", f: "Striped hyenas live in Lebanon. In snowy winters they sometimes sneak down into villages at night looking for food!",
+   q: "What wild animal sometimes sneaks into Lebanese villages at night?", o: ["A striped hyena", "A polar bear", "A kangaroo", "A gorilla"] },
+ { e: "🐢", f: "Sea turtles dig nests and lay their eggs on the beaches near the city of Tyre. When the babies hatch, they scurry down the sand into the sea!",
+   q: "What lays eggs on the beaches near Tyre?", o: ["Sea turtles", "Penguins", "Crocodiles", "Ostriches"] },
+ { e: "🐈", f: "Beirut is full of cats! You see them napping on cars, walls and steps all over the city.",
+   q: "Which animal will you see all over the streets of Beirut?", o: ["Cats", "Kangaroos", "Llamas", "Penguins"] },
+ { e: "🚗", f: "Lebanese drivers honk their horns a LOT: to say hi, to say thanks, or just to say “I’m here!”",
+   q: "Why do Lebanese drivers honk so much?", o: ["To say hi, thanks, or “I’m here!”", "To play songs", "To scare birds", "Because horns are free on Tuesdays"] },
+ { e: "🫓", f: "At a Lebanese table, a piece of pita bread is often your spoon! You tear off a piece and scoop up hummus and other dips.",
+   q: "What do Lebanese people often use to scoop up hummus?", o: ["A piece of pita bread", "A straw", "Their elbow", "A tiny shovel"] },
+ { e: "🏡", f: "Sunday lunch at Teta’s house is a big deal. Aunts, uncles and lots of cousins all squeeze around the table together.",
+   q: "Where do many Lebanese families have a big Sunday lunch?", o: ["At Teta’s (Grandma’s) house", "At the zoo", "On a boat", "At school"] },
+ { e: "🤗", f: "Lebanese kids call grown-up family friends “Amo” (uncle) or “Tante” (aunt), even if they aren’t really related!",
+   q: "What might a Lebanese kid call a grown-up family friend?", o: ["Amo or Tante (uncle or aunt)", "Captain", "Your Majesty", "Buddy-Pal"] },
+ { e: "💋", f: "Many Lebanese people greet friends and family with three kisses on the cheeks: right, left, right!",
+   q: "How many cheek kisses are in a classic Lebanese hello?", o: ["Three", "Zero", "Ten", "Twenty"] },
+ { e: "🤔", f: "If you ask a Lebanese parent for a treat, they might say “Inshallah,” which means “if God wills.” Kids know it often means “maybe!”",
+   q: "When a Lebanese parent answers “Inshallah,” what does it often mean?", o: ["Maybe!", "Yes, right now!", "Go to bed", "Do your homework"] },
+ { e: "🥕", f: "Lebanese pickled turnips are bright pink! They get their color from a slice of beet in the jar.",
+   q: "What makes Lebanese pickled turnips pink?", o: ["A slice of beet", "Pink paint", "Strawberry jam", "Bubble gum"] },
+ { e: "🍓", f: "In Lebanon, a “cocktail” is a thick fruit smoothie in a cup, piled with fruit chunks, sweet cream called ashta, honey and nuts. You eat it with a spoon!",
+   q: "What is a Lebanese fruit “cocktail”?", o: ["A thick fruit smoothie topped with cream, honey and nuts", "A soda with ice", "A chicken dish", "A kind of hat"] },
+ { e: "🌸", f: "Many Lebanese desserts are flavored with rose water or orange blossom water, so they taste a little like flowers!",
+   q: "Many Lebanese sweets taste a little like…", o: ["Flowers", "Pickles", "Toothpaste", "Pepperoni"] },
+ { e: "🧂", f: "In spring, kids snack on janarek: small, sour green plums dipped in salt. Crunchy and super sour!",
+   q: "How do Lebanese kids like to eat sour green plums?", o: ["Dipped in salt", "Dipped in ketchup", "Frozen in ice", "Covered in sprinkles"] },
+ { e: "🔢", f: "Arabic is written from right to left, but numbers are written from left to right, just like in English!",
+   q: "Which way are numbers written in Arabic?", o: ["Left to right", "Right to left", "Top to bottom", "In a circle"] },
+ { e: "🔤", f: "The Arabic alphabet has 28 letters. Most letters change their shape depending on whether they are at the start, middle or end of a word.",
+   q: "How many letters are in the Arabic alphabet?", o: ["28", "10", "26", "100"] },
+ { e: "🎅", f: "In Lebanon, Santa Claus is called “Baba Noël.”",
+   q: "What do Lebanese kids call Santa Claus?", o: ["Baba Noël", "Mr. Snowman", "Jiddo Frost", "Captain Christmas"] },
+ { e: "🥁", f: "During Ramadan, a drummer called the musaharati walks the streets before sunrise, drumming and singing to wake families up for their early meal.",
+   q: "What does the musaharati do during Ramadan?", o: ["Drums in the streets to wake people for an early meal", "Bakes all the bread", "Paints the houses", "Delivers the mail"] },
+ { e: "🦎", f: "Chameleons live in Lebanon. They can change color, and their eyes can look in two different directions at once!",
+   q: "What can Lebanon’s chameleons do?", o: ["Change color and look two ways at once", "Fly", "Talk", "Breathe fire"] },
+ { e: "🐺", f: "Wolves still live in the mountains of Lebanon, along with foxes, jackals and wild boars.",
+   q: "Which wild animal still lives in Lebanon’s mountains?", o: ["Wolves", "Tigers", "Pandas", "Zebras"] },
+ { e: "🪼", f: "In summer, huge groups of jellyfish sometimes float along Lebanon’s beaches. Their sting hurts, so swimmers watch out!",
+   q: "What do swimmers in Lebanon watch out for in summer?", o: ["Stinging jellyfish", "Sharks with hats", "Flying fish that bite", "Hot lava"] },
+ { e: "🚀", f: "In the 1960s, a teacher and his college students in Lebanon built and launched their own rockets, called Cedar rockets. Some flew more than 10 miles high!",
+   q: "What did college students in Lebanon build in the 1960s?", o: ["Rockets", "A robot dog", "The first video game", "A submarine"] },
+ { e: "🇱🇧", f: "Lebanon’s flag was drawn in a hurry in November 1943 by members of Lebanon’s parliament, while they were fighting for their country’s freedom.",
+   q: "When was Lebanon’s flag made?", o: ["1943", "1776", "1492", "2001"] },
+ { e: "🔴", f: "The two red stripes on Lebanon’s flag stand for the courage of the people who gave their lives for their country.",
+   q: "What do the red stripes on Lebanon’s flag stand for?", o: ["Courage", "Ketchup", "Fire trucks", "Apples"] },
+ { e: "📏", f: "The white stripe on Lebanon’s flag is twice as tall as each red stripe. That leaves lots of room for the cedar tree!",
+   q: "How does the white stripe compare to each red stripe?", o: ["It is twice as tall", "It is the same size", "It is half as tall", "It is ten times as tall"] },
+ { e: "🎉", f: "Lebanon’s birthday is Independence Day, November 22. People wave flags, march in parades and decorate the streets in red, white and green.",
+   q: "When is Lebanon’s Independence Day?", o: ["November 22", "July 4", "January 1", "October 31"] },
+ { e: "⚽", f: "Lebanon’s national soccer team is nicknamed “the Cedars,” after the tree on the flag.",
+   q: "What is the nickname of Lebanon’s soccer team?", o: ["The Cedars", "The Lemons", "The Camels", "The Rockets"] },
+ { e: "🏀", f: "Basketball is a huge favorite in Lebanon. The national team has played in the Basketball World Cup against the best teams on Earth!",
+   q: "In which sport has Lebanon played in the World Cup?", o: ["Basketball", "Ice hockey", "Baseball", "Curling"] },
+ { e: "⛷️", f: "Lebanon has ski slopes high in its snowy mountains, and it has sent skiers to the Winter Olympics.",
+   q: "Which Winter Olympics sport does Lebanon compete in?", o: ["Skiing", "Bobsled", "Ice dancing", "Ice hockey"] },
+ { e: "🏃", f: "Every fall, thousands of people run the Beirut Marathon through the city, and kids join in with a shorter fun run!",
+   q: "What race happens in Beirut every fall?", o: ["A marathon", "A camel race", "A car race", "A snail race"] },
+ { e: "🤼", f: "Lebanon has won Olympic medals in wrestling and weightlifting, sports where you have to be super strong!",
+   q: "In which sports has Lebanon won Olympic medals?", o: ["Wrestling and weightlifting", "Swimming and diving", "Gymnastics", "Surfing"] }
 ];
 
 /* ---------- seeded randomness so every device agrees ---------- */
@@ -116,14 +224,14 @@ function phase(t) {
   else { name = 'reveal'; left = T.cycle - pos; len = T.reveal; }
   return { cycle: cycle, name: name, left: left, len: len, qStart: cycle * T.cycle + T.fact };
 }
-function points(ms) { return 500 + Math.round(500 * Math.max(0, 1 - ms / T.q)); }
+function points(ms) { return 50 + Math.round(50 * Math.max(0, 1 - ms / T.q)); }   // right: 50, plus up to 50 for speed
 
 /* ---------- rounds, streaks, double points (all from the cycle number, so every device agrees) ---------- */
-var ROUND = 10, STREAK_AT = 3, STREAK_BONUS = 100;
+var ROUND = 10, STREAK_AT = 3, STREAK_BONUS = 10;
 function roundOf(cycle) { return Math.floor(cycle / ROUND); }
 function qInRound(cycle) { return ((cycle % ROUND) + ROUND) % ROUND + 1; }           // 1..10
 function isDouble(cycle) { return rng(cycle * 7907 + 3)() < 1 / 8; }                  // about 1 in 8
-/* points for a right answer: speed points, +100 once the streak (counting this answer) is 3+, all doubled on a double cycle */
+/* points for a right answer: speed points, +10 once the streak (counting this answer) is 3+, all doubled on a double cycle */
 function award(ms, streak, cycle) { return (points(ms) + (streak >= STREAK_AT ? STREAK_BONUS : 0)) * (isDouble(cycle) ? 2 : 1); }
 /* top scorers of one round (rs only counts when r is that round) */
 function roundTop(players, round) {
@@ -149,21 +257,37 @@ function newName(taken, av) {
 }
 
 /* ---------- Kids vs Grown-ups tug-of-war ----------
-   Each side's score is its average points per question answered, so the bigger side has no advantage.
-   Kids' average counts KID_BONUS times. When fewer than BOT_FILL real grown-ups have joined, labelled robot helpers
-   fill the grown-up side's head count. Robots only score when no real grown-up has answered yet, and then always a
-   little behind the kids, so they can never win. Once a real grown-up answers, it is a real contest. */
-var KID_BONUS = 1.25, BOT_FILL = 5;
-function teams(players, cycle) {
-  var k = { n: 0, pts: 0, ans: 0 }, g = { n: 0, pts: 0, ans: 0 };
-  for (var id in players) { var p = players[id], t = isGrown(p) ? g : k; t.n++; t.pts += p.s || 0; t.ans += p.na || 0; }
-  var kid = k.ans ? KID_BONUS * k.pts / k.ans : 0, bots = k.n ? Math.max(0, BOT_FILL - g.n) : 0, grown = 0;
-  if (g.ans) grown = g.pts / g.ans;
-  else if (bots && kid) grown = kid * (0.8 + 0.15 * rng((cycle || 0) * 131 + 7)());   // a close race the kids always lead
-  var tot = kid + grown, kidShare = tot ? kid / tot : 0.5;
-  return { kids: k.n, grown: g.n, bots: bots, kid: Math.round(kid), grownPts: Math.round(grown), kidShare: kidShare,
-    lead: Math.abs(kidShare - 0.5) < 0.01 ? '' : kidShare > 0.5 ? 'kids' : 'grown' };
+   Every question is one pull: the side with the higher average points on THAT question pulls the rope one notch.
+   A side's average covers everyone on it who answered (wrong = 0) plus its robot helpers; kids' average counts KID_BONUS times
+   (tuned by simulation for a close night). Each side is topped up to BOT_FILL with labelled robot helpers until enough real
+   players join. Robots are not very smart (ROBOT_RIGHT chance, slow answers, seeded so every device agrees), never appear on
+   the leaderboard, and a pull won by a side with no real answer can't give that side the lead (the screen enforces this). */
+var KID_BONUS = 1.5, BOT_FILL = 5, ROBOT_RIGHT = 0.35;
+function robotPts(cycle, side, i) { var r = rng(cycle * 92821 + side * 613 + i * 37 + 11); return r() < ROBOT_RIGHT ? 50 + Math.round(50 * 0.15 * r()) : 0; }
+function pull(players, cycle) {
+  var t = [{ n: 0, pts: 0, ans: 0 }, { n: 0, pts: 0, ans: 0 }];   // 0 = kids, 1 = grown-ups
+  for (var id in players) {
+    var p = players[id], x = t[isGrown(p) ? 1 : 0]; x.n++;
+    if (p.q === cycle) { x.ans++; if (p.k) x.pts += award(p.t || 0, p.st || 0, cycle); }
+  }
+  var avg = t.map(function (x, side) {
+    x.bots = Math.max(0, BOT_FILL - x.n); var pts = x.pts, n = x.ans;
+    for (var i = 0; i < x.bots; i++) { pts += robotPts(cycle, side, i); n++; }
+    return n ? pts / n : 0;
+  });
+  var kid = KID_BONUS * avg[0], gr = avg[1], winner = kid > gr ? 'kids' : gr > kid ? 'grown' : '';
+  return { kids: t[0].n, grown: t[1].n, kidBots: t[0].bots, grownBots: t[1].bots, winner: winner,
+    robotOnly: winner === 'kids' ? !t[0].ans : winner === 'grown' ? !t[1].ans : false };
 }
+/* the rope after one pull: notches from -8 (grown-ups) to +8 (kids); a robots-only win can't put its side ahead */
+function movePos(pos, pl) {
+  if (!pl.winner) return pos;
+  var next = Math.max(-8, Math.min(8, pos + (pl.winner === 'kids' ? 1 : -1)));
+  if (pl.robotOnly && (pl.winner === 'kids' ? next > 0 : next < 0)) return pos;
+  return next;
+}
+/* kids-only or grown-ups-only ranking (the big leaderboard and Round Champion are for kids) */
+function kidsOnly(list) { return list.filter(function (p) { return p.g !== 'a'; }); }
 
 /* ---------- Firestore over REST (anonymous auth, like the other games) ---------- */
 var AUTH_KEY = 'heritagenight.auth';
@@ -215,21 +339,29 @@ function shardOf(pid) { var h = 2166136261; for (var i = 0; i < pid.length; i++)
 async function allPlayers() {
   var res = await Promise.all(Array.from({ length: SHARDS }, function (_, i) { return getDoc('s' + i).catch(function () { return null; }); }));
   var out = {}, ok = 0;
-  res.forEach(function (d) { if (!d) return; ok++; var p = d.data && d.data.p; if (p) for (var k in p) out[k] = p[k]; });
+  res.forEach(function (d, i) { if (!d) return; ok++; if (i === 0) game = (d.data && d.data.z) || ''; var p = d.data && d.data.p; if (p) for (var k in p) out[k] = p[k]; });
   if (!ok) throw new Error('offline');
   return out;
 }
-/* write this player's entry into its shard, merging with whatever others wrote */
+/* Reset: every shard carries the game id `z`. The big screen's Reset button empties all shards under a new id; a phone whose
+   player was made under another id (entry.z) is told {reset:true} and starts over. A new player (no z yet) adopts the shard's. */
+var game = null;
 async function saveEntry(pid, entry) {
   var name = 's' + shardOf(pid);
   for (var i = 0; i < 8; i++) {
-    var d = await getDoc(name), data = d.data || { p: {} };
-    data.p = data.p || {}; data.p[pid] = entry;
+    var d = await getDoc(name), data = d.data || { p: {} }, z = data.z || '';
+    if (entry.z != null && entry.z !== z) return { reset: true };
+    entry.z = z; data.p = data.p || {}; data.p[pid] = entry;
     var r = await putDoc(name, data, d.updateTime);
-    if (r.ok) return true;
+    if (r.ok) return { ok: true, z: z };
     await new Promise(function (res) { setTimeout(res, 120 + Math.random() * 500 * (i + 1)); });
   }
   throw new Error('busy');
+}
+async function resetAll() {
+  var z = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  await Promise.all(Array.from({ length: SHARDS }, function (_, i) { return putDoc('s' + i, { p: {}, z: z }, 'any'); }));
+  game = z; return z;
 }
 /* the screen keeps its clock honest by touching a tiny doc of its own */
 async function syncClock() { try { await putDoc('clock', { at: Date.now() }, 'any'); } catch (e) { } }
@@ -241,5 +373,5 @@ function rank(players) {
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
 window.HN = { Q: Q, T: T, EVENT: EVENT, FAST: FAST, PLAY_URL: PLAY_URL, questionFor: questionFor, phase: phase, now: now, points: points, ROUND: ROUND, STREAK_AT: STREAK_AT, roundOf: roundOf, qInRound: qInRound, isDouble: isDouble, award: award, roundTop: roundTop, onFire: onFire,
-  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, teams: teams, allPlayers: allPlayers, saveEntry: saveEntry, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
+  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, game: function () { return game; }, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
 })();

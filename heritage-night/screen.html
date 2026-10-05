@@ -87,10 +87,13 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 .team span { font-size: 1.9vh; color: var(--ink-soft); font-weight: 700; }
 .team.lead b { color: var(--gold); }
 .rope { position: relative; height: 9vh; }
-.rope::before { content: ""; position: absolute; left: 0; right: 0; top: 40%; height: 1.2vh; margin-top: -.6vh; border-radius: 99px;
+.rope::before { content: ""; position: absolute; left: 5.5vw; right: 5.5vw; top: 40%; height: 1.2vh; margin-top: -.6vh; border-radius: 99px;
   background: repeating-linear-gradient(115deg, #c79a5b 0 1.1vh, #a87b40 1.1vh 2.2vh); box-shadow: 0 .4vh .8vh rgba(0,0,0,.35); }
 .rope .mid { position: absolute; left: 50%; top: 5%; bottom: 30%; width: .4vh; margin-left: -.2vh; background: rgba(255,255,255,.55); border-radius: 99px; }
-.rope .knot { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 5vh; line-height: 1; transition: left 1.4s cubic-bezier(.3,1.4,.5,1); }
+.rope .knot { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -62%); font-size: 6vh; line-height: 1; transition: left 1.4s cubic-bezier(.3,1.4,.5,1); }
+.rope .pl { position: absolute; top: 40%; transform: translateY(-58%); font-size: 3.6vh; line-height: 1; letter-spacing: -.6vh; white-space: nowrap; transition: transform .5s; }
+.rope .pl.k { left: 0; transform-origin: left bottom; } .rope .pl.g { right: 0; transform-origin: right bottom; }
+.rope.pk .pl.k { transform: translateY(-58%) rotate(-12deg); } .rope.pg .pl.g { transform: translateY(-58%) rotate(12deg); }
 .rope .say { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 2.2vh; color: var(--gold); }
 .row .gd { display: block; font-size: 1.6vh; font-weight: 700; color: var(--ink-soft); line-height: 1.1; }
 /* ---------- rounds, double points, round champion ---------- */
@@ -113,11 +116,15 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 .champ .win .pt { font-family: var(--display); font-weight: 800; font-size: 4vh; color: var(--gold); }
 .champ .rest { display: flex; gap: 3vw; font-size: 3vh; font-weight: 700; }
 .champ .rest span b { color: var(--gold); font-family: var(--display); }
+body.mouse { cursor: auto; }
+.reset { position: fixed; left: 1vw; bottom: .8vh; z-index: 6; font: inherit; font-size: 1.5vh; font-weight: 700; color: var(--ink-soft); background: rgba(255,255,255,.08);
+  border: 1px solid var(--line); border-radius: 99px; padding: .4vh 1vw; cursor: pointer; opacity: .35; transition: opacity .3s; }
+.reset:hover, .reset:focus-visible { opacity: 1; }
 .toast { position: fixed; left: 3.6vw; bottom: 17vh; max-width: 40vw; background: var(--gold); color: #3a2600; border-radius: 1.4vh;
   padding: 1.2vh 1vw; font-weight: 700; font-size: 2.3vh; box-shadow: 0 1vh 2vh rgba(0,0,0,.35); transform: translateY(160%); opacity: 0; transition: transform .45s, opacity .45s; z-index: 5; }
 .toast.on { opacity: 1; }
 .toast.on { transform: none; }
-.net { position: fixed; left: 1vw; bottom: .8vh; font-size: 1.5vh; color: var(--ink-soft); opacity: .7; }
+.net { position: fixed; left: 7vw; bottom: .8vh; font-size: 1.5vh; color: var(--ink-soft); opacity: .7; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -135,19 +142,20 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
     <div class="champ" id="champ" aria-live="polite"></div>
     <div class="tug" aria-label="Kids versus Grown-ups tug-of-war">
       <div class="team kid" id="tkid"><b>🧒 Kids</b><span id="tkidn"></span></div>
-      <div class="rope"><div class="mid"></div><div class="knot" id="knot">🚩</div><div class="say" id="say"></div></div>
+      <div class="rope" id="rope"><div class="pl k" id="plk">🤖🤖🤖</div><div class="mid"></div><div class="knot" id="knot">🌲</div><div class="pl g" id="plg">🤖🤖🤖</div><div class="say" id="say"></div></div>
       <div class="team gr" id="tgr"><b>Grown-ups 🧑</b><span id="tgrn"></span></div>
     </div>
   </section>
   <aside class="side">
-    <h2>Leaderboard <small id="count"></small></h2>
+    <h2>Top Kids <small id="count"></small></h2>
     <ol class="board" id="board"><li class="empty">No players yet. Scan the code below with a phone to join!</li></ol>
     <div class="join"><div class="qr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" shape-rendering="crispEdges"><path fill="#0b2a20" d="M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM9 0h1v1h-1zM10 0h1v1h-1zM13 0h1v1h-1zM16 0h1v1h-1zM18 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM22 0h1v1h-1zM23 0h1v1h-1zM26 0h1v1h-1zM27 0h1v1h-1zM28 0h1v1h-1zM29 0h1v1h-1zM30 0h1v1h-1zM31 0h1v1h-1zM32 0h1v1h-1zM0 1h1v1h-1zM6 1h1v1h-1zM9 1h1v1h-1zM10 1h1v1h-1zM11 1h1v1h-1zM12 1h1v1h-1zM13 1h1v1h-1zM14 1h1v1h-1zM15 1h1v1h-1zM16 1h1v1h-1zM17 1h1v1h-1zM21 1h1v1h-1zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM13 2h1v1h-1zM15 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM23 2h1v1h-1zM24 2h1v1h-1zM26 2h1v1h-1zM28 2h1v1h-1zM29 2h1v1h-1zM30 2h1v1h-1zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM8 3h1v1h-1zM9 3h1v1h-1zM10 3h1v1h-1zM11 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM19 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM26 3h1v1h-1zM28 3h1v1h-1zM29 3h1v1h-1zM30 3h1v1h-1zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM13 4h1v1h-1zM15 4h1v1h-1zM18 4h1v1h-1zM19 4h1v1h-1zM20 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM26 4h1v1h-1zM28 4h1v1h-1zM29 4h1v1h-1zM30 4h1v1h-1zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM9 5h1v1h-1zM12 5h1v1h-1zM13 5h1v1h-1zM14 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM17 5h1v1h-1zM20 5h1v1h-1zM24 5h1v1h-1zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM27 6h1v1h-1zM28 6h1v1h-1zM29 6h1v1h-1zM30 6h1v1h-1zM31 6h1v1h-1zM32 6h1v1h-1zM8 7h1v1h-1zM9 7h1v1h-1zM10 7h1v1h-1zM11 7h1v1h-1zM14 7h1v1h-1zM15 7h1v1h-1zM21 7h1v1h-1zM22 7h1v1h-1zM23 7h1v1h-1zM24 7h1v1h-1zM0 8h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM10 8h1v1h-1zM11 8h1v1h-1zM12 8h1v1h-1zM13 8h1v1h-1zM15 8h1v1h-1zM17 8h1v1h-1zM19 8h1v1h-1zM22 8h1v1h-1zM26 8h1v1h-1zM27 8h1v1h-1zM28 8h1v1h-1zM29 8h1v1h-1zM30 8h1v1h-1zM3 9h1v1h-1zM7 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM16 9h1v1h-1zM17 9h1v1h-1zM18 9h1v1h-1zM19 9h1v1h-1zM21 9h1v1h-1zM23 9h1v1h-1zM26 9h1v1h-1zM27 9h1v1h-1zM29 9h1v1h-1zM30 9h1v1h-1zM32 9h1v1h-1zM1 10h1v1h-1zM2 10h1v1h-1zM3 10h1v1h-1zM4 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM9 10h1v1h-1zM15 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM21 10h1v1h-1zM22 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM31 10h1v1h-1zM1 11h1v1h-1zM5 11h1v1h-1zM8 11h1v1h-1zM9 11h1v1h-1zM11 11h1v1h-1zM12 11h1v1h-1zM14 11h1v1h-1zM16 11h1v1h-1zM18 11h1v1h-1zM21 11h1v1h-1zM24 11h1v1h-1zM25 11h1v1h-1zM28 11h1v1h-1zM29 11h1v1h-1zM30 11h1v1h-1zM31 11h1v1h-1zM1 12h1v1h-1zM2 12h1v1h-1zM5 12h1v1h-1zM6 12h1v1h-1zM9 12h1v1h-1zM17 12h1v1h-1zM19 12h1v1h-1zM22 12h1v1h-1zM25 12h1v1h-1zM27 12h1v1h-1zM28 12h1v1h-1zM29 12h1v1h-1zM32 12h1v1h-1zM0 13h1v1h-1zM1 13h1v1h-1zM2 13h1v1h-1zM3 13h1v1h-1zM4 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM8 13h1v1h-1zM9 13h1v1h-1zM10 13h1v1h-1zM12 13h1v1h-1zM13 13h1v1h-1zM14 13h1v1h-1zM15 13h1v1h-1zM16 13h1v1h-1zM17 13h1v1h-1zM19 13h1v1h-1zM20 13h1v1h-1zM21 13h1v1h-1zM23 13h1v1h-1zM25 13h1v1h-1zM26 13h1v1h-1zM29 13h1v1h-1zM30 13h1v1h-1zM31 13h1v1h-1zM32 13h1v1h-1zM0 14h1v1h-1zM2 14h1v1h-1zM3 14h1v1h-1zM5 14h1v1h-1zM6 14h1v1h-1zM7 14h1v1h-1zM10 14h1v1h-1zM14 14h1v1h-1zM18 14h1v1h-1zM21 14h1v1h-1zM25 14h1v1h-1zM26 14h1v1h-1zM30 14h1v1h-1zM31 14h1v1h-1zM0 15h1v1h-1zM1 15h1v1h-1zM2 15h1v1h-1zM7 15h1v1h-1zM11 15h1v1h-1zM13 15h1v1h-1zM14 15h1v1h-1zM16 15h1v1h-1zM19 15h1v1h-1zM20 15h1v1h-1zM21 15h1v1h-1zM22 15h1v1h-1zM25 15h1v1h-1zM26 15h1v1h-1zM28 15h1v1h-1zM30 15h1v1h-1zM2 16h1v1h-1zM3 16h1v1h-1zM4 16h1v1h-1zM6 16h1v1h-1zM8 16h1v1h-1zM10 16h1v1h-1zM11 16h1v1h-1zM12 16h1v1h-1zM13 16h1v1h-1zM14 16h1v1h-1zM17 16h1v1h-1zM19 16h1v1h-1zM22 16h1v1h-1zM24 16h1v1h-1zM25 16h1v1h-1zM27 16h1v1h-1zM28 16h1v1h-1zM32 16h1v1h-1zM0 17h1v1h-1zM1 17h1v1h-1zM3 17h1v1h-1zM4 17h1v1h-1zM5 17h1v1h-1zM9 17h1v1h-1zM11 17h1v1h-1zM13 17h1v1h-1zM14 17h1v1h-1zM19 17h1v1h-1zM20 17h1v1h-1zM21 17h1v1h-1zM22 17h1v1h-1zM23 17h1v1h-1zM26 17h1v1h-1zM27 17h1v1h-1zM29 17h1v1h-1zM30 17h1v1h-1zM32 17h1v1h-1zM0 18h1v1h-1zM1 18h1v1h-1zM2 18h1v1h-1zM3 18h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM11 18h1v1h-1zM15 18h1v1h-1zM20 18h1v1h-1zM21 18h1v1h-1zM27 18h1v1h-1zM28 18h1v1h-1zM30 18h1v1h-1zM31 18h1v1h-1zM1 19h1v1h-1zM2 19h1v1h-1zM3 19h1v1h-1zM7 19h1v1h-1zM9 19h1v1h-1zM13 19h1v1h-1zM14 19h1v1h-1zM18 19h1v1h-1zM21 19h1v1h-1zM22 19h1v1h-1zM23 19h1v1h-1zM24 19h1v1h-1zM25 19h1v1h-1zM26 19h1v1h-1zM27 19h1v1h-1zM28 19h1v1h-1zM29 19h1v1h-1zM30 19h1v1h-1zM31 19h1v1h-1zM32 19h1v1h-1zM0 20h1v1h-1zM1 20h1v1h-1zM6 20h1v1h-1zM7 20h1v1h-1zM11 20h1v1h-1zM12 20h1v1h-1zM13 20h1v1h-1zM15 20h1v1h-1zM16 20h1v1h-1zM17 20h1v1h-1zM18 20h1v1h-1zM22 20h1v1h-1zM24 20h1v1h-1zM27 20h1v1h-1zM28 20h1v1h-1zM29 20h1v1h-1zM32 20h1v1h-1zM0 21h1v1h-1zM4 21h1v1h-1zM5 21h1v1h-1zM8 21h1v1h-1zM9 21h1v1h-1zM10 21h1v1h-1zM11 21h1v1h-1zM12 21h1v1h-1zM14 21h1v1h-1zM15 21h1v1h-1zM18 21h1v1h-1zM19 21h1v1h-1zM20 21h1v1h-1zM21 21h1v1h-1zM23 21h1v1h-1zM26 21h1v1h-1zM29 21h1v1h-1zM32 21h1v1h-1zM0 22h1v1h-1zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM12 22h1v1h-1zM13 22h1v1h-1zM14 22h1v1h-1zM15 22h1v1h-1zM16 22h1v1h-1zM20 22h1v1h-1zM24 22h1v1h-1zM25 22h1v1h-1zM26 22h1v1h-1zM29 22h1v1h-1zM30 22h1v1h-1zM31 22h1v1h-1zM0 23h1v1h-1zM2 23h1v1h-1zM8 23h1v1h-1zM9 23h1v1h-1zM11 23h1v1h-1zM13 23h1v1h-1zM15 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM21 23h1v1h-1zM24 23h1v1h-1zM25 23h1v1h-1zM27 23h1v1h-1zM29 23h1v1h-1zM30 23h1v1h-1zM0 24h1v1h-1zM3 24h1v1h-1zM6 24h1v1h-1zM7 24h1v1h-1zM10 24h1v1h-1zM11 24h1v1h-1zM14 24h1v1h-1zM15 24h1v1h-1zM17 24h1v1h-1zM19 24h1v1h-1zM22 24h1v1h-1zM23 24h1v1h-1zM24 24h1v1h-1zM25 24h1v1h-1zM26 24h1v1h-1zM27 24h1v1h-1zM28 24h1v1h-1zM32 24h1v1h-1zM8 25h1v1h-1zM12 25h1v1h-1zM13 25h1v1h-1zM14 25h1v1h-1zM16 25h1v1h-1zM17 25h1v1h-1zM18 25h1v1h-1zM19 25h1v1h-1zM20 25h1v1h-1zM21 25h1v1h-1zM24 25h1v1h-1zM28 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM0 26h1v1h-1zM1 26h1v1h-1zM2 26h1v1h-1zM3 26h1v1h-1zM4 26h1v1h-1zM5 26h1v1h-1zM6 26h1v1h-1zM9 26h1v1h-1zM10 26h1v1h-1zM11 26h1v1h-1zM13 26h1v1h-1zM15 26h1v1h-1zM16 26h1v1h-1zM17 26h1v1h-1zM20 26h1v1h-1zM22 26h1v1h-1zM23 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h1v1h-1zM31 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM8 27h1v1h-1zM9 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM15 27h1v1h-1zM16 27h1v1h-1zM20 27h1v1h-1zM21 27h1v1h-1zM22 27h1v1h-1zM23 27h1v1h-1zM24 27h1v1h-1zM28 27h1v1h-1zM29 27h1v1h-1zM30 27h1v1h-1zM31 27h1v1h-1zM32 27h1v1h-1zM0 28h1v1h-1zM2 28h1v1h-1zM3 28h1v1h-1zM4 28h1v1h-1zM6 28h1v1h-1zM8 28h1v1h-1zM9 28h1v1h-1zM11 28h1v1h-1zM14 28h1v1h-1zM15 28h1v1h-1zM18 28h1v1h-1zM19 28h1v1h-1zM22 28h1v1h-1zM24 28h1v1h-1zM25 28h1v1h-1zM26 28h1v1h-1zM27 28h1v1h-1zM28 28h1v1h-1zM29 28h1v1h-1zM31 28h1v1h-1zM32 28h1v1h-1zM0 29h1v1h-1zM2 29h1v1h-1zM3 29h1v1h-1zM4 29h1v1h-1zM6 29h1v1h-1zM8 29h1v1h-1zM9 29h1v1h-1zM11 29h1v1h-1zM15 29h1v1h-1zM16 29h1v1h-1zM17 29h1v1h-1zM18 29h1v1h-1zM19 29h1v1h-1zM21 29h1v1h-1zM24 29h1v1h-1zM25 29h1v1h-1zM28 29h1v1h-1zM29 29h1v1h-1zM30 29h1v1h-1zM31 29h1v1h-1zM32 29h1v1h-1zM0 30h1v1h-1zM2 30h1v1h-1zM3 30h1v1h-1zM4 30h1v1h-1zM6 30h1v1h-1zM8 30h1v1h-1zM10 30h1v1h-1zM14 30h1v1h-1zM18 30h1v1h-1zM20 30h1v1h-1zM21 30h1v1h-1zM23 30h1v1h-1zM26 30h1v1h-1zM27 30h1v1h-1zM29 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM10 31h1v1h-1zM16 31h1v1h-1zM18 31h1v1h-1zM20 31h1v1h-1zM21 31h1v1h-1zM22 31h1v1h-1zM25 31h1v1h-1zM26 31h1v1h-1zM28 31h1v1h-1zM29 31h1v1h-1zM30 31h1v1h-1zM0 32h1v1h-1zM1 32h1v1h-1zM2 32h1v1h-1zM3 32h1v1h-1zM4 32h1v1h-1zM5 32h1v1h-1zM6 32h1v1h-1zM8 32h1v1h-1zM10 32h1v1h-1zM11 32h1v1h-1zM13 32h1v1h-1zM14 32h1v1h-1zM16 32h1v1h-1zM17 32h1v1h-1zM23 32h1v1h-1zM24 32h1v1h-1zM25 32h1v1h-1zM26 32h1v1h-1zM27 32h1v1h-1zM31 32h1v1h-1z"/></svg></div><b>Scan to play!</b><span>mlcassara-ai.github.io/kid-games/heritage-night</span></div>
   </aside>
 </div>
 <div class="toast" id="toast"></div>
 <div class="net" id="net"></div>
-<script src="hn-core.js?v=4"></script>
+<button class="reset" id="reset" title="Clear every score and start a new game">🔄 Reset</button>
+<script src="hn-core.js?v=5"></script>
 <script>
 (function () {
   'use strict';
@@ -166,6 +174,10 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
       if (ph.name === 'reveal' && qn === HN.ROUND && champFor !== ph.cycle) {   // last question of the round: crown the champion
         champFor = ph.cycle; lastPoll = 0;
         setTimeout(function () { showChamp(ph.cycle); }, HN.FAST ? 900 : 1500);
+      }
+      if (ph.name === 'reveal' && rope.c < ph.cycle) {   // one tug-of-war pull per question, once the answers are in
+        lastPoll = 0;
+        setTimeout(function () { applyPull(ph.cycle); }, HN.FAST ? 900 : 1500);
       }
       pill.className = 'pill' + (ph.name === 'question' ? ' q' : ph.name === 'reveal' ? ' r' : '');
       pill.textContent = ph.name === 'fact' ? 'Did you know?' : ph.name === 'question' ? 'Answer on your phone!' : 'Answer';
@@ -188,7 +200,7 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
     var st = $('status');
     if (st) {
       var answered = 0, right = 0, fast = null;
-      for (var k in players) { var p = players[k]; if (p.q === ph.cycle) { answered++; if (p.k) { right++; if (!fast || p.t < fast.t) fast = p; } } }
+      for (var k in players) { var p = players[k]; if (p.q === ph.cycle) { answered++; if (p.k) { right++; if (!HN.isGrown(p) && (!fast || p.t < fast.t)) fast = p; } } }
       st.innerHTML = ph.name === 'question'
         ? '<span>⏱ <b>' + Math.ceil(ph.left / 1000) + '</b></span><span>✋ <b>' + answered + '</b> answered</span>'
         : '<span>🎉 <b>' + right + '</b> got it right</span>' + (fast ? '<span class="fast">⚡ Fastest: ' + HN.esc(fast.a + ' ' + fast.n) + '</span>' : '');
@@ -197,8 +209,8 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 
   function renderBoard() {
     renderTug();
-    var list = HN.rank(players), top = list.slice(0, 8), b = $('board'), cyc = HN.phase().cycle;
-    $('count').textContent = list.length ? list.length + (list.length === 1 ? ' player' : ' players') : '';
+    var all = HN.rank(players), list = HN.kidsOnly(all), top = list.slice(0, 8), b = $('board'), cyc = HN.phase().cycle;
+    $('count').textContent = all.length ? all.length + (all.length === 1 ? ' player' : ' players') : '';
     if (!list.length) return;
     var ranks = {};
     list.forEach(function (p, i) { ranks[p.id] = i; });
@@ -220,7 +232,7 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
   }
   function showChamp(cycle) {
     var ph = HN.phase(); if (ph.cycle !== cycle || ph.name !== 'reveal') return;
-    var top = HN.roundTop(players, HN.roundOf(cycle)).slice(0, 3), c = $('champ');
+    var top = HN.kidsOnly(HN.roundTop(players, HN.roundOf(cycle))).slice(0, 3), c = $('champ');
     if (!top.length) return;
     var w = top[0];
     c.innerHTML = '<div class="sub">Round ' + (roundLabel(cycle) || '') + ' complete</div><h2>🏆 Round Champion!</h2>' +
@@ -229,15 +241,27 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
     c.className = 'champ on';
   }
 
-  /* the rope's flag moves towards the side that is ahead (kids pull left); only moves outside the question, like the board */
-  function renderTug() {
-    var t = HN.teams(players, HN.phase().cycle), pos = Math.max(8, Math.min(92, 50 - (t.kidShare - 0.5) * 200));
-    $('knot').style.left = pos + '%';
-    $('tkidn').textContent = t.kids + (t.kids === 1 ? ' kid' : ' kids');
-    $('tgrn').textContent = t.grown + (t.grown === 1 ? ' grown-up' : ' grown-ups') + (t.bots ? ' + 🤖 ' + t.bots + ' robot helper' + (t.bots === 1 ? '' : 's') : '');
-    $('tkid').className = 'team kid' + (t.lead === 'kids' ? ' lead' : '');
-    $('tgr').className = 'team gr' + (t.lead === 'grown' ? ' lead' : '');
-    $('say').textContent = !t.kids && !t.grown ? 'Kids vs Grown-ups!' : t.lead === 'kids' ? 'Kids are pulling ahead!' : t.lead === 'grown' ? 'Grown-ups are pulling ahead!' : 'Neck and neck!';
+  /* the tug-of-war: the rope's position (-8 grown-ups .. +8 kids) is kept on this screen; each question adds one pull (HN.pull) */
+  var ROPE_KEY = 'heritagenight.rope.' + HN.EVENT, rope = HN.lsGet(ROPE_KEY) || { c: -1, pos: 0, say: '' };
+  function applyPull(cycle) {
+    var ph = HN.phase(); if (ph.cycle !== cycle || rope.c >= cycle) return;
+    var pl = HN.pull(players, cycle), pos = HN.movePos(rope.pos, pl);
+    rope = { c: cycle, pos: pos, say: !pl.winner ? 'A tie! Nobody moves.' : pos === rope.pos && pl.robotOnly ? '🤖 The robots pulled… but they’re not strong enough!'
+      : pl.winner === 'kids' ? 'Kids won that pull! 💪' : 'Grown-ups won that pull! 💪', w: pl.winner };
+    HN.lsSet(ROPE_KEY, rope);
+    renderTug(true);
+  }
+  function renderTug(justPulled) {
+    var t = HN.pull(players, HN.phase().cycle), r = $('rope');
+    $('knot').style.left = (50 - rope.pos * 4) + '%';   // kids pull left
+    $('tkidn').textContent = t.kids + (t.kids === 1 ? ' kid' : ' kids') + (t.kidBots ? ' + 🤖 ' + t.kidBots + (t.kidBots === 1 ? ' robot' : ' robots') : '');
+    $('tgrn').textContent = t.grown + (t.grown === 1 ? ' grown-up' : ' grown-ups') + (t.grownBots ? ' + 🤖 ' + t.grownBots + (t.grownBots === 1 ? ' robot' : ' robots') : '');
+    $('plk').textContent = t.kids ? (t.kidBots ? '🧒🧒🤖' : '🧒🧒🧒') : '🤖🤖🤖';
+    $('plg').textContent = t.grown ? (t.grownBots ? '🤖🧑🧑' : '🧑🧑🧑') : '🤖🤖🤖';
+    $('tkid').className = 'team kid' + (rope.pos > 0 ? ' lead' : '');
+    $('tgr').className = 'team gr' + (rope.pos < 0 ? ' lead' : '');
+    $('say').textContent = rope.say || 'Kids vs Grown-ups! Every question is a pull.';
+    if (justPulled && rope.w) { r.className = 'rope ' + (rope.w === 'kids' ? 'pk' : 'pg'); setTimeout(function () { r.className = 'rope'; }, 1600); }
   }
 
   function toast(msg) { toastQ.push(msg); if (!toastBusy) nextToast(); }
@@ -263,6 +287,21 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
     var ph = HN.phase(); renderStage(ph);
     if (Date.now() - lastPoll > 2500) { lastPoll = Date.now(); poll(); }
   }
+  /* 🔄 Reset: empties the leaderboard and the rope; every phone is sent back to pick a buddy */
+  $('reset').onclick = async function () {
+    if (!confirm('Reset the game?\n\nThis clears EVERY score, the leaderboard and the tug-of-war. Everyone will join again on their phone.')) return;
+    $('reset').disabled = true;
+    try {
+      await HN.resetAll();
+      players = {}; lastRanks = {}; seen = null; roundReset = true; champFor = -1;
+      rope = { c: HN.phase().cycle, pos: 0, say: '' }; HN.lsSet(ROPE_KEY, rope);
+      $('board').innerHTML = '<li class="empty">No players yet. Scan the code below with a phone to join!</li>';
+      renderBoard(); shownKey = ''; toast('🔄 New game! Scan the code to join.');
+    } catch (e) { alert('Could not reset. Check the internet connection and try again.'); }
+    $('reset').disabled = false;
+  };
+  var mouseT = 0;   // the mouse pointer shows for a few seconds after it moves, so the Reset button can be reached
+  document.addEventListener('mousemove', function () { document.body.classList.add('mouse'); clearTimeout(mouseT); mouseT = setTimeout(function () { document.body.classList.remove('mouse'); }, 3000); });
   HN.syncClock(); setInterval(HN.syncClock, 5 * 60000);
   try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
   tick(); setInterval(tick, 200);

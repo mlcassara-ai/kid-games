@@ -77,7 +77,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     const cyc = await Promise.all([scr, ...phones].map(p => p.evaluate(() => HN.phase().cycle)));
     ok(cyc.every(c => c === cyc[0]), 'screen and phones agree on the cycle despite the screen clock being 47 s off');
     await scr.waitForFunction(() => document.querySelectorAll('.row').length === 3, null, { timeout: 8000 }).catch(() => {});
-    ok(await scr.locator('.row').count() === 3, 'leaderboard lists 3 players');
+    ok(await scr.locator('.row').count() === 2 && /3 players/.test(await scr.textContent('#count')), 'leaderboard lists the 2 kids only (3 players in all)');
     for (const p of phones) await p.waitForFunction(() => HN.isSynced(), null, { timeout: 8000 });
     const atQ = (p, c) => p.waitForFunction(c => { const h = HN.phase(); return h.cycle === c && h.name === 'question'; }, c, { timeout: 40000 });
     ok(await scr.evaluate(c => HN.qInRound(c) === 10 && HN.isDouble(c) && HN.roundOf(c) === HN.roundOf(c - 2), C), 'test lands on a double-points 10th question');
@@ -114,9 +114,9 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(/#1/.test(await phones[0].textContent('#rank')), 'phone A told it is #1');
     const sc = +(await phones[0].textContent('#sc')).replace(/,/g, '');
     const gain = +(await phones[0].textContent('.pts')).replace(/[^0-9]/g, '');
-    ok(gain >= 1200 && gain <= 2200 && gain % 2 === 0, 'double points with the streak bonus (' + gain + ')');
+    ok(gain >= 120 && gain <= 220 && gain % 2 === 0, 'double points with the streak bonus (' + gain + ')');
     ok(/On fire! 3 in a row/.test(await phones[0].textContent('.panel')), 'phone shows the streak bonus');
-    ok(sc >= 2200 && sc <= 4200, 'score in range (' + sc + ')');
+    ok(sc >= gain + 100 && sc <= gain + 440, 'score in range (' + sc + ')');
     ok(/🔥/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows 🔥 for the streak');
     await scr.waitForSelector('#champ.on', { timeout: 3000 }).catch(() => {}); await shot(scr, 'screen-champion');
     const ch = await scr.textContent('#champ').catch(() => '');
@@ -125,31 +125,38 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(await phones[1].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).st) === 0, 'a wrong answer ends the streak');
     ok(/Fastest/.test(await scr.textContent('#status')), 'screen shows the fastest player');
     ok(/3rd/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows the grade');
-    ok(/2 kids/.test(await scr.textContent('#tkidn')) && /1 grown-up \+ 🤖 4 robot helpers/.test(await scr.textContent('#tgrn')), 'tug-of-war counts kids, grown-ups and labelled robot helpers');
-    ok(/Kids are pulling ahead/.test(await scr.textContent('#say')), 'kids lead while only robots score for the grown-ups');
+    ok(/2 kids \+ 🤖 3/.test(await scr.textContent('#tkidn')) && /1 grown-up \+ 🤖 4/.test(await scr.textContent('#tgrn')), 'tug-of-war tops both sides up with robot helpers');
+    ok(/🌲/.test(await scr.textContent('#knot')) && /🧒/.test(await scr.textContent('#plk')), 'cedar on the rope, pullers at the ends');
+    ok(/pull/.test(await scr.textContent('#say')), 'screen says who won the pull (' + await scr.textContent('#say') + ')');
+    const ropeNow = await scr.evaluate(() => JSON.parse(localStorage.getItem('heritagenight.rope.test')));
+    ok(ropeNow.c === C && ropeNow.pos >= 0, 'one pull per question; robots never put the grown-ups ahead (rope ' + ropeNow.pos + ')');
     await phones[0].waitForSelector('#team:not(:empty)', { timeout: 5000 }).catch(() => {});
-    ok(/winning/.test(await phones[0].textContent('#team')) && /behind/.test(await phones[2].textContent('#team')), 'phones say which team is winning');
-    // team maths, straight from the engine
+    ok(/pull/.test(await phones[0].textContent('#team')) && /pull/.test(await phones[2].textContent('#team')), 'phones say who won the pull');
+    ok(/of 2 kids/.test(await phones[0].textContent('#rank')), 'kids are ranked among kids');
+    // tug-of-war maths, straight from the engine (a cycle that is not double points)
     const tm = await scr.evaluate(() => {
-      const mk = (g, s, na) => ({ g, s, na }), r = {};
-      // robots never win: one kid, no real grown-up answers, every cycle
-      r.botsLose = true; for (let c = 0; c < 500; c++) { const t = HN.teams({ k: mk('2', 300, 3) }, c); if (t.lead !== 'kids' || t.bots !== 5) r.botsLose = false; }
-      // averages, not head count: 10 kids averaging 600 (x1.25 = 750) lose to 1 grown-up averaging 800
-      const many = {}; for (let i = 0; i < 10; i++) many['k' + i] = mk('4', 1200, 2); many.g = mk('a', 800, 1);
-      const t2 = HN.teams(many, 1); r.avg = t2.lead === 'grown' && t2.bots === 4;
-      // the kid bonus: kids 700 avg (875) beat a grown-up at 800
-      r.bonus = HN.teams({ k: mk('1', 700, 1), g: mk('a', 800, 1) }, 1).lead === 'kids';
-      // five real grown-ups: no robots
-      const five = { k: mk('5', 100, 1) }; for (let i = 0; i < 5; i++) five['g' + i] = mk('a', 0, 0);
-      r.noBots = HN.teams(five, 1).bots === 0;
-      r.empty = HN.teams({}, 1).lead === '';
+      let c = 5; while (HN.isDouble(c)) c++;
+      const at = pts => ({ q: c, k: true, st: 0, t: HN.T.q * (1 - (pts - 50) / 50) });   // a right answer worth pts
+      const r = {};
+      // robots alone can never give a side the lead
+      let pos = 0; r.botsNoLead = true;
+      for (let x = 0; x < 2000; x++) { pos = HN.movePos(pos, HN.pull({}, x)); if (pos !== 0) r.botsNoLead = false; }
+      let pos2 = 0; for (let x = 0; x < 2000; x++) { pos2 = HN.movePos(pos2, HN.pull({ k: Object.assign({ g: '2' }, { q: x, k: false, st: 0, t: 0 }) }, x)); if (pos2 < 0) r.botsNoLead = false; }
+      // averages, not head count: 10 kids worth 60 each (x1.5 = 90) lose to one grown-up worth 100, with no robots in the way
+      const many = {}; for (let i = 0; i < 10; i++) many['k' + i] = Object.assign({ g: '4' }, at(60));
+      for (let i = 0; i < 5; i++) many['g' + i] = Object.assign({ g: 'a' }, i ? { q: -1 } : at(100));
+      const p2 = HN.pull(many, c); r.avg = p2.winner === 'grown' && p2.grownBots === 0 && p2.kidBots === 0;
+      // the kid bonus: kids worth 70 (x1.5 = 105) beat grown-ups worth 100
+      const b = {}; for (let i = 0; i < 5; i++) { b['k' + i] = Object.assign({ g: '1' }, at(70)); b['g' + i] = Object.assign({ g: 'a' }, at(100)); }
+      r.bonus = HN.pull(b, c).winner === 'kids';
+      // robots fill each side up to 5
+      const one = HN.pull({ k: { g: '3' } }, c); r.fill = one.kidBots === 4 && one.grownBots === 5;
       return r;
     });
-    ok(tm.botsLose, 'robot helpers never beat the kids');
-    ok(tm.avg, 'team score is the average, not the head count');
-    ok(tm.bonus, 'kids get their bonus');
-    ok(tm.noBots, 'no robot helpers once 5 real grown-ups join');
-    ok(tm.empty, 'empty game is neck and neck');
+    ok(tm.botsNoLead, 'robot helpers never give their side the lead');
+    ok(tm.avg, 'each pull uses the average, not the head count');
+    ok(tm.bonus, 'kids get their 1.5x bonus');
+    ok(tm.fill, 'robot helpers fill each side up to 5');
     // reload keeps the player
     await phones[0].reload(); await phones[0].waitForSelector('.me');
     ok((await phones[0].textContent('.me .nm')).startsWith(nameA), 'reload keeps the same player');
@@ -160,6 +167,16 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     const all = await phones[2].evaluate(async () => Object.keys(await HN.allPlayers()).length);
     ok(all === 33, '30 simultaneous joins all saved (' + all + ' players, ' + conflicts + ' retried conflicts)');
     await scr.waitForTimeout(3500); await shot(scr, 'screen-busy');
+    // 🔄 Reset on the big screen: scores gone, phones sent back to join
+    scr.once('dialog', d => d.accept());
+    await scr.click('#reset');
+    await scr.waitForFunction(() => !document.querySelector('.row'), null, { timeout: 8000 }).catch(() => {});
+    ok(await scr.locator('.row').count() === 0, 'Reset empties the leaderboard');
+    ok(await phones[1].evaluate(async () => Object.keys(await HN.allPlayers()).length) === 0, 'Reset clears every saved player');
+    await phones[1].waitForSelector('#go', { timeout: 30000 }).catch(() => {});
+    ok(await phones[1].locator('#go').count() === 1 && /New game/.test(await phones[1].textContent('#net')), 'a phone from the old game is sent back to join');
+    await phones[1].click('[data-g="2"]'); await phones[1].click('#go'); await phones[1].waitForTimeout(1500);
+    ok(await phones[1].evaluate(async () => Object.keys(await HN.allPlayers()).length) === 1, 'joining again works after a reset');
   } catch (e) { fails.push(String(e)); console.log(e); }
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''));
   await browser.close(); server.close();

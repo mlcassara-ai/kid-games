@@ -85,7 +85,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 </head>
 <body>
 <div class="app" id="app"></div>
-<script src="hn-core.js?v=4"></script>
+<script src="hn-core.js?v=5"></script>
 <script>
 (function () {
   'use strict';
@@ -97,14 +97,20 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 
   function save() { HN.lsSet(KEY, me); }
   function rid(n) { var a = new Uint8Array(n), s = ''; crypto.getRandomValues(a); for (var i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz0123456789'[a[i] % 36]; return s; }
-  function entry() { return { n: me.n, a: me.a, g: me.g, na: me.na || 0, r: me.r == null ? -1 : me.r, rs: me.rs || 0, st: me.st || 0, s: me.s, c: me.c, j: me.j, q: me.q == null ? -1 : me.q, k: !!me.k, t: me.t || 0 }; }
+  function entry() { return { z: me.z, n: me.n, a: me.a, g: me.g, na: me.na || 0, r: me.r == null ? -1 : me.r, rs: me.rs || 0, st: me.st || 0, s: me.s, c: me.c, j: me.j, q: me.q == null ? -1 : me.q, k: !!me.k, t: me.t || 0 }; }
   async function push() {
     if (saving) { dirty = true; return; }
     saving = true; dirty = false;
-    try { await HN.saveEntry(me.pid, entry()); net(''); }
+    try { var r = await HN.saveEntry(me.pid, entry()); if (r.reset) { saving = false; startOver(); return; } if (me.z == null) { me.z = r.z; save(); } net(''); }
     catch (e) { dirty = true; net('Having trouble connecting… your points are saved on this phone.'); }
     saving = false;
     if (dirty) setTimeout(push, 1500);
+  }
+  /* the big screen pressed Reset: this player belongs to the old game, so join again */
+  function startOver() {
+    me = null; draft = null; pickG = ''; rankInfo = null; teamLine = ''; shownKey = '';
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    joinView(); net('🔄 New game! Pick your buddy and grade to join.');
   }
   function net(t) { var n = document.getElementById('net'); if (n) n.textContent = t; }
   function wake() { try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {} }
@@ -155,16 +161,21 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   }
   function teamText(t) {
     var mine = me.g === 'a' ? 'grown' : 'kids';
-    if (!t.lead) return '🪢 Kids and Grown-ups are neck and neck!';
-    return t.lead === mine ? '💪 Your team is winning the tug-of-war!' : '😬 Your team is behind in the tug-of-war. Pull harder!';
+    if (!t.winner) return '🪢 That pull was a tie!';
+    if (t.winner === mine) return t.robotOnly ? '🤖 Your robot helpers pulled for you!' : '💪 Your team won that pull in the tug-of-war!';
+    return (t.winner === 'kids' ? 'The kids' : 'The grown-ups') + ' won that pull. 😬 Pull harder next time!';
   }
+  function rankHtml() { return 'You’re <b>#' + rankInfo.r + '</b> of ' + rankInfo.n + (rankInfo.w || ''); }
   async function fetchRank(cycle) {
     rankFor = cycle;
     try {
-      var all = await HN.allPlayers(), list = HN.rank(all), idx = -1;
-      teamLine = teamText(HN.teams(all, cycle)); var tb = document.getElementById('team'); if (tb) tb.textContent = teamLine;
+      var all = await HN.allPlayers();
+      if (!me) return;
+      if (me.z != null && HN.game() != null && HN.game() !== me.z) { startOver(); return; }
+      var grown = me.g === 'a', list = HN.rank(all).filter(function (p) { return (p.g === 'a') === grown; }), idx = -1;   // ranked within your own team
+      teamLine = teamText(HN.pull(all, cycle)); var tb = document.getElementById('team'); if (tb) tb.textContent = teamLine;
       list.forEach(function (p, i) { if (p.id === me.pid) idx = i; });
-      if (idx >= 0) { rankInfo = { r: idx + 1, n: list.length }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = 'You’re <b>#' + rankInfo.r + '</b> of ' + rankInfo.n; }
+      if (idx >= 0) { rankInfo = { r: idx + 1, n: list.length, w: grown ? ' grown-ups' : ' kids' }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = rankHtml(); }
     } catch (e) {}
   }
   function render(ph) {
@@ -185,9 +196,9 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
         var did = me.q === ph.cycle;
         html = '<div class="result">' + (!did ? '<div class="emo">⏰</div><div class="t">Missed that one</div><p class="soft">The answer was <b>' + HN.esc(q.opts[q.right]) + '</b>. Get ready for the next one!</p>'
           : me.k ? '<div class="emo">🎉</div><div class="t">Correct!</div><div class="pts">+' + me.gain.toLocaleString() + (HN.isDouble(ph.cycle) ? ' ⚡ double!' : '') + '</div>' +
-            (me.st >= HN.STREAK_AT ? '<div class="fire">🔥 On fire! ' + me.st + ' in a row (+100)</div>' : '')
+            (me.st >= HN.STREAK_AT ? '<div class="fire">🔥 On fire! ' + me.st + ' in a row (+10)</div>' : '')
           : '<div class="emo">🌲</div><div class="t">Not this time</div><p class="soft">The answer was <b>' + HN.esc(q.opts[q.right]) + '</b>.</p>') +
-          '<div class="rankbox" id="rank">' + (rankInfo ? 'You’re <b>#' + rankInfo.r + '</b> of ' + rankInfo.n : 'Checking your place…') + '</div><div class="team" id="team">' + HN.esc(teamLine) + '</div></div>';
+          '<div class="rankbox" id="rank">' + (rankInfo ? rankHtml() : 'Checking your place…') + '</div><div class="team" id="team">' + HN.esc(teamLine) + '</div></div>';
         if (rankFor !== ph.cycle) setTimeout(function () { fetchRank(ph.cycle); }, 1200);
       }
       app.innerHTML = header(ph) + '<div class="panel">' + html + '</div><div class="net" id="net"></div>';
@@ -202,6 +213,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   }
   function tick() { if (me && me.g) render(HN.phase()); }
 
+  if (me && me.pid && me.z === undefined) me.z = '';   // saved before Reset existed: belongs to the first game
   if (me && me.pid && me.g) { me.shown = me.shown == null ? me.s : me.shown; push(); tick(); }
   else {
     joinView();
