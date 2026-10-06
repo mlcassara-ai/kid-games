@@ -14,8 +14,7 @@ const me=()=>{try{return P();}catch(e){return null;}};
 const BLOCKS=[
  {id:'learn',n:'Learning',wall:'#d6efff',aw:'#4dabf7',ink:'#1864ab',shops:[
   {id:'gym',e:'🏋️',n:'Fact Gym',s:'Fact sprints and the Mastery Map',show:()=>!!window.Mastery},
-  {id:'library',e:'📚',n:'Library',s:'Stories and books'},
-  {id:'elder',e:'🧙',n:'Elder Wiz',s:'Quests and wise tips'}]},
+  {id:'library',e:'📚',n:'Library',s:'Stories and books'}]},
  {id:'sci',n:'Science',wall:'#dcf7e0',aw:'#40c057',ink:'#2b8a3e',shops:[
   {id:'lab',e:'🔬',n:'Quartz Lab',s:'Ride down to the cave',show:p=>!!(window.Lab&&Lab.hasKey&&Lab.hasKey(p))},
   {id:'train',e:'🚂',n:'Train Station',s:'To Discovery District',show:()=>!!(window.Discovery&&Discovery.flag&&Discovery.flag())}],

@@ -148,6 +148,13 @@ const tests=[
   p.cave.core={v:1,keep:[]};go('bp');BattlePets._pick('forest',1);T.ok(D.curMega(p)==='core'&&document.querySelectorAll('.bp2-megas button.unk').length===2&&/Core Keeper/.test(document.querySelector('.bp2-megas').innerText),'meeting the Core Keeper did not make him a mega');
   BattlePets._back();window.medal=m0;
  }],
+['elder wiz: walks the map with a full body, talks when bumped, thinks out loud',async function(){
+  T.reset();const p=T.hero('Wiz',3);state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
+  const E=MQ_ELDER.state();T.ok(E&&!E.hidden&&W.T[E.y][E.x].npc==='elder'&&!W.T[E.y][E.x].block,'the Elder Wiz is not out on the map');
+  T.ok(MQ_ELDER.places().length>=3,'the Elder Wiz has nowhere to walk into');MQ_ELDER.say('Hi!');T.ok(MQ_ELDER.state().say&&MQ_ELDER.state().say.t==='Hi!','the Elder Wiz cannot think out loud');
+  wNpc('elder');T.ok(/Elder Wiz says/.test(document.querySelector('#modal').innerText),'talking to the Elder Wiz did not open his quest card');closeModal();
+  T.ok(MQ_ELDER.LINES.OTHER.length>=10&&MQ_ELDER.LINES.QUEST.length>=3,'the Elder Wiz has too few things to say');
+ }],
 ['map presents: drawn presents that move between 45-minute windows, never block walking, vanish once opened',async function(){
   T.reset();const p=T.hero('Gifts',3);state.cur=p.id;go('world');await T.wait(200);T.ok(window.MQ_PRESENTS,'presents.js is not loaded');
   const C=MQ_PRESENTS.cands(W),ks=Object.keys(C);T.ok(ks.length>=10&&ks.every(k=>C[k].length>0),'some areas have nowhere to put a present');
@@ -273,13 +280,13 @@ const tests=[
 ['number town: one Town building on the plaza; Main Street has every place, each opens its screen',async function(){
   T.reset();const p=T.hero('Plaza',3);state.cur=p.id;window.MQ_TRUCK_BETA=true;window.MQ_DISTRICT_BETA=true;window.MQ_BP_BETA=true;p.sci=p.sci||{};p.sci.key=1;W=null;go('world');await T.wait(150);
   const bad=[];for(let y=TOWN_Y;y<TOWN_Y+3;y++)for(let x=TOWN_X;x<TOWN_X+5;x++){const t=W.T[y][x];if(!t.plaza)bad.push('town tile '+x+','+y+' is off the plaza');if(t.npc!=='town')bad.push('town tile '+x+','+y+' is missing');}
-  for(let y=0;y<W.T.length;y++)for(let x=0;x<W.T[y].length;x++){const t=W.T[y][x];if(t.npc&&t.npc!=='town'&&t.npc!=='fountain'&&t.npc!=='station'&&t.npc!=='tride')bad.push('an old plaza building is still on the map: '+t.npc);}
+  for(let y=0;y<W.T.length;y++)for(let x=0;x<W.T[y].length;x++){const t=W.T[y][x];if(t.npc&&t.npc!=='town'&&t.npc!=='fountain'&&t.npc!=='station'&&t.npc!=='tride'&&t.npc!=='elder')bad.push('an old plaza building is still on the map: '+t.npc);}
   {const f=NPCS.find(n=>n.id==='fountain');if(W.T[f.y][f.x].npc!=='fountain')bad.push('the Wishing Fountain is not in front of the Town');}
   if(!wWalk(TOWN_X+2,TOWN_Y+3))bad.push('the Town door cannot be reached');
   PLAZA_DECOR.flat().forEach(([e,x,y])=>{if(!W.T[y][x].plaza||W.T[y][x].npc)bad.push('plaza decoration at '+x+','+y+' is misplaced');});
   T.ok(!bad.length,bad.join('; '));
   wNpc('town');T.ok(curScreen==='town'&&document.getElementById('mtStreet'),'bumping the Town did not open Main Street');
-  {const ids=[...document.querySelectorAll('.mt-shop[data-id]')].map(b=>b.dataset.id);const want=NPCS.filter(n=>!n.opt&&n.id!=='fountain').map(n=>n.id);T.ok(!ids.includes('fountain'),'the fountain has two doors (map and Main Street)');T.ok(want.every(id=>ids.includes(id)),'Main Street is missing a place: '+want.filter(id=>!ids.includes(id)).join(','));
+  {const ids=[...document.querySelectorAll('.mt-shop[data-id]')].map(b=>b.dataset.id);const want=NPCS.filter(n=>!n.opt&&!n.walks&&n.id!=='fountain').map(n=>n.id);T.ok(!ids.includes('elder'),'the Elder Wiz is still on Main Street');T.ok(!ids.includes('fountain'),'the fountain has two doors (map and Main Street)');T.ok(want.every(id=>ids.includes(id)),'Main Street is missing a place: '+want.filter(id=>!ids.includes(id)).join(','));
    T.ok(ids.includes('lab')&&ids.includes('train')&&ids.includes('truck'),'the Lab, Train or Food Truck is missing from Main Street while switched on');}
   document.querySelector('.mt-shop[data-id="shop"]').click();await T.wait(600);T.ok(curScreen==='backpack','the Shop on Main Street did not open the shop');
   go('town');document.querySelector('.mt-shop[data-id="library"]').click();await T.wait(600);T.ok(curScreen==='library','the Library on Main Street did not open the library');
