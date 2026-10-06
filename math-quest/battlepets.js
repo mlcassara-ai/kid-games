@@ -329,7 +329,8 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-slot.lock{border:3px dashed #d4cfe8;background:#f5f3fb;font-size:12px;font-weight:700;color:#8a84aa;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;cursor:default}.bp2-slot.lock b{font-size:20px}
 .bp2-slot.foe{border:3px solid #f0a050;background:#fff3e6;cursor:default;display:inline-flex;align-items:center;justify-content:center}
 .bp2-slot.boss{width:84px;height:84px;border-color:#9c8fc4;background:#eeeaf8}.bp2-slot.boss .bp2-gob{width:54px}.bp2-bossr{display:flex;align-items:center;gap:10px;font-size:13px}
-.bp2-vs .bp2-slots{gap:6px;flex-wrap:nowrap}.bp2-vs .bp2-slot{width:52px;height:52px;font-size:28px;border-radius:12px;flex:0 0 auto}.bp2-vs .bp2-slot.lock{font-size:10px}.bp2-vs .bp2-slot.lock b{font-size:16px}.bp2-vs .bp2-slot.boss{width:72px;height:72px}
+.bp2-vs .bp2-slots{gap:6px;flex-wrap:nowrap}.bp2-vs .bp2-slot{width:52px;height:52px;font-size:28px;border-radius:12px;flex:0 0 auto}.bp2-vs .bp2-slot.lock{font-size:10px}.bp2-vs .bp2-slot.lock b{font-size:16px}.bp2-vs .bp2-slot.boss{width:104px;height:auto;padding:6px 4px;flex-direction:column;gap:2px;border-radius:16px;font-size:14px;font-weight:800;color:#2b2340;border:3px solid #e9e4ff;background:#fff} /* same size and look as the mega tiles (owner, Oct 2026) */
+.bp2-slot.boss .ma{display:flex;align-items:flex-end;justify-content:center;height:64px;width:72px;overflow:hidden}.bp2-slot.boss .ma .bp2-gob{width:56px}.bp2-slot.boss .ma svg{max-height:64px}
 .bp2-go{margin-top:12px;gap:8px;align-items:center}.bp2-btn.big{font-size:17px;padding:12px 18px}
 .bp2-trn{font:inherit;font-weight:800;font-size:15px;border:3px solid #e9e4ff;background:#fff;border-radius:14px;padding:8px 12px;cursor:pointer;color:#2b2340;display:inline-flex;gap:6px;align-items:center}
 .bp2-trn i{font-style:normal;background:#ffe08a;border-radius:9px;padding:1px 7px;font-size:13px}.bp2-trn:disabled{opacity:.55;cursor:default}
@@ -504,7 +505,7 @@ function teamView(p){const S=stages().find(s=>s.id===VIEW.id);if(!S){VIEW={k:'st
     <div class="bp2-slots">${Array.from({length:5},(_,i)=>{if(i>=n)return `<span class="bp2-slot mine lock" title="Opens at level ${(i-2)*10}"><b>🔒</b>Level ${(i-2)*10}</span>`;const id=team[i],pet=id&&PETS.find(x=>x.id===id);return `<button class="bp2-slot mine ${pet?'full':''}" onclick="BattlePets._out(${i})" aria-label="${pet?'Take '+esc(pet.name)+' out':'Empty spot'}">${pet?pet.e:''}</button>`;}).join('')}</div></div>
    <div class="bp2-vsw">VS</div>
    <div class="bp2-side"><div class="bp2-sh">CRITTERS</div>
-    <div class="bp2-bossr"><span class="bp2-slot foe boss" title="${esc(S.boss[0])}">${goblinArt(54)}</span><span class="muted">Boss:<br><b>${esc(S.boss[0])}</b></span></div>
+    <div class="bp2-bossr"><span class="bp2-slot foe boss" title="${esc(S.boss[0])}"><span class="ma">${goblinArt(56)}</span>${esc(S.boss[0])}</span></div>
     <div class="bp2-slots">${S.crit.map(c=>`<span class="bp2-slot foe" title="${esc(c[0])}">${c[1]}</span>`).join('')}</div></div>
   </div>
   <div class="bp2-row bp2-go"><button class="bp2-trn" onclick="BattlePets._hire()" ${(p.coins||0)<TRAINER_COST?'disabled':''} title="Hire a Trainer session">🧑‍🏫 Trainer · 🪙 ${TRAINER_COST} <i>×${prog(p).tr||0}</i></button>${(p.coins||0)<TRAINER_COST?`<small class="muted">need 🪙 ${TRAINER_COST}</small>`:''}
