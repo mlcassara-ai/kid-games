@@ -8,8 +8,8 @@
 (function(){
 const STEP=480,O='#3b2a1e';
 const hash=(x,y)=>{let h=(x*374761393+y*668265263)|0;h=(h^(h>>>13))*1274126177|0;return ((h^(h>>>16))>>>0)/4294967296;};
-const QUEST=['Do you want a quest?','How is the quest going?','Need a quest? Come and talk to me!','Have you checked the Quest Board?','A new quest is waiting…','Quests make you stronger!'];
-const DONE=['Your quest is done! Come and see me!','I have a reward for you!'];
+const QUEST=['How are my 3 quests going?','Quests make you stronger!','Three quests a day keeps the goblins away!','A wizard always finishes his quests…','Bump into me if you forgot your quest!'];
+const DONE=['I have a special reward for you!','Come and get your reward, young wizard!'];
 const OTHER=['I think I lost my pencil…','Where did I put my glasses?','What a lovely day for math!','Hmm… 7 × 8… 56!','My beard is itchy.','Has anyone seen my hat? Oh. It\'s on my head.','Numbers are a kind of magic!','Is it snack time yet?','I once counted to a million… almost.','Watch out for the Grey Goblin!','Walking is good for the brain!','I was a Bronze wizard once, too.'];
 /* now and then, walking along, he mumbles to himself (owner, Oct 2026): drawn in grey italics in a fainter bubble */
 const MUMBLE=['Why did they change math? Math is math…','New math, old math… it\'s all just math!','Carry the one… carry the one… where am I carrying it to?','In my day, 7 × 8 was 56. Still is!','Number lines… back in my day we had number SQUIGGLES.','Hmm, hmm… nine, ten… what was I counting?','Mumble, mumble… fractions… mumble…'];
@@ -73,7 +73,7 @@ function start(W,now){const R=reach(W);let s=null;try{s=[TOWN_X+2,TOWN_Y+4];}cat
  E={x:s[0],y:s[1],fx:s[0],fy:s[1],mt:0,path:[],dir:1,wait:now+4000,hidden:false,a:0,say:null,nextSay:now+(40+Math.random()*80)*1000,visitEnd:now+rnd(VISIT)};
  if(SMOKE){setTile(W,true);return;} /* the smoke test meets him straight away */
  const left=nextAt()-Date.now();E.hidden=true;E.moved=true;E.outT=now-1000;E.backAt=now+Math.max(left,rnd(FIRST));}
-function sayLine(){let done=false;try{const p=P(),i=npcQuestIdx(p,'elder');done=i>=0&&qState(p).active[i].done;}catch(e){}
+function sayLine(){let done=false;try{done=!!(window.Daily&&Daily.hasReward(P()));}catch(e){}
  const L=done&&Math.random()<.6?DONE:Math.random()<.3?MUMBLE:Math.random()<.4?QUEST:OTHER;return L[Math.floor(Math.random()*L.length)];}
 /* the hero is close: stop, face them, greet once per visit (he greets again only after they've wandered off and come back a bit later) */
 function greet(W,now){const d=Math.hypot(W.hx-E.x,W.hy-E.y);
@@ -90,7 +90,24 @@ function poof(now){if(E.poof||E.hidden)return;E.path=[];E.goIn=null;E.poof={at:n
 /* after vanishing he comes back somewhere well away from the hero */
 function relocate(W){const R=reach(W),ts=W.ts||48,off=c=>Math.abs(c[0]-W.hx)*ts>(W.vw||800)/2+ts||Math.abs(c[1]-W.hy)*ts>(W.vh||600)/2+ts;
  for(const need of [c=>off(c),()=>true])for(let i=0;i<80;i++){const c=R[Math.floor(Math.random()*R.length)];if(c&&Math.hypot(c[0]-W.hx,c[1]-W.hy)>FAR&&need(c)&&free(W.T[c[1]][c[0]],W,c[0],c[1])){E.x=E.fx=c[0];E.y=E.fy=c[1];return;}}} /* well away from the hero, off screen if possible */
+/* the 3 quests (daily.js): he comes to find the hero, the first map visit of the day with today's quests and again with the reward.
+   SEEK = 'intro' | 'reward'. He appears a few squares away (or walks over from where he is), follows the hero and, next to them,
+   opens his card through Daily.arrive(); then he leaves as after any talk. */
+let SEEK=null;
+function field(W){const T=W.T,H=T.length,Wd=T[0].length,dist=new Int16Array(H*Wd).fill(-1),q=[W.hx+W.hy*Wd];dist[q[0]]=0;
+ for(let i=0;i<q.length;i++){const k=q[i],x=k%Wd,y=(k-x)/Wd;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=Wd||ny>=H)continue;const n=nx+ny*Wd;const t=T[ny][nx];
+   if(dist[n]>=0||!t||t.block||t.water||t.rail||blocked(W,x,y,nx,ny))continue;dist[n]=dist[k]+1;q.push(n);}}return {dist,Wd};}
+function seekTick(W,now){
+ if(E.hidden||E.poof||E.leaving){const F=field(W),c=[];for(let i=0;i<F.dist.length;i++){const d=F.dist[i];if(d>=6&&d<=9){const x=i%F.Wd,y=(i-x)/F.Wd;if(free(W.T[y][x],W,x,y)&&!W.T[y][x].gate)c.push([x,y]);}}
+  if(!c.length)return;const [x,y]=c[Math.floor(Math.random()*c.length)];setTile(W,false);Object.assign(E,{x,y,fx:x,fy:y,hidden:false,poof:null,leaving:false,talked:null,path:[],goIn:null,a:0,mt:0,moved:false,visitEnd:now+rnd(VISIT)});E.say={t:SEEK==='reward'?'Yoo-hoo! I have something for you!':'Ah! There you are!',at:now};setTile(W,true);return;}
+ if(E.mt&&now-E.mt<STEP)return;E.mt=0;
+ const d=Math.max(Math.abs(E.x-W.hx),Math.abs(E.y-W.hy));
+ if(d<=1){if(W.moving)return;E.dir=W.hx>=E.x?1:-1;if(now<(E.seekWait||0))return;
+  if(window.Daily&&Daily.arrive&&Daily.arrive(SEEK)){SEEK=null;E.greeted=true;talked();}else E.seekWait=now+1500;return;}
+ const F=field(W);let best=null,bd=1e9;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=E.x+dx,ny=E.y+dy,t=W.T[ny]&&W.T[ny][nx];if(!t||!free(t,W,nx,ny)||blocked(W,E.x,E.y,nx,ny))continue;const dd=F.dist[nx+ny*F.Wd];if(dd>=0&&dd<bd){bd=dd;best=[nx,ny];}}
+ if(!best)return;setTile(W,false);E.fx=E.x;E.fy=E.y;if(best[0]!==E.x)E.dir=best[0]>E.x?1:-1;E.x=best[0];E.y=best[1];E.mt=now;setTile(W,true);}
 function tick(W,now){if(EW!==W){EW=W;REACH=null;E=null;}if(!E){start(W,now);if(!E)return;}
+ if(SEEK&&typeof curScreen!=='undefined'&&curScreen==='world'){E.a=Math.min(1,E.a+.05);seekTick(W,now);if(E.say&&now-E.say.at>5500)E.say=null;return;}
  if(E.hidden){if(E.poof&&now>E.poof.at+6000)E.poof=null;if(now>=E.backAt){if(E.moved){E.moved=false;relocate(W);}E.visitEnd=now+rnd(VISIT);E.poof=null;E.hidden=false;E.a=0;E.wait=now+2500;setTile(W,true);}return;}
  E.a=Math.min(1,E.a+.05);
  if(E.poof){if(now>=E.poof.vanish)away(W,now,rnd(GAP));return;}
@@ -121,11 +138,11 @@ function sparkles(ctx,x,y,ts,h,now,pf){ctx.save();
 function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T)return;tick(W,now);if(!E||!IMG.complete||!IMG.naturalWidth)return;
  const pf=E.poof,out=E.hidden?Math.max(0,1-(now-E.outT)/(pf?300:500)):E.a;if(out<=0&&!pf)return;const k=E.mt?Math.min(1,(now-E.mt)/STEP):1,dx=E.fx+(E.x-E.fx)*k,dy=E.fy+(E.y-E.fy)*k,sx=dx*ts-cx,sy=dy*ts-cy;
  if(sx<-ts*2||sy<-ts*3||sx>W.vw+ts||sy>W.vh+ts)return;
- let done=false;try{const p=P(),i=npcQuestIdx(p,'elder');done=i>=0&&qState(p).active[i].done;}catch(e){}
+ let done=false;try{done=!!(window.Daily&&Daily.hasReward(P()));}catch(e){}
  items.push({y:dy+.02,draw:()=>{const h=ts*1.4,w=h*64/96,bob=E.mt&&k<1?Math.abs(Math.sin(now/90))*2.5:Math.sin(now/600)*1.2;if(out>0){const fy=sy+ts*.97,sc=pf&&E.hidden?out:1,rot=pf&&!E.hidden?Math.sin(now/90)*.09:0;ctx.save();ctx.globalAlpha=out;ctx.translate(sx+ts/2,fy);ctx.rotate(rot);ctx.scale((E.dir<0?-1:1)*sc,sc);ctx.drawImage(IMG,-w/2,-h-bob,w,h);ctx.restore();}
   if(pf)sparkles(ctx,sx+ts/2,sy+ts*.97-h*.55,ts,h,now,pf);
   if(done&&!E.hidden){const r=ts*.16,bx=sx+ts/2,by=sy+ts*.97-h-r*1.3+Math.sin(now/300)*2;ctx.save();ctx.fillStyle='#ffd43b';ctx.strokeStyle=O;ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,r,0,7);ctx.fill();ctx.stroke();ctx.fillStyle=O;ctx.font=`900 ${Math.round(r*1.5)}px Fredoka, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',bx,by+1);ctx.restore();}}});
  if(E.say&&(!E.hidden||pf))items.push({y:1e6-2,draw:()=>bubble(ctx,sx+ts*.75,sy-ts*.25,ts,E.say.t,now-E.say.at,E.say.m)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
-window.MQ_ELDER={GREET,BYE,LEAVE,talked,TIMES:{VISIT,GAP,FIRST},tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){t=t||sayLine();E.say={t,at:performance.now(),m:MUMBLE.includes(t)};}},LINES:{QUEST,DONE,OTHER,MUMBLE},places:w=>places(w||W)};
+window.MQ_ELDER={GREET,BYE,LEAVE,talked,seek:w=>{SEEK=w||'intro';},seeking:()=>SEEK,TIMES:{VISIT,GAP,FIRST},tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){t=t||sayLine();E.say={t,at:performance.now(),m:MUMBLE.includes(t)};}},LINES:{QUEST,DONE,OTHER,MUMBLE},places:w=>places(w||W)};
 })();

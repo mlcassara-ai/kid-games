@@ -152,7 +152,7 @@ const tests=[
   T.reset();const p=T.hero('Wiz',3);state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
   const E=MQ_ELDER.state();T.ok(E&&!E.hidden&&W.T[E.y][E.x].npc==='elder'&&!W.T[E.y][E.x].block,'the Elder Wiz is not out on the map');
   T.ok(MQ_ELDER.places().length>=3,'the Elder Wiz has nowhere to walk into');MQ_ELDER.say('Hi!');T.ok(MQ_ELDER.state().say&&MQ_ELDER.state().say.t==='Hi!','the Elder Wiz cannot think out loud');
-  wNpc('elder');T.ok(/Elder Wiz says/.test(document.querySelector('#modal').innerText),'talking to the Elder Wiz did not open his quest card');closeModal();
+  wNpc('elder');T.ok(/Elder Wiz/.test(document.querySelector('#modal').innerText),'talking to the Elder Wiz did not open his card');closeModal();
   T.ok(/npc-art/.test(qFace('elder',1))&&/qface/.test(qFace('elder')),'the Elder Wiz card does not use his drawing');
   /* Coach Flex from the Fact Gym: rare visits (first at level 5 if never at the gym, then after 2 weeks away, not again for a week after saying later) */
   {const C=MQ_COACH,pp=P(),lv0=pp.level,g0=pp.gym,ago=n=>{const d=new Date();d.setDate(d.getDate()-n);return dayKey(d);};
@@ -228,7 +228,7 @@ const tests=[
   {try{closeModal();}catch(e){}await T.wait(80);const mt0=W.mt;let ok=false;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=W.hx+dx,ny=W.hy+dy,t=W.T[ny]&&W.T[ny][nx];if(t&&!t.block&&!t.npc&&!t.gate&&!t.chest&&!wWall(W.hx,W.hy,nx,ny)){W.moving=false;W.path=[];wStep(dx,dy);ok=true;break;}}
    T.ok(!ok||W.mt!==mt0,'the hero did not take the test step');await T.wait(200);T.ok(!ok||MQ_AMBIENT.puffs()>0,'no little puffs behind the hero after a step');}
   T.ok(W.T[1][10].water&&W.T[10][1].water&&W.T[WROWS-2][10].water&&W.T[10][WCOLS-2].water,'the sea round the map is not two tiles wide');
-  {const hx=W.hx,hy=W.hy;W.hx=3;W.hy=17;await T.wait(400);T.ok(MQ_AMBIENT.sea()>0,'no shark fins in the sea near the hero');T.ok(MQ_AMBIENT.jumpNow()&&MQ_AMBIENT.SHARK.includes(MQ_AMBIENT.jump())&&MQ_AMBIENT.SHARK.length>=5,'no shark leapt out of the sea next to the hero');W.hx=hx;W.hy=hy;}
+  {const hx=W.hx,hy=W.hy;W.hx=3;W.hy=17;for(let k=0;k<32&&!MQ_AMBIENT.sea();k++)await T.wait(250);T.ok(MQ_AMBIENT.sea()>0,'no shark fins in the sea near the hero');T.ok(MQ_AMBIENT.jumpNow()&&MQ_AMBIENT.SHARK.includes(MQ_AMBIENT.jump())&&MQ_AMBIENT.SHARK.length>=5,'no shark leapt out of the sea next to the hero');W.hx=hx;W.hy=hy;}
   {MQ_AMBIENT.sayNow();await T.wait(150);T.ok(MQ_AMBIENT.SAYS.includes(MQ_AMBIENT.say()),'the Wishing Fountain did not think out loud');}
   T.ok(window.MQ_AMBIENT&&MQ_AMBIENT.count()>0&&MQ_AMBIENT.count()<=18,'no ambient life near the hero, or too much ('+(window.MQ_AMBIENT?MQ_AMBIENT.count():'none')+')');
  }],
@@ -293,19 +293,39 @@ const tests=[
    T.ok(store.players.find(x=>x.id===h.id).coins===120,'the later change never reached the cloud');
   }finally{cloudGet=real.get;cloudPut=real.put;cloud.code=real.code;clearTimeout(cloud.timer);cloud.busy=false;cloud.again=false;BASE={};}}],
 
-['adventure: fix-it, focus battle, leave, reward',async function(){
-  T.reset();let p=T.hero('Adv',3);state.cur=p.id;p.stats.div={r:10,w:10};p.stats.add={r:30,w:2};
+['the Elder Wiz 3 quests: practice, battle, fun and his reward, one at a time; old quest lists retired; milestones',async function(){
+  T.reset();let p=T.hero('Adv',3);state.cur=p.id;p.stats.div={r:10,w:10};p.stats.add={r:30,w:2};p.bonusZ={d:dayKey(),z:'none-today'}; /* no Bonus World today, so quest 2 is the weakest skill */
   p.missed={'8 + 7':{n:2,a:15,op:'add',last:'2026-09-28',fixed:0,q:{op:'add',L:4,a:8,b:7,answer:15,text:'8 + 7'}}};
-  go('me','quests');T.ok(document.querySelector('.mequests .tad-card'),'Adventure card missing from Me → Quests');
+  go('me','quests');T.ok(document.querySelector('.mequests .tad-card .eq-q.on')&&/Warm up/.test(document.querySelector('.mequests .eq-q.on').textContent),'the Elder\'s first quest is not on Me → Quests');
+  T.ok(/1\/3/.test(Daily.badge(p)),'the top bar does not show quest 1 of 3');T.ok(!qState(p).active.length&&qState(p).v2,'the old quest-givers still hand out quests');
   p.missed['□ − □ = 15']={n:5,a:15,op:'sub',last:'2026-10-01',fixed:0,q:{op:'sub',L:4,answer:15,text:'□ − □ = 15'}};
   T.ok(!Daily._dbg.fixList(p).some(q=>/□/.test(q.text)),'a Flip-it problem (which needs two numbers) was offered in Fix-it');
   /* an online sync in the middle of the questions swaps the player for a fresh copy; progress must land on the new one */
   Daily.fix();T.answerAsk();{const i=state.players.indexOf(p);state.players[i]=T.clone(p);}T.answerAsk();T.answerAsk();
-  p=P();T.ok(p.tad&&p.tad.s===1,'fix-it progress was lost when the hero was refreshed by a sync');T.ok(p.missed['8 + 7'].fixed===1,'missed problem not marked');closeModal();
-  T.ok(p.tad.cur&&p.tad.cur.zid==='castle','focus battle is not the weakest skill: '+JSON.stringify(p.tad.cur));
-  Daily.battle();await T.until(()=>curScreen==='battle'&&B&&B.q&&!B.busy,10000,'focus battle');T.ok(B.foes.length===1&&B.mmax<110,'focus battle is not shortened');
+  p=P();T.ok(p.tad&&p.tad.s===1,'quest 1 progress was lost when the hero was refreshed by a sync');T.ok(p.missed['8 + 7'].fixed===1,'missed problem not marked');
+  await T.wait(400);T.ok(/second quest/.test(document.querySelector('#modal').innerText),'the Elder did not hand out quest 2 right away');closeModal();
+  T.ok(p.tad.cur&&p.tad.cur.zid==='castle','quest 2 is not the weakest skill: '+JSON.stringify(p.tad.cur));
+  Daily.battle();await T.until(()=>curScreen==='battle'&&B&&B.q&&!B.busy,10000,'quest 2 battle');T.ok(B.foes.length===1&&B.mmax<110,'quest 2 battle is not shortened');
   fleeBattle();T.ok(/Show me how/.test(document.querySelector('#modal').innerText),'help button missing');doFlee();T.ok(p.tad.owe&&p.tad.owe.zid==='castle','left monster not remembered');
-  p.tad.s=2;const c0=p.coins;Daily.take('coins');T.ok(p.tad.s===3&&p.tad.stars===1&&p.coins===c0+30,'reward not given');closeModal();}],
+  try{closeModal();}catch(e){}hook('battle',P(),{win:true,zone:P().tad.cur.zid,i:P().tad.cur.i});await T.wait(400);
+  T.ok(P().tad.s===2&&/last quest/.test(document.querySelector('#modal').innerText),'winning the battle did not bring quest 3');closeModal();
+  questEvent(P(),'story',1);p=P();T.ok(p.tad.s===3&&p.tad.rw&&p.tad.stars===1,'a fun pick did not finish the day with a reward');T.ok(/🎁/.test(Daily.badge(p)),'the top bar does not show the waiting reward');try{closeModal();}catch(e){}
+  p.tad.d='2000-01-01';Daily._dbg.tad(p);T.ok(p.tad.s===0&&p.tad.rw,'an earned reward was lost overnight');
+  {p.tad.rw={k:'coins',n:55};const c0=p.coins;Daily.rewardCard();T.ok(p.coins===c0+55&&!p.tad.rw&&/55 coins/.test(document.querySelector('#modal').innerText),'the coin reward was not given');closeModal();
+   p.tad.rw={k:'silly',id:'rock'};const c1=p.coins;Daily.rewardCard();T.ok(p.coins===c1+15&&p.elderGifts.rock===1&&/Gerald/.test(document.querySelector('#modal').innerText),'Gerald the rock was not given');closeModal();
+   go('me','bag');T.ok(/Gerald/.test(document.body.innerText),'Gerald is not in Treasures');
+   p.tad.rw={k:'silly',id:'sandwich'};Daily.rewardCard();T.ok(document.querySelector('#modal .eq-gag')&&/Cafeteria/.test(document.querySelector('#modal').innerText),'the sandwich gag is missing');closeModal();
+   T.ok(Daily._dbg.roll(p,{streak:7}).k==='egg'&&Daily._dbg.roll(p,{streak:30}).k==='legend','streak days 7 and 30 do not give an egg and a Legend egg');}
+  /* he walks up to the hero on the map with today's quests */
+  {p.tad.met=null;p.tad.rw=null;go('world');await T.wait(100);try{closeModal();}catch(e){}MQ_ELDER.seek('intro');const t0=performance.now();for(let i=0;i<80&&!document.querySelector('#modal.show');i++){const E2=MQ_ELDER.state();if(E2)E2.mt=0;MQ_ELDER.tick(t0+i*600);}
+   T.ok(/3 quests/.test(document.querySelector('#modal').innerText)&&P().tad.met===dayKey(),'the Elder did not walk up to the hero with today\'s quests');closeModal();T.ok(!MQ_ELDER.seeking(),'the Elder kept looking for the hero');}
+  wNpc('elder');T.ok(/quest/.test(document.querySelector('#modal').innerText),'bumping the Elder does not show today\'s quest');closeModal();
+  /* old quest lists: finished-but-unclaimed quests pay out once */
+  {const q=T.hero('Old',3);q.qs={idx:{},active:[{c:'elder',i:2,prog:1,done:true},{c:'hoot',i:0,prog:0,done:false}],rot:2};const c0=q.coins,e0=q.eggs;qState(q);T.ok(q.coins===c0+150&&q.eggs===e0+1&&!q.qs.active.length,'old finished quests did not pay out');}
+  /* milestones: already reached ones are marked quietly; new ones pay */
+  {const m=T.hero('Ms',3);m.battles=60;const c0=m.coins;Milestones.check(m);T.ok(m.coins===c0&&m.ms.d.b50,'milestones reached before were paid again');m.battles=100;Milestones.check(m);T.ok(m.coins===c0+300&&m.ms.d.b100,'a new milestone was not paid');
+   state.cur=m.id;go('me','tro');T.ok(/Milestones/.test(document.body.innerText)&&/Hundred Hero/.test(document.body.innerText),'milestones are not in Trophies');}
+  go('world');await T.wait(50);}],
 
 ['pets and camp: trick, no math to send or unpack, trail pack, loot',async function(){
   T.reset();const p=T.hero('Camp',3);state.cur=p.id;go('pethome');try{closeModal();}catch(e){}
@@ -323,7 +343,7 @@ const tests=[
   for(let y=0;y<W.T.length;y++)for(let x=0;x<W.T[y].length;x++){const t=W.T[y][x];if(t.npc&&t.npc!=='town'&&t.npc!=='fountain'&&t.npc!=='station'&&t.npc!=='tride'&&t.npc!=='elder')bad.push('an old plaza building is still on the map: '+t.npc);}
   {const f=NPCS.find(n=>n.id==='fountain');if(W.T[f.y][f.x].npc!=='fountain')bad.push('the Wishing Fountain is not in front of the Town');}
   if(!wWalk(TOWN_X+2,TOWN_Y+3))bad.push('the Town door cannot be reached');
-  PLAZA_DECOR.flat().forEach(([e,x,y])=>{if(!W.T[y][x].plaza||W.T[y][x].npc)bad.push('plaza decoration at '+x+','+y+' is misplaced');});
+  PLAZA_DECOR.flat().forEach(([e,x,y])=>{if(!W.T[y][x].plaza||(W.T[y][x].npc&&W.T[y][x].npc!=='elder'))bad.push('plaza decoration at '+x+','+y+' is misplaced');});
   T.ok(!bad.length,bad.join('; '));
   wNpc('town');T.ok(curScreen==='town'&&document.getElementById('mtStreet'),'bumping the Town did not open Main Street');
   {const ids=[...document.querySelectorAll('.mt-shop[data-id]')].map(b=>b.dataset.id);const want=NPCS.filter(n=>!n.opt&&!n.walks&&n.id!=='fountain').map(n=>n.id);T.ok(!ids.includes('elder'),'the Elder Wiz is still on Main Street');T.ok(!ids.includes('fountain'),'the fountain has two doors (map and Main Street)');T.ok(want.every(id=>ids.includes(id)),'Main Street is missing a place: '+want.filter(id=>!ids.includes(id)).join(','));
@@ -336,7 +356,7 @@ const tests=[
   W=null;go('world');await T.wait(100);T.ok(TownView.count(P())>=1,'the Town building shows no badge when a spin is ready');
   T.ok(!NPCS.some(n=>n.id==='school'||n.id==='board'),'a menu-only building is back on the plaza');/* Oct 2026: no Quest Board: quests in Me → Quests, School on Main Street, worlds on the map */
   go('world');await T.wait(100);T.ok(!/Quest Board/.test(document.querySelector('.wtop').innerText),'the Quest Board button is still on the map');
-  go('map');T.ok(curScreen==='me'&&document.querySelector('.mequests .qpanel')&&document.querySelector('.metabs [data-t="quests"].on'),'an old way to the Quest Board does not land on Me → Quests');
+  go('map');T.ok(curScreen==='me'&&document.querySelector('.mequests .tad-card')&&document.querySelector('.metabs [data-t="quests"].on'),'an old way to the Quest Board does not land on Me → Quests');
   go('town');T.ok(document.querySelector('.mt-shop[data-id="school"]'),'no School on Main Street');p.vil=p.vil||{};p.vil.portal=2;go('town');T.ok(/★/.test(document.querySelector('.mt-shop[data-id="school"]').textContent),'Quest Portal stars missing from the School');
   document.querySelector('.mt-shop[data-id="school"]').click();await T.wait(600);T.ok(curScreen==='school'&&document.querySelector('.z-spell')&&document.querySelector('.z-hw')&&/Town/.test(document.querySelector('.backbtn').textContent),'the School on Main Street did not open Spelling, quizzes and homework');
   go('quests','hw');T.ok(/School/.test(document.querySelector('.backbtn').textContent),'Homework does not go back to the School');go('world');await T.wait(50);
@@ -635,11 +655,11 @@ const tests=[
    go('pethome');try{closeModal();}catch(e){}T.ok(document.querySelector('.pc-nm[role=button]'),'pet names in Pet Home are not tappable');}
   {const w=PetCare._when(Date.now()+7*864e5+3*36e5+3e4);T.ok(/7 days 3 hours left/.test(w)&&/\d/.test(w.split('(')[0]),'Nana Paws time is not clear: '+w);}
   /* Today's Adventure: a kid with their own school content gets a School work step before the reward, once a day */
-  {T.reset();const j=T.hero('Jibreel',5);state.cur=j.id;const t=Daily._dbg.tad(j);t.s=2;const card=()=>{const d=document.createElement('div');d.innerHTML=Daily.cardHTML(P());return d.innerText;};
-   T.ok(/School work/.test(card())&&/Punctuation Detective/.test(card()),'no School work step for Jibreel: '+card().slice(0,200));
-   Daily.pick();T.ok(curScreen==='battle'&&B&&B.mode==='quiz'&&B.qid==='j-punct'&&B.backTo==='me'&&B.backArg==='quests','Pick your fun did not send him to the school quiz first');
-   go('me','quests');P().quizStats['j-punct']={best:60,tries:1,stars:1,d:dayKey()};T.ok(/Pick your fun ➜/.test(card())&&/✅ 3 · School work/.test(card()),'the reward is not open after doing the school quiz today');
-   const o=T.hero('Other',5);state.cur=o.id;Daily._dbg.tad(o).s=2;T.ok(!/School work/.test(card()),'School work shown to a hero without their own school content');}
+  {T.reset();const j=T.hero('Jibreel',5);state.cur=j.id;const t=Daily._dbg.tad(j);const card=()=>{const d=document.createElement('div');d.innerHTML=Daily.cardHTML(P());return d.innerText;};
+   T.ok(/School work/.test(card())&&/Punctuation Detective/.test(card()),'quest 1 is not School work for Jibreel: '+card().slice(0,200));
+   Daily.go();T.ok(curScreen==='battle'&&B&&B.mode==='quiz'&&B.qid==='j-punct'&&B.backTo==='me'&&B.backArg==='quests','quest 1 did not send him to the school quiz');
+   go('me','quests');P().quizStats['j-punct']={best:60,tries:1,stars:1,d:dayKey()};Daily.check();T.ok(P().tad.s===1&&/✅Schoolwork/.test(card().replace(/\s+/g,'')),'doing the school quiz did not finish quest 1');try{closeModal();}catch(e){}
+   const o=T.hero('Other',5);state.cur=o.id;T.ok(!/School work/.test(card())&&/Warm up/.test(card()),'School work shown to a hero without their own school content');}
   T.reset();const p=T.hero('Jibreel',5);state.cur=p.id;const ids=quizList(p).map(z=>z.id||z.key||z);T.ok(JSON.stringify(ids).includes('j-punct')&&JSON.stringify(ids).includes('j-matter'),'this week\'s quizzes do not reach Jibreel: '+JSON.stringify(ids).slice(0,200));
  }],
  ['discovery district games: every zone plays, scores, pays, unlocks and survives a sync',async function(){

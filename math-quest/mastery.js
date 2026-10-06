@@ -230,7 +230,7 @@ function check(p){const s=SP,f=s.list[s.i];const secs=(performance.now()-s.t0)/1
  drawSprint(p);
  setTimeout(()=>{if(SP!==s)return;s.i++;s.input='';s.cls='';s.fb='';s.busy=false;s.t0=performance.now();
   if(s.i>=s.list.length)finish(p);else drawSprint(p);},ok?700:1700);}
-function finish(p){const s=SP;s.done=true;const m=M(p);const si=sprintInfo(p);const right=s.res.filter(x=>x).length;
+function finish(p){const s=SP;s.done=true;try{questEvent(P(),'sprint',1);}catch(e){}const m=M(p);const si=sprintInfo(p);const right=s.res.filter(x=>x).length;
  s.rewarded=si.left>0;s.coins=s.rewarded?Math.min(15,right+(right===s.list.length&&s.list.length>=12?3:0)):0;
  if(s.rewarded){m.sp=dayKey()+':'+(si.used+1);p.coins+=s.coins;}
  try{SFX.win();}catch(e){}try{save();}catch(e){}drawSprint(p);}
