@@ -155,6 +155,13 @@ const tests=[
   wNpc('elder');T.ok(/Elder Wiz says/.test(document.querySelector('#modal').innerText),'talking to the Elder Wiz did not open his quest card');closeModal();
   T.ok(MQ_ELDER.LINES.OTHER.length>=10&&MQ_ELDER.LINES.QUEST.length>=3,'the Elder Wiz has too few things to say');
  }],
+['fog days: now and then the map starts foggy in front of the fountain and clears as you walk',async function(){
+  T.reset();const p=T.hero('Foggy',3);state.cur=p.id;go('world');await T.wait(200);try{closeModal();}catch(e){}
+  const ago=n=>{const d=new Date();d.setDate(d.getDate()-n);return dayKey(d);};
+  p.fog={last:ago(15)};T.ok(MQ_FOG.due(p),'no fog day after two weeks');p.fog={last:ago(3)};T.ok(!MQ_FOG.due(p),'a fog day only 3 days after the last one');p.fog={last:dayKey()};T.ok(!MQ_FOG.due(p),'two fog days on the same day');
+  T.ok(MQ_FOG.start()&&MQ_FOG.on(),'a fog day did not start');const f=NPCS.find(q=>q.id==='fountain');T.ok(W.hx===f.x&&W.hy===f.y+1,'the fog day did not start in front of the fountain');
+  await T.wait(200);T.ok(MQ_FOG.seen()>10,'walking does not clear the fog');MQ_FOG.stop();
+ }],
 ['map presents: drawn presents that move between 45-minute windows, never block walking, vanish once opened',async function(){
   T.reset();const p=T.hero('Gifts',3);state.cur=p.id;go('world');await T.wait(200);T.ok(window.MQ_PRESENTS,'presents.js is not loaded');
   const C=MQ_PRESENTS.cands(W),ks=Object.keys(C);T.ok(ks.length>=10&&ks.every(k=>C[k].length>0),'some areas have nowhere to put a present');

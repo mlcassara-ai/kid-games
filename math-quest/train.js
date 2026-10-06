@@ -50,13 +50,38 @@ function whistle(){try{if(!state.sound)return;[[0,.5],[.62,1.1]].forEach(([d,l])
 function chug(){try{if(!state.sound)return;tone(68,.09,'square',.018);tone(140,.05,'triangle',.012,.02);}catch(e){}}
 /* ---------- visitors ---------- */
 const imgs={};const svgImg=(k,s)=>{if(!imgs[k]){const i=new Image();i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(/xmlns=/.test(s)?s:s.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '));imgs[k]=i;}return imgs[k];};
+/* train visitors (owner, Oct 2026: no name tags, just what they say, with lots of funny lines; Ms. Rosa drawn full body; the Elder Wiz
+   walks the map now, elder.js, so he isn't on the train) */
+const ROSA_SVG=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 96"><ellipse cx="32" cy="92" rx="17" ry="3.5" fill="rgba(0,0,0,.22)"/>
+<ellipse cx="25" cy="90" rx="6" ry="3" fill="#7a3b1a" stroke="#3b2a1e" stroke-width="1.8"/><ellipse cx="39" cy="90" rx="6" ry="3" fill="#7a3b1a" stroke="#3b2a1e" stroke-width="1.8"/>
+<path d="M22 44 Q32 40 42 44 L47 87 Q32 91 17 87 Z" fill="#fff" stroke="#3b2a1e" stroke-width="2.4" stroke-linejoin="round"/>
+<path d="M24 52 H40 L43 86 Q32 89 21 86 Z" fill="#ff6b6b" stroke="#3b2a1e" stroke-width="2.2" stroke-linejoin="round"/><path d="M26 64 h12 v8 h-12 z" fill="#ffa8a8" stroke="#3b2a1e" stroke-width="1.6"/>
+<path d="M24 52 Q32 46 40 52" stroke="#3b2a1e" stroke-width="2" fill="none"/><circle cx="29" cy="47" r="1.3" fill="#3b2a1e"/><circle cx="35" cy="47" r="1.3" fill="#3b2a1e"/>
+<path d="M42 48 Q50 54 50 62" stroke="#3b2a1e" stroke-width="7.5" fill="none" stroke-linecap="round"/><path d="M42 48 Q50 54 50 62" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M22 48 Q14 56 16 64" stroke="#3b2a1e" stroke-width="7.5" fill="none" stroke-linecap="round"/><path d="M22 48 Q14 56 16 64" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M51 70 L56 40" stroke="#3b2a1e" stroke-width="5" stroke-linecap="round"/><path d="M51 70 L56 40" stroke="#c98a54" stroke-width="3" stroke-linecap="round"/><ellipse cx="56.5" cy="36" rx="4" ry="5.5" fill="#c98a54" stroke="#3b2a1e" stroke-width="2"/>
+<circle cx="50" cy="64" r="3.6" fill="#c68642" stroke="#3b2a1e" stroke-width="1.8"/><circle cx="16" cy="66" r="3.4" fill="#c68642" stroke="#3b2a1e" stroke-width="1.8"/>
+<path d="M21 34 Q19 24 25 21 Q32 16 39 21 Q45 24 43 34 Q44 40 39 41 L25 41 Q20 40 21 34 Z" fill="#3b2314" stroke="#3b2a1e" stroke-width="2"/>
+<circle cx="32" cy="32" r="9.5" fill="#c68642" stroke="#3b2a1e" stroke-width="2"/><circle cx="28.5" cy="31" r="1.4" fill="#3b2a1e"/><circle cx="35.5" cy="31" r="1.4" fill="#3b2a1e"/>
+<path d="M28 35.5 Q32 39 36 35.5" stroke="#3b2a1e" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="26" cy="34.5" r="1.7" fill="#ff8787" opacity=".7"/><circle cx="38" cy="34.5" r="1.7" fill="#ff8787" opacity=".7"/>
+<circle cx="22" cy="30" r="3" fill="#3b2314" stroke="#3b2a1e" stroke-width="1.5"/><circle cx="42" cy="30" r="3" fill="#3b2314" stroke="#3b2a1e" stroke-width="1.5"/>
+<path d="M22 22 Q20 10 27 9 Q29 3 34 5 Q39 2 42 8 Q48 9 44 22 Z" fill="#fff" stroke="#3b2a1e" stroke-width="2.2" stroke-linejoin="round"/><rect x="22" y="19" width="22" height="5" rx="2" fill="#fff" stroke="#3b2a1e" stroke-width="2"/></svg>`;
 const WHO=[
- {id:'kind',n:'✨ The Kind Teacher',art:()=>typeof kindSVG==='function'&&svgImg('kind',kindSVG()),ar:240/330,h:1.5,off:['Off to see who needs a little help today!','What a lovely little town.'],on:['Time to visit another class!','Keep trying, you are doing great!']},
- {id:'quartz',n:'🔬 Dr. Quartz',art:()=>window.Quartz&&Quartz.SVG&&svgImg('quartz',Quartz.SVG),ar:100/120,h:1.4,off:['Off to the rock shop!','I heard there are new crystals in town.'],on:['Back to my digging!','Rocks wait for no one!']},
- {id:'principal',n:'🎓 Principal Wise',art:()=>typeof principalMapSVG==='function'&&svgImg('principal',principalMapSVG()),ar:100/150,h:1.45,off:['Just checking on everyone in town.','Good morning, Number Town!'],on:['Off to a meeting!','Keep up the good work!']},
- {id:'rosa',n:'Ms. Rosa',e:'👩‍🍳',off:['Fresh ingredients for the cafeteria!','I smell muffins already.'],on:['Back to my kitchen!','Lunch will not cook itself!']},
- {id:'elder',n:'Elder Wiz',e:'🧙',off:['A fine day for a stroll.','Hmm, numbers everywhere!'],on:['Off on a wizard errand.','Farewell, young wizard!']},
- {id:'keeper',n:'Pet Keeper',e:'🧑‍🌾',off:['I brought snacks for the pets!','Hello, Number Town!'],on:['Time to feed the pets!','See you soon!']}];
+ {id:'kind',n:'✨ The Kind Teacher',art:()=>typeof kindSVG==='function'&&svgImg('kind',kindSVG()),ar:240/330,h:1.5,
+  off:['I helped 23 kids carry the ones today!','Someone forgot the 7s again. I\'m on my way!','So many kids, so many times tables!','A girl counted to 10 on her toes today. Clever!','Who needs a little help? Everybody, a little!','I\'ve told 50 kids today: mistakes grow your brain!'],
+  on:['Off to another class! They need me!','Bye! Keep practising those facts!','I hear a fraction crying… must dash!','Don\'t give up! I\'ll be back!']},
+ {id:'quartz',n:'🔬 Dr. Quartz',art:()=>window.Quartz&&Quartz.SVG&&svgImg('quartz',Quartz.SVG),ar:100/120,h:1.4,
+  off:['4.6 billion years old… give or take a Tuesday.','Quartz is 7 on the hardness scale. Like 3 + 4!','If I split this rock in half… two rocks!','Igneous, sedimentary… where did I put my keys?','Mumble… magma… mumble… marshmallows.','Diamonds are just squished carbon, you know.'],
+  on:['I must get back before my rocks get bored.','Science waits for no one!','If this train goes 60 km an hour… I\'m late!','Back to the lab! Something is bubbling…']},
+ {id:'principal',n:'🎓 Principal Wise',art:()=>typeof principalMapSVG==='function'&&svgImg('principal',principalMapSVG()),ar:100/150,h:1.45,
+  off:['Good morning, Number Town!','Just checking everyone is learning their facts.','Walking is good thinking time.','Has anyone seen my whistle?'],
+  on:['Off to a very important meeting… about snacks.','Keep up the good work!','Remember: no running in the hallway!']},
+ {id:'rosa',n:'Ms. Rosa',art:()=>svgImg('rosa',ROSA_SVG),ar:64/96,h:1.4,
+  off:['Fresh carrots… and maybe a muffin.','Who wants spaghetti? Everybody wants spaghetti!','My soup needs exactly 3½ pinches of salt.','Did someone say pizza? I definitely said pizza.','Fruit is nature\'s candy!','1,000 cookies: that\'s 10 trays of 100!'],
+  on:['My oven is calling me!','Lunch will not cook itself!','Eat your vegetables, everyone!','Back to the kitchen! Something smells… burnt?!']},
+ {id:'keeper',n:'Pet Keeper',e:'🧑‍🌾',
+  off:['I brought snacks for the pets!','A bunny learned to count to 3 today!','Has anyone seen a runaway hamster?','Pets love a pat on the head!'],
+  on:['Time to feed the pets!','The goldfish are waiting for me!','See you soon! Pat your pet for me!']}];
 const pickWho=skip=>{const busy=id=>!!W&&W.mobs.some(m=>id==='principal'&&m.principal||id==='quartz'&&m.quartz)||TR.walkers.some(v=>v.w.id===id);const c=WHO.filter(w=>w.id!==skip&&!busy(w.id));if(!c.length)return null;return c[Math.floor(Math.random()*c.length)];};
 const DOOR=[22,15.35]; /* Number Town's front door */
 function spawnRider(){if(Math.random()<.45)return;const w=pickWho(TR.aboard[0]&&TR.aboard[0].id);if(!w)return;const cx=STOP-LEN+1.4+Math.random()*2.5;
@@ -106,7 +131,7 @@ function drawWalker(ctx,v,cx,cy,ts,now){const sx=v.x*ts-cx,sy=v.y*ts-cy,w=v.w,bo
  ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.9,ts*.3,ts*.09,0,0,7);ctx.fill();
  const im=w.art&&w.art();if(im&&im.complete&&im.naturalWidth){const hh=ts*w.h,ww=hh*w.ar;ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*.95-hh-bob,ww,hh);}
  else{const s=ts*1.05;ctx.drawImage(wSprite(w.e||'🙂',Math.round(ts)),sx+ts/2-s/2,sy+ts*.95-s-bob,s,s);}
- ctx.restore();if(v.a>.6){try{wLabel(ctx,w.n,sx+ts/2,sy-ts*.62,'#fff','rgba(43,35,64,.82)');}catch(e){}if(v.sayT>0)bubble(ctx,v.say,sx+ts/2,sy-ts*.9,ts);}}
+ ctx.restore();if(v.a>.6&&v.sayT>0)bubble(ctx,v.say,sx+ts/2,sy-ts*.62,ts);} /* no name tags, just what they say */
 /* the board: time until the train comes, then ARRIVING, then a countdown to departure while it boards, then DEPARTING */
 const mmss=s=>{s=Math.max(0,Math.ceil(s));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
 function boardText(){return TR.ph==='away'?mmss(TR.wait):TR.ph==='in'?'ARRIVING':TR.ph==='stop'?mmss(T_STOP-TR.t):'DEPARTING';}
