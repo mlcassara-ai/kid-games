@@ -554,8 +554,8 @@ function teamOut(i){if(VIEW.k!=='team')return;VIEW.team.splice(i,1);screen();}
 function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;const S=stages().find(s=>s.id===VIEW.id);const team=VIEW.team.map(id=>PETS.find(x=>x.id===id)).filter(Boolean);
  if(!VIEW.flyOk&&flyRisk(S,team)){if(!document.getElementById('bpFlyW'))flyWarn();return;}
  rec(p);prog(p).team=VIEW.team.slice();const b=p.bp=p.bp||{s:0,m:[]};b.s=(b.s||0)+1;save();
- newBattle(p,S,VIEW.crown,team,VIEW.asc);G.megaId=prog(p).mega==='eagle'?'eagle':'troll';G.tk=VIEW.tk?G.crown:0;G.q=makeQ(p,S.op);G.songPick=Math.floor(Math.random()*3);enterFS();VIEW={k:'fight',id:S.id,crown:G.crown,asc:G.asc};screen();}
-/* the battle takes over the whole screen: no menus, just ✕ Exit (and the browser goes full screen where it can) */
+ newBattle(p,S,VIEW.crown,team,VIEW.asc);G.megaId=prog(p).mega==='eagle'?'eagle':'troll';G.tk=VIEW.tk?G.crown:0;G.q=makeQ(p,S.op);G.songPick=Math.floor(Math.random()*3);VIEW={k:'fight',id:S.id,crown:G.crown,asc:G.asc};screen();}
+/* the battle takes over the whole screen: no menus, just ✕ Exit (and the battle fills the page; the browser's own full-screen mode is not used (owner, Oct 2026: its "press Esc" popup is annoying)) */
 function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
  app.innerHTML=`<div class="bp2-full" id="bpFull">
   <div class="bp2-top"><button class="bp2-exit" onclick="BattlePets._quit()" aria-label="Exit the battle">✕ Exit</button><button class="bp2-exit" onclick="BattlePets._sound()" aria-label="Sound (pauses the battle)">🔊</button><button class="bp2-exit" onclick="BattlePets._report()" aria-label="Report a problem or a suggestion (pauses the battle)">🐞</button><span class="bp2-title">${S.art} ${esc(S.name)} ${G.asc?'✨ Ascend '+G.asc:'👑'.repeat(G.crown)}</span>
