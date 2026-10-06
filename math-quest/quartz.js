@@ -166,7 +166,7 @@ function tick(){try{
  else walk(performance.now());}catch(e){}}
 setInterval(()=>{try{
  // time's up while in the cave (play-time bank) → close the cave cleanly
- if(document.getElementById('cvRoot')&&typeof curScreen!=='undefined'&&curScreen!=='cave'&&window.Cave){Cave.leave();}}catch(e){}
+ if(document.getElementById('cvRoot')&&!document.querySelector('#cvRoot.cv-room')&&typeof curScreen!=='undefined'&&curScreen!=='cave'&&window.Cave){Cave.leave();}}catch(e){} /* a Lab room (Cave.room) is not a trip: leave it alone */
  tick();},450);
 
 if(/quartzdemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&curScreen==='world'){clearInterval(iv);DEMO=true;toast('🔬 Dr. Quartz preview: he\'s on his way…');}}catch(e){}},500);}

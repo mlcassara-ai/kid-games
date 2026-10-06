@@ -231,7 +231,7 @@ const campOnly=(f,i)=>f.camp!=null&&i===f.camp;
 
 /* ---------------- DOM ---------------- */
 function build(){
- root=document.createElement('div');root.className='cv'+(MQ()?' cv-mq':'');root.id='cvRoot';
+ root=document.createElement('div');root.className='cv'+(MQ()?' cv-trip':''); /* not cv-mq: that class is the big math question */root.id='cvRoot';
  root.innerHTML=`<canvas id="cvC"></canvas>
  <div class="cv-top"><div class="cv-row1"><div class="cv-chip" id="cvLayer"></div><div class="cv-res"><span id="cvCoins"></span><span id="cvRP"></span><span id="cvPack"></span></div><button class="cv-x cv-snd" id="cvSnd" aria-label="Sound and music"></button><button class="cv-x cv-map" id="cvExit" aria-label="Back to the map">🗺️<span class="cv-mapt"> Map</span></button></div>
   <div class="cv-row2"><div class="cv-g" id="cvG"></div><div class="cv-bat" title="Battery"><i id="cvBatI"></i><span id="cvBatT"></span></div></div></div>
@@ -817,7 +817,7 @@ function openPower(){charge();let Q=H.mathQ?H.mathQ():mathQ(+H.player.grade||3),
  const gain=()=>Math.max(1,Math.min(powerLeft(),Math.max(4,Math.round(batMax()*.06))));
  const draw=()=>{const bm=batMax();const sh=modal(`<h2>⚡ Power Up!</h2><p class="cv-sub">Every right answer adds <b>+${gain()} 🔋</b>. ${S.bat>=bm||!fullIn()?'':'Or just wait — it charges by itself at camp (full in '+fullIn()+').'}</p>${bankHTML()}
   <div class="cv-meter ok"><i style="width:${S.bat/bm*100}%"></i></div><p class="cv-sub" style="text-align:center">🔋 ${Math.floor(S.bat)} / ${bm}${streak>1?` · 🔥 ${streak} in a row`:''}</p>
-  ${S.bat>=bm-.5?`<div class="cv-card"><div class="cv-big">🔋</div><h2>Fully charged!</h2><button class="cv-btn" data-close>Go dig!</button></div>`:powerLeft()<=0?`<div class="cv-card">${guide('Phew — that is all the charge this battery can take on one trip! Finish up here, and bring me another 🪨 <b>mystery rock</b> from Math Quest to come back.')}<button class="cv-btn" data-close>OK</button></div>`:`
+  ${S.bat>=bm-.5?`<div class="cv-card"><div class="cv-big">🔋</div><h2>Fully charged!</h2><button class="cv-btn" data-close>${root&&root.classList.contains('cv-room')?'Done':'Go dig!'}</button></div>`:powerLeft()<=0?`<div class="cv-card">${guide('Phew — that is all the charge this battery can take on one trip! Finish up here, and bring me another 🪨 <b>mystery rock</b> from Math Quest to come back.')}<button class="cv-btn" data-close>OK</button></div>`:`
   <div class="cv-mq">${esc(Q.q)}${Q.x?'<small>x = ?</small>':' = ?'}</div><div class="cv-inp">${esc(inp)||'&nbsp;'}</div><div style="min-height:38px">${note}</div>
   <div class="cv-pad2">${[1,2,3,4,5,6,7,8,9,'±',0,'⌫'].map(k=>`<button data-k="${k}">${k}</button>`).join('')}</div>
   <div class="cv-row"><button class="cv-btn" id="cvChk">✓ Check</button></div>`}`,{wide:0});
@@ -1110,7 +1110,7 @@ function probeRun(){
 }
 
 /* ---------------- styles ---------------- */
-const CSS=`.cv.cv-mq .cv-bat,.cv.cv-mq #cvCoins,.cv.cv-mq #cvExit{display:none!important}
+const CSS=`.cv.cv-trip .cv-bat,.cv.cv-trip #cvCoins,.cv.cv-trip #cvExit{display:none!important}
 .cv.cv-room{background:rgba(20,12,50,.55)!important}.cv.cv-room>#cvC,.cv.cv-room>.cv-top,.cv.cv-room>.cv-pad,.cv.cv-room>.cv-depth,.cv.cv-room>.cv-msg{display:none!important}
 
 .cv{position:fixed;inset:0;z-index:5000;background:#0b0710;font-family:'Fredoka',system-ui,sans-serif;color:#241a3d;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
