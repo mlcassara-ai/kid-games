@@ -162,7 +162,7 @@ function buy(confirmNow){const p=P(),s=Q(p);if(s.lab.rockDay===dayKey()||s.rocks
  if(!confirmNow&&box){box.innerHTML=`<span style="font-weight:600;display:block;margin-bottom:6px">Spend 🪙 ${ROCK_PRICE} on a mystery rock?</span><button class="btn gold small" onclick="Lab.buy(1)">Yes, buy it</button><button class="btn ghost dark small" onclick="Lab.draw()">No</button>`;return;}
  if(DEMO){toast('🔬 Preview: nothing was bought.');draw();return;}
  p.coins-=ROCK_PRICE;s.rocks++;s.lab.rockDay=dayKey();s.lab.bought=(s.lab.bought||0)+1;save();try{SFX.coin();}catch(e){}toast('🪨 +1 Mystery Rock!');draw();}
-function down(useRock){const p=P(),s=Q(p);if(DEMO){toast('🔬 Preview: the elevator is closed.');return;}
+function down(useRock){const p=P(),s=Q(p);window.__tripFrom='lab';if(DEMO){toast('🔬 Preview: the elevator is closed.');return;}
  const free=freeRide(s)&&!useRock;if(!free&&s.rocks<=0)return;
  try{SFX.tap();}catch(e){}
  if(free){s.lab.freeDay=dayKey();save();}

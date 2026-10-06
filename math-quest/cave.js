@@ -243,7 +243,7 @@ function build(){
  document.body.appendChild(root);
  root.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&!b.closest('#cvPad'))sfx('tap');},true); // every button clicks softly
  cv=root.querySelector('#cvC');ctx=cv.getContext('2d');fog=document.createElement('canvas');fctx=fog.getContext('2d');
- root.querySelector('#cvExit').onclick=()=>leave();
+ root.querySelector('#cvExit').onclick=()=>leave();if(MQ()){const ex=root.querySelector('#cvExit');const toLab=!!(H.fromLab&&H.fromLab());ex.innerHTML=`🛗<span class="cv-mapt"> ${toLab?'Up to the Lab':'Back up'}</span>`;ex.setAttribute('aria-label',toLab?'Up to the Lab':'Back up');}
  const sb=root.querySelector('#cvSnd');const sbSet=()=>{const off=window.Music&&Music.muted&&Music.muted('cave');const I=typeof TB_ICONS!=='undefined'?TB_ICONS:null;if(I)sb.innerHTML=off?I.mute:I.sound;else sb.textContent=off?'🔇':'🔊';sb.title='Sound & music';};sbSet();
  // the sound panel sits in its own layer above everything, so it never replaces a lab test or a card that's open
  const sndClose=()=>{const o=root.querySelector('.cv-sndov');if(o)o.remove();sbSet();};
@@ -331,7 +331,7 @@ function after(){
 function beamHome(why){sfx('beam');metNow.clear();
  const dv=S.dive;S.dive={c:0,f:0,cr:0,d:0,ch:0};
  S.x=4;S.y=0;charge();uvOn=false;snapCam();
- const fos=S.pack.filter(p=>p.t==='f');let msg=MQ()?(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp.':'🏠 Back at camp.')+(solarLine()?' '+solarLine():''):(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp. It\'s charging now 🔌':'🏠 Back at camp. Your battery is charging 🔌');
+ const fos=S.pack.filter(p=>p.t==='f');let msg=MQ()?(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to the landing.':'🏠 Back at the elevator landing.')+(solarLine()?' '+solarLine():''):(why==='battery'?'🔋 Battery empty — the rescue rope pulled you back to camp. It\'s charging now 🔌':'🏠 Back at camp. Your battery is charging 🔌');
  const known=S.pack.filter(p=>p.t==='m'&&S.idd[p.id]);const starMsgs=[];let sold=0;if(known.length){known.forEach(p=>{const st=foundOne(p.id);if(st)starMsgs.push(`⭐ ${CD.MIN[p.id].n} reached ${'★'.repeat(st)}! +3 🔬`);sold+=CD.RAR[CD.MIN[p.id].r].sell;});S.pack=S.pack.filter(p=>!known.includes(p));sold=addDugCoins(sold);}
  if(fos.length){fos.forEach(p=>{S.fos[p.id]=S.fos[p.id]||[];S.fos[p.id][p.i]=1;});S.pack=S.pack.filter(p=>p.t!=='f');msg+=` 🦴 ${fos.length} fossil piece${fos.length>1?'s':''} sent to the 🏛️ Museum.`;}
  say(msg);hud();save(true);
@@ -368,8 +368,11 @@ function frame(){
  if(tick%30===0){const was=S.bat<batMax()-.5;charge();hudBat();if(was!==(S.bat<batMax()-.5))hud();}
  const w=root.clientWidth,h=root.clientHeight;camX+=(tcx(w)-camX)*.2;camY+=(tcy(h)-camY)*.2;
  const c=ctx;c.clearRect(0,0,w,h);
- // sky with sun & clouds
- const skyB=-camY+TS;if(skyB>0){const gr=c.createLinearGradient(0,0,0,skyB);gr.addColorStop(0,'#6ec6ff');gr.addColorStop(1,'#c9ecff');c.fillStyle=gr;c.fillRect(0,0,w,skyB);
+ // sky with sun & clouds (a Math Quest trip: the elevator landing is underground, so a rocky ceiling instead, owner Oct 2026)
+ const skyB=-camY+TS;if(skyB>0&&MQ()){c.fillStyle='#2c2032';c.fillRect(0,0,w,skyB);c.fillStyle='#3a2b42';c.beginPath();c.moveTo(0,0);for(let x=0;x<=w+40;x+=40){const k=Math.floor((x+camX)/40);c.lineTo(x-((camX%40+40)%40),skyB-TS*.55-((k*7919)%5)*TS*.06);}c.lineTo(w,0);c.fill();
+  for(let x=-((camX%(TS*2))+TS*2)%(TS*2);x<w;x+=TS*2){const k=Math.floor((x+camX)/(TS*2));const len=TS*(.25+((k*31)%4)*.08);c.fillStyle='#4a3b52';c.beginPath();c.moveTo(x,skyB-TS*.6);c.lineTo(x+TS*.12,skyB-TS*.6+len);c.lineTo(x+TS*.24,skyB-TS*.6);c.fill();
+   if(k%3===0){const lx=x+TS,ly=skyB-TS*.95;c.strokeStyle='#868e96';c.lineWidth=2;c.beginPath();c.moveTo(lx,0);c.lineTo(lx,ly);c.stroke();c.fillStyle='rgba(255,212,59,.18)';c.beginPath();c.arc(lx,ly+TS*.12,TS*.55,0,7);c.fill();c.fillStyle='#ffd43b';c.fillRect(lx-TS*.08,ly,TS*.16,TS*.22);}}}
+ else if(skyB>0){const gr=c.createLinearGradient(0,0,0,skyB);gr.addColorStop(0,'#6ec6ff');gr.addColorStop(1,'#c9ecff');c.fillStyle=gr;c.fillRect(0,0,w,skyB);
   c.fillStyle='#ffe066';c.beginPath();c.arc(w-70,skyB-TS*2.6,TS*.7,0,7);c.fill();
   c.fillStyle='rgba(255,255,255,.9)';[[.2,2.9],[.55,3.4]].forEach(([fx,fy],k)=>{const cx=((fx*w+tick*.15*(k+1))%(w+160))-80,cy=skyB-TS*fy;c.beginPath();c.ellipse(cx,cy,TS*.9,TS*.3,0,0,7);c.ellipse(cx+TS*.4,cy-TS*.15,TS*.5,TS*.3,0,0,7);c.fill();});}
  c.fillStyle='#120b16';c.fillRect(0,Math.max(0,skyB),w,h);
@@ -453,7 +456,7 @@ function drawShaft(c,px,py,T,top){c.fillStyle='#3a3340';c.fillRect(px,py,T+1,T+1
 /* camp buildings — tap one to go in (they are the camp's only menu) */
 const CAMP=[{x:2,e:'🔋',n:'Power Up',a:'power'},{x:8,e:'🔬',n:'Lab',a:'lab'},{x:10,e:'🛒',n:'Gear',a:'gear'},{x:12,e:'🏛️',n:'Museum',a:'museum'},{x:14,e:'🌱',n:'Garden',a:'garden',show:()=>S.seen.cave},{x:16,e:'📓',n:'Journal',a:'journal'},{x:18,e:'🚀',n:'Core Probe',a:'probe',show:()=>S.gates.core}];
 const QZX=6.3; // where Dr. Quartz stands
-const campB=()=>CAMP.filter(b=>!b.show||b.show());
+const campB=()=>CAMP.filter(b=>(!b.show||b.show())&&(!MQ()||b.a==='power'||b.a==='probe')); /* Math Quest: Lab, Gear, Museum, Garden and Journal are rooms in the Lab now */
 function campBadge(b){if(b.a==='lab'){const u=S.pack.filter(p=>p.t!=='f').length;return u?String(u):'';}if(b.a==='museum')return museumReady()?'!':'';if(b.a==='garden')return S.garden&&S.garden.last!==realDay()?'💧':'';if(b.a==='power')return S.bat<batMax()*.25?'!':'';return '';}
 function campTap(wx,wy){if(wy<-.55||wy>1.05)return false;
  if(Math.abs(wx-.5)<.6){sfx('tap');act('elev');return true;}
@@ -461,22 +464,22 @@ function campTap(wx,wy){if(wy<-.55||wy>1.05)return false;
  const b=campB().find(b=>Math.abs(wx-(b.x+.5))<.75);if(!b)return false;sfx('tap');
  if(b.a==='power'&&S.bat>=batMax()-.5){say('🔋 Your battery is full — go dig!',1800);return true;}
  act(b.a);return true;}
-function drawCamp(c,T){const gy=T-camY;c.fillStyle='#4caf50';c.fillRect(-camX,gy-5,COLS*T,9);
- const gi=H.guideImg;if(gi&&gi.complete&&gi.naturalWidth){const gx=QZX*T-camX,hh=T*1.15;c.drawImage(gi,gx-hh*.33,gy-hh-2+Math.sin(tick*.05)*1.5,hh*.66,hh);}
+function drawCamp(c,T){const gy=T-camY;c.fillStyle=MQ()?'#5e4d68':'#4caf50';c.fillRect(-camX,gy-5,COLS*T,9);
+ const gi=H.guideImg;if(!MQ()&&gi&&gi.complete&&gi.naturalWidth){const gx=QZX*T-camX,hh=T*1.15;c.drawImage(gi,gx-hh*.33,gy-hh-2+Math.sin(tick*.05)*1.5,hh*.66,hh);}
  const lab=(txt,px,col)=>{c.font=`700 ${Math.max(11,T*.26)}px Fredoka,sans-serif`;c.textAlign='center';c.textBaseline='top';const w=c.measureText(txt).width+12,h=Math.max(15,T*.34),y=gy-T*1.2;px=Math.max(px,w/2+3);c.fillStyle='rgba(255,255,255,.85)';c.beginPath();if(c.roundRect)c.roundRect(px-w/2,y-2,w,h,h/2);else c.rect(px-w/2,y-2,w,h);c.fill();c.fillStyle=col||'#1d3a5a';c.fillText(txt,px,y);};
- lab('Elevator',.5*T-camX);lab('Dr. Quartz',QZX*T-camX,'#1971c2');
+ lab(MQ()?'🛗 Elevator':'Elevator',.5*T-camX);if(!MQ())lab('Dr. Quartz',QZX*T-camX,'#1971c2');
  campB().forEach(b=>{const px=(b.x+.5)*T-camX;const bob=b.a==='power'&&S.bat<batMax()*.25?Math.abs(Math.sin(tick*.12))*4:0;c.font=`${T*.8}px serif`;c.textAlign='center';c.textBaseline='bottom';c.fillText(b.e,px,gy-2-bob);
   lab(b.n,px);const bd=campBadge(b);if(bd){const r=Math.max(8,T*.17),bx=px+T*.32,by=gy-T*.82;c.fillStyle='#fa5252';c.beginPath();c.arc(bx,by,r,0,7);c.fill();c.fillStyle='#fff';c.font=`800 ${r*1.3}px Fredoka,sans-serif`;c.textBaseline='middle';c.fillText(bd,bx,by+1);}});}
 function shade(hex,amt){let n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;const f=amt<0?0:255,p=Math.abs(amt);r=Math.round((f-r)*p+r);g=Math.round((f-g)*p+g);b=Math.round((f-b)*p+b);return`rgb(${r},${g},${b})`;}
 
 /* ---------------- HUD ---------------- */
 function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(S.y);
- q('#cvLayer').innerHTML=S.y===0?'🏕️ Base Camp':`${L.e} ${esc(L.n)}`;
+ q('#cvLayer').innerHTML=S.y===0?(MQ()?'🛗 Elevator Landing':'🏕️ Base Camp'):`${L.e} ${esc(L.n)}`;
  q('#cvCoins').textContent='🪙 '+fmt(H.coins());q('#cvRP').textContent='🔬 '+fmt(S.rp);q('#cvPack').textContent=`🎒 ${S.pack.length}/${packMax()}`;
  const t=rowTemp(S.y),hotw=S.y>0&&t>suit().t*.85;
- q('#cvG').innerHTML=`<span>📏 ${S.y===0?'Surface':depthStr(S.y)}</span><span class="${hotw?'warn':''}">🌡️ ${fmt(t)} °C</span>${TIER()?`<span>⏲️ ${fmt(rowAtm(S.y))} atm</span>`:''}`;
+ q('#cvG').innerHTML=`<span>📏 ${S.y===0?(MQ()?'Landing':'Surface'):depthStr(S.y)}</span><span class="${hotw?'warn':''}">🌡️ ${fmt(t)} °C</span>${TIER()?`<span>⏲️ ${fmt(rowAtm(S.y))} atm</span>`:''}`;
  hudBat();
- if(S.y===0&&!S.tapHint&&!hintShown&&!modalOpen()){hintShown=1;setTimeout(()=>{if(S.y===0&&!modalOpen())say('👆 Tap a building — like the 🔬 Lab — to go inside!',5500);},600);}
+ if(S.y===0&&!MQ()&&!S.tapHint&&!hintShown&&!modalOpen()){hintShown=1;setTimeout(()=>{if(S.y===0&&!modalOpen())say('👆 Tap a building — like the 🔬 Lab — to go inside!',5500);},600);}
  // depth bar
  let db='';CD.LAYERS.forEach(L=>{db+=`<i style="flex:${L.r1-L.r0+1};background:${L.col}" title="${esc(L.n)}"></i>`;});
  const pct=r=>(r/ROWS*100).toFixed(2)+'%';

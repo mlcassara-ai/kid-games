@@ -112,8 +112,8 @@ let HOST=null;
 function startTrip(first,free){const p=P();const s=Q(p);
  if(DEMO===true)DEMO=JSON.stringify({sci:p.sci||null,cave:p.cave||null,coins:p.coins,daily:p.daily,wkHist:p.wkHist||null});
  if(!first&&!free&&s.rocks<=0&&!DEMO){toast('🪨 You need a mystery rock first!');return;}
- if(!first&&!free&&!DEMO)s.rocks--;s.met=true;s.trips++;s.last=dayKey();p.wpos={x:W.hx,y:W.hy};p.cave=p.cave||{};save();
- HOST={first,rock:free?null:rockMineral(p)};go('cave');}
+ if(!first&&!free&&!DEMO)s.rocks--;s.met=true;s.trips++;s.last=dayKey();if(typeof W!=='undefined'&&W)p.wpos={x:W.hx,y:W.hy};p.cave=p.cave||{};save();
+ HOST={first,rock:free?null:rockMineral(p),from:window.__tripFrom||'world'};window.__tripFrom=null;go('cave');}
 function host(p){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{spell:p.spell}));
  const tk='cave#'+Math.floor(((Q(p).trips||1)-1)/5); // Sep 2026: the cave keeps your tunnels between trips (kids read a reset as 'progress lost'); a fresh cave every 5 trips
  return {player:{id:p.id,name:p.name,grade:p.grade||3,emoji:'🧑‍🚀',img:hi},state:p.cave,today:()=>tk,shiftIn:()=>{const t=Q(p).trips||1;return 5*Math.ceil(t/5)+1-t;},
@@ -122,8 +122,8 @@ function host(p){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'
   guideSVG:SVG,guideImg:img(),
   mathQ:()=>{let q=null,best=null;for(let k=0;k<30;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');if(!['add','sub','mul','div'].includes(op))continue;q=genQ(op,Math.max(1,Math.min(8,lvl(p,op)-1)));if(q.tpl||typeof q.answer!=='number')continue;if(!best||String(q.text).length<String(best.text).length)best=q;if(String(q.text).length<=9)break;}q=best||genQ('add',1);return {q:q.text,a:q.answer};}, // quick-fire facts a little below the kid's level — Power Ups should feel snappy
   event:(t,d)=>{if(t==='power'){const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][d&&d.ok?'r':'w']++;if(d&&d.ok&&typeof wkAnswer==='function')wkAnswer(p,5);}},
-  exit:()=>tripOver(p)};}
-function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&HOST.rock;HOST=null;
+  fromLab:()=>!!(HOST&&HOST.from==='lab'),exit:()=>tripOver(p)};}
+function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&HOST.rock;const dest=HOST&&HOST.from==='lab'?'lab':'world';HOST=null;
  if(DEMO&&DEMO!==true){const d=JSON.parse(DEMO);DEMO=null;p.sci=d.sci||undefined;if(!d.sci)delete p.sci;p.cave=d.cave||undefined;if(!d.cave)delete p.cave;p.coins=d.coins;p.daily=d.daily;if(d.wkHist)p.wkHist=d.wkHist;save();go('world');toast('🔬 That was a preview — nothing was changed.');return;}
  /* every trip ends with a 🎟️ Shrink Ticket for the Inner Space ride (Ozzy picks you up a few battles later) */
  let tix=null,full=false;try{if(window.Inner){tix=Inner.award(p,{rock});full=!tix&&!!(Inner.isFull&&Inner.isFull(p));}}catch(e){}
@@ -132,9 +132,9 @@ function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&
  const keyNow=!first&&window.Lab&&Lab.keyDue(p);
  save();
  /* hold the visitor slot BEFORE going back to the map, so nobody (Principal Wise, Ozzy…) lands on top of the key / thank-you cards */
- const v=VQ(),mine=!v||v.claim('quartz',10*60e3)||onlyStanding(v);go('world');
- const post=()=>{if(v)v.watch('quartz',cardUp);if(keyNow){setTimeout(()=>{if(curScreen!=='world')return;Lab.giveKey(p,()=>after());},700);return;}after();};
- if(!mine){v.wait('quartz',()=>{if(curScreen==='world'&&P()===p&&v.claim('quartz',10*60e3))post();});return;}
+ const v=VQ(),mine=!v||v.claim('quartz',10*60e3)||onlyStanding(v);go(dest);
+ const post=()=>{if(v)v.watch('quartz',cardUp);if(keyNow){setTimeout(()=>{if(curScreen!==dest)return;Lab.giveKey(p,()=>after());},700);return;}after();};
+ if(!mine){v.wait('quartz',()=>{if(curScreen===dest&&P()===p&&v.claim('quartz',10*60e3))post();});return;}
  post();
  function after(){
  const card=(html,btn)=>modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${html}</div></div></div>
