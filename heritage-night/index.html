@@ -38,6 +38,15 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 .btn.go { background: var(--gold); color: #3a2600; }
 .btn.alt { background: rgba(255,255,255,.12); font-size: 1.1rem; padding: 12px; box-shadow: none; }
 .btn:focus-visible, .ans:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.steps { display: flex; align-items: center; justify-content: space-between; color: var(--ink-soft); font-weight: 700; font-size: .95rem; }
+.steps .dots { display: flex; gap: 6px; } .steps .dots i { width: 28px; height: 8px; border-radius: 99px; background: rgba(255,255,255,.18); }
+.steps .dots i.on { background: var(--gold); }
+.step-t { margin: 0; font-family: var(--display); font-weight: 800; font-size: 1.9rem; line-height: 1.05; }
+.mini { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; justify-self: start; } .mini span { font-size: 2rem; }
+.team-tag { background: rgba(246,185,59,.18); color: var(--gold); border-radius: 99px; padding: 6px 14px; font-weight: 700; }
+.wait { text-align: center; display: grid; gap: 10px; justify-items: center; padding-top: 30px; }
+.wait .emo { font-size: 4.4rem; line-height: 1; } .wait .t { font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1.05; }
+.wait .n { font-family: var(--display); font-weight: 800; font-size: 3rem; color: var(--gold); }
 .pick-lbl { color: var(--ink-soft); font-weight: 700; font-size: .95rem; justify-self: start; }
 .avs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; }
 .avs button, .grades button { background: rgba(255,255,255,.09); border-radius: 14px; border: 2px solid transparent; }
@@ -85,7 +94,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 </head>
 <body>
 <div class="app" id="app"></div>
-<script src="hn-core.js?v=14"></script>
+<script src="hn-core.js?v=15"></script>
 <script>
 (function () {
   'use strict';
@@ -93,7 +102,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   var SHAPES = ['▲', '◆', '●', '■'];
   var KEY = 'heritagenight.me.' + HN.EVENT;
   var FLAG = '<svg class="flag" viewBox="0 0 30 20" aria-label="Flag of Lebanon"><rect width="30" height="20" fill="#e23b2e"/><rect y="5" width="30" height="10" fill="#fff"/><g fill="#1f9e5c"><path d="M15 5.6l2.6 3.2h-1.3l2.4 2.6h-1.5l2.6 2.4H10.2l2.6-2.4h-1.5l2.4-2.6h-1.3z"/><rect x="14.5" y="13.8" width="1" height="1.2"/></g></svg>';
-  var me = HN.lsGet(KEY), draft = null, pickAv = 0, pickG = '', taken = {}, shownKey = '', dirty = false, saving = false, rankInfo = null, rankFor = -1, teamLine = '';
+  var me = HN.lsGet(KEY), draft = null, pickAv = 0, pickG = '', joinStep = 1, taken = {}, shownKey = '', dirty = false, saving = false, rankInfo = null, rankFor = -1, teamLine = '';
 
   function save() { HN.lsSet(KEY, me); }
   function rid(n) { var a = new Uint8Array(n), s = ''; crypto.getRandomValues(a); for (var i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz0123456789'[a[i] % 36]; return s; }
@@ -108,7 +117,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   }
   /* the big screen pressed Reset: this player belongs to the old game, so join again */
   function startOver() {
-    me = null; draft = null; pickG = ''; rankInfo = null; teamLine = ''; shownKey = '';
+    me = null; draft = null; pickG = ''; joinStep = 1; rankInfo = null; teamLine = ''; shownKey = '';
     try { localStorage.removeItem(KEY); } catch (e) {}
     joinView(); net('🔄 New game! Pick your buddy and grade to join.');
   }
@@ -116,31 +125,53 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   function wake() { try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {} }
 
   /* ---------- join ---------- */
-  /* avatar -> the game makes a matching name (🎲 for another), then the grade (TK-5th or Grown-up) picks the team.
-     A player saved before grades existed only sees the grade step. */
+  /* Joining is three steps: 1 pick a character (the game makes a matching name, 🎲 for another), 2 pick your grade
+     (TK-5th or Grown-up picks the team), 3 ready to play. A player saved before grades existed only sees step 2.
+     A new player who joins during a question or an answer waits for the next fact card (me.from). */
+  function stepHead(n, title) {
+    return '<div class="steps"><span>Step ' + n + ' of 3</span><div class="dots">' + [1, 2, 3].map(function (i) { return '<i class="' + (i <= n ? 'on' : '') + '"></i>'; }).join('') + '</div></div>' +
+      '<h2 class="step-t">' + title + '</h2>';
+  }
   function joinView() {
     var regrade = !!(me && me.pid);
+    if (regrade && joinStep === 1) joinStep = 2;
     if (!regrade && !draft) { pickAv = Math.floor(Math.random() * HN.AVATARS.length); draft = HN.newName(taken, pickAv); }
-    var shown = regrade ? me : draft;
-    app.innerHTML = '<div class="head">' + FLAG + '<div><h1>Discover Lebanon</h1><div class="sub">Family Heritage Night</div></div></div>' +
-      '<div class="card"><div class="big-av">' + HN.esc(shown.a) + '</div><div class="big-nm">' + HN.esc(shown.n) + '</div>' +
-      (regrade ? '' : '<button class="btn alt" id="reroll">🎲 Different name</button><div class="pick-lbl">Pick your buddy</div><div class="avs">' +
-        HN.AVATARS.map(function (x, i) { return '<button data-av="' + i + '" class="' + (i === pickAv ? 'on' : '') + '" aria-label="' + HN.esc(x[1]) + '">' + x[0] + '</button>'; }).join('') + '</div>') +
-      '<div class="pick-lbl">What grade are you in?</div><div class="grades">' +
+    var shown = regrade ? me : draft, html = '';
+    if (joinStep === 1) {
+      html = stepHead(1, 'Pick a character') +
+        '<div class="card"><div class="big-av">' + HN.esc(shown.a) + '</div><div class="big-nm">' + HN.esc(shown.n) + '</div>' +
+        '<button class="btn alt" id="reroll">🎲 Different name</button><div class="avs">' +
+        HN.AVATARS.map(function (x, i) { return '<button data-av="' + i + '" class="' + (i === pickAv ? 'on' : '') + '" aria-label="' + HN.esc(x[1]) + '">' + x[0] + '</button>'; }).join('') + '</div>' +
+        '<button class="btn go" id="next">Next →</button></div>';
+    } else if (joinStep === 2) {
+      html = stepHead(2, 'Pick your grade') +
+        '<div class="card"><div class="mini"><span>' + HN.esc(shown.a) + '</span>' + HN.esc(shown.n) + '</div><div class="grades">' +
         HN.GRADES.map(function (g) { return '<button data-g="' + g[0] + '" class="' + (g[0] === 'a' ? 'wide ' : '') + (g[0] === pickG ? 'on' : '') + '">' + (g[0] === 'a' ? '🧑 I’m a grown-up' : g[1]) + '</button>'; }).join('') + '</div>' +
-      '<button class="btn go" id="go"' + (pickG ? '' : ' disabled') + '>' + (pickG ? (pickG === 'a' ? 'Play for the Grown-ups!' : 'Play for the Kids!') : 'Pick your grade') + '</button></div>' +
-      '<ol class="how"><li>Read the fun fact on the big screen.</li><li>When the question comes, tap your answer here.</li><li>Right answers score points. Faster answers score more!</li><li>Kids and grown-ups pull a tug-of-war on the big screen. Help your team win!</li></ol>' +
-      '<div class="net" id="net"></div>';
-    var rr = document.getElementById('reroll'); if (rr) rr.onclick = function () { draft = HN.newName(taken, pickAv); joinView(); };
+        '<button class="btn go" id="next"' + (pickG ? '' : ' disabled') + '>' + (pickG ? 'Next →' : 'Pick your grade') + '</button>' +
+        (regrade ? '' : '<button class="btn alt" id="back">← Back</button>') + '</div>';
+    } else {
+      html = stepHead(3, 'Ready to play!') +
+        '<div class="card"><div class="big-av">' + HN.esc(shown.a) + '</div><div class="big-nm">' + HN.esc(shown.n) + '</div>' +
+        '<div class="team-tag">' + (pickG === 'a' ? '🧑 Grown-ups team' : '🧒 Kids team · ' + HN.esc(HN.gradeLabel(pickG))) + '</div>' +
+        '<ol class="how"><li>Read the fun fact on the big screen and remember it.</li><li>The next question is about that fact. Tap your answer here.</li><li>Right answers score points. Faster answers score more!</li><li>Kids and grown-ups pull a tug-of-war on the big screen. Help your team win!</li></ol>' +
+        '<button class="btn go" id="go">Let’s play!</button><button class="btn alt" id="back">← Back</button></div>';
+    }
+    app.innerHTML = '<div class="head">' + FLAG + '<div><h1>Discover Lebanon</h1><div class="sub">Family Heritage Night</div></div></div>' + html + '<div class="net" id="net"></div>';
+    var on = function (id, fn) { var el = document.getElementById(id); if (el) el.onclick = fn; };
+    on('reroll', function () { draft = HN.newName(taken, pickAv); joinView(); });
     Array.prototype.forEach.call(app.querySelectorAll('[data-av]'), function (b) { b.onclick = function () { pickAv = +b.getAttribute('data-av'); draft = HN.newName(taken, pickAv); joinView(); }; });
     Array.prototype.forEach.call(app.querySelectorAll('[data-g]'), function (b) { b.onclick = function () { pickG = b.getAttribute('data-g'); joinView(); }; });
-    document.getElementById('go').onclick = function () {
+    on('next', function () { if (joinStep === 2 && !pickG) return; joinStep++; joinView(); });
+    on('back', function () { joinStep--; joinView(); });
+    on('go', function () {
       if (!pickG) return;
+      var ph = HN.phase(), from = ph.name === 'fact' ? ph.cycle : ph.cycle + 1;   // never drop in mid-question
       if (regrade) me.g = pickG;
-      else me = { pid: rid(16), n: draft.n, a: draft.a, g: pickG, s: 0, c: 0, na: 0, j: Date.now(), q: -1 };
-      save(); wake(); shownKey = ''; push(); tick();
-    };
+      else me = { pid: rid(16), n: draft.n, a: draft.a, g: pickG, s: 0, c: 0, na: 0, j: Date.now(), q: -1, from: from };
+      joinStep = 1; save(); wake(); shownKey = ''; push(); tick();
+    });
   }
+
 
   /* ---------- play ---------- */
   function header(ph) {
@@ -178,7 +209,18 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
       if (idx >= 0) { rankInfo = { r: idx + 1, n: list.length, w: grown ? ' grown-ups' : ' kids' }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = rankHtml(); }
     } catch (e) {}
   }
+  function waitView() {
+    var t = HN.now(), n = 0; while (n < 120 && HN.phase(t + n * 250).cycle < me.from) n++;   // seconds until the next fact card
+    var secs = Math.ceil(n / 4);
+    if (shownKey !== 'wait') {
+      shownKey = 'wait';
+      app.innerHTML = header(HN.phase()) + '<div class="panel"><div class="wait"><div class="emo">' + HN.esc(me.a) + '</div><div class="t">You’re in!</div>' +
+        '<p class="soft">The game is in the middle of a question. You’ll join when the next fun fact starts. Get ready to remember it!</p><div class="n" id="wn"></div></div></div><div class="net" id="net"></div>';
+    }
+    var wn = document.getElementById('wn'); if (wn) wn.textContent = secs;
+  }
   function render(ph) {
+    if (me.from != null && ph.cycle < me.from) { waitView(); return; }
     var key = ph.cycle + ph.name + (me.q === ph.cycle ? 'a' : '');
     if (key !== shownKey) {
       shownKey = key;

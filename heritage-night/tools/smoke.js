@@ -65,14 +65,23 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await scr.goto(base + 'screen.html?fast=1&e=test');
     const phones = [];
     for (let i = 0; i < 3; i++) { const p = await page(browser, { width: 390, height: 844 }, errs, i * 400); await p.goto(base + '?fast=1&e=test'); phones.push(p); }
-    await phones[0].waitForSelector('#go'); await shot(phones[0], 'phone-join');
+    await phones[0].waitForSelector('#next'); await shot(phones[0], 'phone-join');
+    ok(/Step 1 of 3/.test(await phones[0].textContent('.steps')) && /Pick a character/.test(await phones[0].textContent('.step-t')), 'join step 1 of 3: pick a character');
     const n1 = await phones[0].textContent('.big-nm'); await phones[0].click('#reroll');
     ok((await phones[0].textContent('.big-nm')).length > 3, 'name re-roll gives a name (' + n1 + ')');
-    ok(await phones[0].locator('#go[disabled]').count() === 1, 'cannot join before picking a grade');
     await phones[0].click('[data-av="3"]');
     ok(/Sea Turtle$/.test(await phones[0].textContent('.big-nm')), 'picking an avatar makes a matching name');
+    for (const p of phones) await p.click('#next');
+    ok(/Step 2 of 3/.test(await phones[0].textContent('.steps')) && /Pick your grade/.test(await phones[0].textContent('.step-t')), 'join step 2 of 3: pick your grade');
+    ok(await phones[0].locator('#next[disabled]').count() === 1, 'cannot go on before picking a grade');
     const grades = ['3', 'k', 'a'];   // phones A and B are kids, phone C is a grown-up
-    for (let i = 0; i < 3; i++) { await phones[i].click('[data-g="' + grades[i] + '"]'); await phones[i].click('#go'); }
+    for (let i = 0; i < 3; i++) { await phones[i].click('[data-g="' + grades[i] + '"]'); await phones[i].click('#next'); }
+    ok(/Step 3 of 3/.test(await phones[0].textContent('.steps')) && /Ready to play/.test(await phones[0].textContent('.step-t')) && /Sea Turtle/.test(await phones[0].textContent('.big-nm')), 'join step 3 of 3: ready to play');
+    await shot(phones[0], 'phone-ready');
+    for (const p of phones) await p.click('#go');
+    // the test joins in the middle of a question, so every phone waits for the next fact card
+    ok(await phones[0].evaluate(() => HN.phase().name) !== 'fact' && /You’re in/.test(await phones[0].textContent('.panel')), 'joining mid-question waits for the next fact');
+    await shot(phones[0], 'phone-wait');
     await scr.waitForTimeout(1500);
     ok(await scr.evaluate(() => HN.isSynced()), 'screen clock synced to server time');
     const cyc = await Promise.all([scr, ...phones].map(p => p.evaluate(() => HN.phase().cycle)));
@@ -194,9 +203,9 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await scr.waitForFunction(() => !document.querySelector('.row'), null, { timeout: 8000 }).catch(() => {});
     ok(await scr.locator('.row').count() === 0, 'Reset empties the leaderboard');
     ok(await phones[1].evaluate(async () => Object.keys(await HN.allPlayers()).length) === 0, 'Reset clears every saved player');
-    await phones[1].waitForSelector('#go', { timeout: 30000 }).catch(() => {});
-    ok(await phones[1].locator('#go').count() === 1 && /New game/.test(await phones[1].textContent('#net')), 'a phone from the old game is sent back to join');
-    await phones[1].click('[data-g="2"]'); await phones[1].click('#go'); await phones[1].waitForTimeout(1500);
+    await phones[1].waitForSelector('.steps', { timeout: 30000 }).catch(() => {});
+    ok(/Step 1 of 3/.test(await phones[1].textContent('.steps').catch(() => '')) && /New game/.test(await phones[1].textContent('#net')), 'a phone from the old game is sent back to join');
+    await phones[1].click('#next'); await phones[1].click('[data-g="2"]'); await phones[1].click('#next'); await phones[1].click('#go'); await phones[1].waitForTimeout(1500);
     ok(await phones[1].evaluate(async () => Object.keys(await HN.allPlayers()).length) === 1, 'joining again works after a reset');
   } catch (e) { fails.push(String(e)); console.log(e); }
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''));
