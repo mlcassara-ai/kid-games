@@ -323,7 +323,7 @@ const tests=[
    p.tad.rw={k:'silly',id:'sandwich'};Daily.rewardCard();T.ok(document.querySelector('#modal .eq-gag')&&/Cafeteria/.test(document.querySelector('#modal').innerText),'the sandwich gag is missing');closeModal();
    T.ok(Daily._dbg.roll(p,{streak:7}).k==='egg'&&Daily._dbg.roll(p,{streak:30}).k==='legend','streak days 7 and 30 do not give an egg and a Legend egg');}
   /* he walks up to the hero on the map with today's quests */
-  {p.tad.met=null;p.tad.rw=null;go('world');await T.wait(100);try{closeModal();}catch(e){}MQ_ELDER.seek('intro');const t0=performance.now();for(let i=0;i<80&&!document.querySelector('#modal.show');i++){const E2=MQ_ELDER.state();if(E2)E2.mt=0;MQ_ELDER.tick(t0+i*600);}
+  {p.tad.met=null;p.tad.rw=null;go('world');await T.wait(100);try{closeModal();}catch(e){}MQ_ELDER.seek('intro');const t0=performance.now();for(let i=0;i<200;i++){const m=document.querySelector('#modal.show');if(m){if(/3 quests/.test(m.innerText))break;closeModal();}const E2=MQ_ELDER.state();if(E2){E2.mt=0;E2.seekWait=0;}W.moving=false;MQ_ELDER.tick(t0+i*600);}
    T.ok(/3 quests/.test(document.querySelector('#modal').innerText)&&P().tad.met===dayKey(),'the Elder did not walk up to the hero with today\'s quests');closeModal();T.ok(!MQ_ELDER.seeking(),'the Elder kept looking for the hero');}
   wNpc('elder');T.ok(/quest/.test(document.querySelector('#modal').innerText),'bumping the Elder does not show today\'s quest');closeModal();
   /* old quest lists: finished-but-unclaimed quests pay out once */

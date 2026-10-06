@@ -182,7 +182,7 @@ function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)retu
   ctx.fillStyle='#495057';const py=(ROW+.86)*ts-cy;ctx.fillRect(mid-ts*.05,sy+ts*.15,ts*.1,py-sy-ts*.15);ctx.fillRect(mid-ts*.14,py-ts*.04,ts*.28,ts*.05); /* the post runs down to the track, with a little foot */ctx.fillStyle='#212529';rr(ctx,mid-bw/2,sy-ts*.42,bw,bh,ts*.08);ctx.fill();
   ctx.strokeStyle='#ffd43b';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=TR.ph==='away'?'#ffd43b':TR.ph==='out'?'#ff922b':'#69db7c';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,mid,sy-ts*.11);
   /* the bell button on the post (owner, Oct 2026): a small red crosswalk-style box; its light glows while the bell has called the train */
-  {const bw2=ts*.22,bh2=ts*.3,bx=mid-bw2/2,by=sy+ts*.34,pr=TR.press&&now-TR.press<260,lit=TR.called==='bell'&&(TR.ph==='away'||TR.ph==='in');
+  {const bw2=ts*.22,bh2=ts*.3,bx=mid-bw2/2,by=((sy+ts*.2)+((ROW+.86)*ts-cy))/2-bh2/2, /* halfway between the clock and the ground (owner) */pr=TR.press&&now-TR.press<260,lit=TR.called==='bell'&&(TR.ph==='away'||TR.ph==='in');
    ctx.fillStyle='#c92a2a';rr(ctx,bx,by,bw2,bh2,ts*.04);ctx.fill();ctx.strokeStyle='#5c0f0f';ctx.lineWidth=1.5;ctx.stroke();
    ctx.fillStyle=lit?`rgba(255,212,59,${.65+.35*Math.sin(now/180)})`:'#4a1010';ctx.beginPath();ctx.arc(mid,by+bh2*.24,ts*.035,0,7);ctx.fill();
    ctx.fillStyle=pr?'#ced4da':'#f1f3f5';ctx.beginPath();ctx.arc(mid,by+bh2*.64+(pr?1:0),ts*(pr?.058:.066),0,7);ctx.fill();ctx.strokeStyle='#868e96';ctx.lineWidth=1;ctx.stroke();
