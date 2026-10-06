@@ -174,7 +174,7 @@ function draw(){css();const p=P();if(!p){go('world');return;}const s=Q(p);
  app.innerHTML=topbar()+`<div class="page lb-page">
   <div class="zhead"><button class="btn green small" onclick="Lab.home()">🚂 Train home</button><h2 class="title" style="margin:0">🔬 Dr. Quartz's Lab</h2></div>
   ${DEMO&&!(p.sci&&p.sci.key)&&false?'<div class="panel" style="background:#fff3bf"><b>Preview.</b> You don\'t have the key yet, so nothing here is saved.</div>':''}
-  <div class="panel"><div class="qz-row"><div class="qz-av">${window.QUARTZ_SVG||''}</div><div class="qz-bub"><b>🔬 Dr. Quartz</b><div id="lbHi">${GREET}</div></div></div></div>
+  <div class="panel"><div class="qz-row"><div class="qz-av">${window.QUARTZ_SVG||''}</div><div class="qz-bub"><b>🔬 Dr. Quartz</b><div id="lbHi">${GREET}</div></div>${(()=>{try{const pt=petOf(p);return pt?`<div class="lb-pet" title="${esc(pt.name)} came along!">${petAvatar(p,pt)}</div>`:'';}catch(e){return '';}})()}</div></div>
   <div class="lb-cols">
    <div class="panel lb-st"><h3>🧪 Mystery Mineral of the Day</h3>${mmHTML(p)}</div>
    <div class="panel lb-st"><h3>🛗 Rock Counter &amp; Elevator</h3>${rockHTML(p)}</div>
@@ -189,6 +189,7 @@ function open(){const p=P();if(!p){go('world');return;}const s=Q(p);try{if(windo
 /* ---------- styles ---------- */
 let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElement('style');st.textContent=`
 .lb-page{max-width:980px}.lb-page h3{margin:0 0 10px;font-size:20px;color:var(--ink)}
+.lb-pet{flex:0 0 auto;align-self:flex-end;animation:bob 1.6s ease-in-out infinite;font-size:56px;line-height:1;margin-left:6px}.lb-pet .pav{transform:scale(1.7);transform-origin:bottom center;display:inline-block}
 .lb-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 16px}
 .lb-st{color:var(--ink)}
 .lb-mm{display:flex;gap:14px;align-items:flex-start}

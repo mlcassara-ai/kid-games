@@ -208,11 +208,11 @@ function ride(){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>A
 /* getting on: the hero disappears into the train, which pulls out (twice as fast) into the east tunnel; once it is inside, the
    ride (ride.js) starts in the carriage (owner, Oct 2026: no separate outside scene) */
 function board(){try{closeModal();}catch(e){}try{const p=P();if(p&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}
- if(TR.ph==='stop'&&W){TR.ph='out';TR.t=0;TR.bubble='';doors(false);TR.riding=true;window.__hideHero=true;W.path=[];whistle();return;}
+ if(TR.ph==='stop'&&W){TR.ph='out';TR.t=0;TR.bubble='';doors(false);TR.riding=true;window.__hideHero=true;window.__petAboard=true;W.path=[];whistle();return;}
  rideNow();}
-function rideNow(){TR.riding=false;window.__hideHero=false;const arrive=()=>{go(window.Lab?'lab':'world');};if(!(window.Ride&&Ride.go('lab',arrive)))arrive();}
+function rideNow(){TR.riding=false;window.__hideHero=false;window.__petAboard=false;const arrive=()=>{go(window.Lab?'lab':'world');};if(!(window.Ride&&Ride.go('lab',arrive)))arrive();}
 function press(){TR.press=performance.now();if(TR.ph==='away'&&TR.wait>BELL_WAIT){ring();return;}try{SFX.tap();}catch(e){}open();}
-window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s!=='world'&&TR.riding){TR.riding=false;window.__hideHero=false;}}}); /* never leave the hero hidden */
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s!=='world'&&TR.riding){TR.riding=false;window.__hideHero=false;window.__petAboard=false;}}}); /* never leave the hero hidden */
 /* a tap on (or near) the bell button or the post counts as a tap on the sign: the hero walks over and presses it (owner: bigger hotspot) */
 window.MQ_TAP=window.MQ_TAP||[];window.MQ_TAP.push((x,y,ts)=>{const mid=(BOARD[0]+.5)*ts,top=BOARD[1]*ts+ts*.15,bot=(ROW+.86)*ts;return Math.abs(x-mid)<ts*.5&&y>top&&y<bot+ts*.1?[BOARD[0],BOARD[1]]:null;});
 window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=ride;
