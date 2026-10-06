@@ -12,7 +12,7 @@ var FAST = qs.get('fast') === '1';                       // testing: short phase
 var EVENT = (qs.get('e') || 'oct2026').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) || 'oct2026';
 var SHARDS = 8;
 /* fact card, question, answer reveal; the 10th question of each round gets a longer reveal (`champ`) for the Round Champion */
-var T = FAST ? { fact: 4000, q: 6000, reveal: 3000, champ: 5000 } : { fact: 14000, q: 10000, reveal: 3000, champ: 9000 };
+var T = FAST ? { fact: 4000, q: 6000, reveal: 3000, champ: 5000 } : { fact: 14000, q: 10000, reveal: 4000, champ: 9000 };
 T.cycle = T.fact + T.q + T.reveal;
 var PLAY_URL = 'https://mlcassara-ai.github.io/kid-games/heritage-night/';
 
