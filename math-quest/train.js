@@ -188,7 +188,8 @@ function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)retu
    ctx.fillStyle=pr?'#ced4da':'#f1f3f5';ctx.beginPath();ctx.arc(mid,by+bh2*.64+(pr?1:0),ts*(pr?.058:.066),0,7);ctx.fill();ctx.strokeStyle='#868e96';ctx.lineWidth=1;ctx.stroke();
    ctx.font=`${Math.round(ts*.075)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔔',mid,by+bh2*.65+(pr?1:0));}
   try{wLabel(ctx,TR.ph==='stop'?'In station':'Next train',sx+ts/2,sy-ts*.66,'#fff','rgba(43,35,64,.85)');}catch(e){}}});
- TR.walkers.forEach(v=>items.push({y:v.y+.01,draw:()=>drawWalker(ctx,v,cx,cy,ts,now)}));}
+ TR.walkers.forEach(v=>items.push({y:v.y+.01,draw:()=>drawWalker(ctx,v,cx,cy,ts,now)}));
+ if(TR.think)items.push({y:1e6-3,draw:()=>think(ctx,cx,cy,ts,now)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
 /* ---------- the station card ---------- */
 let TICK=0;
@@ -208,7 +209,7 @@ function cardHTML(){const p=P(),coins=(p&&p.coins)||0,here=TR.ph==='stop',coming
  </div><p class="muted" style="font-size:15px;margin-top:10px">🔬 This train goes to <b>Dr. Quartz's Lab</b>. When it's here, walk onto it to get on!</p>
  <button class="btn ghost dark" onclick="closeModal()">Close</button></div>`;}
 function open(){if(!document.getElementById('trCSS')){const st=document.createElement('style');st.id='trCSS';st.textContent='.tr-pic{display:flex;justify-content:center;margin:2px 0 4px}.tr-pic svg{max-width:70%;height:auto}.tr-rang{background:#fff3bf;border-radius:14px;padding:10px 12px;font-weight:700;margin:0}';document.head.appendChild(st);}modal(`<div class="mcard">${cardHTML()}</div>`);clearInterval(TICK);let st0=TR.ph+TR.called;TICK=setInterval(()=>{const el=document.querySelector('#modal.show .tr-card');if(!el){clearInterval(TICK);return;}if(TR.ph+TR.called!==st0){st0=TR.ph+TR.called;el.outerHTML=cardHTML();return;} /* the train came or the bell was rung: fresh buttons */const w=document.getElementById('trWhen');if(w){const h=cardHTML().match(/<p id="trWhen">([\s\S]*?)<\/p>/);if(h&&w.innerHTML!==h[1])w.innerHTML=h[1];}},500);}
-function ring(){if(TR.ph!=='away'||TR.wait<=BELL_WAIT)return;TR.wait=BELL_WAIT;TR.called='bell';bell();try{toast('🔔 Ding ding! The train will be here in 1 minute.');}catch(e){}open();}
+function ring(){if(TR.ph!=='away'||TR.wait<=BELL_WAIT)return;TR.wait=BELL_WAIT;TR.called='bell';TR.think=null;bell();try{if(document.querySelector('#modal.show .tr-pic'))open();}catch(e){}} /* no popup: the clock just switches to the 1-minute countdown (owner) */
 function call(){const p=P();if(!p||TR.ph!=='away'||TR.wait<=5||(p.coins||0)<CALL_COST)return;p.coins-=CALL_COST;save();TR.wait=4;TR.called='paid';bell();try{closeModal();toast(`🚂 Here it comes! (−${CALL_COST} 🪙)`);}catch(e){}}
 function ride(){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>All aboard!</h2><p>The conductor says: "Next stop: <b>🔬 Dr. Quartz's Lab</b>!"</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green big" onclick="Train._board()">Get on ➜</button></div></div>`);}
 /* off to the Lab (ride.js plays the trip, lab.js is the Lab); the train on the map pulls out */
@@ -218,10 +219,25 @@ function board(){try{closeModal();}catch(e){}try{const p=P();if(p&&W)p.wpos={x:W
  if(TR.ph==='stop'&&W){TR.ph='out';TR.t=0;TR.bubble='';doors(false);TR.riding=true;window.__hideHero=true;window.__petAboard=true;W.path=[];whistle();return;}
  rideNow();}
 function rideNow(){TR.riding=false;window.__hideHero=false;window.__petAboard=false;const arrive=()=>{go(window.Lab?'lab':'world');};if(!(window.Ride&&Ride.go('lab',arrive)))arrive();}
-function press(){TR.press=performance.now();if(TR.ph==='away'&&TR.wait>BELL_WAIT){ring();return;}try{SFX.tap();}catch(e){}open();}
+/* the bell button (owner, Oct 2026): pressing it brings the train within a minute and the clock switches to the countdown, no popup.
+   About 1 press in 5 nothing happens and the hero thinks "Hmm… must be busy"; the next press always works. Once the train is coming
+   (or here), pressing again opens the station card (Call it right now). */
+const BUSY=.2;
+function press(){TR.press=performance.now();if(TR.ph==='away'&&TR.wait>BELL_WAIT){
+  if(!TR.sure&&(TR.forceBusy||Math.random()<BUSY)){TR.forceBusy=0;TR.sure=true;TR.think={at:performance.now()};try{SFX.tap();}catch(e){}return;}
+  TR.sure=false;ring();return;}
+ try{SFX.tap();}catch(e){}open();}
+/* the hero's thought bubble (cloud with little circles) when the bell did nothing */
+function think(ctx,cx,cy,ts,now){const T=TR.think;if(!T||typeof W==='undefined'||!W)return;const age=now-T.at;if(age>4200){TR.think=null;return;}
+ const a=age<200?age/200:age>3700?Math.max(0,1-(age-3700)/500):1,hx=(W.hx+.5)*ts-cx,hy=W.hy*ts-cy-ts*.55,fs=Math.max(12,ts*.22);
+ ctx.save();ctx.globalAlpha=a;ctx.font=`italic 600 ${fs}px Fredoka, sans-serif`;const l1='Hmm… must be busy.',l2="I'll check back later.",w=Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+fs*1.6,h=fs*3,bx=hx+ts*.95,by=hy-ts*.05-h/2; /* to the right of the hero's head, clear of the train clock */
+ ctx.fillStyle='#fff';ctx.strokeStyle='#2b2250';ctx.lineWidth=Math.max(1.5,ts*.03);
+ [[hx+ts*.38,hy+ts*.12,ts*.05],[hx+ts*.6,hy+ts*.02,ts*.08]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.stroke();});
+ ctx.beginPath();ctx.ellipse(bx+w/2,by+h/2,w/2+fs*.3,h/2+fs*.2,0,0,7);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(l1,bx+w/2,by+h/2-fs*.6);ctx.fillText(l2,bx+w/2,by+h/2+fs*.6);ctx.restore();}
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s!=='world'&&TR.riding){TR.riding=false;window.__hideHero=false;window.__petAboard=false;}}}); /* never leave the hero hidden */
 /* a tap on (or near) the bell button or the post counts as a tap on the sign: the hero walks over and presses it (owner: bigger hotspot) */
 window.MQ_TAP=window.MQ_TAP||[];window.MQ_TAP.push((x,y,ts)=>{const mid=(BOARD[0]+.5)*ts,top=BOARD[1]*ts+ts*.15,bot=(ROW+.86)*ts;return Math.abs(x-mid)<ts*.5&&y>top&&y<bot+ts*.1?[BOARD[0],BOARD[1]]:null;});
 window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=ride;
-window.Train={_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
+window.Train={_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();

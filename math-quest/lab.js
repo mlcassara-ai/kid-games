@@ -12,7 +12,7 @@ const KEY_TRIPS=5,ROCK_PRICE=150,MM_COINS=15,LAB_X=25,LAB_Y=13;
 const DEMO=/labdemo/.test(location.search);
 const CD=()=>window.CAVE_DATA;
 const Q=p=>{p.sci=p.sci||{};const s=p.sci;s.rocks=s.rocks||0;s.trips=s.trips||0;s.lab=s.lab||{};s.lab.ok=s.lab.ok||{};return s;};
-const hasKey=p=>!!(p&&p.setup&&(DEMO||(p.sci&&p.sci.key)));
+const hasKey=p=>!!(p&&p.setup); /* Oct 2026: the Lab is open to everyone (train); no key */
 const first=p=>esc(String(p.name||'').split(' ')[0]);
 const tier=p=>{const g=+p.grade||3;return g<=4?0:g<=8?1:2;};
 const cv=p=>{const c=p.cave||{};return {idd:c.idd||{},found:c.found||{},fos:c.fos||{},ex:c.ex||{},crit:c.crit||{},geo:c.geo||{},seen:c.seen||{},maxRow:c.maxRow||0,gear:c.gear||{}};};
@@ -21,7 +21,7 @@ const hash=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=M
 let TAB='min',MM=null,FB='';
 
 /* ---------- the key: called by Dr. Quartz at the end of a cave trip ---------- */
-function keyDue(p){const s=Q(p);return !s.key&&s.trips>=KEY_TRIPS;}
+function keyDue(p){return false;} /* Oct 2026: no more Lab Key; the elevator asks a science question instead */
 function giveKey(p,done){css();try{const cur=P();if(cur&&p&&cur.id===p.id)p=cur;}catch(e){} /* always the live hero, never a copy held since before the trip */
  const s=Q(p);s.key=1;s.keyAt=Date.now();save();try{SFX.level();}catch(e){}
  /* 🚪 visitor queue: normally Dr. Quartz already holds the slot for his after-trip cards; otherwise the key card takes its own turn while open */
@@ -42,11 +42,11 @@ function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[L
 /* ---------- lab greeting ---------- */
 function greet(p){const s=Q(p),L=s.lab,m=typeof Quartz!=='undefined'?Quartz.medals(p):0;
  const firstVisit=!L.visits;const who=first(p);
- const hi=!hasKey(p)?(firstVisit?`Welcome to my lab, ${who}! You came all the way by train. Have a look around. Everything here is for explorers like you. 🔬`:[`Welcome back, ${who}! How was the train ride?`,`Ah, ${who}! Come in, come in. Mind the rock pile.`,`There's my favorite explorer! Fresh off the train.`,`Welcome back to the lab, ${who}. I was just labeling rocks.`][(L.visits||0)%4])
+ const hi=true?(firstVisit?`Welcome to my lab, ${who}! You came all the way by train. Have a look around. Everything here is for explorers like you. 🔬`:[`Welcome back, ${who}! How was the train ride?`,`Ah, ${who}! Come in, come in. Mind the rock pile.`,`There's my favorite explorer! Fresh off the train.`,`Welcome back to the lab, ${who}. I was just labeling rocks.`][(L.visits||0)%4])
   :firstVisit?`Your key works! Welcome to my lab, ${who}. Make yourself at home. 🔬`
   :[`I heard the door. You let yourself in with your key! Welcome back, ${who}.`,`Welcome back, ${who}! I see your key still works. 🔑`,`Oh, ${who}! Come in, come in. Mind the rock pile.`,`There's my favorite explorer! You let yourself in. Good.`,`Welcome back to the lab, ${who}. I was just labeling rocks.`,`Ah, ${who}! I left the door unlocked for you. Well, you have a key anyway.`][(L.visits||0)%6];
  const tips=[];
- if(s.rocks>0)tips.push(`You have <b>🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''}</b>, so the elevator is ready when you are!`);
+ if(canRide(p))tips.push(`Want to dig? Answer one science question at the <b>🛗 elevator</b> and down you go!`);
  const mm=mmState(p);if(mm&&!mm.done)tips.push(`Today's <b>Mystery Mineral</b> is waiting on the bench.`);
  const ng=nextGate(p,m);if(ng)tips.push(`You're <b>${ng.need-m} 🏅 Boss Medal${ng.need-m>1?'s':''}</b> away from the gate to <b>${esc(ng.L.n)}</b>.`);
  return hi+(tips.length?' '+tips[(L.visits||0)%tips.length]:'');}
@@ -136,37 +136,63 @@ function mapHTML(p){const D=CD();if(!D)return '';const c=cv(p),m=typeof Quartz!=
   <p class="muted" style="margin:8px 0 0">🏅 You have <b>${m}</b> Boss Medal${m===1?'':'s'}. Beat new boss rounds in Math Quest to open deeper gates.</p>`;}
 
 /* ---------- Rock Counter + elevator ---------- */
-/* the Lab Key's daily perk: one elevator ride a day without a rock. More rides on the same day need a mystery rock. */
-const freeRide=s=>s.lab.freeDay!==dayKey();
-function rockHTML(p){const s=Q(p),today=dayKey(),bought=s.lab.rockDay===today,full=s.rocks>=3,free=freeRide(s);
- if(!hasKey(p)){const n=Math.min(KEY_TRIPS,(p.cave&&p.cave.trips)||s.trips||0);return `<div class="lb-rocks"><div class="lb-rock-n">🔒</div><div class="lb-rock-act"><p style="margin:0 0 6px;font-weight:700;font-size:18px">The elevator down to the dig site needs the 🔑 Lab Key.</p><p class="muted" style="margin:0">Dr. Quartz gives it to explorers after their <b>${KEY_TRIPS}th Science Cave trip</b>. You've been on <b>${n} of ${KEY_TRIPS}</b>. He finds you on the map when it's time for a trip!</p></div></div>`;}
- return `<div class="lb-rocks"><div class="lb-rock-n">🪨 <b>${s.rocks}</b><small>/ 3 rocks</small></div>
-  <div class="lb-rock-act">${free?`
-   <p style="margin:0 0 6px;font-weight:700;font-size:18px">🔑 Your key gives you one free ride today!</p>
-   <button class="btn green big" onclick="Lab.down()">🛗 Ride the elevator down</button>
-   <small class="muted">No rock needed for this ride. Bring a 🪨 mystery rock if you want Dr. Quartz to help you identify it.</small>${s.rocks>0?`<div style="margin-top:8px"><button class="btn ghost dark small" onclick="Lab.down(1)">Ride down with a 🪨 rock instead</button></div>`:''}`
-   :s.rocks>0?`
-   <p style="margin:0 0 6px" class="muted">You used today's free ride. This ride uses a rock.</p>
-   <button class="btn green big" onclick="Lab.down()">🛗 Ride the elevator down</button>
-   <small class="muted">Uses 1 mystery rock. Same cave, same tunnels.</small>
-   <div id="lbBuy">${bought?`<button class="btn ghost dark small" disabled>✔ Bought today's rock</button>`:full?`<button class="btn ghost dark small" disabled>Your rock bag is full</button>`:`<button class="btn gold small" onclick="Lab.buy()">Buy 1 rock · 🪙 ${ROCK_PRICE}</button><small class="muted">One a day. You have 🪙 ${p.coins||0}.</small>`}</div>`
-   :`<p style="margin:0 0 6px;font-weight:700;font-size:18px">You used today's free ride. Another ride needs a new 🪨 mystery rock, and you have none.</p>${(()=>{const n=((p.cave&&p.cave.pack)||[]).filter(x=>x&&x.t==='m').length;return n?`<p class="muted" style="margin:0 0 8px">The ${n} rock${n>1?'s':''} in your cave backpack ${n>1?'were':'was'} already used for a trip. ${n>1?'They are':'It is'} waiting in the cave's Field Lab to be identified.</p>`:'';})()}
-   ${bought?`<p style="margin:0 0 8px">You already bought today's rock. Find another by <b>winning battles</b>, <b>opening chests</b> or <b>beating bosses</b>, or buy one tomorrow.</p>`
-    :`<div id="lbBuy"><p style="margin:0 0 6px"><b>Step 1:</b> get a rock.</p><button class="btn gold big" onclick="Lab.buy()">🪨 Buy a rock · 🪙 ${ROCK_PRICE}</button><small class="muted">One a day. You have 🪙 ${p.coins||0}. You can also find rocks in battles, chests and boss fights.</small></div>`}
-   <p style="margin:10px 0 6px"><b>${bought?'Then':'Step 2:'}</b> ride down to the dig site.</p>
-   <button class="btn green big" disabled>🛗 Ride the elevator down</button>`}
-  </div></div>`;}
-function buy(confirmNow){const p=P(),s=Q(p);if(s.lab.rockDay===dayKey()||s.rocks>=3)return;
- if((p.coins||0)<ROCK_PRICE){toast(`🪙 You need ${ROCK_PRICE-(p.coins||0)} more coins.`);return;}
- const box=document.getElementById('lbBuy');
- if(!confirmNow&&box){box.innerHTML=`<span style="font-weight:600;display:block;margin-bottom:6px">Spend 🪙 ${ROCK_PRICE} on a mystery rock?</span><button class="btn gold small" onclick="Lab.buy(1)">Yes, buy it</button><button class="btn ghost dark small" onclick="Lab.draw()">No</button>`;return;}
- if(DEMO){toast('🔬 Preview: nothing was bought.');draw();return;}
- p.coins-=ROCK_PRICE;s.rocks++;s.lab.rockDay=dayKey();s.lab.bought=(s.lab.bought||0)+1;save();try{SFX.coin();}catch(e){}toast('🪨 +1 Mystery Rock!');draw();}
-function down(useRock){const p=P(),s=Q(p);window.__tripFrom='lab';if(DEMO){toast('🔬 Preview: the elevator is closed.');return;}
- const free=freeRide(s)&&!useRock;if(!free&&s.rocks<=0)return;
- try{SFX.tap();}catch(e){}
- if(free){s.lab.freeDay=dayKey();save();}
- Quartz.startTrip(false,free);}
+/* ---------- the elevator (owner, Oct 2026): the first trip comes with a mystery rock when Dr. Quartz finds you on the map.
+   After that, the elevator in the Lab takes you down whenever you answer one science question right. A wrong answer explains
+   the right one and asks a different question. No key, no free-ride day, no rock needed for the elevator. ---------- */
+const SCIQ=[
+ {q:'What is a fossil?',a:['What is left of a living thing from long ago, turned to stone','A shiny kind of crystal','A rock that fell from space'],why:'Fossils are bones, shells, leaves or footprints from long ago that slowly turned to stone.',y:1},
+ {q:'Which of these is a mineral?',a:['Quartz','Wood','Plastic'],why:'Quartz is a mineral. Minerals are natural and not alive; wood comes from trees and plastic is made in factories.',y:1},
+ {q:'What sticks to a magnet?',a:['Iron','Wood','Glass'],why:'Magnets pull on iron. Wood and glass don\'t stick at all.',y:1},
+ {q:'Which is the hardest mineral of all?',a:['Diamond','Talc','Chalk'],why:'Diamond is the hardest natural mineral. Talc is so soft you can scratch it with a fingernail.'},
+ {q:'Is it light or dark deep inside a cave?',a:['Dark','Light','Rainbow colored'],why:'Sunlight can\'t reach deep inside a cave, so it is completely dark. That\'s why explorers bring lamps!',y:1},
+ {q:'What do we call the pointy rocks that hang down from a cave\'s ceiling?',a:['Stalactites','Stalagmites','Volcanoes'],why:'Stalactites hang from the ceiling (they hold on "tight"). Stalagmites grow up from the ground.',y:1},
+ {q:'How do stalactites grow?',a:['Drip by drip, very slowly','Overnight, all at once','Bats build them'],why:'Each drop of water leaves a tiny bit of rock behind. A stalactite grows only about as thick as a coin every 10 years!'},
+ {q:'What is the Earth\'s outside layer called?',a:['The crust','The core','The cloud'],why:'We live on the crust, the thin rocky skin of the Earth.',y:1},
+ {q:'What is the middle of the Earth called?',a:['The core','The crust','The equator'],why:'The core is the center of the Earth. It is mostly iron and nickel, and very, very hot.',y:1},
+ {q:'What comes out of an erupting volcano?',a:['Lava','Snow','Sand only'],why:'Melted rock pours out as lava. When it cools it becomes new rock.',y:1},
+ {q:'What is lava called while it is still underground?',a:['Magma','Fossil','Quartz'],why:'Melted rock is called magma underground and lava once it comes out.'},
+ {q:'Which animals often sleep upside down in caves?',a:['Bats','Cows','Penguins'],why:'Bats hang upside down from cave ceilings to sleep during the day.',y:1},
+ {q:'Which dinosaur had three horns on its face?',a:['Triceratops','T. rex','Brachiosaurus'],why:'"Tri" means three: Triceratops had two long horns and one short one on its nose.',y:1},
+ {q:'Which dinosaur had a very long neck to reach treetops?',a:['Brachiosaurus','Stegosaurus','T. rex'],why:'Brachiosaurus was as tall as a 4-storey building and ate leaves from the tops of trees.',y:1},
+ {q:'What did T. rex eat?',a:['Meat','Only leaves','Rocks'],why:'T. rex was a meat-eater with teeth as long as bananas.',y:1},
+ {q:'What does a scientist use to look at tiny things up close?',a:['A microscope','A telescope','A stethoscope'],why:'A microscope makes tiny things look big. A telescope is for faraway things like stars.',y:1},
+ {q:'What is a geode?',a:['A plain rock with crystals hidden inside','A dinosaur egg','A piece of the Moon'],why:'Geodes look like ordinary round rocks, but crack one open and it can be full of sparkly crystals.'},
+ {q:'What is the "streak" of a mineral?',a:['The color of its powder','How shiny it is','How heavy it is'],why:'Rub a mineral on rough white tile and look at the line it leaves. Its streak color helps you tell minerals apart.'},
+ {q:'Which mineral fizzes when you drip vinegar on it?',a:['Calcite','Quartz','Diamond'],why:'Calcite reacts with acid like vinegar and makes tiny bubbles of gas.'},
+ {q:'What gives the Sun\'s energy to a solar panel?',a:['Sunlight','Wind','Rain'],why:'Solar panels turn sunlight into electricity. Batteries store it for later.',y:1},
+ {q:'Where does a battery keep energy?',a:['Inside it, stored for later','In the wires only','It doesn\'t keep any'],why:'A battery stores energy so you can use it later, like using today\'s sunshine at night.',y:1},
+ {q:'Which is a kind of rock made from cooled lava?',a:['Igneous rock','Sedimentary rock','Paper rock'],why:'Igneous rock forms when magma or lava cools and hardens. Granite and basalt are igneous.'},
+ {q:'Which kind of rock forms from layers of sand and mud pressed together?',a:['Sedimentary rock','Igneous rock','Metal rock'],why:'Sedimentary rock builds up in layers over a very long time. Most fossils are found in it!'},
+ {q:'Why are deeper rock layers usually older?',a:['New layers pile up on top of old ones','Old rocks sink on purpose','The deep ones are bigger'],why:'Layers stack up over time, like a pile of laundry: the bottom of the pile went in first.'},
+ {q:'How many legs does a spider have?',a:['8','6','10'],why:'Spiders have 8 legs. Insects like ants and beetles have 6.',y:1},
+ {q:'What do plants need to grow?',a:['Sunlight, water and air','Only rocks','Darkness and ice'],why:'Plants use sunlight, water and air (carbon dioxide) to make their own food.',y:1},
+ {q:'Which of these is a liquid?',a:['Water','Ice','A rock'],why:'Water is a liquid. Freeze it and it becomes ice, a solid.',y:1},
+ {q:'What makes earthquakes?',a:['Huge pieces of the crust slipping','Thunder','Very big footsteps'],why:'The crust is broken into giant plates. When they suddenly slip, the ground shakes.'},
+ {q:'Which shiny mineral looks like gold but is NOT gold, so people call it "fool\'s gold"?',a:['Pyrite','Silver','Copper'],why:'Pyrite looks like gold, but its streak is greenish-black. Real gold\'s streak is gold.'},
+ {q:'Which gas do we breathe in to stay alive?',a:['Oxygen','Smoke','Helium'],why:'Our bodies need oxygen from the air. That\'s why miners always check the air deep underground.',y:1}];
+let EQ=null; /* {i, order, picked} the question on screen; PASS: answered right, the ride is ready */
+let PASS=false;
+const canRide=p=>!!(p&&(DEMO||(Q(p).met)));
+function newQ(p){const s=Q(p),L=s.lab;const young=p.grade!=null&&p.grade<=2;let pool=SCIQ.map((x,i)=>i).filter(i=>!young||SCIQ[i].y);
+ const seen=Array.isArray(L.sq)?L.sq:[];const fresh=pool.filter(i=>!seen.includes(i));if(fresh.length)pool=fresh;
+ const i=pool[Math.floor(Math.random()*pool.length)];L.sq=seen.concat(i).slice(-Math.min(15,Math.floor(pool.length/2)+5));
+ const order=SCIQ[i].a.map((x,k)=>k).sort(()=>Math.random()-.5);EQ={i,order,picked:-1};}
+function rockHTML(p){
+ if(!canRide(p))return `<div class="lb-rocks"><div class="lb-rock-n">🔒</div><div class="lb-rock-act"><p style="margin:0 0 6px;font-weight:700;font-size:18px">Dr. Quartz takes you down himself the first time.</p><p class="muted" style="margin:0">Find a 🪨 <b>mystery rock</b> in a treasure chest or a battle, and he will come and find you on the map.</p></div></div>`;
+ if(PASS)return `<div class="lb-rocks"><div class="lb-rock-n">✅</div><div class="lb-rock-act"><p style="margin:0 0 8px;font-weight:700;font-size:18px">Right! The elevator is ready.</p><button class="btn green big" onclick="Lab.down()">🛗 Ride the elevator down</button></div></div>`;
+ if(!EQ)newQ(p);const Qn=SCIQ[EQ.i];
+ if(EQ.picked>=0){const ok=EQ.picked===0;return `<div class="lb-sq"><p class="lb-sq-q">${esc(Qn.q)}</p><p style="margin:0 0 8px"><b>${ok?'✅ Right!':'Not quite.'}</b> ${esc(Qn.why)}</p>${ok?`<button class="btn green big" onclick="Lab.down()">🛗 Ride the elevator down</button>`:`<button class="btn gold" onclick="Lab.ans(-1)">🔬 Try another question</button>`}</div>`;}
+ return `<div class="lb-sq"><p class="muted" style="margin:0 0 4px">🔬 Dr. Quartz: "Answer one science question and the elevator is yours!"</p><p class="lb-sq-q">${esc(Qn.q)}</p><div class="lb-sq-a">${EQ.order.map(k=>`<button class="btn ghost dark" onclick="Lab.ans(${k})">${esc(Qn.a[k])}</button>`).join('')}</div></div>`;}
+function ans(k){const p=P();if(!p||!EQ)return;
+ if(k<0){newQ(p);save();}else{EQ.picked=k;if(k===0){PASS=true;try{SFX.correct();}catch(e){}const L=Q(p).lab;L.sqRight=(L.sqRight||0)+1;}else{try{SFX.wrong();}catch(e){}}save();}
+ const el=document.querySelector('#modal .lb-elev');
+ if(el){const h=el.querySelector('.lb-rocks,.lb-sq');if(h)h.outerHTML=rockHTML(p);}else draw();
+ if(k===0)PASS=true;}
+function buy(){}
+function down(){const p=P();window.__tripFrom='lab';if(DEMO){toast('🔬 Preview: the elevator is closed.');return;}
+ if(!canRide(p)||!PASS)return;
+ PASS=false;EQ=null;try{SFX.tap();}catch(e){}try{closeModal();}catch(e){}
+ Quartz.startTrip(false,true);}
 
 /* ---------- the Lab as a dollhouse (owner, Oct 2026) ----------
    The front view of the Lab: the whole building cut open. Roof: solar panels and the glass greenhouse. Top floor: the study
@@ -232,8 +258,7 @@ const NAMES={study:'📓 Study: Journal & Collection',power:'☀️ Power Room',
 function petLine(p){const pet=petOf(p);if(!pet)return '';const s=Q(p),hints=[],nice=[`I LOVE train rides!`,`You're the best at math. And at belly rubs.`,`This bed is SO comfy. Thank you!`,`I'm proud of you, ${first(p)}!`,`Is it snack time? It feels like snack time.`,`I sniffed every rock in here. They smell like… rocks.`,`Dr. Quartz said I'm a very good lab assistant!`];
  try{const pd=petMood(petData(p,pet.id));if(pd.food<=1)hints.push('Psst… I\'m a little hungry 🍗');else if(pd.joy>=3)nice.push('Thanks for playing with me!');}catch(e){}
  try{const mm=mmState(p);if(mm&&!mm.done)hints.push('Today\'s Mystery Mineral is waiting on the bench!');}catch(e){}
- if(!hasKey(p)){const n=Math.max(0,KEY_TRIPS-((p.cave&&p.cave.trips)||s.trips||0));if(n>0)hints.push(`${n} more cave trip${n>1?'s':''} and Dr. Quartz gives you the Lab Key!`);}
- else if(freeRide(s))hints.push('Your free elevator ride is ready today!');
+ if(canRide(p))hints.push('Answer Dr. Quartz\'s science question and we can ride the elevator down!');
  try{if(window.Daily&&P().tad&&P().tad.s<3)hints.push('The Elder Wiz has a quest for you!');}catch(e){}
  const pool=hints.length&&Math.random()<.34?hints:nice;return pool[Math.floor(Math.random()*pool.length)];}
 function bubbleAt(id,html){const wrap=document.querySelector('.lbh-wrap'),tip=document.getElementById('lbhTip');if(!wrap||!tip)return;const g=wrap.querySelector(`.lbh-hs[data-id="${id}"] rect:last-child`),r=g?g.getBoundingClientRect():null,wr=wrap.getBoundingClientRect();
@@ -247,7 +272,7 @@ function tap(id){const p=P();try{SFX.tap();}catch(e){}
 function house(){css();const p=P();if(!p){go('world');return;}const app=document.getElementById('app');
  app.innerHTML=topbar()+`<div class="page lb-page lb-house"><div class="zhead"><button class="btn green small" onclick="Lab.home()">🚂 Train home</button><h2 class="title" style="margin:0">🔬 Dr. Quartz's Lab</h2></div>
  <div class="lbh-wrap">${houseSVG(p)}<div class="lbh-tip" id="lbhTip" hidden></div></div></div>`;
- app.querySelectorAll('.lbh-hs').forEach(g=>{g.addEventListener('click',()=>tap(g.dataset.id));g.addEventListener('mouseenter',()=>{if(!['pet','qz'].includes(g.dataset.id)||document.getElementById('lbhTip').hidden)bubbleAt(g.dataset.id,NAMES[g.dataset.id]);});});}
+ app.querySelectorAll('.lbh-hs').forEach(g=>{g.addEventListener('click',()=>tap(g.dataset.id)); /* no hover name bubbles (owner, Oct 2026) */});}
 
 /* ---------- the screen ---------- */
 function draw(){css();const p=P();if(!p){go('world');return;}if(VIEW==='house'){house();return;}const s=Q(p);
@@ -261,7 +286,7 @@ function draw(){css();const p=P();if(!p){go('world');return;}if(VIEW==='house'){
   <div class="panel"><div class="qz-row"><div class="qz-av">${window.QUARTZ_SVG||''}</div><div class="qz-bub"><b>🔬 Dr. Quartz</b><div id="lbHi">${GREET}</div></div>${(()=>{try{const pt=petOf(p);return pt?`<div class="lb-pet" title="${esc(pt.name)} came along!">${petAvatar(p,pt)}</div>`:'';}catch(e){return '';}})()}</div></div>
   <div class="lb-cols">
    <div class="panel lb-st"><h3>🧪 Mystery Mineral of the Day</h3>${mmHTML(p)}<div style="margin-top:10px"><button class="btn ghost dark small" onclick="Quartz.room('bench')">🔬 Field Lab bench: identify my cave finds</button></div></div>
-   <div class="panel lb-st"><h3>🛗 Rock Counter &amp; Elevator</h3>${rockHTML(p)}</div>
+   <div class="panel lb-st"><h3>🛗 Elevator to the dig site</h3>${rockHTML(p)}</div>
   </div>
   <div class="panel lb-st"><h3>🗺️ Dig Map</h3>${mapHTML(p)}</div>
  </div>`;}
@@ -308,6 +333,7 @@ let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElem
 .lb-layer em{font-style:normal;background:#ffe066;color:#23364a;border-radius:10px;padding:2px 8px;font-size:13px}
 .lb-layer.dim{filter:saturate(.35) brightness(.8)}
 .lb-rocks{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.lb-sq{text-align:left}.lb-sq-q{margin:0 0 10px;font-weight:700;font-size:19px}.lb-sq-a{display:flex;flex-direction:column;gap:8px}.lb-sq-a .btn{width:100%;white-space:normal;text-align:center}
 .lb-rock-n{font-size:34px;display:flex;flex-direction:column;align-items:center;min-width:80px}.lb-rock-n small{font-size:13px;color:var(--muted)}
 .lb-rock-act{display:flex;flex-direction:column;gap:8px;flex:1;min-width:200px}.lb-rock-act small{display:block}
 #lbBuy{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -325,5 +351,5 @@ window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='wor
 /* back to Number Town by train (ride.js), landing on the station platform */
 function home(){const go2=()=>{try{const p=P();const x=23,y=20;if(typeof W!=='undefined'&&W&&W.T&&W.T[y]&&W.T[y][x]&&!W.T[y][x].block){W.hx=x;W.hy=y;W.drawX=x;W.drawY=y;W.path=[];}if(p)p.wpos={x,y};}catch(e){}go('world');};
  if(window.Ride&&Ride.go('home',go2))return;go2();}
-window.Lab={home,open,back:()=>{VIEW='house';go('lab');},tap,petLine,houseSVG,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
+window.Lab={home,open,back:()=>{VIEW='house';go('lab');},tap,petLine,houseSVG,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,ans,_pass:()=>{PASS=true;},SCIQ,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
 })();

@@ -85,7 +85,7 @@ function meet(){if(busy)return;const p=P();if(!p)return;const s=Q(p);busy=true;W
  const lines=first?[`Oh, hello there! I'm <b>${NAME}</b>, the town's science teacher. 🔬`,
    'I just found this <b>strange rock</b> 🪨 and I can\'t figure out what it is! A clever math hero like you could help me.',
    'My dig site is down in the <b>Science Cave</b> — it goes deep into the real layers of the Earth! Will you come with me?']
-  :[DEMO?'This is a preview trip — nothing will be changed.':'',s.key?`${esc(p.name)}! You found a <b>mystery rock</b> 🪨${s.rocks>1?` — actually ${s.rocks} of them`:''}! Want to go dig right now? <small>(You can also use your 🔑 key and ride the lab elevator any time.)</small>`:`${esc(p.name)}! You found a <b>mystery rock</b> 🪨${s.rocks>1?` — actually ${s.rocks} of them`:''}! Let's take it to my lab and find out what it is.`].filter(Boolean);
+  :[DEMO?'This is a preview trip — nothing will be changed.':'',s.met?`${esc(p.name)}! You found a <b>mystery rock</b> 🪨${s.rocks>1?` — actually ${s.rocks} of them`:''}! Want to go dig right now? <small>(You can also take the train to my Lab and ride the elevator down any time.)</small>`:`${esc(p.name)}! You found a <b>mystery rock</b> 🪨${s.rocks>1?` — actually ${s.rocks} of them`:''}! Let's take it to my lab and find out what it is.`].filter(Boolean);
  let i=0;
  const show=()=>{const last=i>=lines.length-1;
   modal(`<div class="mcard qz-card"><div class="qz-row"><div class="qz-av">${SVG}</div><div class="qz-bub"><b>🔬 ${NAME}</b><div>${lines[i]}</div></div></div>
