@@ -371,7 +371,7 @@ function frame(){
  // sky with sun & clouds (a Math Quest trip: the elevator landing is underground, so a rocky ceiling instead, owner Oct 2026)
  const skyB=-camY+TS;if(skyB>0&&MQ()){c.fillStyle='#2c2032';c.fillRect(0,0,w,skyB);c.fillStyle='#3a2b42';c.beginPath();c.moveTo(0,0);for(let x=0;x<=w+40;x+=40){const k=Math.floor((x+camX)/40);c.lineTo(x-((camX%40+40)%40),skyB-TS*.55-((k*7919)%5)*TS*.06);}c.lineTo(w,0);c.fill();
   for(let x=-((camX%(TS*2))+TS*2)%(TS*2);x<w;x+=TS*2){const k=Math.floor((x+camX)/(TS*2));const len=TS*(.25+((k*31)%4)*.08);c.fillStyle='#4a3b52';c.beginPath();c.moveTo(x,skyB-TS*.6);c.lineTo(x+TS*.12,skyB-TS*.6+len);c.lineTo(x+TS*.24,skyB-TS*.6);c.fill();
-   if(k%3===0){const lx=x+TS,ly=skyB-TS*.95;c.strokeStyle='#868e96';c.lineWidth=2;c.beginPath();c.moveTo(lx,0);c.lineTo(lx,ly);c.stroke();c.fillStyle='rgba(255,212,59,.18)';c.beginPath();c.arc(lx,ly+TS*.12,TS*.55,0,7);c.fill();c.fillStyle='#ffd43b';c.fillRect(lx-TS*.08,ly,TS*.16,TS*.22);}}}
+   if(k%3===0&&x+TS+camX>TS*1.6){const lx=x+TS,ly=skyB-TS*.95;c.strokeStyle='#868e96';c.lineWidth=2;c.beginPath();c.moveTo(lx,0);c.lineTo(lx,ly);c.stroke();c.fillStyle='rgba(255,212,59,.18)';c.beginPath();c.arc(lx,ly+TS*.12,TS*.55,0,7);c.fill();c.fillStyle='#ffd43b';c.fillRect(lx-TS*.08,ly,TS*.16,TS*.22);}}}
  else if(skyB>0){const gr=c.createLinearGradient(0,0,0,skyB);gr.addColorStop(0,'#6ec6ff');gr.addColorStop(1,'#c9ecff');c.fillStyle=gr;c.fillRect(0,0,w,skyB);
   c.fillStyle='#ffe066';c.beginPath();c.arc(w-70,skyB-TS*2.6,TS*.7,0,7);c.fill();
   c.fillStyle='rgba(255,255,255,.9)';[[.2,2.9],[.55,3.4]].forEach(([fx,fy],k)=>{const cx=((fx*w+tick*.15*(k+1))%(w+160))-80,cy=skyB-TS*fy;c.beginPath();c.ellipse(cx,cy,TS*.9,TS*.3,0,0,7);c.ellipse(cx+TS*.4,cy-TS*.15,TS*.5,TS*.3,0,0,7);c.fill();});}
