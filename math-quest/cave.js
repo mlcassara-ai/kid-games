@@ -1100,7 +1100,8 @@ function probeRun(){
 }
 
 /* ---------------- styles ---------------- */
-const CSS=`
+const CSS=`.cv.cv-room{background:rgba(20,12,50,.55)!important}.cv.cv-room>#cvC,.cv.cv-room>.cv-top,.cv.cv-room>.cv-pad,.cv.cv-room>.cv-depth,.cv.cv-room>.cv-msg{display:none!important}
+
 .cv{position:fixed;inset:0;z-index:5000;background:#0b0710;font-family:'Fredoka',system-ui,sans-serif;color:#241a3d;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
 .cv canvas#cvC{position:absolute;inset:0;display:block}
 .cv button{font-family:inherit;cursor:pointer;border:none;color:inherit;touch-action:manipulation}
@@ -1277,7 +1278,17 @@ function open(host){coreOn=false;coreRoll=null;
  else if(!S.stats.dug)modal(`<div class="cv-card"><div class="cv-big">⛏️</div><h2>Deep Down: The Science Cave</h2><p>Dig down through the real layers of the Earth! Find mystery minerals 💎, fossils 🦴 and cave critters 🦇. Study your finds in the 🔬 Lab to earn coins and research points, then upgrade your gear to dig deeper and deeper.</p><p class="cv-sub">Use the arrow buttons (or swipe) to dig. Tap 🏠 to beam back to camp any time.</p><button class="cv-btn" data-close>Start digging!</button></div>`);
  save(true);
 }
-function leave(){save(true);cardQ.length=0;cancelAnimationFrame(raf);window.removeEventListener('keydown',onKey);window.removeEventListener('resize',resize);if(root)root.remove();root=null;const h=H;H=null;W=null;if(h&&h.exit)h.exit();}
+/* ---------------- one room from the Lab (Oct 2026) ----------------
+   The Lab (lab.js, a dollhouse) opens the camp's rooms directly: the Garden, Museum, Journal, Gear, Power Room and the Field Lab
+   bench. room() sets up the cave's state and DOM like open() but shows no cave (no canvas, no HUD, the Lab stays visible behind),
+   opens just that room's card and, once no card is open any more, leaves (host.exit goes back to the Lab). No trip is started. */
+let ROOMW=null;
+function room(host,which){coreOn=false;coreRoll=null;H=host;S=host.state;initState();
+ if(!document.getElementById('cvCSS')){const st=document.createElement('style');st.id='cvCSS';st.textContent=CSS;document.head.appendChild(st);}
+ if(root){try{root.remove();}catch(e){}root=null;}genWorld();build();root.classList.add('cv-room');try{hud();}catch(e){}
+ const fn={garden:openGarden,museum:openMuseum,journal:openJournal,gear:openGear,power:openPower,bench:openLab}[which];try{if(which==='museum'||which==='bench')deliverFossils();}catch(e){}
+ if(fn)fn();clearInterval(ROOMW);ROOMW=setInterval(()=>{if(!root){clearInterval(ROOMW);return;}if(!modalOpen()){clearInterval(ROOMW);leave();}},450);return !!fn;}
+function leave(){clearInterval(ROOMW);save(true);cardQ.length=0;cancelAnimationFrame(raf);window.removeEventListener('keydown',onKey);window.removeEventListener('resize',resize);if(root)root.remove();root=null;const h=H;H=null;W=null;if(h&&h.exit)h.exit();}
 /* ---------------- The Core Keeper (Oct 2026) ----------------
    A surprise for explorers who own the Core Suit (the sixth suit, CD.SUITS[..].core). Deep in the Mantle the floor cracks and the
    hero falls through the Earth's real layers to the centre (the same layers the Core Probe visits, but this time in person).
@@ -1477,5 +1488,5 @@ let coreDbg=null;
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={mathQ,open,leave,summary,coreHint,deliverFossils:st=>deliverTo(st),_dbg:()=>({S,W,H,ROWS,save,regrow,shiftLine,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
+window.Cave={mathQ,open,room,leave,summary,coreHint,deliverFossils:st=>deliverTo(st),_dbg:()=>({S,W,H,ROWS,save,regrow,shiftLine,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
 })();

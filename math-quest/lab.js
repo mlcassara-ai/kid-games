@@ -168,28 +168,115 @@ function down(useRock){const p=P(),s=Q(p);if(DEMO){toast('🔬 Preview: the elev
  if(free){s.lab.freeDay=dayKey();save();}
  Quartz.startTrip(false,free);}
 
+/* ---------- the Lab as a dollhouse (owner, Oct 2026) ----------
+   The front view of the Lab: the whole building cut open. Roof: solar panels and the glass greenhouse. Top floor: the study
+   (Journal + Collection) and the Power Room. Ground floor: the Museum, the main lab (Test Center bench, Dig Map, Dr. Quartz, your
+   pet's bed with the Pet Translator) and the Gear room. A plain elevator shaft on the right runs down past the bottom of the picture.
+   Tap a room: the main lab and the study are pages here (VIEW), the camp's rooms open through Quartz.room() (cave.js room()). */
+let VIEW='house',PETSAY=null;
+const HO='#3b2a1e';
+const hU=s=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);
+const hImg=(s,x,y,w,h)=>s?`<image href="${hU(s)}" x="${x}" y="${y}" width="${w}" height="${h}"/>`:'';
+const dArt=k=>{try{return (window.MQ_DECOR&&MQ_DECOR.ART&&MQ_DECOR.ART[k])||'';}catch(e){return '';}};
+function houseSVG(p){const O=HO;
+ const flask=(x,y,c,k=1)=>`<path d="M${x-6*k} ${y-30*k} h${12*k} v${10*k} l${12*k} ${20*k} h${-36*k} l${12*k} ${-20*k} Z" fill="${c}" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/>`;
+ const tube=(x,y,c,k=1)=>`<rect x="${x-5*k}" y="${y-36*k}" width="${10*k}" height="${36*k}" rx="${5*k}" fill="${c}" stroke="${O}" stroke-width="2.5"/><rect x="${x-5*k}" y="${y-36*k}" width="${10*k}" height="${10*k}" fill="#fff" opacity=".55"/>`;
+ const bub=(x,y)=>`<circle cx="${x}" cy="${y-40}" r="4" fill="#fff" stroke="${O}" stroke-width="1.2" opacity=".8"/><circle cx="${x+5}" cy="${y-52}" r="3" fill="#fff" stroke="${O}" stroke-width="1.2" opacity=".6"/>`;
+ const scope=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})"><rect x="-16" y="-7" width="34" height="9" rx="2" fill="#343a40" stroke="${O}" stroke-width="2"/><path d="M0 -7 L9 -44 L20 -44 L11 -7 Z" fill="#748ffc" stroke="${O}" stroke-width="2"/><rect x="9" y="-58" width="13" height="16" rx="3" fill="#343a40" stroke="${O}" stroke-width="2"/><circle cx="-8" cy="-16" r="6" fill="#ffd43b" stroke="${O}" stroke-width="1.5"/></g>`;
+ const dino=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})" stroke-linecap="round"><path d="M-70 -6 Q-40 -50 0 -46 Q34 -44 52 -74 Q62 -90 80 -82" fill="none" stroke="#fff8e8" stroke-width="10"/>${[-44,-14,14,30].map(x=>`<path d="M${x} ${x<0?-36:-44} v${x<0?38:46}" stroke="#fff8e8" stroke-width="8"/>`).join('')}<path d="M-70 -6 Q-92 0 -110 -12" fill="none" stroke="#fff8e8" stroke-width="7"/>${[-36,-24,-12,0,12,24].map(x=>`<path d="M${x} -46 l3 -14" stroke="#fff8e8" stroke-width="5"/>`).join('')}<ellipse cx="84" cy="-84" rx="16" ry="11" fill="#fff8e8" stroke="${O}" stroke-width="2"/><circle cx="88" cy="-86" r="3" fill="${O}"/></g>`;
+ const locker=(x,y,w,h,c)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${c}" stroke="${O}" stroke-width="3"/>${[.1,.15,.2].map(f=>`<rect x="${x+6}" y="${y+h*f}" width="${w-12}" height="4" rx="2" fill="${O}" opacity=".3"/>`).join('')}<rect x="${x+w-11}" y="${y+h*.5}" width="5" height="16" rx="2" fill="#dee2e6" stroke="${O}" stroke-width="1.5"/>`;
+ const solar=(x,y,w,h,r)=>`<g transform="rotate(${r} ${x+w/2} ${y+h/2})"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="#1864ab" stroke="${O}" stroke-width="3"/>${[1,2,3,4].map(i=>`<line x1="${x+w*i/5}" y1="${y}" x2="${x+w*i/5}" y2="${y+h}" stroke="#74c0fc" stroke-width="1.5"/>`).join('')}<line x1="${x}" y1="${y+h/2}" x2="${x+w}" y2="${y+h/2}" stroke="#74c0fc" stroke-width="1.5"/></g>`;
+ const lamp=(x,y,w)=>`<line x1="${x}" y1="${y}" x2="${x}" y2="${y+18}" stroke="${O}" stroke-width="2"/><path d="M${x-w/2} ${y+30} Q${x} ${y+12} ${x+w/2} ${y+30} Z" fill="#ffd43b" stroke="${O}" stroke-width="2.5"/><polygon points="${x-w/2},${y+30} ${x+w/2},${y+30} ${x+w*1.6},${y+150} ${x-w*1.6},${y+150}" fill="#fff3bf" opacity=".22"/>`;
+ const paper=(x,y,w,h,c1,c2,id)=>`<defs><pattern id="${id}" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="${c1}"/><circle cx="12" cy="12" r="2.5" fill="${c2}"/></pattern></defs><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${id})"/>`;
+ const boards=(x,y,w,h)=>{let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#c08552" stroke="${O}" stroke-width="3"/>`;for(let i=x+30;i<x+w;i+=46)s+=`<line x1="${i}" y1="${y}" x2="${i}" y2="${y+h}" stroke="#8b5e3c" stroke-width="1.5"/>`;return s;};
+ const room=(x,y,w,h,inner,id)=>`<g class="lbh-hs" data-id="${id}">${inner}<rect class="lbh-glow" x="${x+3}" y="${y+3}" width="${w-6}" height="${h-6}" rx="6" fill="none" stroke="#ffd43b" stroke-width="7"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="transparent"/></g>`;
+ const pet=(()=>{try{return petOf(p);}catch(e){return null;}})();
+ let s=`<defs><linearGradient id="lbhSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5bb5f0"/><stop offset="1" stop-color="#d6efff"/></linearGradient><linearGradient id="lbhSoil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9b6b43"/><stop offset="1" stop-color="#4f3524"/></linearGradient><linearGradient id="lbhGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3fafc" stop-opacity=".85"/><stop offset="1" stop-color="#99e9f2" stop-opacity=".6"/></linearGradient><linearGradient id="lbhBrick" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8b28c"/><stop offset="1" stop-color="#d79a72"/></linearGradient></defs>
+ <rect width="1100" height="720" fill="url(#lbhSky)"/><circle cx="1030" cy="70" r="40" fill="#ffe066"/><circle cx="1030" cy="70" r="64" fill="#ffe066" opacity=".25"/>
+ ${[[130,80,1],[500,50,.8],[800,110,.7]].map(([x,y,k])=>`<g transform="translate(${x} ${y}) scale(${k})"><ellipse cx="0" cy="0" rx="60" ry="22" fill="#fff"/><ellipse cx="36" cy="-12" rx="40" ry="24" fill="#fff"/><ellipse cx="-30" cy="-6" rx="30" ry="18" fill="#fff"/></g>`).join('')}
+ ${hImg(dArt('pine'),20,420,70,95)}${hImg(dArt('oak'),990,400,100,120)}
+ <rect y="510" width="1100" height="210" fill="url(#lbhSoil)"/><rect y="498" width="1100" height="16" fill="#69db7c" stroke="${O}" stroke-width="3"/>
+ ${[[90,590,40],[300,670,26],[520,620,34],[160,700,22],[700,650,28]].map(([x,y,r])=>`<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*.45}" fill="#5c3d22" stroke="${O}" stroke-width="2" opacity=".7"/>`).join('')}`;
+ const X0=110,X1=910,Y_ROOF=140,Y_F2=160,Y_F1=330,Y_G=500;
+ s+=`<rect x="${X0-10}" y="${Y_F2-10}" width="${X1-X0+20}" height="${Y_G-Y_F2+20}" fill="url(#lbhBrick)" stroke="${O}" stroke-width="5"/>`;
+ {const x=X0,y=Y_F2,w=420,h=Y_F1-Y_F2;let g=paper(x,y,w,h,'#fff3bf','#ffe8a3','lbhP1')+boards(x,y+h-16,w,16);
+  g+=`<rect x="${x+20}" y="${y+24}" width="150" height="${h-44}" rx="6" fill="#d0ebff" fill-opacity=".6" stroke="${O}" stroke-width="3"/>${[y+70,y+112].map(yy=>`<rect x="${x+20}" y="${yy}" width="150" height="7" fill="#c08552" stroke="${O}" stroke-width="2"/>`).join('')}`;
+  [['💎',45,62],['🦴',95,62],['🐚',140,62],['🪨',45,104],['🔮',95,104],['🦋',140,104],['🐌',60,146],['🌋',120,146]].forEach(([e,xx,yy])=>{g+=`<text x="${x+xx}" y="${y+yy}" text-anchor="middle" font-size="24">${e}</text>`;});
+  g+=`<rect x="${x+200}" y="${y+40}" width="80" height="60" rx="4" fill="#a5d8ff" stroke="${O}" stroke-width="3"/><path d="M${x+240} ${y+40} V${y+100} M${x+200} ${y+70} H${x+280}" stroke="${O}" stroke-width="2.5"/>
+  <rect x="${x+230}" y="${y+108}" width="160" height="14" rx="4" fill="#d9a066" stroke="${O}" stroke-width="3"/><rect x="${x+240}" y="${y+122}" width="12" height="32" fill="#a5683a" stroke="${O}" stroke-width="2.5"/><rect x="${x+368}" y="${y+122}" width="12" height="32" fill="#a5683a" stroke="${O}" stroke-width="2.5"/><path d="M${x+270} ${y+108} L${x+310} ${y+101} L${x+350} ${y+108} L${x+350} ${y+104} L${x+310} ${y+97} L${x+270} ${y+104} Z" fill="#fff" stroke="${O}" stroke-width="2"/><path d="M${x+340} ${y+98} l18 -18 l4 4 l-18 18 Z" fill="#ffd43b" stroke="${O}" stroke-width="2"/><path d="M${x+380} ${y+108} v-34 q0 -10 -12 -14" stroke="${O}" stroke-width="3" fill="none"/><path d="M${x+352} ${y+48} l24 -2 l-2 14 l-24 2 Z" fill="#e03131" stroke="${O}" stroke-width="2.5"/>`;
+  s+=room(x,y,w,h,g,'study');}
+ {const x=X0+420,y=Y_F2,w=X1-X0-420,h=Y_F1-Y_F2;let g=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#e9ecef"/>`+boards(x,y+h-16,w,16);
+  for(let i=0;i<4;i++){const bx=x+30+i*80;g+=`<rect x="${bx}" y="${y+66}" width="54" height="84" rx="6" fill="#ffd43b" stroke="${O}" stroke-width="3"/><rect x="${bx+18}" y="${y+58}" width="18" height="10" rx="2" fill="#343a40" stroke="${O}" stroke-width="2"/><path d="M${bx+30} ${y+88} l-8 18 h10 l-6 18" stroke="${O}" stroke-width="3" fill="none"/><rect x="${bx+6}" y="${y+136}" width="42" height="8" rx="2" fill="#2f9e44"/>`;}
+  g+=`<path d="M${x+57} ${y+58} V${y+22} H${x+w-40} V${y-20}" stroke="#e03131" stroke-width="3" fill="none"/><circle cx="${x+w-50}" cy="${y+40}" r="14" fill="#69db7c" stroke="${O}" stroke-width="2.5"/><circle cx="${x+w-50}" cy="${y+40}" r="26" fill="#69db7c" opacity=".2"/>`;
+  s+=room(x,y,w,h,g,'power');}
+ s+=`<rect x="${X0-10}" y="${Y_F1}" width="${X1-X0+20}" height="14" fill="#8b5e3c" stroke="${O}" stroke-width="3"/>`;
+ {const x=X0,y=Y_F1+14,w=230,h=Y_G-Y_F1-14;let g=paper(x,y,w,h,'#e6d5b8','#d9c39c','lbhP2')+boards(x,y+h-14,w,14);
+  g+=`<rect x="${x+20}" y="${y+h-44}" width="${w-40}" height="30" rx="4" fill="#efe3c2" stroke="${O}" stroke-width="3"/>`+dino(x+w/2+10,y+h-46,.85)+`<rect x="${x+30}" y="${y+18}" width="56" height="40" rx="3" fill="#fff9db" stroke="${O}" stroke-width="2.5"/><text x="${x+58}" y="${y+46}" text-anchor="middle" font-size="20">🦕</text><rect x="${x+140}" y="${y+18}" width="56" height="40" rx="3" fill="#fff9db" stroke="${O}" stroke-width="2.5"/><text x="${x+168}" y="${y+46}" text-anchor="middle" font-size="20">🦴</text>`;
+  s+=room(x,y,w,h,g,'museum');}
+ {const x=X0+230,y=Y_F1+14,w=410,h=Y_G-Y_F1-14;let g=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#e7f5ff"/><rect x="${x}" y="${y+h*.55}" width="${w}" height="${h*.45}" fill="#c5e3f6"/>`+boards(x,y+h-14,w,14)+lamp(x+110,y,26)+lamp(x+300,y,26);
+  g+=`<rect x="${x+150}" y="${y+40}" width="120" height="70" rx="4" fill="#2f5d45" stroke="#6b4423" stroke-width="7"/><path d="M${x+164} ${y+96} L${x+184} ${y+62} L${x+204} ${y+86} L${x+228} ${y+56} L${x+256} ${y+80}" stroke="#fff" stroke-width="2.5" fill="none" stroke-dasharray="5 4"/><path d="M${x+250} ${y+74} l10 10 M${x+260} ${y+74} l-10 10" stroke="#ff8787" stroke-width="3"/>
+  <rect x="${x+16}" y="${y+h-70}" width="160" height="14" rx="3" fill="#868e96" stroke="${O}" stroke-width="3"/><rect x="${x+24}" y="${y+h-56}" width="144" height="42" fill="#dee2e6" stroke="${O}" stroke-width="3"/><line x1="${x+72}" y1="${y+h-56}" x2="${x+72}" y2="${y+h-14}" stroke="${O}" stroke-width="2"/><line x1="${x+120}" y1="${y+h-56}" x2="${x+120}" y2="${y+h-14}" stroke="${O}" stroke-width="2"/>${flask(x+40,y+h-70,'#ff6b6b',.8)}${bub(x+40,y+h-70)}${tube(x+66,y+h-70,'#69db7c',.8)}${flask(x+92,y+h-70,'#4dabf7',.8)}${bub(x+92,y+h-70)}${scope(x+140,y+h-70,.75)}`;
+  s+=room(x,y,w,h,g,'lab');
+  s+=`<g class="lbh-hs" data-id="qz">${hImg(window.QUARTZ_SVG||'',x+200,y+h-122,90,108)}<rect class="lbh-glow" x="${x+200}" y="${y+h-124}" width="90" height="112" rx="10" fill="none" stroke="#ffd43b" stroke-width="5"/><rect x="${x+200}" y="${y+h-124}" width="90" height="112" fill="transparent"/></g>`;
+  if(pet)s+=`<g class="lbh-hs" data-id="pet"><g transform="translate(${x+345} ${y+h-14})"><rect x="-44" y="-44" width="88" height="44" rx="4" fill="#f1f3f5" stroke="${O}" stroke-width="3"/><ellipse cx="0" cy="-50" rx="38" ry="12" fill="#e599f7" stroke="${O}" stroke-width="3"/><ellipse cx="0" cy="-53" rx="26" ry="6" fill="#f3d9fa"/><text x="0" y="-52" text-anchor="middle" font-size="30">${pet.e}</text><g transform="translate(36 -64)"><rect x="-8" y="-12" width="18" height="15" rx="3" fill="#74c0fc" stroke="${O}" stroke-width="2"/><line x1="0" y1="-12" x2="0" y2="-24" stroke="${O}" stroke-width="2"/><circle cx="0" cy="-26" r="3" fill="#ff6b6b" stroke="${O}" stroke-width="1.5"/></g></g><rect class="lbh-glow" x="${x+296}" y="${y+h-110}" width="98" height="98" rx="10" fill="none" stroke="#ffd43b" stroke-width="5"/><rect x="${x+296}" y="${y+h-110}" width="98" height="98" fill="transparent"/></g>`;}
+ {const x=X0+640,y=Y_F1+14,w=X1-X0-640,h=Y_G-Y_F1-14;let g=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#f1f3f5"/>`+boards(x,y+h-14,w,14);['#ff922b','#4dabf7','#69db7c'].forEach((c,i)=>{g+=locker(x+16+i*44,y+30,38,h-44,c);});g+=`<text x="${x+80}" y="${y+24}" text-anchor="middle" font-size="18">⭐</text>`;s+=room(x,y,w,h,g,'gear');}
+ /* the elevator: a plain shaft, down past the bottom of the picture (owner) */
+ {const x=X1+10,w=80;let g=`<rect x="${x}" y="${Y_F2-10}" width="${w}" height="${740-Y_F2}" fill="#868e96" stroke="${O}" stroke-width="4"/><rect x="${x+10}" y="${Y_F2}" width="${w-20}" height="${740-Y_F2}" fill="#495057"/>
+  <rect x="${x+14}" y="${Y_G-84}" width="${w-28}" height="80" rx="5" fill="#ced4da" stroke="${O}" stroke-width="3"/><line x1="${x+w/2}" y1="${Y_G-78}" x2="${x+w/2}" y2="${Y_G-10}" stroke="${O}" stroke-width="2"/><line x1="${x+w/2}" y1="${Y_F2}" x2="${x+w/2}" y2="${Y_G-84}" stroke="#adb5bd" stroke-width="2"/><circle cx="${x+w/2}" cy="${Y_G-94}" r="5" fill="#69db7c" stroke="${O}" stroke-width="1.5"/>`;
+  s+=room(x,Y_F2-10,w,740-Y_F2,g,'elev');}
+ {let g=`<path d="M${X0-30} ${Y_F2-10} L${X0+20} ${Y_ROOF-40} L${X0+420} ${Y_ROOF-40} L${X0+440} ${Y_F2-10} Z" fill="#7a5c45" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>${solar(X0+50,Y_ROOF-34,100,40,-4)}${solar(X0+170,Y_ROOF-36,100,40,0)}${solar(X0+290,Y_ROOF-34,100,40,4)}`;s+=room(X0-30,Y_ROOF-60,470,Y_F2-Y_ROOF+50,g,'power');}
+ {const cx=X0+640,base=Y_F2-10;let g=`<rect x="${cx-200}" y="${base-14}" width="400" height="14" fill="#7a5c45" stroke="${O}" stroke-width="4"/><path d="M${cx-190} ${base-14} Q${cx-190} ${base-150} ${cx} ${base-150} Q${cx+190} ${base-150} ${cx+190} ${base-14} Z" fill="url(#lbhGlass)" stroke="${O}" stroke-width="4"/>${[-120,-60,0,60,120].map(d=>`<path d="M${cx+d} ${base-14} Q${cx+d*1.05} ${base-120+Math.abs(d)*.4} ${cx} ${base-150}" stroke="${O}" stroke-width="2" fill="none" opacity=".45"/>`).join('')}${hImg(dArt('farm_sunflower'),cx-150,base-110,50,96)}${hImg(dArt('farm_carrots'),cx-90,base-60,46,46)}${hImg(dArt('farm_pumpkin'),cx-30,base-56,46,44)}${hImg(dArt('fern'),cx+30,base-66,50,52)}${hImg(dArt('farm_sunflower'),cx+100,base-104,46,90)}`;s+=room(cx-200,base-155,400,145,g,'garden');}
+ return `<svg class="lbh-svg" viewBox="0 0 1100 720" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">${s}</svg>`;}
+const NAMES={study:'📓 Study: Journal & Collection',power:'☀️ Power Room',museum:'🏛️ Museum',lab:'🧪 Test Center & Dig Map',gear:'🎒 Gear',elev:'🛗 Elevator to the caves',garden:'🌱 Garden',pet:'🐾 Your pet',qz:'🔬 Dr. Quartz'};
+/* the Pet Translator: mostly feelings and praise, about 1 in 3 a hint */
+function petLine(p){const pet=petOf(p);if(!pet)return '';const s=Q(p),hints=[],nice=[`I LOVE train rides!`,`You're the best at math. And at belly rubs.`,`This bed is SO comfy. Thank you!`,`I'm proud of you, ${first(p)}!`,`Is it snack time? It feels like snack time.`,`I sniffed every rock in here. They smell like… rocks.`,`Dr. Quartz said I'm a very good lab assistant!`];
+ try{const pd=petMood(petData(p,pet.id));if(pd.food<=1)hints.push('Psst… I\'m a little hungry 🍗');else if(pd.joy>=3)nice.push('Thanks for playing with me!');}catch(e){}
+ try{const mm=mmState(p);if(mm&&!mm.done)hints.push('Today\'s Mystery Mineral is waiting on the bench!');}catch(e){}
+ if(!hasKey(p)){const n=Math.max(0,KEY_TRIPS-((p.cave&&p.cave.trips)||s.trips||0));if(n>0)hints.push(`${n} more cave trip${n>1?'s':''} and Dr. Quartz gives you the Lab Key!`);}
+ else if(freeRide(s))hints.push('Your free elevator ride is ready today!');
+ try{if(window.Daily&&P().tad&&P().tad.s<3)hints.push('The Elder Wiz has a quest for you!');}catch(e){}
+ const pool=hints.length&&Math.random()<.34?hints:nice;return pool[Math.floor(Math.random()*pool.length)];}
+function bubbleAt(id,html){const wrap=document.querySelector('.lbh-wrap'),tip=document.getElementById('lbhTip');if(!wrap||!tip)return;const g=wrap.querySelector(`.lbh-hs[data-id="${id}"] rect:last-child`),r=g?g.getBoundingClientRect():null,wr=wrap.getBoundingClientRect();
+ tip.innerHTML=html;tip.style.left=((r?r.left+r.width/2:wr.left+wr.width/2)-wr.left)+'px';tip.style.top=((r?r.top:wr.top+40)-wr.top)+'px';tip.hidden=false;clearTimeout(PETSAY);PETSAY=setTimeout(()=>{tip.hidden=true;},5200);}
+function tap(id){const p=P();try{SFX.tap();}catch(e){}
+ if(id==='lab'){VIEW='room';draw();window.scrollTo(0,0);return;}if(id==='study'){VIEW='study';draw();window.scrollTo(0,0);return;}
+ if(id==='elev'){modal(`<div class="mcard lb-elev"><div class="big-emoji">🛗</div><h2>The elevator to the caves</h2>${rockHTML(p)}<div class="row"><button class="btn ghost dark" onclick="closeModal()">Close</button></div></div>`);return;}
+ if(id==='pet'){const t=petLine(p);bubbleAt('pet',`<small>📡 bzzt… translating…</small>`);setTimeout(()=>bubbleAt('pet',`${esc(petOf(p).e)} “${esc(t)}”`),900);return;}
+ if(id==='qz'){bubbleAt('qz',`🔬 ${GREET}`);return;}
+ if(['garden','museum','power','gear'].includes(id)){if(window.Quartz&&Quartz.room&&Quartz.room(id))return;toast('🔬 That room is not ready yet.');return;}}
+function house(){css();const p=P();if(!p){go('world');return;}const app=document.getElementById('app');
+ app.innerHTML=topbar()+`<div class="page lb-page lb-house"><div class="zhead"><button class="btn green small" onclick="Lab.home()">🚂 Train home</button><h2 class="title" style="margin:0">🔬 Dr. Quartz's Lab</h2></div>
+ <div class="lbh-wrap">${houseSVG(p)}<div class="lbh-tip" id="lbhTip" hidden></div></div></div>`;
+ app.querySelectorAll('.lbh-hs').forEach(g=>{g.addEventListener('click',()=>tap(g.dataset.id));g.addEventListener('mouseenter',()=>{if(!['pet','qz'].includes(g.dataset.id)||document.getElementById('lbhTip').hidden)bubbleAt(g.dataset.id,NAMES[g.dataset.id]);});});}
+
 /* ---------- the screen ---------- */
-function draw(){css();const p=P();if(!p){go('world');return;}const s=Q(p);
+function draw(){css();const p=P();if(!p){go('world');return;}if(VIEW==='house'){house();return;}const s=Q(p);
  const app=document.getElementById('app');
+ if(VIEW==='study'){app.innerHTML=topbar()+`<div class="page lb-page"><div class="zhead"><button class="btn ghost small" onclick="Lab.back()">← Lab</button><h2 class="title" style="margin:0">📓 The Study</h2></div>
+  <div class="panel lb-st"><h3>📓 My Journal</h3><p class="muted" style="margin:0 0 8px">Everything you've studied, in your own journal.</p><button class="btn green" onclick="Quartz.room('journal')">📓 Open my Journal</button></div>
+  <div class="panel lb-st"><h3>🗄️ Collection</h3>${colHTML(p)}</div></div>`;return;}
  app.innerHTML=topbar()+`<div class="page lb-page">
-  <div class="zhead"><button class="btn green small" onclick="Lab.home()">🚂 Train home</button><h2 class="title" style="margin:0">🔬 Dr. Quartz's Lab</h2></div>
+  <div class="zhead"><button class="btn ghost small" onclick="Lab.back()">← Lab</button><h2 class="title" style="margin:0">🧪 The Main Lab</h2></div>
   ${DEMO&&!(p.sci&&p.sci.key)&&false?'<div class="panel" style="background:#fff3bf"><b>Preview.</b> You don\'t have the key yet, so nothing here is saved.</div>':''}
   <div class="panel"><div class="qz-row"><div class="qz-av">${window.QUARTZ_SVG||''}</div><div class="qz-bub"><b>🔬 Dr. Quartz</b><div id="lbHi">${GREET}</div></div>${(()=>{try{const pt=petOf(p);return pt?`<div class="lb-pet" title="${esc(pt.name)} came along!">${petAvatar(p,pt)}</div>`:'';}catch(e){return '';}})()}</div></div>
   <div class="lb-cols">
-   <div class="panel lb-st"><h3>🧪 Mystery Mineral of the Day</h3>${mmHTML(p)}</div>
+   <div class="panel lb-st"><h3>🧪 Mystery Mineral of the Day</h3>${mmHTML(p)}<div style="margin-top:10px"><button class="btn ghost dark small" onclick="Quartz.room('bench')">🔬 Field Lab bench: identify my cave finds</button></div></div>
    <div class="panel lb-st"><h3>🛗 Rock Counter &amp; Elevator</h3>${rockHTML(p)}</div>
   </div>
-  <div class="panel lb-st"><h3>🗄️ Collection</h3>${colHTML(p)}</div>
   <div class="panel lb-st"><h3>🗺️ Dig Map</h3>${mapHTML(p)}</div>
  </div>`;}
 let GREET='';
-function open(){const p=P();if(!p){go('world');return;}const s=Q(p);try{if(window.Cave&&Cave.deliverFossils&&p.cave){const n=Cave.deliverFossils(p.cave);if(n){save();toast(`🦴 ${n} fossil piece${n>1?'s':''} from your backpack went to the 🏛️ Museum.`);}}}catch(e){} /* pieces left in the pack (see cave.js campFossils) */MM=null;FB='';GREET=greet(p);if(!DEMO||hasKey(p)){s.lab.visits=(s.lab.visits||0)+1;s.lab.last=dayKey();save();}
+function open(v){VIEW=v==='room'||v==='study'?v:'house';const p=P();if(!p){go('world');return;}const s=Q(p);try{if(window.Cave&&Cave.deliverFossils&&p.cave){const n=Cave.deliverFossils(p.cave);if(n){save();toast(`🦴 ${n} fossil piece${n>1?'s':''} from your backpack went to the 🏛️ Museum.`);}}}catch(e){} /* pieces left in the pack (see cave.js campFossils) */MM=null;FB='';GREET=greet(p);if(!DEMO||hasKey(p)){s.lab.visits=(s.lab.visits||0)+1;s.lab.last=dayKey();save();}
  try{if(typeof W!=='undefined'&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}draw();}
 
 /* ---------- styles ---------- */
 let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElement('style');st.textContent=`
 .lb-page{max-width:980px}.lb-page h3{margin:0 0 10px;font-size:20px;color:var(--ink)}
 .lb-pet{flex:0 0 auto;align-self:flex-end;animation:bob 1.6s ease-in-out infinite;font-size:56px;line-height:1;margin-left:6px}.lb-pet .pav{transform:scale(1.7);transform-origin:bottom center;display:inline-block}
+.lbh-wrap{position:relative;margin:0 auto;max-width:1100px}.lbh-svg{width:100%;max-height:calc(100vh - 150px);display:block;border-radius:18px;border:4px solid #8fd3ff;background:#5bb5f0}
+.lbh-hs{cursor:pointer}.lbh-glow{opacity:0;transition:opacity .15s}.lbh-hs:hover .lbh-glow,.lbh-hs:active .lbh-glow{opacity:1}
+.lbh-tip{position:absolute;transform:translate(-50%,calc(-100% - 6px));background:#fff;color:#2b2250;border:3px solid #3b2a1e;border-radius:16px;padding:6px 12px;font-weight:700;font-size:15px;max-width:280px;text-align:center;pointer-events:none;z-index:2;box-shadow:0 4px 12px #0003}.lbh-tip small{color:#6a5fa0}
+.lb-elev .lb-rocks{text-align:left}
 .lb-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 16px}
 .lb-st{color:var(--ink)}
 .lb-mm{display:flex;gap:14px;align-items:flex-start}
@@ -231,12 +318,12 @@ let CSS=false;function css(){if(CSS)return;CSS=true;const st=document.createElem
 
 /* ---------- wiring ---------- */
 setInterval(syncTile,500);
-(function reg(){if(typeof SCREENS!=='undefined'){SCREENS.lab=()=>open();}else setTimeout(reg,30);})();
+(function reg(){if(typeof SCREENS!=='undefined'){SCREENS.lab=v=>open(v);}else setTimeout(reg,30);})();
 /* a key that is due but was never saved (it could be lost to an online sync before Oct 2 2026) is handed over again on the map */
 function keyCatchUp(){try{const p=P();if(!p||DEMO||!keyDue(p)||curScreen!=='world'||document.querySelector('#modal.show'))return;if(window.MQ_VISIT&&MQ_VISIT.busy('labkey'))return;giveKey(p,()=>{});}catch(e){}}
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world'){setTimeout(syncTile,0);setTimeout(keyCatchUp,2500);}}});
 /* back to Number Town by train (ride.js), landing on the station platform */
 function home(){const go2=()=>{try{const p=P();const x=23,y=20;if(typeof W!=='undefined'&&W&&W.T&&W.T[y]&&W.T[y][x]&&!W.T[y][x].block){W.hx=x;W.hy=y;W.drawX=x;W.drawY=y;W.path=[];}if(p)p.wpos={x,y};}catch(e){}go('world');};
  if(window.Ride&&Ride.go('home',go2))return;go2();}
-window.Lab={home,open,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
+window.Lab={home,open,back:()=>{VIEW='house';go('lab');},tap,petLine,houseSVG,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
 })();
