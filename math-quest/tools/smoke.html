@@ -192,6 +192,8 @@ const tests=[
   T.reset();const p=T.hero('Looker',3);state.cur=p.id;go('world');await T.wait(200);W.hx=BIOMES.forest.c[0]+1;W.hy=BIOMES.forest.c[1]+1;await T.wait(2500);
   {try{closeModal();}catch(e){}await T.wait(80);const mt0=W.mt;let ok=false;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=W.hx+dx,ny=W.hy+dy,t=W.T[ny]&&W.T[ny][nx];if(t&&!t.block&&!t.npc&&!t.gate&&!t.chest&&!wWall(W.hx,W.hy,nx,ny)){W.moving=false;W.path=[];wStep(dx,dy);ok=true;break;}}
    T.ok(!ok||W.mt!==mt0,'the hero did not take the test step');await T.wait(200);T.ok(!ok||MQ_AMBIENT.puffs()>0,'no little puffs behind the hero after a step');}
+  T.ok(W.T[1][10].water&&W.T[10][1].water&&W.T[WROWS-2][10].water&&W.T[10][WCOLS-2].water,'the sea round the map is not two tiles wide');
+  {const hx=W.hx,hy=W.hy;W.hx=3;W.hy=17;await T.wait(400);T.ok(MQ_AMBIENT.sea()>0,'no alligators or shark fins in the sea near the hero');W.hx=hx;W.hy=hy;}
   {MQ_AMBIENT.sayNow();await T.wait(150);T.ok(MQ_AMBIENT.SAYS.includes(MQ_AMBIENT.say()),'the Wishing Fountain did not think out loud');}
   T.ok(window.MQ_AMBIENT&&MQ_AMBIENT.count()>0&&MQ_AMBIENT.count()<=18,'no ambient life near the hero, or too much ('+(window.MQ_AMBIENT?MQ_AMBIENT.count():'none')+')');
  }],

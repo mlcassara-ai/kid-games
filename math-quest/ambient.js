@@ -48,6 +48,31 @@ function fountainSay(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T
   [[ax,ay,ts*.06],[ax+ts*.14,ay-ts*.22,ts*.09]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r*pop,0,7);ctx.fill();ctx.stroke();});
   const x0=bx-w/2,y0=by-h/2,r=h/2;ctx.beginPath();ctx.moveTo(x0+r,y0);ctx.lineTo(x0+w-r,y0);ctx.arc(x0+w-r,y0+r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x0+r,y0+h);ctx.arc(x0+r,y0+r,r,Math.PI/2,Math.PI*1.5);ctx.closePath();ctx.fill();ctx.stroke();
   if(pop>=1){ctx.fillStyle='#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(SAY.t,bx,by+fs*.05);}ctx.restore();}});}
-window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);window.MQ_MAPDRAW.push(puffs);window.MQ_MAPDRAW.push(fountainSay);
-window.MQ_AMBIENT={KIND,count:()=>P.length,puffs:()=>PUFF.length,say:()=>SAY&&SAY.t,sayNow:()=>{SAYAT=1;},SAYS};
+/* alligators and shark fins in the sea round the map (owner, Oct 2026): a few at a time near the hero; each one rises out of the water,
+   swims along the coast for a few seconds and sinks back down. Drawing only. */
+let SEA=[],SEAAT=0;const SEAMAX=3;
+const edgeSea=(W,x,y)=>{const t=W.T[y]&&W.T[y][x];return !!(t&&t.water)&&(x<=1||y<=1||x>=W.T[0].length-2||y>=W.T.length-2);};
+function seaLife(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||!W.vw)return;const dt=1/60;
+ const x0=Math.max(0,Math.floor(cx/ts)-1),y0=Math.max(0,Math.floor(cy/ts)-1),x1=Math.min(W.T[0].length-1,Math.floor((cx+W.vw)/ts)+1),y1=Math.min(W.T.length-1,Math.floor((cy+W.vh)/ts)+1);
+ if(now>SEAAT&&SEA.length<SEAMAX){SEAAT=now+1800+Math.random()*3500;const L=[];for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(edgeSea(W,x,y))L.push([x,y]);
+  if(L.length){const [x,y]=L[Math.floor(Math.random()*L.length)],H=W.T.length,Wd=W.T[0].length,horiz=y<=1||y>=H-2,d=Math.random()<.5?-1:1;
+   SEA.push({k:Math.random()<.5?'gator':'fin',x:x+.5,y:y+.55,vx:horiz?d*.45:0,vy:horiz?0:d*.45,t0:now,life:5000+Math.random()*3000,dir:horiz?d:(Math.random()<.5?-1:1)});}}
+ SEA=SEA.filter(c=>now-c.t0<c.life);
+ SEA.forEach(c=>{const age=now-c.t0,nx=c.x+c.vx*dt,ny=c.y+c.vy*dt;if(edgeSea(W,Math.floor(nx),Math.floor(ny))){c.x=nx;c.y=ny;}
+  const up=Math.min(1,age/700,(c.life-age)/700);if(up<=0)return;const sx=c.x*ts-cx,sy=c.y*ts-cy;if(sx<-ts||sy<-ts||sx>W.vw+ts||sy>W.vh+ts)return;
+  items.push({y:Math.floor(c.y)+.3,draw:()=>{ctx.save();ctx.translate(sx,sy);ctx.scale(c.dir,1);const s=ts/50;ctx.lineWidth=Math.max(1.2,2*s);
+   /* ripples round it */ctx.strokeStyle=`rgba(255,255,255,${.75*up})`;ctx.beginPath();ctx.ellipse(0,4*s,(16+6*(1-up))*s,4.5*s,0,0,7);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(-26*s,5*s);ctx.quadraticCurveTo(-18*s,1*s,-12*s,5*s);ctx.stroke();
+   ctx.beginPath();ctx.rect(-40*s,-40*s,80*s,44*s);ctx.clip();ctx.translate(0,(1-up)*16*s); /* only the part above the water shows */
+   ctx.strokeStyle='#2b3a2a';
+   if(c.k==='gator'){ctx.fillStyle='#4f8a3c';ctx.beginPath();ctx.ellipse(2*s,2*s,18*s,5.5*s,0,0,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#5f9e48';[[-10,-1],[-4,-2],[2,-2],[8,-1]].forEach(([bx,by])=>{ctx.beginPath();ctx.arc(bx*s-8*s,by*s+1*s,2.4*s,Math.PI,0);ctx.fill();ctx.stroke();});
+    ctx.fillStyle='#5f9e48';[[8,-3],[13,-3]].forEach(([ex,ey])=>{ctx.beginPath();ctx.arc(ex*s,ey*s,3.6*s,Math.PI,0);ctx.fill();ctx.stroke();ctx.fillStyle='#ffd43b';ctx.beginPath();ctx.arc(ex*s,(ey-.8)*s,1.7*s,0,7);ctx.fill();ctx.fillStyle='#1a1a1a';ctx.fillRect((ex-.4)*s,(ey-2.2)*s,.8*s,2.6*s);ctx.fillStyle='#5f9e48';});
+    ctx.fillStyle='#2b3a2a';ctx.beginPath();ctx.arc(19*s,0,1*s,0,7);ctx.arc(17*s,0,1*s,0,7);ctx.fill();}
+   else{ctx.fillStyle='#7d8b99';ctx.beginPath();ctx.moveTo(-8*s,4*s);ctx.quadraticCurveTo(-4*s,-6*s,4*s,-18*s);ctx.quadraticCurveTo(5*s,-6*s,10*s,4*s);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.moveTo(-3*s,1*s);ctx.quadraticCurveTo(0,-6*s,3.5*s,-14*s);ctx.stroke();}
+   ctx.restore();
+   ctx.save();ctx.translate(sx,sy);ctx.scale(c.dir,1);ctx.strokeStyle=`rgba(255,255,255,${.9*up})`;ctx.lineWidth=Math.max(1.2,2*s);ctx.beginPath();ctx.moveTo(-14*s,4.5*s);ctx.lineTo(16*s,4.5*s);ctx.stroke();ctx.restore();}});});}
+window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);window.MQ_MAPDRAW.push(seaLife);window.MQ_MAPDRAW.push(puffs);window.MQ_MAPDRAW.push(fountainSay);
+window.MQ_AMBIENT={sea:()=>SEA.length,KIND,count:()=>P.length,puffs:()=>PUFF.length,say:()=>SAY&&SAY.t,sayNow:()=>{SAYAT=1;},SAYS};
 })();

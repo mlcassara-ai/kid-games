@@ -23,7 +23,7 @@ const thinOf=b=>THIN[b]||(SET[b]?THIN_DEF:null); /* every area with drawn scener
 /* entrances stand on dry ground: old ponds sat right on or beside some gates (Estimation Station, Average Shoppe, Time Temple). A pond any
    part of which is within 2.2 tiles of a gate is turned into land as a whole (never the sea around the map's edge; a little more room to
    walk, nothing lost) */
-window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(T=>{const G=[],H=T.length,Wd=T[0].length,inner=(x,y)=>x>0&&y>0&&x<Wd-1&&y<H-1;
+window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(T=>{const G=[],H=T.length,Wd=T[0].length,inner=(x,y)=>x>1&&y>1&&x<Wd-2&&y<H-2; /* the two-tile sea round the map is never turned into land */
  for(let y=0;y<H;y++)for(let x=0;x<Wd;x++)if(T[y][x].gate)G.push([x,y]);
  const q=[];for(let y=1;y<H-1;y++)for(let x=1;x<Wd-1;x++)if(T[y][x].water&&G.some(g=>Math.hypot(g[0]-x,g[1]-y)<=2.2))q.push([x,y]);
  while(q.length){const [x,y]=q.pop(),t=T[y][x];if(!t.water||!inner(x,y))continue;t.water=false;t.block=false;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(T[y+dy]&&T[y+dy][x+dx]&&T[y+dy][x+dx].water)q.push([x+dx,y+dy]);}});

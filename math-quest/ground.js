@@ -160,5 +160,9 @@ window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(T=>{const H=T.length,Wd
  for(let y=0;y<H;y++)for(let x=0;x<Wd;x++){const t=T[y][x];if(t&&!t.plaza&&!t.water&&t.b!=='village')q.push([x,y]);}
  for(let i=0;i<q.length;i++){const [x,y]=q[i],b=src[y*1000+x]||T[y][x].b;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,u=T[ny]&&T[ny][nx],k=ny*1000+nx;if(!vil(u)||(k in src))continue;src[k]=b;q.push([nx,ny]);}}
  for(const k in src){const t=T[Math.floor(k/1000)][k%1000];t.b=src[k];}});
+/* a wider sea round the edge of the map (owner, Oct 2026: two tiles instead of one, room for the alligators and shark fins in
+   ambient.js). Laid after the map is built, so nothing else on the map moves. */
+window.MQ_WORLD.push(T=>{const H=T.length,Wd=T[0].length;for(let y=0;y<H;y++)for(let x=0;x<Wd;x++){if(!(x<=1||y<=1||x>=Wd-2||y>=H-2))continue;const t=T[y][x];
+ if(t.water||t.gate||t.npc||t.plaza)continue;t.water=true;t.block=true;t.o=null;t.deco=false;t.path=false;}});
 window.MQ_GROUND={draw,routes,blocked,walls:W=>{if(!W._walls)buildWalls(W);return W._walls;}};
 })();
