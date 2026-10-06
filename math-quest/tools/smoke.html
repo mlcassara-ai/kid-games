@@ -139,6 +139,11 @@ const tests=[
    const r0=reach(false),r1=reach(true);T.ok(r0.size===r1.size,'the walls cut off '+(r0.size-r1.size)+' places the hero could reach before');
    for(const [zid,c] of Object.entries(W.gates)){W.hx=st[0];W.hy=st[1];T.ok(wPathTo(c[0],c[1]).length>0,'cannot walk to the '+zid+' entrance past the walls');}}
  }],
+['graph garden is closed: blown-up entrance, cannot be opened, progress kept',async function(){
+  T.reset();const p=T.hero('Closed',3);state.cur=p.id;const z=ZONES.find(x=>x.id==='garden');T.ok(z&&z.closed&&zoneLocked(z,p),'Graph Garden is not closed');
+  go('world');await T.wait(100);go('zone','garden');await T.wait(60);T.ok(curScreen!=='zone','Graph Garden still opens');
+  T.ok(window.MQ_GATE_ART&&MQ_GATE_ART.garden_closed&&MQ_GATE_ART.garden,'the blown-up Graph Garden entrance is missing');
+ }],
 ['event worlds: Haunted Hollow and Harvest Hollow open on their own dates; Harvest Hollow gives Gobble the Turkey, then the Pilgrim Hat',async function(){
   T.reset();const p=T.hero('Feast',3);state.cur=p.id;const dk=window.dayKey,hv=ZONES.find(z=>z.id==='harvest'),hh=ZONES.find(z=>z.id==='haunt');T.ok(hv&&hv.event,'Harvest Hollow is missing');
   try{
