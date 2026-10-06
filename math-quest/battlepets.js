@@ -165,8 +165,21 @@ function send(i){const s=G&&!G.over&&G.team[i];if(!s||G.treats<s.R.cost||s.ready
  G.treats-=s.R.cost;s.ready=G.t+s.R.cd;G.sent++;const R=s.R,m=s.m;
  G.pets.push({side:'p',pet:s.pet,R,x:HOUSE_X-2,hp:R.hp*m*TUNE.petHp,max:R.hp*m*TUNE.petHp,atk:R.atk*m,rng:R.rng,spd:petSpd(R,m),kb:0,stun:0,flyer:flies(s.pet),id:Math.random()});fx('send');return true;}
 const trollOut=()=>!!G&&G.pets.some(u=>u.mega&&!u.gone);
+/* the Core Keeper as a mega (owner, Oct 2026): the white-hot ball from the centre of the Earth (cave.js). Slow and tough; every few
+   seconds a Heat Pulse scorches and briefly stuns every critter near him, flyers too (no knock-back: Grumbleroot blasts, Skyla dives) */
+const CORE={id:'core',n:'Core Keeper',e:'🌕',cost:16,first:40,cd:100,life:28,maxLife:50,hp:560,atk:22,rng:3,spd:2.2,area:true,armor:2.5,pulse:4,reach:10,tip:'Mega Core Keeper: his heat pulses scorch every critter nearby'};
+/* a mega only shows on the team screen once the kid has met it (owner, Oct 2026): Grumbleroot and Skyla after their first map visit,
+   the Core Keeper after the first fall to the centre of the Earth. Until then the tile is a "?" */
+const MEGA_IDS=['troll','eagle','core'];
+const metMega=(p,id)=>!!p&&(id==='troll'?!!(p.troll&&p.troll.visits>0):id==='eagle'?!!(p.eagle&&p.eagle.visits>0):id==='core'?!!(p.cave&&p.cave.core&&p.cave.core.v>0):false);
+function curMega(p){const m=prog(p).mega||'troll';return metMega(p,m)?m:(MEGA_IDS.find(id=>metMega(p,id))||null);}
+function coreArt(w){return `<svg viewBox="0 0 120 124" width="${w}" style="display:block;overflow:visible" aria-hidden="true"><defs><radialGradient id="ckG" cx=".42" cy=".38" r=".62"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#fff6c8"/><stop offset=".82" stop-color="#ffd43b"/><stop offset="1" stop-color="#ff922b"/></radialGradient><radialGradient id="ckH"><stop offset=".55" stop-color="#ffe066" stop-opacity=".55"/><stop offset="1" stop-color="#ffb13d" stop-opacity="0"/></radialGradient></defs>
+<ellipse cx="60" cy="118" rx="34" ry="5" fill="rgba(0,0,0,.25)"/><circle cx="60" cy="64" r="58" fill="url(#ckH)"/><circle cx="60" cy="66" r="44" fill="url(#ckG)" stroke="#e8590c" stroke-width="3.5"/>
+<circle cx="40" cy="86" r="4" fill="#ffd8a8" opacity=".7"/><circle cx="84" cy="44" r="3" fill="#ffd8a8" opacity=".7"/><circle cx="82" cy="90" r="2.5" fill="#ffd8a8" opacity=".7"/>
+<path d="M34 50 L52 57 M86 50 L68 57" stroke="#7a2e0c" stroke-width="5.5" stroke-linecap="round"/><circle cx="46" cy="64" r="4.5" fill="#7a2e0c"/><circle cx="74" cy="64" r="4.5" fill="#7a2e0c"/>
+<path d="M47 85 Q60 76 73 85" stroke="#7a2e0c" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M40 36 Q52 26 68 28" stroke="#fff" stroke-opacity=".8" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`;}
 const MEGA_RUN=3; /* a mega's charge speed (× walking) until he first meets a critter */
-const MEGA={troll:TROLL,eagle:EAGLE},megaOf=()=>MEGA[G&&G.megaId]||TROLL;
+const MEGA={troll:TROLL,eagle:EAGLE,core:CORE},megaOf=()=>G&&G.megaId===null?null:(MEGA[G&&G.megaId]||TROLL); /* null: no mega met yet */
 function eagleStep(u,foes,dt){const E=EAGLE;
  if(u.ph==='rise'){if(G.t>=u.phT){u.ph='dive';u.phT=G.t+E.fall;u.x0=u.x;fx('swoop');}return;}
  if(u.ph==='dive'){const k=Math.min(1,1-(u.phT-G.t)/E.fall);u.x=u.x0+(u.tx-u.x0)*k;
@@ -178,12 +191,12 @@ function eagleStep(u,foes,dt){const E=EAGLE;
  if(u.x-DEN_X<=u.rng){u.fight=true;if(G.t>=(G.denSafe||0))G.denHP-=u.atk*.5*dt;return;}
  u.x-=u.spd*.8*dt*(u.met?1:MEGA_RUN);u.mv=true;}
 function eagleArt(){const e=window.MQ_EAGLE_SVG;if(!e)return `<span style="font-size:70px;line-height:1">${EAGLE.e}</span>`;return `<span class="eg-walk">${e.perch}</span><span class="eg-flyart">${e.fly}</span>`;}
-const megaArt=(id,w)=>id==='eagle'?(w<60&&window.MQ_EAGLE_SVG?`<span class="eg-btn">${window.MQ_EAGLE_SVG.perch}</span>`:w<60?`<span style="font-size:30px">${EAGLE.e}</span>`:eagleArt()):trollArt(w);
-function callTroll(){const M=megaOf();if(!G||G.over||G.t<G.trollAt||G.treats<M.cost||trollOut())return false;G.treats-=M.cost;G.trollAt=G.t+M.cd;G.trolls++;
+const megaArt=(id,w)=>id==='core'?coreArt(w):id==='eagle'?(w<60&&window.MQ_EAGLE_SVG?`<span class="eg-btn">${window.MQ_EAGLE_SVG.perch}</span>`:w<60?`<span style="font-size:30px">${EAGLE.e}</span>`:eagleArt()):trollArt(w);
+function callTroll(){const M=megaOf();if(!M||!G||G.over||G.t<G.trollAt||G.treats<M.cost||trollOut())return false;G.treats-=M.cost;G.trollAt=G.t+M.cd;G.trolls++;
  /* he comes out of the Pet House like everyone else (owner, Oct 2026: no leap across the board) and charges at 3× speed until he meets a
     critter; his time out is counted from when he would reach the front */
  const m=1+.35*G.c;const lead=G.pets.filter(u=>!u.gone&&!u.mega),front=lead.length?Math.min(...lead.map(u=>u.x)):HOUSE_X-2,to=HOUSE_X-2,travel=Math.max(0,(to-front)/(M.spd*.8*MEGA_RUN));
- G.pets.push({side:'p',mega:true,leapT:G.t,stun:G.t+.95,pet:{id:M.id,e:M.e,name:M.n},R:M,x:to,hp:M.hp*m,max:M.hp*m,atk:M.atk*m,rng:M.rng,spd:M.spd,kb:0,leave:G.t+M.maxLife+travel,stompAt:0,poundAt:0,ph:'walk',diveAt:0,id:Math.random()});fx(M.id==='eagle'?'eagle':'troll');return true;}
+ G.pets.push({side:'p',mega:true,leapT:G.t,stun:G.t+.95,pet:{id:M.id,e:M.e,name:M.n},R:M,x:to,hp:M.hp*m,max:M.hp*m,atk:M.atk*m,rng:M.rng,spd:M.spd,kb:0,leave:G.t+M.maxLife+travel,stompAt:0,poundAt:0,ph:'walk',diveAt:0,id:Math.random()});fx(M.id==='eagle'?'eagle':M.id==='core'?'core':'troll');return true;}
 /* the giant pounce paw */
 const PAW='<svg class="paw" viewBox="0 0 200 200" aria-hidden="true"><g fill="#ffb627" stroke="#fff" stroke-width="7"><ellipse cx="100" cy="128" rx="54" ry="46"/><ellipse cx="42" cy="78" rx="20" ry="27" transform="rotate(-24 42 78)"/>'+
  '<ellipse cx="80" cy="48" rx="21" ry="28" transform="rotate(-8 80 48)"/><ellipse cx="122" cy="48" rx="21" ry="28" transform="rotate(8 122 48)"/><ellipse cx="160" cy="78" rx="20" ry="27" transform="rotate(24 160 78)"/></g>'+
@@ -221,7 +234,7 @@ function trainer(){const T=G.trainer;if(!T||!T.on||G.over||G.t<(T.next||0))retur
  const live=G.foes.filter(f=>!f.gone),mine=G.pets.filter(u=>!u.gone&&!u.mega),boss=live.some(f=>f.boss),front=mine.reduce((a,u)=>Math.min(a,u.x),HOUSE_X);
  const near=live.some(f=>f.x>60),danger=live.some(f=>f.x>Math.max(front-4,40)||f.fly&&f.x>front);
  if(G.charge>=100&&live.length&&(boss||near||live.length>=4||slip()))pounce();
- if(!trollOut()&&G.t>=G.trollAt&&G.treats>=megaOf().cost&&(boss||near||live.length>=5)&&callTroll())return;
+ if(!trollOut()&&G.t>=G.trollAt&&megaOf()&&G.treats>=megaOf().cost&&(boss||near||live.length>=5)&&callTroll())return;
  const out=k=>mine.filter(u=>k(u)).length,ok=s=>s.ready<=G.t&&G.treats>=s.R.cost,go=k=>{const s=G.team.find(x=>k(x)&&ok(x));return !!s&&send(G.team.indexOf(s));};
  /* critters at the door: send whatever helps right now */
  if(danger){const nFly=live.filter(f=>f.fly).length;if(nFly&&out(u=>u.R.fly||u.flyer)<Math.min(3,nFly)&&go(s=>s.R.fly||flies(s.pet)))return;
@@ -277,12 +290,13 @@ function step(dt){if(!G||G.over)return;G.t+=dt;G.minH=Math.min(G.minH===undefine
  if(G.lureD&&!G.boss&&G.t>=G.lureD.join){G.boss=true;spawn('boss');fx('boss');} /* after his throw, the Goblin joins the battle */
  const pets=G.pets.filter(x=>!x.gone),foes=G.foes.filter(x=>!x.gone);
  G.pets.forEach(u=>{u.fight=false;});G.foes.forEach(f=>{f.fight=false;});
- pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx(u.R.id==='eagle'?'eaglebye':'trollbye');return;}if(u.stun>G.t)return;u.mv=false;if(u.lr&&lured(u,dt))return;const R=u.R;if(u.mega&&R.id==='eagle'){eagleStep(u,foes,dt);return;}const reach=f=>(!f.fly||R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
+ pets.forEach(u=>{if(u.mega&&u.poundAt&&G.t>=u.poundAt)pound(u,foes);if(u.mega&&G.t>=u.leave){u.gone=true;u.left=true;fx(u.R.id==='eagle'?'eaglebye':u.R.id==='core'?'corebye':'trollbye');return;}if(u.stun>G.t)return;u.mv=false;if(u.lr&&lured(u,dt))return;const R=u.R;if(u.mega&&R.id==='eagle'){eagleStep(u,foes,dt);return;}const reach=f=>(!f.fly||R.fly||u.flyer)&&u.x-f.x>=-1&&u.x-f.x<=u.rng;const tg=foes.filter(reach);
   if(tg.length){const hit=R.area?tg:[tg.reduce((a,b)=>b.x>a.x?b:a)];u.fight=true;u.tgFly=!!hit[0].fly;hit.forEach(f=>{let d=u.atk*dt;if(f.armor)d*=R.armor?R.armor:.5;if(R.crit&&Math.random()<R.crit*dt*3)d+=u.atk*.6;f.hp-=d;});
    if(Math.random()<.18*dt)knock(hit[0],-(1.5+Math.random()*1.5)*(hit[0].boss?.3:1)); /* now and then a hit shoves the critter back a little */
    if(u.mega&&!u.met){u.met=true;u.leave=Math.min(u.leave,G.t+R.life);}}
   else if(u.x-DEN_X<=u.rng){u.fight=true;u.tgFly=false; /* flying pets come down to hit the den */if(G.t>=(G.denSafe||0))G.denHP-=u.atk*dt*(G.bossDown||!G.peek?1:.5)*(G.t>TUNE.tired?1.6:1);}
   else{u.x-=u.spd*.8*dt*(u.mega&&!u.met?MEGA_RUN:1);u.mv=true;}
+  if(u.mega&&R.id==='core'&&G.t>=(u.pulseAt||0)&&foes.some(f=>!f.gone&&Math.abs(f.x-u.x)<=R.reach)){u.pulseAt=G.t+R.pulse;G.pulseX=u.x;G.pulses=(G.pulses||0)+1;foes.forEach(f=>{if(f.gone||Math.abs(f.x-u.x)>R.reach)return;f.hp-=u.atk*(f.boss?.6:1.4);f.stun=Math.max(f.stun||0,G.t+.7);});fx('heat');} /* the Core Keeper's Heat Pulse */
   if(u.mega&&R.id==='troll'&&!u.poundAt&&G.t>=u.stompAt&&foes.some(f=>!f.gone&&u.x-f.x>=-2&&u.x-f.x<=6)){u.poundAt=G.t+TROLL.wind;u.windT=G.t;} /* he roars at any critter right in front of him, flyers too */
   if(R.heal)pets.forEach(o=>{if(o!==u&&Math.abs(o.x-u.x)<10&&o.hp<o.max)o.hp=Math.min(o.max,o.hp+R.heal*u.atk/2*dt);});});
  /* flyers drift over pets that can't reach them (like Battle Cats' floating enemies) and go for the Pet House */
@@ -325,10 +339,12 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-zone{text-align:center;margin:8px 0}.bp2-zone p{color:#fff;opacity:.85;margin:0}
 .bp2-stage.locked{opacity:.7}
 .bp2-slot.full{border-style:solid;border-color:#40c057;background:#ebfbee}
+.zmap .node.bpvs{background:#ffd43b;border-color:#a8640a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;line-height:1;animation:bp2vs 1.6s ease-in-out infinite}.bpvs .vsp{font-size:22px}.bpvs .vst{font:800 20px Fredoka,sans-serif;color:#5c3a06;letter-spacing:.5px}
+@keyframes bp2vs{0%,100%{box-shadow:0 5px 0 rgba(0,0,0,.3),0 0 0 0 rgba(255,212,59,.7)}50%{box-shadow:0 5px 0 rgba(0,0,0,.3),0 0 0 10px rgba(255,212,59,0)}}
 .bp2-tt{font-size:20px;display:block;margin-bottom:8px}.bp2-vs{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
 .bp2-side{flex:1 1 300px;background:#faf9ff;border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:10px}
 .bp2-sh{font-weight:800;font-size:13px;color:#6b6490;letter-spacing:.4px}.bp2-vsw{align-self:center;font-weight:800;font-size:24px;color:#b5aed6}
-.bp2-megas{display:flex;gap:8px}.bp2-megas button{font:inherit;font-weight:800;font-size:14px;width:104px;border:3px solid #e9e4ff;background:#fff;border-radius:16px;padding:6px 4px;cursor:pointer;color:#2b2340;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bp2-megas{display:flex;gap:8px}.bp2-megas button.unk{cursor:default;color:#8a84aa;background:#f5f3fb;border-style:dashed}.bp2-q{font-size:44px;font-weight:800;color:#b5aed6;align-items:center !important;line-height:1}.bp2-tc .bp2-q{font-size:30px}.bp2-megas .ma>svg{width:56px}.bp2-megas button{font:inherit;font-weight:800;font-size:14px;width:104px;border:3px solid #e9e4ff;background:#fff;border-radius:16px;padding:6px 4px;cursor:pointer;color:#2b2340;display:flex;flex-direction:column;align-items:center;gap:2px}
 .bp2-megas button.on{border-color:#7048e8;background:#f3f0ff;box-shadow:0 0 0 3px #d9d2ff}.bp2-megas .ma{display:flex;align-items:flex-end;justify-content:center;height:64px;width:72px;overflow:hidden}
 .bp2-megas .ma svg{width:60px;height:auto;max-height:64px}.bp2-megas .ma .eg-btn{width:60px}
 .bp2-slot.lock{border:3px dashed #d4cfe8;background:#f5f3fb;font-size:12px;font-weight:700;color:#8a84aa;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;cursor:default}.bp2-slot.lock b{font-size:20px}
@@ -506,7 +522,7 @@ function teamView(p){const S=stages().find(s=>s.id===VIEW.id);if(!S){VIEW={k:'st
  app.innerHTML=head(`${S.art} ${esc(S.name)} ${VIEW.asc?'✨ Ascend '+VIEW.asc:'👑'.repeat(VIEW.crown)}`,"BattlePets._back()")+`<div class="bp2">${levelPicker(p,S)}<div class="bp2-card"><b class="bp2-tt">Build your team</b>
   <div class="bp2-vs">
    <div class="bp2-side"><div class="bp2-sh">YOUR SIDE</div>
-    <div class="bp2-megas">${[['troll','Grumbleroot'],['eagle','Skyla']].map(([id,t])=>`<button class="${(prog(p).mega||'troll')===id?'on':''}" onclick="BattlePets._mega('${id}')" aria-pressed="${(prog(p).mega||'troll')===id}" title="${id==='troll'?'Roars critters back':'Dives onto critters'}"><span class="ma">${megaArt(id,56)}</span>${t}</button>`).join('')}</div>
+    <div class="bp2-megas">${(cm=>MEGA_IDS.map(id=>metMega(p,id)?`<button class="${cm===id?'on':''}" onclick="BattlePets._mega('${id}')" aria-pressed="${cm===id}" title="${esc(MEGA[id].tip)}"><span class="ma">${megaArt(id,56)}</span>${esc(MEGA[id].n)}</button>`:`<button class="unk" disabled title="Someone is out there… you haven't met them yet"><span class="ma bp2-q">?</span>???</button>`).join(''))(curMega(p))}</div>
     <div class="bp2-slots">${Array.from({length:5},(_,i)=>{if(i>=n)return `<span class="bp2-slot mine lock" title="Opens at level ${(i-2)*10}"><b>🔒</b>Level ${(i-2)*10}</span>`;const id=team[i],pet=id&&PETS.find(x=>x.id===id);return `<button class="bp2-slot mine ${pet?'full':''}" onclick="BattlePets._out(${i})" aria-label="${pet?'Take '+esc(pet.name)+' out':'Empty spot'}">${pet?pet.e:''}</button>`;}).join('')}</div></div>
    <div class="bp2-vsw">VS</div>
    <div class="bp2-side"><div class="bp2-sh">THE BAD GUYS</div>
@@ -554,7 +570,7 @@ function teamOut(i){if(VIEW.k!=='team')return;VIEW.team.splice(i,1);screen();}
 function start(){const p=me();if(!p||VIEW.k!=='team'||!VIEW.team.length)return;const S=stages().find(s=>s.id===VIEW.id);const team=VIEW.team.map(id=>PETS.find(x=>x.id===id)).filter(Boolean);
  if(!VIEW.flyOk&&flyRisk(S,team)){if(!document.getElementById('bpFlyW'))flyWarn();return;}
  rec(p);prog(p).team=VIEW.team.slice();const b=p.bp=p.bp||{s:0,m:[]};b.s=(b.s||0)+1;save();
- newBattle(p,S,VIEW.crown,team,VIEW.asc);G.megaId=prog(p).mega==='eagle'?'eagle':'troll';G.tk=VIEW.tk?G.crown:0;G.q=makeQ(p,S.op);G.songPick=Math.floor(Math.random()*3);VIEW={k:'fight',id:S.id,crown:G.crown,asc:G.asc};screen();}
+ newBattle(p,S,VIEW.crown,team,VIEW.asc);G.megaId=curMega(p);G.tk=VIEW.tk?G.crown:0;G.q=makeQ(p,S.op);G.songPick=Math.floor(Math.random()*3);VIEW={k:'fight',id:S.id,crown:G.crown,asc:G.asc};screen();}
 /* the battle takes over the whole screen: no menus, just ✕ Exit (and the battle fills the page; the browser's own full-screen mode is not used (owner, Oct 2026: its "press Esc" popup is annoying)) */
 function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
  app.innerHTML=`<div class="bp2-full" id="bpFull">
@@ -563,7 +579,7 @@ function fightView(p){const S=G.stage;document.body.classList.add('bp2-lock');
   <div class="bp2-scroll" id="bpScroll"><div class="bp2-field" id="bpField" style="background:linear-gradient(#cfeeff 0 48%,${S.bg[0]} 48% 82%,${S.bg[1]} 82%)"><span class="bp2-base" id="bpDenB" style="left:${DEN_X}%">${window.BPScene?BPScene.base('den',S):'🏚️'}</span><span class="bp2-base" id="bpHouseB" style="left:${HOUSE_X}%">${window.BPScene?BPScene.base('house',S):'🏡'}</span></div></div>
   <div class="bp2-row"><div class="bp2-meter"><i id="bpTreat"></i><span id="bpTreatT"></span></div><button class="bp2-btn" id="bpKit" onclick="BattlePets._kit()"></button><button class="bp2-btn gold" id="bpPounce" onclick="BattlePets._pounce()"></button><button class="bp2-btn train" id="bpTrain" onclick="BattlePets._trainer()"></button><button class="bp2-btn fix" id="bpFix" onclick="BattlePets._fix()"></button></div>
   <div class="bp2-team six">${G.team.map((s,i)=>`<button class="bp2-tc" id="bpTc${i}" onclick="BattlePets._send(${i})"><span class="pe">${s.pet.e}</span><small>${s.R.e} ${s.R.n}<span class="bp2-key">${i+1}</span></small><small>🍖 ${s.R.cost}</small><span class="cd" id="bpCd${i}"></span></button>`).join('')}
-   <button class="bp2-tc mega" id="bpTroll" onclick="BattlePets._troll()" aria-label="Call ${megaOf().n}"><span class="pe">${megaArt(megaOf().id,46)}</span><small>MEGA<span class="bp2-key">T</span></small><small>🍖 ${megaOf().cost}</small><span class="cd" id="bpTrollCd"></span></button></div>
+   ${megaOf()?`<button class="bp2-tc mega" id="bpTroll" onclick="BattlePets._troll()" aria-label="Call ${megaOf().n}"><span class="pe">${megaArt(megaOf().id,46)}</span><small>MEGA<span class="bp2-key">T</span></small><small>🍖 ${megaOf().cost}</small><span class="cd" id="bpTrollCd"></span></button>`:`<button class="bp2-tc mega" disabled aria-label="No mega yet"><span class="pe bp2-q">?</span><small>MEGA</small><small>???</small></button>`}</div>
   <div class="bp2-card bp2-fix" id="bpFixP" style="display:none"><div class="bp2-row" style="justify-content:space-between"><b>🧱 Rebuild the Pet House</b><span class="bp2-bricks" id="bpBricks"></span><button class="btn small ghost dark" onclick="BattlePets._fixDone()">Done <span class="bp2-key">Esc</span></button></div>
    <div class="bp2-q"><span id="bpQ"></span><span class="box" id="bpIn">&nbsp;</span><button class="btn small ghost dark" onclick="BattlePets._say()" aria-label="Read it to me">🔊</button></div><div class="bp2-msg" id="bpMsg"></div>
    <div class="bp2-pad">${['1','2','3','4','5','6','7','8','9','0','.','⌫'].map(k=>`<button onclick="BattlePets._key('${k}')">${k}</button>`).join('')}</div><div class="bp2-padrow"><button class="skip" onclick="BattlePets._key('skip')">⏭ Skip <span class="bp2-key">Space</span></button><button class="go" onclick="BattlePets._key('go')">✓ Check <span class="bp2-key">Enter</span></button></div></div>
@@ -639,7 +655,7 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
    if(eg&&(u.ph==='rise'||u.mv)&&now>(u.flapAt||0)){u.flapAt=now+430;flap();}}if(u.mega)u.el.classList.add('mega');u.el.querySelector('.hb i').style.width=Math.max(0,u.hp/u.max*100)+'%';});
  G.pets=G.pets.filter(u=>!(u.gone&&u.dead));G.foes=G.foes.filter(u=>!(u.gone&&u.dead));
  lureDraw(f);clash();baseSmoke();pawHits();pawFollow();threats();camera();flyHint();
- {const tb=document.getElementById('bpTroll'),tc=document.getElementById('bpTrollCd'),M=megaOf();if(tb&&tc){const out=trollOut(),wait=Math.max(0,G.trollAt-G.t),span=G.trolls?M.cd:M.first;
+ {const tb=document.getElementById('bpTroll'),tc=document.getElementById('bpTrollCd'),M=megaOf();if(tb&&tc&&M){const out=trollOut(),wait=Math.max(0,G.trollAt-G.t),span=G.trolls?M.cd:M.first;
   tc.style.height=(out?100:wait/span*100)+'%';tb.classList.toggle('poor',G.treats<M.cost||out||wait>0);tb.title=out?`${M.n} is fighting!`:wait>0?`${M.n} is coming in ${Math.ceil(wait)} s`:`Call ${M.n}!`;}}
  const q=id=>document.getElementById(id);q('bpDen').style.width=(G.denHP/G.denMax*100)+'%';q('bpHouse').style.width=(G.houseHP/G.houseMax*100)+'%';q('bpT').textContent=Math.floor(G.t)+'s';
  q('bpTreat').style.width=(G.treats/treatCap()*100)+'%';q('bpTreatT').textContent=`🍖 ${Math.floor(G.treats)} / ${treatCap()}`;
@@ -663,6 +679,9 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
    else if(k==='boss2'){shake();if(window.BPScene)BPScene.grey(true);tone(110,.6,'sawtooth',.06);setTimeout(cackle,500);flash(`😠 His brother is ANGRY! Another ${G.stage.boss[0]}!`);}else if(k==='tired')topNote('😴 The critters are getting sleepy. Push now!');
    else if(k==='troll'){shake();flash(`🧌 ${TROLL.n} stomps in!`);tone(70,.5,'sawtooth',.08);tone(55,.6,'square',.05,.2);}
    else if(k==='roar'){const t=G.pets.find(u=>u.mega&&!u.gone);if(t){[0,110,220,330].forEach(ms=>setTimeout(()=>puffAny(t.x-1.6,'sound',78),ms));puffAny(t.x-2.5,'word',150);puffAny(t.x-3,'dust');puffAny(t.x-5,'dust');}shake();setTimeout(shake,250);roarSound();}
+   else if(k==='core'){flash(`🌕 The ${CORE.n} rolls in!`);tone(90,.5,'sine',.1);tone(140,.4,'triangle',.05,.15);}
+   else if(k==='heat'){const x=G.pulseX;puffAny(x,'ring');setTimeout(()=>puffAny(x,'ring'),140);setTimeout(()=>puffAny(x,'ring'),280);for(let i=0;i<5;i++)puffAny(x+(Math.random()*16-8),'ember',30+Math.random()*60);tone(180,.25,'sawtooth',.03);tone(90,.35,'sine',.08);}
+   else if(k==='corebye')topNote(`🌕 The ${CORE.n} rolls home to the centre of the Earth. He'll be back!`);
    else if(k==='trollbye')topNote(`🧌 ${TROLL.n} stomps home. He'll be back!`);
    else if(k==='eaglebye')topNote(`🦅 ${EAGLE.n} flies home. She'll be back!`);
    else if(k==='eagle'){flash(`🦅 ${EAGLE.n} swoops in!`);screech();tone(1500,.18,'triangle',.03);tone(1100,.25,'triangle',.025,.12);}
@@ -843,12 +862,19 @@ const ticketLevels=(p,zid)=>{const t=tickets(p,zid);return [1,2,3].filter(k=>t[k
 function useTicket(p,zid,crown,won){const t=tickets(p,zid);if(!t[crown]||t[crown]==='u')return t[crown];t[crown]=won?'u':t[crown]==='r'?'x':'u';return t[crown];}
 const LEGEND_MSG='🔒 Reach 👑 <b>Legend</b> here to play any level again, then challenge yourself with ✨ <b>Ascend</b>!';
 /* the world page: a Battle button once that world has a ticket (or for good, after its 👑 Legend round) */
-function zoneBtn(zid){const st=stages().find(x=>x.id===zid),p=me();if(!st||!p||!on(p))return;const tip=document.querySelector('#app .ztip');if(!tip||document.getElementById('bpZone'))return;
+/* the way into a world's Battle Pets stage (owner's option A, Oct 2026): once a battle is ready there, the world map's dashed path
+   carries on past the boss to a gold 🐾 VS bubble (with how many battles are ready); a short line under the map explains the rest */
+const VS_POS=[92,62];
+function zoneBtn(zid){const st=stages().find(x=>x.id===zid),p=me();if(!st||!p||!on(p))return;const tip=document.querySelector('#app .ztip'),zm=document.querySelector('#app .zmap');if(!tip||document.getElementById('bpZone'))return;
  let won=false;try{won=medal(p,zid)>=5;}catch(e){}const c=prog(p).c[zid]||0;const d=document.createElement('div');d.id='bpZone';d.className='bp2-zone';
  const lv=ticketLevels(p,zid);let m=0;try{m=medal(p,zid)||0;}catch(e){}
- d.innerHTML=won?`<button class="btn gold big" onclick="BattlePets.openStage('${zid}')">🐾 Battle Pets: ${esc(st.name)} ${c?'👑'.repeat(c):''}${(prog(p).asc||{})[zid]?' ✨'+prog(p).asc[zid]:''}</button>`
-  :lv.length?`<button class="btn gold big" onclick="BattlePets.openStage('${zid}')">🎟️ Battle Pets: ${esc(st.name)} ${'👑'.repeat(lv[0])} · ${lv.length} battle${lv.length===1?'':'s'} ready</button><p class="muted" style="margin:6px 0 0">${LEGEND_MSG}</p>`
-  :m?`<p>🎟️ You've played your 🐾 Battle Pets battles here. ${LEGEND_MSG}</p>`:`<p>🎟️ Earn a 🥉 <b>Bronze</b> medal here for a 🐾 Battle Pets battle! Each medal gives another one, and 👑 <b>Legend</b> opens them all.</p>`;tip.after(d);css();}
+ const ready=won||lv.length;
+ d.innerHTML=won?`<p class="muted">🐾 Tap <b>VS</b> after the boss for Battle Pets: ${esc(st.name)} ${c?'👑'.repeat(c):''}${(prog(p).asc||{})[zid]?' ✨'+prog(p).asc[zid]:''}</p>`
+  :lv.length?`<p class="muted">🎟️ ${lv.length} battle${lv.length===1?'':'s'} ready: tap <b>VS</b> after the boss. ${LEGEND_MSG}</p>`
+  :m?`<p>🎟️ You've played your 🐾 Battle Pets battles here. ${LEGEND_MSG}</p>`:`<p>🎟️ Earn a 🥉 <b>Bronze</b> medal here for a 🐾 Battle Pets battle! Each medal gives another one, and 👑 <b>Legend</b> opens them all.</p>`;tip.after(d);css();
+ if(ready&&zm&&!document.getElementById('bpVS')){const sv=zm.querySelector('svg.zpath');if(sv){const B=typeof NODE_POS!=='undefined'?NODE_POS[5]:[82,28];sv.insertAdjacentHTML('beforeend',`<polyline points="${B.join(',')} ${VS_POS.join(',')}" fill="none" stroke="rgba(255,215,90,.9)" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`);}
+  const v=document.createElement('button');v.id='bpVS';v.className='node bpvs';v.style.left=VS_POS[0]+'%';v.style.top=VS_POS[1]+'%';v.title='Battle Pets';v.setAttribute('aria-label','Battle Pets');
+  v.innerHTML=`<span class="vsp">🐾</span><span class="vst">VS</span>${!won&&lv.length?`<span class="go-tag">${lv.length} ready</span>`:''}`;v.onclick=()=>openStage(zid);zm.appendChild(v);}}
 let FROM=null; /* where this stage was opened from: its world's page, or the Lab for the Fossil Stage (the Museum is inside the cave) */
 function openStage(zid){const p=me();if(!p)return;FROM=zid==='fossil'?{s:'lab'}:{s:'zone',a:zid};
  if(zid!=='fossil'&&!legend(p,zid)){const lv=ticketLevels(p,zid);if(!lv.length)return;VIEW={k:'stages'};go('bp');pickStage(zid,lv[0],0,true);return;}
@@ -868,7 +894,7 @@ window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 
 (function reg(){if(typeof SCREENS!=='undefined'){SCREENS.bp=()=>screen();}else setTimeout(reg,30);})();
 window.BattlePets={on,stats,stages,openStage,stageOpen,
- _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>trySend(i),_kit:()=>{if(upgradeKitchen())draw();},_sound:soundOpen,_report:()=>{if(!G||G.over||!window.MQReport)return;G.paused=true;MQReport.open(()=>{if(G){G.paused=false;LAST=performance.now();}});},_soundDone:soundDone,_vol:setVol,_song:setSong,songId,_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S,VIEW.crown,VIEW.asc);try{SFX.tap();}catch(e){}screen();},_trainer:trainerToggle,_hire:hire,_mega:id=>{const p=me();if(!p||!MEGA[id])return;prog(p).mega=id;save();if(VIEW.k==='team')screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))topNote('No critters to pounce on yet!');},_key:key,_again:again,_retry:()=>retry(),_base:()=>base(),_lvl:(c,a)=>{if(VIEW.k!=='team')return;const t=VIEW.team.slice(),fl=VIEW.fly;pickStage(VIEW.id,c,a,VIEW.tk);if(VIEW.k==='team'){VIEW.team=t;VIEW.fly=fl;screen();}},_back:backTo,_leave:leave,_quit:quit,
+ _pick:pickStage,_in:teamIn,_out:teamOut,_start:start,_send:i=>trySend(i),_kit:()=>{if(upgradeKitchen())draw();},_sound:soundOpen,_report:()=>{if(!G||G.over||!window.MQReport)return;G.paused=true;MQReport.open(()=>{if(G){G.paused=false;LAST=performance.now();}});},_soundDone:soundDone,_vol:setVol,_song:setSong,songId,_auto:()=>{const p=me();if(!p||VIEW.k!=='team')return;const S=stages().find(s=>s.id===VIEW.id);if(!S)return;VIEW.team=autoPick(p,S,VIEW.crown,VIEW.asc);try{SFX.tap();}catch(e){}screen();},_trainer:trainerToggle,_hire:hire,_mega:id=>{const p=me();if(!p||!MEGA[id]||!metMega(p,id))return;prog(p).mega=id;save();if(VIEW.k==='team')screen();},_flyFilter:()=>{if(VIEW.k!=='team')return;VIEW.fly=!VIEW.fly;screen();},_flyFix:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());if(VIEW.k==='team'){VIEW.fly=true;screen();}},_flyGo:()=>{document.querySelectorAll('#bpFlyW').forEach(x=>x.remove());VIEW.flyOk=true;start();},_fix:fixOpen,_fixDone:fixDone,_troll:()=>{if(callTroll())draw();},_cam:()=>{CAM_HOLD=0;camera();},_pounce:()=>{if(pounce())draw();else if(G&&!G.over&&G.charge>=100&&!G.foes.some(f=>!f.gone))topNote('No critters to pounce on yet!');},_key:key,_again:again,_retry:()=>retry(),_base:()=>base(),_lvl:(c,a)=>{if(VIEW.k!=='team')return;const t=VIEW.team.slice(),fl=VIEW.fly;pickStage(VIEW.id,c,a,VIEW.tk);if(VIEW.k==='team'){VIEW.team=t;VIEW.fly=fl;screen();}},_back:backTo,_leave:leave,_quit:quit,
  _say:()=>{try{if(G&&G.q)speakToggle(()=>say(speakable(qText(G.q)),.9));}catch(e){}},_sync:syncTile,
- _dbg:{airborne,LURE,draw:()=>draw(),tickets,ticketLevels,starsFor,STAR_T,arrow:u=>arrow(u),winChance,WINM,teamFeat,TRAINER_COST,TRAINER,trainer:()=>trainer(),TUNE,CROWN,TROLL,EAGLE,threats:()=>threats(),ascK,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
+ _dbg:{CORE,metMega,curMega,airborne,LURE,draw:()=>draw(),tickets,ticketLevels,starsFor,STAR_T,arrow:u=>arrow(u),winChance,WINM,teamFeat,TRAINER_COST,TRAINER,trainer:()=>trainer(),TUNE,CROWN,TROLL,EAGLE,threats:()=>threats(),ascK,petSpd,flyRisk,autoPick,leadX:()=>leadX(),G:()=>G,newBattle,step,callTroll,_spawn:k=>spawn(k),send,answer,openFix,closeFix,canFix,pounce,upgradeKitchen,roleOf,powerOf,stages,makeQ,finish,sim:v=>{SIM=!!v;},view:()=>VIEW}};
 })();
