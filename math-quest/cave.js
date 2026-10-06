@@ -231,7 +231,7 @@ const campOnly=(f,i)=>f.camp!=null&&i===f.camp;
 
 /* ---------------- DOM ---------------- */
 function build(){
- root=document.createElement('div');root.className='cv';root.id='cvRoot';
+ root=document.createElement('div');root.className='cv'+(MQ()?' cv-mq':'');root.id='cvRoot';
  root.innerHTML=`<canvas id="cvC"></canvas>
  <div class="cv-top"><div class="cv-row1"><div class="cv-chip" id="cvLayer"></div><div class="cv-res"><span id="cvCoins"></span><span id="cvRP"></span><span id="cvPack"></span></div><button class="cv-x cv-snd" id="cvSnd" aria-label="Sound and music"></button><button class="cv-x cv-map" id="cvExit" aria-label="Back to the map">🗺️<span class="cv-mapt"> Map</span></button></div>
   <div class="cv-row2"><div class="cv-g" id="cvG"></div><div class="cv-bat" title="Battery"><i id="cvBatI"></i><span id="cvBatT"></span></div></div></div>
@@ -304,7 +304,7 @@ function step(dx,dy){
  if(rk.h>drill().h){sfx('bonk');say(`⛏️ Too hard! ${rk.n} is about ${rk.h} on the hardness scale. Your ${drill().e} ${drill().n} digs up to ${drill().h}. Upgrade in the 🛒 Gear shop.`);return;}
  const cost=rk.h>drill().h-1.5?2:1;
  if(S.bat<cost){if(S.y===0){say(MQ()?(powerLeft()>0?'🔋 Battery empty! Tap ⚡ Power Up — every right answer adds charge.':'🔋 The battery is worn out for this trip. Bring Dr. Quartz another 🪨 mystery rock to come back!'):`🔋 Battery too low to dig! It's charging — full in ${fullIn()}. Tap ⚡ Power Up to charge it faster with math!`,4500);}else beamHome('battery');return;}
- const bm0=S.bat/batMax();S.bat-=cost;const i=idx(nx,ny);W.g[i]=T_AIR;setDug(i);S.stats.dug++;burst(nx,ny,rk.col);sfx('dig',rk.h);if(bm0>=.25&&S.bat/batMax()<.25)setTimeout(()=>sfx('low'),200);
+ const bm0=S.bat/batMax();S.bat-=cost;const i=idx(nx,ny);W.g[i]=T_AIR;setDug(i);S.stats.dug++;burst(nx,ny,rk.col);sfx('dig',rk.h);if(!MQ()&&bm0>=.25&&S.bat/batMax()<.25)setTimeout(()=>sfx('low'),200);
  S.x=nx;S.y=ny;after();
  if(S.bat<=0)setTimeout(()=>beamHome('battery'),400);
 }
@@ -456,28 +456,32 @@ function drawShaft(c,px,py,T,top){c.fillStyle='#3a3340';c.fillRect(px,py,T+1,T+1
 /* camp buildings — tap one to go in (they are the camp's only menu) */
 const CAMP=[{x:2,e:'🔋',n:'Power Up',a:'power'},{x:8,e:'🔬',n:'Lab',a:'lab'},{x:10,e:'🛒',n:'Gear',a:'gear'},{x:12,e:'🏛️',n:'Museum',a:'museum'},{x:14,e:'🌱',n:'Garden',a:'garden',show:()=>S.seen.cave},{x:16,e:'📓',n:'Journal',a:'journal'},{x:18,e:'🚀',n:'Core Probe',a:'probe',show:()=>S.gates.core}];
 const QZX=6.3; // where Dr. Quartz stands
+const LABX=6; /* Math Quest: the elevator back up to the Lab (owner, Oct 2026), where Dr. Quartz used to stand */
 const campB=()=>CAMP.filter(b=>(!b.show||b.show())&&(!MQ()||b.a==='power'||b.a==='probe')); /* Math Quest: Lab, Gear, Museum, Garden and Journal are rooms in the Lab now */
 function campBadge(b){if(b.a==='lab'){const u=S.pack.filter(p=>p.t!=='f').length;return u?String(u):'';}if(b.a==='museum')return museumReady()?'!':'';if(b.a==='garden')return S.garden&&S.garden.last!==realDay()?'💧':'';if(b.a==='power')return S.bat<batMax()*.25?'!':'';return '';}
 function campTap(wx,wy){if(wy<-.55||wy>1.05)return false;
  if(Math.abs(wx-.5)<.6){sfx('tap');act('elev');return true;}
- if(Math.abs(wx-QZX)<.55){sfx('tap');act('tip');return true;}
+ if(MQ()&&Math.abs(wx-(LABX+.5))<.7){sfx('tap');leave();return true;}
+ if(!MQ()&&Math.abs(wx-QZX)<.55){sfx('tap');act('tip');return true;}
  const b=campB().find(b=>Math.abs(wx-(b.x+.5))<.75);if(!b)return false;sfx('tap');
  if(b.a==='power'&&S.bat>=batMax()-.5){say('🔋 Your battery is full — go dig!',1800);return true;}
  act(b.a);return true;}
 function drawCamp(c,T){const gy=T-camY;c.fillStyle=MQ()?'#5e4d68':'#4caf50';c.fillRect(-camX,gy-5,COLS*T,9);
  const gi=H.guideImg;if(!MQ()&&gi&&gi.complete&&gi.naturalWidth){const gx=QZX*T-camX,hh=T*1.15;c.drawImage(gi,gx-hh*.33,gy-hh-2+Math.sin(tick*.05)*1.5,hh*.66,hh);}
  const lab=(txt,px,col)=>{c.font=`700 ${Math.max(11,T*.26)}px Fredoka,sans-serif`;c.textAlign='center';c.textBaseline='top';const w=c.measureText(txt).width+12,h=Math.max(15,T*.34),y=gy-T*1.2;px=Math.max(px,w/2+3);c.fillStyle='rgba(255,255,255,.85)';c.beginPath();if(c.roundRect)c.roundRect(px-w/2,y-2,w,h,h/2);else c.rect(px-w/2,y-2,w,h);c.fill();c.fillStyle=col||'#1d3a5a';c.fillText(txt,px,y);};
- lab(MQ()?'🛗 Elevator':'Elevator',.5*T-camX);if(!MQ())lab('Dr. Quartz',QZX*T-camX,'#1971c2');
+ lab(MQ()?'⛏️ Dig Site':'Elevator',.5*T-camX);if(!MQ())lab('Dr. Quartz',QZX*T-camX,'#1971c2');
+ if(MQ()){const px=LABX*T-camX,py=gy-T*.98;c.fillStyle='#868e96';c.fillRect(px+T*.08,py,T*.84,T*.96);c.fillStyle='#ffd43b';c.fillRect(px+T*.08,py,T*.84,T*.1);c.fillStyle='#ced4da';c.fillRect(px+T*.16,py+T*.16,T*.32,T*.78);c.fillRect(px+T*.52,py+T*.16,T*.32,T*.78);
+  c.strokeStyle='#3b2a1e';c.lineWidth=2;c.strokeRect(px+T*.08,py,T*.84,T*.96);c.strokeRect(px+T*.16,py+T*.16,T*.32,T*.78);c.strokeRect(px+T*.52,py+T*.16,T*.32,T*.78);c.fillStyle='#69db7c';c.beginPath();c.arc(px+T*.5,py-T*.08,T*.07,0,7);c.fill();lab('🔬 Lab',(LABX+.5)*T-camX,'#1971c2');}
  campB().forEach(b=>{const px=(b.x+.5)*T-camX;const bob=b.a==='power'&&S.bat<batMax()*.25?Math.abs(Math.sin(tick*.12))*4:0;c.font=`${T*.8}px serif`;c.textAlign='center';c.textBaseline='bottom';c.fillText(b.e,px,gy-2-bob);
   lab(b.n,px);const bd=campBadge(b);if(bd){const r=Math.max(8,T*.17),bx=px+T*.32,by=gy-T*.82;c.fillStyle='#fa5252';c.beginPath();c.arc(bx,by,r,0,7);c.fill();c.fillStyle='#fff';c.font=`800 ${r*1.3}px Fredoka,sans-serif`;c.textBaseline='middle';c.fillText(bd,bx,by+1);}});}
 function shade(hex,amt){let n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;const f=amt<0?0:255,p=Math.abs(amt);r=Math.round((f-r)*p+r);g=Math.round((f-g)*p+g);b=Math.round((f-b)*p+b);return`rgb(${r},${g},${b})`;}
 
 /* ---------------- HUD ---------------- */
 function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(S.y);
- q('#cvLayer').innerHTML=S.y===0?(MQ()?'🛗 Elevator Landing':'🏕️ Base Camp'):`${L.e} ${esc(L.n)}`;
+ q('#cvLayer').style.display=MQ()&&S.y===0?'none':'';q('#cvLayer').innerHTML=S.y===0?(MQ()?'':'🏕️ Base Camp'):`${L.e} ${esc(L.n)}`;
  q('#cvCoins').textContent='🪙 '+fmt(H.coins());q('#cvRP').textContent='🔬 '+fmt(S.rp);q('#cvPack').textContent=`🎒 ${S.pack.length}/${packMax()}`;
  const t=rowTemp(S.y),hotw=S.y>0&&t>suit().t*.85;
- q('#cvG').innerHTML=`<span>📏 ${S.y===0?(MQ()?'Landing':'Surface'):depthStr(S.y)}</span><span class="${hotw?'warn':''}">🌡️ ${fmt(t)} °C</span>${TIER()?`<span>⏲️ ${fmt(rowAtm(S.y))} atm</span>`:''}`;
+ q('#cvG').innerHTML=`${S.y===0&&MQ()?'':`<span>📏 ${S.y===0?'Surface':depthStr(S.y)}</span>`}<span class="${hotw?'warn':''}">🌡️ ${fmt(t)} °C</span>${TIER()?`<span>⏲️ ${fmt(rowAtm(S.y))} atm</span>`:''}`;
  hudBat();
  if(S.y===0&&!MQ()&&!S.tapHint&&!hintShown&&!modalOpen()){hintShown=1;setTimeout(()=>{if(S.y===0&&!modalOpen())say('👆 Tap a building — like the 🔬 Lab — to go inside!',5500);},600);}
  // depth bar
@@ -499,7 +503,10 @@ function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(
  }else if(S.y>0){a+=`<button class="cv-act" data-a="home">🏠<span>Camp</span></button>`;if(S.gear.uv)a+=`<button class="cv-act ${uvOn?'on':''}" data-a="uv">🔦<span>UV ${uvOn?'on':'off'}</span></button>`;}
  const acts=q('#cvActs');if(acts.dataset.h!==a){acts.innerHTML=a;acts.dataset.h=a;acts.querySelectorAll('button').forEach(b=>b.onclick=()=>act(b.dataset.a));}
 }
-function hudBat(){if(!root)return;const q=s=>root.querySelector(s);const bm=batMax();q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';const f=S.y===0&&S.bat<bm?fullIn():'';q('#cvBatT').textContent=`${f?'🔌':'🔋'} ${Math.floor(S.bat)}/${bm}${f?' · '+f:''}`;q('#cvBatT').parentNode.title=f?'Charging — full in '+f:'Battery';}
+const BATW=[[.5,'🔋 Battery: half left.'],[.25,'🔋 Battery low: 25% left. ⚡ Power Up at the landing tops it up.'],[.05,'🪫 Battery almost out: 5% left! Head back up soon.']];
+function batWarn(){if(!MQ()||!S)return;const f=S.bat/batMax();let lv=0;BATW.forEach(([t],i)=>{if(f<=t)lv=i+1;});const was=S.batW||0;
+ if(lv>was){S.batW=lv;say(BATW[lv-1][1],4200);if(lv>=2)sfx('low');}else if(lv<was)S.batW=lv;}
+function hudBat(){if(!root)return;const q=s=>root.querySelector(s);const bm=batMax();try{batWarn();}catch(e){}q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';const f=S.y===0&&S.bat<bm?fullIn():'';q('#cvBatT').textContent=`${f?'🔌':'🔋'} ${Math.floor(S.bat)}/${bm}${f?' · '+f:''}`;q('#cvBatT').parentNode.title=f?'Charging — full in '+f:'Battery';}
 function act(a){if(S.y===0&&!S.tapHint){S.tapHint=1;save();}({tip:()=>tipCard(),power:openPower,lab:openLab,gear:openGear,museum:openMuseum,garden:openGarden,journal:openJournal,elev:openElevator,probe:openProbe,home:()=>beamHome(),uv:()=>{uvOn=!uvOn;sfx('uvon');hud();say(uvOn?'🔦 UV lamp ON — fluorescent minerals glow! (Your normal light is dimmer.)':'🔦 UV lamp off.',2200);}})[a]();}
 
 /* gates deeper down stay sealed until you have enough Boss Medals from Math Quest */
@@ -1103,7 +1110,8 @@ function probeRun(){
 }
 
 /* ---------------- styles ---------------- */
-const CSS=`.cv.cv-room{background:rgba(20,12,50,.55)!important}.cv.cv-room>#cvC,.cv.cv-room>.cv-top,.cv.cv-room>.cv-pad,.cv.cv-room>.cv-depth,.cv.cv-room>.cv-msg{display:none!important}
+const CSS=`.cv.cv-mq .cv-bat,.cv.cv-mq #cvCoins,.cv.cv-mq #cvExit{display:none!important}
+.cv.cv-room{background:rgba(20,12,50,.55)!important}.cv.cv-room>#cvC,.cv.cv-room>.cv-top,.cv.cv-room>.cv-pad,.cv.cv-room>.cv-depth,.cv.cv-room>.cv-msg{display:none!important}
 
 .cv{position:fixed;inset:0;z-index:5000;background:#0b0710;font-family:'Fredoka',system-ui,sans-serif;color:#241a3d;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
 .cv canvas#cvC{position:absolute;inset:0;display:block}
