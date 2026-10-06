@@ -38,8 +38,6 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
   background: rgba(255,255,255,.1); border: 1px solid var(--line); white-space: nowrap; }
 .pill.q { background: var(--red); border-color: transparent; }
 .pill.r { background: var(--cedar); border-color: transparent; }
-.bar { height: calc(1.1 * var(--u)); margin-top: calc(2.4 * var(--u)); border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; }
-.bar i { display: block; height: 100%; width: 100%; background: var(--gold); transform-origin: left; }
 .body { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
 
 .fact { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: calc(3 * var(--w)); }
@@ -173,7 +171,6 @@ body.mouse { cursor: auto; }
       <div class="clock" id="clock" aria-label="Seconds left"><svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="44"/><circle class="arc" id="arc" cx="50" cy="50" r="44" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/></svg><b id="secs"></b></div>
       <div class="tr"><div class="pill" id="pill">Did you know?</div><div class="rnd" id="rnd"></div></div>
     </div>
-    <div class="bar"><i id="bar"></i></div>
     <div class="body" id="body"></div>
     <div class="champ" id="champ" aria-live="polite"></div>
     <div class="tug" aria-label="Kids versus Grown-ups tug-of-war">
@@ -236,7 +233,6 @@ body.mouse { cursor: auto; }
       }
     }
     var nx = $('next'); if (nx) nx.textContent = 'Get ready, the question is next!';
-    $('bar').style.transform = 'scaleX(' + Math.max(0, ph.left / ph.len) + ')';
     /* the countdown clock: seconds left in this part (fact, question or answer), coloured to match */
     var secs = Math.max(0, Math.ceil(ph.left / 1000));
     $('secs').textContent = secs;
