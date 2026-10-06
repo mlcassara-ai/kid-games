@@ -231,9 +231,9 @@ function scuff(x){if(!S||!S.marks)return;const m=document.createElement('i');m.c
    peeking out, cracking as it is hurt. When the den falls the world is freed: boards and banner drop, the colour floods back.
    The Fossil Stage (no map entrance) keeps its den. Sign and door positions are read from the entrance picture itself. */
 const GATE_FIX={caves:{flag:[120,34]}};
-function gateBase(id){const G2=window.MQ_GATE_ART&&window.MQ_GATE_ART[id];if(!G2||!G2.svg)return null;const v=G2.svg,O2='#3b2a1e',f2=n=>(+n).toFixed(1);
+function gateBase(id){const G2=window.MQ_GATE_ART&&window.MQ_GATE_ART[id];if(!G2||!G2.svg)return null;const v=G2.svg,vp=G2.svgPad||G2.svg,pd=G2.svgPad&&G2.pad||{l:0,t:0,r:0,b:0},O2='#3b2a1e',f2=n=>(+n).toFixed(1);
  const pq=/<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)" fill="#efe3c2"/.exec(v),dm=/<path d="M([\d.]+) ([\d.]+) L[\d.]+ ([\d.]+) A([\d.]+) [\d.]+ 0 0 1 ([\d.]+) [\d.]+ L[\d.]+ [\d.]+ Z"/.exec(v);
- let src='';try{src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(v)));}catch(e){return null;}
+ let src='';try{src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(vp)));}catch(e){return null;}
  let cap='';
  if(dm){const a=+dm[1],yb=+dm[2],yt=+dm[3],rx=+dm[4],b=+dm[5],w=b-a,cx=(a+b)/2,h=yb-yt;
   cap+=`<path class="dk" d="M${a} ${yb} L${a} ${yt} A${rx} ${rx} 0 0 1 ${b} ${yt} L${b} ${yb} Z" fill="#120c08"/>`;
@@ -246,8 +246,9 @@ function gateBase(id){const G2=window.MQ_GATE_ART&&window.MQ_GATE_ART[id];if(!G2
   cap+=`<g class="bn"><path d="M${f2(x0-4)} ${f2(y0)} H${f2(x0+w+4)}" stroke="#5c3d1e" stroke-width="4" stroke-linecap="round"/>${cloth(x0,y0,w,h)}${emblem(x,y0+h*.45,r/11)}</g>`;}
  else{const F=(GATE_FIX[id]||{}).flag||[120,30],x=F[0],y=F[1];
   cap+=`<g class="bn"><path d="M${x} ${y} V${y-34}" stroke="#5c3d1e" stroke-width="3.5" stroke-linecap="round"/>${cloth(x+1,y-33,30,22)}${emblem(x+16,y-23,.85)}</g>`;}
- return `<svg class="bps-base bps-gate" viewBox="0 -6 240 206" width="160" height="137" aria-hidden="true"><ellipse cx="120" cy="190" rx="100" ry="7" fill="rgba(0,0,0,.25)"/>
-  <g class="gate-art"><image href="${src}" x="0" y="0" width="240" height="200"/></g><g class="cap">${cap}</g>
+ const VW=240+pd.l+pd.r,VH=206+pd.t, /* no extra room below: the base stays standing on the ground */BW=Math.round(160*VW/240);
+ return `<svg class="bps-base bps-gate" viewBox="${-pd.l} ${-6-pd.t} ${VW} ${VH}" width="${BW}" height="${Math.round(BW*VH/VW)}" aria-hidden="true"><ellipse cx="120" cy="190" rx="100" ry="7" fill="rgba(0,0,0,.25)"/>
+  <g class="gate-art"><image href="${src}" x="${-pd.l}" y="${-pd.t}" width="${240+pd.l+pd.r}" height="${200+pd.t+pd.b}"/></g><g class="cap">${cap}</g>
   ${CRACKS('<path d="M40 120 l14 12 l-6 12 l8 10"/>','<path d="M196 110 l-12 10 l6 12 l-8 14"/><path d="M70 70 l8 12 l-4 8"/>','<path d="M160 60 l-8 18 l12 8 l-6 16"/><path d="M30 160 l14 -6 l6 12"/><path d="M200 150 l-14 4"/>')}</svg>`;}
 function base(kind,stage){css();if(kind==='house')return house();const g=stage&&stage.id!=='fossil'?gateBase(stage.id):null;return g||den(themeOf(stage));}
 /* the den fell: a captured entrance is freed */
