@@ -110,6 +110,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await phones[1].waitForTimeout(700); await phones[1].click('.ans.o' + ((right + 1) % 4));
     await phones[1].waitForTimeout(400); await shot(phones[1], 'phone-locked');
     ok(await phones[0].locator('.locked').count() === 1, 'answer locks in');
+    ok(/Remember the last fact/.test(await scr.textContent('#body')) && /Remember the last fact/.test(await phones[0].textContent('.panel')), 'question screens say it is about the last fact');
     const cq = await clk(); ok(/ q/.test(cq.c) && cq.n >= 1 && cq.n <= 6, 'countdown clock on the question, in red (' + cq.n + ' s)');
     ok(await phones[0].textContent('#sc') === before, 'score hidden until the reveal');
     await scr.waitForTimeout(3000);
@@ -180,6 +181,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await phones[0].reload(); await phones[0].waitForSelector('.me');
     ok((await phones[0].textContent('.me .nm')).startsWith(nameA), 'reload keeps the same player');
     // every question renders
+    ok(await scr.evaluate(() => { for (let c = 1; c < 400; c++) if (HN.questionFor(c).f !== HN.factFor(c - 1).f || HN.factFor(c).f === HN.factFor(c - 1).f) return false; return true; }), 'each question asks about the previous fact');
     ok(await scr.evaluate(() => { for (let c = 0; c < 200; c++) { const q = HN.questionFor(c); if (q.opts.length !== 4 || q.opts[q.right] !== HN.Q[q.id].o[0]) return false; } return true; }), 'shuffled answers keep the right one');
     // a burst of 30 more players writing at once
     await phones[2].evaluate(async () => { const ps = []; for (let i = 0; i < 30; i++) ps.push(HN.saveEntry('bot' + i, { n: 'Bot ' + i, a: '🤖', s: i * 10, c: 0, j: i, q: -1 })); await Promise.all(ps); });

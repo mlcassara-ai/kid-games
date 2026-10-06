@@ -132,6 +132,7 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 .dbl { align-self: flex-start; background: var(--gold); color: #3a2600; border-radius: 99px; padding: calc(.6 * var(--u)) calc(1.6 * var(--w)); margin-bottom: calc(2 * var(--u));
   font-family: var(--display); font-weight: 800; font-size: calc(3.4 * var(--u)); letter-spacing: .04em; animation: zap 1s ease-in-out infinite alternate; }
 @keyframes zap { from { transform: scale(1); } to { transform: scale(1.06); } }
+.recall { font-family: var(--display); font-weight: 800; font-size: calc(2.8 * var(--u)); color: var(--gold); margin-bottom: calc(1 * var(--u)); }
 .prize { margin-top: calc(1.4 * var(--u)); font-family: var(--display); font-weight: 800; font-size: calc(2.8 * var(--u)); color: var(--gold); }
 .row .fire { margin-right: calc(.3 * var(--w)); }
 .champ { position: absolute; inset: 0; z-index: 4; display: none; flex-direction: column; align-items: center; justify-content: center; gap: calc(2.4 * var(--u));
@@ -191,7 +192,7 @@ body.mouse { cursor: auto; }
 <div class="net" id="net"></div>
 <div class="tools"><button class="reset" id="reset" title="Clear every score and start a new game">🔄 Reset</button>
   <button class="reset inst" id="install" hidden title="Put this on your desktop as an app">💻 Install app</button></div>
-<script src="hn-core.js?v=11"></script>
+<script src="hn-core.js?v=12"></script>
 <script>
 (function () {
   'use strict';
@@ -220,19 +221,20 @@ body.mouse { cursor: auto; }
       if (ph.name === 'fact') {
         var left = HN.ROUND - qn + 1;
         body.className = 'body';
-        body.innerHTML = dbl + '<div class="fact"><div class="emo">' + q.e + '</div><div><div class="kicker">Did you know?</div><div class="txt">' + HN.esc(q.f) +
+        var fc = HN.factFor(ph.cycle);
+        body.innerHTML = dbl + '<div class="fact"><div class="emo">' + fc.e + '</div><div><div class="kicker">Did you know?</div><div class="txt">' + HN.esc(fc.f) +
           '</div><div class="next" id="next"></div><div class="prize">' + (left === 1 ? 'Round Champion after this question! 🏆' : 'Next Round Champion in ' + left + ' questions! 🏆') + '</div></div></div>';
         renderBoard();   // the side board may change turn (Kids / Grown-ups) with each new question
       } else {
         body.className = 'body' + (ph.name === 'reveal' ? ' reveal' : '');
-        body.innerHTML = dbl + '<h2 class="qtext">' + HN.esc(q.q) + '</h2><div class="opts">' + q.opts.map(function (o, i) {
+        body.innerHTML = dbl + '<div class="recall">🧠 Remember the last fact?</div><h2 class="qtext">' + HN.esc(q.q) + '</h2><div class="opts">' + q.opts.map(function (o, i) {
           var cls = ph.name === 'reveal' ? (i === q.right ? ' yes' : ' no') : '';
           return '<div class="opt o' + i + cls + '"><span class="shp">' + SHAPES[i] + '</span><span>' + HN.esc(o) + '</span>' + (ph.name === 'reveal' && i === q.right ? '<span class="tick">✓</span>' : '') + '</div>';
         }).join('') + '</div><div class="status" id="status"></div>';
         renderBoard(); // scores only move on screen once the answer is shown
       }
     }
-    var nx = $('next'); if (nx) nx.textContent = 'Get ready, the question is next!';
+    var nx = $('next'); if (nx) nx.textContent = '🧠 Remember this! You’ll be asked about it after the next question.';
     /* the countdown clock: seconds left in this part (fact, question or answer), coloured to match */
     var secs = Math.max(0, Math.ceil(ph.left / 1000));
     $('secs').textContent = secs;
