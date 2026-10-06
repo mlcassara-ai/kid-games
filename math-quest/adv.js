@@ -293,7 +293,7 @@ function campHTML(p,a){const tr=a.trip,d=dest(tr?tr.dest:a.dest),n=slots(p);
  const scene=`<div class="adv-scene" id="advScene"><div class="sc" id="advSc">${sceneSVG(d)}<div class="adv-actors" id="advActors"></div>
   ${tr?`<div class="adv-sign"><div class="t">${d.e} ${d.n}</div><div class="big" id="advLeft">${done?"They're back! 🎉":`Back in ${fmtLeft(tr.end-Date.now())}`}</div></div>${done?'':'<div class="adv-tip">🏕️ The camp is quiet… the crew is off exploring!</div>'}`:
   (a.crew.length&&p.pets.length?(bk=>`<div class="adv-go"><button class="btn green big" onclick="Adv.send()">🥾 Send them off!</button><div class="bk"><span class="to">${a.crew.length} pet${a.crew.length>1?'s':''} to ${d.e} ${d.n}<br></span>Back at <b>${fmtClock(bk)}</b> ${dayWord(bk)}</div></div>`)(Date.now()+(TRIPS[a.len]||TRIPS.short).hrs*36e5):`<div class="adv-tip">Pick a crew below 👇</div>`)}</div></div>`;
- if(!p.pets.length)return scene+`<div class="panel" style="text-align:center;color:var(--ink)"><div style="font-size:60px">🥚</div><p>You need a pet to go on adventures! Hatch an egg in your backpack.</p><button class="btn gold" onclick="go('backpack')">🎒 Go to backpack</button></div>`;
+ if(!p.pets.length)return scene+`<div class="panel" style="text-align:center;color:var(--ink)"><div style="font-size:60px">🥚</div><p>You need a pet to go on adventures! Hatch an egg in the Pet Home.</p><button class="btn gold" onclick="go('pethome')">🏠 Go to the Pet Home</button></div>`;
  if(tr){const TT=TRIPS[tr.len]||TRIPS.mid;const pct=Math.min(100,(Date.now()-tr.start)/Math.max(1,tr.end-tr.start)*100);const L=DOING[tr.dest]||DOING.meadow;
   return scene+`<div class="adv-cols"><div class="panel"><h3>${done?'🎉 Your crew is back!':`${TT.e} Exploring ${d.e} ${d.n}`}</h3>
   ${done?`<p class="muted" style="font-size:16px">They're walking up the trail with bulging sacks…</p><div class="row"><button class="btn gold big" id="advWelcome" onclick="Adv.welcome()">🎒 Welcome them home!</button></div>`:
@@ -417,7 +417,7 @@ function floatAt(el,ch,k){if(!el)return;const r=el.getBoundingClientRect(),f=doc
 function done(){const r=RES;RES=null;BUSY_UNTIL=Date.now()+2000;try{const a=A(P());if(a.res){delete a.res;save();}}catch(e){}closeModal();draw();if(!r)return;
  const eggs=r.sacks.some(s=>s.items.some(it=>it.k==='egg'));const grew=r.grew.map(([id,st])=>`${petE(id)} ${petN(id)} is now ${st}!`);
  /* the grew-up news is already in the sacks card; the egg reminder rides along in the sorting card (no extra popup) */
- const msg=[eggs?'🥚 An egg is waiting in your backpack!':'',...(r.shown?[]:grew)].filter(Boolean).join(' ');
+ const msg=[eggs?'🥚 An egg is waiting in the Pet Home!':'',...(r.shown?[]:grew)].filter(Boolean).join(' ');
  /* the one extra step: sort the litter the crew picked up (and hear about any rare Science Cave find). The egg / grew-up news then rides along in that card instead of a toast that would cover it. */
  const cu=window.Cleanup&&typeof Cleanup.afterTrip==='function'&&Cleanup.wants(r);
  if(cu)setTimeout(()=>{try{Cleanup.afterTrip(r,msg);}catch(e){console.warn('cleanup',e);if(msg)toast(msg);}},350);else if(msg)setTimeout(()=>toast(msg),300);}

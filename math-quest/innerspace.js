@@ -518,7 +518,7 @@ function card(score){const s=R.s,p=PL;const st=S(p);const {first,coins,prize,n,a
   <div style="font-weight:700">⭐ ${score} / 60 points${score<best?` · your best: ${best}`:''}</div>
   <div class="is-coins">🪙 +${coins} coins${first?` <small>(includes +${FIRST_BONUS} new-card bonus)</small>`:''}</div>
   <div style="color:#e67700;font-weight:700;margin-top:4px">📖 Album: ${n} / ${D.SUB.length}${all?' — COMPLETE! 🎉':''}</div></div>
-  <div class="is-endcol">${prize?`<div class="is-prize">🥼 <b>ALBUM COMPLETE!</b><br>You earned the <b>Lab Coat</b> robe and 🪙 ${PRIZE_COINS} bonus coins! Put it on in your backpack.</div>`:''}
+  <div class="is-endcol">${prize?`<div class="is-prize">🥼 <b>ALBUM COMPLETE!</b><br>You earned the <b>Lab Coat</b> robe and 🪙 ${PRIZE_COINS} bonus coins! Put it on from Me (tap your picture at the top).</div>`:''}
   ${st.tix.length&&!R.t.demo?`<div class="is-more">🎟️ You still have ${st.tix.length} ticket${st.tix.length>1?'s':''}. ${NAME} will come back for you after a few battles!</div>`:''}
   <button class="is-btn gold" id="isHome">🗺️ Back to the adventure</button><button class="is-btn" id="isAlb">📖 My album</button></div></div>`);
  fitMol(root.querySelector('#isCard').getContext('2d'),s.lay,300,170);

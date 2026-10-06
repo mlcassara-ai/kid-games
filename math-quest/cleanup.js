@@ -365,7 +365,7 @@ function css(){if(!document.getElementById('cuCSS')){const s=document.createElem
 
 /* ---------- wiring ---------- */
 window.MQ_HOOKS=window.MQ_HOOKS||[];
-window.MQ_HOOKS.push({screen:s=>{try{if(s==='backpack'){const p=typeof P==='function'?P():null;if(p)bagInject(p);}}catch(e){}}});
+window.MQ_HOOKS.push({screen:s=>{try{if(s==='pethome'){const p=typeof P==='function'?P():null;if(p)bagInject(p);}}catch(e){}}});
 window.Cleanup={onTrip,afterTrip,wants,html,campStrip,tabLabel,shelfBadges,sort:()=>{if(!sortModal())close();},pick:pickIt,drop,close,rewards:()=>rewards(),_more:()=>rewards(REST),wear,buddy,fact,
  readAloud:()=>spkTog(()=>speak(LAST_SAY)),state:p=>C(p),addPts:(p,n)=>addPts(p,n),
  LITTER,TRACK,BOT,HAT,ROBES:ROBE_DEFS,PT_RIGHT,PT_WRONG,LIT_COUNT:LIT,BONE,ROCK,BONE_PITY};

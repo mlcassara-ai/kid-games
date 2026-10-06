@@ -422,7 +422,7 @@ function due(p){const f=F(p);if(f.rp)return true;if(!f.w1){f.w1=now();try{sv();}
 function lucky(p){if(!ROLL)return false;const r=Math.random()<ROLL;return r;}
 function whyNot(p,wins){const f=F(p),t=now();if(!enabled())return 'off';if(f.a)return 'active';if(!p.setup)return 'setup';if((p.level||1)<MIN_LV)return 'level'; /* the Great Fade is for heroes at level 10 and up (everyone, adults too) */if((wins==null?p.battles||0:wins)<FIRST_WINS)return 'wins';if((f.c||0)>=1&&!f.rp)return 'done';if(!f.rp&&t<(f.n||0))return 'wait';if(!due(p)&&!lucky(p))return 'rare';
  if(picnicOn())return 'picnic';const tl=(p.troll&&p.troll.last)||0,el=(p.eagle&&p.eagle.last)||0;if(t-Math.max(tl,el)<VISIT_GAP)return 'visitor';return '';}
-const CALM=['world','zone','map','quests','village','pethome','backpack']; /* hub screens: never drain the colors in the middle of a mini-game */
+const CALM=['world','zone','map','quests','village','pethome','me','shop']; /* hub screens: never drain the colors in the middle of a mini-game */
 let PEND_OK=false,PEND=null,PENDF=false,PENDR=false,PEND_AT=0,DRAINING=false,CLAIM=false;
 const VQ=()=>{const v=window.MQ_VISIT;return v&&typeof v.busy==='function'?v:null;};
 function quiet(){try{if(window.trollBusy)return false;if(document.getElementById('isRoot')||document.getElementById('cvRoot'))return false;if(document.querySelector('#modal.show'))return false;
@@ -1092,7 +1092,7 @@ function bagInject(p){try{const f=p.fade||{};const own=(p.pets||[]).includes(CHA
 
 /* ---------- open / navigation ---------- */
 function open(){LASTPZ=null;const s=cur();if(s&&s!=='fade'&&s!=='battle')RET=s;closeLayer();goTo('fade');}
-const BACK_NAME={world:'World',map:'Map',village:'Village',quests:'Quest Board',pethome:'Pet Home',backpack:'Backpack',zone:'Zone',camp:'Camp',leaders:'Leaders',library:'Library',cafe:'Kitchen',market:'Market',truck:'My truck',fade:'Paint'};
+const BACK_NAME={world:'World',map:'Map',village:'Village',quests:'Quest Board',pethome:'Pet Home',me:'Me',shop:'Shop',zone:'Zone',camp:'Camp',leaders:'Leaders',library:'Library',cafe:'Kitchen',market:'Market',truck:'My truck',fade:'Paint'};
 const backName=s=>BACK_NAME[s]||'World'; /* the ← button names where it goes */
 function back(){closeLayer();const r=RET&&RET!=='fade'&&typeof SCREENS!=='undefined'&&SCREENS[RET]?RET:'world';goTo(r);}
 function home(){closeLayer();quietAfter();const r=RET&&RET!=='fade'&&typeof SCREENS!=='undefined'&&SCREENS[RET]?RET:'world';
@@ -1327,11 +1327,11 @@ window.MQ_HOOKS.push({
   if(active(p)){const got=POT.filter(k=>BT[k]).map(k=>[k,BT[k]]);if(r.win&&got.length)setTimeout(()=>chip(`🎨 ${got.map(([k,n])=>`<span>+${n}${drop(k,16)}</span>`).join('')}`,`Found the Goblin's hidden paint: ${got.map(([k,n])=>`${n} ${PRIM[k].n}`).join(', ')}.`),900);BT={r:0,y:0,b:0};sv();return;}
   BT={r:0,y:0,b:0};if(!r.win)return;ROLL=WIN_P;const wn=whyNot(p,(p.battles||0)+1);ROLL=0;if(wn)return;PEND=p.id;PENDF=false;PEND_OK=true;PEND_AT=0;},
  flee(){BT={r:0,y:0,b:0};},
- screen(name){if(!enabled()){if(name==='backpack'){const p=me();if(p)bagInject(p);}setTimeout(()=>{shimmer();chamHue();},60);return;}
+ screen(name){if(!enabled()){if(name==='pethome'||name==='me'){const p=me();if(p)bagInject(p);}setTimeout(()=>{shimmer();chamHue();},60);return;}
   if(name!=='fade'){LAST=name;if(name!=='battle')RET=name;}
   if(name==='battle'){BT={r:0,y:0,b:0};toastOff();}
   if(name==='fade')setTimeout(tableHold,0);
-  apply();const p=me();if(name==='backpack'&&p)bagInject(p);setTimeout(()=>{shimmer();chamHue();},60);
+  apply();const p=me();if((name==='pethome'||name==='me')&&p)bagInject(p);setTimeout(()=>{shimmer();chamHue();},60);
   if(READY&&name!=='battle'&&name!=='fade'&&p&&active(p)){READY=false;setTimeout(()=>{if(cur()!=='battle'&&cur()!=='fade')say('🎨 You have enough paint! Visit Prisma\'s mixing table.');},1500);}
   if(REPLAY_AT.includes(name)&&replayWanted(p)&&!PENDR){PEND=p.id;PENDR=true;PEND_AT=now()+2500;}
   armIfDue(name);

@@ -81,7 +81,7 @@ const nanaUp=()=>!!document.querySelector('#modal.show .pc-bub');
 let NCL=false,ND=0; /* NCL: this call (or one it made) took the slot */
 function showNews(p){if(!ND)NCL=false;ND++;try{return showNews0(p);}finally{ND--;if(!ND){try{const v=VQ();if(v&&NCL&&v.who()==='nana'){if(nanaUp())v.watch('nana',nanaUp,0);else v.release('nana');}}catch(e){}NCL=false;}}}
 function showNews0(p){if(showing&&!document.querySelector('#modal.show'))showing=false; /* its card was closed some other way */
- if(showing||typeof curScreen==='undefined'||!['world','map','pethome','backpack','camp'].includes(curScreen))return;const c=C(p);
+ if(showing||typeof curScreen==='undefined'||!['world','map','pethome','me','camp'].includes(curScreen))return;const c=C(p);
  if(busy()){if(c.news.length||c.intro===1)later(p);return;}
  if(!c.news.length&&c.intro!==1)return;
  {const v=VQ();if(v){if(v.claim('nana',10*60e3))NCL=true;
@@ -346,7 +346,7 @@ let lastPid=null;
 window.MQ_HOOKS.push({screen:s=>{try{
  /* finishing a session: the kid tapped Players on a Sunday evening without having seen the offer yet */
  if(s==='profiles'){const q=lastPid&&state.players.find(x=>x.id===lastPid);lastPid=null;if(q&&weekAskOk(q)&&!showing&&!busy())setTimeout(()=>{try{if(curScreen==='profiles'&&!showing&&!busy()&&weekAskOk(q))weekAsk(q,true);}catch(e){}},500);return;}
- const p=typeof P==='function'?P():null;if(!p)return;lastPid=p.id;if(s==='pethome')inject(); /* synchronous, so goStay() keeps the scroll spot after the panels are in */else if(['world','map','backpack','camp'].includes(s)){sweep(p,true);setTimeout(()=>showNews(p),900);}}catch(e){}}});
+ const p=typeof P==='function'?P():null;if(!p)return;lastPid=p.id;if(s==='pethome')inject(); /* synchronous, so goStay() keeps the scroll spot after the panels are in */else if(['world','map','me','camp'].includes(s)){sweep(p,true);setTimeout(()=>showNews(p),900);}}catch(e){}}});
 setInterval(()=>{try{const p=typeof P==='function'&&typeof state!=='undefined'&&state&&state.cur?P():null;if(p)sweep(p);}catch(e){}},60e3);
 window.MQ_PARENT=window.MQ_PARENT||[];window.MQ_PARENT.push(parentSection);
 function offerNow(){const p=P(),su=sitUntil(p);if(!su)return;homePets(p).forEach(id=>{const pd=pdOf(p,id);if(pd.sitNo===su)delete pd.sitNo;});const c=C(p);c.news=c.news.filter(n=>n.k!=='offer');c.news.unshift({k:'offer',t:Date.now()});showing=false;showNews(p);}
@@ -383,7 +383,7 @@ function profile(id){const p=P();if(!p||!owned(p).includes(id))return;noteJoins(
   ${row('📅','Joined your team',j.o?'Before Oct 3, 2026 (the game started keeping track then)':`${new Date(j.t).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric',year:'numeric'})}: ${esc(j.h||'joined your team')}`)}
   <div class="row">${buddy||camp||resc?'':`<button class="btn gold" onclick="PetCare._buddy('${id}')">⭐ Make battle buddy</button>`}<button class="btn ghost dark" onclick="closeModal()">Close</button></div></div>`);}
 function makeBuddy(id){const p=P();if(!p||!owned(p).includes(id)||atCamp(p,id)||rescued(p,id))return;p.pet=id;save();try{SFX.tap();}catch(e){}closeModal();
- toast(`⭐ ${petById(id).name} is your battle buddy now!`);try{if(curScreen==='backpack'||curScreen==='pethome')goStay(curScreen);}catch(e){}}
+ toast(`⭐ ${petById(id).name} is your battle buddy now!`);try{if(curScreen==='pethome')goStay(curScreen);}catch(e){}}
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:()=>{try{noteJoins(P());}catch(e){}}});
 window.PetCare={profile,_buddy:makeBuddy,_joins:noteJoins,_when:t=>when(t),_sit:v=>{sitOpen=!!v;},_weekOk:weekAskOk,_weekAsk:weekAsk,_satMorning:satMorning,patAll,feedAll,dress,rmath,_rm:k=>rmPress(k),_rmState:()=>RM,_busy:busy,offer:offerNow,uncovered,sweep,counts,dot,homeCard,rescued,pat,snack,hire,rfeed,rbuy,rplay,home,setRule,vacation,redraw,ruleOn,canLeave,PRICE,RESCUE_FEE,_C:C};
 })();

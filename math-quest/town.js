@@ -74,7 +74,7 @@ function css(){if(document.getElementById('mtCSS'))return;const s=document.creat
 let TICK=0;
 /* a shop entered from Main Street comes back to Main Street: its "← World" back button becomes "← Town" (the top bar's World
    button still goes to the map). The Fact Gym and Food Truck take a return screen, so they get 'town' directly. */
-let FROM=false;const SHOP_SCREENS=['backpack','pethome','cafe','village','library','lab'];
+let FROM=false;const SHOP_SCREENS=['shop','pethome','cafe','village','library','lab'];
 function openShop(id){const p=me();FROM=true;try{if(p&&window.W&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}
  if(id==='gym'&&window.Mastery){Mastery.open('town');return;}
  if(id==='truck'&&window.Truck&&Truck.flag&&Truck.flag()){Truck.open('town');return;}

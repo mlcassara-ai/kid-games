@@ -42,7 +42,7 @@ function fountainSay(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T
  if(!SAY&&now>=SAYAT){SAYI=(SAYI+1+Math.floor(Math.random()*(SAYS.length-1)))%SAYS.length;SAY={t:SAYS[SAYI],at:now};SAYAT=nextSay(now);}
  if(!SAY)return;const k=(now-SAY.at)/SAYLEN;if(k>=1){SAY=null;return;}
  let fx=null;try{const n=NPCS.find(q=>q.id==='fountain');if(n)fx=[n.x,n.y];}catch(e){}if(!fx)return;
- const ax=(fx[0]+.82)*ts-cx,ay=(fx[1]-.2)*ts-cy,pop=Math.min(1,(now-SAY.at)/250),fade=k>.88?(1-k)/.12:1;
+ const ax=(fx[0]+.82)*ts-cx,ay=(fx[1]-.2)*ts-cy,pop=Math.max(0,Math.min(1,(now-SAY.at)/250)),fade=k>.88?(1-k)/.12:1;
  items.push({y:1e6-1,draw:()=>{ctx.save();ctx.globalAlpha=fade;const fs=Math.max(12,ts*.24);ctx.font=`700 ${fs}px Fredoka, sans-serif`;const tw=ctx.measureText(SAY.t).width,w=(tw+fs*1.4)*pop,h=fs*2*pop,bx=ax+ts*.3+w/2,by=ay-ts*.62; /* up and to the right, clear of Number Town */
   ctx.fillStyle='#fff';ctx.strokeStyle='#3b2a1e';ctx.lineWidth=Math.max(1.5,ts*.03);
   [[ax,ay,ts*.06],[ax+ts*.14,ay-ts*.22,ts*.09]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r*pop,0,7);ctx.fill();ctx.stroke();});
@@ -81,7 +81,7 @@ function sharkJump(ctx,items,cx,cy,ts,now){if(!JUMP)return;const age=now-JUMP.t0
    ctx.translate(x,y);ctx.rotate(ang);ctx.scale(JUMP.dir,1);drawShark(ctx,s);ctx.restore();}
   if(age<700)splash(ctx,bx-ts*.65*JUMP.dir,by,ts,age/700,3);
   if(k>.8&&age<JLEN+700)splash(ctx,bx+ts*.65*JUMP.dir,by,ts,Math.min(1,(age-JLEN*.8)/700),5);}});
- if(age<JSAY){const ax=bx+ts*.2,ay=by-ts*1.6,pop=Math.min(1,age/250),fade=age>JSAY-400?(JSAY-age)/400:1;
+ if(age<JSAY){const ax=bx+ts*.2,ay=by-ts*1.6,pop=Math.max(.01,Math.min(1,age/250)),fade=age>JSAY-400?(JSAY-age)/400:1;
   items.push({y:1e6-1,draw:()=>{ctx.save();ctx.globalAlpha=fade;const fs=Math.max(12,ts*.24);ctx.font=`700 ${fs}px Fredoka, sans-serif`;const tw=ctx.measureText(JUMP.t).width,w=(tw+fs*1.4)*pop,h=fs*2*pop,x0=Math.max(4,Math.min(W.vw-w-4,ax-w/2)),y0=ay-h,r=h/2;
    ctx.fillStyle='#fff';ctx.strokeStyle='#2b3440';ctx.lineWidth=Math.max(1.5,ts*.03);ctx.beginPath();ctx.moveTo(x0+r,y0);ctx.lineTo(x0+w-r,y0);ctx.arc(x0+w-r,y0+r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x0+r,y0+h);ctx.arc(x0+r,y0+r,r,Math.PI/2,Math.PI*1.5);ctx.closePath();ctx.fill();ctx.stroke();
    if(pop>=1){ctx.fillStyle='#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(JUMP.t,x0+w/2,y0+h/2+fs*.05);}ctx.restore();}});}}

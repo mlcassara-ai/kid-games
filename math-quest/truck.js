@@ -480,7 +480,7 @@ let VIEW='hub',RET='world',MRET=null,SETUP=null,CART={},COOK=null,MQ=null,PRICE=
 const VIEWS=['hub','intro','setup','shop','pay','cook','price','open','receipt','bag','book','picnic','party','lock','special','deco'];
 let SPB=null;
 let LASTV='';
-const BACK_NAME={world:'World',map:'Map',village:'Village',quests:'Quest Board',pethome:'Pet Home',backpack:'Backpack',zone:'Zone',camp:'Camp',leaders:'Leaders',library:'Library',cafe:'Kitchen',market:'Market',truck:'My truck',fade:'Paint'};
+const BACK_NAME={world:'World',map:'Map',village:'Village',quests:'Quest Board',pethome:'Pet Home',me:'Me',shop:'Shop',zone:'Zone',camp:'Camp',leaders:'Leaders',library:'Library',cafe:'Kitchen',market:'Market',truck:'My truck',fade:'Paint'};
 const backName=s=>BACK_NAME[s]||'World'; /* the ← button names where it goes */
 function page(title,inner,back){const tb=(typeof topbar==='function')?topbar():'';if(LASTV!==VIEW){LASTV=VIEW;try{window.scrollTo(0,0);}catch(e){}}
  app.innerHTML=tb+`<div class="page tk"><div class="zhead"><button class="btn ghost small backbtn" onclick="Truck._back(${back?`'${back}'`:''})">← ${VIEW==='special'&&SPB?'Specials':back==='hub'?'My truck':backName(RET&&typeof SCREENS!=='undefined'&&SCREENS[RET]&&RET!=='truck'?RET:'world')}</button><h2 class="title">${title}</h2></div>${inner}</div>`;}

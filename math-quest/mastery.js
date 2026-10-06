@@ -188,7 +188,7 @@ function draw(){const p=P();if(!p){go('profiles');return;}css();
    grid+=`<button class="c s${s} ${s===3&&f<3?'wob':''} ${i===SEL?'sel':''}" data-i="${i}" onclick="Mastery._cell(${i})">${s?fc.big:''}${s===2&&f?`<span class="fd">${'<i></i>'.repeat(f)}</span>`:''}</button>`;}}
  const pct=k=>(k/cnt.total*100).toFixed(2)+'%';
  const info=SEL>=0?statusLine(p,op,SEL):null;
- app.innerHTML=topbar()+`<div class="mq"><div class="zhead"><button class="btn ghost small" onclick="Mastery._back()">← ${({quests:'Quest Board',world:'World',map:'World',backpack:'Bag'})[RET]||'Back'}</button><h2 class="title">🏋️ Fact Gym</h2></div>
+ app.innerHTML=topbar()+`<div class="mq"><div class="zhead"><button class="btn ghost small" onclick="Mastery._back()">← ${({quests:'Quest Board',world:'World',map:'World',me:'Me'})[RET]||'Back'}</button><h2 class="title">🏋️ Fact Gym</h2></div>
  <div class="mq-tabs">${ops.map(o=>`<button class="mq-tab ${o===op?'on':''}" onclick="Mastery._tab('${o}')">${badge(o)}<small>⭐${countOp(p,o).mastered}</small></button>`).join('')}</div>
  <div class="mq-body"><div class="mq-gridwrap"><div class="mq-grid" style="grid-template-columns:repeat(${g.n+1},minmax(0,1fr))">${grid}</div><div class="mq-cap">${g.cap} · tap any square</div></div>
  <div class="mq-side">

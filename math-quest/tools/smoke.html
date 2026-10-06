@@ -154,11 +154,11 @@ const tests=[
   T.ok(MQ_ELDER.places().length>=3,'the Elder Wiz has nowhere to walk into');MQ_ELDER.say('Hi!');T.ok(MQ_ELDER.state().say&&MQ_ELDER.state().say.t==='Hi!','the Elder Wiz cannot think out loud');
   wNpc('elder');T.ok(/Elder Wiz says/.test(document.querySelector('#modal').innerText),'talking to the Elder Wiz did not open his quest card');closeModal();
   T.ok(MQ_ELDER.LINES.OTHER.length>=10&&MQ_ELDER.LINES.QUEST.length>=3,'the Elder Wiz has too few things to say');
-  {const E2=MQ_ELDER.state();E2.say=null;E2.hidden=false;E2.poof=null;E2.greeted=false;E2.greetAt=0;W.hx=E2.x+1;W.hy=E2.y;T.ok(MQ_ELDER.greet()&&E2.say&&MQ_ELDER.GREET.includes(E2.say.t)&&E2.dir===1,'the Elder Wiz did not stop and greet the hero up close');
-   const said=E2.say.t;MQ_ELDER.greet();T.ok(E2.say.t===said,'the Elder Wiz greeted again without the hero leaving');T.ok(MQ_ELDER.GREET.length>=15,'too few greetings');}
-  {const E2=MQ_ELDER.state(),t0=performance.now();W.hx=E2.x+6;W.hy=E2.y;MQ_ELDER.greet(W,t0);T.ok(E2.poof&&MQ_ELDER.BYE.includes(E2.say.t),'the Elder Wiz did not wave goodbye when the hero walked away');
+  {const E2=MQ_ELDER.state(),hx0=W.hx,hy0=W.hy;E2.say=null;E2.hidden=false;E2.poof=null;E2.greeted=false;E2.greetAt=0;const sd=E2.x+7<W.T[0].length?1:-1;W.hx=E2.x+sd;W.hy=E2.y;T.ok(MQ_ELDER.greet()&&E2.say&&MQ_ELDER.GREET.includes(E2.say.t)&&E2.dir===sd,'the Elder Wiz did not stop and greet the hero up close');
+   const said=E2.say.t;MQ_ELDER.greet();T.ok(E2.say.t===said,'the Elder Wiz greeted again without the hero leaving');T.ok(MQ_ELDER.GREET.length>=15,'too few greetings');
+  const t0=performance.now();W.hx=E2.x+6*sd;W.hy=E2.y;MQ_ELDER.greet(W,t0);T.ok(E2.poof&&MQ_ELDER.BYE.includes(E2.say.t),'the Elder Wiz did not wave goodbye when the hero walked away');
    MQ_ELDER.tick(t0+2000);T.ok(E2.hidden&&E2.moved&&W.T[E2.y][E2.x].npc!=='elder','the Elder Wiz did not vanish after waving');
-   E2.backAt=0;MQ_ELDER.tick(t0+2100);T.ok(!E2.hidden&&!E2.poof&&Math.hypot(E2.x-W.hx,E2.y-W.hy)>8,'the Elder Wiz did not pop up somewhere else');}
+   E2.backAt=0;MQ_ELDER.tick(t0+2100);T.ok(!E2.hidden&&!E2.poof&&Math.hypot(E2.x-W.hx,E2.y-W.hy)>8,'the Elder Wiz did not pop up somewhere else');W.hx=hx0;W.hy=hy0;}
  }],
 ['fog days: now and then the map starts foggy in front of the fountain and clears as you walk',async function(){
   T.reset();const p=T.hero('Foggy',3);state.cur=p.id;go('world');await T.wait(200);try{closeModal();}catch(e){}
@@ -305,20 +305,30 @@ const tests=[
   wNpc('town');T.ok(curScreen==='town'&&document.getElementById('mtStreet'),'bumping the Town did not open Main Street');
   {const ids=[...document.querySelectorAll('.mt-shop[data-id]')].map(b=>b.dataset.id);const want=NPCS.filter(n=>!n.opt&&!n.walks&&n.id!=='fountain').map(n=>n.id);T.ok(!ids.includes('elder'),'the Elder Wiz is still on Main Street');T.ok(!ids.includes('fountain'),'the fountain has two doors (map and Main Street)');T.ok(want.every(id=>ids.includes(id)),'Main Street is missing a place: '+want.filter(id=>!ids.includes(id)).join(','));
    T.ok(ids.includes('lab')&&ids.includes('train')&&ids.includes('truck'),'the Lab, Train or Food Truck is missing from Main Street while switched on');}
-  document.querySelector('.mt-shop[data-id="shop"]').click();await T.wait(600);T.ok(curScreen==='backpack','the Shop on Main Street did not open the shop');
+  document.querySelector('.mt-shop[data-id="shop"]').click();await T.wait(600);T.ok(curScreen==='shop'&&/Shop/.test(document.querySelector('.title').textContent),'the Shop on Main Street did not open the shop');
   go('town');document.querySelector('.mt-shop[data-id="library"]').click();await T.wait(600);T.ok(curScreen==='library','the Library on Main Street did not open the library');
   {const bb=document.querySelector('.backbtn');T.ok(bb&&/Town/.test(bb.textContent),'a shop opened from Main Street does not offer ← Town');bb.click();T.ok(curScreen==='town','← Town did not go back to Main Street');go('world');go('library');T.ok(/World/.test(document.querySelector('.backbtn').textContent),'a shop opened from the map now says ← Town');}
   go('town');TownView._open('gym');T.ok(curScreen==='mastery','the Fact Gym did not open');go('town');
   go('town');p.spinDay='';go('town');T.ok(document.querySelector('.mt-shop[data-id="spin"] .mt-dot:not([hidden])')&&document.querySelector('.mt-chip'),'the Daily Spin has no red dot when a spin is ready');
   W=null;go('world');await T.wait(100);T.ok(TownView.count(P())>=1,'the Town building shows no badge when a spin is ready');
-  T.ok(!NPCS.some(n=>n.id==='school'||n.id==='board'),'a menu-only building is back on the plaza');go('map');T.ok(document.querySelector('.qb-lead'),'Leaderboard button missing from the Quest Board');go('world');await T.wait(100);T.ok(/Quest Board/.test(document.querySelector('.wtop').innerText),'Quest Board button missing from the World screen');p.vil=p.vil||{};p.vil.portal=2;go('world');await T.wait(50);T.ok(/Quest Board ★2/.test(document.querySelector('.wtop').innerText),'Quest Portal stars missing from the Quest Board button');
+  T.ok(!NPCS.some(n=>n.id==='school'||n.id==='board'),'a menu-only building is back on the plaza');go('map');T.ok(!document.querySelector('.qb-lead'),'the Leaderboard button is still on the Quest Board (it moved to Me)');go('world');await T.wait(100);T.ok(/Quest Board/.test(document.querySelector('.wtop').innerText),'Quest Board button missing from the World screen');p.vil=p.vil||{};p.vil.portal=2;go('world');await T.wait(50);T.ok(/Quest Board ★2/.test(document.querySelector('.wtop').innerText),'Quest Portal stars missing from the Quest Board button');
   {p.sci.rocks=0;p.sci.lab={ok:{}};go('lab');let t=document.body.innerText;T.ok(/one free ride today/.test(t),'the Lab does not offer the key\'s free ride');
    p.sci.lab.freeDay=dayKey();go('lab');t=document.body.innerText;T.ok(/used today's free ride/.test(t)&&/you have none/.test(t)&&/Step 1/.test(t)&&/Buy a rock/.test(t),'the Lab does not say a rock is needed after the free ride');
    p.sci.rocks=1;go('lab');t=document.body.innerText;T.ok(!/you have none/.test(t)&&/This ride uses a rock/.test(t),'the Lab is wrong when the hero has a rock and no free ride');
    p.sci.lab.freeDay='';p.sci.trips=5;p.cave={trips:5,stats:{dug:12}};const r0=p.sci.rocks;go('lab');Lab.down();T.ok(curScreen==='cave'&&p.sci.rocks===r0&&p.sci.lab.freeDay===dayKey()&&p.sci.trips===6,'the free ride did not start a trip, or it spent a rock');
    await T.wait(300);T.ok(/ride straight down/.test(document.body.innerText+document.body.innerText),'no welcome for a trip without a rock');go('world');try{closeModal();}catch(e){}}
   go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.body.innerText),'the Fact Gym building did not open the fact grid');go('map');T.ok(!document.querySelector('.mq-hc'),'Mastery card is still on the Quest Board');go('world');await T.wait(50);
-  T.ok(!document.querySelector('.topbar button.tb-hero')&&document.querySelectorAll('.topbar [onclick*="backpack"]').length===1,'the top bar has more than one way into the Bag');
+  /* Oct 2026 menus: picture/name open Me; coins sit under the name; Pets and ⚙️ More (Sound, Report, Log out) on the right; no Bag or World button */
+  {const tb=document.querySelector('.topbar');T.ok(tb.querySelector('.tb-me')&&tb.querySelector('.tb-info .coins')&&!tb.querySelector('[onclick*="backpack"]')&&!tb.querySelector('[aria-label="World"]')&&tb.querySelectorAll('.iconbtn.tbi').length===2,'the top bar is not Me + Pets + More');
+   tb.querySelector('.tb-me').click();T.ok(curScreen==='me'&&document.querySelector('.mehead')&&document.querySelectorAll('.metabs .bptab').length===4,'tapping your picture did not open Me');
+   const hats=document.querySelectorAll('.mepage .item').length;go('me','look');T.ok(document.querySelectorAll('.mepage .item').length===p.owned.hats.length+p.owned.robes.length+p.owned.spells.length,'My Look does not show exactly what you own');
+   const nh=HATS.find(h=>!h.event&&!p.owned.hats.includes(h.id)&&h.price>0);if(nh){p.coins=nh.price+5;go('shop');bpSetTab('hat');buyItem('hat',nh.id);T.ok(p.owned.hats.includes(nh.id)&&p.look.hat===nh.id&&curScreen==='shop','buying a hat in the Shop did not put it on');const h0=p.owned.hats.find(x=>x!==nh.id);shopClick('hat',h0);T.ok(p.look.hat===nh.id,'tapping an owned hat in the Shop still wore it');go('me','look');wearClick('hat',h0);T.ok(p.look.hat===h0&&curScreen==='me','wearing a hat from Me did not work');}
+   go('me','tro');T.ok(document.querySelector('.memedals .memd')&&/My records/.test(document.body.innerText),'Trophies tab is empty');
+   go('me','bag');T.ok(document.querySelector('.mebag[data-t="more"]'),'Treasures tab is missing');
+   document.querySelector('.metabs [data-t="lead"]').click();T.ok(curScreen==='leaders'&&document.querySelector('.mepage .lbtabs')&&document.querySelector('.metabs [data-t="lead"].on'),'the Leaderboard does not open inside Me');
+   go('world');await T.wait(50);document.querySelector('.topbar .tbmore').click();const dr=document.getElementById('tbDrop');T.ok(dr&&dr.querySelectorAll('button').length===3&&/Log out/.test(dr.innerText),'the More menu does not hold Sound, Report and Log out');dr.remove();
+   go('pethome');T.ok(document.querySelector('.bpsec[data-t="pets"]')&&!document.querySelector('[onclick*="buyEgg"]'),'the pet collection is not in the Pet Home, or eggs are sold there');
+   p.eggs=1;go('pethome');T.ok(document.querySelector('.pheggs [onclick^="hatchEgg"]'),'no Hatch button in the Pet Home');p.eggs=0;go('world');await T.wait(50);}
   {const z=ZONES.find(x=>x.id==='garden');T.ok(zoneTag(p,z)===' (Level: Start)','an untouched world is not at Level: Start: '+zoneTag(p,z));p.progress.garden=[3,2,1,0,0,0];T.ok(zoneTag(p,z)===' (Level: Start)','a half-done first round is not still Start: '+zoneTag(p,z));p.progress.garden=[3,3,3,3,3,3];T.ok(zoneTag(p,z)===' (Level: Bronze)','the Bronze level tag is wrong: '+zoneTag(p,z));
    const a0=p.asc;p.asc=Object.assign({},p.asc,{garden:{rank:2}});T.ok(zoneTag(p,z)===' (Level: Ascension 2)','the Ascension level tag is wrong: '+zoneTag(p,z));p.asc=a0;}
   T.ok(wWalk(W.hx,W.hy),'hero starts on a blocked tile');T.ok(!bad.length,bad.slice(0,4).join(' | '));window.MQ_TRUCK_BETA=false;delete window.MQ_DISTRICT_BETA;W=null;}],
@@ -345,8 +355,8 @@ const tests=[
   await T.wait(300);T.ok(document.getElementById('dcv').width>0,'district canvas has no size');
   {const f0=window.footstep;let n=0;window.footstep=t=>{n++;};const st=Discovery._dbg.state();const nb=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>[st.hx+dx,st.hy+dy]).find(([x,y])=>st.T[y]&&st.T[y][x]&&!st.T[y][x].block);if(nb){st.path=[nb];await T.wait(500);T.ok(n>=1,'no footstep sound when walking in the district');}window.footstep=f0;}
   /* while the hero is in the district, 'back to the World' from another screen comes back here; only the train goes to the village */
-  go('backpack');T.ok(curScreen==='backpack','backpack did not open from the district');go('world');T.ok(curScreen==='district'&&document.getElementById('dcv'),'back to the World left the district');
-  Discovery.ride('home');await T.wait(1700);T.ok(curScreen==='world'&&!Discovery.here(),'the train home did not reach the village');go('backpack');go('world');T.ok(curScreen==='world','the village sent the hero to the district');
+  go('me');T.ok(curScreen==='me','Me did not open from the district');go('world');T.ok(curScreen==='district'&&document.getElementById('dcv'),'back to the World left the district');
+  Discovery.ride('home');await T.wait(1700);T.ok(curScreen==='world'&&!Discovery.here(),'the train home did not reach the village');go('me');go('world');T.ok(curScreen==='world','the village sent the hero to the district');
   go('district');await T.wait(100);
   /* Munch-Bot: coin snacks cost 1, 2, 3...; a card resets the price; a full set pays out */
   const f=d.fz(p);f.t=0;f.need=2;p.coins=50;Discovery._fizz();Discovery._toss();T.ok(p.coins===49&&f.t===1,'first toss did not cost 1 coin');Discovery._toss();T.ok(p.coins===47,'second toss did not cost 2 coins');
@@ -538,7 +548,7 @@ const tests=[
  }],
  ['report button: a problem or suggestion is saved in the hero save with the screen and version, and shows in Parent Corner',async function(){
   T.reset();const p=T.hero('Tester',3);state.cur=p.id;W=null;go('world');await T.wait(80);
-  T.ok([...document.querySelectorAll('.topbar button')].some(b=>/Report/.test(b.textContent)),'no Report button in the top bar');
+  {document.querySelector('.topbar .tbmore').click();const dr=document.getElementById('tbDrop');T.ok(dr&&/Report/.test(dr.innerText),'no Report in the top bar\'s More menu');dr&&dr.remove();}
   MQReport.open();await T.wait(80);T.ok(document.getElementById('mqrTxt'),'the report form did not open');
   MQReport._send();T.ok(!(P().reports||[]).length&&/few words/.test(document.getElementById('mqrErr').textContent),'an empty report was saved');
   document.getElementById('mqrTxt').value='The bees walk on the ground';document.querySelector('input[name="mqrk"][value="idea"]').checked=true;MQReport._send();
@@ -591,7 +601,7 @@ const tests=[
   /* pet profile: a tap shows details (and no longer swaps the buddy); join dates: old pets 'before', new pets dated */
   {T.reset();const p=T.hero('Pets',5);state.cur=p.id;p.petJoin=null;p.petJoinInit=0;PetCare._joins(p);const b0=p.pet,other=p.pets.find(x=>x!==p.pet);
    T.ok(p.petJoin[other]&&p.petJoin[other].o===1,'existing pets were not marked as joined before tracking');
-   go('backpack');shopClick('pet',other);T.ok(P().pet===b0&&/Joined your team/.test(document.querySelector('#modal').innerText)&&/Battle move/.test(document.querySelector('#modal').innerText),'a backpack tap swapped the buddy or showed no details');
+   go('pethome');shopClick('pet',other);T.ok(P().pet===b0&&/Joined your team/.test(document.querySelector('#modal').innerText)&&/Battle move/.test(document.querySelector('#modal').innerText),'a backpack tap swapped the buddy or showed no details');
    PetCare._buddy(other);T.ok(P().pet===other,'Make battle buddy did not work');try{closeModal();}catch(e){}
    const nw=PETS.find(x=>x.tier==='common'&&!p.pets.includes(x.id));if(nw){p.pets.push(nw.id);PetCare._joins(p);T.ok(p.petJoin[nw.id]&&p.petJoin[nw.id].t&&/egg/.test(p.petJoin[nw.id].h),'a new pet got no join date');}
    go('pethome');try{closeModal();}catch(e){}T.ok(document.querySelector('.pc-nm[role=button]'),'pet names in Pet Home are not tappable');}

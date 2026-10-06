@@ -22,7 +22,7 @@ const HUB=['world','map','profiles','parent','rest','create'];
 const LEARN=['battle','spell','quiz','hw','library','cafe','skillcheck','office','cave','inner'];
 const ACT_NAME={battle:'Math battles',zone:'Choosing battles',spell:'Spelling',quiz:'School quizzes',hw:'Homework practice',library:'Reading (library)',
  camp:'Adventure camp',pethome:'Pet home',cafe:'Café math',cave:'Science cave',inner:'Inner Space ride',village:'Village',leaders:'Leaderboard',
- quests:'Quests board',backpack:'Backpack & shop',skillcheck:'Skill check',office:"Principal's office",rest:'Rest break',create:'Hero setup',world:'Exploring the map',map:'Exploring the map',mastery:'Fact mastery'};
+ quests:'Quests board',backpack:'Backpack & shop',me:'Me page',shop:'Shop',skillcheck:'Skill check',office:"Principal's office",rest:'Rest break',create:'Hero setup',world:'Exploring the map',map:'Exploring the map',mastery:'Fact mastery'};
 const FEAT_NAME={shop:'shop buys',egg:'eggs bought',hatch:'eggs hatched',spin:'daily spins',quest:'quests claimed',pet:'pet care',gift:'gifts sent',
  fountain:'fountain tosses',chest:'treasure chests',hint:'hints used',spell:'spelling rounds',quiz:'school quizzes',hw:'homework sets',read:'stories read',camp:'camp trips',board:'leaderboard views'};
 const actName=a=>ACT_NAME[a]||(a?a[0].toUpperCase()+a.slice(1):'—');
