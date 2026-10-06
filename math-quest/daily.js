@@ -236,12 +236,14 @@ function rewardCard(){const p=P();const t=tad(p);const r=t.rw;if(!r)return false
 function arrive(why){const p=P();if(!p||!show(p)||busy())return false;const t=tad(p);
  if(t.rw)return rewardCard();
  t.met=today();save();
- if(t.s>=3){card('You did all three quests today! Come back tomorrow and I\'ll have 3 new ones for you.');return true;}
+ if(t.s>=3){card('You did all three quests today! Come back tomorrow and I\'ll have 3 new ones for you.');okBtn();return true;}
  if(t.s===0){card(`Ah, there you are! I have <b>3 quests</b> for you today. As you finish each one, I'll give you the next. And if you finish all three… I have a <b>special reward</b>! 🎁<br><br>Your first quest is… ${qLine(qInfo(p,0))}!`);}
  else card(`Hello again! You're doing great. Your ${ORD[t.s]} quest is… ${qLine(qInfo(p,t.s))}!`);
  const m=document.querySelector('#modal .eq-card');if(m)m.insertAdjacentHTML('beforeend',`${track(p)}<div class="row"><button class="btn ghost dark" onclick="closeModal()">Later</button>${goBtn(p)}</div>`);return true;}
 /* bumping into him on the map */
-function elderCard(){if(!arrive('talk'))card('Hmm? Oh, hello! Come and see me when you have a moment.');}
+function elderCard(){if(!arrive('talk')){card('Hmm? Oh, hello! Come and see me when you have a moment.');okBtn();}}
+/* every Elder card needs a way out */
+function okBtn(){const m=document.querySelector('#modal .eq-card');if(m&&!m.querySelector('button'))m.insertAdjacentHTML('beforeend','<div class="row"><button class="btn green big" onclick="closeModal()">OK!</button></div>');}
 /* the top bar shows where you are: 1/3, 2/3, 3/3 or 🎁 */
 function badge(p){try{if(!show(p))return '';const t=tad(p);if(t.rw)return '<b class="qdot tb-qdot eq-badge" title="The Elder Wiz has your reward">🎁</b>';if(t.s>=3)return '';return `<b class="qdot tb-qdot eq-badge" title="Today's quest ${t.s+1} of 3">${t.s+1}/3</b>`;}catch(e){return '';}}
 function hasReward(p){try{return !!(p&&p.tad&&p.tad.rw);}catch(e){return false;}}

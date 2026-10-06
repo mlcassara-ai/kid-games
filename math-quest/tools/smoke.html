@@ -338,6 +338,7 @@ const tests=[
   {p.tad.met=null;p.tad.rw=null;go('world');await T.wait(100);try{closeModal();}catch(e){}MQ_ELDER.seek('intro');const t0=performance.now();for(let i=0;i<200;i++){const m=document.querySelector('#modal.show');if(m){if(/3 quests/.test(m.innerText))break;closeModal();}const E2=MQ_ELDER.state();if(E2){E2.mt=0;E2.seekWait=0;}W.moving=false;MQ_ELDER.tick(t0+i*600);}
    T.ok(/3 quests/.test(document.querySelector('#modal').innerText)&&P().tad.met===dayKey(),'the Elder did not walk up to the hero with today\'s quests');closeModal();T.ok(!MQ_ELDER.seeking(),'the Elder kept looking for the hero');}
   wNpc('elder');T.ok(/quest/.test(document.querySelector('#modal').innerText),'bumping the Elder does not show today\'s quest');closeModal();
+  {const t=P().tad,s0=t.s,r0=t.rw;t.s=3;t.rw=null;wNpc('elder');T.ok(/all three/.test(document.querySelector('#modal').innerText)&&document.querySelector('#modal.show .eq-card button'),'the Elder\'s all-done card has no button to close it');closeModal();t.s=s0;t.rw=r0;}
   /* old quest lists: finished-but-unclaimed quests pay out once */
   {const q=T.hero('Old',3);q.qs={idx:{},active:[{c:'elder',i:2,prog:1,done:true},{c:'hoot',i:0,prog:0,done:false}],rot:2};const c0=q.coins,e0=q.eggs;qState(q);T.ok(q.coins===c0+150&&q.eggs===e0+1&&!q.qs.active.length,'old finished quests did not pay out');}
   /* milestones: already reached ones are marked quietly; new ones pay */
