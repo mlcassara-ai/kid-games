@@ -42,7 +42,7 @@ input,select{font-family:inherit}
 .tb-hero{width:46px;height:54px;background:rgba(255,255,255,.12);border-radius:12px;padding:0;overflow:hidden;flex:none}
 .tb-hero svg{width:60px;height:78px;margin:-4px 0 0 -7px}
 .tb-me{position:relative;flex:none;background:none;border:0;padding:0;cursor:pointer}.tb-me .tb-hero{display:block;border:2px solid #ffd43b;box-shadow:0 3px 0 rgba(0,0,0,.4)}.tb-me:active{transform:translateY(2px)}
-.tb-me .tbl{position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);font-style:normal;font-size:11px;font-weight:700;line-height:1;color:#ffe08a;pointer-events:none}
+.tb-me .tb-qdot{position:absolute;top:-6px;right:-8px;z-index:1}.tb-me .tbl{position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);font-style:normal;font-size:11px;font-weight:700;line-height:1;color:#ffe08a;pointer-events:none}
 .tb-info{cursor:pointer}.tb-chips{display:flex;gap:5px;margin-top:4px}.tb-chips .coins{padding:1px 8px;font-size:13px;border:1.5px solid rgba(255,212,59,.5)}
 .tb-drop{position:fixed;z-index:60;background:#fff;border-radius:16px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.45);min-width:230px;display:flex;flex-direction:column}
 .tb-drop button{background:none;border:0;text-align:left;font:600 17px Fredoka,sans-serif;color:#2b2250;padding:12px 12px;border-radius:11px;cursor:pointer}.tb-drop button+button{border-top:1px solid #ece8ff}.tb-drop button:hover{background:#f3f0ff}
@@ -778,7 +778,7 @@ tr.flash td,.pp.flash{animation:flashbg .9s}
 <div id="toast"></div>
 <script>/* add-on files are cached per game version (APP_VER), not re-downloaded on every launch. A new version (the update
    flow reloads index.html, which carries the new APP_VER) pulls fresh copies. Bump APP_VER whenever any .js file changes. */
-const APP_VER='2026.10.06d';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="report.js?v='+MQV+'"><\/script>');document.write('<script src="teach.js?v='+MQV+'"><\/script>');document.write('<script src="train.js?v='+MQV+'"><\/script>');document.write('<script src="gateart.js?v='+MQV+'"><\/script>');document.write('<script src="ground.js?v='+MQV+'"><\/script>');document.write('<script src="decor.js?v='+MQV+'"><\/script>');document.write('<script src="ambient.js?v='+MQV+'"><\/script>');document.write('<script src="presents.js?v='+MQV+'"><\/script>');document.write('<script src="elder.js?v='+MQV+'"><\/script>');document.write('<script src="coach.js?v='+MQV+'"><\/script>');document.write('<script src="fog.js?v='+MQV+'"><\/script>');document.write('<script src="town.js?v='+MQV+'"><\/script>');document.write('<script src="bpscene.js?v='+MQV+'"><\/script>');document.write('<script src="battlepets.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');document.write('<script src="physics.js?v='+MQV+'"><\/script>');</script>
+const APP_VER='2026.10.06e';var MQV=encodeURIComponent(APP_VER);document.write('<script src="content.js?v='+MQV+'"><\/script>');document.write('<script src="library.js?v='+MQV+'"><\/script>');document.write('<script src="troll.js?v='+MQV+'"><\/script>');document.write('<script src="eagle.js?v='+MQV+'"><\/script>');document.write('<script src="tales.js?v='+MQV+'"><\/script>');document.write('<script src="adv.js?v='+MQV+'"><\/script>');document.write('<script src="cleanup.js?v='+MQV+'"><\/script>');document.write('<script src="lunch.js?v='+MQV+'"><\/script>');document.write('<script src="fade.js?v='+MQV+'"><\/script>');document.write('<script src="petcare.js?v='+MQV+'"><\/script>');document.write('<script src="mastery.js?v='+MQV+'"><\/script>');document.write('<script src="insights.js?v='+MQV+'"><\/script>');document.write('<script src="cave-data.js?v='+MQV+'"><\/script>');document.write('<script src="cave.js?v='+MQV+'"><\/script>');document.write('<script src="quartz.js?v='+MQV+'"><\/script>');document.write('<script src="lab.js?v='+MQV+'"><\/script>');document.write('<script src="inner-space-data.js?v='+MQV+'"><\/script>');document.write('<script src="innerspace.js?v='+MQV+'"><\/script>');document.write('<script src="music.js?v='+MQV+'"><\/script>');document.write('<script src="groups.js?v='+MQV+'"><\/script>');document.write('<script src="truck.js?v='+MQV+'"><\/script>');document.write('<script src="report.js?v='+MQV+'"><\/script>');document.write('<script src="teach.js?v='+MQV+'"><\/script>');document.write('<script src="train.js?v='+MQV+'"><\/script>');document.write('<script src="gateart.js?v='+MQV+'"><\/script>');document.write('<script src="ground.js?v='+MQV+'"><\/script>');document.write('<script src="decor.js?v='+MQV+'"><\/script>');document.write('<script src="ambient.js?v='+MQV+'"><\/script>');document.write('<script src="presents.js?v='+MQV+'"><\/script>');document.write('<script src="elder.js?v='+MQV+'"><\/script>');document.write('<script src="coach.js?v='+MQV+'"><\/script>');document.write('<script src="fog.js?v='+MQV+'"><\/script>');document.write('<script src="town.js?v='+MQV+'"><\/script>');document.write('<script src="bpscene.js?v='+MQV+'"><\/script>');document.write('<script src="battlepets.js?v='+MQV+'"><\/script>');document.write('<script src="daily.js?v='+MQV+'"><\/script>');document.write('<script src="district.js?v='+MQV+'"><\/script>');document.write('<script src="physics.js?v='+MQV+'"><\/script>');</script>
 <script>
 'use strict';
 /* ================= helpers ================= */
@@ -1666,7 +1666,7 @@ setInterval(()=>{try{const p=state&&state.cur&&P();if(!p||!p.setup)return;
  const c=document.getElementById('tbChip');if(c)c.textContent=tbOn(p)?`⏳ ${tbLeft(p)}m`:'';
  if(active)p.upd=Date.now(); // this device is where this kid is playing right now
  tbSaves=(tbSaves+1)%4;if(!tbSaves||T.locked)save();}catch(e){}},15000);let tbSaves=0;
-SCREENS.rest=()=>{const p=P();if(!p){go('profiles');return;}tbTick(p,false);if(!tbBlocked(p)){go('map');return;}
+SCREENS.rest=()=>{const p=P();if(!p){go('profiles');return;}tbTick(p,false);if(!tbBlocked(p)){go('world');return;}
  const w=tbWait(p),hm=w.hm;
  app.innerHTML=`<div class="page"><div class="cafe-card center restcard"><div class="big-emoji">🌙</div><h2>Time for a break, ${esc(p.name)}!</h2>
  <p>You've used your play time. Heroes need rest too! 🧠💤</p><p style="font-size:22px">Come back at <b>${hm}</b></p><p style="font-size:18px;margin-top:-6px">That's <b>${w.dur}</b> from now.</p>
@@ -1728,7 +1728,7 @@ window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:()=>{const d=do
 function topbar(){
  const p=P();const need=xpNeed(p.level);
  return `<div class="topbar">
- <button class="tb-me" type="button" onclick="go('me')" title="Me: my look, trophies and more" aria-label="Me"><span class="tb-hero" aria-hidden="true">${heroSVG(p.look,{spell:p.spell})}</span><i class="tbl">Me</i></button>
+ <button class="tb-me" type="button" onclick="go('me')" title="Me: my look, trophies and more" aria-label="Me"><span class="tb-hero" aria-hidden="true">${heroSVG(p.look,{spell:p.spell})}</span><i class="tbl">Me</i>${questsReady(p)?`<b class="qdot tb-qdot" title="A quest is done: claim it in Me → Quests">${questsReady(p)}</b>`:''}</button>
  <div class="tb-info" role="button" tabindex="0" onclick="go('me')"><div class="tb-name">${esc(p.name)}<span class="lv">Lv ${p.level}</span></div><div class="xprow"><div class="xpbar"><i style="width:${Math.min(100,p.xp/need*100)}%"></i></div><span class="lv2">Lv ${p.level}</span></div>
  <div class="tb-chips"><span class="coins">🪙 ${p.coins}</span>${tbOn(p)?`<span class="coins tbchip ${tbLeft(p)<=10?'low':''}" id="tbChip" title="Play time left">⏳ ${tbLeft(p)}m</span>`:''}</div></div>
  <button class="iconbtn tbi" title="Pet home" aria-label="Pet home" onclick="go('pethome')">${TB_ICONS.pet}${petDotKey(p)&&petDotKey(p)!==p.petSeen?'<b class="dot"></b>':''}${pcNew(p)?'<b class="pcb" title="A postcard came from camp!">📬</b>':''}<i class="tbl">Pets</i></button>
@@ -1832,11 +1832,11 @@ let AUTO_POP_AT=0,LOGIN_QUIET=0;
 function autoPopOK(){const q=window.visitorQuiet||0;return !window.trollBusy&&Date.now()-AUTO_POP_AT>150e3&&(Date.now()>=q||q===LOGIN_QUIET)&&!document.querySelector('#modal.show');}
 function autoPopUsed(){AUTO_POP_AT=Date.now();LOGIN_QUIET=0;window.visitorQuiet=Math.max(window.visitorQuiet||0,Date.now()+150e3);}
 function autoPopups(scr){const p=P();if(!p)return;if(!(p.battles>0))return; /* brand-new kid: let them play first */setTimeout(()=>{if(curScreen!==scr||P()!==p||!autoPopOK())return;let f=null;
- if(scr==='map'&&ceremonyDue(p))f=()=>modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>The Sunday Star Ceremony is here!</h2><p>Let's see who earned stars last week…</p><button class="btn gold big" onclick="closeModal();go('leaders','ceremony')">See the stars! ✨</button></div>`);
+ if(scr==='world'&&ceremonyDue(p))f=()=>modal(`<div class="mcard"><div class="big-emoji">🌟</div><h2>The Sunday Star Ceremony is here!</h2><p>Let's see who earned stars last week…</p><button class="btn gold big" onclick="closeModal();go('leaders','ceremony')">See the stars! ✨</button></div>`);
  else if(spinReady(p)&&p.spinShown!==dayKey())f=()=>{p.spinShown=dayKey();saveLocal();openSpin();};
  else if(pendingGifts(p).length)f=showGift;
  else if(petMilestones(p).length)f=offerPet;
- else if(scr==='map'&&goalPrizeDue(p))f=()=>checkGoalPrize(p);
+ else if(scr==='world'&&goalPrizeDue(p))f=()=>checkGoalPrize(p);
  if(f){autoPopUsed();f();}},700);}
 function enter(p){try{if(state.cur!==p.id&&window.MQ_VISIT)MQ_VISIT.reset();}catch(e){}try{hook('session',p);}catch(e){}AUTO_POP_AT=0;LOGIN_QUIET=Date.now()+30e3;window.visitorQuiet=Math.max(window.visitorQuiet||0,LOGIN_QUIET);if(window.visitorQuiet!==LOGIN_QUIET)LOGIN_QUIET=0;try{liveMark(p.id,true);setTimeout(scheduleSync,50);}catch(e){}
  state.cur=p.id;applyHeroSound(p);
@@ -1941,10 +1941,10 @@ function scSkip(p){if(p.skillChecked||SC_OPS.some(op=>lvl(p,op)>1))return;const 
 /* the 10 other worlds start near the player's grade (not at level 1) when the skill check is skipped or left early */
 function xPlace(p){if(p.xplace)return;p.xplace=1;XOPS.forEach(op=>{if(!maxLv||!p.skill)return;const to=clamp(gradeExp(p)-2,1,maxLv(op)-2);if(to>lvl(p,op)){applyLevel(p,op,to);p.recent[op]=[];}});}
 SCREENS.skillcheck=()=>{const p=P();if(!SKC)scStart(p);
- const head=`<div class="zhead"><button class="btn ghost small backbtn" onclick="scLeave();go('map')">← Quest Board</button><h2 class="title">🎯 Skill Check</h2></div>`;
+ const head=`<div class="zhead"><button class="btn ghost small backbtn" onclick="scLeave();go('world')">← World</button><h2 class="title">🎯 Skill Check</h2></div>`;
  if(SKC.done){app.innerHTML=topbar()+`<div class="page">${head}<div class="cafe-card center"><div class="big-emoji">🧙</div><h3>All done, ${esc(p.name)}!</h3><p>Your monsters will start at these levels. They'll keep adjusting as you play.</p>
   <div class="scres">${scOps().map(o=>`<div><b>${OPNAME[o]}</b><span>Level ${lvl(p,o)}</span><small>${KID_DESC[o][lvl(p,o)]}</small></div>`).join('')}</div>
-  <div class="row"><button class="btn green big" onclick="SKC=null;go('map')">To the Quest Board! 📜</button>${p.eggs?`<button class="btn gold" onclick="SKC=null;go('pethome')">Hatch my egg 🥚</button>`:''}</div></div></div>`;return;}
+  <div class="row"><button class="btn green big" onclick="SKC=null;go('world')">Let's go! 🗺️</button>${p.eggs?`<button class="btn gold" onclick="SKC=null;go('pethome')">Hatch my egg 🥚</button>`:''}</div></div></div>`;return;}
  const q=SKC.q,op=scOps()[SKC.i];const box=`<span class="ansbox">${SKC.input?SKC.input.replace('-','−'):'?'}</span>`;
  const qh=q.tpl?`<div class="xq">${q.vis?visHTML(q.vis):''}<div class="xqr">${q.prompt?`<div class="xprompt">${q.prompt}</div>`:''}<div class="xline">${q.tpl.replace('{A}',box)}</div></div></div>`:`<div class="scq">${q.text} = ${box}</div>`;
  app.innerHTML=topbar()+`<div class="page">${head}<div class="scsteps">${scOps().map((o,k)=>`<span class="${k<SKC.i?'done':k===SKC.i?'on':''}">${{add:'+',sub:'−',mul:'×',div:'÷'}[o]}</span>`).join('')}</div>
@@ -1954,19 +1954,9 @@ SCREENS.skillcheck=()=>{const p=P();if(!SKC)scStart(p);
 };
 
 /* ---------- world map ---------- */
-SCREENS.map=()=>{
- const p=P();
- const hide=z=>zoneLocked(z,p)&&((z.g5&&(p.grade||0)<4)||(z.event&&!eventOpen(z.id)));const shown=ZONES.filter(z=>!hide(z)).sort((a,b)=>zoneLocked(a,p)-zoneLocked(b,p));const nHid=ZONES.length-shown.length;
- app.innerHTML=topbar()+`<div class="page qboard"><div class="zhead"><button class="btn ghost small backbtn" onclick="go('world')">← World</button><h2 class="title">📜 Quest Board</h2></div>${window.Daily?Daily.cardHTML(p):''}${bigContinue(p)}${raidCard(P())}${bonusCard(P())}${eventBanner(p)}${questPanel(p,true)}${homeCards(p)}${schoolCards(p)}
- ${qbSec('worlds','<h2 class="title" style="margin-top:26px">🔢 Math Worlds</h2>',`<div class="zones">${shown.map(z=>{
-  const locked=zoneLocked(z,p);const pr=p.progress[z.id]||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
-  return `<button class="zone-card ${z.cls} ${locked?'locked':''}" onclick="${locked?`toast('${z.lockMsg}')`:`go('zone','${z.id}')`}">
-  <div class="op">${z.sym}</div><h3>${z.name}</h3>
-  <div class="zsub">${locked?'🔒 '+z.lockMsg:`⭐ ${stars} / 18`}</div>
-  <div class="zlv">${locked?'':(z.op==='mix'?'Add, subtract, times and divide!':KID_DESC[z.op][lvl(p,z.op)])}</div>
-  <div class="zart">${z.art}</div>${z.g5&&!medal(p,z.id)?'<div class="g5tag">5th grade</div>':''}${z.g3&&!medal(p,z.id)?'<div class="g5tag g3tag">📚 From class</div>':''}${medal(p,z.id)?`<div class="crowned">${ROUNDS[medal(p,z.id)].m} ${ROUNDS[medal(p,z.id)].n}</div>`:''}</button>`;}).join('')}</div>${nHid?`<div class="lockmore">🔒 ${nHid} more world${nHid>1?'s':''} unlock${nHid>1?'':'s'} as you grow!</div>`:''}`)}</div>`;
- autoPopups('map');
-};
+/* the Quest Board is gone (owner, Oct 2026): its quests and Today's Adventure are in Me → Quests, School is a shop on Main Street,
+   the worlds are on the map and their medals in Me → Trophies. Anything still sent to 'map' lands on Me → Quests. */
+SCREENS.map=()=>{go('me','quests');};
 function homeCards(p){const pet=petOf(p);let petLine='';const awayP=!pet&&p.pet&&window.Adv&&Adv.away(p,p.pet)?PETS.find(x=>x.id===p.pet):null;
  if(pet){const pd=petMood(petData(p,pet.id));petLine=pd.food<=1?`${esc(pet.name)} is hungry!`:pd.joy<=1?`${esc(pet.name)} wants to play!`:`${pips(pd.food,'🍗')} ${pips(pd.joy,'💖')}`;}
  return `<div class="homecards"><button class="hcard" onclick="go('pethome')">${pet?petAvatar(p,pet):awayP?`<span class="pav"><span class="pe">${awayP.e}</span></span>`:'<span class="pav"><span class="pe">🥚</span></span>'}<div><b>Pet Home${pet?` · ${esc(pet.name)}`:''}</b><small>${pet?petLine:awayP?`🎒 ${esc(awayP.name)} is on an adventure!`:'Hatch a pet to start!'}</small></div></button>
@@ -3012,18 +3002,20 @@ document.addEventListener('keydown',e=>{
 /* ================= Me (Oct 2026) =================
    Tap your picture (or name) in the top bar. Everything about YOU: your look (wear what you own; buying is only at the Shop in Number Town),
    trophies, the family leaderboard (go('leaders') draws inside this page) and treasures (gifts, things the troll, eagle and Quartz hold). */
-let ME_TAB=null;const ME_TABS=[['look','👕','My Look'],['tro','🏅','Trophies'],['lead','🏆','Leaderboard'],['bag','🎒','Treasures']];
-function meTab(t){if(t&&ME_TABS.some(x=>x[0]===t)){ME_TAB=t;try{localStorage.setItem('mq.metab',t);}catch(e){}}if(!ME_TAB){try{ME_TAB=localStorage.getItem('mq.metab');}catch(e){}if(!ME_TABS.some(x=>x[0]===ME_TAB)||ME_TAB==='lead')ME_TAB='look';}return ME_TAB;}
+let ME_TAB=null;const ME_TABS=[['quests','📜','Quests'],['look','👕','My Look'],['tro','🏅','Trophies'],['lead','🏆','Leaderboard'],['bag','🎒','Treasures']];
+function meTab(t){if(t&&ME_TABS.some(x=>x[0]===t)){ME_TAB=t;try{localStorage.setItem('mq.metab',t);}catch(e){}}if(!ME_TAB){try{ME_TAB=localStorage.getItem('mq.metab');}catch(e){}if(!ME_TABS.some(x=>x[0]===ME_TAB)||ME_TAB==='lead')ME_TAB='quests';}return ME_TAB;}
 function mePage(cur,inner){const p=P();const pet=petOf(p);const sp=SPELLS.find(s=>s.id===p.spell)||SPELLS[0];const need=xpNeed(p.level);
  return `<div class="page mepage"><div class="zhead"><button class="btn ghost small backbtn" onclick="go('world')">← World</button><h2 class="title">🧙 Me</h2></div>
  <div class="panel mehead"><div class="mehero">${heroSVG(p.look,{spell:p.spell})}${pet?`<div class="bp-pet">${pet.e}</div>`:''}</div><div class="meinfo"><h2>${esc(p.name)}</h2><div class="muted">Level ${p.level} wizard${p.adult?'':` · Grade ${p.grade}`}</div><div class="xpbar mexp"><i style="width:${Math.min(100,p.xp/need*100)}%"></i></div>
   <div class="mestats"><span class="mest gold">🪙 ${p.coins} coins</span><span class="mest">❤️ ${heroMax(p)} HP</span><span class="mest">${sp.e} ${esc(sp.name)}</span>${pet?`<span class="mest">${pet.e} ${esc(pet.name)}</span>`:''}${tbOn(p)?`<span class="mest">⏳ ${tbLeft(p)} min left today</span>`:''}</div></div></div>
- <div class="bptabs metabs" role="tablist">${ME_TABS.map(([k,e,n])=>`<button class="bptab ${cur===k?'on':''}" data-t="${k}" onclick="${k==='lead'?"go('leaders')":`meTab('${k}');go('me')`}"><span>${e}</span>${n}${k==='bag'&&pendingGifts(p).length?'<b class="dot"></b>':''}</button>`).join('')}</div>${inner}</div>`;}
+ <div class="bptabs metabs" role="tablist">${ME_TABS.map(([k,e,n])=>`<button class="bptab ${cur===k?'on':''}" data-t="${k}" onclick="${k==='lead'?"go('leaders')":`meTab('${k}');go('me')`}"><span>${e}</span>${n}${k==='bag'&&pendingGifts(p).length?'<b class="dot"></b>':''}${k==='quests'&&questsReady(p)?`<b class="qdot">${questsReady(p)}</b>`:''}</button>`).join('')}</div>${inner}</div>`;}
+function questsReady(p){try{return qState(p).active.filter(a=>a.done).length;}catch(e){return 0;}}
 function heldItem(p,kind,id){return (p.troll&&(p.troll.hoard||[]).some(x=>x.k===kind&&x.id===id))?'🧌 Grumbleroot has it':(p.eagle&&(p.eagle.hoard||[]).some(x=>x.k===kind&&x.id===id))?'🦅 Skyla has it':'';}
 function wearClick(kind,id){shopClick(kind,id,true);}
 SCREENS.me=tab=>{const p=P();if(tab)meTab(tab);const t=meTab();let inner='';
  const tile=(kind,id,prev,name,eq,sub)=>{const h=heldItem(p,kind,id);return `<button class="item ${eq?'eq':''} ${h?'held':''}" onclick="wearClick('${kind}','${id}')">${prev}<div>${name}</div>${h?`<small>${h}</small>`:sub?`<small>${sub}</small>`:''}<div class="ip">${eq?(kind==='spell'?'✓ Using':'✓ Wearing'):kind==='spell'?'Use':'Wear'}</div></button>`;};
- if(t==='look'){
+ if(t==='quests'){inner=`<div class="qboard mequests">${window.Daily?Daily.cardHTML(p):''}${bigContinue(p)}${raidCard(p)}${bonusCard(p)}${eventBanner(p)}${questPanel(p,true)}</div>`;}
+ else if(t==='look'){
   inner=`<div class="panel"><h3>🎩 Hats</h3><div class="items">${HATS.filter(h=>p.owned.hats.includes(h.id)).map(h=>tile('hat',h.id,heroSVG(Object.assign({},p.look,{hat:h.id}),{head:true}),h.name,p.look.hat===h.id)).join('')}</div></div>
   <div class="panel"><h3>👘 Robes</h3><div class="items">${ROBES.filter(r=>p.owned.robes.includes(r.id)).map(r=>tile('robe',r.id,`<div class="isw" style="background:${r.grad?`linear-gradient(135deg,${r.grad.join(',')})`:r.c}"></div>`,r.name,p.look.robe===r.id)).join('')}</div></div>
   <div class="panel"><h3>🪄 Spells</h3><div class="items">${SPELLS.filter(x=>p.owned.spells.includes(x.id)).map(x=>tile('spell',x.id,`<div class="ie">${x.e}</div>`,x.name,p.spell===x.id,x.mult>1?`+${Math.round((x.mult-1)*100)}% power`:'Starter spell')).join('')}</div></div>
@@ -3364,7 +3356,7 @@ SCREENS.world=()=>{
  if(MAP_MOBS&&W.mobs.length<8)for(let i=W.mobs.length;i<16;i++){const ks=Object.keys(BIOMES).filter(k=>k!=='village');wSpawn(ks[i%ks.length]);}
  if(!W.mobs.some(m=>m.principal)||W.prFor!==p.id){W.prFor=p.id;principalSpawn();}
  app.innerHTML=topbar()+`<div class="world" id="world"><canvas id="wcv"></canvas>
- <div class="wtop"><div class="warea" id="warea"></div><button class="btn small" onclick="go('map')">📜 Quest Board${vLv(p,'portal')?` ★${vLv(p,'portal')}`:''}${(()=>{const n=qState(p).active.filter(a=>a.done).length;return n?` <b class="qdot">${n}</b>`:'';})()}</button></div>
+ <div class="wtop"><div class="warea" id="warea"></div></div>
  ${W.mobs.some(m=>m.principal)?'<button class="prchip" id="prChip" type="button" onclick="principalGo()">🎓 <b>Principal Wise</b> is visiting! <u>Walk to him</u></button>':''}
  ${(p.wHelp||0)<4?'<div class="whelp" id="whelp">Tap anywhere to walk · Bump into monsters to battle · Find the 🎁 treasure!</div>':''}
  <div class="dpad"><button data-d="0,-1" style="grid-area:u">▲</button><button data-d="-1,0" style="grid-area:l">◀</button><button data-d="1,0" style="grid-area:r">▶</button><button data-d="0,1" style="grid-area:d">▼</button></div></div>`;
@@ -4143,7 +4135,7 @@ function wNpc(id){const p=P();
  if(id==='elder'&&window.MQ_ELDER&&MQ_ELDER.talked)MQ_ELDER.talked(); /* after his card he leaves (elder.js) */
  if(window.MQ_NPC&&MQ_NPC[id]){MQ_NPC[id]();return;} /* add-on places on the map (train.js: the station, the train) */
  if(id==='town'){p&&W&&(p.wpos={x:W.hx,y:W.hy});go('town');return;}
- if(id==='school'){if(W&&W.viaPad){W.path=[];modal(`<div class="mcard"><div class="big-emoji">🌀</div><h2>The Quest Board</h2><p>See your quests and all the math worlds?</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green big" onclick="closeModal();go('map')">🌀 Go!</button></div></div>`);return;}go('map');return;} // bumping it with the arrow pad asks first
+ if(id==='school'){go('school');return;} /* the School on Main Street: spelling, quizzes and homework */
  if(id==='shop'){go('shop');return;}
  if(id==='pets'){if(npcQuestGate('pets',"go('pethome')"))return;go('pethome');return;}
  if(id==='spin'){openSpin();return;}
@@ -4922,10 +4914,11 @@ function questWin(){
 }
 
 /* screens */
-function schoolCards(p){
+SCREENS.school=()=>{const p=P();app.innerHTML=topbar()+`<div class="page qboard"><div class="zhead"><button class="btn ghost small backbtn" onclick="go('world')">← World</button><h2 class="title">🏫 School</h2></div>${schoolCards(p,true)}</div>`;};
+function schoolCards(p,flat){
  const words=spellList(p),lw=words.filter(x=>learned(p,x.w)).length,qz=quizList(p),hw=hwList(p);
  const pr=p.progress.spell||[];const stars=pr.reduce((a,b)=>a+(b||0),0);
- return qbSec('school','<h2 class="title" style="margin-top:10px">🏫 School Quests</h2>',`<p class="lockmore" style="margin:-4px 0 10px">Spelling words, quizzes and homework from your teacher</p><div class="zones">
+ const sec=flat?(k,h,b)=>b:qbSec;return sec('school','<h2 class="title" style="margin-top:10px">🏫 School Quests</h2>',`<p class="lockmore" style="margin:-4px 0 10px">Spelling words, quizzes and homework from your teacher</p><div class="zones">
  <button class="zone-card z-spell" onclick="go('zone','spell')"><div class="op">Aa</div><h3>Spelling Grove</h3><div class="zsub">${words.length?`${lw} of ${words.length} words learned`:'No words yet'}</div><div class="zlv">⭐ ${stars} / 18 · ${esc(spellTitle(p))}</div><div class="zart">📜</div></button>
  <button class="zone-card z-quiz" onclick="go('quests','quiz')"><div class="op">?</div><h3>Knowledge Quests</h3><div class="zsub">${qz.length?`${qz.length} quiz${qz.length>1?'zes':''}`:'No quizzes yet'}</div><div class="zlv">${qz.map(x=>esc(x.title)).join(', ')}</div><div class="zart">🧞</div></button>
  <button class="zone-card z-hw" onclick="go('quests','hw')"><div class="op">📝</div><h3>Homework Quest</h3><div class="zsub">${hw.length?`${hw.length} assignment${hw.length>1?'s':''}`:'No homework yet'}</div><div class="zlv">${hw.length?esc(hw[hw.length-1].title):'Coming soon!'}</div><div class="zart">🦖</div></button></div>`);
@@ -4937,7 +4930,7 @@ function qbSec(k,head,body){return `<details class="qbsec" ${qbOpen(k)?'open':''
 SCREENS.quests=kind=>{
  const p=P();const list=kind==='quiz'?quizList(p):hwList(p);const store=kind==='quiz'?p.quizStats:p.hwStats;
  const title=kind==='quiz'?'🧞 Knowledge Quests':'🦖 Homework Quest';
- app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small backbtn" onclick="go('map')">← Quest Board</button><h2 class="title">${title}</h2></div>
+ app.innerHTML=topbar()+`<div class="page"><div class="zhead"><button class="btn ghost small backbtn" onclick="go('school')">← School</button><h2 class="title">${title}</h2></div>
  ${list.length?`<div class="zones">${list.slice().reverse().map(x=>{const s=store[x.id];const n=kind==='quiz'?x.questions.length:x.problems.length;
   return `<button class="zone-card ${kind==='quiz'?'z-quiz':'z-hw'}" onclick="startQuest('${kind}','${x.id}')"><h3>${esc(x.title)}</h3><div class="zsub">${n} ${kind==='quiz'?'questions':'problems'}${x.note?' · '+esc(x.note):''}</div><div class="zlv">${s?`Best: ${s.best}% first try · ${'⭐'.repeat(s.stars)}`:'Not tried yet · GO!'}</div><div class="zart">${x.emoji||(kind==='quiz'?'📚':'📝')}</div></button>`;}).join('')}</div>`
  :`<div class="pp center"><div class="big-emoji">${kind==='quiz'?'📚':'📝'}</div><h3>Nothing here yet!</h3><p class="muted">${kind==='quiz'?'Quizzes about what you are learning at school will show up here.':'Your homework problems will show up here when a grown-up adds them.'}</p></div>`}</div>`;
@@ -5072,7 +5065,7 @@ function takePet(id,lvl){
  const p=P();if(!p.pets.includes(id))p.pets.push(id);p.petMs=p.petMs||[];if(!p.petMs.includes(lvl))p.petMs.push(lvl);
  p.pet=id;const pd=petData(p,id);pd.hints=petStage(pd).max;save();closeModal();
  const x=PETS.find(q=>q.id===id);toast(`${x.e} ${x.name} joined your team!`);SFX.win();
- if(petMilestones(p).length)setTimeout(offerPet,600);else if(curScreen==='battle'&&B&&B.over&&B.endModal)modal(B.endModal());else if(curScreen==='pethome'||curScreen==='map')go(curScreen,curArg);
+ if(petMilestones(p).length)setTimeout(offerPet,600);else if(curScreen==='battle'&&B&&B.over&&B.endModal)modal(B.endModal());else if(curScreen==='pethome'||curScreen==='me')go(curScreen,curArg);
 }
 
 

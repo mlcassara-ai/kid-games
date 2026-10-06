@@ -133,7 +133,7 @@ function schoolItems(p){if(!ownSchool(p))return [];const out=[];try{quizList(p).
 function schoolDue(p){return schoolItems(p).find(x=>!(x.st&&(x.st.best||0)>=PASS))||null;}
 function schoolToday(p){return schoolItems(p).find(x=>x.st&&x.st.d===today())||null;}
 function school(){const p=P();if(!show(p))return;const t=tad(p);if(t.s!==2)return;const due=schoolDue(p);if(!due||schoolToday(p)){pick();return;}
- try{startQuest(due.kind,due.id);if(typeof B!=='undefined'&&B){B.backTo='map';B.backArg=null;}}catch(e){pick();}}
+ try{startQuest(due.kind,due.id);if(typeof B!=='undefined'&&B){B.backTo='me';B.backArg='quests';}}catch(e){pick();}}
 function cardHTML(p){try{if(!show(p))return '';css();const t=tad(p);
  if(t.s>=3)return `<div class="tad-card"><div class="tad-head"><h3>🧭 Today's Adventure: done! ⭐</h3><span class="tad-streak">🔥 ${t.streak||1} day${(t.streak||1)>1?'s':''} in a row</span></div><div class="tad-foot"><small>Come back next time you play for a new one.</small></div></div>`;
  if(t.s===1&&!t.cur){t.cur=focus(p);}
@@ -145,14 +145,14 @@ function cardHTML(p){try{if(!show(p))return '';css();const t=tad(p);
  return `<div class="tad-card"><div class="tad-head"><h3>🧭 Today's Adventure</h3>${t.streak&&t.last?`<span class="tad-streak">🔥 ${t.streak} in a row</span>`:''}</div>
  <div class="tad-steps">${st(0,'1 · Fix-it','3 problems to try again')}${st(1,'2 · Focus battle',esc(zn||''))}${schStep}${st(2,(sch?'4':'3')+' · Pick your fun','Choose a reward')}</div>
  <div class="tad-foot"><button class="btn green" onclick="${btn[0]}">${btn[1]}</button><small>About 10 minutes · earns today's ⭐ Adventure Star</small></div></div>`;}catch(e){return '';}}
-function redraw(){try{if(curScreen==='map')goStay('map');}catch(e){}}
+function redraw(){try{if(curScreen==='me')goStay('me','quests');}catch(e){}}
 function fix(){const p=P();if(!show(p))return;const t=tad(p);if(t.s!==0)return;const qs=fixList(p);
  series(qs,(i,n)=>({kind:'fix',step:`Fix-it · ${i+1} of ${n}`,emoji:'🔧',title:qs[i]._fix?'You met this one before':'Warm-up',sub:qs[i]._fix?'Take your time. Tap the hint if you want help.':'A quick one to get started.',tries:2,right:qs[i]._fix?'Fixed! +3 🪙':'That\'s it! ⭐',right2:qs[i]._fix?'You got it! It will come back once more to be sure.':'You got it this time! ⭐',onClose:redraw}),
  right=>{const p=P(),t=tad(p); /* fetch the hero again: an online sync during the questions replaces the player object, and progress written to the old one is lost */
   t.s=1;t.cur=focus(p);save();try{SFX.win();}catch(e){}redraw();const zn=t.cur?(ZONES.find(z=>z.id===t.cur.zid)||{}).name:'';
   modal(`<div class="mcard"><div class="big-emoji">🔧</div><h2>Fix-it done!</h2><p>You got <b>${right} of ${qs.length}</b>. Next up: one battle${zn?` in <b>${esc(zn)}</b>`:''}.${t.cur&&t.cur.owed?' That monster has been waiting for you!':''}</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Later</button><button class="btn green" onclick="closeModal();Daily.battle()">Battle ➜</button></div></div>`);});}
 function battle(){const p=P();const t=tad(p);if(t.s!==1)return;if(!t.cur)t.cur=focus(p);if(!t.cur){t.s=2;save();redraw();return;}save();
- startBattle(t.cur.zid,t.cur.i,null,{short:true});try{if(typeof B!=='undefined'&&B){B.backTo='map';B.backArg=null;}}catch(e){}}
+ startBattle(t.cur.zid,t.cur.i,null,{short:true});try{if(typeof B!=='undefined'&&B){B.backTo='me';B.backArg='quests';}}catch(e){}}
 function pick(){const p=P();const t=tad(p);if(t.s!==2)return;if(schoolDue(p)&&!schoolToday(p)){school();return;}
  modal(`<div class="mcard"><div class="big-emoji">⭐</div><h2>Adventure done! Pick your fun:</h2><div class="tad-pick">
  <button onclick="Daily.take('pack')"><b>🥾</b>Trail pack<small>extra camp sack on your next trip</small></button>
@@ -165,7 +165,7 @@ function take(k){const p=P();const t=tad(p);if(t.s!==2)return;let msg='';
  const d=today(),days=p.days||[];const prev=days[days.length-1]===d?days[days.length-2]:days[days.length-1];
  t.streak=(t.last&&t.last===prev)?(t.streak||0)+1:1;t.last=d;t.stars=(t.stars||0)+1;t.s=3;t.w.adv++;try{wkBump(p,'adv');}catch(e){}save();
  try{SFX.level();}catch(e){}
- modal(`<div class="mcard"><div class="big-emoji">⭐</div><h2>Adventure Star #${t.stars}!</h2><p>${msg}</p><p class="muted">🔥 ${t.streak} day${t.streak>1?'s':''} in a row.</p><div class="row"><button class="btn green" onclick="closeModal();go('map')">Hooray!</button></div></div>`);}
+ modal(`<div class="mcard"><div class="big-emoji">⭐</div><h2>Adventure Star #${t.stars}!</h2><p>${msg}</p><p class="muted">🔥 ${t.streak} day${t.streak>1?'s':''} in a row.</p><div class="row"><button class="btn green" onclick="closeModal();go('me','quests')">Hooray!</button></div></div>`);}
 
 /* ---------- PART C: battle exit ---------- */
 function help(){try{if(typeof B==='undefined'||!B||!B.q)return closeModal();const q=B.q;q.hinted=true;let h='';try{h=hintHTML(q)||'';}catch(e){}

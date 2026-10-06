@@ -386,7 +386,7 @@ window.addEventListener('resize',()=>{try{if(cur()==='battle'&&HUD&&HUD.style.di
 /* a "Visit Prisma" button on the World (under the Quest Board button) and a card on the Quest Board while a Fade is on */
 function wcard(p,ready){try{const s=cur();if(s==='world'){const top=document.querySelector('#world .wtop');if(top&&!document.getElementById('fdWchip')){const b=document.createElement('button');b.id='fdWchip';b.type='button';b.className='btn small fd-wchip';b.onclick=()=>open();top.appendChild(b);}
   const b=document.getElementById('fdWchip');if(b){b.classList.toggle('ready',!!ready);b.innerHTML=`🎨 Prisma's table${ready?' <b class="qdot">!</b>':''}`;b.style.top=document.getElementById('prChip')?'98px':'';}}
- if(s==='map'){const pg=document.querySelector('#app .qboard');if(pg){const old=pg.querySelector('.fd-qcard');const h=hudHTML(p);if(old&&old._fdh===h)return;if(old)old.remove();const zh=pg.querySelector('.zhead');if(zh&&h){zh.insertAdjacentHTML('afterend',h);const c=pg.querySelector('.fd-qcard');if(c)c._fdh=h;}}}}catch(e){}}
+ if(s==='me'){const pg=document.querySelector('#app .mequests');if(pg){const old=pg.querySelector('.fd-qcard');const h=hudHTML(p);if(old&&old._fdh===h)return;if(old)old.remove();const zh=pg;if(zh&&h){zh.insertAdjacentHTML('afterbegin',h);const c=pg.querySelector('.fd-qcard');if(c)c._fdh=h;}}}}catch(e){}}
 /* a drop flies from the battle to the pot */
 function flyDrop(k){try{const box=HUD&&HUD.style.display!=='none'?HUD:null;if(!box)return;const tgt=box.querySelector(`[data-k="${k}"]`)||box;const tr=tgt.getBoundingClientRect();
  const src=document.getElementById('arena')||document.querySelector('.qcard')||document.body;const sr=src.getBoundingClientRect();
@@ -1031,7 +1031,7 @@ function fxAfter(fx){const w=document.querySelector('.fd-win');if(!w||RM())retur
  const pr=document.querySelector('.fd-pr');if(pr)bump(pr);}
 /* "Go collect paint": off to the Quest Board, with a hint where paint comes from */
 const COLLECT_MSG='⚔️ Win battles to find paint! 🎨';
-function collect(){closeLayer();goTo('map');setTimeout(()=>{if(cur()!=='battle')say(COLLECT_MSG);},350);}
+function collect(){closeLayer();goTo('world');setTimeout(()=>{if(cur()!=='battle')say(COLLECT_MSG);},350);}
 /* a paint toast must never sit on the battle keypad: hide it the moment a battle starts */
 function toastOff(){try{const t=document.getElementById('toast');if(t&&t.classList.contains('show')&&/paint|Prisma/i.test(t.textContent||''))t.classList.remove('show');}catch(e){}}
 /* the finale: color bursts back. What Prisma says is TRUE: if her secret paint helped, she says so. */

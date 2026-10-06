@@ -56,7 +56,7 @@ const tests=[
 
 ['screens: every screen draws for a hero',async function(){
   T.reset();const p=T.hero('Screens',3);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;const bad=[];
-  const skip=['rest','skillcheck','inner','cave','office','fade','truck','market','district']; /* these need their own setup; truck and district have their own tests */
+  const skip=['rest','skillcheck','inner','cave','office','fade','truck','market','district','map']; /* these need their own setup; truck and district have their own tests */
   for(const s of Object.keys(SCREENS)){if(skip.includes(s))continue;try{go(s,s==='zone'?'forest':undefined);T.ok(curScreen===s,'ended on '+curScreen);T.ok(document.body.innerText.length>10,'empty');}catch(e){bad.push(s+': '+e.message);}try{closeModal();}catch(e){}}
   T.ok(!bad.length,bad.join(' | '));}],
 
@@ -296,7 +296,7 @@ const tests=[
 ['adventure: fix-it, focus battle, leave, reward',async function(){
   T.reset();let p=T.hero('Adv',3);state.cur=p.id;p.stats.div={r:10,w:10};p.stats.add={r:30,w:2};
   p.missed={'8 + 7':{n:2,a:15,op:'add',last:'2026-09-28',fixed:0,q:{op:'add',L:4,a:8,b:7,answer:15,text:'8 + 7'}}};
-  go('map');T.ok(document.querySelector('.tad-card'),'Adventure card missing from the Quest Board');
+  go('me','quests');T.ok(document.querySelector('.mequests .tad-card'),'Adventure card missing from Me → Quests');
   p.missed['□ − □ = 15']={n:5,a:15,op:'sub',last:'2026-10-01',fixed:0,q:{op:'sub',L:4,answer:15,text:'□ − □ = 15'}};
   T.ok(!Daily._dbg.fixList(p).some(q=>/□/.test(q.text)),'a Flip-it problem (which needs two numbers) was offered in Fix-it');
   /* an online sync in the middle of the questions swaps the player for a fresh copy; progress must land on the new one */
@@ -334,16 +334,21 @@ const tests=[
   go('town');TownView._open('gym');T.ok(curScreen==='mastery','the Fact Gym did not open');go('town');
   go('town');p.spinDay='';go('town');T.ok(document.querySelector('.mt-shop[data-id="spin"] .mt-dot:not([hidden])')&&document.querySelector('.mt-chip'),'the Daily Spin has no red dot when a spin is ready');
   W=null;go('world');await T.wait(100);T.ok(TownView.count(P())>=1,'the Town building shows no badge when a spin is ready');
-  T.ok(!NPCS.some(n=>n.id==='school'||n.id==='board'),'a menu-only building is back on the plaza');go('map');T.ok(!document.querySelector('.qb-lead'),'the Leaderboard button is still on the Quest Board (it moved to Me)');go('world');await T.wait(100);T.ok(/Quest Board/.test(document.querySelector('.wtop').innerText),'Quest Board button missing from the World screen');p.vil=p.vil||{};p.vil.portal=2;go('world');await T.wait(50);T.ok(/Quest Board ★2/.test(document.querySelector('.wtop').innerText),'Quest Portal stars missing from the Quest Board button');
+  T.ok(!NPCS.some(n=>n.id==='school'||n.id==='board'),'a menu-only building is back on the plaza');/* Oct 2026: no Quest Board: quests in Me → Quests, School on Main Street, worlds on the map */
+  go('world');await T.wait(100);T.ok(!/Quest Board/.test(document.querySelector('.wtop').innerText),'the Quest Board button is still on the map');
+  go('map');T.ok(curScreen==='me'&&document.querySelector('.mequests .qpanel')&&document.querySelector('.metabs [data-t="quests"].on'),'an old way to the Quest Board does not land on Me → Quests');
+  go('town');T.ok(document.querySelector('.mt-shop[data-id="school"]'),'no School on Main Street');p.vil=p.vil||{};p.vil.portal=2;go('town');T.ok(/★/.test(document.querySelector('.mt-shop[data-id="school"]').textContent),'Quest Portal stars missing from the School');
+  document.querySelector('.mt-shop[data-id="school"]').click();await T.wait(600);T.ok(curScreen==='school'&&document.querySelector('.z-spell')&&document.querySelector('.z-hw')&&/Town/.test(document.querySelector('.backbtn').textContent),'the School on Main Street did not open Spelling, quizzes and homework');
+  go('quests','hw');T.ok(/School/.test(document.querySelector('.backbtn').textContent),'Homework does not go back to the School');go('world');await T.wait(50);
   {p.sci.rocks=0;p.sci.lab={ok:{}};go('lab');let t=document.body.innerText;T.ok(/one free ride today/.test(t),'the Lab does not offer the key\'s free ride');
    p.sci.lab.freeDay=dayKey();go('lab');t=document.body.innerText;T.ok(/used today's free ride/.test(t)&&/you have none/.test(t)&&/Step 1/.test(t)&&/Buy a rock/.test(t),'the Lab does not say a rock is needed after the free ride');
    p.sci.rocks=1;go('lab');t=document.body.innerText;T.ok(!/you have none/.test(t)&&/This ride uses a rock/.test(t),'the Lab is wrong when the hero has a rock and no free ride');
    p.sci.lab.freeDay='';p.sci.trips=5;p.cave={trips:5,stats:{dug:12}};const r0=p.sci.rocks;go('lab');Lab.down();T.ok(curScreen==='cave'&&p.sci.rocks===r0&&p.sci.lab.freeDay===dayKey()&&p.sci.trips===6,'the free ride did not start a trip, or it spent a rock');
    await T.wait(300);T.ok(/ride straight down/.test(document.body.innerText+document.body.innerText),'no welcome for a trip without a rock');go('world');try{closeModal();}catch(e){}}
-  go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.body.innerText),'the Fact Gym building did not open the fact grid');go('map');T.ok(!document.querySelector('.mq-hc'),'Mastery card is still on the Quest Board');go('world');await T.wait(50);
+  go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.body.innerText),'the Fact Gym building did not open the fact grid');go('me','quests');T.ok(!document.querySelector('.mq-hc'),'Mastery card is on Me → Quests');go('world');await T.wait(50);
   /* Oct 2026 menus: picture/name open Me; coins sit under the name; Pets and ⚙️ More (Sound, Report, Log out) on the right; no Bag or World button */
   {const tb=document.querySelector('.topbar');T.ok(tb.querySelector('.tb-me')&&tb.querySelector('.tb-info .coins')&&!tb.querySelector('[onclick*="backpack"]')&&!tb.querySelector('[aria-label="World"]')&&tb.querySelectorAll('.iconbtn.tbi').length===2,'the top bar is not Me + Pets + More');
-   tb.querySelector('.tb-me').click();T.ok(curScreen==='me'&&document.querySelector('.mehead')&&document.querySelectorAll('.metabs .bptab').length===4,'tapping your picture did not open Me');
+   tb.querySelector('.tb-me').click();T.ok(curScreen==='me'&&document.querySelector('.mehead')&&document.querySelectorAll('.metabs .bptab').length===5,'tapping your picture did not open Me');
    const hats=document.querySelectorAll('.mepage .item').length;go('me','look');T.ok(document.querySelectorAll('.mepage .item').length===p.owned.hats.length+p.owned.robes.length+p.owned.spells.length,'My Look does not show exactly what you own');
    const nh=HATS.find(h=>!h.event&&!p.owned.hats.includes(h.id)&&h.price>0);if(nh){p.coins=nh.price+5;go('shop');bpSetTab('hat');buyItem('hat',nh.id);T.ok(p.owned.hats.includes(nh.id)&&p.look.hat===nh.id&&curScreen==='shop','buying a hat in the Shop did not put it on');const h0=p.owned.hats.find(x=>x!==nh.id);shopClick('hat',h0);T.ok(p.look.hat===nh.id,'tapping an owned hat in the Shop still wore it');go('me','look');wearClick('hat',h0);T.ok(p.look.hat===h0&&curScreen==='me','wearing a hat from Me did not work');}
    go('me','tro');T.ok(document.querySelector('.memedals .memd')&&/My records/.test(document.body.innerText),'Trophies tab is empty');
@@ -359,8 +364,8 @@ const tests=[
 ['food truck: hidden unless the preview switch is on; then card, screens and map spot',async function(){
   T.reset();const p=T.hero('Truck',3,{battles:40});state.cur=p.id;
   window.MQ_TRUCK_BETA=false;try{localStorage.removeItem('mqTruckPreview');localStorage.setItem('mqTruckBeta','1');}catch(e){}
-  T.ok(!Truck.flag(),'truck shows without the preview switch (an old preview must not count)');go('map');T.ok(!document.querySelector('.tk-hc'),'truck card shown while hidden');go('world');await T.wait(100);go('town');T.ok(!document.querySelector('.mt-shop[data-id="truck"]'),'truck on Main Street while hidden');go('world');
-  window.MQ_TRUCK_BETA=true;go('map');T.ok(document.querySelector('.tk-hc'),'truck card missing from the Quest Board');
+  T.ok(!Truck.flag(),'truck shows without the preview switch (an old preview must not count)');go('me','quests');T.ok(!document.querySelector('.tk-hc'),'truck card shown while hidden');go('world');await T.wait(100);go('town');T.ok(!document.querySelector('.mt-shop[data-id="truck"]'),'truck on Main Street while hidden');go('world');
+  window.MQ_TRUCK_BETA=true;
   Truck.open();T.ok(curScreen==='truck'&&document.body.innerText.length>40,'truck screen is empty');try{closeModal();}catch(e){}
   go('market');T.ok(curScreen==='market'&&document.body.innerText.length>20,'market screen is empty');
   go('town');const tb=document.querySelector('.mt-shop[data-id="truck"]');T.ok(tb,'truck is not on Main Street');
@@ -632,8 +637,8 @@ const tests=[
   /* Today's Adventure: a kid with their own school content gets a School work step before the reward, once a day */
   {T.reset();const j=T.hero('Jibreel',5);state.cur=j.id;const t=Daily._dbg.tad(j);t.s=2;const card=()=>{const d=document.createElement('div');d.innerHTML=Daily.cardHTML(P());return d.innerText;};
    T.ok(/School work/.test(card())&&/Punctuation Detective/.test(card()),'no School work step for Jibreel: '+card().slice(0,200));
-   Daily.pick();T.ok(curScreen==='battle'&&B&&B.mode==='quiz'&&B.qid==='j-punct'&&B.backTo==='map','Pick your fun did not send him to the school quiz first');
-   go('map');P().quizStats['j-punct']={best:60,tries:1,stars:1,d:dayKey()};T.ok(/Pick your fun ➜/.test(card())&&/✅ 3 · School work/.test(card()),'the reward is not open after doing the school quiz today');
+   Daily.pick();T.ok(curScreen==='battle'&&B&&B.mode==='quiz'&&B.qid==='j-punct'&&B.backTo==='me'&&B.backArg==='quests','Pick your fun did not send him to the school quiz first');
+   go('me','quests');P().quizStats['j-punct']={best:60,tries:1,stars:1,d:dayKey()};T.ok(/Pick your fun ➜/.test(card())&&/✅ 3 · School work/.test(card()),'the reward is not open after doing the school quiz today');
    const o=T.hero('Other',5);state.cur=o.id;Daily._dbg.tad(o).s=2;T.ok(!/School work/.test(card()),'School work shown to a hero without their own school content');}
   T.reset();const p=T.hero('Jibreel',5);state.cur=p.id;const ids=quizList(p).map(z=>z.id||z.key||z);T.ok(JSON.stringify(ids).includes('j-punct')&&JSON.stringify(ids).includes('j-matter'),'this week\'s quizzes do not reach Jibreel: '+JSON.stringify(ids).slice(0,200));
  }],

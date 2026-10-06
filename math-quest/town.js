@@ -14,7 +14,8 @@ const me=()=>{try{return P();}catch(e){return null;}};
 const BLOCKS=[
  {id:'learn',n:'Learning',wall:'#d6efff',aw:'#4dabf7',ink:'#1864ab',shops:[
   {id:'gym',e:'🏋️',n:'Fact Gym',s:'Fact sprints and the Mastery Map',show:()=>!!window.Mastery},
-  {id:'library',e:'📚',n:'Library',s:'Stories and books'}]},
+  {id:'library',e:'📚',n:'Library',s:'Stories and books'},
+  {id:'school',e:'🏫',n:'School',s:'Spelling, quizzes and homework'}]},
  {id:'sci',n:'Science',wall:'#dcf7e0',aw:'#40c057',ink:'#2b8a3e',shops:[
   {id:'lab',e:'🔬',n:'Quartz Lab',s:'Ride down to the cave',show:p=>!!(window.Lab&&Lab.hasKey&&Lab.hasKey(p))},
   {id:'train',e:'🚂',n:'Train Station',s:'To Discovery District',show:()=>!!(window.Discovery&&Discovery.flag&&Discovery.flag())}],
@@ -74,7 +75,7 @@ function css(){if(document.getElementById('mtCSS'))return;const s=document.creat
 let TICK=0;
 /* a shop entered from Main Street comes back to Main Street: its "← World" back button becomes "← Town" (the top bar's World
    button still goes to the map). The Fact Gym and Food Truck take a return screen, so they get 'town' directly. */
-let FROM=false;const SHOP_SCREENS=['shop','pethome','cafe','village','library','lab'];
+let FROM=false;const SHOP_SCREENS=['school','quests','shop','pethome','cafe','village','library','lab'];
 function openShop(id){const p=me();FROM=true;try{if(p&&window.W&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}
  if(id==='gym'&&window.Mastery){Mastery.open('town');return;}
  if(id==='truck'&&window.Truck&&Truck.flag&&Truck.flag()){Truck.open('town');return;}
