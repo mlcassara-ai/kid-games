@@ -11,6 +11,8 @@ const hash=(x,y)=>{let h=(x*374761393+y*668265263)|0;h=(h^(h>>>13))*1274126177|0
 const QUEST=['Do you want a quest?','How is the quest going?','Need a quest? Come and talk to me!','Have you checked the Quest Board?','A new quest is waiting…','Quests make you stronger!'];
 const DONE=['Your quest is done! Come and see me!','I have a reward for you!'];
 const OTHER=['I think I lost my pencil…','Where did I put my glasses?','What a lovely day for math!','Hmm… 7 × 8… 56!','My beard is itchy.','Has anyone seen my hat? Oh. It\'s on my head.','Numbers are a kind of magic!','Is it snack time yet?','I once counted to a million… almost.','Watch out for the Grey Goblin!','Walking is good for the brain!','I was a Bronze wizard once, too.'];
+/* now and then, walking along, he mumbles to himself (owner, Oct 2026): drawn in grey italics in a fainter bubble */
+const MUMBLE=['Why did they change math? Math is math…','New math, old math… it\'s all just math!','Carry the one… carry the one… where am I carrying it to?','In my day, 7 × 8 was 56. Still is!','Number lines… back in my day we had number SQUIGGLES.','Hmm, hmm… nine, ten… what was I counting?','Mumble, mumble… fractions… mumble…'];
 /* when the hero comes close he stops, turns to them and says one of these (owner, Oct 2026): funny old-man lines, never mean */
 const GREET=['Can I help you?','Ready to serve!','Yikes! Don\'t sneak up on me like that!','I thought I smelled cabbage…','Get off my lawn! …Oh, sorry, I thought you were someone else.','Eh? Speak up, young wizard!','Ah, it\'s you! I was just thinking about you. Or lunch.','Hello there! Have we met? …Of course we have.','Shh! I\'m counting clouds. …Now I\'ve lost count.','My knees say rain is coming. My knees are usually wrong.','Back in my day, we counted on our toes!','Oh! You gave my beard a fright.','Ah, a visitor! Quick, look busy… I mean, hello!','Have you seen my spectacles? …They\'re on my head, aren\'t they?','Greetings! I\'ve been walking for hours. Or minutes. Who knows?','Is it Tuesday? It feels like a Tuesday.','Mind the puddles, they\'re sneaky today.','Well, well! If it isn\'t my favourite math wizard!','Pardon me, I was having a little nap… standing up.','Hmm? Oh! Hello! I was just talking to this rock.'];
 /* ...and when the hero walks away again he waves his wand, says one of these and vanishes in sparkles, popping up elsewhere later */
@@ -72,7 +74,7 @@ function start(W,now){const R=reach(W);let s=null;try{s=[TOWN_X+2,TOWN_Y+4];}cat
  if(SMOKE){setTile(W,true);return;} /* the smoke test meets him straight away */
  const left=nextAt()-Date.now();E.hidden=true;E.moved=true;E.outT=now-1000;E.backAt=now+Math.max(left,rnd(FIRST));}
 function sayLine(){let done=false;try{const p=P(),i=npcQuestIdx(p,'elder');done=i>=0&&qState(p).active[i].done;}catch(e){}
- const L=done&&Math.random()<.6?DONE:Math.random()<.4?QUEST:OTHER;return L[Math.floor(Math.random()*L.length)];}
+ const L=done&&Math.random()<.6?DONE:Math.random()<.3?MUMBLE:Math.random()<.4?QUEST:OTHER;return L[Math.floor(Math.random()*L.length)];}
 /* the hero is close: stop, face them, greet once per visit (he greets again only after they've wandered off and come back a bit later) */
 function greet(W,now){const d=Math.hypot(W.hx-E.x,W.hy-E.y);
  if(d>AWAY){if(E.greeted){E.greeted=false;poof(now);}return false;}if(d>NEAR)return false;
@@ -93,7 +95,7 @@ function tick(W,now){if(EW!==W){EW=W;REACH=null;E=null;}if(!E){start(W,now);if(!
  E.a=Math.min(1,E.a+.05);
  if(E.poof){if(now>=E.poof.vanish)away(W,now,rnd(GAP));return;}
  if(E.mt&&now-E.mt<STEP)return;E.mt=0;
- if(now>=E.nextSay&&!E.say){E.say={t:sayLine(),at:now};E.nextSay=now+(45+Math.random()*105)*1000;}
+ if(now>=E.nextSay&&!E.say){const t=sayLine();E.say={t,at:now,m:MUMBLE.includes(t)};E.nextSay=now+(45+Math.random()*105)*1000;}
  if(E.say&&now-E.say.at>5500)E.say=null;
  if(E.talked){if(document.querySelector('#modal.show'))return;const m=E.talked;E.talked=null;E.visitEnd=Math.min(E.visitEnd||0,now+60e3);if(m==='walk'&&leaveWalk(W,now))return;poof(now);if(E.poof)E.poof.vanish=now+1300;return;} /* his card just closed: off he goes */
  if(E.leaving&&!E.path.length){E.leaving=false;setTile(W,true);} /* got there: he can be met again */
@@ -103,10 +105,10 @@ function tick(W,now){if(EW!==W){EW=W;REACH=null;E=null;}if(!E){start(W,now);if(!
   E.wait=now+1500+Math.random()*4000;plan(W,now);return;}
  const [nx,ny]=E.path[0],t=W.T[ny]&&W.T[ny][nx];if(!free(t,W,nx,ny)||blocked(W,E.x,E.y,nx,ny)){if(nx===W.hx&&ny===W.hy){E.wait=now+800;return;}E.path=[];return;}
  E.path.shift();setTile(W,false);E.fx=E.x;E.fy=E.y;if(nx!==E.x)E.dir=nx>E.x?1:-1;E.x=nx;E.y=ny;E.mt=now;setTile(W,true);}
-function bubble(ctx,ax,ay,ts,text,age){const fs=Math.max(12,ts*.22);ctx.save();ctx.font=`700 ${fs}px Fredoka, sans-serif`;const pop=Math.max(0,Math.min(1,age/250)),fade=age>4800?Math.max(0,1-(age-4800)/700):1,tw=ctx.measureText(text).width,w=(tw+fs*1.4)*pop,h=fs*2*pop,bx=ax+ts*.25+w/2,by=ay-ts*.45;
- ctx.globalAlpha=fade;ctx.fillStyle='#fff';ctx.strokeStyle=O;ctx.lineWidth=Math.max(1.5,ts*.03);[[ax,ay,ts*.05],[ax+ts*.12,ay-ts*.17,ts*.08]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r*pop,0,7);ctx.fill();ctx.stroke();});
+function bubble(ctx,ax,ay,ts,text,age,m){const fs=Math.max(12,ts*(m?.2:.22));ctx.save();ctx.font=`${m?'italic 600':'700'} ${fs}px Fredoka, sans-serif`;const pop=Math.max(0,Math.min(1,age/250)),fade=age>4800?Math.max(0,1-(age-4800)/700):1,tw=ctx.measureText(text).width,w=(tw+fs*1.4)*pop,h=fs*2*pop,bx=ax+ts*.25+w/2,by=ay-ts*.45;
+ ctx.globalAlpha=fade*(m?.92:1);ctx.fillStyle=m?'#f1f3f5':'#fff';ctx.strokeStyle=m?'#adb5bd':O;ctx.lineWidth=Math.max(1.5,ts*.03);[[ax,ay,ts*.05],[ax+ts*.12,ay-ts*.17,ts*.08]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r*pop,0,7);ctx.fill();ctx.stroke();});
  const x0=bx-w/2,y0=by-h/2,r=h/2;ctx.beginPath();ctx.moveTo(x0+r,y0);ctx.lineTo(x0+w-r,y0);ctx.arc(x0+w-r,y0+r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x0+r,y0+h);ctx.arc(x0+r,y0+r,r,Math.PI/2,Math.PI*1.5);ctx.closePath();ctx.fill();ctx.stroke();
- if(pop>=1){ctx.fillStyle='#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,bx,by+fs*.05);}ctx.restore();}
+ if(pop>=1){ctx.fillStyle=m?'#6a5fa0':'#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,bx,by+fs*.05);}ctx.restore();}
 /* the wand wave (little stars round his raised hand) and the vanishing burst */
 function star(ctx,x,y,r,c){ctx.fillStyle=c;ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,q=i%2?r*.38:r;ctx.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q);}ctx.closePath();ctx.fill();}
 const SPK=['#ffd43b','#fff3b0','#ff8fd8','#8fe6ff','#ffffff','#b197fc'];
@@ -123,7 +125,7 @@ function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T)retur
  items.push({y:dy+.02,draw:()=>{const h=ts*1.4,w=h*64/96,bob=E.mt&&k<1?Math.abs(Math.sin(now/90))*2.5:Math.sin(now/600)*1.2;if(out>0){const fy=sy+ts*.97,sc=pf&&E.hidden?out:1,rot=pf&&!E.hidden?Math.sin(now/90)*.09:0;ctx.save();ctx.globalAlpha=out;ctx.translate(sx+ts/2,fy);ctx.rotate(rot);ctx.scale((E.dir<0?-1:1)*sc,sc);ctx.drawImage(IMG,-w/2,-h-bob,w,h);ctx.restore();}
   if(pf)sparkles(ctx,sx+ts/2,sy+ts*.97-h*.55,ts,h,now,pf);
   if(done&&!E.hidden){const r=ts*.16,bx=sx+ts/2,by=sy+ts*.97-h-r*1.3+Math.sin(now/300)*2;ctx.save();ctx.fillStyle='#ffd43b';ctx.strokeStyle=O;ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,r,0,7);ctx.fill();ctx.stroke();ctx.fillStyle=O;ctx.font=`900 ${Math.round(r*1.5)}px Fredoka, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',bx,by+1);ctx.restore();}}});
- if(E.say&&(!E.hidden||pf))items.push({y:1e6-2,draw:()=>bubble(ctx,sx+ts*.75,sy-ts*.25,ts,E.say.t,now-E.say.at)});}
+ if(E.say&&(!E.hidden||pf))items.push({y:1e6-2,draw:()=>bubble(ctx,sx+ts*.75,sy-ts*.25,ts,E.say.t,now-E.say.at,E.say.m)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
-window.MQ_ELDER={GREET,BYE,LEAVE,talked,TIMES:{VISIT,GAP,FIRST},tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){E.say={t:t||sayLine(),at:performance.now()};}},LINES:{QUEST,DONE,OTHER},places:w=>places(w||W)};
+window.MQ_ELDER={GREET,BYE,LEAVE,talked,TIMES:{VISIT,GAP,FIRST},tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){t=t||sayLine();E.say={t,at:performance.now(),m:MUMBLE.includes(t)};}},LINES:{QUEST,DONE,OTHER,MUMBLE},places:w=>places(w||W)};
 })();
