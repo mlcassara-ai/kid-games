@@ -26,6 +26,8 @@ const M=[
  ['l1','🍱','Lunch Time','Make a lunch in the Cafeteria',p=>p.cafePlates||0,1,{coins:80}],
  ['l5','🍱','Regular Customer','Make 5 lunches',p=>p.cafePlates||0,5,{coins:200,food:'cake'}],
  ['pm','🐾','Mighty Bond','Grow a pet all the way to Mighty',mighty,1,{coins:300,eggs:1}],
+ ['sd1','⚡','Goblin Buster','Beat Gizmo in a Math Showdown',p=>(p.sd&&p.sd.w)||0,1,{coins:100}],
+ ['sd10','⚡','Showdown Champion','Win 10 Math Showdowns',p=>(p.sd&&p.sd.w)||0,10,{coins:300,eggs:1}],
  ['d7','📅','Steady Hero','Play on 7 different days',p=>(p.days||[]).length,7,{coins:150}],
  ['d30','📅','Faithful Wizard','Play on 30 different days',p=>(p.days||[]).length,30,{coins:300,eggs:1}]];
 function best(p){let b=0;try{ZONES.forEach(z=>{if(!z.event)b=Math.max(b,medal(p,z.id)||0);});}catch(e){}return b;}

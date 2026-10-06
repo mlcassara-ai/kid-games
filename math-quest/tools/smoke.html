@@ -113,10 +113,10 @@ const tests=[
   for(let i=0;i<300&&D.TR.ph==='in';i++)D.tick(.05);T.ok(D.TR.ph==='stop'&&W.T[R][22].npc==='tride','the train did not stop at the station');
   wNpc('tride');T.ok(/All aboard/.test(mt())&&/Dr\. Quartz's Lab/.test(mt()),'getting on does not say the train goes to the Lab');
   /* the ride to the Lab (ride.js) and back; the Lab is open to everyone, its elevator needs the key */
-  {const r0=p.rides||0;Train._board();T.ok(Ride.busy()&&document.getElementById('rideOv')&&p.rides===r0+1,'getting on did not start the train ride');await T.wait(300);T.ok(!document.querySelector('#rideOv .rd-skip'),'Skip shows on a first ride');
+  {const r0=p.rides||0;Train._board();T.ok(D.TR.riding&&window.__hideHero&&D.TR.ph==='out'&&!Ride.busy(),'getting on did not put the hero on the departing train');for(let i=0;i<300&&!Ride.busy();i++)D.tick(.05);T.ok(Ride.busy()&&document.getElementById('rideOv')&&p.rides===r0+1&&!window.__hideHero,'the ride did not start once the train was in the tunnel');await T.wait(300);T.ok(!document.querySelector('#rideOv .rd-skip'),'Skip shows on a first ride');
    Ride._skip();T.ok(curScreen==='lab'&&/Train home/.test(document.body.innerText)&&/needs the 🔑 Lab Key/.test(document.body.innerText),'the ride did not end in the Lab, or the Lab is wrong for a hero without the key');
    Lab.home();T.ok(Ride.busy(),'Train home did not start the ride back');Ride._skip();T.ok(curScreen==='world'&&W.hx===23&&W.hy===20,'the ride home did not land on the station platform: '+W.hx+','+W.hy);
-   p.rides=5;D.TR.ph='stop';Train._board();await T.wait(100);T.ok(document.querySelector('#rideOv .rd-skip'),'no Skip after the first 3 rides');Ride._skip();go('world');await T.wait(50);
+   p.rides=5;D.TR.ph='stop';Train._board();for(let i=0;i<300&&!Ride.busy();i++)D.tick(.05);await T.wait(100);T.ok(document.querySelector('#rideOv .rd-skip'),'no Skip after the first 3 rides');Ride._skip();go('world');await T.wait(50);
    for(let i=0;i<400&&D.TR.ph!=='away';i++)D.tick(.05);D.TR.wait=.01;D.TR.walkers.length=0;D.tick(.05);for(let i=0;i<300&&D.TR.ph==='in';i++)D.tick(.05);T.ok(D.TR.ph==='stop','the train did not come back after the ride');}
   for(let i=0;i<500&&D.TR.ph==='stop';i++)D.tick(.05);T.ok(D.TR.ph==='out'&&!W.T[R][22].npc&&!W.T[R][22].block,'the train did not leave, or left its doors on the track');
   for(let i=0;i<500&&D.TR.ph==='out';i++)D.tick(.05);T.ok(D.TR.ph==='away'&&Math.abs(D.TR.wait-900)<1,'the next train is not 15 minutes away');
@@ -160,6 +160,18 @@ const tests=[
   T.ok(MQ_ELDER.places().length>=3,'the Elder Wiz has nowhere to walk into');MQ_ELDER.say('Hi!');T.ok(MQ_ELDER.state().say&&MQ_ELDER.state().say.t==='Hi!','the Elder Wiz cannot think out loud');
   wNpc('elder');T.ok(/Elder Wiz/.test(document.querySelector('#modal').innerText),'talking to the Elder Wiz did not open his card');closeModal();
   T.ok(/npc-art/.test(qFace('elder',1))&&/qface/.test(qFace('elder')),'the Elder Wiz card does not use his drawing');
+  /* the Math Showdown: Gizmo, the Grey Goblin's Nephew (showdown.js) */
+  {const S=MQ_SHOWDOWN,pp=P(),sd0=pp.sd,c0=pp.coins,hx0=W.hx,hy0=W.hy;pp.sd={day:dayKey()};T.ok(!S.due(pp),'Gizmo came twice in one day');pp.sd={};T.ok(S.due(pp),'Gizmo is not due on a new day');
+   T.ok(S.visit()&&S.map().st==='come','Gizmo did not walk onto the map');const G2=S.map();for(let i=0;i<40&&G2.st==='come';i++){G2.mt=0;S._tick(performance.now()+i);}T.ok(G2.st==='stop','Gizmo did not walk up to the hero');
+   G2.t0=0;S._tick();T.ok(/Grey Goblin's Nephew/.test(document.querySelector('#modal').innerText)&&/You're on/.test(document.querySelector('#modal').innerText),'Gizmo\'s challenge card did not open');
+   S._go();T.ok(document.getElementById('sdOv')&&/MATH SHOWDOWN/.test(document.getElementById('sdOv').innerText),'the Showdown stage did not open');
+   const ans=()=>{const q=S.state().q;String(q.answer).split('').forEach(S._k);S._k('go');};
+   S._next();T.ok(S.state().q&&/=\s*\?/.test(document.querySelector('.sd-q b').textContent),'no question on the stage');ans();T.ok(S.state().me===1,'a right answer did not win the round');
+   S._next();S._gizmo();T.ok(S.state().gz===1,'Gizmo could not win a round');S._next();S._cheat();T.ok(S.state().me===2&&/CALCULATOR/.test(document.querySelector('.sd-host').textContent),'the cheating round did not give the hero the point');
+   S._next();const w0=pp.sd.w||0;ans();await T.wait(2100);T.ok(pp.sd.w===w0+1&&pp.coins===c0+50&&/You win the Showdown/.test(document.querySelector('.sd-end').innerText),'winning the Showdown paid nothing');
+   S._close();T.ok(!document.getElementById('sdOv'),'the Showdown did not close');const c1=pp.coins;
+   S.start();S._next();S._gizmo();S._next();S._gizmo();S._next();S._gizmo();await T.wait(2100);T.ok(pp.sd.l>=1&&pp.coins===c1&&/Nothing is lost/.test(document.querySelector('.sd-end').innerText),'losing took something or showed no card');S._close();
+   pp.sd=sd0;W.hx=hx0;W.hy=hy0;try{MQ_VISIT.release('gizmo');}catch(e){}try{closeModal();}catch(e){}}
   /* Coach Flex from the Fact Gym: rare visits (first at level 5 if never at the gym, then after 2 weeks away, not again for a week after saying later) */
   {const C=MQ_COACH,pp=P(),lv0=pp.level,g0=pp.gym,ago=n=>{const d=new Date();d.setDate(d.getDate()-n);return dayKey(d);};
    pp.level=C.LV-1;pp.gym=undefined;T.ok(!C.due(pp),'Coach Flex came before level '+C.LV);pp.level=C.LV;T.ok(C.due(pp),'Coach Flex did not invite a level-'+C.LV+' hero who never went to the gym');

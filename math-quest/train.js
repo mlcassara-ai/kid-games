@@ -35,7 +35,7 @@ function tick(dt){TR.t+=dt;
   if(left<5&&TR.said<1){TR.said=1;TR.bubble='All aboard!';if(near()){try{if(voiceOn())say('All aboard!',.9);}catch(e){}}}
   if(left<1.6&&TR.said<2){TR.said=2;if(near())whistle();}
   if(left<=0){TR.ph='out';TR.t=0;TR.bubble='';doors(false);}}
- else if(TR.ph==='out'){const k=Math.min(1,TR.t/T_OUT);TR.front=STOP+(END-STOP)*k*k;if(k>=1){TR.ph='away';TR.t=0;TR.wait=rnd(EVERY[0],EVERY[1]);TR.aboard=[];}}
+ else if(TR.ph==='out'){const k=Math.min(1,TR.t*(TR.riding?2:1)/T_OUT);TR.front=STOP+(END-STOP)*k*k;if(k>=1){TR.ph='away';TR.t=0;TR.wait=rnd(EVERY[0],EVERY[1]);TR.aboard=[];if(TR.riding)rideNow();}}
  /* steam: puffs from the chimney, more when pulling away */
  const chim=TR.front-.55; /* no smoke while the chimney is inside the Depot or the tunnel */
  if(TR.ph!=='away'&&chim>FL+.1&&chim<FR-.1&&Math.random()<(TR.ph==='stop'?1.2:4)*dt*3)TR.smoke.push({x:TR.front-.55,y:ROW-.85,r:.18,a:.7,vx:TR.ph==='stop'?0:-.4,vy:-.6});
@@ -205,9 +205,14 @@ function ring(){if(TR.ph!=='away'||TR.wait<=BELL_WAIT)return;TR.wait=BELL_WAIT;T
 function call(){const p=P();if(!p||TR.ph!=='away'||TR.wait<=5||(p.coins||0)<CALL_COST)return;p.coins-=CALL_COST;save();TR.wait=4;TR.called='paid';bell();try{closeModal();toast(`🚂 Here it comes! (−${CALL_COST} 🪙)`);}catch(e){}}
 function ride(){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>All aboard!</h2><p>The conductor says: "Next stop: <b>🔬 Dr. Quartz's Lab</b>!"</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green big" onclick="Train._board()">Get on ➜</button></div></div>`);}
 /* off to the Lab (ride.js plays the trip, lab.js is the Lab); the train on the map pulls out */
-function board(){try{closeModal();}catch(e){}try{const p=P();if(p&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}if(TR.ph==='stop'){TR.ph='out';TR.t=0;TR.bubble='';doors(false);}
- const arrive=()=>{go(window.Lab?'lab':'world');};if(!(window.Ride&&Ride.go('lab',arrive)))arrive();}
+/* getting on: the hero disappears into the train, which pulls out (twice as fast) into the east tunnel; once it is inside, the
+   ride (ride.js) starts in the carriage (owner, Oct 2026: no separate outside scene) */
+function board(){try{closeModal();}catch(e){}try{const p=P();if(p&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}
+ if(TR.ph==='stop'&&W){TR.ph='out';TR.t=0;TR.bubble='';doors(false);TR.riding=true;window.__hideHero=true;W.path=[];whistle();return;}
+ rideNow();}
+function rideNow(){TR.riding=false;window.__hideHero=false;const arrive=()=>{go(window.Lab?'lab':'world');};if(!(window.Ride&&Ride.go('lab',arrive)))arrive();}
 function press(){TR.press=performance.now();if(TR.ph==='away'&&TR.wait>BELL_WAIT){ring();return;}try{SFX.tap();}catch(e){}open();}
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s!=='world'&&TR.riding){TR.riding=false;window.__hideHero=false;}}}); /* never leave the hero hidden */
 window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=ride;
 window.Train={_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();
