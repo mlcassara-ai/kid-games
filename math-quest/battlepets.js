@@ -45,7 +45,7 @@ function levelPicker(p,S){const pr=prog(p),c=pr.c[S.id]||0,best=(pr.asc||{})[S.i
  for(let k=1;k<=Math.min(3,c+1);k++)out.push({c:k,a:0,l:'👑'.repeat(k)});if(c>=3)for(let a=1;a<=best+1;a++)out.push({c:3,a,l:'✨ '+a});if(out.length<2)return '';
  return `<div class="bp2-card bp2-lv"><b>Level</b><div class="bp2-lvrow">${out.map(o=>{const on=o.c===VIEW.crown&&o.a===(VIEW.asc||0),s=st[lvKey(S.id,o.c,o.a)]||0,won=o.a?o.a<=best:o.c<=c;
   return `<button class="${on?'on':''}" onclick="BattlePets._lvl(${o.c},${o.a})" aria-pressed="${on}">${o.l}<small>${s?starStr(s):won?'won':'new'}</small></button>`;}).join('')}</div></div>`;}
-const TRAINER_COST=50,TRAINER={slip:0,lag:0,calm:.7}; /* knobs for making the Trainer sloppier while it is comfortably ahead (slip = chance of a random move, lag = extra seconds to react).
+const TRAINER_COST=5,TRAINER={slip:0,lag:0,calm:.7}; /* knobs for making the Trainer sloppier while it is comfortably ahead (slip = chance of a random move, lag = extra seconds to react).
    Off on purpose: by simulation the plain Trainer wins about 84% across crowns 1–3 (crown 1 always, crown 3 often needs the kid's Rebuild math), and any slip sank crowns 2–3 to 60–68%. */
 const BP_X=28,BP_Y=20,LOG_MAX=40,DEN_X=6,HOUSE_X=94,MAX_OUT=12;
 const me=()=>{try{return P();}catch(e){return null;}};
@@ -206,7 +206,7 @@ function answer(ok){if(!G||G.over||!G.fixing||G.bricks<=0)return 0;G.asked++;if(
 function pounce(){if(!G||G.over||G.charge<100||G.slam)return false;const live=G.foes.filter(f=>!f.gone);if(!live.length)return false;
  const lead=live.reduce((a,b)=>b.x>a.x?b:a);G.charge=0;G.pounces++;G.slam={x:lead.x,at:G.t+TUNE.slamWait,n:G.pounces};G.camAt={x:lead.x,until:G.t+TUNE.slamWait+1};fx('pounce');return true;}
 /* while the paw is coming down it keeps aiming at whichever critter is closest to the Pet House */
-/* 🧑‍🏫 the Pet Trainer (like Battle Cats' CPU): sessions hired ahead of time (🪙 50 each); switched on in a battle, it plays for the kid until switched off.
+/* 🧑‍🏫 the Pet Trainer (like Battle Cats' CPU): sessions hired ahead of time (🪙 5 each); switched on in a battle, it plays for the kid until switched off.
    A few times a second it pounces when critters bunch up or come close, calls the mega for the boss or a crowd, saves up for the
    Treat Kitchen while the field is calm, sends flyer-catchers, Brawlers and Walls when the fight needs them, and otherwise saves up for
    the strongest pet that is ready (spamming cheap pets stalls the line). Tested by simulation: about 84% of battles won overall (owner's
@@ -231,7 +231,7 @@ function trainer(){const T=G.trainer;if(!T||!T.on||G.over||G.t<(T.next||0))retur
  const best=G.team.filter(s=>s.ready<=G.t&&s.R.id!=='wall').sort((a,b)=>b.R.cost-a.R.cost)[0];
  if(best){if(G.treats>=best.R.cost){send(G.team.indexOf(best));return;}if(G.treats<treatCap()-1)return;}
  go(s=>s.R.id==='wall'&&out(u=>u.R.id==='wall')<3);}
-/* sessions are hired ahead of time on the team screen (🪙 50 each, saved in p.bp2.tr); the first switch-on in a battle uses one,
+/* sessions are hired ahead of time on the team screen (🪙 5 each, saved in p.bp2.tr); the first switch-on in a battle uses one,
    and switching off and on again in that battle is free */
 function hire(){const p=me();if(!p||VIEW.k!=='team'||(p.coins||0)<TRAINER_COST)return;p.coins-=TRAINER_COST;const pr=prog(p);pr.tr=(pr.tr||0)+1;save();try{SFX.coin?SFX.coin():SFX.tap();}catch(e){}screen();}
 function trainerToggle(){if(!G||G.over)return;
@@ -320,6 +320,19 @@ function css(){if(document.getElementById('bp2CSS'))return;const s=document.crea
 .bp2-zone{text-align:center;margin:8px 0}.bp2-zone p{color:#fff;opacity:.85;margin:0}
 .bp2-stage.locked{opacity:.7}
 .bp2-slot.full{border-style:solid;border-color:#40c057;background:#ebfbee}
+.bp2-tt{font-size:20px;display:block;margin-bottom:8px}.bp2-vs{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.bp2-side{flex:1 1 300px;background:#faf9ff;border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+.bp2-sh{font-weight:800;font-size:13px;color:#6b6490;letter-spacing:.4px}.bp2-vsw{align-self:center;font-weight:800;font-size:24px;color:#b5aed6}
+.bp2-megas{display:flex;gap:8px}.bp2-megas button{font:inherit;font-weight:800;font-size:14px;width:104px;border:3px solid #e9e4ff;background:#fff;border-radius:16px;padding:6px 4px;cursor:pointer;color:#2b2340;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bp2-megas button.on{border-color:#7048e8;background:#f3f0ff;box-shadow:0 0 0 3px #d9d2ff}.bp2-megas .ma{display:flex;align-items:flex-end;justify-content:center;height:64px;width:72px;overflow:hidden}
+.bp2-megas .ma svg{width:60px;height:auto;max-height:64px}.bp2-megas .ma .eg-btn{width:60px}
+.bp2-slot.lock{border:3px dashed #d4cfe8;background:#f5f3fb;font-size:12px;font-weight:700;color:#8a84aa;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;cursor:default}.bp2-slot.lock b{font-size:20px}
+.bp2-slot.foe{border:3px solid #f0a050;background:#fff3e6;cursor:default;display:inline-flex;align-items:center;justify-content:center}
+.bp2-slot.boss{width:84px;height:84px;border-color:#9c8fc4;background:#eeeaf8}.bp2-slot.boss .bp2-gob{width:54px}.bp2-bossr{display:flex;align-items:center;gap:10px;font-size:13px}
+.bp2-vs .bp2-slots{gap:6px;flex-wrap:nowrap}.bp2-vs .bp2-slot{width:52px;height:52px;font-size:28px;border-radius:12px;flex:0 0 auto}.bp2-vs .bp2-slot.lock{font-size:10px}.bp2-vs .bp2-slot.lock b{font-size:16px}.bp2-vs .bp2-slot.boss{width:72px;height:72px}
+.bp2-go{margin-top:12px;gap:8px;align-items:center}.bp2-btn.big{font-size:17px;padding:12px 18px}
+.bp2-trn{font:inherit;font-weight:800;font-size:15px;border:3px solid #e9e4ff;background:#fff;border-radius:14px;padding:8px 12px;cursor:pointer;color:#2b2340;display:inline-flex;gap:6px;align-items:center}
+.bp2-trn i{font-style:normal;background:#ffe08a;border-radius:9px;padding:1px 7px;font-size:13px}.bp2-trn:disabled{opacity:.55;cursor:default}
 .bp2-hud{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}.bp2-bar{flex:1;height:12px;background:#eee;border-radius:6px;overflow:hidden}.bp2-bar i{display:block;height:100%}
 .bp2-scroll{overflow-x:auto;overflow-y:hidden;border-radius:16px;border:3px solid #2b2340;-webkit-overflow-scrolling:touch;cursor:grab;touch-action:pan-x;scrollbar-width:thin;overscroll-behavior-x:contain}
 .bp2-scroll.drag{cursor:grabbing}.bp2-scroll.drag *{user-select:none}
@@ -484,12 +497,18 @@ function pickStage(id,crown,asc,tk){const p=me();if(!p)return;const pr=prog(p);i
  const av=available(p).map(x=>x.id);let team=pr.team.filter(x=>av.includes(x)).slice(0,slots(p));
  if(!team.length)team=available(p).sort((a,b)=>powerOf(p,b)-powerOf(p,a)).slice(0,slots(p)).map(x=>x.id);VIEW.team=team;screen();}
 function teamView(p){const S=stages().find(s=>s.id===VIEW.id);if(!S){VIEW={k:'stages'};return screen();}const av=available(p),n=slots(p),team=VIEW.team;
- app.innerHTML=head(`${S.art} ${esc(S.name)} ${VIEW.asc?'✨ Ascend '+VIEW.asc:'👑'.repeat(VIEW.crown)}`,"BattlePets._back()")+`<div class="bp2">${levelPicker(p,S)}<div class="bp2-card"><b>Build your team</b> (up to ${n}). Tap a pet to add it, tap a team spot to take it out.
-  <div class="bp2-mega"><b>Mega:</b> ${[['troll','🧌 Grumbleroot','roars critters back'],['eagle','🦅 Skyla','dives onto critters']].map(([id,t,sub])=>`<button class="${(prog(p).mega||'troll')===id?'on':''}" onclick="BattlePets._mega('${id}')">${t}<small>${sub}</small></button>`).join('')}<small class="muted">One mega per battle.</small></div>
-  <div class="bp2-mega"><b>Pet Trainer:</b><button onclick="BattlePets._hire()" ${(p.coins||0)<TRAINER_COST?'disabled':''}>🧑‍🏫 Hire a session · 🪙 ${TRAINER_COST}<small>plays one battle for you</small></button><small class="muted">You have <b>${prog(p).tr||0}</b> session${(prog(p).tr||0)===1?'':'s'}${(p.coins||0)<TRAINER_COST?` (you need 🪙 ${TRAINER_COST} to hire one; you have ${p.coins||0})`:` · 🪙 ${p.coins||0}`}. In a battle, tap 🧑‍🏫 Trainer to switch it on or off. A session is used the first time you switch it on in a battle; switching it off and on again in that battle is free. 🧱 Rebuild math is still your job!</small></div>
-  <div class="muted" style="font-size:13px;margin:4px 0 8px">Critters here: ${S.crit.map(c=>`${c[1]} ${esc(c[0])} <i>(${TRAIT[c[2]].tag||'plain'})</i>`).join(' · ')}</div>
-  <div class="bp2-slots">${Array.from({length:n},(_,i)=>{const id=team[i],pet=id&&PETS.find(x=>x.id===id);return `<button class="bp2-slot ${pet?'full':''}" onclick="BattlePets._out(${i})" aria-label="${pet?'Take '+esc(pet.name)+' out':'Empty spot'}">${pet?pet.e:''}</button>`;}).join('')}
-  <button class="bp2-btn" style="margin-left:auto" onclick="BattlePets._auto()" ${av.length?'':'disabled'}>🎲 Pick for me</button><button class="bp2-btn gold" ${team.length?'':'disabled'} onclick="BattlePets._start()">Start! ▶</button></div></div>
+ app.innerHTML=head(`${S.art} ${esc(S.name)} ${VIEW.asc?'✨ Ascend '+VIEW.asc:'👑'.repeat(VIEW.crown)}`,"BattlePets._back()")+`<div class="bp2">${levelPicker(p,S)}<div class="bp2-card"><b class="bp2-tt">Build your team</b>
+  <div class="bp2-vs">
+   <div class="bp2-side"><div class="bp2-sh">YOUR SIDE</div>
+    <div class="bp2-megas">${[['troll','Grumbleroot'],['eagle','Skyla']].map(([id,t])=>`<button class="${(prog(p).mega||'troll')===id?'on':''}" onclick="BattlePets._mega('${id}')" aria-pressed="${(prog(p).mega||'troll')===id}" title="${id==='troll'?'Roars critters back':'Dives onto critters'}"><span class="ma">${megaArt(id,56)}</span>${t}</button>`).join('')}</div>
+    <div class="bp2-slots">${Array.from({length:5},(_,i)=>{if(i>=n)return `<span class="bp2-slot mine lock" title="Opens at level ${(i-2)*10}"><b>🔒</b>Level ${(i-2)*10}</span>`;const id=team[i],pet=id&&PETS.find(x=>x.id===id);return `<button class="bp2-slot mine ${pet?'full':''}" onclick="BattlePets._out(${i})" aria-label="${pet?'Take '+esc(pet.name)+' out':'Empty spot'}">${pet?pet.e:''}</button>`;}).join('')}</div></div>
+   <div class="bp2-vsw">VS</div>
+   <div class="bp2-side"><div class="bp2-sh">CRITTERS</div>
+    <div class="bp2-bossr"><span class="bp2-slot foe boss" title="${esc(S.boss[0])}">${goblinArt(54)}</span><span class="muted">Boss:<br><b>${esc(S.boss[0])}</b></span></div>
+    <div class="bp2-slots">${S.crit.map(c=>`<span class="bp2-slot foe" title="${esc(c[0])}">${c[1]}</span>`).join('')}</div></div>
+  </div>
+  <div class="bp2-row bp2-go"><button class="bp2-trn" onclick="BattlePets._hire()" ${(p.coins||0)<TRAINER_COST?'disabled':''} title="Hire a Trainer session">🧑‍🏫 Trainer · 🪙 ${TRAINER_COST} <i>×${prog(p).tr||0}</i></button>${(p.coins||0)<TRAINER_COST?`<small class="muted">need 🪙 ${TRAINER_COST}</small>`:''}
+   <button class="bp2-btn big" style="margin-left:auto" onclick="BattlePets._auto()" ${av.length?'':'disabled'}>🎲 Pick for me</button><button class="bp2-btn gold big" ${team.length?'':'disabled'} onclick="BattlePets._start()">Start! ▶</button></div></div>
   <div class="bp2-card"><div class="bp2-row" style="margin-bottom:8px"><button class="bp2-filt ${VIEW.fly?'on':''}" onclick="BattlePets._flyFilter()" aria-pressed="${VIEW.fly?'true':'false'}">🐝 Stops flyers${VIEW.fly?' ✓':''}</button><small class="muted">${VIEW.fly?'Showing only pets that can reach flying critters.':'Tap to see which pets can reach flying critters.'}</small></div>
   <div class="bp2-pets">${av.filter(pet=>!VIEW.fly||reachesFly(pet)).map(pet=>{const R=roleOf(pet),inT=team.includes(pet.id);return `<button class="bp2-pet ${inT?'in':''}" onclick="BattlePets._in('${pet.id}')">${reachesFly(pet)?'<span class="bp2-flyb" title="Can reach flying critters">🐝✓</span>':''}<span class="pe">${pet.e}</span><b>${esc(pet.name)}</b><small>${R.e} ${R.n} · 🍖 ${R.cost}</small><small>Power ${powerOf(p,pet).toFixed(1)}×</small><small>${esc(R.tip)}</small></button>`;}).join('')||(VIEW.fly?'<p>None of your pets at home can reach flyers yet. Flying pets can, and so can pets with the ⭐ Lucky or 📈 XP skill (they fight as Jumpers 🦘 and Archers 🏹).</p>':'<p>You have no pets at home right now. Pets at camp or the Pet Rescue can\'t battle.</p>')}</div></div></div></div>`;}
 /* 🎲 Pick for me: a random team that should win about 4 times in 5 (owner's ask, Oct 2026), different on each press.
