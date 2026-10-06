@@ -217,7 +217,47 @@ var Q = [
  { e: "🏢", f: "In Lebanese cities, many families live in tall apartment buildings, and grandparents, aunts and cousins often live in the same building or just down the street.",
    q: "In Lebanese cities, where do grandparents and cousins often live?", o: ["In the same building or nearby", "In another country", "In a hotel", "On another planet"] },
  { e: "👕", f: "Many Lebanese kids wear a school uniform every day, with the school’s colors and logo.",
-   q: "What do many Lebanese kids wear to school every day?", o: ["A school uniform", "Whatever they want", "Sports clothes every day", "Superhero capes"] }
+   q: "What do many Lebanese kids wear to school every day?", o: ["A school uniform", "Whatever they want", "Sports clothes every day", "Superhero capes"] },
+ { e: "🗓️", f: "In Lebanon the weekend is Saturday and Sunday, just like here. In some nearby countries the weekend is Friday and Saturday!",
+   q: "Which days are the weekend in Lebanon?", o: ["Saturday and Sunday", "Friday and Saturday", "Thursday and Friday", "Every day ending in “y”"] },
+ { e: "🌽", f: "On weekends, families walk along Beirut’s seaside path, the Corniche, and buy hot corn on the cob and sesame bread from carts.",
+   q: "What can you buy from carts on Beirut’s Corniche?", o: ["Hot corn on the cob", "Hot pretzels", "Cotton candy only", "Snow cones made of real snow"] },
+ { e: "🥯", f: "Ka’ak is a sesame bread shaped like a purse with a handle, sold from carts. Kids sprinkle za’atar inside.",
+   q: "What shape is Lebanese ka’ak bread?", o: ["A purse with a handle", "A long stick", "A round donut", "A dinosaur"] },
+ { e: "🏔️", f: "In summer, many families go “up to the village” in the mountains, where it is cooler, and spend weeks there with their cousins.",
+   q: "Where do many Lebanese families go in summer?", o: ["Their village in the mountains", "The desert", "A big city far away", "The moon, by rocket"] },
+ { e: "🚡", f: "In the town of Jounieh, a cable car carries families high over the town and up a mountain to Harissa.",
+   q: "How do families ride up the mountain to Harissa?", o: ["By cable car", "By train", "By horse", "Down a giant slide, backwards"] },
+ { e: "🏳️", f: "During the soccer World Cup, Lebanese fans hang the flags of their favorite teams, often Brazil or Germany, from balconies and cars.",
+   q: "What do Lebanese fans hang from balconies during the World Cup?", o: ["Flags of their favorite teams", "Christmas lights", "Soccer balls", "Pizzas"] },
+ { e: "🎿", f: "Mzaar is one of the biggest ski resorts in the Middle East, only about an hour’s drive from Beirut.",
+   q: "What can you do at Mzaar?", o: ["Ski", "Surf", "Ride camels", "Ice-skate on a lake of lemonade"] },
+ { e: "🎬", f: "Keanu Reeves, the voice of Duke Caboom in Toy Story 4, was born in Beirut!",
+   q: "Which Toy Story character’s actor was born in Beirut?", o: ["Duke Caboom", "Woody", "Buzz Lightyear", "Mr. Potato Head"] },
+ { e: "🚗", f: "Tony Shalhoub, the voice of Luigi in the movie Cars, has parents who came from Lebanon.",
+   q: "Which Cars character is voiced by a Lebanese-American actor?", o: ["Luigi", "Lightning McQueen", "Mater", "A traffic cone"] },
+ { e: "🎤", f: "The singer Shakira, the voice of Gazelle in Zootopia, has Lebanese family on her dad’s side.",
+   q: "Which singer has Lebanese family?", o: ["Shakira", "Taylor Swift", "Ed Sheeran", "Mickey Mouse"] },
+ { e: "🚀", f: "Charles Elachi grew up in Lebanon and later led NASA’s Jet Propulsion Laboratory, the place that builds the Mars rovers.",
+   q: "What does the NASA lab Charles Elachi led build?", o: ["Mars rovers", "Submarines", "Airplanes", "Ice cream trucks"] },
+ { e: "🏥", f: "Lebanese-American entertainer Danny Thomas started St. Jude Children’s Research Hospital, which helps sick kids for free.",
+   q: "What did Danny Thomas start?", o: ["A children’s hospital", "A toy company", "A soccer team", "A bubble-gum factory"] },
+ { e: "🤖", f: "Many Lebanese grown-ups’ favorite childhood hero was Grendizer, a giant robot cartoon. Its Arabic voices were recorded in Lebanon.",
+   q: "Who was Grendizer?", o: ["A giant robot cartoon hero", "A famous chef", "A soccer player", "A talking falafel"] },
+ { e: "✍️", f: "Lebanese writer Gibran Khalil Gibran wrote a book called The Prophet. He is one of the best-selling poets of all time.",
+   q: "What was Gibran Khalil Gibran?", o: ["A poet and writer", "A race-car driver", "An astronaut", "A magician"] },
+ { e: "🧮", f: "In many Lebanese schools, kids learn math and science in French or English, and other subjects in Arabic.",
+   q: "In many Lebanese schools, what language is math taught in?", o: ["French or English", "Only Arabic", "Spanish", "Emoji"] },
+ { e: "📝", f: "In 9th grade, Lebanese students take a big national test called the Brevet. Everyone in the country takes it at the same time!",
+   q: "What is the big national test Lebanese students take in 9th grade?", o: ["The Brevet", "The SAT", "The Spelling Bee", "The Olympics"] },
+ { e: "🧍", f: "In many Lebanese schools, students stand up when the teacher walks into the classroom, to show respect.",
+   q: "What do students in many Lebanese schools do when the teacher walks in?", o: ["Stand up", "Clap their hands", "Raise their hands", "Do a cartwheel"] },
+ { e: "👩‍🏫", f: "Lebanese kids call their teacher “Miss” in English schools or “Mademoiselle” in French schools.",
+   q: "What might a Lebanese kid call their teacher?", o: ["Miss or Mademoiselle", "By their first name", "Coach", "Your Majesty"] },
+ { e: "🛝", f: "In Lebanese French schools, recess is called “la récré.” It is the best part of the day for lots of kids!",
+   q: "What is recess called in Lebanese French schools?", o: ["La récré", "La siesta", "Le lunch", "Le snack attack"] },
+ { e: "🎶", f: "Lebanese kids sing their national anthem, “Kulluna lil watan,” at school. Its name means “All of us, for our country.”",
+   q: "What does “Kulluna lil watan” mean?", o: ["All of us, for our country", "Good morning, teacher", "Let’s go, team", "Happy cedar day"] }
 ];
 
 /* ---------- seeded randomness so every device agrees ---------- */
@@ -225,10 +265,15 @@ function rng(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F
 function shuffled(n, seed) { var r = rng(seed), a = []; for (var i = 0; i < n; i++) a.push(i); for (var j = n - 1; j > 0; j--) { var k = Math.floor(r() * (j + 1)), t = a[j]; a[j] = a[k]; a[k] = t; } return a; }
 var permCache = {};
 /* which fact a cycle shows (question order reshuffles every loop through Q) */
+function loopOrder(loop) {
+  if (permCache[loop]) return permCache[loop];
+  var p = shuffled(Q.length, loop * 7919 + 17), prevLast = shuffled(Q.length, (loop - 1) * 7919 + 17)[Q.length - 1];
+  if (p[0] === prevLast) { var t = p[0]; p[0] = p[1]; p[1] = t; }   // a new loop never repeats the fact that ended the last one
+  return (permCache[loop] = p);
+}
 function itemFor(cycle) {
   var loop = Math.floor(cycle / Q.length), pos = ((cycle % Q.length) + Q.length) % Q.length;
-  var p = permCache[loop] || (permCache[loop] = shuffled(Q.length, loop * 7919 + 17));
-  return p[pos];
+  return loopOrder(loop)[pos];
 }
 function factFor(cycle) { var b = Q[itemFor(cycle)]; return { e: b.e, f: b.f }; }
 /* A cycle's question is about the PREVIOUS cycle's fact, so players have to remember it: the fact they need left the
