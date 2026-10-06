@@ -12,7 +12,7 @@ var FAST = qs.get('fast') === '1';                       // testing: short phase
 var EVENT = (qs.get('e') || 'oct2026').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) || 'oct2026';
 var SHARDS = 8;
 /* fact card, question, answer reveal; the 10th question of each round gets a longer reveal (`champ`) for the Round Champion */
-var T = FAST ? { fact: 4000, q: 6000, reveal: 3000, champ: 5000 } : { fact: 13000, q: 16000, reveal: 3500, champ: 9000 };
+var T = FAST ? { fact: 4000, q: 6000, reveal: 3000, champ: 5000 } : { fact: 13000, q: 10000, reveal: 3500, champ: 9000 };
 T.cycle = T.fact + T.q + T.reveal;
 var PLAY_URL = 'https://mlcassara-ai.github.io/kid-games/heritage-night/';
 
@@ -287,7 +287,7 @@ function newName(taken, av) {
    (tuned by simulation for a close night). Each side is topped up to BOT_FILL with labelled robot helpers until enough real
    players join. Robots are not very smart (ROBOT_RIGHT chance, slow answers, seeded so every device agrees), never appear on
    the leaderboard, and a pull won by a side with no real answer can't give that side the lead (the screen enforces this). */
-var KID_BONUS = 1.6, BOT_FILL = 5, ROBOT_RIGHT = 0.35;
+var KID_BONUS = 1.8, BOT_FILL = 5, ROBOT_RIGHT = 0.35;
 function robotPts(cycle, side, i) { var r = rng(cycle * 92821 + side * 613 + i * 37 + 11); return r() < ROBOT_RIGHT ? 50 + Math.round(50 * 0.15 * r()) : 0; }
 function pull(players, cycle) {
   var t = [{ n: 0, pts: 0, ans: 0, real: 0 }, { n: 0, pts: 0, ans: 0, real: 0 }];   // 0 = kids, 1 = grown-ups

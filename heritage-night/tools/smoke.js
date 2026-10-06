@@ -156,24 +156,24 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
       let pos = 0; r.botsNoLead = true;
       for (let x = 0; x < 2000; x++) { pos = HN.movePos(pos, HN.pull({}, x)); if (pos !== 0) r.botsNoLead = false; }
       let pos2 = 0; for (let x = 0; x < 2000; x++) { pos2 = HN.movePos(pos2, HN.pull({ k: Object.assign({ g: '2' }, { q: x, k: false, st: 0, t: 0 }) }, x)); if (pos2 < 0) r.botsNoLead = false; }
-      // averages, not head count: 10 kids worth 60 each (x1.5 = 90) lose to one grown-up worth 100, with no robots in the way
-      const many = {}; for (let i = 0; i < 10; i++) many['k' + i] = Object.assign({ g: '4' }, at(60));
+      // averages, not head count: 10 kids worth 50 each (x1.8 = 90) lose to one grown-up worth 100, with no robots in the way
+      const many = {}; for (let i = 0; i < 10; i++) many['k' + i] = Object.assign({ g: '4' }, at(50));
       for (let i = 0; i < 5; i++) many['g' + i] = Object.assign({ g: 'a' }, i ? { q: -1 } : at(100));
       const p2 = HN.pull(many, c); r.avg = p2.winner === 'grown' && p2.grownBots === 0 && p2.kidBots === 0;
-      // the kid bonus: kids worth 65 (x1.6 = 104) beat grown-ups worth 100
-      const b = {}; for (let i = 0; i < 5; i++) { b['k' + i] = Object.assign({ g: '1' }, at(65)); b['g' + i] = Object.assign({ g: 'a' }, at(100)); }
+      // the kid bonus: kids worth 60 (x1.8 = 108) beat grown-ups worth 100
+      const b = {}; for (let i = 0; i < 5; i++) { b['k' + i] = Object.assign({ g: '1' }, at(60)); b['g' + i] = Object.assign({ g: 'a' }, at(100)); }
       r.bonus = HN.pull(b, c).winner === 'kids';
       // skipping counts 0 for a player who is playing now: 5 kids answer right (70 each), 5 more skipped this one
       const sk = {}; for (let i = 0; i < 10; i++) sk['k' + i] = Object.assign({ g: '2' }, i < 5 ? at(70) : { q: c - 1, k: true, st: 0, t: 0 });
-      for (let i = 0; i < 5; i++) sk['g' + i] = Object.assign({ g: 'a' }, at(60));
-      r.skip = HN.pull(sk, c).winner === 'grown';   // kids 35 avg x1.6 = 56 < 60
+      for (let i = 0; i < 5; i++) sk['g' + i] = Object.assign({ g: 'a' }, at(70));
+      r.skip = HN.pull(sk, c).winner === 'grown';   // kids 35 avg x1.8 = 63 < 70
       // robots fill each side up to 5
       const one = HN.pull({ k: { g: '3' } }, c); r.fill = one.kidBots === 4 && one.grownBots === 5;
       return r;
     });
     ok(tm.botsNoLead, 'robot helpers never give their side the lead');
     ok(tm.avg, 'each pull uses the average, not the head count');
-    ok(tm.bonus, 'kids get their 1.6x bonus');
+    ok(tm.bonus, 'kids get their 1.8x bonus');
     ok(tm.fill, 'robot helpers fill each side up to 5');
     ok(tm.skip, 'a skipped question counts 0 for a player who is playing now');
     // reload keeps the player
