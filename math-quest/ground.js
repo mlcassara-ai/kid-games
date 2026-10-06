@@ -56,6 +56,8 @@ function buildWalls(W){const T=W.T,H=T.length,Wd=T[0].length,raw={},gate={};
     const [ex,ey,d]=x>nx?[nx,ny,1]:x<nx?[x,y,1]:y>ny?[nx,ny,2]:[x,y,2];gate[ek(ex,ey)]=(gate[ek(ex,ey)]||0)|d;fixed=true;break;}
    if(fixed)break;}
   if(!fixed)break;}
+ /* nothing big may stand in an opening: clear blocking scenery (trees, rocks…) from the squares either side of every gate */
+ for(const k in gate){const x=k%1000,y=Math.floor(k/1000),m=gate[k];for(const [ax,ay] of [[x,y]].concat(m&1?[[x+1,y]]:[]).concat(m&2?[[x,y+1]]:[])){const t=T[ay]&&T[ay][ax];if(t&&t.o&&t.block&&!t.gate&&!t.npc&&!t.chest&&!t.water){t.o=null;t.block=false;}}}
  const wall={};for(const k in raw){const m=raw[k]&~(gate[k]||0);if(m)wall[k]=m;}
  W._walls={wall,gate};}
 const wallsOf=(W,x,y)=>{if(!W._walls)buildWalls(W);return W._walls.wall[ek(x,y)]||0;};
@@ -151,5 +153,12 @@ function drawRoutes(ctx,W,cx,cy,ts,x0,x1,y0,y1){const RS=routes(W);ctx.save();ct
  for(const r of RS)for(const o of [-.17,.17]){let on=false;ctx.beginPath();for(let i=1;i<r.P.length-1;i++){const p=r.P[i],use=Math.sin(r.D[i]*.45+sh(r.zid)*9)>.35&&vis(p);
    if(!use){on=false;continue;}const q=r.P[i+1],dx=q[0]-r.P[i-1][0],dy=q[1]-r.P[i-1][1],l=Math.hypot(dx,dy)||1,pt=[p[0]-dy/l*o,p[1]+dx/l*o];if(!on){ctx.moveTo(X(pt),Y(pt));on=true;}else ctx.lineTo(X(pt),Y(pt));}ctx.stroke();}
  ctx.restore();}
+/* the thin ring of village ground left round the town square made a maze of walls (owner, Oct 2026): each of those squares joins the
+   nearest neighbouring area instead, so the town wall runs straight along the square's edge. Runs when the map is built, before decor. */
+window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(T=>{const H=T.length,Wd=T[0].length,q=[],src={};
+ const vil=t=>t&&t.b==='village'&&!t.plaza&&!t.water;
+ for(let y=0;y<H;y++)for(let x=0;x<Wd;x++){const t=T[y][x];if(t&&!t.plaza&&!t.water&&t.b!=='village')q.push([x,y]);}
+ for(let i=0;i<q.length;i++){const [x,y]=q[i],b=src[y*1000+x]||T[y][x].b;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,u=T[ny]&&T[ny][nx],k=ny*1000+nx;if(!vil(u)||(k in src))continue;src[k]=b;q.push([nx,ny]);}}
+ for(const k in src){const t=T[Math.floor(k/1000)][k%1000];t.b=src[k];}});
 window.MQ_GROUND={draw,routes,blocked,walls:W=>{if(!W._walls)buildWalls(W);return W._walls;}};
 })();

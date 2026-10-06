@@ -34,6 +34,20 @@ function puffs(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||wind
  PUFF.forEach(p=>{const k=(now-p.t0)/600;if(k<0)return;items.push({y:Math.floor(p.y)-.01,draw:()=>{const x=(p.x+p.dx*k)*ts-cx,y=(p.y+p.dy*k)*ts-cy,r=ts*p.r*(.6+.9*k),a=.9*(1-k*k);
   ctx.globalAlpha=a;ctx.fillStyle='rgba(255,255,255,.5)';ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=Math.max(1.2,ts*.025);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.stroke();
   ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.arc(x-r*.35,y-r*.35,r*.22,0,7);ctx.fill();ctx.globalAlpha=1;}});});}
-window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);window.MQ_MAPDRAW.push(puffs);
-window.MQ_AMBIENT={KIND,count:()=>P.length,puffs:()=>PUFF.length};
+/* the Wishing Fountain thinks out loud now and then (owner, Oct 2026): once every 2 to 8 minutes on the map a thought bubble pops up over
+   it for a few seconds with a short line, to tempt kids over to see what it is. Drawing only. */
+const SAYS=['Hi…','Hee hee hee!','That\'s funny!','Psst… over here!','I have a secret…','Make a wish!','Splish splash!','Bubbles tickle!','Anyone got a coin?','Is anyone there?','I just thought of a joke…','Ooh, what was that?'];
+let SAY=null,SAYAT=0,SAYI=Math.floor(Math.random()*SAYS.length);const SAYLEN=6000,nextSay=now=>now+(2+Math.random()*6)*60000;
+function fountainSay(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T)return;if(!SAYAT)SAYAT=nextSay(now);
+ if(!SAY&&now>=SAYAT){SAYI=(SAYI+1+Math.floor(Math.random()*(SAYS.length-1)))%SAYS.length;SAY={t:SAYS[SAYI],at:now};SAYAT=nextSay(now);}
+ if(!SAY)return;const k=(now-SAY.at)/SAYLEN;if(k>=1){SAY=null;return;}
+ let fx=null;try{const n=NPCS.find(q=>q.id==='fountain');if(n)fx=[n.x,n.y];}catch(e){}if(!fx)return;
+ const ax=(fx[0]+.82)*ts-cx,ay=(fx[1]-.2)*ts-cy,pop=Math.min(1,(now-SAY.at)/250),fade=k>.88?(1-k)/.12:1;
+ items.push({y:1e6-1,draw:()=>{ctx.save();ctx.globalAlpha=fade;const fs=Math.max(12,ts*.24);ctx.font=`700 ${fs}px Fredoka, sans-serif`;const tw=ctx.measureText(SAY.t).width,w=(tw+fs*1.4)*pop,h=fs*2*pop,bx=ax+ts*.3+w/2,by=ay-ts*.62; /* up and to the right, clear of Number Town */
+  ctx.fillStyle='#fff';ctx.strokeStyle='#3b2a1e';ctx.lineWidth=Math.max(1.5,ts*.03);
+  [[ax,ay,ts*.06],[ax+ts*.14,ay-ts*.22,ts*.09]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r*pop,0,7);ctx.fill();ctx.stroke();});
+  const x0=bx-w/2,y0=by-h/2,r=h/2;ctx.beginPath();ctx.moveTo(x0+r,y0);ctx.lineTo(x0+w-r,y0);ctx.arc(x0+w-r,y0+r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x0+r,y0+h);ctx.arc(x0+r,y0+r,r,Math.PI/2,Math.PI*1.5);ctx.closePath();ctx.fill();ctx.stroke();
+  if(pop>=1){ctx.fillStyle='#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(SAY.t,bx,by+fs*.05);}ctx.restore();}});}
+window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);window.MQ_MAPDRAW.push(puffs);window.MQ_MAPDRAW.push(fountainSay);
+window.MQ_AMBIENT={KIND,count:()=>P.length,puffs:()=>PUFF.length,say:()=>SAY&&SAY.t,sayNow:()=>{SAYAT=1;},SAYS};
 })();
