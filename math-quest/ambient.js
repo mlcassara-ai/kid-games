@@ -25,6 +25,15 @@ function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||!W.v
  P.forEach(p=>{p.t+=dt;p.x+=p.vx*dt+(p.k==='fly'||p.k==='bee'||p.k==='bat'?Math.sin(p.t*2+p.ph)*.3*dt:p.k==='snow'?Math.sin(p.t+p.ph)*.15*dt:0);p.y+=p.vy*dt+(p.k==='fly'?Math.cos(p.t*3+p.ph)*.25*dt:0);});
  P=P.filter(p=>p.t<p.life&&p.x>x0-2&&p.x<x1+3&&p.y>y0-2&&p.y<y1+3);
  if(P.length)items.push({y:1e6,draw:()=>P.forEach(p=>draw1(ctx,p,cx,cy,ts,now))});}
-window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
-window.MQ_AMBIENT={KIND,count:()=>P.length};
+/* little clear puffs behind the hero's feet with each step (owner, Oct 2026): see-through bubbles rather than brown dust, so they look
+   right on grass, sand, snow and water alike. Drawing only. */
+let PUFF=[],LMT=0;
+function puffs(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||window.__hideHero)return;
+ if(W.mt&&W.mt!==LMT&&now-W.mt<500){LMT=W.mt;const n=2+Math.floor(Math.random()*2);for(let i=0;i<n;i++)PUFF.push({x:W.fx+.5+(Math.random()-.5)*.35,y:W.fy+.88+(Math.random()-.5)*.1,t0:now+i*45,r:.1+Math.random()*.06,dx:(W.fx-W.hx)*.25+(Math.random()-.5)*.15,dy:-.12-Math.random()*.1});}
+ PUFF=PUFF.filter(p=>now-p.t0<600);
+ PUFF.forEach(p=>{const k=(now-p.t0)/600;if(k<0)return;items.push({y:Math.floor(p.y)-.01,draw:()=>{const x=(p.x+p.dx*k)*ts-cx,y=(p.y+p.dy*k)*ts-cy,r=ts*p.r*(.6+.9*k),a=.9*(1-k*k);
+  ctx.globalAlpha=a;ctx.fillStyle='rgba(255,255,255,.5)';ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=Math.max(1.2,ts*.025);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.arc(x-r*.35,y-r*.35,r*.22,0,7);ctx.fill();ctx.globalAlpha=1;}});});}
+window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);window.MQ_MAPDRAW.push(puffs);
+window.MQ_AMBIENT={KIND,count:()=>P.length,puffs:()=>PUFF.length};
 })();
