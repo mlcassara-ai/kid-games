@@ -112,18 +112,18 @@ let HOST=null;
 function startTrip(first,free){const p=P();const s=Q(p);
  if(DEMO===true)DEMO=JSON.stringify({sci:p.sci||null,cave:p.cave||null,coins:p.coins,daily:p.daily,wkHist:p.wkHist||null});
  if(!first&&!free&&s.rocks<=0&&!DEMO){toast('🪨 You need a mystery rock first!');return;}
- if(!first&&!free&&!DEMO)s.rocks--;s.met=true;s.trips++;s.last=dayKey();if(typeof W!=='undefined'&&W)p.wpos={x:W.hx,y:W.hy};p.cave=p.cave||{};save();
+ if(!first&&!free&&!DEMO)s.rocks--;s.met=true;s.trips++;s.pause=null;s.last=dayKey();if(typeof W!=='undefined'&&W)p.wpos={x:W.hx,y:W.hy};p.cave=p.cave||{};save();
  HOST={first,rock:free?null:rockMineral(p),from:window.__tripFrom||'world'};window.__tripFrom=null;go('cave');}
-function host(p){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{spell:p.spell}));
+function host(p,resume){const hi=new Image();hi.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(heroSVG(p.look,{spell:p.spell}));
  const tk='cave#'+Math.floor(((Q(p).trips||1)-1)/5); // Sep 2026: the cave keeps your tunnels between trips (kids read a reset as 'progress lost'); a fresh cave every 5 trips
  return {player:{id:p.id,name:p.name,grade:p.grade||3,emoji:'🧑‍🚀',img:hi},state:p.cave,today:()=>tk,shiftIn:()=>{const t=Q(p).trips||1;return 5*Math.ceil(t/5)+1-t;},
   coins:()=>p.coins,addCoins:(n)=>{p.coins+=n;save();},spend:(n)=>{if(p.coins<n)return false;p.coins-=n;save();return true;},
-  save:()=>save(),trip:true,noRecharge:true,tripRock:HOST&&HOST.rock,medals:()=>medals(p),gateNeed:id=>GATE_NEED[id]||0,
+  save:()=>save(),trip:true,noRecharge:true,resume:!!resume,tripRock:resume?null:HOST&&HOST.rock,pause:()=>pauseTrip(p),medals:()=>medals(p),gateNeed:id=>GATE_NEED[id]||0,
   guideSVG:SVG,guideImg:img(),
   mathQ:()=>{let q=null,best=null;for(let k=0;k<30;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');if(!['add','sub','mul','div'].includes(op))continue;q=genQ(op,Math.max(1,Math.min(8,lvl(p,op)-1)));if(q.tpl||typeof q.answer!=='number')continue;if(!best||String(q.text).length<String(best.text).length)best=q;if(String(q.text).length<=9)break;}q=best||genQ('add',1);return {q:q.text,a:q.answer};}, // quick-fire facts a little below the kid's level — Power Ups should feel snappy
   event:(t,d)=>{if(t==='power'){const dk=dayKey();p.daily[dk]=p.daily[dk]||{r:0,w:0};p.daily[dk][d&&d.ok?'r':'w']++;if(d&&d.ok&&typeof wkAnswer==='function')wkAnswer(p,5);}},
   fromLab:()=>!!(HOST&&HOST.from==='lab'),exit:()=>tripOver(p)};}
-function tripOver(p){const s=Q(p);const first=HOST&&HOST.first;const rock=HOST&&HOST.rock;const dest=HOST&&HOST.from==='lab'?'lab':'world';HOST=null;
+function tripOver(p){const s=Q(p);s.pause=null;const first=HOST&&HOST.first;const rock=HOST&&HOST.rock;const dest=HOST&&HOST.from==='lab'?'lab':'world';HOST=null;
  if(DEMO&&DEMO!==true){const d=JSON.parse(DEMO);DEMO=null;p.sci=d.sci||undefined;if(!d.sci)delete p.sci;p.cave=d.cave||undefined;if(!d.cave)delete p.cave;p.coins=d.coins;p.daily=d.daily;if(d.wkHist)p.wkHist=d.wkHist;save();go('world');toast('🔬 That was a preview — nothing was changed.');return;}
  /* every trip ends with a 🎟️ Shrink Ticket for the Inner Space ride (Ozzy picks you up a few battles later) */
  let tix=null,full=false;try{if(window.Inner){tix=Inner.award(p,{rock});full=!tix&&!!(Inner.isFull&&Inner.isFull(p));}}catch(e){}
@@ -172,12 +172,19 @@ setInterval(()=>{try{
 if(/quartzdemo/.test(location.search)){const iv=setInterval(()=>{try{const p=P();if(p&&p.setup&&curScreen==='world'){clearInterval(iv);DEMO=true;toast('🔬 Dr. Quartz preview: he\'s on his way…');}}catch(e){}},500);}
 
 /* ---------- the cave screen ---------- */
-function openCave(p){Cave.open(host(p));}
+function openCave(p){const r=RESUME;RESUME=false;Cave.open(host(p,r));}
+/* a break in the Lab (owner, Oct 2026): the cave's Lab elevator only pauses the trip. The Lab's ⚡ Power Room charges the same battery,
+   the Lab elevator goes straight back down (no question), and the trip ends when the hero takes the train home (endPaused) or the day changes. */
+let RESUME=false;
+function paused(p){const s=Q(p);if(s.pause&&s.pause!==dayKey())s.pause=null;return !!s.pause&&!DEMO;}
+function pauseTrip(p){const s=Q(p);if(DEMO){tripOver(p);return;}s.pause=dayKey();save();go('lab');}
+function resumeTrip(){const p=P();if(!p||!paused(p))return false;Q(p).pause=null;HOST=HOST||{first:false,rock:null};HOST.rock=null;HOST.from='lab';RESUME=true;save();go('cave');return true;}
+function endPaused(p){if(!p||!Q(p).pause)return false;HOST=HOST||{first:false,rock:null};HOST.from='world';tripOver(p);return true;}
 
 /* ---------- styles ---------- */
 const st=document.createElement('style');st.textContent=`.qz-row{display:flex;gap:12px;align-items:flex-start;text-align:left}.qz-av{flex:0 0 96px}.qz-av svg{width:96px;height:116px}
 .qz-bub{flex:1;background:#e7f5ff;border:3px solid #74c0fc;border-radius:18px;padding:10px 14px;font-size:18px;line-height:1.45;color:#1f2340}.qz-bub>b{display:block;color:#1971c2;font-size:14px;margin-bottom:2px}
 @media(max-width:560px){.qz-av{flex-basis:70px}.qz-av svg{width:70px;height:85px}.qz-bub{font-size:16px}}`;document.head.appendChild(st);
 
-window.Quartz={room:(which)=>{const p=P();if(!p||!window.Cave||!Cave.room)return false;p.cave=p.cave||{};const h=host(p);h.exit=()=>{try{if(window.Lab&&Lab.back)Lab.back();else go('lab');}catch(e){}};return Cave.room(h,which);},_bring:bring,_coming:coming,SVG,openCave,meet,drop,DROP_HTML,draw,bagHTML,medals,rockMineral,GATE_NEED,DROP,_Q:Q,_spawn:spawn,_demo:()=>{DEMO=true;},startTrip};
+window.Quartz={room:(which)=>{const p=P();if(!p||!window.Cave||!Cave.room)return false;p.cave=p.cave||{};const h=host(p);h.exit=()=>{try{if(window.Lab&&Lab.back)Lab.back();else go('lab');}catch(e){}};return Cave.room(h,which);},_bring:bring,_coming:coming,SVG,openCave,meet,drop,DROP_HTML,draw,bagHTML,medals,rockMineral,GATE_NEED,DROP,_Q:Q,_spawn:spawn,_demo:()=>{DEMO=true;},startTrip,paused,resume:resumeTrip,endPaused};
 })();

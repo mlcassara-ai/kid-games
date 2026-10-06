@@ -303,7 +303,7 @@ function step(dx,dy){
  const rk=rockOf(t);if(!rk)return;
  if(rk.h>drill().h){sfx('bonk');say(`⛏️ Too hard! ${rk.n} is about ${rk.h} on the hardness scale. Your ${drill().e} ${drill().n} digs up to ${drill().h}. Upgrade in the 🛒 Gear shop.`);return;}
  const cost=rk.h>drill().h-1.5?2:1;
- if(S.bat<cost){if(S.y===0){say(MQ()?(powerLeft()>0?'🔋 Battery empty! Tap ⚡ Power Up — every right answer adds charge.':'🔋 The battery is worn out for this trip. Bring Dr. Quartz another 🪨 mystery rock to come back!'):`🔋 Battery too low to dig! It's charging — full in ${fullIn()}. Tap ⚡ Power Up to charge it faster with math!`,4500);}else beamHome('battery');return;}
+ if(S.bat<cost){if(S.y===0){say(MQ()?(powerLeft()>0?'🔋 Battery empty! Ride the 🔬 Lab elevator up to the ⚡ Power Room: every right answer adds charge.':'🔋 The battery is worn out for this trip. Ride the 🔬 Lab elevator up and take the train home. Come back for another dig soon!'):`🔋 Battery too low to dig! It's charging — full in ${fullIn()}. Tap ⚡ Power Up to charge it faster with math!`,4500);}else beamHome('battery');return;}
  const bm0=S.bat/batMax();S.bat-=cost;const i=idx(nx,ny);W.g[i]=T_AIR;setDug(i);S.stats.dug++;burst(nx,ny,rk.col);sfx('dig',rk.h);if(!MQ()&&bm0>=.25&&S.bat/batMax()<.25)setTimeout(()=>sfx('low'),200);
  S.x=nx;S.y=ny;after();
  if(S.bat<=0)setTimeout(()=>beamHome('battery'),400);
@@ -457,11 +457,11 @@ function drawShaft(c,px,py,T,top){c.fillStyle='#3a3340';c.fillRect(px,py,T+1,T+1
 const CAMP=[{x:2,e:'🔋',n:'Power Up',a:'power'},{x:8,e:'🔬',n:'Lab',a:'lab'},{x:10,e:'🛒',n:'Gear',a:'gear'},{x:12,e:'🏛️',n:'Museum',a:'museum'},{x:14,e:'🌱',n:'Garden',a:'garden',show:()=>S.seen.cave},{x:16,e:'📓',n:'Journal',a:'journal'},{x:18,e:'🚀',n:'Core Probe',a:'probe',show:()=>S.gates.core}];
 const QZX=6.3; // where Dr. Quartz stands
 const LABX=6; /* Math Quest: the elevator back up to the Lab (owner, Oct 2026), where Dr. Quartz used to stand */
-const campB=()=>CAMP.filter(b=>(!b.show||b.show())&&(!MQ()||b.a==='power'||b.a==='probe')); /* Math Quest: Lab, Gear, Museum, Garden and Journal are rooms in the Lab now */
+const campB=()=>CAMP.filter(b=>(!b.show||b.show())&&(!MQ()||b.a==='probe')); /* Power Up is the Lab's Power Room since Oct 2026 */ /* Math Quest: Lab, Gear, Museum, Garden and Journal are rooms in the Lab now */
 function campBadge(b){if(b.a==='lab'){const u=S.pack.filter(p=>p.t!=='f').length;return u?String(u):'';}if(b.a==='museum')return museumReady()?'!':'';if(b.a==='garden')return S.garden&&S.garden.last!==realDay()?'💧':'';if(b.a==='power')return S.bat<batMax()*.25?'!':'';return '';}
 function campTap(wx,wy){if(wy<-.55||wy>1.05)return false;
  if(Math.abs(wx-.5)<.6){sfx('tap');act('elev');return true;}
- if(MQ()&&Math.abs(wx-(LABX+.5))<.7){sfx('tap');leave();return true;}
+ if(MQ()&&Math.abs(wx-(LABX+.5))<.7){sfx('tap');leave(true);return true;} /* up to the Lab: the trip only pauses (owner, Oct 2026: Power Up is in the Lab now) */
  if(!MQ()&&Math.abs(wx-QZX)<.55){sfx('tap');act('tip');return true;}
  const b=campB().find(b=>Math.abs(wx-(b.x+.5))<.75);if(!b)return false;sfx('tap');
  if(b.a==='power'&&S.bat>=batMax()-.5){say('🔋 Your battery is full — go dig!',1800);return true;}
@@ -503,7 +503,7 @@ function hud(){if(!root)return;const q=s=>root.querySelector(s);const L=layerOf(
  }else if(S.y>0){a+=`<button class="cv-act" data-a="home">🏠<span>Camp</span></button>`;if(S.gear.uv)a+=`<button class="cv-act ${uvOn?'on':''}" data-a="uv">🔦<span>UV ${uvOn?'on':'off'}</span></button>`;}
  const acts=q('#cvActs');if(acts.dataset.h!==a){acts.innerHTML=a;acts.dataset.h=a;acts.querySelectorAll('button').forEach(b=>b.onclick=()=>act(b.dataset.a));}
 }
-const BATW=[[.5,'🔋 Battery: half left.'],[.25,'🔋 Battery low: 25% left. ⚡ Power Up at the landing tops it up.'],[.05,'🪫 Battery almost out: 5% left! Head back up soon.']];
+const BATW=[[.5,'🔋 Battery: half left.'],[.25,'🔋 Battery low: 25% left. The ⚡ Power Room up in the Lab tops it up.'],[.05,'🪫 Battery almost out: 5% left! Head back up soon.']];
 function batWarn(){if(!MQ()||!S)return;const f=S.bat/batMax();let lv=0;BATW.forEach(([t],i)=>{if(f<=t)lv=i+1;});const was=S.batW||0;
  if(lv>was){S.batW=lv;say(BATW[lv-1][1],4200);if(lv>=2)sfx('low');}else if(lv<was)S.batW=lv;}
 function hudBat(){if(!root)return;const q=s=>root.querySelector(s);const bm=batMax();try{batWarn();}catch(e){}q('#cvBatI').style.width=(S.bat/bm*100)+'%';q('#cvBatI').className=S.bat/bm<.25?'low':'';const f=S.y===0&&S.bat<bm?fullIn():'';q('#cvBatT').textContent=`${f?'🔌':'🔋'} ${Math.floor(S.bat)}/${bm}${f?' · '+f:''}`;q('#cvBatT').parentNode.title=f?'Charging — full in '+f:'Battery';}
@@ -526,7 +526,8 @@ function tipText(){const unk=S.pack.filter(p=>p.t==='m'||p.t==='g');
  if(hardRock&&nd)return {t:`${hardRock.n} is too hard for your ${drill().n}. A <b>${nd.e||'⛏️'} ${nd.n}</b> in the 🛒 Gear shop can dig it (🪙 ${fmt(nd.c)}).`,a:'gear'};
  const hot=rowTemp(Math.min(ROWS-1,deep+8))>suit().t;const ns=CD.SUITS[S.gear.suit+1];
  if(hot&&ns)return {t:`It gets <b>hot</b> down there! A ${ns.n} from the 🛒 Gear shop keeps you safe up to ${fmt(ns.t)} °C.`,a:'gear'};
- if(S.bat<batMax()*.3&&(!MQ()||powerLeft()>0))return {t:'Your battery is low. Tap <b>⚡ Power Up</b> — every right math answer adds charge!',a:'power'};
+ if(MQ()&&S.bat<batMax()*.3&&powerLeft()>0)return {t:'Your battery is low. Ride the <b>🔬 Lab elevator</b> up to my <b>⚡ Power Room</b>: every right math answer adds charge, and then the elevator brings you straight back down to your dig.'};
+ if(S.bat<batMax()*.3&&!MQ())return {t:'Your battery is low. Tap <b>⚡ Power Up</b> — every right math answer adds charge!',a:'power'};
  if(S.pack.length>=packMax()-1)return {t:'Your backpack is nearly full. A bigger 🎒 backpack from the Gear shop lets you carry more finds.',a:'gear'};
  return {t:nxtL?`Dig down toward the <b>${nxtL.e} ${esc(nxtL.n)}</b>! Look for sparkly 💎 minerals, 🦴 fossil pieces and 🧰 buried chests. Tap the 🛗 Elevator to skip to layers you've already reached.`:'You have been everywhere! Try finding every mineral for your 📓 Journal.'};}
 function tipCard(){const t=tipText();modal(`<div class="cv-card">${guide(t.t)}<div class="cv-row">${t.a?`<button class="cv-btn" id="cvTipGo">${({lab:'🔬 Go to the Lab',museum:'🏛️ Museum',gear:'🛒 Gear shop',power:'⚡ Power Up'})[t.a]}</button>`:''}<button class="cv-btn ghost" data-close>Thanks!</button></div></div>`);
@@ -1276,12 +1277,15 @@ function open(host){coreOn=false;coreRoll=null;
  H=host;S=host.state;initState();
  if(!document.getElementById('cvCSS')){const st=document.createElement('style');st.id='cvCSS';st.textContent=CSS;document.head.appendChild(st);}
  let tripK=null;
- if(MQ()){S.bat=batMax();S.tripPow=0;S.tripSol=0;S.x=4;S.y=0;uvOn=false;S.trips=(S.trips||0)+1;PEND_FOS+=deliverFossils();
+ const resume=MQ()&&H.resume; /* back down after a break in the Lab: same trip, same battery */
+ if(resume){S.x=LABX;S.y=0;uvOn=false;}
+ else if(MQ()){S.bat=batMax();S.tripPow=0;S.tripSol=0;S.batW=0;S.x=4;S.y=0;uvOn=false;S.trips=(S.trips||0)+1;PEND_FOS+=deliverFossils();
   if(H.tripRock){tripK='r'+Date.now().toString(36);S.pack.push({t:'m',id:H.tripRock,k:tripK,tests:{},map:1});}}
- genWorld();let grew=0;if(MQ()&&!S.caveIn&&S.trips>1)grew=regrow();build();snapCam();hud();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+ genWorld();let grew=0;if(MQ()&&!resume&&!S.caveIn&&S.trips>1)grew=regrow();build();snapCam();hud();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+ if(resume){say(`🛗 Back at the dig site. 🔋 ${Math.floor(S.bat)}/${batMax()}. Keep digging!`,3500);save(true);return;}
  if(!MQ()&&PEND_FOS){try{say(`🦴 ${PEND_FOS} fossil piece${PEND_FOS>1?'s':''} went to the 🏛️ Museum.`);}catch(e){}PEND_FOS=0;}
  if(MQ()){const first=!S.stats.dug&&S.trips<=1;setTimeout(()=>{S.caveIn=false;},0);
-  modal(`<div class="cv-card">${first?`<div class="cv-big">⛏️</div><h2>Deep Down: The Science Cave</h2>`:''}${guide(first?`Welcome to my dig site, ${esc(H.player.name)}! Down there are the real layers of the Earth — minerals 💎, fossils 🦴 and cave critters 🦇.<br>First, let's find out what your <b>mystery rock</b> is. I'll show you how in the Lab!`:!H.tripRock?`Welcome back, ${esc(H.player.name)}! Your key let you ride straight down. No new rock to test today, so grab your shovel and dig!`:pick(Math.random,[`Welcome back, ${esc(H.player.name)}! Let's see what that mystery rock of yours is.`,`Ooh, another mystery rock! To the Lab — I can't wait to find out what it is!`,`Hello again, rock detective! Let's test your mystery rock first, then you can dig.`]))}
+  modal(`<div class="cv-card">${first?`<div class="cv-big">⛏️</div><h2>Deep Down: The Science Cave</h2>`:''}${guide(first?`Welcome to my dig site, ${esc(H.player.name)}! Down there are the real layers of the Earth — minerals 💎, fossils 🦴 and cave critters 🦇.<br>First, let's find out what your <b>mystery rock</b> is. I'll show you how in the Lab!`:!H.tripRock?`Welcome back, ${esc(H.player.name)}! My elevator let you ride straight down. No new rock to test today, so grab your shovel and dig!`:pick(Math.random,[`Welcome back, ${esc(H.player.name)}! Let's see what that mystery rock of yours is.`,`Ooh, another mystery rock! To the Lab — I can't wait to find out what it is!`,`Hello again, rock detective! Let's test your mystery rock first, then you can dig.`]))}
   ${!first&&S.caveIn?'<p class="cv-sub">🌀 The cave shifted since your last visit — fresh minerals, coins and fossil pieces are waiting!</p>':(!first?`<p class="cv-sub">⛏️ Your tunnels are just where you left them. Keep digging deeper!${grew?` 🌱 A small rockfall closed ${grew} old tunnel${grew>1?'s':''} and hid new minerals and coins inside. Dig through them again!`:''}</p>`:'')}${shiftLine()?`<p class="cv-sub">${shiftLine()}</p>`:''}${(()=>{const n=PEND_FOS;PEND_FOS=0;return n?`<p class="cv-sub">🦴 <b>${n} fossil piece${n>1?'s':''}</b> from your backpack went to the 🏛️ Museum! Build skeletons there.</p>`:'';})()}<p class="cv-sub">Your battery is full. ⚡ Math can add up to one more battery of charge this trip.</p><button class="cv-btn" id="cvGoLab">${H.tripRock||first?'🔬 Study my mystery rock':'⛏️ Start digging'}</button></div>`,{noX:1});
   const b=root.querySelector('#cvGoLab');if(b)b.onclick=()=>{closeModal();if(tripK)bench(tripK);else if(H.tripRock||first)openLab();};
   save(true);return;}
@@ -1299,7 +1303,7 @@ function room(host,which){coreOn=false;coreRoll=null;H=host;S=host.state;initSta
  if(root){try{root.remove();}catch(e){}root=null;}genWorld();build();root.classList.add('cv-room');try{hud();}catch(e){}
  const fn={garden:openGarden,museum:openMuseum,journal:openJournal,gear:openGear,power:openPower,bench:openLab}[which];try{if(which==='museum'||which==='bench')deliverFossils();}catch(e){}
  if(fn)fn();clearInterval(ROOMW);ROOMW=setInterval(()=>{if(!root){clearInterval(ROOMW);return;}if(!modalOpen()){clearInterval(ROOMW);leave();}},450);return !!fn;}
-function leave(){clearInterval(ROOMW);save(true);cardQ.length=0;cancelAnimationFrame(raf);window.removeEventListener('keydown',onKey);window.removeEventListener('resize',resize);if(root)root.remove();root=null;const h=H;H=null;W=null;if(h&&h.exit)h.exit();}
+function leave(pause){clearInterval(ROOMW);save(true);cardQ.length=0;cancelAnimationFrame(raf);window.removeEventListener('keydown',onKey);window.removeEventListener('resize',resize);if(root)root.remove();root=null;const h=H;H=null;W=null;if(h){if(pause===true&&h.pause)h.pause();else if(h.exit)h.exit();}}
 /* ---------------- The Core Keeper (Oct 2026) ----------------
    A surprise for explorers who own the Core Suit (the sixth suit, CD.SUITS[..].core). Deep in the Mantle the floor cracks and the
    hero falls through the Earth's real layers to the centre (the same layers the Core Probe visits, but this time in person).
@@ -1499,5 +1503,5 @@ let coreDbg=null;
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={mathQ,open,room,leave,summary,coreHint,deliverFossils:st=>deliverTo(st),_dbg:()=>({S,W,H,ROWS,save,regrow,shiftLine,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
+window.Cave={mathQ,open,room,leave,summary,coreHint,deliverFossils:st=>deliverTo(st),_dbg:()=>({S,W,H,campB,ROWS,save,regrow,shiftLine,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
 })();

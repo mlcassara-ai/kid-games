@@ -42,6 +42,7 @@ function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[L
 /* ---------- lab greeting ---------- */
 function greet(p){const s=Q(p),L=s.lab,m=typeof Quartz!=='undefined'?Quartz.medals(p):0;
  const firstVisit=!L.visits;const who=first(p);
+ if(window.Quartz&&Quartz.paused&&Quartz.paused(p))return `Taking a break, ${who}? Charge your battery in my <b>⚡ Power Room</b>, then the <b>🛗 elevator</b> takes you straight back down to your dig.`;
  const hi=true?(firstVisit?`Welcome to my lab, ${who}! You came all the way by train. Have a look around. Everything here is for explorers like you. 🔬`:[`Welcome back, ${who}! How was the train ride?`,`Ah, ${who}! Come in, come in. Mind the rock pile.`,`There's my favorite explorer! Fresh off the train.`,`Welcome back to the lab, ${who}. I was just labeling rocks.`][(L.visits||0)%4])
   :firstVisit?`Your key works! Welcome to my lab, ${who}. Make yourself at home. 🔬`
   :[`I heard the door. You let yourself in with your key! Welcome back, ${who}.`,`Welcome back, ${who}! I see your key still works. 🔑`,`Oh, ${who}! Come in, come in. Mind the rock pile.`,`There's my favorite explorer! You let yourself in. Good.`,`Welcome back to the lab, ${who}. I was just labeling rocks.`,`Ah, ${who}! I left the door unlocked for you. Well, you have a key anyway.`][(L.visits||0)%6];
@@ -178,6 +179,7 @@ function newQ(p){const s=Q(p),L=s.lab;const young=p.grade!=null&&p.grade<=2;let 
  const i=pool[Math.floor(Math.random()*pool.length)];L.sq=seen.concat(i).slice(-Math.min(15,Math.floor(pool.length/2)+5));
  const order=SCIQ[i].a.map((x,k)=>k).sort(()=>Math.random()-.5);EQ={i,order,picked:-1};}
 function rockHTML(p){
+ if(window.Quartz&&Quartz.paused&&Quartz.paused(p)){const c=p.cave||{};let bm='';try{bm=' / '+CD().BATT[(c.gear&&c.gear.bat)||0].v;}catch(e){}return `<div class="lb-rocks"><div class="lb-rock-n">⛏️</div><div class="lb-rock-act"><p style="margin:0 0 6px;font-weight:700;font-size:18px">Your dig is waiting!</p><p class="muted" style="margin:0 0 8px">🔋 Battery: ${Math.floor(c.bat||0)}${bm}. Charge it in the ⚡ Power Room first if you need to.</p><button class="btn green big" onclick="Lab.down()">🛗 Back down to your dig</button></div></div>`;}
  if(!canRide(p))return `<div class="lb-rocks"><div class="lb-rock-n">🔒</div><div class="lb-rock-act"><p style="margin:0 0 6px;font-weight:700;font-size:18px">Dr. Quartz takes you down himself the first time.</p><p class="muted" style="margin:0">Find a 🪨 <b>mystery rock</b> in a treasure chest or a battle, and he will come and find you on the map.</p></div></div>`;
  if(PASS)return `<div class="lb-rocks"><div class="lb-rock-n">✅</div><div class="lb-rock-act"><p style="margin:0 0 8px;font-weight:700;font-size:18px">Right! The elevator is ready.</p><button class="btn green big" onclick="Lab.down()">🛗 Ride the elevator down</button></div></div>`;
  if(!EQ)newQ(p);const Qn=SCIQ[EQ.i];
@@ -190,6 +192,7 @@ function ans(k){const p=P();if(!p||!EQ)return;
  if(k===0)PASS=true;}
 function buy(){}
 function down(){const p=P();window.__tripFrom='lab';if(DEMO){toast('🔬 Preview: the elevator is closed.');return;}
+ if(window.Quartz&&Quartz.paused&&Quartz.paused(p)){try{SFX.tap();}catch(e){}try{closeModal();}catch(e){}Quartz.resume();return;}
  if(!canRide(p)||!PASS)return;
  PASS=false;EQ=null;try{SFX.tap();}catch(e){}try{closeModal();}catch(e){}
  Quartz.startTrip(false,true);}
@@ -349,7 +352,7 @@ setInterval(syncTile,500);
 function keyCatchUp(){try{const p=P();if(!p||DEMO||!keyDue(p)||curScreen!=='world'||document.querySelector('#modal.show'))return;if(window.MQ_VISIT&&MQ_VISIT.busy('labkey'))return;giveKey(p,()=>{});}catch(e){}}
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world'){setTimeout(syncTile,0);setTimeout(keyCatchUp,2500);}}});
 /* back to Number Town by train (ride.js), landing on the station platform */
-function home(){const go2=()=>{try{const p=P();const x=23,y=20;if(typeof W!=='undefined'&&W&&W.T&&W.T[y]&&W.T[y][x]&&!W.T[y][x].block){W.hx=x;W.hy=y;W.drawX=x;W.drawY=y;W.path=[];}if(p)p.wpos={x,y};}catch(e){}go('world');};
+function home(){const go2=()=>{try{const p=P();const x=23,y=20;if(typeof W!=='undefined'&&W&&W.T&&W.T[y]&&W.T[y][x]&&!W.T[y][x].block){W.hx=x;W.hy=y;W.drawX=x;W.drawY=y;W.path=[];}if(p)p.wpos={x,y};}catch(e){}try{if(window.Quartz&&Quartz.endPaused&&Quartz.endPaused(P()))return;}catch(e){}go('world');}; /* a paused dig ends when you leave by train */
  if(window.Ride&&Ride.go('home',go2))return;go2();}
 window.Lab={home,open,back:()=>{VIEW='house';go('lab');},tap,petLine,houseSVG,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,ans,_pass:()=>{PASS=true;},SCIQ,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
 })();

@@ -395,6 +395,16 @@ const tests=[
    p.sci.trips=5;p.cave={trips:5,stats:{dug:12}};const r0=p.sci.rocks;Lab.down();T.ok(curScreen==='cave'&&p.sci.rocks===r0&&p.sci.trips===6,'the elevator did not start a trip after a right answer, or it spent a rock');
    await T.wait(300);T.ok(/ride straight down/.test(document.body.innerText+document.body.innerText),'no welcome for a trip without a rock');
    {const ex=document.querySelector('#cvExit');T.ok(document.querySelector('#cvRoot.cv-trip')&&parseFloat(getComputedStyle(document.getElementById('cvRoot')).fontSize)<20&&ex&&getComputedStyle(ex).display==='none'&&getComputedStyle(document.querySelector('#cvRoot .cv-bat')).display==='none','the cave still shows the Map/Up button or the battery bar');try{Cave._dbg().closeModal();}catch(e){}Cave.leave();await T.wait(300);T.ok(curScreen==='lab','leaving the cave did not go back up to the Lab: '+curScreen);try{closeModal();}catch(e){}}go('world');try{closeModal();}catch(e){}}
+  /* a break in the Lab: the cave's Lab elevator pauses the trip, Power Up is in the Lab, the elevator goes back down to the same trip, the train home ends it */
+  {p.sci.pause=null;go('lab');Lab._pass();Lab.down();await T.wait(400);let d=Cave._dbg();try{d.closeModal();}catch(e){}const t0=p.sci.trips;
+d.S.bat=5;d.save(true);d.campTap(6.5,.2);await T.wait(300);
+   T.ok(curScreen==='lab'&&Quartz.paused(p)&&p.cave.bat===5&&!document.getElementById('cvRoot'),'riding up to the Lab did not pause the trip with the battery kept: '+curScreen);
+   go('lab','room');T.ok(/Back down to your dig/.test(document.body.innerText)&&!/science question/.test(document.body.innerText),'the Lab elevator does not offer the way back down to the paused dig');
+   T.ok(Quartz.room('power')&&/Power Up/.test(document.querySelector('#cvMod').innerText),'no Power Up in the Lab');Cave._dbg().closeModal();await T.wait(600);
+   Lab.down();await T.wait(400);d=Cave._dbg();T.ok(curScreen==='cave'&&p.sci.trips===t0&&d.S.bat===5&&!Quartz.paused(p),'going back down did not continue the same trip');
+   T.ok(!d.campB().some(b=>b.a==='power'),'Power Up is still at the cave landing');
+   d.campTap(6.5,.2);await T.wait(300);T.ok(Quartz.paused(p),'second break did not pause');Lab.home();for(let i=0;i<40&&Ride.busy();i++){Ride._skip();await T.wait(50);}await T.wait(300);
+   T.ok(curScreen==='world'&&!Quartz.paused(p),'taking the train home did not end the paused dig');try{closeModal();}catch(e){}}
   go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.body.innerText),'the Fact Gym building did not open the fact grid');go('me','quests');T.ok(!document.querySelector('.mq-hc'),'Mastery card is on Me → Quests');go('world');await T.wait(50);
   /* Oct 2026 menus: picture/name open Me; coins sit under the name; Pets and ⚙️ More (Sound, Report, Log out) on the right; no Bag or World button */
   {const tb=document.querySelector('.topbar');T.ok(tb.querySelector('.tb-me')&&tb.querySelector('.tb-info .coins')&&!tb.querySelector('[onclick*="backpack"]')&&!tb.querySelector('[aria-label="World"]')&&tb.querySelectorAll('.iconbtn.tbi').length===2,'the top bar is not Me + Pets + More');
