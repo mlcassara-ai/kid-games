@@ -5,7 +5,7 @@
    and signs on the hills: "Depot" (west) and "Discovery Zone" (east).
    The train comes out of the Depot on its own every 15 minutes of time on the map (the first one 1–15 minutes in), slows into the station, waits
    about 16 s ("All aboard!" near the end, then a whistle) and leaves through the east tunnel. The board counts down to the
-   next train. Tapping the board: 🔔 ring the bell (free; the train comes within 1 minute) or 🪙 CALL_COST to call it right now.
+   next train. The board's post has a small red crosswalk-style 🔔 button: walking into the sign presses it (free; the train comes within 1 minute; its light glows until the train arrives), then the card shows the 🪙 call option or 🪙 CALL_COST to call it right now.
    Oct 2026: it goes to Dr. Quartz's Lab. Walking onto the stopped train asks "All aboard!" and ride.js plays the trip into the Lab.
    Visitors: now and then someone steps off and walks into Number Town, or comes out of Town to catch the train
    (the Kind Teacher, Dr. Quartz, Principal Wise, Ms. Rosa, Elder Wiz, the Pet Keeper). Riders just appear beside the
@@ -181,6 +181,12 @@ function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)retu
   ctx.font=`800 ${Math.round(ts*.28)}px ui-monospace, Menlo, monospace`;const bw=Math.max(ts*1.3,ctx.measureText(txt).width+ts*.4),bh=ts*.62; /* the frame grows to fit the time or the word */
   ctx.fillStyle='#495057';const py=(ROW+.86)*ts-cy;ctx.fillRect(mid-ts*.05,sy+ts*.15,ts*.1,py-sy-ts*.15);ctx.fillRect(mid-ts*.14,py-ts*.04,ts*.28,ts*.05); /* the post runs down to the track, with a little foot */ctx.fillStyle='#212529';rr(ctx,mid-bw/2,sy-ts*.42,bw,bh,ts*.08);ctx.fill();
   ctx.strokeStyle='#ffd43b';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=TR.ph==='away'?'#ffd43b':TR.ph==='out'?'#ff922b':'#69db7c';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,mid,sy-ts*.11);
+  /* the bell button on the post (owner, Oct 2026): a small red crosswalk-style box; its light glows while the bell has called the train */
+  {const bw2=ts*.22,bh2=ts*.3,bx=mid-bw2/2,by=sy+ts*.34,pr=TR.press&&now-TR.press<260,lit=TR.called==='bell'&&(TR.ph==='away'||TR.ph==='in');
+   ctx.fillStyle='#c92a2a';rr(ctx,bx,by,bw2,bh2,ts*.04);ctx.fill();ctx.strokeStyle='#5c0f0f';ctx.lineWidth=1.5;ctx.stroke();
+   ctx.fillStyle=lit?`rgba(255,212,59,${.65+.35*Math.sin(now/180)})`:'#4a1010';ctx.beginPath();ctx.arc(mid,by+bh2*.24,ts*.035,0,7);ctx.fill();
+   ctx.fillStyle=pr?'#ced4da':'#f1f3f5';ctx.beginPath();ctx.arc(mid,by+bh2*.64+(pr?1:0),ts*(pr?.058:.066),0,7);ctx.fill();ctx.strokeStyle='#868e96';ctx.lineWidth=1;ctx.stroke();
+   ctx.font=`${Math.round(ts*.075)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔔',mid,by+bh2*.65+(pr?1:0));}
   try{wLabel(ctx,TR.ph==='stop'?'In station':'Next train',sx+ts/2,sy-ts*.66,'#fff','rgba(43,35,64,.85)');}catch(e){}}});
  TR.walkers.forEach(v=>items.push({y:v.y+.01,draw:()=>drawWalker(ctx,v,cx,cy,ts,now)}));}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
@@ -201,6 +207,7 @@ function ride(){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>A
 /* off to the Lab (ride.js plays the trip, lab.js is the Lab); the train on the map pulls out */
 function board(){try{closeModal();}catch(e){}try{const p=P();if(p&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}if(TR.ph==='stop'){TR.ph='out';TR.t=0;TR.bubble='';doors(false);}
  const arrive=()=>{go(window.Lab?'lab':'world');};if(!(window.Ride&&Ride.go('lab',arrive)))arrive();}
-window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=open;window.MQ_NPC.tride=ride;
+function press(){TR.press=performance.now();if(TR.ph==='away'&&TR.wait>BELL_WAIT){ring();return;}try{SFX.tap();}catch(e){}open();}
+window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=ride;
 window.Train={_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();
