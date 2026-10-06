@@ -48,15 +48,49 @@ function fountainSay(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T
   [[ax,ay,ts*.06],[ax+ts*.14,ay-ts*.22,ts*.09]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r*pop,0,7);ctx.fill();ctx.stroke();});
   const x0=bx-w/2,y0=by-h/2,r=h/2;ctx.beginPath();ctx.moveTo(x0+r,y0);ctx.lineTo(x0+w-r,y0);ctx.arc(x0+w-r,y0+r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x0+r,y0+h);ctx.arc(x0+r,y0+r,r,Math.PI/2,Math.PI*1.5);ctx.closePath();ctx.fill();ctx.stroke();
   if(pop>=1){ctx.fillStyle='#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(SAY.t,bx,by+fs*.05);}ctx.restore();}});}
-/* alligators and shark fins in the sea round the map (owner, Oct 2026): a few at a time near the hero; each one rises out of the water,
-   swims along the coast for a few seconds and sinks back down. Drawing only. */
+/* shark fins in the sea round the map (owner, Oct 2026; the alligators went: it's salt water): a few at a time near the hero; each one
+   rises out of the water, swims along the coast for a few seconds and sinks back down. Drawing only.
+   Shark jump: each time the hero walks within 2 squares of the sea there's a 1-in-5 chance a shark leaps out of the water near them,
+   says one of SHARK and splashes back in (at most one every 15 s). */
 let SEA=[],SEAAT=0;const SEAMAX=3;
+const SHARK=['You look like lunch to me!','Mmm… is that a snack I smell?','Come on in, the water\'s lovely! Heh heh.','Chomp chomp! Just practising.','I\'m not hungry. …Okay, maybe a little hungry.','Nice shoes! Are they crunchy?','Don\'t mind me, just keeping my teeth shiny!'];
+let JUMP=null,JUMPAT=0,NEARSEA=false,SHI=-1;const JLEN=1700,JSAY=3200;
+function startJump(W,now,hx,hy){let best=null,bd=1e9;for(let y=hy-3;y<=hy+3;y++)for(let x=hx-3;x<=hx+3;x++)if(edgeSea(W,x,y)){const d=Math.hypot(x-hx,y-hy);if(d<bd){bd=d;best=[x,y];}}
+ if(!best)return false;SHI=(SHI+1+Math.floor(Math.random()*(SHARK.length-1)))%SHARK.length;
+ JUMP={x:best[0]+.5,y:best[1]+.6,t0:now,dir:best[0]+.5<=hx+.5?1:-1,t:SHARK[SHI]};JUMPAT=now+15000;return true;}
+function sharkCheck(W,now){const hx=W.hx,hy=W.hy;let near=false;for(let y=hy-2;y<=hy+2&&!near;y++)for(let x=hx-2;x<=hx+2;x++)if(edgeSea(W,x,y)){near=true;break;}
+ if(near&&!NEARSEA&&!JUMP&&now>JUMPAT&&Math.random()<.2)startJump(W,now,hx,hy);NEARSEA=near;}
+/* the leaping shark: up out of the water in an arc, nose first, and back in with a splash */
+function drawShark(ctx,s){ctx.lineWidth=Math.max(1.2,2*s);ctx.strokeStyle='#2b3440';
+ ctx.fillStyle='#7d8b99';ctx.beginPath();ctx.moveTo(-30*s,0);ctx.lineTo(-40*s,-11*s);ctx.lineTo(-37*s,0);ctx.lineTo(-40*s,10*s);ctx.closePath();ctx.fill();ctx.stroke(); /* tail */
+ ctx.beginPath();ctx.moveTo(-4*s,-8*s);ctx.quadraticCurveTo(0,-20*s,8*s,-23*s);ctx.quadraticCurveTo(7*s,-14*s,10*s,-7*s);ctx.closePath();ctx.fill();ctx.stroke(); /* dorsal fin */
+ ctx.beginPath();ctx.ellipse(0,0,32*s,10*s,0,0,7);ctx.fill();ctx.stroke(); /* body */
+ ctx.fillStyle='#eef2f5';ctx.beginPath();ctx.ellipse(6*s,4*s,22*s,5*s,0,0,Math.PI);ctx.fill(); /* belly */
+ ctx.fillStyle='#7d8b99';ctx.beginPath();ctx.moveTo(2*s,5*s);ctx.lineTo(-6*s,15*s);ctx.lineTo(10*s,7*s);ctx.closePath();ctx.fill();ctx.stroke(); /* side fin */
+ ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(21*s,-3*s,2.2*s,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(21.7*s,-3.7*s,.8*s,0,7);ctx.fill();
+ ctx.strokeStyle='#2b3440';ctx.beginPath();ctx.moveTo(15*s,3*s);ctx.quadraticCurveTo(23*s,7*s,30*s,2*s);ctx.stroke(); /* grin */
+ ctx.fillStyle='#fff';for(let i=0;i<4;i++){const tx=(17+i*3.3)*s,ty=(4.3+Math.sin(i/3*Math.PI)*.8)*s;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(tx+1.6*s,ty);ctx.lineTo(tx+.8*s,ty+2.2*s);ctx.closePath();ctx.fill();}
+ ctx.strokeStyle='rgba(43,52,64,.5)';ctx.lineWidth=Math.max(1,1.2*s);[9,12,15].forEach(gx=>{ctx.beginPath();ctx.moveTo(gx*s,-4*s);ctx.lineTo((gx-1)*s,1*s);ctx.stroke();});}
+function splash(ctx,x,y,ts,k,seed){const s=ts/50;ctx.save();ctx.strokeStyle=`rgba(255,255,255,${1-k})`;ctx.lineWidth=Math.max(1.2,2*s);ctx.beginPath();ctx.ellipse(x,y,(10+26*k)*s,(3+7*k)*s,0,0,7);ctx.stroke();
+ ctx.fillStyle=`rgba(225,245,255,${1-k})`;for(let i=0;i<9;i++){const a=Math.PI*(.1+.8*((i*37+seed)%9)/8),v=(18+((i*53)%7)*3)*s,px=x+Math.cos(a)*v*k*1.4*(i%2?1:-1),py=y-Math.sin(a)*v*k*2+30*s*k*k;ctx.beginPath();ctx.arc(px,py,(2.6-k*1.2)*s,0,7);ctx.fill();}ctx.restore();}
+function sharkJump(ctx,items,cx,cy,ts,now){if(!JUMP)return;const age=now-JUMP.t0;if(age>Math.max(JLEN,JSAY)+300){JUMP=null;return;}
+ const bx=JUMP.x*ts-cx,by=JUMP.y*ts-cy;if(bx<-ts*3||by<-ts*3||bx>W.vw+ts*3||by>W.vh+ts*3)return;const s=ts/50;
+ items.push({y:Math.floor(JUMP.y)+.35,draw:()=>{const k=age/JLEN;
+  if(k<1){const x=bx+(k-.5)*ts*1.3*JUMP.dir,y=by-Math.sin(k*Math.PI)*ts*1.5,ang=Math.atan2(-Math.cos(k*Math.PI)*1.5*Math.PI,1.3)*JUMP.dir;
+   ctx.save();ctx.beginPath();ctx.rect(-1e4,-1e4,2e4,1e4+by+4*s);ctx.clip(); /* nothing below the water line */
+   ctx.translate(x,y);ctx.rotate(ang);ctx.scale(JUMP.dir,1);drawShark(ctx,s);ctx.restore();}
+  if(age<700)splash(ctx,bx-ts*.65*JUMP.dir,by,ts,age/700,3);
+  if(k>.8&&age<JLEN+700)splash(ctx,bx+ts*.65*JUMP.dir,by,ts,Math.min(1,(age-JLEN*.8)/700),5);}});
+ if(age<JSAY){const ax=bx+ts*.2,ay=by-ts*1.6,pop=Math.min(1,age/250),fade=age>JSAY-400?(JSAY-age)/400:1;
+  items.push({y:1e6-1,draw:()=>{ctx.save();ctx.globalAlpha=fade;const fs=Math.max(12,ts*.24);ctx.font=`700 ${fs}px Fredoka, sans-serif`;const tw=ctx.measureText(JUMP.t).width,w=(tw+fs*1.4)*pop,h=fs*2*pop,x0=Math.max(4,Math.min(W.vw-w-4,ax-w/2)),y0=ay-h,r=h/2;
+   ctx.fillStyle='#fff';ctx.strokeStyle='#2b3440';ctx.lineWidth=Math.max(1.5,ts*.03);ctx.beginPath();ctx.moveTo(x0+r,y0);ctx.lineTo(x0+w-r,y0);ctx.arc(x0+w-r,y0+r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x0+r,y0+h);ctx.arc(x0+r,y0+r,r,Math.PI/2,Math.PI*1.5);ctx.closePath();ctx.fill();ctx.stroke();
+   if(pop>=1){ctx.fillStyle='#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(JUMP.t,x0+w/2,y0+h/2+fs*.05);}ctx.restore();}});}}
 const edgeSea=(W,x,y)=>{const t=W.T[y]&&W.T[y][x];return !!(t&&t.water)&&(x<=1||y<=1||x>=W.T[0].length-2||y>=W.T.length-2);};
-function seaLife(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||!W.vw)return;const dt=1/60;
+function seaLife(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||!W.vw)return;const dt=1/60;sharkCheck(W,now);sharkJump(ctx,items,cx,cy,ts,now);
  const x0=Math.max(0,Math.floor(cx/ts)-1),y0=Math.max(0,Math.floor(cy/ts)-1),x1=Math.min(W.T[0].length-1,Math.floor((cx+W.vw)/ts)+1),y1=Math.min(W.T.length-1,Math.floor((cy+W.vh)/ts)+1);
  if(now>SEAAT&&SEA.length<SEAMAX){SEAAT=now+1800+Math.random()*3500;const L=[];for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(edgeSea(W,x,y))L.push([x,y]);
   if(L.length){const [x,y]=L[Math.floor(Math.random()*L.length)],H=W.T.length,Wd=W.T[0].length,horiz=y<=1||y>=H-2,d=Math.random()<.5?-1:1;
-   SEA.push({k:Math.random()<.5?'gator':'fin',x:x+.5,y:y+.55,vx:horiz?d*.45:0,vy:horiz?0:d*.45,t0:now,life:5000+Math.random()*3000,dir:horiz?d:(Math.random()<.5?-1:1)});}}
+   SEA.push({k:'fin',x:x+.5,y:y+.55,vx:horiz?d*.45:0,vy:horiz?0:d*.45,t0:now,life:5000+Math.random()*3000,dir:horiz?d:(Math.random()<.5?-1:1)});}}
  SEA=SEA.filter(c=>now-c.t0<c.life);
  SEA.forEach(c=>{const age=now-c.t0,nx=c.x+c.vx*dt,ny=c.y+c.vy*dt;if(edgeSea(W,Math.floor(nx),Math.floor(ny))){c.x=nx;c.y=ny;}
   const up=Math.min(1,age/700,(c.life-age)/700);if(up<=0)return;const sx=c.x*ts-cx,sy=c.y*ts-cy;if(sx<-ts||sy<-ts||sx>W.vw+ts||sy>W.vh+ts)return;
@@ -65,14 +99,10 @@ function seaLife(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||!W
    ctx.beginPath();ctx.moveTo(-26*s,5*s);ctx.quadraticCurveTo(-18*s,1*s,-12*s,5*s);ctx.stroke();
    ctx.beginPath();ctx.rect(-40*s,-40*s,80*s,44*s);ctx.clip();ctx.translate(0,(1-up)*16*s); /* only the part above the water shows */
    ctx.strokeStyle='#2b3a2a';
-   if(c.k==='gator'){ctx.fillStyle='#4f8a3c';ctx.beginPath();ctx.ellipse(2*s,2*s,18*s,5.5*s,0,0,7);ctx.fill();ctx.stroke();
-    ctx.fillStyle='#5f9e48';[[-10,-1],[-4,-2],[2,-2],[8,-1]].forEach(([bx,by])=>{ctx.beginPath();ctx.arc(bx*s-8*s,by*s+1*s,2.4*s,Math.PI,0);ctx.fill();ctx.stroke();});
-    ctx.fillStyle='#5f9e48';[[8,-3],[13,-3]].forEach(([ex,ey])=>{ctx.beginPath();ctx.arc(ex*s,ey*s,3.6*s,Math.PI,0);ctx.fill();ctx.stroke();ctx.fillStyle='#ffd43b';ctx.beginPath();ctx.arc(ex*s,(ey-.8)*s,1.7*s,0,7);ctx.fill();ctx.fillStyle='#1a1a1a';ctx.fillRect((ex-.4)*s,(ey-2.2)*s,.8*s,2.6*s);ctx.fillStyle='#5f9e48';});
-    ctx.fillStyle='#2b3a2a';ctx.beginPath();ctx.arc(19*s,0,1*s,0,7);ctx.arc(17*s,0,1*s,0,7);ctx.fill();}
-   else{ctx.fillStyle='#7d8b99';ctx.beginPath();ctx.moveTo(-8*s,4*s);ctx.quadraticCurveTo(-4*s,-6*s,4*s,-18*s);ctx.quadraticCurveTo(5*s,-6*s,10*s,4*s);ctx.closePath();ctx.fill();ctx.stroke();
+   {ctx.fillStyle='#7d8b99';ctx.beginPath();ctx.moveTo(-8*s,4*s);ctx.quadraticCurveTo(-4*s,-6*s,4*s,-18*s);ctx.quadraticCurveTo(5*s,-6*s,10*s,4*s);ctx.closePath();ctx.fill();ctx.stroke();
     ctx.strokeStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.moveTo(-3*s,1*s);ctx.quadraticCurveTo(0,-6*s,3.5*s,-14*s);ctx.stroke();}
    ctx.restore();
    ctx.save();ctx.translate(sx,sy);ctx.scale(c.dir,1);ctx.strokeStyle=`rgba(255,255,255,${.9*up})`;ctx.lineWidth=Math.max(1.2,2*s);ctx.beginPath();ctx.moveTo(-14*s,4.5*s);ctx.lineTo(16*s,4.5*s);ctx.stroke();ctx.restore();}});});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);window.MQ_MAPDRAW.push(seaLife);window.MQ_MAPDRAW.push(puffs);window.MQ_MAPDRAW.push(fountainSay);
-window.MQ_AMBIENT={sea:()=>SEA.length,KIND,count:()=>P.length,puffs:()=>PUFF.length,say:()=>SAY&&SAY.t,sayNow:()=>{SAYAT=1;},SAYS};
+window.MQ_AMBIENT={SHARK,jump:()=>JUMP&&JUMP.t,jumpNow:()=>{JUMPAT=0;return typeof W!=='undefined'&&startJump(W,performance.now(),W.hx,W.hy);},sea:()=>SEA.length,KIND,count:()=>P.length,puffs:()=>PUFF.length,say:()=>SAY&&SAY.t,sayNow:()=>{SAYAT=1;},SAYS};
 })();
