@@ -504,7 +504,7 @@ function teamView(p){const S=stages().find(s=>s.id===VIEW.id);if(!S){VIEW={k:'st
     <div class="bp2-megas">${[['troll','Grumbleroot'],['eagle','Skyla']].map(([id,t])=>`<button class="${(prog(p).mega||'troll')===id?'on':''}" onclick="BattlePets._mega('${id}')" aria-pressed="${(prog(p).mega||'troll')===id}" title="${id==='troll'?'Roars critters back':'Dives onto critters'}"><span class="ma">${megaArt(id,56)}</span>${t}</button>`).join('')}</div>
     <div class="bp2-slots">${Array.from({length:5},(_,i)=>{if(i>=n)return `<span class="bp2-slot mine lock" title="Opens at level ${(i-2)*10}"><b>🔒</b>Level ${(i-2)*10}</span>`;const id=team[i],pet=id&&PETS.find(x=>x.id===id);return `<button class="bp2-slot mine ${pet?'full':''}" onclick="BattlePets._out(${i})" aria-label="${pet?'Take '+esc(pet.name)+' out':'Empty spot'}">${pet?pet.e:''}</button>`;}).join('')}</div></div>
    <div class="bp2-vsw">VS</div>
-   <div class="bp2-side"><div class="bp2-sh">CRITTERS</div>
+   <div class="bp2-side"><div class="bp2-sh">THE BAD GUYS</div>
     <div class="bp2-bossr"><span class="bp2-slot foe boss" title="${esc(S.boss[0])}"><span class="ma">${goblinArt(56)}</span>${esc(S.boss[0])}</span></div>
     <div class="bp2-slots">${S.crit.map(c=>`<span class="bp2-slot foe" title="${esc(c[0])}">${c[1]}</span>`).join('')}</div></div>
   </div>
