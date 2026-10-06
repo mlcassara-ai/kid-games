@@ -161,6 +161,9 @@ const tests=[
   let seen=0,moved=0;const t0=Date.now(),first=MQ_PRESENTS.where(W,t0);for(let i=0;i<20;i++){const w=MQ_PRESENTS.where(W,t0+i*45*60000);seen+=Object.keys(w).length;if(i&&Object.keys(w).some(k=>first[k]&&(w[k].x!==first[k].x||w[k].y!==first[k].y)))moved++;}
   const avg=seen/20;T.ok(avg>ks.length*.5&&avg<ks.length*.9&&moved>0,'presents do not come and go (about '+avg.toFixed(1)+' of '+ks.length+' showing)');
   for(const k in first){const s=first[k],t=W.T[s.y][s.x];T.ok(!t.block&&!t.water,'a present is on a blocked tile');}
+  {const kk=Object.keys(MQ_PRESENTS.shown())[0]||Object.keys(first)[0];if(kk){wChest(kk);T.ok(document.querySelector('#modal .present-art svg')&&/math lock/.test(document.querySelector('#modal').innerText),'the treasure card does not show the drawn present');closeModal();}}
+  {const kk=Object.keys(MQ_PRESENTS.shown())[0];if(kk){const s0=MQ_PRESENTS.shown()[kk];closeModal();let ok=null;for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1]]){const ax=s0.x-dx,ay=s0.y-dy,bx=s0.x+dx,by=s0.y+dy,ta=W.T[ay]&&W.T[ay][ax],tb=W.T[by]&&W.T[by][bx];if(ta&&tb&&!ta.block&&!tb.block&&!ta.chest&&!tb.chest&&!ta.npc&&!tb.npc&&!wWall(ax,ay,s0.x,s0.y)&&!wWall(s0.x,s0.y,bx,by)){ok=[ax,ay,bx,by,dx,dy];break;}}
+   if(ok){W.hx=ok[0];W.hy=ok[1];W.moving=false;W.path=[[ok[2],ok[3]]];wStep(ok[4],ok[5]);await T.wait(400);T.ok(!document.querySelector('#modal.show')&&W.hx===ok[2]&&W.hy===ok[3],'walking past a present still opened it');}}}
   const k0=Object.keys(first)[0];if(k0){p.chests={d:dayKey(),open:[k0]};T.ok(!MQ_PRESENTS.where(W,t0)[k0],'an opened present is still on the map');}
  }],
 ['graph garden is closed: blown-up entrance, cannot be opened, progress kept',async function(){

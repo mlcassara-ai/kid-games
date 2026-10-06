@@ -123,6 +123,11 @@ const CSS=`
 .eg-carried svg,.eg-rider svg{width:100%;height:auto}
 .eg-sky.eg-clear{background:transparent}.eg-skybg{position:absolute;inset:0;background:linear-gradient(#27456e,#6fa8dc 60%,#bfe0ff);opacity:0;transition:opacity 1.4s}.eg-skybg.on{opacity:1}
 .eg-ground2{position:absolute;background-size:100% 100%;transform-origin:center;transition:transform 3s ease-in,opacity 3s;z-index:1}.eg-ground2.small{transform:translateY(38vh) scale(.2);opacity:.6}
+.eg-ground2.gone{opacity:0;transition:opacity .5s}
+.eg-eyes{position:absolute;left:50%;top:34%;transform:translateX(-50%);display:flex;gap:9vw;opacity:0;transition:opacity .8s}.eg-eyes.on{opacity:1}
+.eg-eyes span{display:flex;gap:14px;animation:egblink 2.6s infinite}.eg-eyes i{width:30px;height:34px;border-radius:50%;background:radial-gradient(circle at 50% 55%,#1a1a1a 0 38%,#fff 40%);box-shadow:0 0 16px rgba(255,236,170,.55)}
+@keyframes egblink{0%,42%,50%,100%{transform:scaleY(1)}46%{transform:scaleY(.08)}}
+.eg-waking{filter:blur(8px) brightness(.6)}.eg-scene{transition:filter 1.4s}
 .eg-stand{position:absolute;z-index:3}.eg-stand svg,.eg-held svg{width:100%;height:100%}
 .eg-grp{position:absolute;z-index:5;transition:transform 1.1s cubic-bezier(.5,0,.9,.6)}.eg-grp .eg-flysvg{position:relative;z-index:2}
 .eg-held{position:absolute;left:50%;display:none;z-index:1;transform:rotate(6deg)}.eg-held.on{display:block}
@@ -161,6 +166,11 @@ const CSS=`
 `;
 
 /* ---------- main sequence ---------- */
+/* zoom the live map out (smaller tiles) until the whole map just covers the screen; zoomBack restores it */
+let TS0=0;
+function zoomOut(ms){return new Promise(res=>{try{if(typeof W==='undefined'||!W||!W.ts){res();return;}TS0=TS0||W.ts;const t0=performance.now(),a=W.ts,b=Math.max(W.vw/WCOLS,W.vh/WROWS,6);
+ if(b>=a){res();return;}const go=now=>{const k=Math.min(1,(now-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;W.ts=Math.round((a+(b-a)*e)*2)/2;if(k<1)requestAnimationFrame(go);else{W.ts=b;res();}};requestAnimationFrame(go);}catch(e){res();}});}
+function zoomBack(){try{if(TS0&&typeof W!=='undefined'&&W)W.ts=TS0;}catch(e){}TS0=0;window.__hideHero=false;}
 async function start(demo){
  const p=P();if(demo)DEMO=JSON.stringify({eagle:p.eagle||null,troll:p.troll||null,coins:p.coins,pets:p.pets,owned:p.owned,toys:p.toys,daily:p.daily,feathers:p.feathers||0});const e=E(p);busy=true;window.trollBusy=true;const S=SH();
  if(!document.getElementById('egCSS')){const s=document.createElement('style');s.id='egCSS';s.textContent=CSS;document.head.appendChild(s);}
@@ -192,24 +202,32 @@ async function start(demo){
  const grp=sky.querySelector('.eg-grp');tone(1400,.5,'sawtooth',.06);tone(1000,.5,'sawtooth',.05,.2);
  await sleep(30);grp.style.transform='translateY(0)';await sleep(1150);
  // GRAB!
- sky.querySelector('.eg-stand').remove();sky.querySelector('.eg-held').classList.add('on');tone(300,.15,'square',.08);sky.querySelector('.eg-screech').remove();
+ sky.querySelector('.eg-stand').remove();window.__hideHero=true; /* you're in her talons now, not on the map */sky.querySelector('.eg-held').classList.add('on');tone(300,.15,'square',.08);sky.querySelector('.eg-screech').remove();
  await sleep(500);
  if(first)await S.tapWait('😱','<p>GIANT TALONS grab you! A <b>huge eagle</b> is carrying you up into the sky!</p>',null,root);
  else await S.tapWait('😄',pick(['<p>Those talons again! You know <b>exactly</b> who this is…</p><p>Skyla! 🦅</p>','<p>WHOOSH! Big feathers, yellow feet… it\'s <b>Skyla</b> again!</p>','<p>Up, up and away! You\'re not scared at all this time — it\'s your friend <b>Skyla</b>!</p>']),null,root);
  // 3. fly up — the map shrinks away below
  grp.style.transition='left 1.6s ease-in-out,top 1.6s ease-in-out,width 1.6s';grp.style.left=((innerWidth-Math.min(innerWidth*.9,760))/2)+'px';grp.style.top=(innerHeight*.14)+'px';grp.style.width=Math.min(innerWidth*.9,760)+'px';
  const held=sky.querySelector('.eg-held');const W2=Math.min(innerWidth*.9,760),H2=W2*380/640,hh=Math.min(W2*.2,130);held.style.transition='all 1.6s ease-in-out';held.style.top=(H2*.78)+'px';held.style.height=hh+'px';held.style.width=(hh*.77)+'px';held.style.marginLeft=(-hh*.385)+'px';
- sky.classList.remove('eg-clear');sky.querySelector('.eg-skybg').classList.add('on');sky.querySelector('.eg-ground2').classList.add('small');
+ /* the real map zooms out under you as she climbs (owner, Oct 2026), but only until the whole map fills the screen: the camera already
+    stops at the map's edges, so nothing past the world ever shows */
+ const zoom=zoomOut(2600);sky.querySelector('.eg-ground2').classList.add('gone');
  setTimeout(()=>grp.classList.add('eg-bob'),1700);
  for(let i=0;i<4;i++)sky.appendChild(S.el(`<i class="eg-cloud" style="left:${5+i*24}%;animation-delay:${.6+i*.4}s"></i>`));
  [500,600,700,800].forEach((f,k)=>tone(f,.4,'triangle',.04,k*.3));
  if(first)await S.tapWait('…','<p>Higher and higher… Number Village looks <b>tiny</b> down there!</p>',null,root);else await S.tapWait('👋',pick(['<p>You wave at Number Village far below. You know where she\'s taking you…</p>','<p>Wheee! The wind in your hair — this is kind of fun now!</p>','<p>Higher and higher… back to the mountain nest!</p>']),null,root);
- dark.classList.add('on');await sleep(700);sky.remove();
+ await zoom;
+ /* you black out from the height… */
+ dark.classList.add('on');await sleep(900);sky.remove();zoomBack();
  // 4. the nest on the mountain peak
  const stage=S.el(`<div class="eg-scene tr-stage">${PEAK}<div class="eg-mama">${PERCH}</div>
   <div class="eg-nest">${NEST.back}<div class="eg-hero">${S.heroHTML(p)}</div><div class="eg-chicks"><i>${CHICK}</i><i>${CHICK}</i><i>${CHICK}</i></div>${NEST.front}</div>
   <div class="tr-bubble eg-bubble" style="display:none"></div></div>`);
- root.insertBefore(stage,dark);dark.classList.remove('on');
+ root.insertBefore(stage,dark);stage.classList.add('eg-waking');
+ const eyes=S.el(`<div class="eg-eyes">${[0,1,2].map(i=>`<span style="animation-delay:${i*.35}s"><i></i><i></i></span>`).join('')}</div>`);dark.appendChild(eyes);
+ await sleep(400);eyes.classList.add('on');tone(880,.08,'triangle',.03,.2);tone(1040,.08,'triangle',.03,.45);tone(980,.08,'triangle',.03,.7);
+ await S.tapWait('😵',first?'<p>Everything is dark… you must have fainted from the height!</p><p>Three pairs of little eyes are <b>blinking</b> down at you…</p>':pick(['<p>Dark again… and there are those three pairs of little eyes, blinking at you.</p>','<p>You blacked out again! Three little faces are peering down at you…</p>']),null,root);
+ eyes.classList.remove('on');dark.style.transition='opacity 1.4s';dark.classList.remove('on');await sleep(200);stage.classList.remove('eg-waking');await sleep(1200);eyes.remove();dark.style.transition='';
  const bub=stage.querySelector('.tr-bubble');const say=(t,nn)=>S.say(bub,t,nn?300:0,!!nn,WHO);
  if(first){
   await S.tapWait('🐣','<p>She drops you into a <b>giant nest</b> on top of a mountain — right next to three fuzzy eaglets!</p>',null,root);
@@ -262,7 +280,7 @@ async function start(demo){
  root.insertBefore(ride,dark);dark.classList.remove('on');[600,800,1000,1200,1000,800].forEach((f,k)=>tone(f,.3,'triangle',.05,k*.18));
  await sleep(600);ride.querySelector('.eg-ground').classList.remove('small');
  await sleep(3300);dark.classList.add('on');await sleep(700);
- root.remove();root=null;busy=false;window.trollBusy=false;
+ root.remove();root=null;busy=false;window.trollBusy=false;zoomBack();
  if(DEMO){const s=JSON.parse(DEMO);DEMO=null;Object.assign(p,{coins:s.coins,pets:s.pets,owned:s.owned,toys:s.toys,daily:s.daily,feathers:s.feathers});if(s.eagle)p.eagle=s.eagle;else delete p.eagle;if(s.troll)p.troll=s.troll;save();try{toast('🦅 That was a preview — nothing was changed.');go('world');}catch(x){}return;}
  const summary=[took.length?`🦅 ${ENAME} kept: ${took.map(S.label).join(', ')}`:'',gave.length?`↩ You won back: ${gave.map(S.label).join(', ')}`:'',right===3?'🪶 +1 Golden Feather':''].filter(Boolean).join(' · ');
  try{toast(`🦅 ${ENAME} flew you home! ${right}/3 right.${summary?' '+summary:''}`);}catch(x){}
