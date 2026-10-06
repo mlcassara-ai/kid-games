@@ -444,9 +444,9 @@ const tests=[
   go('zone','temple');await T.wait(60);T.ok(!document.getElementById('bpZone'),'a world without a Battle Pets stage shows the button');BattlePets._back();
  }],
  ['battle pets ascend: endless levels after crown 3, each harder; a win raises the best, a loss keeps it',async function(){
-  T.reset();const p=T.hero('Climber',5);state.cur=p.id;const D=BattlePets._dbg;p.bp2={c:{forest:2},team:[]};go('bp');
+  T.reset();const p=T.hero('Climber',5);state.cur=p.id;const D=BattlePets._dbg;p.bp2={c:{forest:2},team:[]};p.asc={forest:{rank:9,prog:[0,0,0,0,0,0]}};go('bp');
   BattlePets._pick('forest',3,1);T.ok(D.view().k==='team'&&!D.view().asc,'Ascend opened before crown 3 was beaten');
-  p.bp2.c.forest=3;BattlePets._pick('forest',3,5);T.ok(D.view().asc===1,'Ascend let a hero skip ahead');
+  p.bp2.c.forest=3;BattlePets._pick('forest',3,5);T.ok(D.view().asc===1,'Ascend let a hero skip ahead');{const r0=p.asc;p.asc={};BattlePets._pick('forest',3,1);T.ok(!D.view().asc&&!document.querySelector('.bp2-lvrow')?.innerText.includes('✨')&&/Ascend levels open/.test(document.body.innerText),'Battle Ascend opened without an Ascension in the math world');p.asc={forest:{rank:1,prog:[0,0,0,0,0,0]}};BattlePets._pick('forest',3,1);T.ok(D.view().asc===1,'one math Ascension did not open Battle Ascend 1');p.asc=r0;BattlePets._pick('forest',3,1);}
   BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();let G=D.G();const den1=G.denMax;T.ok(G.asc===1&&/Ascend 1/.test(document.querySelector('.bp2-title').textContent),'the battle is not Ascend 1');
   G.denHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp2.asc.forest===1&&/New best/.test(document.querySelector('.bp2-over').innerText)&&/Ascend 2/.test(document.querySelector('.bp2-over').innerText),'an Ascend win did not raise the best');
   BattlePets._again();T.ok(D.view().asc===2,'Next did not go to Ascend 2');BattlePets._start();if(document.getElementById('bpFlyW'))BattlePets._flyGo();G=D.G();T.ok(G.asc===2&&G.denMax>den1,'Ascend 2 is not harder than Ascend 1');
