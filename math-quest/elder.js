@@ -15,7 +15,10 @@ const OTHER=['I think I lost my pencil…','Where did I put my glasses?','What a
 const GREET=['Can I help you?','Ready to serve!','Yikes! Don\'t sneak up on me like that!','I thought I smelled cabbage…','Get off my lawn! …Oh, sorry, I thought you were someone else.','Eh? Speak up, young wizard!','Ah, it\'s you! I was just thinking about you. Or lunch.','Hello there! Have we met? …Of course we have.','Shh! I\'m counting clouds. …Now I\'ve lost count.','My knees say rain is coming. My knees are usually wrong.','Back in my day, we counted on our toes!','Oh! You gave my beard a fright.','Ah, a visitor! Quick, look busy… I mean, hello!','Have you seen my spectacles? …They\'re on my head, aren\'t they?','Greetings! I\'ve been walking for hours. Or minutes. Who knows?','Is it Tuesday? It feels like a Tuesday.','Mind the puddles, they\'re sneaky today.','Well, well! If it isn\'t my favourite math wizard!','Pardon me, I was having a little nap… standing up.','Hmm? Oh! Hello! I was just talking to this rock.'];
 /* ...and when the hero walks away again he waves his wand, says one of these and vanishes in sparkles, popping up elsewhere later */
 const BYE=['Math-ra-cadabra!','Abra-ca-divide!','Hocus pocus, multiply-ocus!','Sim-sala-subtract!','Abraca-fraction!','Alaka-zam… plus one!','By the power of Pi… away I go!','Now you see me, now you… carry the one!','Shazam times ten!','Divide and vanish!','Presto, place value!','Bibbidi-bobbidi-plus!','Poof! Like a remainder of zero!','Hocus pocus, keep your focus!'];
-const NEAR=2.2,AWAY=4,WAVE=1800;
+/* ...and once you've talked to him (his quest card) he's off: he either vanishes within 2 s or strolls far away; nobody can stop him
+   or talk to him again until he gets there (owner, Oct 2026) */
+const LEAVE=['Well, I must be off!','Places to go, numbers to count!','Toodle-oo, young wizard!','Time for my afternoon stroll!','Off I go! My tea is getting cold.','Busy, busy, busy! Goodbye!'];
+const NEAR=2.2,AWAY=4,WAVE=1800,FAR=12;
 const SVG=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 96"><defs><linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#845ef7"/><stop offset="1" stop-color="#5f3dc4"/></linearGradient><linearGradient id="h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5c7cfa"/><stop offset="1" stop-color="#364fc7"/></linearGradient><radialGradient id="o"><stop offset="0" stop-color="#e7f5ff"/><stop offset=".6" stop-color="#74c0fc"/><stop offset="1" stop-color="#339af0"/></radialGradient></defs>
 <ellipse cx="31" cy="92" rx="18" ry="3.5" fill="rgba(0,0,0,.22)"/>
 <path d="M53 30 L53 91" stroke="${O}" stroke-width="5" stroke-linecap="round"/><path d="M53 30 L53 91" stroke="#a0703c" stroke-width="2.6" stroke-linecap="round"/>
@@ -51,7 +54,7 @@ function places(W){const out=[],p=(()=>{try{return P();}catch(e){return null;}})
  try{out.push({x:TOWN_X+2,y:TOWN_Y+3,door:[TOWN_X+2,TOWN_Y+2]});}catch(e){}
  for(let y=0;y<W.T.length;y++)for(let x=0;x<W.T[0].length;x++)if(W.T[y][x].npc==='station'){const t=W.T[y-1]&&W.T[y-1][x];if(t&&!t.block)out.push({x,y:y-1,door:[x,y]});}
  return out;}
-function setTile(W,on){if(!E)return;const t=W.T[E.y]&&W.T[E.y][E.x];if(!t)return;if(on){if(!t.npc)t.npc='elder';}else if(t.npc==='elder')delete t.npc;}
+function setTile(W,on){if(!E)return;if(on&&E.leaving)return;const t=W.T[E.y]&&W.T[E.y][E.x];if(!t)return;if(on){if(!t.npc)t.npc='elder';}else if(t.npc==='elder')delete t.npc;}
 function plan(W,now){const R=reach(W);if(!R.length)return;let tgt=null,go=null;
  if(Math.random()<.25){const L=places(W);if(L.length){const s=L[Math.floor(Math.random()*L.length)];tgt=[s.x,s.y];go=s;}}
  if(!tgt){for(let i=0;i<30&&!tgt;i++){const c=R[Math.floor(Math.random()*R.length)];if(Math.abs(c[0]-E.x)+Math.abs(c[1]-E.y)<14&&free(W.T[c[1]][c[0]],W,c[0],c[1]))tgt=c;}}
@@ -67,6 +70,10 @@ function greet(W,now){const d=Math.hypot(W.hx-E.x,W.hy-E.y);
  if(!E.greeted&&now>=(E.greetAt||0)){E.greeted=true;E.greetAt=now+20000;E.recent=E.recent||[];let t,k=0;do{t=GREET[Math.floor(Math.random()*GREET.length)];}while(E.recent.includes(t)&&k++<20);
   E.recent.push(t);if(E.recent.length>8)E.recent.shift();E.say={t,at:now};E.nextSay=Math.max(E.nextSay,now+30000);}
  return true;}
+function talked(m){if(!E||E.hidden||E.poof)return;E.talked=m||(Math.random()<.5?'poof':'walk');E.greeted=true;E.path=[];E.goIn=null;if(EW)setTile(EW,false);}
+/* walk far away: a reachable spot at least FAR squares from the hero */
+function leaveWalk(W,now){const R=reach(W);for(let i=0;i<40;i++){const c=R[Math.floor(Math.random()*R.length)];if(!c||Math.hypot(c[0]-W.hx,c[1]-W.hy)<FAR||!free(W.T[c[1]][c[0]],W,c[0],c[1]))continue;const p=pathTo(W,E.x,E.y,c[0],c[1]);if(!p||p.length<FAR)continue;
+  E.path=p;E.leaving=true;E.wait=0;E.say={t:LEAVE[Math.floor(Math.random()*LEAVE.length)],at:now};E.nextSay=Math.max(E.nextSay,now+40000);return true;}return false;}
 function poof(now){if(E.poof||E.hidden)return;E.path=[];E.goIn=null;E.poof={at:now,vanish:now+WAVE};E.say={t:BYE[Math.floor(Math.random()*BYE.length)],at:now};E.nextSay=Math.max(E.nextSay,now+40000);}
 /* after vanishing he comes back somewhere well away from the hero */
 function relocate(W){const R=reach(W);for(let i=0;i<60;i++){const c=R[Math.floor(Math.random()*R.length)];if(c&&Math.hypot(c[0]-W.hx,c[1]-W.hy)>8&&free(W.T[c[1]][c[0]],W,c[0],c[1])){E.x=E.fx=c[0];E.y=E.fy=c[1];return;}}}
@@ -77,7 +84,9 @@ function tick(W,now){if(EW!==W){EW=W;REACH=null;E=null;}if(!E){start(W,now);if(!
  if(E.mt&&now-E.mt<STEP)return;E.mt=0;
  if(now>=E.nextSay&&!E.say){E.say={t:sayLine(),at:now};E.nextSay=now+(45+Math.random()*105)*1000;}
  if(E.say&&now-E.say.at>5500)E.say=null;
- if(!E.hidden&&greet(W,now)){E.wait=Math.max(E.wait,now+400);return;} /* he waits while the hero is close */
+ if(E.talked){if(document.querySelector('#modal.show'))return;const m=E.talked;E.talked=null;if(m==='walk'&&leaveWalk(W,now))return;poof(now);if(E.poof)E.poof.vanish=now+1300;return;} /* his card just closed: off he goes */
+ if(E.leaving&&!E.path.length){E.leaving=false;setTile(W,true);} /* got there: he can be met again */
+ if(!E.hidden&&!E.leaving&&greet(W,now)){E.wait=Math.max(E.wait,now+400);return;} /* he waits while the hero is close */
  if(now<E.wait)return;
  if(!E.path.length){if(E.goIn){const g=E.goIn;E.goIn=null;E.dir=g.door[0]>=E.x?1:-1;E.hidden=true;E.backAt=now+(20+Math.random()*40)*1000;E.outT=now;setTile(W,false);return;}
   E.wait=now+1500+Math.random()*4000;plan(W,now);return;}
@@ -105,5 +114,5 @@ function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T)retur
   if(done&&!E.hidden){const r=ts*.16,bx=sx+ts/2,by=sy+ts*.97-h-r*1.3+Math.sin(now/300)*2;ctx.save();ctx.fillStyle='#ffd43b';ctx.strokeStyle=O;ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,r,0,7);ctx.fill();ctx.stroke();ctx.fillStyle=O;ctx.font=`900 ${Math.round(r*1.5)}px Fredoka, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',bx,by+1);ctx.restore();}}});
  if(E.say&&(!E.hidden||pf))items.push({y:1e6-2,draw:()=>bubble(ctx,sx+ts*.75,sy-ts*.25,ts,E.say.t,now-E.say.at)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
-window.MQ_ELDER={GREET,BYE,tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){E.say={t:t||sayLine(),at:performance.now()};}},LINES:{QUEST,DONE,OTHER},places:w=>places(w||W)};
+window.MQ_ELDER={GREET,BYE,LEAVE,talked,tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){E.say={t:t||sayLine(),at:performance.now()};}},LINES:{QUEST,DONE,OTHER},places:w=>places(w||W)};
 })();

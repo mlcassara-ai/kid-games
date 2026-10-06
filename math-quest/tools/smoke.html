@@ -153,19 +153,40 @@ const tests=[
   const E=MQ_ELDER.state();T.ok(E&&!E.hidden&&W.T[E.y][E.x].npc==='elder'&&!W.T[E.y][E.x].block,'the Elder Wiz is not out on the map');
   T.ok(MQ_ELDER.places().length>=3,'the Elder Wiz has nowhere to walk into');MQ_ELDER.say('Hi!');T.ok(MQ_ELDER.state().say&&MQ_ELDER.state().say.t==='Hi!','the Elder Wiz cannot think out loud');
   wNpc('elder');T.ok(/Elder Wiz says/.test(document.querySelector('#modal').innerText),'talking to the Elder Wiz did not open his quest card');closeModal();
+  T.ok(/npc-art/.test(qFace('elder',1))&&/qface/.test(qFace('elder')),'the Elder Wiz card does not use his drawing');
+  /* Coach Flex from the Fact Gym: rare visits (first at level 5 if never at the gym, then after 2 weeks away, not again for a week after saying later) */
+  {const C=MQ_COACH,pp=P(),lv0=pp.level,g0=pp.gym,ago=n=>{const d=new Date();d.setDate(d.getDate()-n);return dayKey(d);};
+   pp.level=C.LV-1;pp.gym=undefined;T.ok(!C.due(pp),'Coach Flex came before level '+C.LV);pp.level=C.LV;T.ok(C.due(pp),'Coach Flex did not invite a level-'+C.LV+' hero who never went to the gym');
+   pp.gym={last:ago(3)};T.ok(!C.due(pp),'Coach Flex came 3 days after a workout');pp.gym={last:ago(15)};T.ok(C.due(pp),'Coach Flex did not come after two weeks away');pp.gym={last:ago(15),seen:ago(2)};T.ok(!C.due(pp),'Coach Flex came back 2 days after the last visit');
+   pp.gym={last:ago(20)};const hx0=W.hx,hy0=W.hy;T.ok(C.start()&&C.state().st==='come'&&pp.gym.seen===dayKey(),'Coach Flex did not start his visit');
+   const S=C.state();for(let i=0;i<40&&S.st==='come';i++){S.mt=0;C._tick(performance.now()+i);}T.ok(S.st==='stop'&&Math.max(Math.abs(S.x-W.hx),Math.abs(S.y-W.hy))<=1,'Coach Flex did not jog up to the hero');
+   S.t0=0;C._tick();T.ok(/Coach Flex/.test(document.querySelector('#modal').innerText)&&/Fact Gym/.test(document.querySelector('#modal').innerText)&&C.LINES.BACK.some(l=>document.querySelector('#modal').innerText.includes(l)),'Coach Flex\'s card did not open with a comeback line');
+   C._later();T.ok(S.st==='go'&&!document.querySelector('#modal.show'),'Maybe later did not send Coach Flex away');
+   Mastery.open('world');T.ok(pp.gym.last===dayKey(),'a Fact Gym visit was not recorded');go('world');await T.wait(50);T.ok(!C.state(),'Coach Flex stayed after the hero went to the gym');
+   W.hx=hx0;W.hy=hy0;pp.level=lv0;pp.gym=g0;try{MQ_VISIT.release('coach');}catch(e){}}
   T.ok(MQ_ELDER.LINES.OTHER.length>=10&&MQ_ELDER.LINES.QUEST.length>=3,'the Elder Wiz has too few things to say');
   {const E2=MQ_ELDER.state(),hx0=W.hx,hy0=W.hy;E2.say=null;E2.hidden=false;E2.poof=null;E2.greeted=false;E2.greetAt=0;const sd=E2.x+7<W.T[0].length?1:-1;W.hx=E2.x+sd;W.hy=E2.y;T.ok(MQ_ELDER.greet()&&E2.say&&MQ_ELDER.GREET.includes(E2.say.t)&&E2.dir===sd,'the Elder Wiz did not stop and greet the hero up close');
    const said=E2.say.t;MQ_ELDER.greet();T.ok(E2.say.t===said,'the Elder Wiz greeted again without the hero leaving');T.ok(MQ_ELDER.GREET.length>=15,'too few greetings');
   const t0=performance.now();W.hx=E2.x+6*sd;W.hy=E2.y;MQ_ELDER.greet(W,t0);T.ok(E2.poof&&MQ_ELDER.BYE.includes(E2.say.t),'the Elder Wiz did not wave goodbye when the hero walked away');
    MQ_ELDER.tick(t0+2000);T.ok(E2.hidden&&E2.moved&&W.T[E2.y][E2.x].npc!=='elder','the Elder Wiz did not vanish after waving');
-   E2.backAt=0;MQ_ELDER.tick(t0+2100);T.ok(!E2.hidden&&!E2.poof&&Math.hypot(E2.x-W.hx,E2.y-W.hy)>8,'the Elder Wiz did not pop up somewhere else');W.hx=hx0;W.hy=hy0;}
+   E2.backAt=0;MQ_ELDER.tick(t0+2100);T.ok(!E2.hidden&&!E2.poof&&Math.hypot(E2.x-W.hx,E2.y-W.hy)>8,'the Elder Wiz did not pop up somewhere else');
+   /* after talking (his card) he leaves: vanishes, or walks far away and can't be talked to on the way */
+   {const t1=performance.now();Object.assign(E2,{hidden:false,poof:null,moved:false,leaving:false,talked:null,path:[],mt:0,wait:0});W.hx=E2.x+sd;W.hy=E2.y;MQ_ELDER.tick(t1);
+    MQ_ELDER.talked('walk');T.ok(W.T[E2.y][E2.x].npc!=='elder','the Elder Wiz can be talked to again right after his card');closeModal();MQ_ELDER.tick(t1+10);
+    T.ok(E2.leaving&&E2.path.length>=12&&MQ_ELDER.LEAVE.includes(E2.say.t),'the Elder Wiz did not walk far away after talking');
+    for(let i=0;i<5;i++){E2.mt=0;MQ_ELDER.tick(t1+20+i*600);}T.ok(W.T[E2.y][E2.x].npc!=='elder'&&!E2.greeted===false,'the Elder Wiz can be stopped while he walks away');
+    Object.assign(E2,{leaving:false,path:[],mt:0,wait:0,talked:null});MQ_ELDER.talked('poof');MQ_ELDER.tick(t1+4000);T.ok(E2.poof&&E2.poof.vanish-(t1+4000)<=2000,'the Elder Wiz did not vanish within 2 seconds after talking');
+    MQ_ELDER.tick(t1+5400);T.ok(E2.hidden,'the Elder Wiz did not vanish after talking');E2.backAt=0;MQ_ELDER.tick(t1+5500);}
+  W.hx=hx0;W.hy=hy0;}
  }],
 ['fog days: now and then the map starts foggy in front of the fountain and clears as you walk',async function(){
   T.reset();const p=T.hero('Foggy',3);state.cur=p.id;go('world');await T.wait(200);try{closeModal();}catch(e){}
   const ago=n=>{const d=new Date();d.setDate(d.getDate()-n);return dayKey(d);};
   p.fog={last:ago(15)};T.ok(MQ_FOG.due(p),'no fog day after two weeks');p.fog={last:ago(3)};T.ok(!MQ_FOG.due(p),'a fog day only 3 days after the last one');p.fog={last:dayKey()};T.ok(!MQ_FOG.due(p),'two fog days on the same day');
   T.ok(MQ_FOG.start()&&MQ_FOG.on(),'a fog day did not start');const f=NPCS.find(q=>q.id==='fountain');T.ok(W.hx===f.x&&W.hy===f.y+1,'the fog day did not start in front of the fountain');
-  await T.wait(200);T.ok(MQ_FOG.seen()>10,'walking does not clear the fog');MQ_FOG.stop();
+  await T.wait(200);T.ok(MQ_FOG.seen()>10,'walking does not clear the fog');
+  {MQ_FOG._save();const n=MQ_FOG.seen();T.ok(P().fog.on===1&&P().fog.s,'the cleared fog is not saved');MQ_FOG._off();T.ok(MQ_FOG.resume()&&MQ_FOG.on()&&MQ_FOG.seen()===n,'coming back the same day did not bring back the same fog: '+MQ_FOG.seen()+' vs '+n);}
+  MQ_FOG.stop();T.ok(!P().fog.on,'stopping the fog did not save it');
  }],
 ['map presents: drawn presents that move between 45-minute windows, never block walking, vanish once opened',async function(){
   T.reset();const p=T.hero('Gifts',3);state.cur=p.id;go('world');await T.wait(200);T.ok(window.MQ_PRESENTS,'presents.js is not loaded');
