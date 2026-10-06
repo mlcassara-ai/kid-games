@@ -6,7 +6,7 @@
    The train comes out of the Depot on its own every 15 minutes of time on the map (the first one 1–15 minutes in), slows into the station, waits
    about 16 s ("All aboard!" near the end, then a whistle) and leaves through the east tunnel. The board counts down to the
    next train. Tapping the board: 🔔 ring the bell (free; the train comes within 1 minute) or 🪙 CALL_COST to call it right now.
-   COMING SOON: the destination is not built yet. Walking onto the stopped train says so; everything else works.
+   Oct 2026: it goes to Dr. Quartz's Lab. Walking onto the stopped train asks "All aboard!" and ride.js plays the trip into the Lab.
    Visitors: now and then someone steps off and walks into Number Town, or comes out of Town to catch the train
    (the Kind Teacher, Dr. Quartz, Principal Wise, Ms. Rosa, Elder Wiz, the Pet Keeper). Riders just appear beside the
    stopped train; people catching it walk up to it and vanish (nobody is drawn inside). They are scenery: they don't stop the hero.
@@ -192,12 +192,15 @@ function cardHTML(){const p=P(),coins=(p&&p.coins)||0,here=TR.ph==='stop',coming
  <div class="row" style="flex-direction:column;align-items:stretch;gap:8px">
   <button class="btn green big" ${TR.ph!=='away'||soon?'disabled':''} onclick="Train._bell()">🔔 Ring the bell<small style="display:block;font-size:14px">Free · the train comes within 1 minute</small></button>
   <button class="btn ghost dark" ${TR.ph!=='away'||TR.wait<=5||coins<CALL_COST?'disabled':''} onclick="Train._call()">🪙 ${CALL_COST} · Call it right now${coins<CALL_COST?` (you have ${coins})`:''}</button>
- </div><p class="muted" style="font-size:15px;margin-top:10px">🚧 Coming soon: the <b>Discovery Zone</b> opens <b>October 15th</b>. Until then you can watch the train, call it and wave to visitors, but you can't ride it yet.</p>
+ </div><p class="muted" style="font-size:15px;margin-top:10px">🔬 This train goes to <b>Dr. Quartz's Lab</b>. When it's here, walk onto it to get on!</p>
  <button class="btn ghost dark" onclick="closeModal()">Close</button></div>`;}
 function open(){modal(`<div class="mcard">${cardHTML()}</div>`);clearInterval(TICK);TICK=setInterval(()=>{const el=document.querySelector('#modal.show .tr-card');if(!el){clearInterval(TICK);return;}const w=document.getElementById('trWhen');if(w){const h=cardHTML().match(/<p id="trWhen">([\s\S]*?)<\/p>/);if(h&&w.innerHTML!==h[1])w.innerHTML=h[1];}},500);}
 function ring(){if(TR.ph!=='away'||TR.wait<=BELL_WAIT)return;TR.wait=BELL_WAIT;TR.called='bell';bell();try{toast('🔔 Ding ding! The train will be here in 1 minute.');}catch(e){}open();}
 function call(){const p=P();if(!p||TR.ph!=='away'||TR.wait<=5||(p.coins||0)<CALL_COST)return;p.coins-=CALL_COST;save();TR.wait=4;TR.called='paid';bell();try{closeModal();toast(`🚂 Here it comes! (−${CALL_COST} 🪙)`);}catch(e){}}
-function ride(){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>All aboard?</h2><p>The conductor says: "Not yet! The <b>Discovery Zone</b> will open <b>October 15th</b>."</p><p class="muted">🚧 Coming soon</p><button class="btn green big" onclick="closeModal()">OK</button></div>`);}
+function ride(){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>All aboard!</h2><p>The conductor says: "Next stop: <b>🔬 Dr. Quartz's Lab</b>!"</p><div class="row"><button class="btn ghost dark" onclick="closeModal()">Stay here</button><button class="btn green big" onclick="Train._board()">Get on ➜</button></div></div>`);}
+/* off to the Lab (ride.js plays the trip, lab.js is the Lab); the train on the map pulls out */
+function board(){try{closeModal();}catch(e){}try{const p=P();if(p&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}if(TR.ph==='stop'){TR.ph='out';TR.t=0;TR.bubble='';doors(false);}
+ const arrive=()=>{go(window.Lab?'lab':'world');};if(!(window.Ride&&Ride.go('lab',arrive)))arrive();}
 window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=open;window.MQ_NPC.tride=ride;
-window.Train={_bell:ring,_call:call,_open:open,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
+window.Train={_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();

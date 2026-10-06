@@ -111,10 +111,16 @@ const tests=[
   W.hx=22;W.hy=19;const cut=Object.entries(W.gates).filter(([z,c])=>!wPathTo(c[0],c[1]).length).map(e=>e[0]);T.ok(!cut.length,'the track cut off a world: '+cut.join(', '));
   D.TR.ph='away';D.TR.wait=.01;D.TR.walkers.length=0;D.tick(.05);T.ok(D.TR.ph==='in','the train did not come when its time was up');
   for(let i=0;i<300&&D.TR.ph==='in';i++)D.tick(.05);T.ok(D.TR.ph==='stop'&&W.T[R][22].npc==='tride','the train did not stop at the station');
-  wNpc('tride');T.ok(/Discovery Zone will open October 15th/.test(mt()),'getting on did not say the destination is coming soon');closeModal();
+  wNpc('tride');T.ok(/All aboard/.test(mt())&&/Dr\. Quartz's Lab/.test(mt()),'getting on does not say the train goes to the Lab');
+  /* the ride to the Lab (ride.js) and back; the Lab is open to everyone, its elevator needs the key */
+  {const r0=p.rides||0;Train._board();T.ok(Ride.busy()&&document.getElementById('rideOv')&&p.rides===r0+1,'getting on did not start the train ride');await T.wait(300);T.ok(!document.querySelector('#rideOv .rd-skip'),'Skip shows on a first ride');
+   Ride._skip();T.ok(curScreen==='lab'&&/Train home/.test(document.body.innerText)&&/needs the 🔑 Lab Key/.test(document.body.innerText),'the ride did not end in the Lab, or the Lab is wrong for a hero without the key');
+   Lab.home();T.ok(Ride.busy(),'Train home did not start the ride back');Ride._skip();T.ok(curScreen==='world'&&W.hx===23&&W.hy===20,'the ride home did not land on the station platform: '+W.hx+','+W.hy);
+   p.rides=5;D.TR.ph='stop';Train._board();await T.wait(100);T.ok(document.querySelector('#rideOv .rd-skip'),'no Skip after the first 3 rides');Ride._skip();go('world');await T.wait(50);
+   for(let i=0;i<400&&D.TR.ph!=='away';i++)D.tick(.05);D.TR.wait=.01;D.TR.walkers.length=0;D.tick(.05);for(let i=0;i<300&&D.TR.ph==='in';i++)D.tick(.05);T.ok(D.TR.ph==='stop','the train did not come back after the ride');}
   for(let i=0;i<500&&D.TR.ph==='stop';i++)D.tick(.05);T.ok(D.TR.ph==='out'&&!W.T[R][22].npc&&!W.T[R][22].block,'the train did not leave, or left its doors on the track');
   for(let i=0;i<500&&D.TR.ph==='out';i++)D.tick(.05);T.ok(D.TR.ph==='away'&&Math.abs(D.TR.wait-900)<1,'the next train is not 15 minutes away');
-  wNpc('station');T.ok(/Number Town Station/.test(mt())&&/Coming soon/i.test(mt()),'the station card did not open');Train._bell();T.ok(D.TR.wait===D.BELL_WAIT&&p.coins===50,'the free bell did not bring the train within a minute');closeModal();
+  wNpc('station');T.ok(/Number Town Station/.test(mt())&&/Dr\. Quartz's Lab/.test(mt()),'the station card did not open');Train._bell();T.ok(D.TR.wait===D.BELL_WAIT&&p.coins===50,'the free bell did not bring the train within a minute');closeModal();
   Train._call();T.ok(p.coins===50-D.CALL_COST&&D.TR.wait<=5,'a paid call did not bring the train right away');
   p.coins=3;D.TR.wait=200;Train._call();T.ok(p.coins===3&&D.TR.wait===200,'a call went through without enough coins');
   D.TR.walkers.length=0;for(let i=0;i<40&&!D.TR.walkers.length;i++)D.spawnRider();T.ok(D.TR.walkers.length===1,'no visitor got off the train');
@@ -347,7 +353,7 @@ const tests=[
   T.ok(!bad.length,bad.join('; '));
   wNpc('town');T.ok(curScreen==='town'&&document.getElementById('mtStreet'),'bumping the Town did not open Main Street');
   {const ids=[...document.querySelectorAll('.mt-shop[data-id]')].map(b=>b.dataset.id);const want=NPCS.filter(n=>!n.opt&&!n.walks&&n.id!=='fountain').map(n=>n.id);T.ok(!ids.includes('elder'),'the Elder Wiz is still on Main Street');T.ok(!ids.includes('fountain'),'the fountain has two doors (map and Main Street)');T.ok(want.every(id=>ids.includes(id)),'Main Street is missing a place: '+want.filter(id=>!ids.includes(id)).join(','));
-   T.ok(ids.includes('lab')&&ids.includes('train')&&ids.includes('truck'),'the Lab, Train or Food Truck is missing from Main Street while switched on');}
+   T.ok(!ids.includes('lab'),'the Lab is still on Main Street (it is reached by train now)');T.ok(ids.includes('train')&&ids.includes('truck'),'the Train or Food Truck is missing from Main Street while switched on');}
   document.querySelector('.mt-shop[data-id="shop"]').click();await T.wait(600);T.ok(curScreen==='shop'&&/Shop/.test(document.querySelector('.title').textContent),'the Shop on Main Street did not open the shop');
   go('town');document.querySelector('.mt-shop[data-id="library"]').click();await T.wait(600);T.ok(curScreen==='library','the Library on Main Street did not open the library');
   {const bb=document.querySelector('.backbtn');T.ok(bb&&/Town/.test(bb.textContent),'a shop opened from Main Street does not offer ← Town');bb.click();T.ok(curScreen==='town','← Town did not go back to Main Street');go('world');go('library');T.ok(/World/.test(document.querySelector('.backbtn').textContent),'a shop opened from the map now says ← Town');}

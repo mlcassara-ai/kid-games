@@ -42,7 +42,8 @@ function syncTile(){try{if(typeof W==='undefined'||!W||!W.T)return;const t=W.T[L
 /* ---------- lab greeting ---------- */
 function greet(p){const s=Q(p),L=s.lab,m=typeof Quartz!=='undefined'?Quartz.medals(p):0;
  const firstVisit=!L.visits;const who=first(p);
- const hi=firstVisit?`Your key works! Welcome to my lab, ${who}. Make yourself at home. 🔬`
+ const hi=!hasKey(p)?(firstVisit?`Welcome to my lab, ${who}! You came all the way by train. Have a look around. Everything here is for explorers like you. 🔬`:[`Welcome back, ${who}! How was the train ride?`,`Ah, ${who}! Come in, come in. Mind the rock pile.`,`There's my favorite explorer! Fresh off the train.`,`Welcome back to the lab, ${who}. I was just labeling rocks.`][(L.visits||0)%4])
+  :firstVisit?`Your key works! Welcome to my lab, ${who}. Make yourself at home. 🔬`
   :[`I heard the door. You let yourself in with your key! Welcome back, ${who}.`,`Welcome back, ${who}! I see your key still works. 🔑`,`Oh, ${who}! Come in, come in. Mind the rock pile.`,`There's my favorite explorer! You let yourself in. Good.`,`Welcome back to the lab, ${who}. I was just labeling rocks.`,`Ah, ${who}! I left the door unlocked for you. Well, you have a key anyway.`][(L.visits||0)%6];
  const tips=[];
  if(s.rocks>0)tips.push(`You have <b>🪨 ${s.rocks} mystery rock${s.rocks>1?'s':''}</b>, so the elevator is ready when you are!`);
@@ -138,6 +139,7 @@ function mapHTML(p){const D=CD();if(!D)return '';const c=cv(p),m=typeof Quartz!=
 /* the Lab Key's daily perk: one elevator ride a day without a rock. More rides on the same day need a mystery rock. */
 const freeRide=s=>s.lab.freeDay!==dayKey();
 function rockHTML(p){const s=Q(p),today=dayKey(),bought=s.lab.rockDay===today,full=s.rocks>=3,free=freeRide(s);
+ if(!hasKey(p)){const n=Math.min(KEY_TRIPS,(p.cave&&p.cave.trips)||s.trips||0);return `<div class="lb-rocks"><div class="lb-rock-n">🔒</div><div class="lb-rock-act"><p style="margin:0 0 6px;font-weight:700;font-size:18px">The elevator down to the dig site needs the 🔑 Lab Key.</p><p class="muted" style="margin:0">Dr. Quartz gives it to explorers after their <b>${KEY_TRIPS}th Science Cave trip</b>. You've been on <b>${n} of ${KEY_TRIPS}</b>. He finds you on the map when it's time for a trip!</p></div></div>`;}
  return `<div class="lb-rocks"><div class="lb-rock-n">🪨 <b>${s.rocks}</b><small>/ 3 rocks</small></div>
   <div class="lb-rock-act">${free?`
    <p style="margin:0 0 6px;font-weight:700;font-size:18px">🔑 Your key gives you one free ride today!</p>
@@ -167,11 +169,11 @@ function down(useRock){const p=P(),s=Q(p);if(DEMO){toast('🔬 Preview: the elev
  Quartz.startTrip(false,free);}
 
 /* ---------- the screen ---------- */
-function draw(){css();const p=P();if(!p||!hasKey(p)){go('world');return;}const s=Q(p);
+function draw(){css();const p=P();if(!p){go('world');return;}const s=Q(p);
  const app=document.getElementById('app');
  app.innerHTML=topbar()+`<div class="page lb-page">
-  <div class="zhead"><button class="btn ghost small" onclick="go('world')">← World</button><h2 class="title" style="margin:0">🔬 Dr. Quartz's Lab</h2></div>
-  ${DEMO&&!(p.sci&&p.sci.key)?'<div class="panel" style="background:#fff3bf"><b>Preview.</b> You don\'t have the key yet, so nothing here is saved.</div>':''}
+  <div class="zhead"><button class="btn green small" onclick="Lab.home()">🚂 Train home</button><h2 class="title" style="margin:0">🔬 Dr. Quartz's Lab</h2></div>
+  ${DEMO&&!(p.sci&&p.sci.key)&&false?'<div class="panel" style="background:#fff3bf"><b>Preview.</b> You don\'t have the key yet, so nothing here is saved.</div>':''}
   <div class="panel"><div class="qz-row"><div class="qz-av">${window.QUARTZ_SVG||''}</div><div class="qz-bub"><b>🔬 Dr. Quartz</b><div id="lbHi">${GREET}</div></div></div></div>
   <div class="lb-cols">
    <div class="panel lb-st"><h3>🧪 Mystery Mineral of the Day</h3>${mmHTML(p)}</div>
@@ -181,7 +183,7 @@ function draw(){css();const p=P();if(!p||!hasKey(p)){go('world');return;}const s
   <div class="panel lb-st"><h3>🗺️ Dig Map</h3>${mapHTML(p)}</div>
  </div>`;}
 let GREET='';
-function open(){const p=P();if(!p||!hasKey(p)){go('world');return;}const s=Q(p);try{if(window.Cave&&Cave.deliverFossils&&p.cave){const n=Cave.deliverFossils(p.cave);if(n){save();toast(`🦴 ${n} fossil piece${n>1?'s':''} from your backpack went to the 🏛️ Museum.`);}}}catch(e){} /* pieces left in the pack (see cave.js campFossils) */MM=null;FB='';GREET=greet(p);if(!DEMO){s.lab.visits=(s.lab.visits||0)+1;s.lab.last=dayKey();save();}
+function open(){const p=P();if(!p){go('world');return;}const s=Q(p);try{if(window.Cave&&Cave.deliverFossils&&p.cave){const n=Cave.deliverFossils(p.cave);if(n){save();toast(`🦴 ${n} fossil piece${n>1?'s':''} from your backpack went to the 🏛️ Museum.`);}}}catch(e){} /* pieces left in the pack (see cave.js campFossils) */MM=null;FB='';GREET=greet(p);if(!DEMO||hasKey(p)){s.lab.visits=(s.lab.visits||0)+1;s.lab.last=dayKey();save();}
  try{if(typeof W!=='undefined'&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}draw();}
 
 /* ---------- styles ---------- */
@@ -232,5 +234,8 @@ setInterval(syncTile,500);
 /* a key that is due but was never saved (it could be lost to an online sync before Oct 2 2026) is handed over again on the map */
 function keyCatchUp(){try{const p=P();if(!p||DEMO||!keyDue(p)||curScreen!=='world'||document.querySelector('#modal.show'))return;if(window.MQ_VISIT&&MQ_VISIT.busy('labkey'))return;giveKey(p,()=>{});}catch(e){}}
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world'){setTimeout(syncTile,0);setTimeout(keyCatchUp,2500);}}});
-window.Lab={open,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
+/* back to Number Town by train (ride.js), landing on the station platform */
+function home(){const go2=()=>{try{const p=P();const x=23,y=20;if(typeof W!=='undefined'&&W&&W.T&&W.T[y]&&W.T[y][x]&&!W.T[y][x].block){W.hx=x;W.hy=y;W.drawX=x;W.drawY=y;W.path=[];}if(p)p.wpos={x,y};}catch(e){}go('world');};
+ if(window.Ride&&Ride.go('home',go2))return;go2();}
+window.Lab={home,open,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
 })();

@@ -17,7 +17,6 @@ const BLOCKS=[
   {id:'library',e:'📚',n:'Library',s:'Stories and books'},
   {id:'school',e:'🏫',n:'School',s:'Spelling, quizzes and homework'}]},
  {id:'sci',n:'Science',wall:'#dcf7e0',aw:'#40c057',ink:'#2b8a3e',shops:[
-  {id:'lab',e:'🔬',n:'Quartz Lab',s:'Ride down to the cave',show:p=>!!(window.Lab&&Lab.hasKey&&Lab.hasKey(p))},
   {id:'train',e:'🚂',n:'Train Station',s:'To Discovery District',show:()=>!!(window.Discovery&&Discovery.flag&&Discovery.flag())}],
   empty:{e:'🔬',n:'Science Center',s:'Dr. Quartz will find you out on the map'}},
  {id:'pets',n:'Pets',wall:'#ffe8e8',aw:'#ff8787',ink:'#c92a2a',shops:[
