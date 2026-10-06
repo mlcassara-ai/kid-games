@@ -110,7 +110,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   async function push() {
     if (saving) { dirty = true; return; }
     saving = true; dirty = false;
-    try { var r = await HN.saveEntry(me.pid, entry()); if (r.reset) { saving = false; startOver(); return; } if (me.z == null) { me.z = r.z; save(); } net(''); }
+    try { var r = await HN.saveEntry(me.pid, entry()); if (r.reset) { saving = false; startOver(); return; } if (me.z == null) { me.z = r.z; save(); } setFrom(); net(''); }
     catch (e) { dirty = true; net('Having trouble connecting… your points are saved on this phone.'); }
     saving = false;
     if (dirty) setTimeout(push, 1500);
@@ -165,9 +165,8 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
     on('back', function () { joinStep--; joinView(); });
     on('go', function () {
       if (!pickG) return;
-      var ph = HN.phase(), from = ph.name === 'fact' ? ph.cycle : ph.cycle + 1;   // never drop in mid-question
       if (regrade) me.g = pickG;
-      else me = { pid: rid(16), n: draft.n, a: draft.a, g: pickG, s: 0, c: 0, na: 0, j: Date.now(), q: -1, from: from };
+      else me = { pid: rid(16), n: draft.n, a: draft.a, g: pickG, s: 0, c: 0, na: 0, j: Date.now(), q: -1, from: -1 };   // from: set once the clock is synced
       joinStep = 1; save(); wake(); shownKey = ''; push(); tick();
     });
   }
@@ -209,9 +208,15 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
       if (idx >= 0) { rankInfo = { r: idx + 1, n: list.length, w: grown ? ' grown-ups' : ' kids' }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = rankHtml(); }
     } catch (e) {}
   }
+  /* the first cycle a new player plays: this one if its fact card is showing, else the next (never drop in mid-question).
+     Worked out after the first save, which lines this phone's clock up with the server's. */
+  function setFrom() {
+    if (!me || me.from !== -1 || !HN.isSynced()) return;
+    var ph = HN.phase(); me.from = ph.name === 'fact' ? ph.cycle : ph.cycle + 1; save(); shownKey = '';
+  }
   function waitView() {
-    var t = HN.now(), n = 0; while (n < 120 && HN.phase(t + n * 250).cycle < me.from) n++;   // seconds until the next fact card
-    var secs = Math.ceil(n / 4);
+    var t = HN.now(), n = 0; while (me.from >= 0 && n < 160 && HN.phase(t + n * 250).cycle < me.from) n++;   // seconds until the next fact card
+    var secs = me.from >= 0 ? Math.ceil(n / 4) : '…';
     if (shownKey !== 'wait') {
       shownKey = 'wait';
       app.innerHTML = header(HN.phase()) + '<div class="panel"><div class="wait"><div class="emo">' + HN.esc(me.a) + '</div><div class="t">You’re in!</div>' +
@@ -220,6 +225,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
     var wn = document.getElementById('wn'); if (wn) wn.textContent = secs;
   }
   function render(ph) {
+    if (me.from === -1) { setFrom(); if (me.from === -1) { waitView(); return; } }
     if (me.from != null && ph.cycle < me.from) { waitView(); return; }
     var key = ph.cycle + ph.name + (me.q === ph.cycle ? 'a' : '');
     if (key !== shownKey) {
