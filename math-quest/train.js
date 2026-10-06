@@ -27,13 +27,15 @@ function lay(T){const ok=t=>t&&!t.water&&!t.gate&&!t.chest&&!(t.npc&&t.npc!=='st
  const b=T[BOARD[1]][BOARD[0]];if(ok(b)){b.o=null;b.npc='station';b.block=true;}}
 window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(lay);
 /* ---------- the schedule ---------- */
+function touching(){try{return !!W&&!TR.riding&&typeof curScreen!=='undefined'&&curScreen==='world'&&!document.querySelector('#modal.show')&&!(W.path&&W.path.length)&&W.hy===ROW-1&&W.hx>=Math.ceil(STOP-LEN)&&W.hx<=Math.floor(STOP)&&(TR.rang||(W.mt||0)>=(TR.arr||0));}catch(e){return false;}} /* only if you walked up while it was coming, or rang for it: a hero who just starts the game on the platform is not whisked away */
 function near(){return !!W&&Math.abs(W.hx-22)<=10&&Math.abs(W.hy-ROW)<=8;}
 function tick(dt){TR.t+=dt;
- if(TR.ph==='away'){TR.wait-=dt;if(TR.wait<=0){TR.ph='in';TR.t=0;TR.front=START;TR.called='';spawnBoarder();if(near())bell();}}
+ if(TR.ph==='away'){TR.wait-=dt;if(TR.wait<=0){TR.ph='in';TR.t=0;TR.front=START;TR.rang=!!TR.called;TR.arr=performance.now();TR.called='';spawnBoarder();if(near())bell();}}
  else if(TR.ph==='in'){const k=Math.min(1,TR.t/T_IN);TR.front=START+(STOP-START)*(1-(1-k)*(1-k));if(k>=1){TR.ph='stop';TR.t=0;TR.front=STOP;doors(true);TR.said=0;spawnRider();}}
  else if(TR.ph==='stop'){const left=T_STOP-TR.t;
   if(left<5&&TR.said<1){TR.said=1;TR.bubble='All aboard!';if(near()){try{if(voiceOn())say('All aboard!',.9);}catch(e){}}}
   if(left<1.6&&TR.said<2){TR.said=2;if(near())whistle();}
+  if(TR.t>1.2&&left>.3&&touching()){board();return;} /* standing next to the train gets you on, no asking (owner, Oct 2026) */
   if(left<=0){TR.ph='out';TR.t=0;TR.bubble='';doors(false);}}
  else if(TR.ph==='out'){const k=Math.min(1,TR.t*(TR.riding?2:1)/T_OUT);TR.front=STOP+(END-STOP)*k*k;if(k>=1){TR.ph='away';TR.t=0;TR.wait=rnd(EVERY[0],EVERY[1]);TR.aboard=[];if(TR.riding)rideNow();}}
  /* steam: puffs from the chimney, more when pulling away */
@@ -215,7 +217,11 @@ function ride(){modal(`<div class="mcard"><div class="big-emoji">🚂</div><h2>A
 /* off to the Lab (ride.js plays the trip, lab.js is the Lab); the train on the map pulls out */
 /* getting on: the hero disappears into the train, which pulls out (twice as fast) into the east tunnel; once it is inside, the
    ride (ride.js) starts in the carriage (owner, Oct 2026: no separate outside scene) */
-function board(){try{closeModal();}catch(e){}try{const p=P();if(p&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}
+/* someone getting on with you rides in your carriage and says so (owner, Oct 2026) */
+const WITH={kind:'Have fun with Dr. Quartz!',quartz:'Welcome aboard! Next stop: my lab!',principal:'Have fun with Dr. Quartz! Learn lots!',rosa:'Have fun with Dr. Quartz! Bring me back a crystal!',keeper:'Have fun with Dr. Quartz! Pat your pet for me!'};
+function companion(){const ws=TR.aboard.slice();TR.walkers.forEach(v=>{if((v.end==='board'||v.end==='inside')&&!ws.includes(v.w))ws.push(v.w);});const w=ws[0];if(!w)return null;
+ let img=null;try{img=w.art&&w.art();}catch(e){}return {id:w.id,img:img||null,e:w.e||'',ar:w.ar||.7,h:w.h||1.4,say:WITH[w.id]||'Have fun with Dr. Quartz!'};}
+function board(){if(TR.ph==='stop')window.__rideWith=companion();try{closeModal();}catch(e){}try{const p=P();if(p&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}
  if(TR.ph==='stop'&&W){TR.ph='out';TR.t=0;TR.bubble='';doors(false);TR.riding=true;window.__hideHero=true;window.__petAboard=true;W.path=[];whistle();return;}
  rideNow();}
 function rideNow(){TR.riding=false;window.__hideHero=false;window.__petAboard=false;const arrive=()=>{go(window.Lab?'lab':'world');};if(!(window.Ride&&Ride.go('lab',arrive)))arrive();}
@@ -238,6 +244,6 @@ function think(ctx,cx,cy,ts,now){const T=TR.think;if(!T||typeof W==='undefined'|
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s!=='world'&&TR.riding){TR.riding=false;window.__hideHero=false;window.__petAboard=false;}}}); /* never leave the hero hidden */
 /* a tap on (or near) the bell button or the post counts as a tap on the sign: the hero walks over and presses it (owner: bigger hotspot) */
 window.MQ_TAP=window.MQ_TAP||[];window.MQ_TAP.push((x,y,ts)=>{const mid=(BOARD[0]+.5)*ts,top=BOARD[1]*ts+ts*.15,bot=(ROW+.86)*ts;return Math.abs(x-mid)<ts*.5&&y>top&&y<bot+ts*.1?[BOARD[0],BOARD[1]]:null;});
-window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=ride;
+window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=board; /* bumping the train gets you on straight away (owner: no confirm) */
 window.Train={_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();
