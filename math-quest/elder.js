@@ -19,6 +19,14 @@ const BYE=['Math-ra-cadabra!','Abra-ca-divide!','Hocus pocus, multiply-ocus!','S
    or talk to him again until he gets there (owner, Oct 2026) */
 const LEAVE=['Well, I must be off!','Places to go, numbers to count!','Toodle-oo, young wizard!','Time for my afternoon stroll!','Off I go! My tea is getting cold.','Busy, busy, busy! Goodbye!'];
 const NEAR=2.2,AWAY=4,WAVE=1800,FAR=12;
+/* how often (owner, Oct 2026: "at most once every 10 minutes"): he is out for a short visit (VISIT s), then goes into a place or
+   vanishes and stays away GAP s; the first visit after opening the game comes after FIRST s. The next appearance time is kept per
+   device (localStorage mq.elderNext) so reloading the page doesn't bring him straight back. */
+const VISIT=[150,240],GAP=[600,900],FIRST=[60,180],SMOKE=/[?&]smoke=/.test(location.search);
+const rnd=a=>(a[0]+Math.random()*(a[1]-a[0]))*1000;
+function nextAt(){try{return +localStorage.getItem('mq.elderNext')||0;}catch(e){return 0;}}
+/* off he goes until his next visit */
+function away(W,now,ms){E.hidden=true;E.moved=true;E.outT=now;E.path=[];E.goIn=null;E.leaving=false;E.backAt=now+ms;setTile(W,false);try{localStorage.setItem('mq.elderNext',String(Date.now()+ms));}catch(e){}}
 const SVG=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 96"><defs><linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#845ef7"/><stop offset="1" stop-color="#5f3dc4"/></linearGradient><linearGradient id="h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5c7cfa"/><stop offset="1" stop-color="#364fc7"/></linearGradient><radialGradient id="o"><stop offset="0" stop-color="#e7f5ff"/><stop offset=".6" stop-color="#74c0fc"/><stop offset="1" stop-color="#339af0"/></radialGradient></defs>
 <ellipse cx="31" cy="92" rx="18" ry="3.5" fill="rgba(0,0,0,.22)"/>
 <path d="M53 30 L53 91" stroke="${O}" stroke-width="5" stroke-linecap="round"/><path d="M53 30 L53 91" stroke="#a0703c" stroke-width="2.6" stroke-linecap="round"/>
@@ -56,11 +64,13 @@ function places(W){const out=[],p=(()=>{try{return P();}catch(e){return null;}})
  return out;}
 function setTile(W,on){if(!E)return;if(on&&E.leaving)return;const t=W.T[E.y]&&W.T[E.y][E.x];if(!t)return;if(on){if(!t.npc)t.npc='elder';}else if(t.npc==='elder')delete t.npc;}
 function plan(W,now){const R=reach(W);if(!R.length)return;let tgt=null,go=null;
- if(Math.random()<.25){const L=places(W);if(L.length){const s=L[Math.floor(Math.random()*L.length)];tgt=[s.x,s.y];go=s;}}
+ if(now>=(E.visitEnd||0)){const L=places(W);if(L.length){const s=L[Math.floor(Math.random()*L.length)];tgt=[s.x,s.y];go=s;}}
  if(!tgt){for(let i=0;i<30&&!tgt;i++){const c=R[Math.floor(Math.random()*R.length)];if(Math.abs(c[0]-E.x)+Math.abs(c[1]-E.y)<14&&free(W.T[c[1]][c[0]],W,c[0],c[1]))tgt=c;}}
- if(!tgt){E.wait=now+3000;return;}const p=pathTo(W,E.x,E.y,tgt[0],tgt[1]);if(!p){E.wait=now+2000;return;}E.path=p;E.goIn=go;}
+ if(!tgt){E.wait=now+3000;return;}const p=pathTo(W,E.x,E.y,tgt[0],tgt[1]);if(!p){if(go){poof(now);return;}E.wait=now+2000;return;}E.path=p;E.goIn=go;}
 function start(W,now){const R=reach(W);let s=null;try{s=[TOWN_X+2,TOWN_Y+4];}catch(e){}if(!s||!free(W.T[s[1]]&&W.T[s[1]][s[0]],W,s[0],s[1]))s=R[Math.floor(Math.random()*R.length)];if(!s)return;
- E={x:s[0],y:s[1],fx:s[0],fy:s[1],mt:0,path:[],dir:1,wait:now+4000,hidden:false,a:0,say:null,nextSay:now+(40+Math.random()*80)*1000};setTile(W,true);}
+ E={x:s[0],y:s[1],fx:s[0],fy:s[1],mt:0,path:[],dir:1,wait:now+4000,hidden:false,a:0,say:null,nextSay:now+(40+Math.random()*80)*1000,visitEnd:now+rnd(VISIT)};
+ if(SMOKE){setTile(W,true);return;} /* the smoke test meets him straight away */
+ const left=nextAt()-Date.now();E.hidden=true;E.moved=true;E.outT=now-1000;E.backAt=now+Math.max(left,rnd(FIRST));}
 function sayLine(){let done=false;try{const p=P(),i=npcQuestIdx(p,'elder');done=i>=0&&qState(p).active[i].done;}catch(e){}
  const L=done&&Math.random()<.6?DONE:Math.random()<.4?QUEST:OTHER;return L[Math.floor(Math.random()*L.length)];}
 /* the hero is close: stop, face them, greet once per visit (he greets again only after they've wandered off and come back a bit later) */
@@ -76,19 +86,20 @@ function leaveWalk(W,now){const R=reach(W);for(let i=0;i<40;i++){const c=R[Math.
   E.path=p;E.leaving=true;E.wait=0;E.say={t:LEAVE[Math.floor(Math.random()*LEAVE.length)],at:now};E.nextSay=Math.max(E.nextSay,now+40000);return true;}return false;}
 function poof(now){if(E.poof||E.hidden)return;E.path=[];E.goIn=null;E.poof={at:now,vanish:now+WAVE};E.say={t:BYE[Math.floor(Math.random()*BYE.length)],at:now};E.nextSay=Math.max(E.nextSay,now+40000);}
 /* after vanishing he comes back somewhere well away from the hero */
-function relocate(W){const R=reach(W);for(let i=0;i<60;i++){const c=R[Math.floor(Math.random()*R.length)];if(c&&Math.hypot(c[0]-W.hx,c[1]-W.hy)>8&&free(W.T[c[1]][c[0]],W,c[0],c[1])){E.x=E.fx=c[0];E.y=E.fy=c[1];return;}}}
+function relocate(W){const R=reach(W),ts=W.ts||48,off=c=>Math.abs(c[0]-W.hx)*ts>(W.vw||800)/2+ts||Math.abs(c[1]-W.hy)*ts>(W.vh||600)/2+ts;
+ for(const need of [c=>off(c),()=>true])for(let i=0;i<80;i++){const c=R[Math.floor(Math.random()*R.length)];if(c&&Math.hypot(c[0]-W.hx,c[1]-W.hy)>FAR&&need(c)&&free(W.T[c[1]][c[0]],W,c[0],c[1])){E.x=E.fx=c[0];E.y=E.fy=c[1];return;}}} /* well away from the hero, off screen if possible */
 function tick(W,now){if(EW!==W){EW=W;REACH=null;E=null;}if(!E){start(W,now);if(!E)return;}
- if(E.hidden){if(E.poof&&now>E.poof.at+6000)E.poof=null;if(now>=E.backAt){if(E.moved){E.moved=false;relocate(W);}E.poof=null;E.hidden=false;E.a=0;E.wait=now+2500;setTile(W,true);}return;}
+ if(E.hidden){if(E.poof&&now>E.poof.at+6000)E.poof=null;if(now>=E.backAt){if(E.moved){E.moved=false;relocate(W);}E.visitEnd=now+rnd(VISIT);E.poof=null;E.hidden=false;E.a=0;E.wait=now+2500;setTile(W,true);}return;}
  E.a=Math.min(1,E.a+.05);
- if(E.poof){if(now>=E.poof.vanish){E.hidden=true;E.moved=true;E.outT=now;E.backAt=now+(15+Math.random()*30)*1000;setTile(W,false);}return;}
+ if(E.poof){if(now>=E.poof.vanish)away(W,now,rnd(GAP));return;}
  if(E.mt&&now-E.mt<STEP)return;E.mt=0;
  if(now>=E.nextSay&&!E.say){E.say={t:sayLine(),at:now};E.nextSay=now+(45+Math.random()*105)*1000;}
  if(E.say&&now-E.say.at>5500)E.say=null;
- if(E.talked){if(document.querySelector('#modal.show'))return;const m=E.talked;E.talked=null;if(m==='walk'&&leaveWalk(W,now))return;poof(now);if(E.poof)E.poof.vanish=now+1300;return;} /* his card just closed: off he goes */
+ if(E.talked){if(document.querySelector('#modal.show'))return;const m=E.talked;E.talked=null;E.visitEnd=Math.min(E.visitEnd||0,now+60e3);if(m==='walk'&&leaveWalk(W,now))return;poof(now);if(E.poof)E.poof.vanish=now+1300;return;} /* his card just closed: off he goes */
  if(E.leaving&&!E.path.length){E.leaving=false;setTile(W,true);} /* got there: he can be met again */
  if(!E.hidden&&!E.leaving&&greet(W,now)){E.wait=Math.max(E.wait,now+400);return;} /* he waits while the hero is close */
  if(now<E.wait)return;
- if(!E.path.length){if(E.goIn){const g=E.goIn;E.goIn=null;E.dir=g.door[0]>=E.x?1:-1;E.hidden=true;E.backAt=now+(20+Math.random()*40)*1000;E.outT=now;setTile(W,false);return;}
+ if(!E.path.length){if(E.goIn){const g=E.goIn;E.goIn=null;E.dir=g.door[0]>=E.x?1:-1;away(W,now,rnd(GAP));return;}
   E.wait=now+1500+Math.random()*4000;plan(W,now);return;}
  const [nx,ny]=E.path[0],t=W.T[ny]&&W.T[ny][nx];if(!free(t,W,nx,ny)||blocked(W,E.x,E.y,nx,ny)){if(nx===W.hx&&ny===W.hy){E.wait=now+800;return;}E.path=[];return;}
  E.path.shift();setTile(W,false);E.fx=E.x;E.fy=E.y;if(nx!==E.x)E.dir=nx>E.x?1:-1;E.x=nx;E.y=ny;E.mt=now;setTile(W,true);}
@@ -114,5 +125,5 @@ function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T)retur
   if(done&&!E.hidden){const r=ts*.16,bx=sx+ts/2,by=sy+ts*.97-h-r*1.3+Math.sin(now/300)*2;ctx.save();ctx.fillStyle='#ffd43b';ctx.strokeStyle=O;ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,r,0,7);ctx.fill();ctx.stroke();ctx.fillStyle=O;ctx.font=`900 ${Math.round(r*1.5)}px Fredoka, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',bx,by+1);ctx.restore();}}});
  if(E.say&&(!E.hidden||pf))items.push({y:1e6-2,draw:()=>bubble(ctx,sx+ts*.75,sy-ts*.25,ts,E.say.t,now-E.say.at)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
-window.MQ_ELDER={GREET,BYE,LEAVE,talked,tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){E.say={t:t||sayLine(),at:performance.now()};}},LINES:{QUEST,DONE,OTHER},places:w=>places(w||W)};
+window.MQ_ELDER={GREET,BYE,LEAVE,talked,TIMES:{VISIT,GAP,FIRST},tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){E.say={t:t||sayLine(),at:performance.now()};}},LINES:{QUEST,DONE,OTHER},places:w=>places(w||W)};
 })();

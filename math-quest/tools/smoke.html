@@ -169,14 +169,16 @@ const tests=[
    const said=E2.say.t;MQ_ELDER.greet();T.ok(E2.say.t===said,'the Elder Wiz greeted again without the hero leaving');T.ok(MQ_ELDER.GREET.length>=15,'too few greetings');
   const t0=performance.now();W.hx=E2.x+6*sd;W.hy=E2.y;MQ_ELDER.greet(W,t0);T.ok(E2.poof&&MQ_ELDER.BYE.includes(E2.say.t),'the Elder Wiz did not wave goodbye when the hero walked away');
    MQ_ELDER.tick(t0+2000);T.ok(E2.hidden&&E2.moved&&W.T[E2.y][E2.x].npc!=='elder','the Elder Wiz did not vanish after waving');
-   E2.backAt=0;MQ_ELDER.tick(t0+2100);T.ok(!E2.hidden&&!E2.poof&&Math.hypot(E2.x-W.hx,E2.y-W.hy)>8,'the Elder Wiz did not pop up somewhere else');
+   T.ok(E2.backAt-(t0+2000)>=MQ_ELDER.TIMES.GAP[0]*1000-50,'the Elder Wiz comes back sooner than 10 minutes after vanishing');
+   E2.backAt=0;MQ_ELDER.tick(t0+2100);T.ok(!E2.hidden&&!E2.poof&&Math.hypot(E2.x-W.hx,E2.y-W.hy)>12,'the Elder Wiz did not pop up somewhere else');
+   E2.visitEnd=0;E2.path=[];E2.wait=0;E2.mt=0;E2.greeted=false;W.hx=E2.x+20<W.T[0].length?E2.x+20:E2.x-20;MQ_ELDER.tick(t0+3000);T.ok(E2.goIn||E2.poof,'the Elder Wiz does not leave when his visit is over');Object.assign(E2,{goIn:null,path:[],poof:null,hidden:false});
    /* after talking (his card) he leaves: vanishes, or walks far away and can't be talked to on the way */
    {const t1=performance.now();Object.assign(E2,{hidden:false,poof:null,moved:false,leaving:false,talked:null,path:[],mt:0,wait:0});W.hx=E2.x+sd;W.hy=E2.y;MQ_ELDER.tick(t1);
     MQ_ELDER.talked('walk');T.ok(W.T[E2.y][E2.x].npc!=='elder','the Elder Wiz can be talked to again right after his card');closeModal();MQ_ELDER.tick(t1+10);
     T.ok(E2.leaving&&E2.path.length>=12&&MQ_ELDER.LEAVE.includes(E2.say.t),'the Elder Wiz did not walk far away after talking');
     for(let i=0;i<5;i++){E2.mt=0;MQ_ELDER.tick(t1+20+i*600);}T.ok(W.T[E2.y][E2.x].npc!=='elder'&&!E2.greeted===false,'the Elder Wiz can be stopped while he walks away');
     Object.assign(E2,{leaving:false,path:[],mt:0,wait:0,talked:null});MQ_ELDER.talked('poof');MQ_ELDER.tick(t1+4000);T.ok(E2.poof&&E2.poof.vanish-(t1+4000)<=2000,'the Elder Wiz did not vanish within 2 seconds after talking');
-    MQ_ELDER.tick(t1+5400);T.ok(E2.hidden,'the Elder Wiz did not vanish after talking');E2.backAt=0;MQ_ELDER.tick(t1+5500);}
+    MQ_ELDER.tick(t1+5400);T.ok(E2.hidden,'the Elder Wiz did not vanish after talking');T.ok(E2.backAt-(t1+5400)>=MQ_ELDER.TIMES.GAP[0]*1000-50,'the Elder Wiz comes back sooner than 10 minutes');E2.backAt=0;MQ_ELDER.tick(t1+5500);}
   W.hx=hx0;W.hy=hy0;}
  }],
 ['fog days: now and then the map starts foggy in front of the fountain and clears as you walk',async function(){
