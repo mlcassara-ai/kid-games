@@ -36,37 +36,37 @@ const JARS=[
   how:'Mix lots of sugar into hot water (a grown-up does the hot part), roll a string in sugar, and hang it in the jar. Sugar crystals grow on the string.',
   shapeWhy:'Sugar packs together in a slanted pattern, so rock candy grows as chunky, slanted blocks.',
   q:[{q:'How much sugar goes into 1 cup of hot water?',a:['3 cups (it looks like way too much!)','Half a cup'],why:'The water must be <b>stuffed with sugar</b>, so the extra comes out as crystals.'},
-   {q:'Only a few tiny crystals so far. What should you do?',a:['Wait: crystals take days','Stir in more sugar'],why:'<b>Crystals grow slowly.</b> Stirring would knock them loose.'},
-   {q:'Where should the jar sit?',a:['On a quiet shelf at room temperature','On a warm, sunny windowsill'],why:'<b>Slow and still</b> grows the biggest crystals. Sun can melt the sugar back.'},
+   {q:'Only a few tiny crystals so far. What should you do?',a:['Wait, crystals take days to grow','Stir in more sugar'],why:'<b>Crystals grow slowly.</b> Stirring would knock them loose.'},
+   {q:'Where should the jar sit?',a:['On a quiet shelf at room temperature','On a warm, sunny windowsill'],why:'<b>Slow and still</b> grows the biggest crystals. Warmth can dissolve the crystals back into the water.'},
    {q:'A hard crust covered the top, so the water can\'t dry up. What should you do?',a:['Gently break the crust','Leave the crust alone'],why:'The water needs to <b>keep drying up</b> for crystals to grow.'},
    {q:'How should you cover the jar?',a:['With a loose paper towel','With a tight lid'],why:'A paper towel keeps dust out but <b>lets water escape</b>.'}],
-  q2:[{q:'Why must the water be so full of sugar?',a:['So the extra sugar comes out as crystals','So it tastes sweeter'],why:'Crystals only grow when there is <b>more sugar than the water can hold</b>.'},
-   {q:'Why did we roll the string in sugar?',a:['The grains are seeds for new crystals','To make the string heavier'],why:'New crystals <b>grow on the seed grains</b>.'},
+  q2:[{q:'Why must the water be so full of sugar?',a:['So the extra sugar comes out as crystals','So the water stays warm longer'],why:'Crystals only grow when there is <b>more sugar than the water can hold</b>.'},
+   {q:'Why did we roll the string in sugar?',a:['The grains are seeds for new crystals','So the string hangs straight down'],why:'New crystals <b>grow on the seed grains</b>.'},
    {q:'Why do crystals grow bigger on a still shelf?',a:['Bumps knock new tiny crystals loose','Shelves are colder than tables'],why:'<b>No bumps</b> means the crystals already there keep growing.'},
    {q:'It grew less today than yesterday. Why?',a:['There is less extra sugar left in the water','The water got too cold to work'],why:'As crystals grow, they <b>use up the extra sugar</b>.'},
    {q:'What is rock candy made of?',a:['Sugar crystals','Frozen sugar water'],why:'Rock candy is just <b>sugar crystals</b>. It never froze.'}]},
  {id:'drip',n:'Cave Drip',e:'💧',days:5,mm:30,shape:'column',ride:'water',coins:60,need:[['eq','jars'],['eq','wool'],['in','soda']],
   how:'A model of a cave: fill two jars with washing-soda water and hang a wool string between them. The water creeps along the string and drips in the middle.',
   shapeWhy:'Each drip leaves a little solid behind: a stalactite hangs down and a stalagmite grows up underneath.',
-  q:[{q:'Why does the string have to be wool?',a:['Water creeps along it','It is strong enough to hold the jars'],why:'Wool <b>soaks up water and carries it</b>, like a straw.'},
+  q:[{q:'Why does the string have to be wool?',a:['Water creeps along it','It is strong enough to hold the jars'],why:'Wool <b>soaks up water and carries it</b>, like a paper towel soaking up a spill.'},
    {q:'Where should the drips land?',a:['On a plate between the jars','Back into one of the jars'],why:'The stalagmite needs a <b>dry place to build up</b>.'},
    {q:'The string sagged and now touches the plate. What should you do?',a:['Lift it a little so drips can form','Let it touch so the water reaches the plate faster'],why:'Drips need <b>a gap to fall through</b>.'},
    {q:'In a real cave, how long does a stalactite take to grow as long as your finger?',a:['Hundreds to thousands of years','About a week'],why:'Real ones are <b>very slow</b>. Our washing-soda model dries fast.'},
    {q:'In a real cave, what happens if a stalactite and stalagmite keep growing?',a:['They meet and make a column','They stay apart forever'],why:'They <b>join into a column</b>. (In our model the stalactite often drops off first!)'}],
-  q2:[{q:'What carries the water along the wool?',a:['Wicking, like a straw','Gravity pulls it uphill'],why:'Water <b>creeps through the tiny gaps</b> in the wool.'},
+  q2:[{q:'What carries the water along the wool?',a:['The wool soaks it up, like a paper towel','Water evaporates and lands on the string'],why:'Water <b>creeps through the tiny gaps</b> in the wool.'},
    {q:'What is left behind when a drip dries?',a:['Solid washing soda','Nothing, it all disappears'],why:'The water leaves, <b>the solid stays</b>.'},
    {q:'Which one grows from the floor up?',a:['The stalagmite','The stalactite'],why:'Stalag<b>m</b>ites grow up from the ground (they <b>m</b>ight reach the top!).'},
    {q:'Why is our model faster than a real cave?',a:['Washing soda dries much faster than cave rock builds up','Our room is warmer than a cave'],why:'In caves, <b>limestone builds up a tiny bit</b> with every drop.'},
    {q:'What is a column?',a:['A stalactite and a stalagmite joined','A very long stalactite'],why:'A column goes <b>all the way from top to bottom</b>.'}]},
- {id:'salt',n:'Salt Cubes',e:'🧂',days:3,mm:15,shape:'cube',ride:'salt',coins:40,need:[['eq','jars'],['eq','filter'],['min','halite']],
+ {id:'salt',n:'Salt Cubes',e:'🧂',days:3,mm:15,shape:'cube',ride:'salt',coins:60,need:[['eq','jars'],['eq','filter'],['min','halite']],
   how:'Rock salt from the cave is dirty. Mix it into water, strain out the dirt, then let the clean salt water dry up very slowly.',
-  shapeWhy:'Salt is made of two kinds of atoms that take turns in neat square rows, so its crystals are little cubes.',
+  shapeWhy:'Salt stacks itself in neat square rows, so its crystals are little cubes.',
   q:[{q:'The salt water is cloudy and brown from cave dirt. What now?',a:['Pour it through a coffee filter','Boil it to clean it'],why:'Boiling doesn\'t remove dirt. <b>A filter catches it.</b>'},
-   {q:'Does hot water hold a lot more salt than cold water?',a:['No, only a little more','Yes, much more'],why:'Surprise! <b>Salt is not like sugar</b>: it grows as the water dries up.'},
+   {q:'Sugar dissolves much better in hot water. Does salt?',a:['No, hot or cold water holds about the same salt','Yes, hot water holds much more salt too'],why:'Surprise! Hot water holds <b>only a little more salt</b> than cold. So salt crystals grow as the water <b>dries up</b>, not as it cools.'},
    {q:'Where should the shallow dish go?',a:['A quiet spot at room temperature','A hot, sunny windowsill'],why:'<b>Slow drying</b> grows bigger, neater cubes.'}],
   q2:[{q:'Why filter the cave salt water?',a:['Dirt gets in the way of the crystals','It makes the water saltier'],why:'<b>Clean water</b> grows clean cubes.'},
-   {q:'Why do crystals appear as the water dries up?',a:['Less water can\'t hold all the salt','The sun makes new salt'],why:'The salt was there all along: <b>less water, so it comes out</b>.'},
-   {q:'Why are slow-dried cubes bigger?',a:['The salt has time to stack neatly','Slow water is heavier'],why:'<b>Time to stack</b> means big, neat cubes.'}]},
+   {q:'Why do crystals appear as the water dries up?',a:['Less water can\'t hold all the salt','The water turns into salt'],why:'The salt was there all along: <b>less water, so it comes out</b>.'},
+   {q:'Why are slow-dried cubes bigger?',a:['The salt has time to stack neatly','Slow drying keeps the water colder'],why:'<b>Time to stack</b> means big, neat cubes.'}]},
  {id:'alum',n:'Alum Diamonds',e:'💠',days:5,mm:25,shape:'octa',ride:null,coins:60,need:[['eq','jars'],['eq','string'],['eq','thermo'],['in','alum']],
   how:'Mix alum into warm water. Tiny crystals form overnight: pick the best one as a "seed", hang it on a string, and it grows bigger every day.',
   shapeWhy:'Alum packs into a shape with 8 flat triangle faces, like two pyramids stuck base to base. It is called an octahedron.',
@@ -77,28 +77,28 @@ const JARS=[
    {q:'How many faces does a perfect alum crystal have?',a:['8','6'],why:'<b>8 faces</b>: an octahedron. (A cube has 6.)'}],
   q2:[{q:'Why pick a clear seed?',a:['Clear seeds grow clear crystals','Clear seeds grow faster'],why:'The crystal <b>copies its seed</b>.'},
    {q:'Why hang the seed in the middle?',a:['So it grows evenly on every side','So it stays warm'],why:'<b>Room on every side</b> means an even shape.'},
-   {q:'Why does cooling help the seed grow?',a:['Cool water holds less alum','Cold makes crystals sticky'],why:'The <b>extra alum</b> has to go somewhere: onto your seed.'},
+   {q:'Why does cooling help the seed grow?',a:['Cool water holds less alum','Cold water freezes onto the seed'],why:'The <b>extra alum</b> has to go somewhere: onto your seed.'},
    {q:'Why move the seed to fresh alum water?',a:['The small crystals were using up the alum','Old alum water goes bad'],why:'<b>Fresh water</b> has alum for your seed.'},
    {q:'What is an 8-faced shape called?',a:['An octahedron','A hexagon'],why:'Octa means <b>8</b>, like an octopus.'}]},
- {id:'epsom',n:'Sparkle Snow',e:'❄️',days:2,mm:20,shape:'needle',ride:null,coins:30,need:[['eq','jars'],['in','epsom']],
+ {id:'epsom',n:'Sparkle Snow',e:'❄️',days:2,mm:20,shape:'needle',ride:null,coins:45,need:[['eq','jars'],['in','epsom']],
   how:'Mix Epsom salt (bath salt) into hot water (a grown-up does the hot part), then cool it quickly.',
-  shapeWhy:'Epsom salt always grows as long needles. The faster it grows, the thinner the needles.',
+  shapeWhy:'Epsom salt usually grows as long needles. The faster it grows, the thinner the needles.',
   q:[{q:'To get lots of thin needles by tomorrow, where should the jar cool?',a:['In the fridge','On the counter'],why:'<b>Fast cooling</b> makes lots of thin needles.'},
    {q:'Why did crystals appear when the water cooled?',a:['Cold water holds less Epsom salt','Cold makes the salt freeze'],why:'It isn\'t ice! <b>Cold water holds less salt</b>, so the extra comes out.'}],
   q2:[{q:'Why are the needles so thin?',a:['They grew very fast','Epsom salt is very soft'],why:'<b>Fast growing</b> makes thin needles.'},
    {q:'What would cooling it slowly on the counter give?',a:['Fewer, thicker needles','No crystals at all'],why:'<b>Slow cooling</b> grows fewer, bigger crystals.'}]},
  {id:'copper',n:'Blue Copper',e:'🔷',days:5,mm:30,shape:'box',ride:null,coins:90,need:[['eq','jars'],['eq','gloves'],['min','azurite'],['in','copper']],
   how:'Copper sulfate is made from copper ores like the azurite you found. It is not safe to touch, so Dr. Quartz grows this one while you watch. Never try it at home!',
-  shapeWhy:'Copper sulfate packs in a lopsided pattern, so its crystals are slanted blue boxes where no two sides match.',
+  shapeWhy:'Copper sulfate packs in a lopsided pattern, so its crystals are slanted blue boxes with no square corners.',
   q:[{q:'Dr. Quartz pours the hot blue liquid. What should you wear?',a:['Gloves and goggles too','Just goggles, since you are not touching it'],why:'<b>Everyone near</b> wears full safety gear.'},
    {q:'Where should the jar sit?',a:['High up, labeled, away from food','In the fridge to keep it cool'],why:'It is <b>poisonous if swallowed</b>, so never near food.'},
-   {q:'Why is the water so blue?',a:['Copper makes it blue','Dr. Quartz added blue food colouring'],why:'<b>Copper is blue</b>, just like your azurite.'},
-   {q:'Lots of small crystals grew. How do you get one big one?',a:['Put the best one in fresh blue liquid','Leave them all together'],why:'<b>Alone</b>, one crystal gets all the copper.'},
+   {q:'Why is the water so blue?',a:['Copper makes it blue','Dr. Quartz added blue food colouring'],why:'<b>Copper in water turns it blue</b>, and copper makes azurite blue too.'},
+   {q:'Lots of small crystals grew. How do you get one big one?',a:['Put the best one in fresh blue liquid','Leave them all together'],why:'<b>Alone</b>, one crystal gets all the copper sulfate.'},
    {q:'Where does the leftover blue liquid go?',a:['Back to the lab to be thrown away safely','Down the sink with lots of water'],why:'It <b>harms fish and plants</b>, so never down the drain.'}],
-  q2:[{q:'Where does copper sulfate come from?',a:['Copper ores like azurite','Blue sea water'],why:'It is <b>made from copper</b> dug out of the ground.'},
-   {q:'Why does everyone near wear goggles?',a:['Splashes can hurt eyes','To see the blue better'],why:'<b>Eyes first!</b> Splashes happen.'},
-   {q:'Why keep it away from food?',a:['It is poisonous if swallowed','It turns food blue'],why:'<b>Never near food</b>: it makes people sick.'},
-   {q:'Why grow one crystal alone?',a:['It gets all the copper sulfate','It stays cooler that way'],why:'<b>No sharing</b> means one big crystal.'},
+  q2:[{q:'Where does copper sulfate come from?',a:['Copper ores like azurite, treated in a lab','Crushed blue glass'],why:'It is <b>made from copper</b> dug out of the ground.'},
+   {q:'Why does everyone near wear goggles?',a:['Splashes can hurt eyes','So the bright blue won\'t hurt their eyes'],why:'<b>Eyes first!</b> Splashes happen.'},
+   {q:'Why keep it away from food?',a:['It is poisonous if swallowed','It makes food spoil faster'],why:'<b>Never near food</b>: it makes people sick.'},
+   {q:'Why grow one crystal alone?',a:['It gets all the copper sulfate','It grows straighter that way'],why:'<b>No sharing</b> means one big crystal.'},
    {q:'Why never pour it down the sink?',a:['It harms fish and plants','It blocks the pipes'],why:'Drains lead to rivers: <b>keep it out</b>.'}]}];
 const J=id=>JARS.find(x=>x.id===id);
 const COLORS=[{id:'',n:'Clear',c:'#ffdeeb',c2:'#ffc9de'},{id:'pink',n:'Pink',c:'#fcc2d7',c2:'#f783ac'},{id:'blue',n:'Blue',c:'#a5d8ff',c2:'#74c0fc'}];
@@ -255,10 +255,13 @@ function graph(jar,log,T,prev){const n=jar.days,W=300,H=150,x=d=>34+(d-1)/(Math.
  if(prev&&prev.length>1){const pp=prev.map((v,i)=>v==null?null:[x(i+1),y(v)]).filter(Boolean);s+=`<polyline points="${pp.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#adb5bd" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${W-12}" y="22" text-anchor="end" font-size="10" fill="#868e96" font-family="Fredoka,sans-serif">- - last time</text>`;}
  const pts=log.map((v,i)=>v==null?null:[x(i+1),y(v)]).filter(Boolean);if(pts.length>1)s+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#7048e8" stroke-width="3"/>`;pts.forEach(([a,b])=>{s+=`<circle cx="${a}" cy="${b}" r="5" fill="#7048e8"/>`;});
  return `<svg viewBox="0 0 ${W} ${H}" class="cg-graph">${s}<text x="8" y="14" font-size="10" fill="#868e96" font-family="Fredoka,sans-serif">mm</text></svg>`;}
-function drawJournal(p,s){const jar=J(VIEW.id),j=s.j[VIEW.id];if(!j){VIEW=null;draw();return;}const log=j.log||[];
- const rows=log.map((v,i)=>{const prev=i?log[i-1]:0;return `<tr><td>Day ${i+1}</td><td>${v==null?'—':v+' mm'}</td><td>${v==null||prev==null?'—':'+'+(v-prev)+' mm'}</td></tr>`;}).join('');
+const NOTICE=['✨ More crystals','📏 Bigger crystals','😐 Looks the same'];
+function notice(i){const p=P();if(!p||!VIEW)return;const j=st(p).j[VIEW.id];if(!j)return;j.obs=j.obs||[];j.obs[j.d-1]=i;save();try{SFX.tap();}catch(e){}draw();}
+function drawJournal(p,s){const jar=J(VIEW.id),j=s.j[VIEW.id];if(!j){VIEW=null;draw();return;}const log=j.log||[],obs=j.obs||[];
+ const rows=log.map((v,i)=>{const prev=i?log[i-1]:0;return `<tr><td>Day ${i+1}</td><td>${v==null?'—':v+' mm'}</td><td>${v==null||prev==null?'—':'+'+(v-prev)+' mm'}</td><td>${obs[i]!=null?NOTICE[obs[i]].split(' ')[0]:''}</td></tr>`;}).join('');
+ const ask=log.length>=j.d&&j.d>0&&obs[j.d-1]==null?`<div class="cg-fact">🔎 <b>What do you notice today?</b> <span class="cg-opts" style="display:inline-flex;margin-left:6px">${NOTICE.map((t,i)=>`<button class="btn ghost dark small" onclick="CG._notice(${i})">${t}</button>`).join('')}</span></div>`:'';
  const end=j.d>=jar.days&&log.length>=jar.days;
- card(`<h2>📓 ${esc2(jar.n)} journal</h2><div class="cg-jr"><table class="cg-tab"><tr><th>Day</th><th>Length</th><th>Grew</th></tr>${rows}</table>${graph(jar,log,j.tgt||jar.mm,s.n[jar.id]&&s.prev&&s.prev[jar.id])}</div>
+ card(`<h2>📓 ${esc2(jar.n)} journal</h2><div class="cg-jr"><table class="cg-tab"><tr><th>Day</th><th>Length</th><th>Grew</th><th>Noticed</th></tr>${rows}</table>${graph(jar,log,j.tgt||jar.mm,s.n[jar.id]&&s.prev&&s.prev[jar.id])}</div>${ask}
   <div class="cg-row">${end?`<button class="btn gold" onclick="CG._most()">📈 Read the graph ➜</button>`:`<span class="cg-sub">Come back tomorrow for day ${j.d+1} of ${jar.days}.</span><button class="btn ghost dark" onclick="CG.back()">← Crystal Garden</button>`}</div>`);}
 /* the last day: read the graph, then the results */
 /* reading the graph on the last day: the question rotates (grew the most / grew the least / how much between two days) */
@@ -280,17 +283,18 @@ function drawMost(p,s){const v=VIEW,jar=J(v.id),j=s.j[v.id];if(!j){VIEW=null;dra
 function mostPick(i){const p=P();if(!p||!VIEW||VIEW.k!=='most'||VIEW.pick!=null)return;if(VIEW.opts[i].v===VIEW.right){p.coins=(p.coins||0)+10;save();try{SFX.correct();}catch(e){}}else{try{SFX.wrong();}catch(e){}}VIEW.pick=i;draw();}
 /* the results: prediction checked, the shelf, rewards, Ozzy's ticket or Zoom in, the all-6 prize */
 function finish(){const p=P();if(!p||!VIEW)return;const id=VIEW.id,jar=J(id),s=st(p),j=s.j[id];if(!j||j.d<jar.days)return;
- const pf=Math.random()<1/PERFECT_IN,first=!s.n[id],prev=s.best[id]||0,rec=!first&&j.mm>prev,predOK=!!j.pred&&j.pred===jar.shape;
+ const lastRun=(s.shelf.filter(x=>x.id===id).slice(-1)[0])||null,pf=Math.random()<1/PERFECT_IN,first=!s.n[id],prev=s.best[id]||0,rec=!first&&j.mm>prev,predOK=!!j.pred&&j.pred===jar.shape;
  const coins=Math.round((jar.coins+j.mm)*(pf?2:1))+(first?25:0)+(rec?RECORD_COINS:0);p.coins=(p.coins||0)+coins;try{p.cave=p.cave||{};p.cave.rp=(p.cave.rp||0)+5+(predOK?5:0);}catch(e){}
  s.prev=s.prev||{};s.prev[id]=(j.log||[]).slice();s.shelf.push({id,mm:j.mm,col:j.col||'',pf:pf?1:0,at:dayKey()});if(s.shelf.length>60)s.shelf.splice(0,s.shelf.length-60);s.n[id]=(s.n[id]||0)+1;s.best[id]=Math.max(prev,j.mm);delete s.j[id];
  let tix=null,zoomNow=false,full=false;try{if(jar.ride){const al=p.inner&&p.inner.album;if(al&&al[jar.ride]!=null){if(!s.zoom[id]){s.zoom[id]=1;zoomNow=true;}}else if(window.Inner&&Inner.awardRide){tix=Inner.awardRide(p,jar.ride);if(!tix){full=!!(Inner.isFull&&Inner.isFull(p));if(!full&&!s.zoom[id]){s.zoom[id]=1;zoomNow=true;}}}}}catch(e){}
  const kinds=JARS.filter(x=>s.n[x.id]).length;let prize=false;if(kinds>=6&&!s.prize){s.prize=1;p.coins+=PRIZE;prize=true;}
  save();try{SFX.win();}catch(e){}
- VIEW={k:'done',id,mm:j.mm,col:j.col,pf,coins,first,rec,prev,good:j.good||0,days:jar.days,pred:j.pred,predOK,tix:!!tix,zoomNow,pocket:full,kinds,prize,cm:lvl(p)>=1};draw();}
+ VIEW={k:'done',id,lastRun,mm:j.mm,col:j.col,pf,coins,first,rec,prev,good:j.good||0,days:jar.days,pred:j.pred,predOK,tix:!!tix,zoomNow,pocket:full,kinds,prize,cm:lvl(p)>=1};draw();}
 function drawDone(p,s){const v=VIEW,jar=J(v.id);
  card(`<h2>🎉 ${esc2(jar.n)}: on your Crystal Shelf!</h2><div class="cg-big">${svg(jar.id,1,v.col)}<div style="flex:1;min-width:220px">
   ${v.pred?`<p style="margin:0 0 6px">📝 You predicted <b>${esc2(SHAPES[v.pred].n.toLowerCase())}</b>. It grew as <b>${esc2(SHAPES[jar.shape].n.toLowerCase())}</b>. ${v.predOK?'<b>✅ Your prediction was right!</b> +5 🔬':'Your prediction was different: that\'s exactly why scientists test their ideas!'}</p><p class="cg-sub" style="margin:0 0 6px">${esc2(jar.shapeWhy)}</p>`:''}
   <p style="margin:0 0 6px">Final length: <b>${v.mm} mm</b>${v.cm?` (${(v.mm/10).toFixed(1)} cm)`:''}. You made <b>${v.good} of ${v.days}</b> good choices.${v.good<v.days?' Every good choice grows it bigger.':' Perfect care!'}${v.pf?' <b>✨ It came out PERFECT: double coins!</b>':''}${v.rec?` <b>🏆 New record!</b> (Your best was ${v.prev} mm.) +${RECORD_COINS} 🪙`:''}</p>
+  ${v.lastRun?`<p style="margin:0 0 6px">🔬 <b>Compare:</b> last time ${v.id==='sugar'?`(${esc2((COLORS.find(c=>c.id===(v.lastRun.col||''))||COLORS[0]).n.toLowerCase())}) `:''}it was ${v.lastRun.mm} mm; this time ${v.id==='sugar'?`(${esc2((COLORS.find(c=>c.id===(v.col||''))||COLORS[0]).n.toLowerCase())}) `:''}${v.mm} mm. ${v.id==='sugar'&&(v.lastRun.col||'')!==(v.col||'')?'Food colouring doesn\'t change how sugar crystals grow: the difference came from your choices and natural variety.':'Same recipe, different result: your choices and natural variety make each crystal unique.'}</p>`:''}
   <p style="margin:0"><b>+${v.coins} 🪙 · +5 🔬</b> <small class="cg-sub">(🔬 research points buy cave gear)</small> · Crystals grown: <b>${v.kinds} of 6</b></p></div></div>
   ${v.prize?`<div class="cg-fact cg-prize">🥼 <b>You grew all 6 crystals! You are a Crystal Scientist!</b> +${PRIZE} 🪙</div>`:''}
   ${v.tix?`<div class="cg-fact">🎟️ <b>Ozzy's Shrink Ticket!</b> Ozzy will shrink you down <b>inside</b> your ${esc2(jar.id==='drip'?'water drop':jar.n.toLowerCase())} to see why it grows this way. He comes to find you on the map after 3 more battles.</div>`:''}${v.pocket?`<div class="cg-fact">🎟️ Ozzy had a Shrink Ticket for you, but your ticket pocket is full! Ride with Ozzy to make room.</div>`:''}${v.zoomNow?`<div class="cg-fact">🔍 You've already been inside ${esc2(jar.id==='drip'?'water':jar.n.toLowerCase())} with Ozzy, so <b>Zoom in</b> is open on this jar: see the atoms inside your crystal!</div>`:''}
@@ -300,5 +304,5 @@ function drawZoom(p,s){const jar=J(VIEW.id);card(`<h2>🔍 Inside your ${esc2(ja
 function back(){VIEW=null;try{SFX.tap();}catch(e){}draw();}
 function bench(){try{closeModal();}catch(e){}try{if(window.Quartz&&Quartz.room)Quartz.room('bench');}catch(e){}}
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:sc=>{if(sc!=='world')return;setTimeout(()=>{try{const p=P();if(!p||typeof curScreen==='undefined'||curScreen!=='world'||!p.cg||!due(p))return;const s=st(p);if(s.remind===dayKey())return;s.remind=dayKey();save();toast('💧 A crystal jar in Dr. Quartz\'s Lab is ready for today\'s check!');}catch(e){}},2500);}});
-window.CG={open,bench,dig,need,buy,start,tend,meas,journal,zoom,back,due,shelfHTML,art,JARS,EQUIP,INGR,SHAPES,missing,_guess:guess,_go:go,_col:pickCol,_choose:choose,_meas:measured,_most:most,_mostPick:mostPick,_finish:finish,_st:st,_view:()=>VIEW};
+window.CG={open,bench,dig,need,buy,start,tend,meas,journal,zoom,back,due,shelfHTML,art,JARS,EQUIP,INGR,SHAPES,missing,_guess:guess,_go:go,_col:pickCol,_choose:choose,_meas:measured,_most:most,_mostPick:mostPick,_finish:finish,_notice:notice,_st:st,_view:()=>VIEW};
 })();
