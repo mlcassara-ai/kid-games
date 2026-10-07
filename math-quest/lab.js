@@ -174,10 +174,10 @@ const SCIQ=[
 let EQ=null; /* {i, order, picked} the question on screen; PASS: answered right, the ride is ready */
 let PASS=false;
 const canRide=p=>!!(p&&(DEMO||(Q(p).met)));
-function newQ(p){const s=Q(p),L=s.lab;const young=p.grade!=null&&p.grade<=3; /* grade 3 too (Oct 2026 simulation: grade 3 missed 37%) */let pool=SCIQ.map((x,i)=>i).filter(i=>!young||SCIQ[i].y);
+function newQ(p,easy){const s=Q(p),L=s.lab;const young=easy||(p.grade!=null&&p.grade<=3); /* grade 3 too (Oct 2026 simulation: grade 3 missed 37%) */let pool=SCIQ.map((x,i)=>i).filter(i=>!young||SCIQ[i].y);
  const seen=Array.isArray(L.sq)?L.sq:[];const fresh=pool.filter(i=>!seen.includes(i));if(fresh.length)pool=fresh;
  const i=pool[Math.floor(Math.random()*pool.length)];L.sq=seen.concat(i).slice(-Math.min(15,Math.floor(pool.length/2)+5));
- const order=SCIQ[i].a.map((x,k)=>k).sort(()=>Math.random()-.5);EQ={i,order,picked:-1};}
+ let order=SCIQ[i].a.map((x,k)=>k);if(easy)order=[0,1+Math.floor(Math.random()*(order.length-1))]; /* after a wrong answer: an easy one, two choices (second simulation) */order=order.sort(()=>Math.random()-.5);EQ={i,order,picked:-1};}
 function rockHTML(p){
  if(window.Quartz&&Quartz.paused&&Quartz.paused(p)){const c=p.cave||{};let bm='';try{bm=' / '+CD().BATT[(c.gear&&c.gear.bat)||0].v;}catch(e){}return `<div class="lb-rocks"><div class="lb-rock-n">⛏️</div><div class="lb-rock-act"><p style="margin:0 0 6px;font-weight:700;font-size:18px">Your dig is waiting!</p><p class="muted" style="margin:0 0 8px">🔋 Battery: ${Math.floor(c.bat||0)}${bm}. Charge it in the ⚡ Power Room first if you need to.</p><button class="btn green big" onclick="Lab.down()">🛗 Back down to your dig</button><button class="btn ghost dark small" style="margin-top:8px" onclick="closeModal();Lab.home()">🚂 I'm done digging: train home</button></div></div>`;}
  if(!canRide(p))return `<div class="lb-rocks"><div class="lb-rock-n">🔒</div><div class="lb-rock-act"><p style="margin:0 0 6px;font-weight:700;font-size:18px">Dr. Quartz takes you down himself the first time.</p><p class="muted" style="margin:0">Find a 🪨 <b>mystery rock</b> in a treasure chest or a battle, and he will come and find you on the map.</p></div></div>`;
@@ -186,7 +186,7 @@ function rockHTML(p){
  if(EQ.picked>=0){const ok=EQ.picked===0;return `<div class="lb-sq"><p class="lb-sq-q">${esc(Qn.q)}</p><p style="margin:0 0 8px"><b>${ok?'✅ Right!':'Not quite.'}</b> ${esc(Qn.why)}</p>${ok?`<button class="btn green big" onclick="Lab.down()">🛗 Ride the elevator down</button>`:`<button class="btn gold" onclick="Lab.ans(-1)">🔬 Try another question</button>`}</div>`;}
  return `<div class="lb-sq"><p class="muted" style="margin:0 0 4px">🔬 Dr. Quartz: "Answer one science question and the elevator is yours!"</p><p class="lb-sq-q">${esc(Qn.q)}</p><div class="lb-sq-a">${EQ.order.map(k=>`<button class="btn ghost dark" onclick="Lab.ans(${k})">${esc(Qn.a[k])}</button>`).join('')}</div></div>`;}
 function ans(k){const p=P();if(!p||!EQ)return;
- if(k<0){newQ(p);save();}else{EQ.picked=k;if(k===0){PASS=true;try{SFX.correct();}catch(e){}const L=Q(p).lab;L.sqRight=(L.sqRight||0)+1;}else{try{SFX.wrong();}catch(e){}}save();}
+ if(k<0){newQ(p,true);save();}else{EQ.picked=k;if(k===0){PASS=true;try{SFX.correct();}catch(e){}const L=Q(p).lab;L.sqRight=(L.sqRight||0)+1;}else{try{SFX.wrong();}catch(e){}}save();}
  const el=document.querySelector('#modal .lb-elev');
  if(el){const h=el.querySelector('.lb-rocks,.lb-sq');if(h)h.outerHTML=rockHTML(p);}else draw();
  if(k===0)PASS=true;}
