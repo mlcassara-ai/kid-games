@@ -76,11 +76,11 @@ function times(){const b=600;return {tunnel:0,black:b,ramp:b+1000,decel:b+5700,s
 function vAt(T,t){if(t<T.black)return 0;if(t<T.ramp)return (t-T.black)/(T.ramp-T.black);if(t<T.decel)return 1;if(t<T.stop)return 1-(t-T.decel)/(T.stop-T.decel);return 0;}
 function ok(i){return i&&i.complete&&i.naturalWidth;}
 function draw(i,x,y,w,h){if(ok(i))R.ctx.drawImage(i,x,y,w,h);}
-function tile(i,off){if(!ok(i))return;const x=-((off%STRIP)+STRIP)%STRIP;draw(i,x,0,STRIP,Ht);draw(i,x+STRIP,0,STRIP,Ht);}
+function tile(i,off){if(!ok(i))return;const m=((off%STRIP)+STRIP)%STRIP,x=R.out?-m:m-STRIP; /* home: the other way (owner) */draw(i,x,0,STRIP,Ht);draw(i,x+STRIP,0,STRIP,Ht);}
 function smoke(c,x,y,t){for(let k=0;k<6;k++){const age=((t/650)+k/6)%1,px=x-age*170,py=y-age*80,r=12+age*30;c.globalAlpha=.9*(1-age);c.fillStyle='#f1f3f5';c.beginPath();c.arc(px,py,r,0,7);c.arc(px+r*.7,py+r*.25,r*.7,0,7);c.arc(px-r*.7,py+r*.3,r*.65,0,7);c.fill();}c.globalAlpha=1;}
 function countryside(c,dt,t,T){const v=vAt(T,t),o=R.off;for(const k in SPEED)o[k]=(o[k]||0)+v*dt*SPEED[k];
  draw(R.img.sky,0,0,Wd,Ht);tile(R.img.cloud,o.cloud);tile(R.img.far,o.far);tile(R.img.mid,o.mid);tile(R.img.field,o.field);tile(R.img.near,o.near);
- if(t>=T.decel){const r=Math.max(0,(T.stop-t)/1000),d=(T.stop-T.decel)/1000;R.platX=SPEED.plat*r*r/(2*d); /* the distance still to go, so it stops exactly in place */draw(R.out?R.img.lab:R.img.home,R.platX,0,Wd,Ht);}}
+ if(t>=T.decel){const r=Math.max(0,(T.stop-t)/1000),d=(T.stop-T.decel)/1000;R.platX=SPEED.plat*r*r/(2*d); /* the distance still to go, so it stops exactly in place */draw(R.out?R.img.lab:R.img.home,R.out?R.platX:-R.platX,0,Wd,Ht);}}
 function inside(c,t,T,dark){const v=vAt(T,t),bob=Math.sin(t/140)*2*v+Math.sin(t/57)*v;c.save();c.translate(0,bob);draw(R.img.car,0,-2,Wd,Ht+4);draw(R.img.hero,210,250,170,221);
  if(R.pet){const hop=Math.max(0,Math.sin(t/260))**8*14;c.font='64px "Apple Color Emoji","Segoe UI Emoji",sans-serif';c.textAlign='center';c.textBaseline='alphabetic';c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(420,472,30,7,0,0,7);c.fill();c.fillStyle='#000';c.fillText(R.pet,420,466-hop);} /* your pet rides along, on the floor next to you (owner: no bench) */
  if(R.mate){const m=R.mate,h=Math.min(250,150*m.h),w=h*m.ar,x=640-w/2,y=471-h;if(m.img&&ok(m.img))c.drawImage(m.img,x,y,w,h);else if(m.e){c.font='120px "Apple Color Emoji","Segoe UI Emoji",sans-serif';c.textAlign='center';c.textBaseline='alphabetic';c.fillStyle='#000';c.fillText(m.e,640,466);}

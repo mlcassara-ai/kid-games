@@ -42,8 +42,8 @@ function tick(dt){TR.t+=dt;
   if(TR.t>=HOME_WAIT){const k=Math.min(1,(TR.t-HOME_WAIT)/T_BACK);TR.front=STOP-(STOP-FL)*k*k;if(k>=1){TR.ph='away';TR.t=0;TR.front=START;TR.wait=rnd(EVERY[0],EVERY[1]);}}}
  else if(TR.ph==='out'){const k=Math.min(1,TR.t*(TR.riding?2:1)/T_OUT);TR.front=STOP+(END-STOP)*k*k;if(k>=1){TR.ph='away';TR.t=0;TR.wait=rnd(EVERY[0],EVERY[1]);TR.aboard=[];if(TR.riding)rideNow();}}
  /* steam: puffs from the chimney, more when pulling away */
- const chim=TR.front-.55; /* no smoke while the chimney is inside the Depot or the tunnel */
- if(TR.ph!=='away'&&chim>FL+.1&&chim<FR-.1&&Math.random()<(TR.ph==='stop'?1.2:4)*dt*3)TR.smoke.push({x:TR.front-.55,y:ROW-.85,r:.18,a:.7,vx:TR.ph==='stop'?0:-.4,vy:-.6});
+ const chim=TR.ph==='home'?TR.front-LEN+.55:TR.front-.55; /* no smoke while the chimney is inside the Depot or the tunnel (home: the engine leads, at the west end) */
+ if(TR.ph!=='away'&&chim>FL+.1&&chim<FR-.1&&Math.random()<(TR.ph==='stop'?1.2:4)*dt*3)TR.smoke.push({x:chim,y:ROW-.85,r:.18,a:.7,vx:TR.ph==='stop'||(TR.ph==='home'&&TR.t<HOME_WAIT)?0:TR.ph==='home'?.4:-.4,vy:-.6});
  TR.smoke.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.r+=.35*dt;s.a-=.45*dt;});TR.smoke=TR.smoke.filter(s=>s.a>0);
  if(TR.ph!=='away'&&TR.ph!=='stop'&&!(TR.ph==='home'&&TR.t<HOME_WAIT)&&near()){TR.chug=(TR.chug||0)+dt*(TR.ph==='in'?3.5-2.6*Math.min(1,TR.t/T_IN):1+3*Math.min(1,TR.t/T_OUT));if(TR.chug>=1){TR.chug=0;chug();}}
  walkTick(dt);}
@@ -139,7 +139,7 @@ function drawWalker(ctx,v,cx,cy,ts,now){const sx=v.x*ts-cx,sy=v.y*ts-cy,w=v.w,bo
  ctx.restore();if(v.a>.6&&v.sayT>0)bubble(ctx,v.say,sx+ts/2,sy-ts*.62,ts);} /* no name tags, just what they say */
 /* the board: time until the train comes, then ARRIVING, then a countdown to departure while it boards, then DEPARTING */
 const mmss=s=>{s=Math.max(0,Math.ceil(s));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
-function boardText(){return TR.ph==='away'?mmss(TR.wait):TR.ph==='in'?'ARRIVING':TR.ph==='stop'?mmss(T_STOP-TR.t):'DEPARTING';}
+function boardText(){return TR.ph==='away'?mmss(TR.wait):TR.ph==='in'?'ARRIVING':TR.ph==='stop'?mmss(T_STOP-TR.t):TR.ph==='home'?'PARKING':'DEPARTING';}
 /* one hill from the side: outer foot at xo, tunnel face at xf (d=1 when the face is on its right, -1 on its left) */
 function hill(ctx,cx,cy,ts,xo,xf,d,sign){const X=x=>x*ts-cx,Y=y=>y*ts-cy,base=ROW+.98,top=ROW-1.12,face=ROW-.95,mid=xo+(xf-xo)*.42;
  const g=ctx.createLinearGradient(0,Y(top),0,Y(base));g.addColorStop(0,'#74c05a');g.addColorStop(1,'#4f8f3c');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(X(xo),Y(base));
@@ -177,8 +177,8 @@ function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)retu
   ctx.fillStyle='#6b4423';for(let x=l+ts*.1;x<r-ts*.1;x+=ts*.42)ctx.fillRect(x,Y(ROW+.86),ts*.2,ts*.07);
   ctx.fillStyle='#5f666d';ctx.fillRect(l,Y(ROW+.8),r-l,ts*.06);ctx.fillStyle='#ced4da';ctx.fillRect(l,Y(ROW+.8),r-l,ts*.018);}});
  /* the train, clipped to between the tunnel faces so it slides out of one hill and into the other */
- if(TR.ph!=='away')items.push({y:ROW+.3,draw:()=>{ctx.save();ctx.beginPath();ctx.rect(FL*ts-cx,-1e4,(FR-FL)*ts,2e4);ctx.clip();drawTrain(ctx,cx,cy,ts,now);ctx.restore();drawSmoke(ctx,cx,cy,ts);
-  if(TR.bubble&&(TR.ph==='stop'||TR.ph==='home'))bubble(ctx,(TR.ph==='home'?'🚂 ':'🔔 ')+TR.bubble,(TR.front-1.8)*ts-cx,(ROW-1.75)*ts-cy,ts);}});
+ if(TR.ph!=='away')items.push({y:ROW+.3,draw:()=>{ctx.save();ctx.beginPath();ctx.rect(FL*ts-cx,-1e4,(FR-FL)*ts,2e4);ctx.clip();if(TR.ph==='home'){const mid=(TR.front-LEN/2)*ts-cx;ctx.translate(2*mid,0);ctx.scale(-1,1);} /* home from the Lab: engine first towards the Depot (owner) */drawTrain(ctx,cx,cy,ts,now);ctx.restore();drawSmoke(ctx,cx,cy,ts);
+  if(TR.bubble&&(TR.ph==='stop'||TR.ph==='home'))bubble(ctx,(TR.ph==='home'?'🚂 ':'🔔 ')+TR.bubble,(TR.ph==='home'?TR.front-LEN+1.8:TR.front-1.8)*ts-cx,(ROW-1.75)*ts-cy,ts);}});
  /* the hills, seen from the side, in front of the train: a grassy mound with the tunnel's stone portal edge facing the station */
  items.push({y:ROW+.65,draw:()=>{depot(ctx,cx,cy,ts,HL0-.15,FL);hill(ctx,cx,cy,ts,HR1+1.15,FR,-1,'Discovery Zone');}});
  /* departure board */
@@ -251,5 +251,5 @@ window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s!=='wor
 /* a tap on (or near) the bell button or the post counts as a tap on the sign: the hero walks over and presses it (owner: bigger hotspot) */
 window.MQ_TAP=window.MQ_TAP||[];window.MQ_TAP.push((x,y,ts)=>{const mid=(BOARD[0]+.5)*ts,top=BOARD[1]*ts+ts*.15,bot=(ROW+.86)*ts;return Math.abs(x-mid)<ts*.5&&y>top&&y<bot+ts*.1?[BOARD[0],BOARD[1]]:null;});
 window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=board; /* bumping the train gets you on straight away (owner: no confirm) */
-window.Train={arrive,_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
+window.Train={arrive,_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,boardText,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();
