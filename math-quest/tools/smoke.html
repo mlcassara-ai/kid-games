@@ -608,7 +608,8 @@ d.S.bat=5;d.save(true);d.campTap(6.5,.2);await T.wait(300);
   {D._spawn('flying');const fz=G.foes[G.foes.length-1];fz.x=tr.x-4;tr.stun=0;tr.stompAt=0;tr.poundAt=0;for(let i=0;i<14;i++)D.step(.05);T.ok(fz.x<tr.x-5||fz.gone,'the troll\'s roar did not blow a flyer back');fz.gone=true;}
   G.treats=50;G.trollAt=0;T.ok(!D.callTroll(),'a second troll came while the first was out');tr.leave=G.t;D.step(.05);T.ok(tr.gone&&tr.left,'the troll did not go home');G.trollAt=G.t+50;
   /* 🦅 Skyla, the other mega: walks, rises, dives onto the critters ahead */
-  {G.megaId='eagle';G.trollAt=0;G.treats=50;const before=G.trolls;D.callTroll();const eg=G.pets.find(u=>u.mega&&!u.gone&&u.R.id==='eagle');T.ok(eg&&G.trolls===before+1,'Skyla did not come');
+  {[G.lureD,G.lureH].forEach(L=>{if(L)L.items.forEach(it=>{it.eaten=true;});}); /* snacks still on the ground would (rightly) send her to eat first */
+   G.megaId='eagle';G.trollAt=0;G.treats=50;const before=G.trolls;D.callTroll();const eg=G.pets.find(u=>u.mega&&!u.gone&&u.R.id==='eagle');T.ok(eg&&G.trolls===before+1,'Skyla did not come');
    eg.stun=0;D._spawn('basic');const ef=G.foes[G.foes.length-1];ef.x=eg.x-8;const eh=ef.hp;let rose=false;for(let i=0;i<40&&!G.dives;i++){D.step(.05);if(eg.ph==='rise')rose=true;}
    T.ok(rose&&G.dives>=1&&(ef.hp<eh||ef.gone),'Skyla did not rise and dive onto the critter');eg.leave=G.t;D.step(.05);ef.gone=true;G.megaId='troll';{G.megaId='core';G.trollAt=0;G.treats=50;D.callTroll();const ck=G.pets.find(u=>u.mega&&!u.gone&&u.R.id==='core');T.ok(ck,'the Core Keeper did not come');D._spawn('flying');const cf=G.foes[G.foes.length-1];cf.x=ck.x-3;ck.stun=0;ck.pulseAt=0;const ch=cf.hp,p0=G.pulses||0;for(let i=0;i<10;i++)D.step(.05);T.ok((G.pulses||0)>p0&&(cf.hp<ch||cf.gone),'the Core Keeper\'s Heat Pulse did not scorch a flyer');ck.leave=G.t;D.step(.05);cf.gone=true;G.megaId='troll';G.trollAt=0;}G.trollAt=G.t+50;}
   /* a critter past the front line shows an edge alert; hitting the Pet House glides the camera there once */
@@ -632,7 +633,7 @@ d.S.bat=5;d.save(true);d.campTap(6.5,.2);await T.wait(300);
     q.pets=keep;q.petData=JSON.parse(pd);}}
   {const fl=document.getElementById('bpField');D._spawn('basic');const ff=G.foes[G.foes.length-1];ff.fly=true;ff.x=55;ff.hp=ff.max=9999;const u={x:60,R:{id:'archer',fly:true},rng:11,side:'p',el:document.createElement('div')};fl.appendChild(u.el);
    const n0=fl.querySelectorAll('.bp2-arrow').length;D.arrow(u);T.ok(u.el.classList.contains('jumpshot'),'an archer on the ground did not jump to shoot a flyer');await T.wait(320);
-   const ar=[...fl.querySelectorAll('.bp2-arrow')].slice(n0);T.ok(ar.length===1&&Math.abs(parseFloat(ar[0].style.bottom)-fl.clientHeight*.48)<2,'the arrow did not start up in the air where the archer jumped');
+   const ar=[...fl.querySelectorAll('.bp2-arrow')].slice(n0);T.ok(ar.length===1&&Math.abs(parseFloat(ar[0].style.bottom)-(fl.clientHeight*.25+14))<2,'the arrow did not start up in the air where the archer jumped');
    D._spawn('basic');const gf=G.foes[G.foes.length-1];gf.hp=gf.max=9999;await T.wait(120);const ge=gf.el,fe=ff.el;
    if(ge&&fe){ge.classList.add('jumpshot');await T.wait(330);const dd=Math.abs(ge.querySelector('.e').getBoundingClientRect().bottom-fe.getBoundingClientRect().bottom);ge.classList.remove('jumpshot');T.ok(dd<20,'a jump does not reach the flyers\' height ('+Math.round(dd)+'px off)');}else T.ok(false,'no critters drawn for the jump check');
    gf.gone=true;u.el.remove();ff.gone=true;}
@@ -671,9 +672,30 @@ d.S.bat=5;d.save(true);d.campTap(6.5,.2);await T.wait(300);
   BattlePets._start();fly();D.G().denHP=0;D.step(.05);D.finish();await T.wait(50);T.ok(p.bp2.tk.forest[2]==='u'&&p.bp2.c.forest===2&&/Battle won/.test(ov())&&!document.querySelector('.bp2-over .btn.green'),'a ticket win was not saved, or offered another battle with none left');BattlePets._back();
   go('zone','forest');await T.wait(60);T.ok(!document.getElementById('bpVS')&&/played your/.test(zb().textContent),'used tickets still show a Battle button');
   const tr0=p.bp2.tr||0;window.medal=()=>4;go('zone','forest');await T.wait(60);go('zone','forest');await T.wait(60);T.ok(p.bp2.tr===tr0+1&&p.bp2.tk.forest[3]==='r','Diamond did not give exactly one Trainer session, or Gold gave no battle');
-  window.medal=()=>5;go('zone','forest');await T.wait(60);const b=document.getElementById('bpVS');T.ok(b&&/VS/.test(b.textContent)&&!/ready/.test(b.textContent),'no free Battle button after the Legend round');
+  window.medal=()=>5;go('zone','forest');await T.wait(60);
+   {const bd=!!document.querySelector('.zmap .node.boss.done');T.ok(bd?!!document.getElementById('bpVS'):(!document.getElementById('bpVS')&&/Beat this round's boss/.test(zb().textContent)),'after Legend, VS showed before this round\'s boss was beaten (owner, Oct 2026)');
+    if(!bd){document.getElementById('bpZone').remove();document.querySelector('.zmap .node.boss').classList.add('done');window.MQ_HOOKS.forEach(h=>{try{h.screen&&h.screen('zone','forest');}catch(e){}});await T.wait(30);}}
+   const b=document.getElementById('bpVS');T.ok(b&&/VS/.test(b.textContent)&&!/ready/.test(b.textContent),'no free Battle button after the Legend round once its boss is beaten');
   BattlePets.openStage('forest');await T.wait(60);T.ok(D.view().k==='team'&&!D.view().tk,'after Legend the stage still opens in ticket mode');window.medal=m0;
   go('zone','temple');await T.wait(60);T.ok(!document.getElementById('bpZone')&&!document.getElementById('bpVS'),'a world without a Battle Pets stage shows the button');BattlePets._back();
+ }],
+ ['battle pets (Oct 2026): megas walk slowly, flyers fly lower, a pet sent out after the Goblin\'s throw still runs for a treat, his colour magic grows the den back by a quarter',async function(){
+  T.reset();const p=T.hero('Slow',4);p.troll={visits:1,hoard:[]};state.cur=p.id;const D=BattlePets._dbg;
+  T.ok(D.TROLL.spd<=1.5&&D.EAGLE.spd<=1.7&&D.CORE.spd<=1.2,'the megas still walk fast');T.ok(D.TUNE.steal===.25,'the Goblin does not steal colour');
+  D.sim(true);const S=BattlePets.stages().find(s=>s.op);const team=p.pets.map(id=>PETS.find(x=>x.id===id)).filter(Boolean).slice(0,5);const G=D.newBattle(p,S,1,team,0);G.megaId='troll';
+  G.denHP=G.denMax*.26;let k=0;while(!G.lureD&&k<3000&&!G.over){G.foes.forEach(f=>{f.atk=0;});G.denHP=Math.min(G.denHP,G.denMax*.26)-1;D.step(.1);k++;}
+  T.ok(!!G.lureD,'the Goblin never threw his treats');G.treats=99;G.trollAt=0;T.ok(D.callTroll(),'Grumbleroot could not be called after the throw');const tr=G.pets.find(u=>u.mega&&!u.gone);D.step(.1);
+  T.ok(tr&&tr.lr,'Grumbleroot, sent out after the throw, did not go for a treat');const before=G.denHP;k=0;while(!G.boss&&k<200){D.step(.1);k++;}
+  T.ok(G.boss&&G.stole!=null&&G.denHP>before+G.denMax*.2,'the Goblin did not grow his den back when he came out');D.sim(false);
+  BattlePets.openStage(S.id);await T.wait(40);const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('');T.ok(/bp2-ent\.fly\{bottom:calc\(23% \+ 14px\)\}/.test(css),'flyers still fly as high as before');BattlePets._back();
+ }],
+ ['what\'s new: a card once after an update with notes, never for a brand-new hero, and every note in the Parent Corner',async function(){
+  T.reset();const p=T.hero('News',3);state.cur=p.id;delete p.newsSeen;p.battles=5;
+  T.ok(MQ_NEWS.due(p),'an existing hero does not get the What\'s new card');T.ok(MQ_NEWS.show()&&/What's new/.test(document.getElementById('modal').innerText),'the card did not show');
+  MQ_NEWS.close();T.ok(!MQ_NEWS.due(p)&&p.newsSeen===MQ_NEWS.latest(),'closing the card did not mark it seen');
+  const q=T.hero('Newbie',2);q.battles=0;delete q.newsSeen;T.ok(!MQ_NEWS.due(q),'a brand-new hero got the What\'s new card');
+  T.ok(MQ_NEWS.latest()===APP_VER||MQ_NEWS.latest()<=APP_VER,'the newest notes are for a version that is not out yet');
+  T.ok((window.MQ_PARENT||[]).some(f=>/What's new/.test(f()||'')),'the Parent Corner has no What\'s new notes');
  }],
  ['battle pets ascend: endless levels after crown 3, each harder; a win raises the best, a loss keeps it',async function(){
   T.reset();const p=T.hero('Climber',5);state.cur=p.id;const D=BattlePets._dbg;p.bp2={c:{forest:2},team:[]};p.asc={forest:{rank:9,prog:[0,0,0,0,0,0]}};go('bp');

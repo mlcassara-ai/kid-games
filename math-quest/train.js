@@ -29,11 +29,11 @@ window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(lay);
 /* ---------- the schedule ---------- */
 /* 🟨 the waiting spot (owner, Oct 2026): a painted "Wait here" box on the platform (squares 24-25). Standing in it when the train
    stops gets you on, however long you have been waiting. (New heroes start above the platform and the ride home drops you on 23.) */
-const ZONE=[24,25];
+const ZONE=[24,24]; /* one square: a hero standing in it is in the middle of the painted box (owner, Oct 2026) */
 function inZone(){try{return !!W&&!TR.riding&&typeof curScreen!=='undefined'&&curScreen==='world'&&!document.querySelector('#modal.show')&&!(W.path&&W.path.length)&&W.hy===ROW-1&&W.hx>=ZONE[0]&&W.hx<=ZONE[1];}catch(e){return false;}}
-function drawZone(ctx,cx,cy,ts,now){const x=ZONE[0]*ts-cx+ts*.08,w=(ZONE[1]-ZONE[0]+1)*ts-ts*.16,y=(ROW-1)*ts-cy+ts*.22,h=ts*.66,on=inZone()&&W.hx>=ZONE[0];
+function drawZone(ctx,cx,cy,ts,now){const cxz=(ZONE[0]+ZONE[1]+1)/2*ts-cx,w=Math.max(ts*1.7,(ZONE[1]-ZONE[0]+1)*ts-ts*.16),x=cxz-w/2,/* centred on the zone's square(s), wide enough for its words */y=(ROW-1)*ts-cy+ts*.22,h=ts*.66,on=inZone()&&W.hx>=ZONE[0];
  ctx.save();ctx.fillStyle=on?'rgba(105,219,124,.45)':'rgba(255,212,59,.35)';rr(ctx,x,y,w,h,ts*.1);ctx.fill();ctx.setLineDash([ts*.12,ts*.08]);ctx.lineWidth=Math.max(2,ts*.05);ctx.strokeStyle=on?'#2f9e44':'#f08c00';ctx.stroke();ctx.setLineDash([]);
- ctx.fillStyle=on?'#1b5e20':'#7a4a00';ctx.font=`800 ${Math.round(ts*.19)}px Fredoka, system-ui, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(on&&TR.ph!=='stop'?'WAITING…':'🚂 WAIT HERE',x+w/2,y+h/2+1);ctx.restore();}
+ ctx.fillStyle=on?'#1b5e20':'#7a4a00';ctx.font=`800 ${Math.round(ts*.19)}px Fredoka, system-ui, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';if(on){if(TR.ph!=='stop'){ctx.fillStyle='rgba(255,255,255,.85)';const tw=ctx.measureText('WAITING…').width+ts*.16;rr(ctx,x+w/2-tw/2,y+h+ts*.02,tw,ts*.24,ts*.08);ctx.fill();ctx.fillStyle='#1b5e20';ctx.fillText('WAITING…',x+w/2,y+h+ts*.14);}}/* the hero stands over the box, so WAITING… shows just below it */else ctx.fillText('🚂 WAIT HERE',x+w/2,y+h/2+1);ctx.restore();}
 function touching(){try{return !!W&&!TR.riding&&typeof curScreen!=='undefined'&&curScreen==='world'&&!document.querySelector('#modal.show')&&!(W.path&&W.path.length)&&W.hy===ROW-1&&W.hx>=Math.ceil(STOP-LEN)&&W.hx<=Math.floor(STOP)&&(TR.rang||(W.mt||0)>=(TR.arr||0));}catch(e){return false;}} /* only if you walked up while it was coming, or rang for it: a hero who just starts the game on the platform is not whisked away */
 function near(){return !!W&&Math.abs(W.hx-22)<=10&&Math.abs(W.hy-ROW)<=8;}
 function tick(dt){TR.t+=dt;
