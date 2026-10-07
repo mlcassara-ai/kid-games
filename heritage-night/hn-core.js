@@ -314,8 +314,12 @@ var offset = 0, synced = false;
 function now() { return Date.now() + offset; }
 function serverMs(ts) { var m = /^(.*\.\d{3})\d*Z$/.exec(ts); return Date.parse(m ? m[1] + 'Z' : ts); }
 function noteServerTime(ts, t0, t1) { var s = serverMs(ts); if (!isNaN(s)) { offset = s - (t0 + t1) / 2; synced = true; } }
+/* The schedule counts from the game's start time T0 (set by Reset, kept in every shard and in the board doc), so a Reset
+   starts everyone at Round 1, Question 1. Before any Reset T0 is 0 and the schedule runs from the clock alone. */
+var T0 = lsGet('heritagenight.t0.' + EVENT) || 0;
+function setT0(v) { if (typeof v === 'number' && v > 0 && v !== T0) { T0 = v; lsSet('heritagenight.t0.' + EVENT, v); } }
 function phase(t) {
-  t = t == null ? now() : t;
+  t = (t == null ? now() : t) - T0;
   // a round is ROUND cycles; the last one's reveal is T.champ long instead of T.reveal
   var RL = ROUND * T.cycle - T.reveal + T.champ, r = Math.floor(t / RL), rp = t - r * RL;
   var i = Math.min(ROUND - 1, Math.floor(rp / T.cycle)), start = r * RL + i * T.cycle, cl = i === ROUND - 1 ? T.cycle - T.reveal + T.champ : T.cycle;
@@ -323,7 +327,7 @@ function phase(t) {
   if (pos < T.fact) { name = 'fact'; left = T.fact - pos; len = T.fact; }
   else if (pos < T.fact + T.q) { name = 'question'; left = T.fact + T.q - pos; len = T.q; }
   else { name = 'reveal'; left = cl - pos; len = cl - T.fact - T.q; }
-  return { cycle: cycle, name: name, left: left, len: len, qStart: start + T.fact };
+  return { cycle: cycle, name: name, left: left, len: len, qStart: T0 + start + T.fact };
 }
 function points(ms) { return 50 + Math.round(50 * Math.max(0, 1 - ms / T.q)); }   // right: 50, plus up to 50 for speed
 
@@ -487,7 +491,7 @@ function isBot(p) { return !p || p.a === '🤖'; }
 async function allPlayers() {
   var res = await Promise.all(Array.from({ length: SHARDS }, function (_, i) { return getDoc('s' + i).catch(function () { return null; }); }));
   var out = {}, ok = 0;
-  res.forEach(function (d, i) { if (!d) return; ok++; if (i === 0) game = (d.data && d.data.z) || ''; var p = d.data && d.data.p; if (p) for (var k in p) if (!isBot(p[k])) out[k] = p[k]; });
+  res.forEach(function (d, i) { if (!d) return; ok++; if (i === 0) { game = (d.data && d.data.z) || ''; setT0(d.data && d.data.t0); } var p = d.data && d.data.p; if (p) for (var k in p) if (!isBot(p[k])) out[k] = p[k]; });
   if (!ok) throw new Error('offline');
   return out;
 }
@@ -499,6 +503,7 @@ async function saveEntry(pid, entry) {
   for (var i = 0; i < 8; i++) {
     var d = await getDoc(name), data = d.data || { p: {} }, z = data.z || '';
     if (entry.z != null && entry.z !== z) return { reset: true };
+    setT0(data.t0);
     entry.z = z; data.p = data.p || {}; data.p[pid] = entry;
     var r = await putDoc(name, data, d.updateTime);
     if (r.ok) return { ok: true, z: z };
@@ -508,8 +513,9 @@ async function saveEntry(pid, entry) {
 }
 async function resetAll() {
   var z = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  await Promise.all(Array.from({ length: SHARDS }, function (_, i) { return putDoc('s' + i, { p: {}, z: z }, 'any'); }));
-  game = z; return z;
+  var t0 = Math.round(now()) - 500;   // Round 1, Question 1 starts now
+  await Promise.all(Array.from({ length: SHARDS }, function (_, i) { return putDoc('s' + i, { p: {}, z: z, t0: t0 }, 'any'); }));
+  game = z; setT0(t0); return z;
 }
 /* read-modify-write of a small shared doc (board, ctrl, champs), retried on conflict like saveEntry */
 async function updateDoc(name, fn) {
@@ -543,13 +549,13 @@ function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function
 
 /* New versions load by themselves: every 2 minutes each page re-reads its own HTML (from GitHub Pages, not Firestore);
    when the hn-core.js?v= number there changes, the page reloads at the start of the next fact card, so the TV never
-   needs a hand reload and nobody is cut off mid-question. */
+   needs a hand reload and nobody is cut off mid-question. The phase is checked every second so the 3 s window is never missed. */
 function watchVersion() {
   var tag = document.querySelector('script[src*="hn-core.js"]'), v = tag && (tag.getAttribute('src').match(/v=(\d+)/) || [])[1];
   if (!v) return;
   var pending = false, ticks = 0;
   setInterval(async function () {
-    if (!pending && ++ticks % 24 === 0) {
+    if (!pending && ++ticks % 120 === 0) {
       try {
         var t = await (await fetch(location.pathname + '?vcheck=' + Date.now(), { cache: 'no-store' })).text();
         var n = (t.match(/hn-core\.js\?v=(\d+)/) || [])[1];
@@ -557,11 +563,14 @@ function watchVersion() {
       } catch (e) { }
     }
     var ph = phase();
-    if (pending && ph.name === 'fact' && ph.left > T.fact - 4000) location.reload();
-  }, 5000);
+    if (pending && ph.name === 'fact' && ph.left > T.fact - 3000) {   // a fresh copy, not the browser's cached one
+      var q = location.search.replace(/[?&]_v=[^&]*/g, '').replace(/^&/, '?');
+      location.replace(location.pathname + (q ? q + '&' : '?') + '_v=' + Date.now() + location.hash);
+    }
+  }, 1000);
 }
 if (typeof document !== 'undefined') watchVersion();
 
 window.HN = { Q: Q, T: T, EVENT: EVENT, FAST: FAST, PLAY_URL: PLAY_URL, questionFor: questionFor, factFor: factFor, phase: phase, now: now, points: points, ROUND: ROUND, STREAK_AT: STREAK_AT, roundOf: roundOf, qInRound: qInRound, isDouble: isDouble, award: award, roundTop: roundTop, onFire: onFire,
-  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, readDoc: readDoc, putDoc: putDoc, updateDoc: updateDoc, hostKeyOk: hostKeyOk, prizeCode: prizeCode, PRIZES: PRIZES, liraText: liraText, prizeRules: prizeRules, winCounts: winCounts, afterWins: afterWins, pickWinners: pickWinners, isPrizeRound: isPrizeRound, questionsToPrize: questionsToPrize, game: function () { return game; }, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
+  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, readDoc: readDoc, putDoc: putDoc, updateDoc: updateDoc, hostKeyOk: hostKeyOk, prizeCode: prizeCode, PRIZES: PRIZES, liraText: liraText, prizeRules: prizeRules, winCounts: winCounts, afterWins: afterWins, pickWinners: pickWinners, isPrizeRound: isPrizeRound, questionsToPrize: questionsToPrize, game: function () { return game; }, t0: function () { return T0; }, setT0: setT0, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
 })();

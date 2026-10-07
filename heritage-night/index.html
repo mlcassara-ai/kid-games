@@ -142,7 +142,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 <div class="app" id="app"></div>
 <div class="wins" id="wins" aria-live="assertive"></div>
 <div class="prize" id="prize" aria-live="assertive"></div>
-<script src="hn-core.js?v=25"></script>
+<script src="hn-core.js?v=26"></script>
 <script>
 (function () {
   'use strict';
@@ -257,6 +257,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
         return fetchRankFromShards(cycle);
       }
       if (me.z != null && b.z != null && b.z !== me.z) { startOver(); return; }
+      if (b.t0 && b.t0 !== HN.t0()) { HN.setT0(b.t0); shownKey = ''; }
       var grown = me.g === 'a', rk = b.ranks && b.ranks[me.pid];
       teamLine = teamText(b.pull || {}); var tb = document.getElementById('team'); if (tb) tb.textContent = teamLine;
       if (rk) { rankInfo = { r: rk[0], n: rk[1], w: grown ? ' grown-ups' : ' kids' }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = rankHtml(); }
@@ -354,6 +355,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
     var wn = document.getElementById('wn'); if (wn) wn.textContent = secs;
   }
   function render(ph) {
+    if (me.z != null && HN.game() && HN.game() !== me.z) { startOver(); return; }   // a Reset happened: this player belongs to the old game
     if (me.from === -1) { setFrom(); if (me.from === -1) { waitView(); return; } }
     if (me.from != null && ph.cycle < me.from) { waitView(); return; }
     var key = ph.cycle + ph.name + (me.q === ph.cycle ? 'a' : '');

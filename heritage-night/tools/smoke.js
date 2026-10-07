@@ -270,6 +270,10 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(/Step 1 of 3/.test(await phones[1].textContent('.steps').catch(() => '')) && /New game/.test(await phones[1].textContent('#net')), 'a phone from the old game is sent back to join');
     await phones[1].click('#next'); await phones[1].click('[data-g="2"]'); await phones[1].click('#next'); await phones[1].click('#go'); await phones[1].waitForTimeout(1500);
     ok(await phones[1].evaluate(async () => Object.keys(await HN.allPlayers()).length) === 1, 'joining again works after a reset');
+    for (let i = 0; i < 12 && !/Round 1 · /.test(await scr.textContent('#rnd')); i++) await scr.waitForTimeout(500);
+    ok(/Round 1 · Question [12] of 10/.test(await scr.textContent('#rnd')), 'Reset starts the TV at Round 1, Question 1 (' + await scr.textContent('#rnd') + ')');
+    const sync = await Promise.all([scr, phones[1], host].map(pg => pg.evaluate(() => [HN.t0(), HN.phase().cycle])));
+    ok(sync[0][0] > 0 && sync.every(x => x[0] === sync[0][0] && Math.abs(x[1] - sync[0][1]) <= 1 && x[1] <= 1), 'after a Reset the TV, the phone and the host page are on the same question (' + JSON.stringify(sync) + ')');
   } catch (e) { fails.push(String(e)); console.log(e); }
   ok(!errs.length, 'no page errors' + (errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''));
   await browser.close(); server.close();

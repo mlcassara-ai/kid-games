@@ -227,7 +227,7 @@ body.mouse { cursor: auto; }
 <div class="net" id="net"></div>
 <div class="tools">
   <button class="reset inst" id="install" hidden title="Put this on your desktop as an app">💻 Install app</button></div>
-<script src="hn-core.js?v=25"></script>
+<script src="hn-core.js?v=26"></script>
 <script>
 (function () {
   'use strict';
@@ -326,6 +326,7 @@ body.mouse { cursor: auto; }
   /* "Round X" counts from the first round this screen saw today (only the screen shows it; phones use the absolute round) */
   var roundReset = new URLSearchParams(location.search).get('round') === '1';   // ?round=1 starts counting at Round 1 again
   function roundLabel(cycle) {
+    if (HN.t0()) return HN.roundOf(cycle) + 1;   // after a Reset the schedule itself starts at Round 1
     if (!HN.isSynced()) return 0;   // wait for the server clock before fixing Round 1
     var r = HN.roundOf(cycle), k = 'heritagenight.round0.' + HN.EVENT, st = HN.lsGet(k);
     if (!st || r < st.r0 || r - st.r0 > 200 || roundReset) { roundReset = false; st = { r0: r }; HN.lsSet(k, st); }   // fresh start after ~12 hours away
@@ -348,7 +349,7 @@ body.mouse { cursor: auto; }
     });
     var pl = HN.pull(players, cycle);
     HN.putDoc('board', { c: cycle, z: HN.game(), ranks: ranks, pull: { winner: pl.winner, robotOnly: pl.robotOnly }, rope: rope.pos,
-      calls: ctrl.calls || {}, wins: HN.winCounts(champsCache && champsCache.z === HN.game() ? champsCache : {}, ctrl), win: lastWin, np: np == null ? null : np - 1, every: rules.every, max: rules.max, at: Date.now() }, 'any').catch(function () {});
+      t0: HN.t0(), calls: ctrl.calls || {}, wins: HN.winCounts(champsCache && champsCache.z === HN.game() ? champsCache : {}, ctrl), win: lastWin, np: np == null ? null : np - 1, every: rules.every, max: rules.max, at: Date.now() }, 'any').catch(function () {});
   }
   /* 🏆 End of a round: on a prize round the top 3 kids who haven't reached the win limit win chocolate lira (HN.pickWinners);
      the pick is saved in the champs doc (the host page's log and the win counts), then this screen celebrates and tells the
