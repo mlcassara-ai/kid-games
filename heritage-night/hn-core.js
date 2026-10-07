@@ -126,7 +126,7 @@ var QA = [
    q: "What is “eidiyeh”?", o: ["A money gift for kids on Eid", "A special Eid cookie", "A new outfit for Eid", "A song"] },
  { b: 1, e: "🎃", f: "On December 4 many Lebanese kids celebrate Eid il-Burbara. They dress up in costumes and go house to house, a lot like Halloween! The special treat is boiled wheat with sugar and pomegranate seeds.",
    q: "Eid il-Burbara is a lot like which holiday?", o: ["Halloween", "Thanksgiving", "Valentine’s Day", "Groundhog Day"] },
- { e: "💐", f: "In Lebanon, Mother’s Day is on March 21, the first day of spring.",
+ { b: 1, e: "💐", f: "In Lebanon, Mother’s Day is on March 21, the first day of spring.",
    q: "When is Mother’s Day in Lebanon?", o: ["March 21, the first day of spring", "May 10", "December 25", "October 31"] },
  { b: 1, e: "☀️", f: "No tooth fairy here! A traditional Arab custom is to throw your baby tooth toward the sun and ask it to swap your tooth for a strong, pretty gazelle’s tooth.",
    q: "In the old custom, where do kids throw a lost baby tooth?", o: ["Toward the sun", "Under the pillow", "Into the sea", "Into a cake"] },
@@ -186,7 +186,7 @@ var QA = [
    q: "What do the red stripes on Lebanon’s flag stand for?", o: ["Courage", "Peace", "Strength", "Ketchup"] },
  { e: "📏", f: "The white stripe on Lebanon’s flag is twice as tall as each red stripe. That leaves lots of room for the cedar tree!",
    q: "How does the white stripe compare to each red stripe?", o: ["It is twice as tall", "It is the same size", "It is half as tall", "It is ten times as tall"] },
- { e: "🎉", f: "Lebanon’s birthday is Independence Day, November 22. People wave flags, march in parades and decorate the streets in red, white and green.",
+ { b: 1, e: "🎉", f: "Lebanon’s birthday is Independence Day, November 22. People wave flags, march in parades and decorate the streets in red, white and green.",
    q: "When is Lebanon’s Independence Day?", o: ["November 22", "September 1", "January 1", "October 31"] },
  { e: "⚽", f: "Lebanon’s national soccer team is nicknamed “the Cedars,” after the tree on the flag.",
    q: "What is the nickname of Lebanon’s soccer team?", o: ["The Cedars", "The Lions", "The Eagles", "The Lemons"] },
@@ -257,7 +257,15 @@ var QA = [
  { b: 1, e: "🛝", f: "In Lebanese French schools, recess is called “la récré.” It is the best part of the day for lots of kids!",
    q: "What is recess called in Lebanese French schools?", o: ["La récré", "La siesta", "Le lunch", "Le snack attack"] },
  { b: 1, e: "🎶", f: "Lebanese kids sing their national anthem, “Kulluna lil watan,” at school. Its name means “All of us, for our country.”",
-   q: "What does “Kulluna lil watan” mean?", o: ["All of us, for our country", "Good morning, teacher", "Let’s go, team", "Happy cedar day"] }
+   q: "What does “Kulluna lil watan” mean?", o: ["All of us, for our country", "Good morning, teacher", "Let’s go, team", "Happy cedar day"] },
+ { b: 1, e: "🌙", f: "Eid al-Fitr comes right after Ramadan, a month when many people fast from sunrise to sunset. Families celebrate with a big feast, sweets and new clothes!",
+   q: "What comes right before Eid al-Fitr?", o: ["A month of fasting called Ramadan", "A week of school tests", "A month of snow days", "A year of pancakes"] },
+ { b: 1, e: "🏮", f: "During Ramadan, streets and homes in Lebanon are decorated with glowing lanterns and lights, a bit like Christmas lights here.",
+   q: "How are streets decorated during Ramadan?", o: ["With lanterns and lights", "With pumpkins", "With snowmen", "With giant balloons only"] },
+ { b: 1, e: "🃏", f: "Lebanese families love card games like Tarneeb and Trix, played in teams. Kids often learn them at Teta’s house after Sunday lunch.",
+   q: "What are Tarneeb and Trix?", o: ["Card games played in teams", "Kinds of cookies", "Dances", "Soccer teams"] },
+ { b: 1, e: "🪁", f: "In Arabic, a kite is called a “tayyara waraq,” which means “paper airplane”! Kids fly kites on beaches and rooftops in spring.",
+   q: "What does the Arabic word for kite mean?", o: ["Paper airplane", "Flying fish", "Sky balloon", "Bird with a string"] }
 ];
 /* Two question lists. List A is all of QA. List B (marked b: 1) keeps only kid-relatable facts (school, family,
    weekends, games) and comparisons to things kids know (San Diego, the ABCs, Halloween, movies): 56 questions.
@@ -446,6 +454,27 @@ async function resetAll() {
   await Promise.all(Array.from({ length: SHARDS }, function (_, i) { return putDoc('s' + i, { p: {}, z: z }, 'any'); }));
   game = z; return z;
 }
+/* read-modify-write of a small shared doc (board, ctrl, champs), retried on conflict like saveEntry */
+async function updateDoc(name, fn) {
+  for (var i = 0; i < 8; i++) {
+    var d = await getDoc(name), data = fn(d.data || {});
+    var r = await putDoc(name, data, d.updateTime);
+    if (r.ok) return data;
+    await new Promise(function (res) { setTimeout(res, 150 + Math.random() * 400 * (i + 1)); });
+  }
+  throw new Error('busy');
+}
+async function readDoc(name) { return (await getDoc(name)).data; }
+/* The host page (host.html) unlocks with a secret key in its address (#k=...). Only its SHA-256 is stored here, since
+   this repo is public. It keeps kids out of the host page; it is not strong security. */
+var HOST_HASH = '90c774c999886bd134b1e46090fe688e3dc937d407733b3055fbe3222c3a2369';
+async function hostKeyOk(key) {
+  if (!key || !crypto.subtle) return false;
+  var b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
+  return Array.from(new Uint8Array(b)).map(function (x) { return ('0' + x.toString(16)).slice(-2); }).join('') === HOST_HASH;
+}
+/* a short code a winner shows at the prize table, matched on the host page */
+function prizeCode(pid) { return String(pid || '').slice(0, 4).toUpperCase(); }
 /* the screen keeps its clock honest by touching a tiny doc of its own */
 async function syncClock() { try { await putDoc('clock', { at: Date.now() }, 'any'); } catch (e) { } }
 
@@ -456,5 +485,5 @@ function rank(players) {
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
 window.HN = { Q: Q, T: T, EVENT: EVENT, FAST: FAST, PLAY_URL: PLAY_URL, questionFor: questionFor, factFor: factFor, phase: phase, now: now, points: points, ROUND: ROUND, STREAK_AT: STREAK_AT, roundOf: roundOf, qInRound: qInRound, isDouble: isDouble, award: award, roundTop: roundTop, onFire: onFire,
-  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, game: function () { return game; }, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
+  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, readDoc: readDoc, putDoc: putDoc, updateDoc: updateDoc, hostKeyOk: hostKeyOk, prizeCode: prizeCode, game: function () { return game; }, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
 })();

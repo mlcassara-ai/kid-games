@@ -8,7 +8,12 @@ const ROOT = path.join(__dirname, '..', '..'), SHOTS = process.argv[2];
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json' };
 const server = http.createServer((q, r) => {
   const f = path.join(ROOT, decodeURIComponent(q.url.split('?')[0]));
-  fs.readFile(f.endsWith('/') ? f + 'index.html' : f, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': TYPES[path.extname(f)] || 'text/html' }); r.end(d); });
+  fs.readFile(f.endsWith('/') ? f + 'index.html' : f, (e, d) => {
+    if (e) { r.writeHead(404); r.end(); return; }
+    // the real host key is secret (only its hash is in hn-core.js), so the test swaps in the hash of 'testkey'
+    if (f.endsWith('hn-core.js')) d = Buffer.from(d.toString().replace(/var HOST_HASH = '[0-9a-f]+'/, "var HOST_HASH = '" + require('crypto').createHash('sha256').update('testkey').digest('hex') + "'"));
+    r.writeHead(200, { 'Content-Type': TYPES[path.extname(f)] || 'text/html' }); r.end(d);
+  });
 });
 const fails = []; let checks = 0;
 const ok = (c, msg) => { checks++; if (!c) { fails.push(msg); console.log('  ✗ ' + msg); } else console.log('  ✓ ' + msg); };
@@ -197,9 +202,39 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     const all = await phones[2].evaluate(async () => Object.keys(await HN.allPlayers()).length);
     ok(all === 33, '30 simultaneous joins all saved (' + all + ' players, ' + conflicts + ' retried conflicts)');
     await scr.waitForTimeout(3500); await shot(scr, 'screen-busy');
-    // 🔄 Reset on the big screen: scores gone, phones sent back to join
-    scr.once('dialog', d => d.accept());
-    await scr.click('#reset');
+    // 🎛️ the host page
+    const pid = async p => p.evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).pid);
+    const pidA = await pid(phones[0]), pidB = await pid(phones[1]);
+    const lockd = await page(browser, { width: 900, height: 1000 }, errs); await lockd.goto(base + 'host.html?fast=1&e=test#k=wrong');
+    await lockd.waitForSelector('.lock'); await lockd.waitForTimeout(800);
+    ok(/secret link/.test(await lockd.textContent('.lock')), 'host page stays locked without the secret link');
+    const host = await page(browser, { width: 900, height: 1400 }, errs); await host.goto(base + 'host.html?fast=1&e=test#k=testkey');
+    await host.waitForFunction(n => /Round champions/.test(document.body.textContent) && document.body.textContent.includes(n), nameA, { timeout: 10000 }).catch(() => {});
+    ok(/Round champions/.test(await host.textContent('body')) && (await host.textContent('.round').catch(() => '')).includes(nameA), 'host page logs the Round Champion');
+    await shot(host, 'host');
+    await host.click('[data-call="' + pidA + '"]');
+    await host.waitForTimeout(800);
+    ok(await host.evaluate(async id => !!((await HN.readDoc('ctrl')).calls || {})[id], pidA), 'host can call a winner');
+    await phones[0].waitForSelector('#prize.on', { timeout: 35000 }).catch(() => {});
+    const pz = await phones[0].textContent('#prize').catch(() => '');
+    ok(/You’re a winner/.test(pz) && pz.includes(pidA.slice(0, 4).toUpperCase()), 'the called phone shows the prize card with its code');
+    await shot(phones[0], 'phone-prize');
+    await phones[0].click('#pzok'); ok(await phones[0].locator('#prize.on').count() === 0, 'Got my prize closes the card');
+    await host.click('[data-hide="' + pidB + '"]'); await host.waitForTimeout(800);
+    for (let i = 0; i < 35; i++) { if (await host.evaluate(async id => { const b = await HN.readDoc('board'); return !!(b && b.ranks && !b.ranks[id] && b.at > Date.now() - 20000); }, pidB)) break; await host.waitForTimeout(1000); }
+    ok(await host.evaluate(async id => !((await HN.readDoc('board')).ranks || {})[id], pidB), 'a hidden player leaves the big screen board');
+    await host.click('#finon');
+    await scr.waitForSelector('#final.on', { timeout: 10000 }).catch(() => {});
+    ok(/Grand Champions/.test(await scr.textContent('#final')) && (await scr.textContent('#final')).includes(nameA), 'final winners fill the big screen');
+    await shot(scr, 'screen-final');
+    await phones[0].waitForSelector('#prize.on', { timeout: 35000 }).catch(() => {});
+    ok(/whole night/.test(await phones[0].textContent('#prize').catch(() => '')), 'the night’s winner gets the final prize card');
+    await host.click('#finoff');
+    await scr.waitForFunction(() => !document.querySelector('#final.on'), null, { timeout: 10000 }).catch(() => {});
+    ok(await scr.locator('#final.on').count() === 0, 'hiding the final winners goes back to the game');
+    // 🔄 Reset from the host page: scores gone, phones sent back to join
+    host.once('dialog', d => d.accept());
+    await host.click('#reset');
     await scr.waitForFunction(() => !document.querySelector('.row'), null, { timeout: 8000 }).catch(() => {});
     ok(await scr.locator('.row').count() === 0, 'Reset empties the leaderboard');
     ok(await phones[1].evaluate(async () => Object.keys(await HN.allPlayers()).length) === 0, 'Reset clears every saved player');

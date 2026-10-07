@@ -154,6 +154,19 @@ body.mouse { cursor: auto; }
 .reset:hover, .reset:focus-visible { opacity: 1; }
 .reset.inst { opacity: .9; background: var(--gold); color: #3a2600; border-color: transparent; }
 .reset[hidden] { display: none; }
+.final { position: fixed; inset: 0; z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; gap: calc(2.6 * var(--u));
+  background: radial-gradient(80% 70% at 50% 35%, rgba(246,185,59,.35), transparent 70%), #0a2a1f; text-align: center; padding: calc(3 * var(--u)); }
+.final.on { display: flex; animation: champIn .8s ease-out; }
+.final h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: calc(9 * var(--u)); line-height: 1; color: var(--gold); }
+.final .sub { font-size: calc(2.8 * var(--u)); color: var(--ink-soft); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.final .podium { display: flex; align-items: flex-end; gap: calc(3 * var(--w)); }
+.final .pl { display: grid; justify-items: center; gap: calc(.6 * var(--u)); }
+.final .pl .av { font-size: calc(12 * var(--u)); line-height: 1; } .final .pl.p1 .av { font-size: calc(17 * var(--u)); }
+.final .pl .md { font-size: calc(5 * var(--u)); line-height: 1; }
+.final .pl .nm { font-family: var(--display); font-weight: 800; font-size: calc(4 * var(--u)); line-height: 1; } .final .pl.p1 .nm { font-size: calc(5.4 * var(--u)); }
+.final .pl .pt { font-size: calc(2.6 * var(--u)); color: var(--gold); font-weight: 700; }
+.final .extra { display: flex; gap: calc(4 * var(--w)); font-size: calc(3.2 * var(--u)); font-weight: 700; }
+.final .extra b { color: var(--gold); font-family: var(--display); }
 .toast { position: fixed; left: calc(3.6 * var(--w)); bottom: calc(19.5 * var(--u)); max-width: calc(40 * var(--w)); background: var(--gold); color: #3a2600; border-radius: calc(1.4 * var(--u));
   padding: calc(1.2 * var(--u)) calc(1 * var(--w)); font-weight: 700; font-size: calc(2.3 * var(--u)); box-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) rgba(0,0,0,.35); transform: translateY(160%); opacity: 0; transition: transform .45s, opacity .45s; z-index: 5; }
 .toast.on { opacity: 1; }
@@ -189,16 +202,17 @@ body.mouse { cursor: auto; }
   </aside>
 </div>
 <div class="toast" id="toast"></div>
+<div class="final" id="final" aria-live="polite"></div>
 <div class="net" id="net"></div>
-<div class="tools"><button class="reset" id="reset" title="Clear every score and start a new game">🔄 Reset</button>
+<div class="tools">
   <button class="reset inst" id="install" hidden title="Put this on your desktop as an app">💻 Install app</button></div>
-<script src="hn-core.js?v=18"></script>
+<script src="hn-core.js?v=19"></script>
 <script>
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var SHAPES = ['▲', '◆', '●', '■'];
-  var players = {}, seen = null, shownKey = '', lastPoll = 0, polling = false, toastQ = [], toastBusy = false, champFor = -1;
+  var players = {}, ctrl = {}, seen = null, shownKey = '', lastPoll = 0, polling = false, toastQ = [], toastBusy = false, champFor = -1;
 
   function renderStage(ph) {
     var q = HN.questionFor(ph.cycle), key = ph.cycle + ph.name, body = $('body'), pill = $('pill');
@@ -216,6 +230,7 @@ body.mouse { cursor: auto; }
         lastPoll = 0;
         setTimeout(function () { applyPull(ph.cycle); }, HN.FAST ? 900 : 1500);
       }
+      if (ph.name === 'reveal') { var pc = ph.cycle; setTimeout(function () { publishBoard(pc); }, HN.FAST ? 1100 : 1700); }
       pill.className = 'pill' + (ph.name === 'question' ? ' q' : ph.name === 'reveal' ? ' r' : '');
       pill.textContent = ph.name === 'fact' ? 'Did you know?' : ph.name === 'question' ? 'Answer on your phone!' : 'Answer';
       if (ph.name === 'fact') {
@@ -295,15 +310,50 @@ body.mouse { cursor: auto; }
     if (!st || r < st.r0 || r - st.r0 > 200 || roundReset) { roundReset = false; st = { r0: r }; HN.lsSet(k, st); }   // fresh start after ~12 hours away
     return r - st.r0 + 1;
   }
+  /* One small summary per question for the phones (their rank, the pull, host calls and the final), so 100 phones read
+     one doc instead of all eight shards. Written once the answers are in. */
+  function publishBoard(cycle) {
+    var ph = HN.phase(); if (ph.cycle !== cycle) return;
+    var ranks = {}, all = HN.rank(players);
+    [false, true].forEach(function (gr) {
+      var g = all.filter(function (p) { return (p.g === 'a') === gr; });
+      g.forEach(function (p, i) { ranks[p.id] = [i + 1, g.length]; });
+    });
+    var pl = HN.pull(players, cycle);
+    HN.putDoc('board', { c: cycle, z: HN.game(), ranks: ranks, pull: { winner: pl.winner, robotOnly: pl.robotOnly }, rope: rope.pos,
+      calls: ctrl.calls || {}, fin: ctrl.final || null, at: Date.now() }, 'any').catch(function () {});
+  }
   function showChamp(cycle) {
     var ph = HN.phase(); if (ph.cycle !== cycle || ph.name !== 'reveal') return;
     var top = HN.kidsOnly(HN.roundTop(players, HN.roundOf(cycle))).slice(0, 3), c = $('champ');
     if (!top.length) return;
+    var rnd = HN.roundOf(cycle), label = roundLabel(cycle) || '';   // the host page's prize log
+    HN.updateDoc('champs', function (d) {
+      if (d.z !== HN.game()) d = { z: HN.game(), r: {} };
+      d.r = d.r || {};
+      if (!d.r[rnd]) d.r[rnd] = { label: label, at: Date.now(), top: top.map(function (p) { return { id: p.id, n: p.n, a: p.a, g: p.g, rs: p.rs }; }) };
+      return d;
+    }).catch(function () {});
     var w = top[0];
     c.innerHTML = '<div class="sub">Round ' + (roundLabel(cycle) || '') + ' complete</div><h2>🏆 Round Champion!</h2>' +
       '<div class="win"><div class="av">' + HN.esc(w.a) + '</div><div class="nm">' + HN.esc(w.n) + '</div><div class="pt">' + w.rs.toLocaleString() + ' points this round</div></div>' +
       (top.length > 1 ? '<div class="rest">' + top.slice(1).map(function (p, i) { return '<span>' + (i ? '🥉' : '🥈') + ' ' + HN.esc(p.a + ' ' + p.n) + ' <b>' + p.rs.toLocaleString() + '</b></span>'; }).join('') + '</div>' : '');
     c.className = 'champ on';
+  }
+
+  /* 🏁 Final winners: the host page decides who and when; this screen just shows it until the host turns it off */
+  var finalKey = '';
+  function renderFinal() {
+    var f = ctrl.final, el = $('final');
+    if (!f || !f.on) { el.className = 'final'; finalKey = ''; return; }
+    var key = JSON.stringify(f); if (key === finalKey) return; finalKey = key;
+    var k = f.kids || [], order = [k[1], k[0], k[2]], cls = ['p2', 'p1', 'p3'], md = ['🥈', '🥇', '🥉'];
+    el.innerHTML = '<div class="sub">Family Heritage Night</div><h2>🏁 Grand Champions!</h2><div class="podium">' +
+      order.map(function (p, i) { return p ? '<div class="pl ' + cls[i] + '"><div class="md">' + md[i] + '</div><div class="av">' + HN.esc(p.a) + '</div><div class="nm">' + HN.esc(p.n) + '</div><div class="pt">' + HN.esc(HN.gradeLabel(p.g)) + ' · ' + (p.s || 0).toLocaleString() + ' points</div></div>' : ''; }).join('') +
+      '</div><div class="extra">' + (f.grown && f.grown[0] ? '<span>🧑 Top grown-up: <b>' + HN.esc(f.grown[0].a + ' ' + f.grown[0].n) + '</b></span>' : '') +
+      (f.team ? '<span>🪢 Tug-of-war: <b>' + (f.team === 'kids' ? '🧒 Kids win!' : '🧑 Grown-ups win!') + '</b></span>' : '<span>🪢 Tug-of-war: <b>a tie!</b></span>') + '</div>' +
+      '<div class="sub">Winners: show your phone at the prize table</div>';
+    el.className = 'final on';
   }
 
   /* the tug-of-war: the rope's position (-8 grown-ups .. +8 kids) is kept on this screen; each question adds one pull (HN.pull) */
@@ -339,7 +389,13 @@ body.mouse { cursor: auto; }
   async function poll() {
     if (polling) return; polling = true;
     try {
-      players = await HN.allPlayers();
+      var all = await HN.allPlayers(), c = await HN.readDoc('ctrl').catch(function () { return null; });
+      ctrl = c || {};
+      if (lastGame != null && HN.game() !== lastGame) { lastGame = HN.game(); localReset(); polling = false; return; }
+      lastGame = HN.game();
+      var hid = ctrl.hidden || {}; players = {};
+      for (var id in all) if (!hid[id]) players[id] = all[id];   // the host can take a player off the board
+      renderFinal();
       if (seen) { var fresh = Object.keys(players).filter(function (k) { return !seen[k]; }); fresh.slice(0, 6).forEach(function (k) { toast(players[k].a + ' ' + players[k].n + ' joined!'); }); }
       seen = {}; for (var k in players) seen[k] = 1;
       var ph = HN.phase(); if (ph.name !== 'question' || !Object.keys(lastRanksBy[boardView]).length) renderBoard();
@@ -350,21 +406,16 @@ body.mouse { cursor: auto; }
 
   function tick() {
     var ph = HN.phase(); renderStage(ph);
-    if (Date.now() - lastPoll > 2500) { lastPoll = Date.now(); poll(); }
+    if (Date.now() - lastPoll > 4000) { lastPoll = Date.now(); poll(); }
   }
-  /* 🔄 Reset: empties the leaderboard and the rope; every phone is sent back to pick a buddy */
-  $('reset').onclick = async function () {
-    if (!confirm('Reset the game?\n\nThis clears EVERY score, the leaderboard and the tug-of-war. Everyone will join again on their phone.')) return;
-    $('reset').disabled = true;
-    try {
-      await HN.resetAll();
-      players = {}; lastRanksBy = { kids: {}, grown: {} }; seen = null; roundReset = true; champFor = -1;
-      rope = { c: HN.phase().cycle, pos: 0, say: '' }; HN.lsSet(ROPE_KEY, rope);
-      $('board').innerHTML = '<li class="empty">No players yet. Scan the code to join!</li>';
-      renderBoard(); shownKey = ''; toast('🔄 New game! Scan the code to join.');
-    } catch (e) { alert('Could not reset. Check the internet connection and try again.'); }
-    $('reset').disabled = false;
-  };
+  /* A Reset from the host page empties the shards under a new game id; this screen notices and starts fresh too. */
+  var lastGame = null;
+  function localReset() {
+    players = {}; lastRanksBy = { kids: {}, grown: {} }; seen = null; roundReset = true; champFor = -1;
+    rope = { c: HN.phase().cycle, pos: 0, say: '' }; HN.lsSet(ROPE_KEY, rope);
+    $('board').innerHTML = '<li class="empty">No players yet. Scan the code to join!</li>';
+    renderBoard(); shownKey = ''; toast('🔄 New game! Scan the code to join.');
+  }
   var mouseT = 0;   // the mouse pointer shows for a few seconds after it moves, so the Reset button can be reached
   document.addEventListener('mousemove', function () { document.body.classList.add('mouse'); clearTimeout(mouseT); mouseT = setTimeout(function () { document.body.classList.remove('mouse'); }, 3000); });
   /* full screen (button or F) and installing as a desktop app (Chrome / Edge) */

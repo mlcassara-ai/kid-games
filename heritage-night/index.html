@@ -59,6 +59,15 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 .btn.go:disabled { opacity: .45; box-shadow: none; transform: none; }
 .dbl { align-self: center; background: var(--gold); color: #3a2600; border-radius: 99px; padding: 6px 16px; font-family: var(--display); font-weight: 800; font-size: 1.15rem; letter-spacing: .03em; }
 .fire { background: rgba(229,72,60,.25); border: 2px solid #e5483c; border-radius: 14px; padding: 8px 14px; font-weight: 700; font-size: 1.1rem; }
+.prize { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 20px;
+  background: radial-gradient(90% 70% at 50% 30%, rgba(246,185,59,.45), transparent 70%), rgba(6,25,18,.97); }
+.prize.on { display: flex; }
+.pz-card { width: 100%; max-width: 440px; display: grid; justify-items: center; gap: 10px; text-align: center; }
+.pz-t { font-family: var(--display); font-weight: 800; font-size: 2.4rem; color: var(--gold); line-height: 1; }
+.pz-why { font-weight: 700; font-size: 1.25rem; }
+.pz-av { font-size: 6rem; line-height: 1; } .pz-nm { font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1.05; }
+.pz-code { background: #fff; color: #0b2a20; border-radius: 14px; padding: 8px 18px; font-size: 1.1rem; font-weight: 700; }
+.pz-code b { font-family: var(--display); font-size: 1.8rem; letter-spacing: .12em; margin-left: 6px; }
 .team { background: rgba(255,255,255,.08); border-radius: 14px; padding: 10px 14px; font-weight: 700; font-size: 1rem; }
 .how { color: var(--ink-soft); font-size: .95rem; line-height: 1.45; text-align: left; margin: 0; padding-left: 1.2em; }
 
@@ -95,7 +104,8 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 </head>
 <body>
 <div class="app" id="app"></div>
-<script src="hn-core.js?v=18"></script>
+<div class="prize" id="prize" aria-live="assertive"></div>
+<script src="hn-core.js?v=19"></script>
 <script>
 (function () {
   'use strict';
@@ -197,8 +207,25 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
     return (t.winner === 'kids' ? 'The kids' : 'The grown-ups') + ' won that pull. 😬 Pull harder next time!';
   }
   function rankHtml() { return 'You’re <b>#' + rankInfo.r + '</b> of ' + rankInfo.n + (rankInfo.w || ''); }
-  async function fetchRank(cycle) {
-    rankFor = cycle;
+  /* After each answer, the big screen writes one small summary ('board': every player's rank, the pull, host calls and the
+     final). Phones read just that. If no big screen is running (testing at home) they work it out from the shards. */
+  async function fetchRank(cycle, tries) {
+    rankFor = cycle; tries = tries || 0;
+    try {
+      var b = await HN.readDoc('board');
+      if (!me) return;
+      if (!b || b.c !== cycle) {
+        if (tries < 2 && HN.phase().cycle === cycle) { setTimeout(function () { fetchRank(cycle, tries + 1); }, 1000); return; }
+        return fetchRankFromShards(cycle);
+      }
+      if (me.z != null && b.z != null && b.z !== me.z) { startOver(); return; }
+      var grown = me.g === 'a', rk = b.ranks && b.ranks[me.pid];
+      teamLine = teamText(b.pull || {}); var tb = document.getElementById('team'); if (tb) tb.textContent = teamLine;
+      if (rk) { rankInfo = { r: rk[0], n: rk[1], w: grown ? ' grown-ups' : ' kids' }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = rankHtml(); }
+      prizeCheck(b);
+    } catch (e) {}
+  }
+  async function fetchRankFromShards(cycle) {
     try {
       var all = await HN.allPlayers();
       if (!me) return;
@@ -209,6 +236,26 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
       if (idx >= 0) { rankInfo = { r: idx + 1, n: list.length, w: grown ? ' grown-ups' : ' kids' }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = rankHtml(); }
     } catch (e) {}
   }
+  /* 🏆 The host page can call a winner to the prize table, and shows the final winners; the winner's phone lights up
+     with their character, name and prize code until they tap "Got it". */
+  function prizeCheck(b) {
+    var call = b.calls && b.calls[me.pid], fin = b.fin, msg = null, key = '';
+    if (fin && fin.on) {
+      var place = -1; (fin.kids || []).forEach(function (p, i) { if (p.id === me.pid) place = i; });
+      var topG = fin.grown && fin.grown[0] && fin.grown[0].id === me.pid;
+      if (place >= 0 || topG) { key = 'fin' + fin.at; msg = topG ? 'Top grown-up of the night!' : ['🥇 1st place', '🥈 2nd place', '🥉 3rd place'][place] + ' for the whole night!'; }
+    }
+    if (!msg && call) { key = 'call' + call.at; msg = call.why || 'You won a prize!'; }
+    if (!msg || HN.lsGet('heritagenight.ack.' + key)) return;
+    var el = document.getElementById('prize');
+    el.innerHTML = '<div class="pz-card"><div class="pz-t">🏆 You’re a winner!</div><div class="pz-why">' + HN.esc(msg) + '</div>' +
+      '<div class="pz-av">' + HN.esc(me.a) + '</div><div class="pz-nm">' + HN.esc(me.n) + '</div>' +
+      '<div class="pz-code">Prize code <b>' + HN.esc(HN.prizeCode(me.pid)) + '</b></div><p>Show this screen at the prize table!</p>' +
+      '<button class="btn go" id="pzok">Got my prize ✓</button></div>';
+    el.className = 'prize on';
+    document.getElementById('pzok').onclick = function () { HN.lsSet('heritagenight.ack.' + key, 1); el.className = 'prize'; };
+  }
+
   /* the first cycle a new player plays: this one if its fact card is showing, else the next (never drop in mid-question).
      Worked out after the first save, which lines this phone's clock up with the server's. */
   function setFrom() {
@@ -249,7 +296,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
             (me.st >= HN.STREAK_AT ? '<div class="fire">🔥 On fire! ' + me.st + ' in a row (+10)</div>' : '')
           : '<div class="emo">🌲</div><div class="t">Not this time</div><p class="soft">The answer was <b>' + HN.esc(q.opts[q.right]) + '</b>.</p>') +
           '<div class="rankbox" id="rank">' + (rankInfo ? rankHtml() : 'Checking your place…') + '</div><div class="team" id="team">' + HN.esc(teamLine) + '</div></div>';
-        if (rankFor !== ph.cycle) setTimeout(function () { fetchRank(ph.cycle); }, 1200);
+        if (rankFor !== ph.cycle) setTimeout(function () { fetchRank(ph.cycle); }, HN.FAST ? 1600 : 2600);
       }
       app.innerHTML = header(ph) + '<div class="panel">' + html + '</div><div class="net" id="net"></div>';
       Array.prototype.forEach.call(app.querySelectorAll('.ans'), function (b) {

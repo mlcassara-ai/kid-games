@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Discover Lebanon — Host</title>
+<meta name="theme-color" content="#0c3326">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Host page: for the organiser only (secret link). Round champions log with "call to the prize table", final winners,
+   the live player list (call / hide) and Reset. Works on a phone or a laptop. */
+:root {
+  --ground: #0c3326; --panel: rgba(255,255,255,.06); --line: rgba(255,255,255,.14);
+  --ink: #ffffff; --ink-soft: #c9ddd3; --red: #e23b2e; --cedar: #2fb36b; --gold: #f6b93b; --blue: #7fb8ff;
+  --display: "Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--body); padding: 16px 16px 40px; }
+.wrap { max-width: 900px; margin: 0 auto; display: grid; gap: 16px; }
+h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 1.8rem; line-height: 1; }
+h2 { margin: 0 0 10px; font-family: var(--display); font-weight: 800; font-size: 1.35rem; }
+.sub { color: var(--ink-soft); font-size: .95rem; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 18px; font-weight: 700; }
+.stats b { color: var(--gold); font-family: var(--display); font-size: 1.25rem; }
+button { font: inherit; font-weight: 700; cursor: pointer; border: 0; border-radius: 10px; padding: 8px 12px; color: inherit; background: rgba(255,255,255,.12); }
+button:disabled { opacity: .45; cursor: default; }
+button.go { background: var(--gold); color: #3a2600; }
+button.call { background: var(--cedar); color: #062014; }
+button.called { background: transparent; border: 1px solid var(--cedar); color: var(--cedar); }
+button.danger { background: var(--red); color: #fff; }
+.round { border-top: 1px solid var(--line); padding: 10px 0; } .round:first-of-type { border-top: 0; }
+.round .hd { display: flex; justify-content: space-between; color: var(--ink-soft); font-weight: 700; margin-bottom: 6px; }
+.who { display: grid; grid-template-columns: 1.8rem 2rem 1fr auto auto; gap: 8px; align-items: center; padding: 4px 0; }
+.who .av { font-size: 1.5rem; } .who .nm { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who .nm small { display: block; color: var(--ink-soft); font-weight: 400; }
+.code { font-family: var(--display); font-weight: 800; letter-spacing: .08em; color: var(--gold); }
+table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+th { color: var(--ink-soft); font-weight: 700; font-size: .85rem; }
+td.num { font-variant-numeric: tabular-nums; text-align: right; }
+tr.hid td { opacity: .45; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--cedar); }
+.dot.off { background: rgba(255,255,255,.25); }
+.fin-prev { display: grid; gap: 4px; margin: 8px 0 12px; }
+.empty { color: var(--ink-soft); }
+.lock { text-align: center; padding: 60px 20px; font-size: 1.2rem; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.note { color: var(--ink-soft); font-size: .85rem; margin-top: 8px; }
+.filter { display: flex; gap: 6px; margin-bottom: 8px; } .filter button.on { background: var(--gold); color: #3a2600; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="lock">Loading…</div></div>
+<script src="hn-core.js?v=19"></script>
+<script>
+(function () {
+  'use strict';
+  var app = document.getElementById('app');
+  var players = {}, ctrl = {}, champs = {}, board = {}, filter = 'kids', busy = false;
+  var esc = HN.esc;
+  function key() { var m = /[#&]k=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : ''; }
+
+  function activeNow(p) { return p.q >= HN.phase().cycle - 5; }
+  function line(p, medal, pts, why) {
+    var called = ctrl.calls && ctrl.calls[p.id];
+    return '<div class="who"><span>' + (medal || '') + '</span><span class="av">' + esc(p.a) + '</span><span class="nm">' + esc(p.n) +
+      '<small>' + esc(HN.gradeLabel(p.g) || '') + ' · ' + (pts || 0).toLocaleString() + ' pts</small></span><span class="code">' + esc(HN.prizeCode(p.id)) + '</span>' +
+      '<button class="' + (called ? 'called' : 'call') + '" data-call="' + esc(p.id) + '" data-why="' + esc(why) + '">' + (called ? '✓ Called' : '📣 Call') + '</button></div>';
+  }
+  /* the final winners as they stand right now: top 3 kids and the top grown-up by all-night points; the tug-of-war side
+     that is ahead on the big screen's rope */
+  function finalNow() {
+    var all = HN.rank(visible());
+    var kids = all.filter(function (p) { return p.g !== 'a' && p.s > 0; }).slice(0, 3);
+    var grown = all.filter(function (p) { return p.g === 'a' && p.s > 0; }).slice(0, 1);
+    var pick = function (p) { return { id: p.id, n: p.n, a: p.a, g: p.g, s: p.s }; };
+    var rope = board && typeof board.rope === 'number' ? board.rope : 0;
+    return { kids: kids.map(pick), grown: grown.map(pick), team: rope > 0 ? 'kids' : rope < 0 ? 'grown' : '' };
+  }
+  function visible() { var out = {}, hid = ctrl.hidden || {}; for (var id in players) if (!hid[id]) out[id] = players[id]; return out; }
+
+  function render() {
+    var ph = HN.phase(), all = HN.rank(players), hid = ctrl.hidden || {};
+    var kidsNow = all.filter(function (p) { return p.g !== 'a' && activeNow(p); }).length, grownNow = all.filter(function (p) { return p.g === 'a' && activeNow(p); }).length;
+    var rope = board && typeof board.rope === 'number' ? board.rope : 0;
+    var html = '<div><h1>🌲 Host · Discover Lebanon</h1><div class="sub">Only for you. Don’t share this link.</div></div>';
+    html += '<div class="card stats"><span>Question <b>' + HN.qInRound(ph.cycle) + '</b>/10 · ' + ph.name + ' <b>' + Math.ceil(ph.left / 1000) + 's</b></span>' +
+      '<span>Players <b>' + all.length + '</b></span><span>Playing now 🧒 <b>' + kidsNow + '</b> 🧑 <b>' + grownNow + '</b></span>' +
+      '<span>Tug-of-war <b>' + (rope > 0 ? '🧒 Kids +' + rope : rope < 0 ? '🧑 Grown-ups +' + (-rope) : 'tied') + '</b></span></div>';
+
+    // round champions log
+    var rs = champs && champs.z === HN.game() && champs.r ? Object.keys(champs.r).map(Number).sort(function (a, b) { return b - a; }) : [];
+    html += '<div class="card"><h2>🏆 Round champions</h2>' + (rs.length ? rs.map(function (r) {
+      var x = champs.r[r], t = new Date(x.at);
+      return '<div class="round"><div class="hd"><span>Round ' + esc(x.label || '') + '</span><span>' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span></div>' +
+        x.top.map(function (p, i) { return line(p, ['🥇', '🥈', '🥉'][i], p.rs, (['1st', '2nd', '3rd'][i]) + ' place in Round ' + (x.label || '') + '!'); }).join('') + '</div>';
+    }).join('') : '<div class="empty">No rounds finished yet. Each round is 10 questions (about 5 minutes).</div>') +
+      '<div class="note">📣 Call puts a “You’re a winner! Show this at the prize table” card on that player’s phone, with their prize code. It appears after the next answer (within about 30 seconds).</div></div>';
+
+    // final winners
+    var f = finalNow(), on = ctrl.final && ctrl.final.on;
+    html += '<div class="card"><h2>🏁 Final winners</h2><div class="fin-prev">' +
+      (f.kids.length ? f.kids.map(function (p, i) { return line(p, ['🥇', '🥈', '🥉'][i], p.s, ['1st', '2nd', '3rd'][i] + ' place for the whole night!'); }).join('') : '<div class="empty">No kid has scored yet.</div>') +
+      (f.grown[0] ? line(f.grown[0], '🧑', f.grown[0].s, 'Top grown-up of the night!') : '') +
+      '<div class="sub">Tug-of-war: ' + (f.team === 'kids' ? '🧒 Kids are winning' : f.team === 'grown' ? '🧑 Grown-ups are winning' : 'tied') + '</div></div>' +
+      '<div class="row">' + (on ? '<button class="go" id="finoff">Hide final winners</button><span class="sub">Showing on the big screen now</span>'
+        : '<button class="go" id="finon"' + (f.kids.length ? '' : ' disabled') + '>🏁 Show final winners on the big screen</button>') + '</div>' +
+      '<div class="note">This freezes the winners as they are when you tap it, fills the big screen, and lights up the winners’ phones. Tap Hide to go back to the game.</div></div>';
+
+    // players
+    var list = all.filter(function (p) { return filter === 'all' ? true : filter === 'grown' ? p.g === 'a' : p.g !== 'a'; });
+    html += '<div class="card"><h2>👥 Players</h2><div class="filter">' + [['kids', '🧒 Kids'], ['grown', '🧑 Grown-ups'], ['all', 'Everyone']].map(function (x) {
+      return '<button data-f="' + x[0] + '" class="' + (filter === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      (list.length ? '<table><thead><tr><th></th><th>Name</th><th>Grade</th><th class="num">Points</th><th class="num">Right</th><th>Code</th><th></th></tr></thead><tbody>' +
+      list.map(function (p) {
+        var called = ctrl.calls && ctrl.calls[p.id];
+        return '<tr class="' + (hid[p.id] ? 'hid' : '') + '"><td><span class="dot' + (activeNow(p) ? '' : ' off') + '" title="' + (activeNow(p) ? 'playing now' : 'away') + '"></span> ' + esc(p.a) + '</td><td>' + esc(p.n) + '</td><td>' + esc(HN.gradeLabel(p.g)) + '</td><td class="num">' + p.s.toLocaleString() + '</td><td class="num">' + p.c + '</td>' +
+          '<td class="code">' + esc(HN.prizeCode(p.id)) + '</td><td><div class="row"><button class="' + (called ? 'called' : 'call') + '" data-call="' + esc(p.id) + '" data-why="You won a prize!">' + (called ? '✓' : '📣') + '</button>' +
+          '<button data-hide="' + esc(p.id) + '">' + (hid[p.id] ? 'Unhide' : 'Hide') + '</button></div></td></tr>';
+      }).join('') + '</tbody></table>' : '<div class="empty">Nobody here yet.</div>') +
+      '<div class="note">Hide takes a player off the big screen’s leaderboard and prizes (they can keep playing). Green dot = answered in the last 5 questions.</div></div>';
+
+    // reset
+    html += '<div class="card"><h2>🔄 Reset</h2><div class="row"><button class="danger" id="reset">Reset the whole game</button></div>' +
+      '<div class="note">Clears every score, the round champions and the tug-of-war. Every phone goes back to “Pick a character”. Use it once just before the event starts.</div></div>';
+    html += '<div class="sub" id="net"></div>';
+    app.innerHTML = html;
+    wire();
+  }
+
+  function wire() {
+    Array.prototype.forEach.call(app.querySelectorAll('[data-call]'), function (b) {
+      b.onclick = function () { act(function (d) { d.calls = d.calls || {}; d.calls[b.getAttribute('data-call')] = { at: Date.now(), why: b.getAttribute('data-why') }; return d; }); };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll('[data-hide]'), function (b) {
+      b.onclick = function () { var id = b.getAttribute('data-hide'); act(function (d) { d.hidden = d.hidden || {}; if (d.hidden[id]) delete d.hidden[id]; else d.hidden[id] = 1; return d; }); };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll('[data-f]'), function (b) { b.onclick = function () { filter = b.getAttribute('data-f'); render(); }; });
+    var on = document.getElementById('finon'), off = document.getElementById('finoff'), rs = document.getElementById('reset');
+    if (on) on.onclick = function () { var f = finalNow(); f.on = true; f.at = Date.now(); act(function (d) { d.final = f; return d; }); };
+    if (off) off.onclick = function () { act(function (d) { if (d.final) d.final.on = false; return d; }); };
+    if (rs) rs.onclick = async function () {
+      if (!confirm('Reset the whole game?\n\nThis clears EVERY score, the round champions and the tug-of-war. Everyone joins again on their phone.')) return;
+      rs.disabled = true;
+      try {
+        await HN.resetAll();
+        await Promise.all([HN.putDoc('ctrl', {}, 'any'), HN.putDoc('champs', {}, 'any'), HN.putDoc('board', { z: HN.game() }, 'any')]);
+        ctrl = {}; champs = {}; board = {}; players = {}; await refresh();
+      } catch (e) { alert('Could not reset. Check the internet connection and try again.'); }
+      rs.disabled = false;
+    };
+  }
+  async function act(fn) {
+    if (busy) return; busy = true;
+    try { ctrl = await HN.updateDoc('ctrl', fn); render(); } catch (e) { alert('Could not save that. Check the internet connection and try again.'); }
+    busy = false;
+  }
+  async function refresh() {
+    try {
+      var r = await Promise.all([HN.allPlayers(), HN.readDoc('ctrl'), HN.readDoc('champs'), HN.readDoc('board')]);
+      players = r[0]; ctrl = r[1] || {}; champs = r[2] || {}; board = r[3] || {};
+      if (!busy) render();
+    } catch (e) { var n = document.getElementById('net'); if (n) n.textContent = 'Reconnecting…'; }
+  }
+
+  HN.hostKeyOk(key()).then(function (ok) {
+    if (!ok) { app.innerHTML = '<div class="lock">🔒 This page needs its secret link.</div>'; return; }
+    HN.syncClock(); refresh(); setInterval(refresh, 6000);
+  });
+})();
+</script>
+</body>
+</html>
