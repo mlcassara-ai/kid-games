@@ -406,7 +406,8 @@ const STD={
  graph:[null,'2.MD.D.10','2.MD.D.10','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3','3.MD.B.3'],
  grp:[null,'3.OA.A.1','3.OA.A.1','3.OA.A.4',null,'3.OA.A.2','3.OA.A.2','3.OA.A.3','3.OA.A.3','3.OA.C.7','3.OA.D.8'],
  est:[null,'3.NBT.A.1','3.NBT.A.1','3.NBT.A.1','3.OA.D.8',null,'3.OA.D.8','4.NBT.A.3','4.OA.A.3','4.OA.A.3','4.OA.A.3'],
- avg:[null,null,null,'6.SP.B.5','6.SP.B.5','6.SP.B.5',null,'6.SP.B.5',null,'6.SP.B.5',null]};
+ avg:[null,null,null,'6.SP.B.5','6.SP.B.5','6.SP.B.5',null,'6.SP.B.5',null,'6.SP.B.5',null],
+ geo:[null,'1.G.A.1','1.G.A.1','2.G.A.1','2.G.A.3','3.MD.D.8','3.MD.C.7','4.MD.C.7','4.G.A.3','5.MD.C.5','8.G.A.5','6.G.A.1','6.G.A.1','7.G.B.4','7.G.A.1','8.G.B.7']};
 const STDN={'1.OA.C.6':'Add and subtract within 20','2.OA.B.2':'Fluently add and subtract within 20','2.NBT.B.5':'Fluently add and subtract within 100',
  '3.NBT.A.2':'Fluently add and subtract within 1000','4.NBT.B.4':'Add and subtract multi-digit numbers (standard algorithm)','3.OA.C.7':'Fluently multiply and divide within 100',
  '4.NBT.B.5':'Multiply multi-digit by 1-digit and 2-digit by 2-digit','4.NBT.B.6':'Divide up to 4-digit numbers by 1-digit divisors','5.NBT.B.6':'Divide by 2-digit divisors',
@@ -422,7 +423,7 @@ const STDN={'1.OA.C.6':'Add and subtract within 20','2.OA.B.2':'Fluently add and
  '4.OA.A.2':'Multiplicative comparison problems','3.OA.A.3':'Multiplication and division word problems','4.OA.A.3':'Multistep word problems, remainders, estimation',
  '4.NBT.A.1':'Place value (each place is 10 times the next)','2.MD.D.10':'Picture and bar graphs','3.MD.B.3':'Scaled picture and bar graphs','3.OA.A.1':'Multiplication as equal groups',
  '3.OA.A.2':'Division as equal sharing','3.OA.A.4':'Unknown factor in × and ÷ equations','3.OA.D.8':'Two-step problems; estimating to check','3.NBT.A.1':'Round to the nearest 10 or 100',
- '4.NBT.A.3':'Round multi-digit numbers','6.SP.B.5':'Summarize data (mean, median)'};
+ '4.NBT.A.3':'Round multi-digit numbers','6.SP.B.5':'Summarize data (mean, median)','1.G.A.1':'Shapes: sides, corners and what makes a shape','2.G.A.1':'Recognize and draw shapes by their sides and angles','2.G.A.3':'Split shapes into equal parts (halves, thirds, fourths)','3.MD.C.7':'Area of rectangles by multiplying','4.G.A.3':'Lines of symmetry','8.G.A.5':'Angle sums in triangles','6.G.A.1':'Area of triangles and other polygons','7.G.B.4':'Area and circumference of circles','7.G.A.1':'Scale drawings and similar figures','8.G.B.7':'The Pythagorean theorem'};
 const stdOf=(op,L)=>{const a=STD[op];const c=a&&a[L];return c?{c,n:STDN[c]||''}:null;};
 const stdCode=c=>c?{c,n:STDN[c]||''}:null;
 const stdHTML=s=>s?`<b class="std">${E(s.c)}</b><br><span class="stdn">${E(s.n)}</span>`:'<span class="muted">—</span>';
@@ -572,7 +573,7 @@ function renderReport(){
  const cls=unf.map(([t,m])=>classify(t,m));
  const flu=fluency(p);const weakMul=flu.some(f=>f.op==='mul'&&f.weak.length);
  const pat=patterns(cls,F,weakMul);
- const ansTxt=m=>{try{if(m.q&&m.q.kind==='clock'){const a=m.a;return Math.floor(a/100)+':'+String(a%100).padStart(2,'0');}if(m.q&&m.q.tpl&&m.q.tpl!=='{A}'){const a=m.a<0?'−'+(-m.a):String(m.a);
+ const ansTxt=m=>{try{if(m.q&&(m.q.multi||m.q.tf||m.q.nlt||m.q.plot)&&typeof xAnsStr==='function')return xAnsStr(m.q,true);if(m.q&&m.q.kind==='clock'){const a=m.a;return Math.floor(a/100)+':'+String(a%100).padStart(2,'0');}if(m.q&&m.q.tpl&&m.q.tpl!=='{A}'){const a=m.a<0?'−'+(-m.a):String(m.a);
    const f=String(m.q.tpl).replace(/<span class="fr"><span>([^<]*)<\/span><span>([^<]*)<\/span><\/span>/g,'$1/$2').replace(/&nbsp;|→/g,' ').replace(/<[^>]+>/g,'').replace(/&[a-z]+;/g,' ');
    const seg=f.split('=').find(x=>x.includes('{A}'));if(seg){const t=seg.replace('{A}',a).replace(/\s+/g,' ').trim();if(t&&t.length<=24)return t;}}
   if(m.q&&m.q.tpl&&typeof xAnsStr==='function')return xAnsStr(m.q,true);}catch(e){}return String(m.a);};

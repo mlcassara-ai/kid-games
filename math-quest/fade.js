@@ -209,7 +209,7 @@ const grow=(T,a)=>a[Math.max(0,Math.min(a.length-1,T-1))];
 const okLock=x=>x&&!x.rev&&!x.choices&&!x.vis&&x.kind!=='clock'&&Number.isInteger(x.answer)&&x.answer>=0&&x.answer<=99999&&(x.tpl?(x.tpl.match(/\{A\}/g)||[]).length===1&&!/\{[B-Z]\}/.test(x.tpl):typeof x.text==='string'&&x.text.length<40);
 function lockQ(op,T,R){if(typeof genQ!=='function')return null;const MR=Math.random;let q=null;
  try{Math.random=R;const top=Math.max(1,Math.min(25,T));
-  for(let L=top;L>=Math.max(1,top-4)&&!q;L--){let any=null;for(let n=0;n<16&&!q;n++){let x=null;try{x=genQ(op,L);}catch(e){x=null;}if(!okLock(x))continue;any=any||x;
+  for(let L=top;L>=Math.max(1,top-4)&&!q;L--){let any=null;for(let n=0;n<16&&!q;n++){let x=null;try{x=genQ(op,L);}catch(e){x=null;}if(!okLock(x)||x.pick||x.multi||x.tf||x.nlt||x.plot)continue;/* typed answers only */any=any||x;
    /* skip the dull ones (× 1, ÷ 1, 6 − 6) when the dice allow */if(!x.tpl&&((op==='mul'||op==='div')&&(x.a<=1||x.b<=1||x.answer<=1)||op==='sub'&&x.answer===0))continue;q=x;}q=q||any;}
   if(!q)for(let n=0;n<12&&!q;n++){const x=genQ(op,Math.min(10,top));if(okLock(x))q=x;}}catch(e){q=null;}finally{Math.random=MR;}return q;}
 /* a hint that fits the question (never "tens and ones" for 672 × 3) */

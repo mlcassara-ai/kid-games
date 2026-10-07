@@ -393,7 +393,7 @@ async function start(){
 }
 /* troll questions are HARD: one level above the kid's current level (two above for the last question) */
 /* young players (grade 2 and under): one level BELOW their level, then their own level for the last one */
-function makeQ(p,i,up){let q=null;const y=youngK(p);if(up==null)up=y?(i>=nQ(p)-1?0:-1):(i===2?2:1);for(let k=0;k<12;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+up));q=genQ(op,L);if(q){q.trollL=L;break;}}return q;}
+function makeQ(p,i,up){let q=null;const y=youngK(p);if(up==null)up=y?(i>=nQ(p)-1?0:-1):(i===2?2:1);for(let k=0;k<12;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+up));q=genQ(op,L);if(q&&(q.pick||q.multi||q.tf||q.nlt||q.plot)&&k<11){q=null;continue;}/* typed answers only */if(q){q.trollL=L;break;}}return q;}
 function ask(stage,bub,q,i,res,o){o=o||{};return new Promise(async resolve=>{
  await say(bub,(o.intro||['Question ONE!','Question TWO!','Last question… THREE!'])[i],200,true,o.who);const p=P();
  let inp='';const box=el(`<div class="tr-q">${o.story?'<div class="tr-story"></div>':''}<div class="tr-dots">${Array.from({length:o.n||3},(_,k)=>k).map(k=>`<i class="${k<res.length?(res[k]?'ok':'no'):k===i?'cur':''}"></i>`).join('')}</div><div class="tr-timer"><i></i><b></b></div><div class="tr-qt"></div>

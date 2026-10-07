@@ -231,11 +231,77 @@ const tests=[
    if(ok){W.hx=ok[0];W.hy=ok[1];W.moving=false;W.path=[[ok[2],ok[3]]];wStep(ok[4],ok[5]);await T.wait(400);T.ok(!document.querySelector('#modal.show')&&W.hx===ok[2]&&W.hy===ok[3],'walking past a present still opened it');}}}
   const k0=Object.keys(first)[0];if(k0){p.chests={d:dayKey(),open:[k0]};T.ok(!MQ_PRESENTS.where(W,t0)[k0],'an opened present is still on the map');}
  }],
-['graph garden is closed: blown-up entrance, cannot be opened, progress kept',async function(){
-  T.reset();const p=T.hero('Closed',3);state.cur=p.id;const z=ZONES.find(x=>x.id==='garden');T.ok(z&&z.closed&&zoneLocked(z,p),'Graph Garden is not closed');
-  go('world');await T.wait(100);go('zone','garden');await T.wait(60);T.ok(curScreen!=='zone','Graph Garden still opens');
-  T.ok(window.MQ_GATE_ART&&MQ_GATE_ART.garden_closed&&MQ_GATE_ART.garden,'the blown-up Graph Garden entrance is missing');
+['graph garden is open again: normal entrance, opens for a grade 1 kid, no Battle Pets stage',async function(){
+  T.reset();const p=T.hero('Garden',1);state.cur=p.id;const z=ZONES.find(x=>x.id==='garden');T.ok(z&&!z.closed&&!zoneLocked(z,p),'Graph Garden is still closed or locked for a grade 1 kid');
+  T.ok(CURR.LG.graph[0]===1&&CURR.LG.graph.length===15,'Graph Garden levels do not start at grade 1');
+  go('world');await T.wait(100);wGate('garden');await T.wait(60);T.ok(curScreen==='zone','Graph Garden does not open');
+  T.ok(window.MQ_GATE_ART&&MQ_GATE_ART.garden,'the Graph Garden entrance is missing');
+  T.ok(!BattlePets.stages().some(s=>s.id==='garden'||s.id==='island'),'Graph Garden or Shape Island has a Battle Pets stage');
  }],
+['shape island: on the map with its entrance, reachable, opens for a grade 1 kid with grade 1 work; adults get the adult levels; Measure Mesa stays locked for a new grade 1 kid',async function(){
+  T.reset();const p=T.hero('Isle',1);state.cur=p.id;const z=ZONES.find(x=>x.id==='island');
+  T.ok(z&&z.op==='geo'&&z.mons.length===6&&OPS.includes('geo')&&XOPS.includes('geo')&&maxLv('geo')===15&&OPNAME.geo,'Shape Island is not a full world');
+  T.ok(CURR.LG.geo&&CURR.LG.geo.length===15&&CURR.LG.geo[0]===1&&CURR.LG.geo[14]===8,'Shape Island has no grade list');
+  T.ok(KID_DESC.geo&&KID_DESC.geo.length===16&&KID_DESC.geo.slice(1).every(Boolean),'Shape Island level names are missing');
+  T.ok(window.MQ_GATE_ART&&MQ_GATE_ART.island&&MQ_DECOR.SET.island,'Shape Island has no drawn entrance or scenery');
+  T.ok(sceneSVG('island').includes('<svg'),'Shape Island has no battle scene');
+  go('world');await T.wait(150);try{closeModal();}catch(e){}const g=W.gates.island;T.ok(g&&W.T[g[1]][g[0]].gate==='island','Shape Island entrance is not on the map');
+  /* nothing else lost its tile: every other world still has its entrance */
+  T.ok(ZONES.filter(x=>Object.values(BIOMES).some(b=>b.zone===x.id)).every(x=>W.gates[x.id]),'a world lost its entrance');
+  {const hx=W.hx,hy=W.hy;W.hx=BIOMES.village.c[0];W.hy=BIOMES.village.c[1]+2;const path=wPathTo(g[0],g[1]);W.hx=hx;W.hy=hy;T.ok(path.length>0,'Shape Island cannot be reached from the town square');}
+  T.ok(!zoneLocked(z,p),'Shape Island is locked for a grade 1 kid');wGate('island');await T.wait(60);T.ok(curScreen==='zone','Shape Island does not open');
+  startBattle('island',0);const ready=()=>B&&B.q&&!B.busy&&!fbOpen&&!document.querySelector('#modal.show');await T.until(ready,10000,'a Shape Island question');
+  T.ok(B.q.op==='geo'&&B.q.L<=2&&CURR.cap(p,'geo')===2,'a grade 1 kid did not get grade 1 Shape Island work: L'+B.q.L);B.over=true;
+  const mesa=ZONES.find(x=>x.id==='mesa');T.ok(zoneLocked(mesa,p)&&/opens with/.test(CURR.lockWhy(mesa,p)),'Measure Mesa is open for a grade 1 kid who never played it');
+  go('world');await T.wait(60);wGate('mesa');await T.wait(60);T.ok(curScreen!=='zone','Measure Mesa opened for a grade 1 kid');
+  /* an adult */
+  const a=T.hero('IsleAdult',12,{adult:true});state.cur=a.id;a.skill.geo=15;a.maxL.geo=15;T.ok(!zoneLocked(z,a)&&CURR.cap(a,'geo')===15,'adults are capped on Shape Island');
+  for(let L=11;L<=15;L++){const kinds=new Set();for(let i=0;i<40;i++){const q=genQ('geo',L);kinds.add(q.text.split(' ').slice(0,3).join(' ').replace(/[\d,.\-]+/g,''));T.ok(Number.isInteger(q.answer)&&Math.abs(q.answer)<2000,'adult Shape Island question is not head math: '+q.text);}T.ok(kinds.size>=3,'Shape Island level '+L+' has fewer than 3 kinds: '+[...kinds]);}
+  go('world');await T.wait(60);startBattle('island',0);await T.until(ready,10000,'an adult Shape Island question');T.ok(B.q.op==='geo'&&B.q.L>=11,'an adult did not get the adult Shape Island levels: L'+B.q.L);B.over=true;
+ }],
+['tap formats: select all, true/false, number-line tap and grid tap (render, choose, right and wrong, You said, keypad hidden, keyboard)',async function(){
+  T.reset();const p=T.hero('Taps',3);state.cur=p.id;go('world');
+  const ready=()=>B&&B.q&&!B.busy&&!fbOpen&&!document.querySelector('#modal.show');
+  startBattle('island',0);await T.until(ready,10000,'first question');B.mhp=B.mmax=5000;(B.foes||[]).forEach(f=>{f.hp=f.max=5000;});
+  const Q={multi:{prompt:'Select ALL with 4 sides.',tpl:'{A}',answer:1,multi:['square','triangle','rectangle','pentagon'],ans:[0,2],text:'smoke multi'},
+   tf:{prompt:'True or false?',tpl:'{A}',answer:1,tf:[{s:'A square has 4 sides.',t:true},{s:'A triangle has 4 corners.',t:false}],text:'smoke tf'},
+   nlt:{prompt:'Tap 3/4.',tpl:'{A}',answer:1,nlt:{lo:0,hi:1,den:4,ans:3},text:'smoke nlt'},
+   plot:{prompt:'Tap (3, 5).',tpl:'{A}',answer:1,plot:{max:8,ans:[3,5],pts:[[6,2,'A']]},text:'smoke plot'}};
+  const put=k=>{B.q=Object.assign({op:'geo',L:1},T.clone(Q[k]));B.input='';B.busy=false;B.t0=performance.now();showQ();return B.q;};
+  const next=async q0=>{if(fbOpen||document.querySelector('#modal.show')){await T.until(()=>fbOpen,4000,'feedback');closeFeedback();}await T.until(()=>ready()&&B.q!==q0,12000,'the next question');};
+  const tapAt=(svg,vx,vy)=>{const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;svg.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,clientX:r.left+(vx-vb.x)/vb.width*r.width,clientY:r.top+(vy-vb.y)/vb.height*r.height}));};
+  /* select all */
+  let q=put('multi');T.ok(document.querySelectorAll('#qtext .fmt-multi button').length===4&&document.querySelector('#mpad.fmton')&&getComputedStyle($('#mpad')).display==='none','select-all did not draw or the keypad still shows');
+  T.ok(document.querySelector('#qtext .fmtchk').disabled,'Check is open before anything is chosen');
+  document.querySelectorAll('#qtext .fmt-multi button')[0].click();press('3');T.ok(B.sel.length===2&&document.querySelectorAll('#qtext .fmt-multi button.on').length===2,'tapping and the 3 key did not choose');
+  let r0=p.stats.geo.r;press('go');await next(q);T.ok(p.stats.geo.r===r0+1,'a right select-all was not counted');
+  q=put('multi');fmtTap(0);let w0=p.stats.geo.w;fmtCheck();await T.until(()=>fbOpen,8000,'select-all feedback');
+  {const t=document.querySelector('#modal').innerText;T.ok(/You said square/.test(t)&&/square, rectangle/.test(t)&&p.stats.geo.w===w0+1,'select-all wrong answer feedback is wrong: '+t.slice(0,120));}
+  T.ok(xAnsStr(q)==='square, rectangle','xAnsStr for select-all');await next(q);
+  /* true / false */
+  q=put('tf');T.ok(document.querySelectorAll('#qtext .tfr').length===2,'true/false rows missing');document.querySelector('#qtext .tfr .tfb button').click();T.ok(document.querySelector('#qtext .fmtchk').disabled,'Check opened with a row left');
+  document.querySelectorAll('#qtext .tfr')[1].querySelectorAll('button')[1].click();r0=p.stats.geo.r;document.querySelector('#qtext .fmtchk').click();await next(q);T.ok(p.stats.geo.r===r0+1,'a right true/false table was not counted');
+  q=put('tf');fmtTF(0,true);fmtTF(1,true);fmtCheck();await T.until(()=>fbOpen,8000,'true/false feedback');T.ok(/You said True, True/.test(document.querySelector('#modal').innerText)&&xAnsStr(q)==='True, False','true/false You said / answer');await next(q);
+  /* number line */
+  q=put('nlt');let sv=document.querySelector('#qtext svg.gnl');T.ok(sv,'number line missing');tapAt(sv,NL_X0+3*(NL_W-2*NL_X0)/4+4,46);T.ok(B.sel===3,'tapping the number line did not pick the tick: '+B.sel);
+  r0=p.stats.geo.r;fmtCheck();await next(q);T.ok(p.stats.geo.r===r0+1,'a right number-line tap was not counted');
+  q=put('nlt');sv=document.querySelector('#qtext svg.gnl');tapAt(sv,NL_X0+(NL_W-2*NL_X0)/4,40);fmtCheck();await T.until(()=>fbOpen,8000,'number-line feedback');T.ok(/You said 1\/4/.test(document.querySelector('#modal').innerText)&&xAnsStr(q)==='3/4','number-line You said / answer');await next(q);
+  T.ok(nlVal({lo:0,hi:2,den:2},3)==='1 1/2'&&nlVal({lo:0,hi:100,step:10},7)==='70','number-line values in words');
+  /* grid */
+  q=put('plot');sv=document.querySelector('#qtext svg.ggrid');T.ok(sv,'grid missing');{const G=gridGeom(8);tapAt(sv,G.x0+3*G.c+3,G.y0-5*G.c-2);}T.ok(B.sel&&B.sel[0]===3&&B.sel[1]===5,'tapping the grid did not pick (3, 5): '+JSON.stringify(B.sel));
+  r0=p.stats.geo.r;fmtCheck();await next(q);T.ok(p.stats.geo.r===r0+1,'a right grid tap was not counted');
+  q=put('plot');B.sel=[4,5];fmtCheck();await T.until(()=>fbOpen,8000,'grid feedback');T.ok(/You said \(4, 5\)/.test(document.querySelector('#modal').innerText)&&xAnsStr(q)==='(3, 5)','grid You said / answer');
+  /* a missed tap question is kept whole for review, and comes back as a bonus try */
+  T.ok(p.missed[q.text]&&p.missed[q.text].q.plot&&p.missed[q.text].q.plot.ans[0]===3,'the missed grid question was not saved whole');await next(q);
+  B.over=true;}],
+['pictures: shape, shapes, solid, ruler, grid, line plot, tally chart and lines all draw',async function(){
+  const V=[{t:'shape',k:'rect',lab:['8 cm','5 cm'],ang:true},{t:'shape',k:'tri',ttype:'right',lab:['6','8','10'],ang:true},{t:'shape',k:'hex',sym:true},{t:'shape',k:'square',sym:'wrong'},{t:'shape',k:'circle',lab:['r = 5']},
+   {t:'shape',k:'fourths',of:'circle',shade:1},{t:'shape',k:'thirds',shade:2},{t:'shape',k:'unequal',n:3},...['circle','square','rect','rhombus','trap','para','pent','hex','oct','kite'].map(k=>({t:'shape',k})),...['equi','iso','scalene','right','obtuse'].map(tt=>({t:'shape',k:'tri',ttype:tt})),
+   {t:'shapes',list:[{k:'pent'},{k:'tri'},{k:'hex'}],labels:['A','B','C']},...['cube','box','cone','cylinder','sphere','pyramid'].map(k=>({t:'solid',k})),{t:'ruler',len:4,unit:'in',start:0,obj:'✏️'},{t:'ruler',len:7,unit:'cm',obj:'🐛'},
+   {t:'grid',max:8,pts:[[1,2,'A'],[6,2,'B']],seg:[[1,2,6,2]]},{t:'lplot',title:'Heights',ticks:['0','1/4','1/2','3/4','1'],xs:[1,2,3,0,2]},{t:'tally',title:'Pets',rows:[['Dogs',5],['Cats',7]]},
+   ...['point','segment','ray','line','parallel','perpendicular','intersecting'].map(k=>({t:'lines',k})),{t:'lines',k:'angle',deg:135}];
+  const box=document.createElement('div');document.body.appendChild(box);
+  try{for(const v of V){const h=visHTML(v);T.ok(/^<svg[^>]*class="vis geo/.test(h),'no picture for '+JSON.stringify(v));box.innerHTML=h;const s=box.querySelector('svg');T.ok(s&&s.querySelectorAll('*').length>=1&&s.getBoundingClientRect().width>0,'the picture is empty: '+JSON.stringify(v));}}finally{box.remove();}}],
 ['event worlds: Haunted Hollow and Harvest Hollow open on their own dates; Harvest Hollow gives Gobble the Turkey, then the Pilgrim Hat',async function(){
   T.reset();const p=T.hero('Feast',3);state.cur=p.id;const dk=window.dayKey,hv=ZONES.find(z=>z.id==='harvest'),hh=ZONES.find(z=>z.id==='haunt');T.ok(hv&&hv.event,'Harvest Hollow is missing');
   try{

@@ -4,7 +4,7 @@
    little bats (haunted hollow), twinkling stars (chaos tower), crystal sparkles (caves). Drawing only: nothing to bump into, no game change.
    Drawn through MQ_MAPDRAW (the same hook as the train), on top of everything else. */
 (function(){
-const MAX=18,KIND={forest:'fly',village:'fly',farm:'fly',garden:'bee',reef:'bubble',volcano:'ember',summit:'snow',vault:'snow',haunt:'bat',tower:'twinkle',caves:'sparkle'};
+const MAX=18,KIND={forest:'fly',village:'fly',farm:'fly',garden:'bee',reef:'bubble',island:'bubble',volcano:'ember',summit:'snow',vault:'snow',haunt:'bat',tower:'twinkle',caves:'sparkle'};
 const FLY=['#ffd43b','#ff8787','#74c0fc','#b197fc','#ffa94d'];
 let P=[],last=0,spawnAt=0;
 function spawn(W,x0,x1,y0,y1){const x=x0+Math.random()*(x1-x0+1),y=y0+Math.random()*(y1-y0+1),t=W.T[Math.floor(y)]&&W.T[Math.floor(y)][Math.floor(x)];if(!t||t.plaza)return;

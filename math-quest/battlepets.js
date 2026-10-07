@@ -102,10 +102,11 @@ const traitOf=e=>T_FLY.includes(e)?'flying':T_ARM.includes(e)?'armored':T_FAST.i
 const GOBLIN=['Grey Goblin','👺'];
 const goblinArt=w=>window.MQ_GOBLIN_SVG?`<span class="bp2-gob" style="width:${w}px">${window.MQ_GOBLIN_SVG()}</span>`:GOBLIN[1];
 const OPN={add:'Addition',sub:'Subtraction',mul:'Multiplication',div:'Division'};
+const NO_BP=['island','garden']; /* owner, Oct 2026: Shape Island and Graph Garden have no Battle Pets stage (no VS) for now */
 function stages(){const out=[{id:'fossil',name:'Fossil Stage',art:'🦴',op:null,bg:['#efe3c8','#d8c49b'],where:'the Museum, when every dinosaur skeleton is built',
   crit:[['Bone Rattler','🦴','basic'],['Raptor Bones','🦖','swarm'],['Pterosaur Bones','🦅','flying'],['Neck Bones','🦕','armored'],['Speedy Skull','💀','speedy']],boss:GOBLIN,
   note:'Pretend! Real skeletons don\'t walk. Real fossils are bones turned to stone over millions of years.'}];
- (typeof ZONES!=='undefined'?ZONES:[]).forEach(z=>{if(!OPN[z.op]||out.some(s=>s.op===z.op)||!z.mons||z.mons.length<6)return;
+ (typeof ZONES!=='undefined'?ZONES:[]).forEach(z=>{if(NO_BP.includes(z.id)||!OPN[z.op]||out.some(s=>s.op===z.op)||!z.mons||z.mons.length<6)return;
   out.push({id:z.id,name:z.name,art:z.art||'⭐',op:z.op,where:`${z.name}, after beating ${z.mons[5][0]}`,bg:{add:['#d8f5c9','#a6dc8a'],sub:['#d9d2f0','#a99fd1'],mul:['#ffd8b8','#f0a070'],div:['#dfe3ea','#aab3c2']}[z.op],
    crit:z.mons.slice(0,5).map(m=>[m[0],m[1],traitOf(m[1])]),boss:GOBLIN});});
  return out;}

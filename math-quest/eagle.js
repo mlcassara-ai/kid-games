@@ -22,7 +22,7 @@ const T_SUB=[(a,b)=>`There were ${N(a,'feather','feathers')} in the nest. The wi
 const T_MUL=[(a,b)=>`${N(a,'chick','chicks')} each ate ${N(b,'worm','worms')}. How many worms did they eat in all?`,(a,b)=>`There ${a===1?'is':'are'} ${N(a,'nest','nests')} on the mountain and each nest has ${N(b,'egg','eggs')}. How many eggs altogether?`,(a,b)=>`I flap my wings ${N(b,'time','times')} every minute. How many flaps do I make in ${N(a,'minute','minutes')}?`];
 const T_DIV=[(a,b)=>b===1?`I found ${N(a,'berry','berries')} and gave them all to one chick. How many berries did that chick get?`:`${N(a,'berry','berries')} are shared equally between ${b} chicks. How many berries does each chick get?`,(a,b)=>b===1?`I put ${N(a,'twig','twigs')} into one big pile. How many twigs are in the pile?`:`I put ${N(a,'twig','twigs')} into ${b} equal piles. How many twigs are in each pile?`];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-function storyQ(p,up,seen){let q=null;for(let k=0;k<16;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+(up||0)));q=genQ(op,L);if(!q)continue;
+function storyQ(p,up,seen){let q=null;for(let k=0;k<16;k++){const op=typeof pickOpFair==='function'?pickOpFair(p):pickOp(p,'mix');const L=Math.max(1,Math.min(maxLv(op),lvl(p,op)+(up||0)));q=genQ(op,L);if(!q)continue;if((q.pick||q.multi||q.tf||q.nlt||q.plot)&&k<15){q=null;continue;}/* typed answers only */
   const key=q.op+':'+(q.a!=null?[q.a,q.b,q.c].filter(x=>x!=null).sort((x,y)=>x-y).join(','):q.text); // same numbers in any order = a repeat
   if(seen&&seen.has(key)&&k<15)continue;if(seen)seen.add(key);break;}
  if(q&&!q.tpl&&q.a!=null&&q.L<=10){
