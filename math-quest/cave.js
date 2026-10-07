@@ -157,7 +157,7 @@ function genWorld(){
  const landing=(x,y)=>x<=3&&CD.LAYERS.some(L=>y>=L.r0&&y<=L.r0+1);
  CD.LAYERS.forEach(L=>{
   const mins=Object.keys(CD.MIN).filter(k=>CD.MIN[k].L.includes(L.id));
-  const pool=[];mins.forEach(k=>{for(let w=0;w<CD.RAR[CD.MIN[k].r].w;w++)pool.push(k);});
+  const pool=[];mins.forEach(k=>{for(let w=0;w<CD.RAR[CD.MIN[k].r].w+(CD.MIN[k].wx||0);w++)pool.push(k);}); /* wx: extra weight (azurite, Oct 2026: it opens the Blue Copper jar) */
   const n=Math.round((L.r1-L.r0+1)*(COLS-1)*0.055);
   for(let k=0,tries=0;k<n&&tries<500;tries++){const x=1+Math.floor(R()*(COLS-1)),y=L.r0+Math.floor(R()*(L.r1-L.r0+1)),i=idx(x,y);
    if(!isRock(i)||items.has(i)||landing(x,y))continue;items.set(i,{t:'m',id:pick(R,pool)});k++;}

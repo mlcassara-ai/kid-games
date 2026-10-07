@@ -255,17 +255,22 @@ const tests=[
   T.reset();const p=T.hero('Crystal',3);state.cur=p.id;p.sci={met:true,lab:{ok:{}}};p.cave={garden:{stage:3,last:''}};const yd=()=>{const d=new Date();d.setDate(d.getDate()-1);return dayKey(d);};
   go('lab');await T.wait(100);T.ok(CG._st(P()).j.drip&&CG._st(P()).j.drip.d===3,'the old Drip Garden days were not carried into the Cave Drip jar');
   Lab.tap('garden');let m=()=>document.querySelector('#modal').innerText;T.ok(/Crystal Garden/.test(m())&&document.querySelectorAll('#modal .cg-jar').length===6,'the Crystal Garden did not open with six jars');
-  T.ok(/Identify Halite/.test(m())&&/Limestone Caves/.test(m()),'locked jars do not say what opens them');
+  T.ok(/halite \(rock salt\) in 🪨 Rock Layers/.test(m())&&/Field Lab bench/.test(m())&&/Limestone Caves/.test(m())&&/Underground River/.test(m()),'locked jars do not say what opens them and where');
+  P().cave.pack=[{t:'m',id:'azurite'}];CG.back();T.ok(/carrying a rock that might be it/.test(m())&&/Identify my rocks/.test(m()),'no nudge to the Field Lab bench for a rock that might open a jar');P().cave.pack=[];
   CG.start('salt');T.ok(!CG._view()||CG._view().k!=='start','a locked jar could be started');
   CG.start('sugar');CG._guess('cube');T.ok(/colou?r/i.test(m()),'rock candy did not ask for a colour');CG._col('pink');
   let j=()=>CG._st(P()).j.sugar;T.ok(j()&&j().d===1&&j().mm===8&&j().col==='pink'&&j().guess==='cube','starting a jar did not grow day 1');
-  {const v=CG._view(),c0=P().coins;T.ok(v.k==='tend'&&/How much did it grow/.test(m())&&v.opts.includes(v.t-v.y),'no ruler question after tending');CG._ans(v.t-v.y);T.ok(P().coins===c0+5&&/Yes!/.test(m()),'a right ruler answer did not pay 5 coins');}
+  {const v=CG._view(),c0=P().coins;T.ok(v.k==='tend'&&/How much did it grow/.test(m())&&v.opts.includes(v.right)&&v.right===v.t-v.y,'no ruler question after tending');CG._ans(v.right);T.ok(P().coins===c0+5&&/Yes!/.test(m()),'a right ruler answer did not pay 5 coins');}
   CG.back();CG.tend('sugar');T.ok(j().d===1,'a jar could be tended twice in one day');
-  for(let i=0;i<4;i++){j().last=yd();CG.tend('sugar');}T.ok(j().d===5&&j().mm===40&&!j().gaps,'tending on days in a row did not grow the biggest crystal');
+  const typs=[];for(let i=0;i<4;i++){j().last=yd();CG.tend('sugar');typs.push(CG._view().typ);}T.ok(typs.includes('left')&&typs.includes('next'),'the ruler question never changes: '+typs.join());T.ok(j().d===5&&j().mm===40&&!j().gaps,'tending on days in a row did not grow the biggest crystal');
   {const c0=P().coins;CG.collect('sugar');const s=CG._st(P());T.ok(!s.j.sugar&&s.shelf.length===1&&s.shelf[0].mm===40&&s.n.sugar===1&&P().coins>c0,'collecting did not put the crystal on the shelf with coins');
    T.ok(/You guessed/.test(m())&&/Shrink Ticket/.test(m())&&P().inner.tix.some(t=>t.id==='glucose'),'no guess reveal or no Ozzy ticket for sugar');}
-  P().cave.idd={halite:1};CG.back();T.ok(!/Identify Halite/.test(m()),'identifying halite did not open the salt jar');CG.start('salt');CG._guess('cube');
-  {const s=j=>CG._st(P()).j.salt;s().last='2000-01-01';CG.tend('salt');T.ok(s().d===2&&s().gaps===1&&/missed a day/.test(m()),'a missed day was not noticed');s().last=yd();CG.tend('salt');T.ok(s().d===3&&s().mm<15,'a jar with a missed day still grew to full size');}
+  P().cave.idd={halite:1};CG.back();T.ok(!/halite \(rock salt\)/.test(m()),'identifying halite did not open the salt jar');CG.start('salt');CG._guess('cube');
+  {const s=j=>CG._st(P()).j.salt;s().last='2000-01-01';P().daily=P().daily||{};const dd=Object.assign({},P().daily);P().daily={};CG.tend('salt');T.ok(s().d===2&&!s().gaps,'days the kid did not play counted as missed');P().daily={'2001-01-01':{r:3,w:0}};s().last='2000-01-01';s().d=1;s().mm=5;CG.tend('salt');T.ok(!s().gaps,'one skipped play day was not let off');
+   P().daily={'2001-01-01':{r:3,w:0},'2001-01-02':{r:1,w:1}};s().last='2000-01-01';s().d=1;s().mm=5;CG.tend('salt');T.ok(s().d===2&&s().gaps===1&&/played a day without tending/.test(m()),'a missed play day was not noticed');P().daily=dd;
+   s().last=yd();CG.tend('salt');T.ok(s().d===3&&s().mm<15,'a jar with a missed day still grew to full size');
+   P().inner.album=Object.assign({},P().inner.album||{},{salt:1});const t0=P().inner.tix.length;CG.collect('salt');T.ok(CG._st(P()).zoom.salt&&P().inner.tix.length===t0&&/Zoom in/.test(m()),'a crystal whose ride is already done gave a repeat ticket instead of Zoom in');}
+  CG.back();CG.start('sugar');T.ok(CG._view().step==='size'&&/how big/i.test(m()),'growing a jar again did not ask for a size guess');CG._size(40);CG._col('');T.ok(CG._st(P()).j.sugar.size===40,'the size guess was not kept');CG.back();
   P().inner.album={glucose:3};CG.back();T.ok(/Zoom in/.test(m()),'no Zoom in after the sugar ride');CG.zoom('sugar');T.ok(document.querySelector('#modal svg.cg-zoom')&&/carbon/.test(m()),'Zoom in did not show the atoms');closeModal();
   go('lab');await T.wait(50);T.ok(document.querySelector('.lbh-svg')&&/💧/.test(document.querySelector('.lbh-svg').innerHTML),'the crystal dome does not show a jar is ready to tend');
   T.ok(Quartz.room('museum')&&/Crystal Shelf/.test(document.querySelector('#cvMod').innerText),'the Museum has no Crystal Shelf');Cave._dbg().closeModal();await T.wait(600);
@@ -418,12 +423,13 @@ const tests=[
   {p.sci.pause=null;go('lab');Lab._pass();Lab.down();await T.wait(400);let d=Cave._dbg();try{d.closeModal();}catch(e){}const t0=p.sci.trips;
 d.S.bat=5;d.save(true);d.campTap(6.5,.2);await T.wait(300);
    T.ok(curScreen==='lab'&&Quartz.paused(p)&&p.cave.bat===5&&!document.getElementById('cvRoot'),'riding up to the Lab did not pause the trip with the battery kept: '+curScreen);
-   go('lab','room');T.ok(/Back down to your dig/.test(document.body.innerText)&&!/science question/.test(document.body.innerText),'the Lab elevator does not offer the way back down to the paused dig');
+   go('lab','room');T.ok(/Back down to your dig/.test(document.body.innerText)&&/I'm done digging/.test(document.body.innerText)&&!/science question/.test(document.body.innerText),'the Lab elevator does not offer the way back down to the paused dig (and the train home)');
    T.ok(Quartz.room('power')&&/Power Up/.test(document.querySelector('#cvMod').innerText),'no Power Up in the Lab');Cave._dbg().closeModal();await T.wait(600);
    Lab.down();await T.wait(400);d=Cave._dbg();T.ok(curScreen==='cave'&&p.sci.trips===t0&&d.S.bat===5&&!Quartz.paused(p),'going back down did not continue the same trip');
    T.ok(!d.campB().some(b=>b.a==='power'),'Power Up is still at the cave landing');
    d.campTap(6.5,.2);await T.wait(300);T.ok(Quartz.paused(p),'second break did not pause');Lab.home();for(let i=0;i<40&&Ride.busy();i++){Ride._skip();await T.wait(50);}await T.wait(300);
-   T.ok(curScreen==='world'&&!Quartz.paused(p),'taking the train home did not end the paused dig');try{closeModal();}catch(e){}}
+   T.ok(curScreen==='world'&&!Quartz.paused(p),'taking the train home did not end the paused dig');try{closeModal();}catch(e){}
+   p.sci.pause='2000-01-01';T.ok(!Quartz.paused(p),'a dig paused on an earlier day still counts as paused');go('world');await T.wait(1900);T.ok(!p.sci.pause,'a dig left paused overnight was not finished on the next map visit');try{closeModal();}catch(e){}}
   go('world');await T.wait(50);wNpc('gym');T.ok(curScreen==='mastery'&&/Fact Gym/.test(document.body.innerText),'the Fact Gym building did not open the fact grid');go('me','quests');T.ok(!document.querySelector('.mq-hc'),'Mastery card is on Me → Quests');go('world');await T.wait(50);
   /* Oct 2026 menus: picture/name open Me; coins sit under the name; Pets and ⚙️ More (Sound, Report, Log out) on the right; no Bag or World button */
   {const tb=document.querySelector('.topbar');T.ok(tb.querySelector('.tb-me')&&tb.querySelector('.tb-info .coins')&&!tb.querySelector('[onclick*="backpack"]')&&!tb.querySelector('[aria-label="World"]')&&tb.querySelectorAll('.iconbtn.tbi').length===2,'the top bar is not Me + Pets + More');

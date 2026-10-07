@@ -176,7 +176,10 @@ function openCave(p){const r=RESUME;RESUME=false;Cave.open(host(p,r));}
 /* a break in the Lab (owner, Oct 2026): the cave's Lab elevator only pauses the trip. The Lab's ⚡ Power Room charges the same battery,
    the Lab elevator goes straight back down (no question), and the trip ends when the hero takes the train home (endPaused) or the day changes. */
 let RESUME=false;
-function paused(p){const s=Q(p);if(s.pause&&s.pause!==dayKey())s.pause=null;return !!s.pause&&!DEMO;}
+function paused(p){const s=Q(p);return !!s.pause&&s.pause===dayKey()&&!DEMO;}
+/* a dig paused on an earlier day (the kid closed the game in the Lab) ends on the next map visit with its normal rewards */
+function settleOld(){try{const p=P();if(!p||DEMO||curScreen!=='world')return;const s=Q(p);if(!s.pause||s.pause===dayKey())return;HOST={first:false,rock:null,from:'world'};tripOver(p);}catch(e){}}
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:sc=>{if(sc==='world')setTimeout(settleOld,1500);}});
 function pauseTrip(p){const s=Q(p);if(DEMO){tripOver(p);return;}s.pause=dayKey();save();go('lab');}
 function resumeTrip(){const p=P();if(!p||!paused(p))return false;Q(p).pause=null;HOST=HOST||{first:false,rock:null};HOST.rock=null;HOST.from='lab';RESUME=true;save();go('cave');return true;}
 function endPaused(p){if(!p||!Q(p).pause)return false;HOST=HOST||{first:false,rock:null};HOST.from='world';tripOver(p);return true;}
@@ -186,5 +189,5 @@ const st=document.createElement('style');st.textContent=`.qz-row{display:flex;ga
 .qz-bub{flex:1;background:#e7f5ff;border:3px solid #74c0fc;border-radius:18px;padding:10px 14px;font-size:18px;line-height:1.45;color:#1f2340}.qz-bub>b{display:block;color:#1971c2;font-size:14px;margin-bottom:2px}
 @media(max-width:560px){.qz-av{flex-basis:70px}.qz-av svg{width:70px;height:85px}.qz-bub{font-size:16px}}`;document.head.appendChild(st);
 
-window.Quartz={room:(which)=>{const p=P();if(!p||!window.Cave||!Cave.room)return false;p.cave=p.cave||{};const h=host(p);h.exit=()=>{try{if(window.Lab&&Lab.back)Lab.back();else go('lab');}catch(e){}};return Cave.room(h,which);},_bring:bring,_coming:coming,SVG,openCave,meet,drop,DROP_HTML,draw,bagHTML,medals,rockMineral,GATE_NEED,DROP,_Q:Q,_spawn:spawn,_demo:()=>{DEMO=true;},startTrip,paused,resume:resumeTrip,endPaused};
+window.Quartz={room:(which)=>{const p=P();if(!p||!window.Cave||!Cave.room)return false;p.cave=p.cave||{};const h=host(p);h.exit=()=>{try{if(window.Lab&&Lab.back)Lab.back();else go('lab');}catch(e){}};return Cave.room(h,which);},_bring:bring,_coming:coming,SVG,openCave,meet,drop,DROP_HTML,draw,bagHTML,medals,rockMineral,GATE_NEED,DROP,_Q:Q,_spawn:spawn,_demo:()=>{DEMO=true;},startTrip,paused,_settle:settleOld,resume:resumeTrip,endPaused};
 })();

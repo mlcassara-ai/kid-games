@@ -110,7 +110,7 @@ CD.MIN={
   hs:'Fluorescence: an electron absorbs a high-energy UV photon, loses some energy as heat, then drops back down emitting a lower-energy (longer wavelength) visible photon.'},
  malachite:{n:'Malachite',h:4,s:'#8fe3a9',col:'#1f9d5a',sh:'round',look:'bright green with swirly bands',f:1,r:2,L:['river'],
   y:'Malachite is bright green because it has copper in it — like the green on old pennies!',o:'Malachite (Cu₂CO₃(OH)₂) is a copper carbonate, so like calcite it fizzes in acid. Its green bands form as copper-rich water drips and deposits layer after layer.'},
- azurite:{n:'Azurite',h:3.5,s:'#8ec5ff',col:'#1f4fd1',sh:'crystal',look:'deep blue crystals',f:1,r:3,L:['river'],
+ azurite:{wx:3,n:'Azurite',h:3.5,s:'#8ec5ff',col:'#1f4fd1',sh:'crystal',look:'deep blue crystals',f:1,r:3,L:['river'],
   y:'Azurite is a deep blue copper mineral. Long ago painters crushed it to make blue paint!',o:'Azurite is a copper carbonate like malachite, and over time it can slowly turn into malachite by absorbing water. Both fizz in acid; azurite leaves a light-blue streak.'},
  willemite:{n:'Willemite',h:5.5,s:'#ffffff',col:'#c8bfa4',sh:'round',look:'dull, greyish-tan',u:'#39ff6a',r:3,L:['crystal'],
   y:'Willemite looks boring in normal light — but under UV light it glows bright neon green!',o:'Willemite (a zinc silicate) is one of the brightest fluorescent minerals. In normal light it is dull; under shortwave UV it glows electric green. Franklin, New Jersey is famous for it.'},
