@@ -86,7 +86,7 @@ var QA = [
    q: 'How do you play the darbuka drum?', o: ["With your hands", "With sticks", "With a bow", "By blowing into it"] },
  { e: '🌎', f: 'Lebanese families live all over the world. Brazil has one of the biggest Lebanese communities anywhere, and so does the United States.',
    q: 'Which country has one of the biggest Lebanese communities?', o: ["Brazil", "Japan", "Norway", "Antarctica"] },
- { e: '💰', f: 'The money in Lebanon is called the Lebanese pound. People also call it the lira.',
+ { b: 1, e: '💰', f: 'The money in Lebanon is called the Lebanese pound. People also call it the lira. Tonight’s prizes are chocolate lira!',
    q: 'What is the money in Lebanon called?', o: ["The Lebanese pound", "The dinar", "The euro", "The cookie coin"] },
  { e: '🤍', f: 'On the flag, white stands for peace, and the green cedar stands for strength and living a long time.',
    q: 'What does white stand for on Lebanon’s flag?', o: ["Peace", "Courage", "Kindness", "Marshmallows"] },
@@ -242,7 +242,7 @@ var QA = [
    q: "What does the NASA lab Charles Elachi led build?", o: ["Mars rovers", "Submarines", "Airplanes", "Ice cream trucks"] },
  { e: "🏥", f: "Lebanese-American entertainer Danny Thomas started St. Jude Children’s Research Hospital, which helps sick kids for free.",
    q: "What did Danny Thomas start?", o: ["A children’s hospital", "A toy company", "A soccer team", "A bubble-gum factory"] },
- { e: "🤖", f: "Many Lebanese grown-ups’ favorite childhood hero was Grendizer, a giant robot cartoon. Its Arabic voices were recorded in Lebanon.",
+ { b: 1, e: "🤖", f: "Many Lebanese grown-ups’ favorite childhood hero was Grendizer, a giant robot cartoon. Its Arabic voices were recorded in Lebanon.",
    q: "Who was Grendizer?", o: ["A giant robot cartoon hero", "A famous chef", "A soccer player", "A talking falafel"] },
  { e: "✍️", f: "Lebanese writer Gibran Khalil Gibran wrote a book called The Prophet. He is one of the best-selling poets of all time.",
    q: "What was Gibran Khalil Gibran?", o: ["A poet and writer", "A race-car driver", "An astronaut", "A magician"] },
@@ -265,10 +265,22 @@ var QA = [
  { b: 1, e: "🃏", f: "Lebanese families love card games like Tarneeb and Trix, played in teams. Kids often learn them at Teta’s house after Sunday lunch.",
    q: "What are Tarneeb and Trix?", o: ["Card games played in teams", "Kinds of cookies", "Dances", "Soccer teams"] },
  { b: 1, e: "🪁", f: "In Arabic, a kite is called a “tayyara waraq,” which means “paper airplane”! Kids fly kites on beaches and rooftops in spring.",
-   q: "What does the Arabic word for kite mean?", o: ["Paper airplane", "Flying fish", "Sky balloon", "Bird with a string"] }
+   q: "What does the Arabic word for kite mean?", o: ["Paper airplane", "Flying fish", "Sky balloon", "Bird with a string"] },
+ { b: 1, e: "🌙", f: "Lebanese families often eat dinner late, and at weddings and big family parties kids stay up dancing past midnight!",
+   q: "At a big Lebanese family party, kids often stay up until…", o: ["After midnight", "7 o’clock", "Right after lunch", "Next Tuesday"] },
+ { b: 1, e: "🏪", f: "Lebanese kids are often sent to the little corner shop, called the “dekkene,” to buy bread or milk for the family.",
+   q: "What is a “dekkene”?", o: ["A little corner shop", "A school bus", "A kind of cookie", "A pet dragon"] },
+ { b: 1, e: "🫒", f: "In the fall, many Lebanese families pick olives together. Kids help shake the branches and gather the olives from sheets on the ground.",
+   q: "What do many Lebanese families pick together in the fall?", o: ["Olives", "Apples", "Pumpkins", "Marshmallows"] },
+ { b: 1, e: "🐦", f: "Many Lebanese families keep singing birds like canaries and goldfinches on the balcony, and they sing every morning.",
+   q: "Which pet might you hear singing on a Lebanese balcony?", o: ["A canary", "A rooster", "A frog", "A singing hamster"] },
+ { b: 1, e: "⚽", f: "Captain Majid is a soccer cartoon from Japan, dubbed into Arabic. Lots of Lebanese grown-ups watched it as kids. In English it is called Captain Tsubasa.",
+   q: "What is the cartoon Captain Majid about?", o: ["Soccer", "Pirates", "Space", "Dancing broccoli"] },
+ { b: 1, e: "🕷️", f: "Lebanese kids today love lots of the same shows you do, like Spider-Man, Pokémon and Bluey, often watched in Arabic or French!",
+   q: "In which languages might Lebanese kids watch Spider-Man?", o: ["Arabic or French", "Only Spanish", "Only Japanese", "Dolphin"] }
 ];
 /* Two question lists. List A is all of QA. List B (marked b: 1) keeps only kid-relatable facts (school, family,
-   weekends, games) and comparisons to things kids know (San Diego, the ABCs, Halloween, movies): 56 questions.
+   weekends, games) and comparisons to things kids know (San Diego, the ABCs, Halloween, movies): 70 questions.
    Every device must use the same list, so the choice is made here, not in the URL. */
 var ACTIVE_LIST = 'B';
 var Q = ACTIVE_LIST === 'A' ? QA : QA.filter(function (x) { return x.b; });
