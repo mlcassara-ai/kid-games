@@ -118,5 +118,6 @@ A live classroom-event quiz: one big screen plus any number of phones, no host. 
 - Backend: same project and pattern as the other games (anonymous auth, Firestore REST, `families` collection, `{data,updated,v}` shape). Players are spread over 8 shard docs `hn_<event>_leaderboard_s0`…`s7` (the rules reject doc ids under 16 characters, hence the padding) (`{p:{pid:{n,a,g,na,r,rs,st,s,c,j,q,k,t}}}`), written with `currentDocument.updateTime` preconditions and retried on conflict. The screen polls all shards every 2.5 s.
 - URL switches: `?e=<name>` uses a separate event (separate leaderboard; default `oct2026`, which the QR code uses); `?fast=1` short phases for testing. Use `?e=test` when testing so the real leaderboard stays clean.
 - Test: `node heritage-night/tools/smoke.js [screenshotDir]` (fakes Firebase with preconditions and a server clock, skews the screen clock 47 s, three phones, one full question, a 30-player join burst). Must print `RESULT: PASS`.
-- Release: no version file; bump `hn-core.js?v=` in both pages when `hn-core.js` changes, push, then open the live screen with `?e=test&fast=1` and one phone to confirm.
+- Auto-update: `watchVersion()` in hn-core re-reads the page's own HTML every 2 min and reloads at the start of the next fact card when the `hn-core.js?v=` number changed, so an open TV or phone picks up a release by itself.
+- Release: no version file; bump `hn-core.js?v=` in all three pages (index, screen, host) when anything changes, push, then open the live screen with `?e=test&fast=1` and one phone to confirm.
 

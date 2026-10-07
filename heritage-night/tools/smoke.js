@@ -205,6 +205,10 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     // anything wearing the robot avatar is never listed, so it can't be a winner
     const botGone = await phones[2].evaluate(async () => { await HN.saveEntry('zzrobot', { n: 'Robot', a: '🤖', s: 99999, c: 0, j: 0, q: -1 }); return !(await HN.allPlayers()).zzrobot; });
     ok(botGone, 'robot entries are filtered out of the player list');
+    // auto-update: every page can read its own hn-core.js?v= number, and the served page carries the same one (so no reload loop)
+    const ver = await scr.evaluate(async () => { const v = (document.querySelector('script[src*="hn-core.js"]').getAttribute('src').match(/v=(\d+)/) || [])[1];
+      const t = await (await fetch(location.pathname + '?vcheck=1', { cache: 'no-store' })).text(); return v && (t.match(/hn-core\.js\?v=(\d+)/) || [])[1] === v; });
+    ok(ver, 'the screen can check for a new version of itself');
     // 🎛️ the host page
     const pid = async p => p.evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).pid);
     const pidA = await pid(phones[0]), pidB = await pid(phones[1]);

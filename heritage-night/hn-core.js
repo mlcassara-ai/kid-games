@@ -498,6 +498,27 @@ function rank(players) {
 }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
+/* New versions load by themselves: every 2 minutes each page re-reads its own HTML (from GitHub Pages, not Firestore);
+   when the hn-core.js?v= number there changes, the page reloads at the start of the next fact card, so the TV never
+   needs a hand reload and nobody is cut off mid-question. */
+function watchVersion() {
+  var tag = document.querySelector('script[src*="hn-core.js"]'), v = tag && (tag.getAttribute('src').match(/v=(\d+)/) || [])[1];
+  if (!v) return;
+  var pending = false, ticks = 0;
+  setInterval(async function () {
+    if (!pending && ++ticks % 24 === 0) {
+      try {
+        var t = await (await fetch(location.pathname + '?vcheck=' + Date.now(), { cache: 'no-store' })).text();
+        var n = (t.match(/hn-core\.js\?v=(\d+)/) || [])[1];
+        if (n && n !== v) pending = true;
+      } catch (e) { }
+    }
+    var ph = phase();
+    if (pending && ph.name === 'fact' && ph.left > T.fact - 4000) location.reload();
+  }, 5000);
+}
+if (typeof document !== 'undefined') watchVersion();
+
 window.HN = { Q: Q, T: T, EVENT: EVENT, FAST: FAST, PLAY_URL: PLAY_URL, questionFor: questionFor, factFor: factFor, phase: phase, now: now, points: points, ROUND: ROUND, STREAK_AT: STREAK_AT, roundOf: roundOf, qInRound: qInRound, isDouble: isDouble, award: award, roundTop: roundTop, onFire: onFire,
   isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, readDoc: readDoc, putDoc: putDoc, updateDoc: updateDoc, hostKeyOk: hostKeyOk, prizeCode: prizeCode, game: function () { return game; }, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
 })();
