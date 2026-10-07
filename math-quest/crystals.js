@@ -176,7 +176,7 @@ function collect(id){const p=P(),jar=J(id);if(!p||!jar)return;const s=st(p),j=s.
  save();try{SFX.win();}catch(e){}
  VIEW={k:'done',id,mm:j.mm,col:j.col,pf,coins,right,guess:j.guess,again:!first,rec,prev,tix:!!tix,zoomNow,pocket:full,full:j.tgt||jar.mm,gaps:j.gaps};draw();}
 function drawDone(p,s){const v=VIEW,jar=J(v.id);
- card(`<h2>🎉 Your ${esc2(jar.n)} is grown!</h2><div class="cg-big">${svg(jar.id,1,v.col)}<div style="flex:1;min-width:200px">
+ card(`<h2>🎉 ${esc2(jar.n)}: fully grown!</h2><div class="cg-big">${svg(jar.id,1,v.col)}<div style="flex:1;min-width:200px">
   <p style="margin:0 0 6px">${v.pf?'<b>✨ A PERFECT crystal!</b> Not a single crack. Double coins! ':''}It is <b>${v.mm} mm</b>.${v.gaps?' Tending it every time you play grows it bigger.':''}</p>
   <p style="margin:0 0 6px">${v.again?(v.rec?`<b>🏆 New record!</b> Your best was ${v.prev} mm. +${RECORD_COINS} 🪙`:v.mm===v.prev?`You matched your record of ${v.prev} mm!`:`Your record is still <b>${v.prev} mm</b>. Every crystal grows a little different: try again to beat it!`):`You guessed <b>${esc2((SHAPES[v.guess]||{n:'?'}).n.toLowerCase())}</b>. ${v.right?'<b>✅ You were right!</b> +5 🔬':`It's <b>${esc2(SHAPES[jar.shape].n.toLowerCase())}</b>. Good try!`}`}</p>
   <p style="margin:0"><b>+${v.coins} 🪙 · +${5+(v.right?5:0)} 🔬</b> It's on your Crystal Shelf (in the Museum too).</p></div></div>
