@@ -427,10 +427,12 @@ async function putDoc(name, data, updateTime) {
 }
 function shardOf(pid) { var h = 2166136261; for (var i = 0; i < pid.length; i++) { h ^= pid.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % SHARDS; }
 /* all players, as {pid: entry} */
+/* robot helpers are never stored as players; anything wearing the robot avatar is dropped anyway so it can never be listed or win */
+function isBot(p) { return !p || p.a === '🤖'; }
 async function allPlayers() {
   var res = await Promise.all(Array.from({ length: SHARDS }, function (_, i) { return getDoc('s' + i).catch(function () { return null; }); }));
   var out = {}, ok = 0;
-  res.forEach(function (d, i) { if (!d) return; ok++; if (i === 0) game = (d.data && d.data.z) || ''; var p = d.data && d.data.p; if (p) for (var k in p) out[k] = p[k]; });
+  res.forEach(function (d, i) { if (!d) return; ok++; if (i === 0) game = (d.data && d.data.z) || ''; var p = d.data && d.data.p; if (p) for (var k in p) if (!isBot(p[k])) out[k] = p[k]; });
   if (!ok) throw new Error('offline');
   return out;
 }

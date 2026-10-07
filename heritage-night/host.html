@@ -56,7 +56,7 @@ tr.hid td { opacity: .45; }
 </head>
 <body>
 <div class="wrap" id="app"><div class="lock">Loading…</div></div>
-<script src="hn-core.js?v=19"></script>
+<script src="hn-core.js?v=20"></script>
 <script>
 (function () {
   'use strict';
@@ -80,7 +80,7 @@ tr.hid td { opacity: .45; }
     var grown = all.filter(function (p) { return p.g === 'a' && p.s > 0; }).slice(0, 1);
     var pick = function (p) { return { id: p.id, n: p.n, a: p.a, g: p.g, s: p.s }; };
     var rope = board && typeof board.rope === 'number' ? board.rope : 0;
-    return { kids: kids.map(pick), grown: grown.map(pick), team: rope > 0 ? 'kids' : rope < 0 ? 'grown' : '' };
+    return { kids: kids.map(pick), grown: grown.map(pick), team: rope > 0 && kids.length ? 'kids' : rope < 0 && grown.length ? 'grown' : '' };
   }
   function visible() { var out = {}, hid = ctrl.hidden || {}; for (var id in players) if (!hid[id]) out[id] = players[id]; return out; }
 

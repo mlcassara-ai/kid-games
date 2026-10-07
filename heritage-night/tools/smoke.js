@@ -198,10 +198,13 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(await scr.evaluate(() => { for (let c = 1; c < 5000; c++) if (HN.questionFor(c).f !== HN.factFor(c - 1).f || HN.factFor(c).f === HN.factFor(c - 1).f) return false; return true; }), 'each question asks about the previous fact');
     ok(await scr.evaluate(() => { for (let c = 0; c < 200; c++) { const q = HN.questionFor(c); if (q.opts.length !== 4 || q.opts[q.right] !== HN.Q[q.id].o[0]) return false; } return true; }), 'shuffled answers keep the right one');
     // a burst of 30 more players writing at once
-    await phones[2].evaluate(async () => { const ps = []; for (let i = 0; i < 30; i++) ps.push(HN.saveEntry('bot' + i, { n: 'Bot ' + i, a: '🤖', s: i * 10, c: 0, j: i, q: -1 })); await Promise.all(ps); });
+    await phones[2].evaluate(async () => { const ps = []; for (let i = 0; i < 30; i++) ps.push(HN.saveEntry('burst' + i, { n: 'Tester ' + i, a: '🦊', s: i * 10, c: 0, j: i, q: -1 })); await Promise.all(ps); });
     const all = await phones[2].evaluate(async () => Object.keys(await HN.allPlayers()).length);
     ok(all === 33, '30 simultaneous joins all saved (' + all + ' players, ' + conflicts + ' retried conflicts)');
     await scr.waitForTimeout(3500); await shot(scr, 'screen-busy');
+    // anything wearing the robot avatar is never listed, so it can't be a winner
+    const botGone = await phones[2].evaluate(async () => { await HN.saveEntry('zzrobot', { n: 'Robot', a: '🤖', s: 99999, c: 0, j: 0, q: -1 }); return !(await HN.allPlayers()).zzrobot; });
+    ok(botGone, 'robot entries are filtered out of the player list');
     // 🎛️ the host page
     const pid = async p => p.evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).pid);
     const pidA = await pid(phones[0]), pidB = await pid(phones[1]);
