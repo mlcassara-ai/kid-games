@@ -135,18 +135,53 @@ body { background: var(--ground); color: var(--ink); font-family: var(--body); c
 .recall { font-family: var(--display); font-weight: 800; font-size: calc(2.8 * var(--u)); color: var(--gold); margin-bottom: calc(1 * var(--u)); }
 .prize { margin-top: calc(1.4 * var(--u)); font-family: var(--display); font-weight: 800; font-size: calc(2.8 * var(--u)); color: var(--gold); }
 .row .fire { margin-right: calc(.3 * var(--w)); }
-.champ { position: absolute; inset: 0; z-index: 4; display: none; flex-direction: column; align-items: center; justify-content: center; gap: calc(2.4 * var(--u));
-  background: radial-gradient(90% 80% at 50% 40%, rgba(246,185,59,.3), transparent 70%), #0a2a1f; text-align: center; }
+.champ { position: fixed; inset: 0; z-index: 15; display: none; flex-direction: column; align-items: center; justify-content: center; gap: calc(1.8 * var(--u));
+  background: radial-gradient(70% 60% at 50% 45%, #1b5a40, #0a2a1f 75%); text-align: center; overflow: hidden; padding: calc(2.5 * var(--u)) calc(3 * var(--w)); }
 .champ.on { display: flex; animation: champIn .6s ease-out; }
 @keyframes champIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
-.champ h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: calc(8 * var(--u)); line-height: 1; color: var(--gold); }
-.champ .sub { font-size: calc(2.8 * var(--u)); color: var(--ink-soft); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-.champ .win { display: grid; justify-items: center; gap: calc(.6 * var(--u)); }
-.champ .win .av { font-size: calc(18 * var(--u)); line-height: 1; filter: drop-shadow(0 calc(1 * var(--u)) calc(2 * var(--u)) rgba(0,0,0,.4)); }
-.champ .win .nm { font-family: var(--display); font-weight: 800; font-size: calc(6.4 * var(--u)); line-height: 1; }
-.champ .win .pt { font-family: var(--display); font-weight: 800; font-size: calc(4 * var(--u)); color: var(--gold); }
-.champ .rest { display: flex; gap: calc(3 * var(--w)); font-size: calc(3 * var(--u)); font-weight: 700; }
-.champ .rest span b { color: var(--gold); font-family: var(--display); }
+/* spinning sunburst behind everything */
+.champ .rays { position: absolute; left: 50%; top: 45%; width: 220vmax; height: 220vmax; margin: -110vmax 0 0 -110vmax; z-index: -1; opacity: .5;
+  background: repeating-conic-gradient(from 0deg, rgba(246,185,59,.22) 0 6deg, transparent 6deg 18deg); animation: spin 40s linear infinite;
+  -webkit-mask-image: radial-gradient(circle, #000 0, transparent 45%); mask-image: radial-gradient(circle, #000 0, transparent 45%); }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* confetti and falling chocolate lira */
+.champ .fx { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.fx i { position: absolute; top: -6vh; width: calc(1 * var(--u)); height: calc(1.8 * var(--u)); border-radius: 2px; animation: fall linear infinite; }
+.fx .cn { width: calc(3.4 * var(--u)); height: calc(3.4 * var(--u)); border-radius: 50%; }
+@keyframes fall { 0% { transform: translateY(0) rotate(0); } 100% { transform: translateY(115vh) rotate(720deg); } }
+.coin { display: inline-grid; place-items: center; width: calc(4.4 * var(--u)); height: calc(4.4 * var(--u)); border-radius: 50%; flex: none;
+  background: radial-gradient(circle at 34% 30%, #fff6cf 0, #f8cf5a 22%, #e0a127 55%, #a8700c 100%); border: calc(.3 * var(--u)) solid #8f5d07;
+  box-shadow: inset 0 0 0 calc(.35 * var(--u)) rgba(255,255,255,.28), 0 calc(.4 * var(--u)) calc(.8 * var(--u)) rgba(0,0,0,.35);
+  font-family: var(--display); font-weight: 800; font-size: calc(1.5 * var(--u)); color: #6b4300; line-height: 1; }
+.champ > * { position: relative; z-index: 1; }
+.champ .sub { font-size: calc(2.6 * var(--u)); color: var(--ink-soft); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.champ h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: calc(8.4 * var(--u)); line-height: 1;
+  background: linear-gradient(100deg, #f6b93b 20%, #fff4c8 40%, #f6b93b 60%) 0 0 / 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: shine 3s linear infinite; filter: drop-shadow(0 calc(.5 * var(--u)) calc(1 * var(--u)) rgba(0,0,0,.4)); }
+@keyframes shine { to { background-position: -250% 0; } }
+.champ .podium { display: flex; align-items: flex-end; justify-content: center; gap: calc(2.4 * var(--w)); margin-top: calc(1 * var(--u)); }
+.champ .pl { display: flex; flex-direction: column; align-items: center; width: calc(26 * var(--w)); opacity: 0; animation: rise .8s cubic-bezier(.2,1.4,.4,1) forwards; }
+.champ .pl.p3 { animation-delay: .3s; } .champ .pl.p2 { animation-delay: 1s; } .champ .pl.p1 { animation-delay: 1.8s; }
+@keyframes rise { from { opacity: 0; transform: translateY(18vh) scale(.6); } to { opacity: 1; transform: none; } }
+.champ .pl .av { font-size: calc(11 * var(--u)); line-height: 1; filter: drop-shadow(0 calc(1 * var(--u)) calc(1.5 * var(--u)) rgba(0,0,0,.45)); }
+.champ .pl.p1 .av { font-size: calc(15 * var(--u)); animation: bob 1.6s ease-in-out 2.6s infinite; }
+@keyframes bob { 50% { transform: translateY(calc(-1.2 * var(--u))) rotate(-4deg); } }
+.champ .pl .nm { font-family: var(--display); font-weight: 800; font-size: calc(3.6 * var(--u)); line-height: 1.05; margin-top: calc(.6 * var(--u)); }
+.champ .pl.p1 .nm { font-size: calc(4.6 * var(--u)); }
+.champ .pl .pt { font-size: calc(2 * var(--u)); color: var(--ink-soft); font-weight: 700; }
+.champ .ped { margin-top: calc(1 * var(--u)); width: 100%; border-radius: calc(1.2 * var(--u)) calc(1.2 * var(--u)) 0 0; display: grid; justify-items: center; align-content: start;
+  gap: calc(.8 * var(--u)); padding: calc(1.2 * var(--u)) calc(.8 * var(--w)); box-shadow: inset 0 calc(.6 * var(--u)) 0 rgba(255,255,255,.25); }
+.champ .p1 .ped { height: calc(21 * var(--u)); background: linear-gradient(#f6c94e, #c98a14); color: #3a2600; }
+.champ .p2 .ped { height: calc(16 * var(--u)); background: linear-gradient(#e3e9ee, #9aa6b1); color: #1d2a33; }
+.champ .p3 .ped { height: calc(12.5 * var(--u)); background: linear-gradient(#e2a06a, #a4612c); color: #2f1605; }
+.champ .ped .md { font-family: var(--display); font-weight: 800; font-size: calc(3.4 * var(--u)); line-height: 1; }
+.champ .ped .coins { display: flex; justify-content: center; }
+.champ .ped .coins .coin + .coin { margin-left: calc(-1.2 * var(--u)); }
+.champ .ped .won { font-family: var(--display); font-weight: 800; font-size: calc(2.6 * var(--u)); line-height: 1.05; }
+.champ .p1 .ped .won { font-size: calc(3.1 * var(--u)); }
+.champ .foot { display: grid; gap: calc(.6 * var(--u)); margin-top: calc(1.2 * var(--u)); opacity: 0; animation: champIn .6s ease-out 2.6s forwards; }
+.champ .foot b { font-family: var(--display); font-weight: 800; font-size: calc(3.4 * var(--u)); color: var(--gold); }
+.champ .foot span { font-size: calc(2.2 * var(--u)); color: var(--ink-soft); font-weight: 700; }
 body.mouse { cursor: auto; }
 .tools { position: fixed; left: calc(1 * var(--w)); bottom: calc(.8 * var(--u)); z-index: 6; display: flex; gap: calc(.5 * var(--w)); }
 .reset { font: inherit; font-size: calc(1.5 * var(--u)); font-weight: 700; color: var(--ink-soft); background: rgba(255,255,255,.08);
@@ -206,13 +241,13 @@ body.mouse { cursor: auto; }
 <div class="net" id="net"></div>
 <div class="tools">
   <button class="reset inst" id="install" hidden title="Put this on your desktop as an app">💻 Install app</button></div>
-<script src="hn-core.js?v=23"></script>
+<script src="hn-core.js?v=24"></script>
 <script>
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var SHAPES = ['▲', '◆', '●', '■'];
-  var players = {}, ctrl = {}, seen = null, shownKey = '', lastPoll = 0, polling = false, toastQ = [], toastBusy = false, champFor = -1;
+  var players = {}, ctrl = {}, seen = null, shownKey = '', lastPoll = 0, polling = false, toastQ = [], toastBusy = false, champFor = -1, champPending = -1, champsCache = {}, lastWin = null;
 
   function renderStage(ph) {
     var q = HN.questionFor(ph.cycle), key = ph.cycle + ph.name, body = $('body'), pill = $('pill');
@@ -223,7 +258,7 @@ body.mouse { cursor: auto; }
       $('rnd').textContent = (rl ? 'Round ' + rl + ' · ' : '') + 'Question ' + qn + ' of ' + HN.ROUND;
       $('champ').className = 'champ';
       if (ph.name === 'reveal' && qn === HN.ROUND && champFor !== ph.cycle) {   // last question of the round: crown the champion
-        champFor = ph.cycle; lastPoll = 0;
+        champFor = ph.cycle; champPending = ph.cycle; lastPoll = 0;
         setTimeout(function () { showChamp(ph.cycle); }, HN.FAST ? 900 : 1500);
       }
       if (ph.name === 'reveal' && rope.c < ph.cycle) {   // one tug-of-war pull per question, once the answers are in
@@ -238,7 +273,7 @@ body.mouse { cursor: auto; }
         body.className = 'body';
         var fc = HN.factFor(ph.cycle);
         body.innerHTML = dbl + '<div class="fact"><div class="emo">' + fc.e + '</div><div><div class="kicker">Did you know?</div><div class="txt">' + HN.esc(fc.f) +
-          '</div><div class="next" id="next"></div><div class="prize">' + (left === 1 ? 'Round Champion after this question! 🏆' : 'Next Round Champion in ' + left + ' questions! 🏆') + '</div></div></div>';
+          '</div><div class="next" id="next"></div><div class="prize">' + prizeLine(ph.cycle, left) + '</div></div></div>';
         renderBoard();   // the side board may change turn (Kids / Grown-ups) with each new question
       } else {
         body.className = 'body' + (ph.name === 'reveal' ? ' reveal' : '');
@@ -312,8 +347,14 @@ body.mouse { cursor: auto; }
   }
   /* One small summary per question for the phones (their rank, the pull, host calls and the final), so 100 phones read
      one doc instead of all eight shards. Written once the answers are in. */
+  function prizeLine(cycle, left) {
+    var np = HN.questionsToPrize(cycle, roundLabel(cycle), HN.prizeRules(ctrl).every);
+    if (np == null) return left === 1 ? 'Round Champion after this question! 🏆' : 'Next Round Champion in ' + left + ' questions! 🏆';
+    return np === 1 ? '🍫 Chocolate lira winners after this question!' : '🍫 Next chocolate lira winners in ' + np + ' questions!';
+  }
   function publishBoard(cycle) {
-    var ph = HN.phase(); if (ph.cycle !== cycle) return;
+    var ph = HN.phase(); if (ph.cycle !== cycle || champPending === cycle) return;   // a round's last question: showChamp publishes once the winners are picked
+    var rules = HN.prizeRules(ctrl), np = HN.questionsToPrize(cycle, roundLabel(cycle), rules.every);
     var ranks = {}, all = HN.rank(players);
     [false, true].forEach(function (gr) {
       var g = all.filter(function (p) { return (p.g === 'a') === gr; });
@@ -321,23 +362,57 @@ body.mouse { cursor: auto; }
     });
     var pl = HN.pull(players, cycle);
     HN.putDoc('board', { c: cycle, z: HN.game(), ranks: ranks, pull: { winner: pl.winner, robotOnly: pl.robotOnly }, rope: rope.pos,
-      calls: ctrl.calls || {}, fin: ctrl.final || null, at: Date.now() }, 'any').catch(function () {});
+      calls: ctrl.calls || {}, fin: ctrl.final || null, win: lastWin, np: np == null ? null : np - 1, every: rules.every, max: rules.max, at: Date.now() }, 'any').catch(function () {});
   }
+  /* 🏆 End of a round: on a prize round the top 3 kids who haven't reached the win limit win chocolate lira (HN.pickWinners);
+     the pick is saved in the champs doc (the host page's log and the win counts), then this screen celebrates and tells the
+     phones through the board doc. If another screen already decided this round, its pick is used. */
   function showChamp(cycle) {
-    var ph = HN.phase(); if (ph.cycle !== cycle || ph.name !== 'reveal') return;
-    var top = HN.kidsOnly(HN.roundTop(players, HN.roundOf(cycle))).slice(0, 3), c = $('champ');
-    if (!top.length) return;
-    var rnd = HN.roundOf(cycle), label = roundLabel(cycle) || '';   // the host page's prize log
-    HN.updateDoc('champs', function (d) {
-      if (d.z !== HN.game()) d = { z: HN.game(), r: {} };
+    var ph = HN.phase(); if (ph.cycle !== cycle || ph.name !== 'reveal') { champPending = -1; return; }
+    var rnd = HN.roundOf(cycle), label = roundLabel(cycle) || 0, rules = HN.prizeRules(ctrl), prize = HN.isPrizeRound(label, rules.every);
+    var top = HN.kidsOnly(HN.roundTop(players, rnd));
+    if (!top.length) { champPending = -1; publishBoard(cycle); return; }
+    var mini = function (p) { return { id: p.id, n: p.n, a: p.a, g: p.g, rs: p.rs }; };
+    function decide(d) {
+      if (!d || d.z !== HN.game()) d = { z: HN.game(), r: {} };
       d.r = d.r || {};
-      if (!d.r[rnd]) d.r[rnd] = { label: label, at: Date.now(), top: top.map(function (p) { return { id: p.id, n: p.n, a: p.a, g: p.g, rs: p.rs }; }) };
+      if (!d.r[rnd]) {
+        var pk = prize ? HN.pickWinners(top, HN.winCounts(d, ctrl), rules.max) : { win: [], maxed: [] };
+        d.r[rnd] = { label: label, at: Date.now(), top: top.slice(0, 3).map(mini), win: pk.win, maxed: pk.maxed.map(mini), max: rules.max };
+      }
       return d;
-    }).catch(function () {});
-    var w = top[0];
-    c.innerHTML = '<div class="sub">Round ' + (roundLabel(cycle) || '') + ' complete</div><h2>🏆 Round Champion!</h2>' +
-      '<div class="win"><div class="av">' + HN.esc(w.a) + '</div><div class="nm">' + HN.esc(w.n) + '</div><div class="pt">' + w.rs.toLocaleString() + ' points this round</div></div>' +
-      (top.length > 1 ? '<div class="rest">' + top.slice(1).map(function (p, i) { return '<span>' + (i ? '🥉' : '🥈') + ' ' + HN.esc(p.a + ' ' + p.n) + ' <b>' + p.rs.toLocaleString() + '</b></span>'; }).join('') + '</div>' : '');
+    }
+    function done(d) {
+      champsCache = d; var rec = d.r[rnd];
+      if (rec.win && rec.win.length) lastWin = { r: rnd, c: cycle, label: rec.label, at: rec.at, list: rec.win, max: rec.max };
+      if (HN.phase().cycle === cycle) drawChamp(rec, cycle, rules);
+      champPending = -1; publishBoard(cycle);
+    }
+    HN.updateDoc('champs', decide).then(done).catch(function () { done(decide(JSON.parse(JSON.stringify(champsCache || {})))); });
+  }
+  function coins(n) { var h = ''; for (var i = 0; i < n; i++) h += '<span class="coin">🌲</span>'; return h; }
+  function drawChamp(rec, cycle, rules) {
+    var c = $('champ'), won = rec.win && rec.win.length, list = won ? rec.win : (rec.top || []).map(function (p, i) { return Object.assign({ place: i }, p); });
+    var byPlace = []; list.forEach(function (p) { byPlace[p.place] = p; });
+    var md = ['🥇 1st', '🥈 2nd', '🥉 3rd'];
+    var pod = [1, 0, 2].map(function (i) {
+      var p = byPlace[i]; if (!p) return '';
+      return '<div class="pl p' + (i + 1) + '"><div class="av">' + HN.esc(p.a) + '</div><div class="nm">' + HN.esc(p.n) + '</div><div class="pt">' +
+        HN.esc(HN.gradeLabel(p.g) || '') + ' · ' + (p.rs || 0).toLocaleString() + ' points</div><div class="ped"><div class="md">' + md[i] + '</div>' +
+        (won ? '<div class="coins">' + coins(p.lira) + '</div><div class="won">wins ' + HN.esc(HN.liraText(p.lira)) + '!</div>' : '') + '</div></div>';
+    }).join('');
+    var nextQ = HN.questionsToPrize(cycle + 1, (rec.label || 0) + 1, rules.every);
+    var nextTxt = nextQ == null ? '' : 'Next chocolate lira winners in ' + nextQ + ' questions!';
+    var max = rec.max || rules.max, maxed = rec.maxed || [];
+    var foot = won
+      ? '<b>📱 Winners: show your phone at the prize table!</b><span>Every kid can win ' + (max === 1 ? 'once' : max + ' times') + ' tonight · ' + nextTxt + '</span>'
+      : nextTxt ? '<b>🍫 ' + nextTxt + '</b>' : '<b>Great playing, everyone! 🎉</b>';
+    if (won && maxed.length) foot += '<span>🌟 Top score: ' + maxed.map(function (p) { return HN.esc(p.a + ' ' + p.n); }).join(', ') + ' (already a winner tonight!)</span>';
+    var fx = '', cols = ['#e23b2e', '#ffffff', '#1f9e5c', '#f6b93b', '#7fb8ff'];
+    for (var i = 0; i < 70; i++) fx += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + cols[i % cols.length] + ';animation-duration:' + (3 + Math.random() * 3).toFixed(2) + 's;animation-delay:-' + (Math.random() * 6).toFixed(2) + 's"></i>';
+    if (won) for (var j = 0; j < 14; j++) fx += '<i class="cn coin" style="left:' + (Math.random() * 96).toFixed(1) + '%;animation-duration:' + (4 + Math.random() * 3).toFixed(2) + 's;animation-delay:-' + (Math.random() * 7).toFixed(2) + 's">🌲</i>';
+    c.innerHTML = '<div class="rays"></div><div class="fx">' + fx + '</div><div class="sub">Round ' + (rec.label || '') + ' complete</div>' +
+      '<h2>' + (won ? '🏆 Round ' + (rec.label || '') + ' Winners!' : '🏆 Round Champion!') + '</h2><div class="podium">' + pod + '</div><div class="foot">' + foot + '</div>';
     c.className = 'champ on';
   }
 
@@ -396,6 +471,7 @@ body.mouse { cursor: auto; }
       var hid = ctrl.hidden || {}; players = {};
       for (var id in all) if (!hid[id]) players[id] = all[id];   // the host can take a player off the board
       renderFinal();
+      var any = document.querySelector('.join .any'); if (any) any.textContent = HN.prizeRules(ctrl).every ? '🍫 Win chocolate lira!' : 'Join anytime';
       if (seen) { var fresh = Object.keys(players).filter(function (k) { return !seen[k]; }); fresh.slice(0, 6).forEach(function (k) { toast(players[k].a + ' ' + players[k].n + ' joined!'); }); }
       seen = {}; for (var k in players) seen[k] = 1;
       var ph = HN.phase(); if (ph.name !== 'question' || !Object.keys(lastRanksBy[boardView]).length) renderBoard();
@@ -411,7 +487,7 @@ body.mouse { cursor: auto; }
   /* A Reset from the host page empties the shards under a new game id; this screen notices and starts fresh too. */
   var lastGame = null;
   function localReset() {
-    players = {}; lastRanksBy = { kids: {}, grown: {} }; seen = null; roundReset = true; champFor = -1;
+    players = {}; lastRanksBy = { kids: {}, grown: {} }; seen = null; roundReset = true; champFor = -1; champsCache = {}; lastWin = null;
     rope = { c: HN.phase().cycle, pos: 0, say: '' }; HN.lsSet(ROPE_KEY, rope);
     $('board').innerHTML = '<li class="empty">No players yet. Scan the code to join!</li>';
     renderBoard(); shownKey = ''; toast('🔄 New game! Scan the code to join.');
@@ -431,6 +507,11 @@ body.mouse { cursor: auto; }
   $('install').onclick = function () { if (installEvt) { installEvt.prompt(); installEvt = null; $('install').hidden = true; } };
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(function () {});
   HN.syncClock(); setInterval(HN.syncClock, 5 * 60000);
+  HN.readDoc('champs').then(function (d) {   // after a reload: tonight's winners so far (win counts, and the latest winners for the phones)
+    if (!d || !d.r) return; champsCache = d;
+    var last = Object.keys(d.r).map(Number).filter(function (k) { return (d.r[k].win || []).length; }).sort(function (a, b) { return b - a; })[0];
+    if (last != null && !lastWin) { var rec = d.r[last]; lastWin = { r: last, c: -1, label: rec.label, at: rec.at, list: rec.win, max: rec.max }; }
+  }).catch(function () {});
   try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
   tick(); setInterval(tick, 200);
 })();

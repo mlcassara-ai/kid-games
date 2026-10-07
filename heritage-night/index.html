@@ -68,6 +68,42 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 .pz-av { font-size: 6rem; line-height: 1; } .pz-nm { font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1.05; }
 .pz-code { background: #fff; color: #0b2a20; border-radius: 14px; padding: 8px 18px; font-size: 1.1rem; font-weight: 700; }
 .pz-code b { font-family: var(--display); font-size: 1.8rem; letter-spacing: .12em; margin-left: 6px; }
+/* 🍫 round winners: a "You won!" card for the winners (stays until "Got my prize"), the winners list for everyone else */
+.wins { position: fixed; inset: 0; z-index: 45; display: none; align-items: center; justify-content: center; padding: 20px; overflow: hidden;
+  background: radial-gradient(90% 60% at 50% 35%, #1d6a4a, #06190f 80%); }
+.wins.on { display: flex; animation: wnIn .5s ease-out; }
+@keyframes wnIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+.wins .rays { position: absolute; left: 50%; top: 32%; width: 260vmax; height: 260vmax; margin: -130vmax 0 0 -130vmax; opacity: .55;
+  background: repeating-conic-gradient(rgba(246,185,59,.25) 0 7deg, transparent 7deg 20deg); animation: wnSpin 30s linear infinite;
+  -webkit-mask-image: radial-gradient(circle, #000 0, transparent 40%); mask-image: radial-gradient(circle, #000 0, transparent 40%); }
+@keyframes wnSpin { to { transform: rotate(360deg); } }
+.wins .fx { position: absolute; inset: 0; pointer-events: none; }
+.wins .fx i { position: absolute; top: -40px; width: 9px; height: 16px; border-radius: 2px; animation: wnFall linear infinite; }
+@keyframes wnFall { to { transform: translateY(115vh) rotate(720deg); } }
+.coin { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; flex: none; font-family: var(--display); font-weight: 800; font-size: 14px; color: #6b4300;
+  background: radial-gradient(circle at 34% 30%, #fff6cf 0, #f8cf5a 22%, #e0a127 55%, #a8700c 100%); border: 3px solid #8f5d07;
+  box-shadow: inset 0 0 0 3px rgba(255,255,255,.28), 0 4px 8px rgba(0,0,0,.35); }
+.wins .fx .coin { width: 34px; height: 34px; font-size: 11px; border-radius: 50%; }
+.wn-card { position: relative; width: 100%; max-width: 440px; display: grid; justify-items: center; gap: 10px; text-align: center; }
+.wn-kick { color: var(--ink-soft); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: .85rem; }
+.wn-t { font-family: var(--display); font-weight: 800; font-size: 3rem; line-height: 1; color: var(--gold); animation: wnPop 1s cubic-bezier(.2,1.6,.4,1) both; }
+.wn-t.sm { font-size: 2.2rem; }
+@keyframes wnPop { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+.wn-av { font-size: 6.4rem; line-height: 1; animation: wnBob 1.6s ease-in-out .8s infinite; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); }
+@keyframes wnBob { 50% { transform: translateY(-10px) rotate(-5deg); } }
+.wn-nm { font-family: var(--display); font-weight: 800; font-size: 1.9rem; line-height: 1.05; }
+.wn-place { background: linear-gradient(#f6c94e, #c98a14); color: #3a2600; border-radius: 99px; padding: 6px 18px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; }
+.wn-place.p1 { background: linear-gradient(#e3e9ee, #9aa6b1); color: #1d2a33; } .wn-place.p2 { background: linear-gradient(#e2a06a, #a4612c); color: #2f1605; }
+.wn-coins { display: flex; justify-content: center; } .wn-coins .coin + .coin { margin-left: -12px; }
+.wn-coins .coin { width: 58px; height: 58px; font-size: 17px; animation: wnPop .7s cubic-bezier(.2,1.6,.4,1) both; }
+.wn-coins .coin:nth-child(2) { animation-delay: .15s; } .wn-coins .coin:nth-child(3) { animation-delay: .3s; }
+.wn-what { font-family: var(--display); font-weight: 800; font-size: 1.7rem; line-height: 1.05; }
+.wn-list { width: 100%; display: grid; gap: 8px; }
+.wn-row { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px; background: rgba(255,255,255,.09); border-radius: 14px; padding: 10px 12px; text-align: left; }
+.wn-row .av { font-size: 2.2rem; line-height: 1; } .wn-row .md { font-size: 1.5rem; }
+.wn-row .nm { font-weight: 700; font-size: 1.1rem; line-height: 1.15; min-width: 0; } .wn-row .nm small { display: block; color: var(--gold); font-weight: 700; }
+.wn-row .coin { width: 32px; height: 32px; font-size: 10px; border-width: 2px; } .wn-row .cs { display: flex; } .wn-row .cs .coin + .coin { margin-left: -10px; }
+.lira { color: var(--gold); font-weight: 700; font-size: 1.05rem; }
 .team { background: rgba(255,255,255,.08); border-radius: 14px; padding: 10px 14px; font-weight: 700; font-size: 1rem; }
 .how { color: var(--ink-soft); font-size: .95rem; line-height: 1.45; text-align: left; margin: 0; padding-left: 1.2em; }
 
@@ -104,8 +140,9 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 </head>
 <body>
 <div class="app" id="app"></div>
+<div class="wins" id="wins" aria-live="assertive"></div>
 <div class="prize" id="prize" aria-live="assertive"></div>
-<script src="hn-core.js?v=23"></script>
+<script src="hn-core.js?v=24"></script>
 <script>
 (function () {
   'use strict';
@@ -113,7 +150,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   var SHAPES = ['▲', '◆', '●', '■'];
   var KEY = 'heritagenight.me.' + HN.EVENT;
   var FLAG = '<svg class="flag" viewBox="0 0 30 20" aria-label="Flag of Lebanon"><rect width="30" height="20" fill="#e23b2e"/><rect y="5" width="30" height="10" fill="#fff"/><g fill="#1f9e5c"><path d="M15 5.6l2.6 3.2h-1.3l2.4 2.6h-1.5l2.6 2.4H10.2l2.6-2.4h-1.5l2.4-2.6h-1.3z"/><rect x="14.5" y="13.8" width="1" height="1.2"/></g></svg>';
-  var me = HN.lsGet(KEY), draft = null, pickAv = 0, pickG = '', joinStep = 1, taken = {}, shownKey = '', dirty = false, saving = false, rankInfo = null, rankFor = -1, teamLine = '';
+  var me = HN.lsGet(KEY), draft = null, pickAv = 0, pickG = '', joinStep = 1, taken = {}, shownKey = '', dirty = false, saving = false, rankInfo = null, rankFor = -1, teamLine = '', liraLine = '', seenWin = {};
 
   function save() { HN.lsSet(KEY, me); }
   function rid(n) { var a = new Uint8Array(n), s = ''; crypto.getRandomValues(a); for (var i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz0123456789'[a[i] % 36]; return s; }
@@ -128,7 +165,8 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
   }
   /* the big screen pressed Reset: this player belongs to the old game, so join again */
   function startOver() {
-    me = null; draft = null; pickG = ''; joinStep = 1; rankInfo = null; teamLine = ''; shownKey = '';
+    me = null; draft = null; pickG = ''; joinStep = 1; rankInfo = null; teamLine = ''; liraLine = ''; shownKey = '';
+    document.getElementById('wins').className = 'wins'; document.getElementById('prize').className = 'prize';   // a new game: no old prize cards
     try { localStorage.removeItem(KEY); } catch (e) {}
     joinView(); net('🔄 New game! Pick your buddy and grade to join.');
   }
@@ -149,7 +187,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
     if (!regrade && !draft) { pickAv = Math.floor(Math.random() * HN.AVATARS.length); draft = HN.newName(taken, pickAv); }
     var shown = regrade ? me : draft, html = '';
     if (joinStep === 1) {
-      html = stepHead(1, 'Pick a character') +
+      html = stepHead(1, 'Pick a character') + '<p class="lira" style="margin:0">🍫 Top kids win chocolate lira!</p>' +
         '<div class="card"><div class="big-av">' + HN.esc(shown.a) + '</div><div class="big-nm">' + HN.esc(shown.n) + '</div>' +
         '<button class="btn alt" id="reroll">🎲 Different name</button><div class="avs">' +
         HN.AVATARS.map(function (x, i) { return '<button data-av="' + i + '" class="' + (i === pickAv ? 'on' : '') + '" aria-label="' + HN.esc(x[1]) + '">' + x[0] + '</button>'; }).join('') + '</div>' +
@@ -222,7 +260,9 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
       var grown = me.g === 'a', rk = b.ranks && b.ranks[me.pid];
       teamLine = teamText(b.pull || {}); var tb = document.getElementById('team'); if (tb) tb.textContent = teamLine;
       if (rk) { rankInfo = { r: rk[0], n: rk[1], w: grown ? ' grown-ups' : ' kids' }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = rankHtml(); }
-      prizeCheck(b);
+      liraLine = me.g !== 'a' && b.np > 0 ? '🍫 Next chocolate lira winners in ' + b.np + (b.np === 1 ? ' question!' : ' questions!') : '';
+      var lb = document.getElementById('lira'); if (lb) lb.textContent = liraLine;
+      prizeCheck(b); winsCheck(b, cycle);
     } catch (e) {}
   }
   async function fetchRankFromShards(cycle) {
@@ -254,6 +294,46 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
       '<button class="btn go" id="pzok">Got my prize ✓</button></div>';
     el.className = 'prize on';
     document.getElementById('pzok').onclick = function () { HN.lsSet('heritagenight.ack.' + key, 1); el.className = 'prize'; };
+  }
+
+  /* 🍫 Round winners (picked by the big screen, sent in the board doc). A winner's phone shows "You won!" with the prize
+     and the prize code until "Got my prize ✓" (remembered on the phone, so it survives a reload). Everyone else sees the
+     winners list for a few seconds, once. */
+  function coins(n) { var h = ''; for (var i = 0; i < n; i++) h += '<span class="coin">🌲</span>'; return h; }
+  function fx(withCoins) {
+    var h = '', cols = ['#e23b2e', '#ffffff', '#1f9e5c', '#f6b93b', '#7fb8ff'];
+    for (var i = 0; i < 40; i++) h += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;background:' + cols[i % 5] + ';animation-duration:' + (2.6 + Math.random() * 2.4).toFixed(2) + 's;animation-delay:-' + (Math.random() * 5).toFixed(2) + 's"></i>';
+    if (withCoins) for (var j = 0; j < 8; j++) h += '<i class="coin" style="left:' + (Math.random() * 92).toFixed(1) + '%;animation-duration:' + (3.5 + Math.random() * 2.5).toFixed(2) + 's;animation-delay:-' + (Math.random() * 6).toFixed(2) + 's">🌲</i>';
+    return '<div class="rays"></div><div class="fx">' + h + '</div>';
+  }
+  var MD = ['🥇', '🥈', '🥉'], PLACE = ['🥇 1st place', '🥈 2nd place', '🥉 3rd place'], winsT = 0;
+  function winsCheck(b, cycle) {
+    var w = b.win, el = document.getElementById('wins'); if (!w || !w.list || !me) return;
+    var mine = null; w.list.forEach(function (p) { if (p.id === me.pid) mine = p; });
+    var key = 'heritagenight.win.' + (me.z || '') + '.' + w.r + '.' + w.at;
+    if (mine) {
+      if (HN.lsGet(key) || el.className === 'wins on') return;
+      if (!HN.lsGet(key + '.n')) { HN.lsSet(key + '.n', 1); me.wins = (me.wins || 0) + 1; save(); }
+      el.innerHTML = fx(true) + '<div class="wn-card"><div class="wn-kick">Round ' + HN.esc(w.label || '') + ' winner</div><div class="wn-t">🎉 You won!</div>' +
+        '<div class="wn-av">' + HN.esc(me.a) + '</div><div class="wn-nm">' + HN.esc(me.n) + '</div><div class="wn-place p' + mine.place + '">' + PLACE[mine.place] + '</div>' +
+        '<div class="wn-coins">' + coins(mine.lira) + '</div><div class="wn-what">' + HN.esc(HN.liraText(mine.lira)) + '!</div>' +
+        '<div class="pz-code">Prize code <b>' + HN.esc(HN.prizeCode(me.pid)) + '</b></div><p style="margin:0">Show this screen at the prize table!</p>' +
+        '<button class="btn go" id="wnok">Got my prize ✓</button></div>';
+      el.className = 'wins on'; clearTimeout(winsT);
+      document.getElementById('wnok').onclick = function () { HN.lsSet(key, 1); el.className = 'wins'; };
+      return;
+    }
+    if (w.c !== cycle || seenWin[w.at]) return;
+    seenWin[w.at] = 1;
+    var next = b.np > 0 ? b.np : (b.every || 1) * HN.ROUND, maxed = (me.wins || 0) >= (w.max || 1);
+    el.innerHTML = fx(false) + '<div class="wn-card"><div class="wn-kick">Round ' + HN.esc(w.label || '') + ' complete</div><div class="wn-t sm">🏆 Round winners!</div><div class="wn-list">' +
+      w.list.map(function (p) { return '<div class="wn-row"><span class="md">' + MD[p.place] + '</span><span class="av">' + HN.esc(p.a) + '</span><span class="nm">' + HN.esc(p.n) +
+        '<small>wins ' + HN.esc(HN.liraText(p.lira)) + '</small></span><span class="cs">' + coins(p.lira) + '</span></div>'; }).join('') + '</div>' +
+      '<p class="soft" style="margin:0">' + (me.g === 'a' ? 'Prizes are for the kids. Cheer them on! 📣' : maxed ? 'You already won tonight. Great job! Keep playing for the Grand Champion! 🏁'
+        : '🍫 Next chance in ' + next + ' questions. Keep playing!') + '</p><button class="btn alt" id="wnok">OK</button></div>';
+    el.className = 'wins on';
+    var close = function () { el.className = 'wins'; };
+    document.getElementById('wnok').onclick = close; clearTimeout(winsT); winsT = setTimeout(close, 9000);
   }
 
   /* the first cycle a new player plays: this one if its fact card is showing, else the next (never drop in mid-question).
@@ -295,7 +375,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
           : me.k ? '<div class="emo">🎉</div><div class="t">Correct!</div><div class="pts">+' + me.gain.toLocaleString() + (HN.isDouble(ph.cycle) ? ' ⚡ double!' : '') + '</div>' +
             (me.st >= HN.STREAK_AT ? '<div class="fire">🔥 On fire! ' + me.st + ' in a row (+10)</div>' : '')
           : '<div class="emo">🌲</div><div class="t">Not this time</div><p class="soft">The answer was <b>' + HN.esc(q.opts[q.right]) + '</b>.</p>') +
-          '<div class="rankbox" id="rank">' + (rankInfo ? rankHtml() : 'Checking your place…') + '</div><div class="team" id="team">' + HN.esc(teamLine) + '</div></div>';
+          '<div class="rankbox" id="rank">' + (rankInfo ? rankHtml() : 'Checking your place…') + '</div><div class="team" id="team">' + HN.esc(teamLine) + '</div><div class="lira" id="lira">' + HN.esc(liraLine) + '</div></div>';
         if (rankFor !== ph.cycle) setTimeout(function () { fetchRank(ph.cycle); }, HN.FAST ? 1600 : 2600);
       }
       app.innerHTML = header(ph) + '<div class="panel">' + html + '</div><div class="net" id="net"></div>';

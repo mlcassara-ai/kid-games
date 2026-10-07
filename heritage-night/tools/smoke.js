@@ -110,7 +110,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(await phones[0].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).st) === 2, 'streak counts 2 in a row');
     await scr.waitForFunction(c => { const h = HN.phase(); return h.cycle === c && h.name === 'fact'; }, C, { timeout: 30000 }); await scr.waitForTimeout(600);
     await shot(scr, 'screen-fact'); await shot(phones[0], 'phone-fact');
-    ok(/Round Champion after this question/.test(await scr.textContent('.prize')), 'fact card says the Round Champion comes after this question');
+    ok(/Chocolate lira winners after this question/.test(await scr.textContent('.prize')), 'fact card says the chocolate lira winners come after this question');
     ok(/Question 10 of 10/.test(await scr.textContent('#rnd')), 'top bar shows the round and question number');
     const clk = async () => ({ n: +(await scr.textContent('#secs')), c: await scr.getAttribute('#clock', 'class') });
     const cf = await clk(); ok(cf.n >= 1 && cf.n <= 4 && cf.c === 'clock', 'countdown clock on the fact card (' + cf.n + ' s)');
@@ -145,12 +145,31 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(/🔥/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows 🔥 for the streak');
     await scr.waitForSelector('#champ.on', { timeout: 3000 }).catch(() => {}); await shot(scr, 'screen-champion');
     const ch = await scr.textContent('#champ').catch(() => '');
-    ok(/Round Champion/.test(ch) && ch.includes(nameA), 'Round Champion overlay crowns phone A (' + nameA + ')');
-    ok(/🥈/.test(ch), 'runner-up shown');
+    ok(/Round 1 Winners/.test(ch) && ch.includes(nameA), 'winners screen crowns phone A (' + nameA + ')');
+    ok(/🥈/.test(ch) && /wins 3 chocolate lira/.test(ch), 'winners screen shows the runner-up and what each one won');
     ok(await phones[1].evaluate(() => JSON.parse(localStorage.getItem('heritagenight.me.test')).st) === 0, 'a wrong answer ends the streak');
     ok(/Fastest/.test(await scr.textContent('#status')), 'screen shows the fastest player');
     ok(/Kids/.test(await scr.textContent('#who')), 'answer reveal always shows the kids board');
     const cr = await clk(); ok(/ r$/.test(cr.c) && cr.n >= 1 && cr.n <= 5, 'countdown clock on the answer, in green (' + cr.n + ' s)');
+    await scr.waitForTimeout(2800); await shot(scr, 'screen-winners');
+    // the winner's phone and everyone else's
+    await phones[0].waitForSelector('#wins.on', { timeout: 6000 }).catch(() => {});
+    const wA = await phones[0].textContent('#wins').catch(() => '');
+    ok(/You won/.test(wA) && /3 chocolate lira/.test(wA), 'the winner’s phone says You won! and the prize');
+    await phones[2].waitForSelector('#wins.on', { timeout: 6000 }).catch(() => {});
+    const wC = await phones[2].textContent('#wins').catch(() => '');
+    ok(/Round winners/.test(wC) && wC.includes(nameA) && /Prizes are for the kids/.test(wC), 'other phones see the round winners');
+    await phones[0].waitForTimeout(1200); await shot(phones[0], 'phone-won'); await shot(phones[2], 'phone-winners');
+    await phones[0].click('#wnok'); ok(await phones[0].locator('#wins.on').count() === 0, 'Got my prize closes the winner card');
+    const rules = await phones[0].evaluate(() => {
+      const top = [{ id: 'A', rs: 300 }, { id: 'B', rs: 200 }, { id: 'C', rs: 100 }, { id: 'D', rs: 50 }];
+      const one = HN.pickWinners(top, { A: 1 }, 1), three = HN.pickWinners(top, { A: 2 }, 3);
+      return { skip: one.win.map(p => p.id).join('') === 'BCD' && one.win[0].lira === 3 && one.maxed[0].id === 'A',
+        keep: three.win[0].id === 'A', every: HN.questionsToPrize(9, 3, 3) === 1 && HN.questionsToPrize(9, 1, 3) === 21 && HN.questionsToPrize(9, 1, 0) === null };
+    });
+    ok(rules.skip, 'a kid at the win limit is skipped and the next kid wins');
+    ok(rules.keep, 'with a limit of 3, a kid can win again');
+    ok(rules.every, 'prize rounds every N rounds count down correctly');
     ok(/3rd/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows the grade');
     ok(await scr.locator('.row').count() === 2 && /2 playing/.test(await scr.textContent('#count')), 'Playing Now lists the 2 kids who answered (the grown-up is not on it)');
     ok(/All-night stars/.test(await scr.textContent('#stars')) && (await scr.textContent('#stars')).includes(nameA), 'All-night stars shows the top kid');
@@ -216,14 +235,18 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await lockd.waitForSelector('.lock'); await lockd.waitForTimeout(800);
     ok(/secret link/.test(await lockd.textContent('.lock')), 'host page stays locked without the secret link');
     const host = await page(browser, { width: 900, height: 1400 }, errs); await host.goto(base + 'host.html?fast=1&e=test#k=testkey');
-    await host.waitForFunction(n => /Round champions/.test(document.body.textContent) && document.body.textContent.includes(n), nameA, { timeout: 10000 }).catch(() => {});
-    ok(/Round champions/.test(await host.textContent('body')) && (await host.textContent('.round').catch(() => '')).includes(nameA), 'host page logs the Round Champion');
+    await host.waitForFunction(n => /prize round/.test(document.body.textContent) && document.body.textContent.includes(n), nameA, { timeout: 10000 }).catch(() => {});
+    ok((await host.textContent('.round').catch(() => '')).includes(nameA) && /3 chocolate lira/.test(await host.textContent('.round').catch(() => '')), 'host page logs the round winners and their prizes');
+    ok(await host.locator('#every').count() === 1 && await host.locator('#max').count() === 1, 'host page has the prize dropdowns');
+    await host.selectOption('#every', '3'); await host.waitForTimeout(900);
+    ok(await host.evaluate(async () => (await HN.readDoc('ctrl')).every === 3), 'the host can change how often prizes are given');
+    await host.selectOption('#every', '1'); await host.waitForTimeout(900);
     await shot(host, 'host');
     await host.click('[data-call="' + pidA + '"]');
     await host.waitForTimeout(800);
     ok(await host.evaluate(async id => !!((await HN.readDoc('ctrl')).calls || {})[id], pidA), 'host can call a winner');
-    for (let i = 0; i < 10 && !(await host.textContent('.round').catch(() => '')).includes('✓ Called'); i++) await host.waitForTimeout(700);
-    ok((await host.textContent('.round').catch(() => '')).includes('✓ Called') && (await host.$$('.got')).length > 0, 'host marks the called spot ✓ and the kid 🎁');
+    for (let i = 0; i < 10 && !(await host.textContent('body')).includes('🎁×2'); i++) await host.waitForTimeout(700);
+    ok((await host.textContent('body')).includes('🎁×2'), 'host counts the round win and the extra call as 🎁×2');
     await phones[0].waitForSelector('#prize.on', { timeout: 35000 }).catch(() => {});
     const pz = await phones[0].textContent('#prize').catch(() => '');
     ok(/You’re a winner/.test(pz) && pz.includes(pidA.slice(0, 4).toUpperCase()), 'the called phone shows the prize card with its code');
@@ -246,7 +269,9 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await host.click('#reset');
     await scr.waitForFunction(() => !document.querySelector('.row'), null, { timeout: 8000 }).catch(() => {});
     ok(await scr.locator('.row').count() === 0, 'Reset empties the leaderboard');
-    ok(await phones[1].evaluate(async () => Object.keys(await HN.allPlayers()).length) === 0, 'Reset clears every saved player');
+    let left = '';
+    for (let i = 0; i < 20; i++) { left = await phones[1].evaluate(async () => Object.values(await HN.allPlayers()).map(p => p.n).join(', ')); if (!left) break; await phones[1].waitForTimeout(500); }
+    ok(!left, 'Reset clears every saved player' + (left ? ' (left: ' + left + ')' : ''));
     await phones[1].waitForSelector('.steps', { timeout: 30000 }).catch(() => {});
     ok(/Step 1 of 3/.test(await phones[1].textContent('.steps').catch(() => '')) && /New game/.test(await phones[1].textContent('#net')), 'a phone from the old game is sent back to join');
     await phones[1].click('#next'); await phones[1].click('[data-g="2"]'); await phones[1].click('#next'); await phones[1].click('#go'); await phones[1].waitForTimeout(1500);

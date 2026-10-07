@@ -12,7 +12,7 @@ var FAST = qs.get('fast') === '1';                       // testing: short phase
 var EVENT = (qs.get('e') || 'oct2026').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) || 'oct2026';
 var SHARDS = 8;
 /* fact card, question, answer reveal; the 10th question of each round gets a longer reveal (`champ`) for the Round Champion */
-var T = FAST ? { fact: 4000, q: 6000, reveal: 3000, champ: 5000 } : { fact: 16000, q: 10000, reveal: 4000, champ: 9000 };
+var T = FAST ? { fact: 4000, q: 6000, reveal: 3000, champ: 5000 } : { fact: 16000, q: 10000, reveal: 4000, champ: 12000 };
 T.cycle = T.fact + T.q + T.reveal;
 var PLAY_URL = 'https://mlcassara-ai.github.io/kid-games/heritage-night/';
 
@@ -392,6 +392,41 @@ function movePos(pos, pl) {
 /* kids-only or grown-ups-only ranking (the big leaderboard and Round Champion are for kids) */
 function kidsOnly(list) { return list.filter(function (p) { return p.g !== 'a'; }); }
 
+/* ---------- 🍫 chocolate lira prizes ----------
+   At the end of a prize round the big screen picks the top 3 kids by round points who haven't reached the win limit;
+   1st wins PRIZES[0] chocolate lira, 2nd PRIZES[1], 3rd PRIZES[2]. The host page sets how often (ctrl.every: every N
+   rounds, 0 = off) and the limit (ctrl.max wins per kid tonight, counting host calls too). Defaults: every round, 1 win. */
+var PRIZES = [3, 2, 1];
+function liraText(n) { return n + ' chocolate lira'; }
+function prizeRules(ctrl) {
+  ctrl = ctrl || {};
+  return { every: ctrl.every == null ? 1 : Math.max(0, +ctrl.every || 0), max: ctrl.max == null ? 1 : Math.max(1, +ctrl.max || 1) };
+}
+/* wins so far tonight: every round winner in the champs log plus every host call */
+function winCounts(champs, ctrl) {
+  var w = {}, r = champs && champs.r || {}, calls = ctrl && ctrl.calls || {};
+  for (var k in r) (r[k].win || []).forEach(function (p) { w[p.id] = (w[p.id] || 0) + 1; });
+  for (var id in calls) w[id] = (w[id] || 0) + (calls[id].n || 1);
+  return w;
+}
+/* the round's winners: top kids by round points, skipping anyone already at the limit */
+function pickWinners(top, wins, max) {
+  var out = [], maxed = [];
+  top.forEach(function (p) {
+    if (out.length >= PRIZES.length) return;
+    if ((wins[p.id] || 0) >= max) { if (!out.length) maxed.push(p); return; }
+    out.push(p);
+  });
+  return { win: out.map(function (p, i) { return { id: p.id, n: p.n, a: p.a, g: p.g, rs: p.rs, place: i, lira: PRIZES[i] }; }), maxed: maxed.slice(0, 2) };
+}
+/* is round `label` (the big screen's Round 1, 2, 3 ...) a prize round, and how many questions until the next prize
+   (counting the one on screen now); null when prizes are off */
+function isPrizeRound(label, every) { return every > 0 && label > 0 && label % every === 0; }
+function questionsToPrize(cycle, label, every) {
+  if (!(every > 0) || !(label > 0)) return null;
+  return ((every - label % every) % every) * ROUND + ROUND - qInRound(cycle) + 1;
+}
+
 /* ---------- Firestore over REST (anonymous auth, like the other games) ---------- */
 var AUTH_KEY = 'heritagenight.auth';
 function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
@@ -520,5 +555,5 @@ function watchVersion() {
 if (typeof document !== 'undefined') watchVersion();
 
 window.HN = { Q: Q, T: T, EVENT: EVENT, FAST: FAST, PLAY_URL: PLAY_URL, questionFor: questionFor, factFor: factFor, phase: phase, now: now, points: points, ROUND: ROUND, STREAK_AT: STREAK_AT, roundOf: roundOf, qInRound: qInRound, isDouble: isDouble, award: award, roundTop: roundTop, onFire: onFire,
-  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, readDoc: readDoc, putDoc: putDoc, updateDoc: updateDoc, hostKeyOk: hostKeyOk, prizeCode: prizeCode, game: function () { return game; }, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
+  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, readDoc: readDoc, putDoc: putDoc, updateDoc: updateDoc, hostKeyOk: hostKeyOk, prizeCode: prizeCode, PRIZES: PRIZES, liraText: liraText, prizeRules: prizeRules, winCounts: winCounts, pickWinners: pickWinners, isPrizeRound: isPrizeRound, questionsToPrize: questionsToPrize, game: function () { return game; }, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
 })();

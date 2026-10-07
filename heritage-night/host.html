@@ -53,12 +53,15 @@ tr.hid td { opacity: .45; }
 .lock { text-align: center; padding: 60px 20px; font-size: 1.2rem; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .note { color: var(--ink-soft); font-size: .85rem; margin-top: 8px; }
+.set label { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+select { font: inherit; font-weight: 700; color: var(--ink); background: #164a37; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.auto { color: var(--gold); font-weight: 700; white-space: nowrap; }
 .filter { display: flex; gap: 6px; margin-bottom: 8px; } .filter button.on { background: var(--gold); color: #3a2600; }
 </style>
 </head>
 <body>
 <div class="wrap" id="app"><div class="lock">Loading…</div></div>
-<script src="hn-core.js?v=23"></script>
+<script src="hn-core.js?v=24"></script>
 <script>
 (function () {
   'use strict';
@@ -68,15 +71,15 @@ tr.hid td { opacity: .45; }
   function key() { var m = /[#&]k=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : ''; }
 
   function activeNow(p) { return p.q >= HN.phase().cycle - 5; }
-  function line(p, medal, pts, why) {
+  function line(p, medal, pts, why, auto) {
     var c = ctrl.calls && ctrl.calls[p.id], here = c && (c.whys || [c.why]).indexOf(why) >= 0;
-    return '<div class="who' + (c && !here ? ' has' : '') + '"><span>' + (medal || '') + '</span><span class="av">' + esc(p.a) + '</span><span class="nm">' + esc(p.n) + got(p.id) +
+    return '<div class="who' + (c && !here && !auto ? ' has' : '') + '"><span>' + (medal || '') + '</span><span class="av">' + esc(p.a) + '</span><span class="nm">' + esc(p.n) + got(p.id) +
       '<small>' + esc(HN.gradeLabel(p.g) || '') + ' · ' + (pts || 0).toLocaleString() + ' pts</small></span><span class="code">' + esc(HN.prizeCode(p.id)) + '</span>' +
-      '<button class="' + (here ? 'called' : 'call') + '" data-call="' + esc(p.id) + '" data-why="' + esc(why) + '">' + (here ? '✓ Called' : c ? '📣 Again' : '📣 Call') + '</button></div>';
+      (auto ? '<span class="auto">' + esc(auto) + '</span>' : '<button class="' + (here ? 'called' : 'call') + '" data-call="' + esc(p.id) + '" data-why="' + esc(why) + '">' + (here ? '✓ Called' : c ? '📣 Again' : '📣 Call') + '</button>') + '</div>';
   }
   /* 🎁×n next to a name once that kid has been called for a prize (any round, the final or the list) */
   function got(id) {
-    var c = ctrl.calls && ctrl.calls[id], n = c ? c.n || 1 : 0;
+    var n = winsNow()[id] || 0;
     return n ? ' <span class="got" title="Already called for ' + n + (n === 1 ? ' prize' : ' prizes') + '">🎁' + (n > 1 ? '×' + n : '') + '</span>' : '';
   }
   /* the final winners as they stand right now: top 3 kids and the top grown-up by all-night points; the tug-of-war side
@@ -89,6 +92,7 @@ tr.hid td { opacity: .45; }
     var rope = board && typeof board.rope === 'number' ? board.rope : 0;
     return { kids: kids.map(pick), grown: grown.map(pick), team: rope > 0 && kids.length ? 'kids' : rope < 0 && grown.length ? 'grown' : '' };
   }
+  function winsNow() { return HN.winCounts(champs && champs.z === HN.game() ? champs : {}, ctrl); }
   function visible() { var out = {}, hid = ctrl.hidden || {}; for (var id in players) if (!hid[id]) out[id] = players[id]; return out; }
 
   function render() {
@@ -100,12 +104,24 @@ tr.hid td { opacity: .45; }
       '<span>Players <b>' + all.length + '</b></span><span>Playing now 🧒 <b>' + kidsNow + '</b> 🧑 <b>' + grownNow + '</b></span>' +
       '<span>Tug-of-war <b>' + (rope > 0 ? '🧒 Kids +' + rope : rope < 0 ? '🧑 Grown-ups +' + (-rope) : 'tied') + '</b></span></div>';
 
+    // 🍫 prize settings
+    var rules = HN.prizeRules(ctrl), opt = function (v, t, cur) { return '<option value="' + v + '"' + (v === cur ? ' selected' : '') + '>' + t + '</option>'; };
+    html += '<div class="card"><h2>🍫 Chocolate lira prizes</h2><div class="row set">' +
+      '<label>Winners <select id="every">' + opt(1, 'every round (~5 min)', rules.every) + opt(2, 'every 2 rounds (~10 min)', rules.every) + opt(3, 'every 3 rounds (~15 min)', rules.every) +
+        opt(4, 'every 4 rounds (~20 min)', rules.every) + opt(6, 'every 6 rounds (~30 min)', rules.every) + opt(0, 'off (no automatic prizes)', rules.every) + '</select></label>' +
+      '<label>Each kid can win <select id="max">' + opt(1, 'once', rules.max) + opt(2, '2 times', rules.max) + opt(3, '3 times', rules.max) + '</select></label></div>' +
+      '<div class="note">At the end of a prize round the top 3 kids win ' + HN.PRIZES.map(function (n, i) { return ['1st', '2nd', '3rd'][i] + ' ' + n; }).join(', ') +
+      ' chocolate lira. Kids who already reached the limit are skipped, so the next kid wins instead. The big screen celebrates and the winners’ phones show their prize and code.</div></div>';
+
     // round champions log
     var rs = champs && champs.z === HN.game() && champs.r ? Object.keys(champs.r).map(Number).sort(function (a, b) { return b - a; }) : [];
-    html += '<div class="card"><h2>🏆 Round champions</h2><div class="note">🎁 = already got a prize tonight. To spread the chocolate around, call the next kid in that round instead.</div>' + (rs.length ? rs.map(function (r) {
-      var x = champs.r[r], t = new Date(x.at);
-      return '<div class="round"><div class="hd"><span>Round ' + esc(x.label || '') + '</span><span>' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span></div>' +
-        x.top.map(function (p, i) { return line(p, ['🥇', '🥈', '🥉'][i], p.rs, (['1st', '2nd', '3rd'][i]) + ' place in Round ' + (x.label || '') + '!'); }).join('') + '</div>';
+    html += '<div class="card"><h2>🏆 Rounds</h2><div class="note" style="margin-top:0">🎁 = prizes won tonight. 🍫 rows were picked automatically; 📣 Call gives someone an extra prize.</div>' + (rs.length ? rs.map(function (r) {
+      var x = champs.r[r], t = new Date(x.at), w = x.win || [];
+      var rows = w.length
+        ? w.map(function (p) { return line(p, ['🥇', '🥈', '🥉'][p.place], p.rs, (['1st', '2nd', '3rd'][p.place]) + ' place in Round ' + (x.label || '') + '!', '🍫 ' + HN.liraText(p.lira)); }).join('') +
+          ((x.maxed || []).length ? '<div class="note">🌟 Top score but already at the limit: ' + x.maxed.map(function (p) { return esc(p.a + ' ' + p.n); }).join(', ') + '</div>' : '')
+        : (x.top || []).map(function (p, i) { return line(p, ['🥇', '🥈', '🥉'][i], p.rs, (['1st', '2nd', '3rd'][i]) + ' place in Round ' + (x.label || '') + '!'); }).join('');
+      return '<div class="round"><div class="hd"><span>Round ' + esc(x.label || '') + (w.length ? ' · 🍫 prize round' : '') + '</span><span>' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span></div>' + rows + '</div>';
     }).join('') : '<div class="empty">No rounds finished yet. Each round is 10 questions (about 5 minutes).</div>') +
       '<div class="note">📣 Call puts a “You’re a winner! Show this at the prize table” card on that player’s phone, with their prize code. It appears after the next answer (within about 30 seconds).</div></div>';
 
@@ -150,6 +166,9 @@ tr.hid td { opacity: .45; }
       b.onclick = function () { var id = b.getAttribute('data-hide'); act(function (d) { d.hidden = d.hidden || {}; if (d.hidden[id]) delete d.hidden[id]; else d.hidden[id] = 1; return d; }); };
     });
     Array.prototype.forEach.call(app.querySelectorAll('[data-f]'), function (b) { b.onclick = function () { filter = b.getAttribute('data-f'); render(); }; });
+    var ev = document.getElementById('every'), mx = document.getElementById('max');
+    if (ev) ev.onchange = function () { var v = +ev.value; act(function (d) { d.every = v; return d; }); };
+    if (mx) mx.onchange = function () { var v = +mx.value; act(function (d) { d.max = v; return d; }); };
     var on = document.getElementById('finon'), off = document.getElementById('finoff'), rs = document.getElementById('reset');
     if (on) on.onclick = function () { var f = finalNow(); f.on = true; f.at = Date.now(); act(function (d) { d.final = f; return d; }); };
     if (off) off.onclick = function () { act(function (d) { if (d.final) d.final.on = false; return d; }); };
@@ -158,7 +177,7 @@ tr.hid td { opacity: .45; }
       rs.disabled = true;
       try {
         await HN.resetAll();
-        await Promise.all([HN.putDoc('ctrl', {}, 'any'), HN.putDoc('champs', {}, 'any'), HN.putDoc('board', { z: HN.game() }, 'any')]);
+        await Promise.all([HN.putDoc('ctrl', { every: ctrl.every, max: ctrl.max }, 'any'), HN.putDoc('champs', {}, 'any'), HN.putDoc('board', { z: HN.game() }, 'any')]);
         ctrl = {}; champs = {}; board = {}; players = {}; await refresh();
       } catch (e) { alert('Could not reset. Check the internet connection and try again.'); }
       rs.disabled = false;
@@ -173,7 +192,7 @@ tr.hid td { opacity: .45; }
     try {
       var r = await Promise.all([HN.allPlayers(), HN.readDoc('ctrl'), HN.readDoc('champs'), HN.readDoc('board')]);
       players = r[0]; ctrl = r[1] || {}; champs = r[2] || {}; board = r[3] || {};
-      if (!busy) render();
+      if (!busy && !(document.activeElement && document.activeElement.tagName === 'SELECT')) render();
     } catch (e) { var n = document.getElementById('net'); if (n) n.textContent = 'Reconnecting…'; }
   }
 
