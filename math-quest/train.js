@@ -233,15 +233,16 @@ function rideNow(){TR.riding=false;window.__hideHero=false;window.__petAboard=fa
 /* the bell button (owner, Oct 2026): pressing it brings the train within a minute and the clock switches to the countdown, no popup.
    About 1 press in 5 nothing happens and the hero thinks "Hmm… must be busy"; the next press always works. Once the train is coming
    (or here), pressing again opens the station card (Call it right now). */
-const BUSY=.2;
-function press(){TR.press=performance.now();if(TR.ph==='away'&&TR.wait>BELL_WAIT){
-  if(!TR.sure&&(TR.forceBusy||Math.random()<BUSY)){TR.forceBusy=0;TR.sure=true;TR.think={at:performance.now()};try{SFX.tap();}catch(e){}return;}
-  TR.sure=false;ring();return;}
+const BUSY=.2,BUSY_MS=120e3; /* "check back later" means later (owner, Oct 2026): for 2 minutes after a busy press the bell does nothing */
+function press(){const now=performance.now();TR.press=now;if(TR.ph==='away'&&TR.wait>BELL_WAIT){
+  if(TR.busyTill&&now<TR.busyTill){TR.think={at:now,l1:'Still busy…',l2:"I'll try again in a little while."};try{SFX.tap();}catch(e){}return;}
+  if(!TR.sure&&(TR.forceBusy||Math.random()<BUSY)){TR.forceBusy=0;TR.sure=true;TR.busyTill=now+BUSY_MS;TR.think={at:now};try{SFX.tap();}catch(e){}return;}
+  TR.sure=false;TR.busyTill=0;ring();return;}
  try{SFX.tap();}catch(e){}open();}
 /* the hero's thought bubble (cloud with little circles) when the bell did nothing */
 function think(ctx,cx,cy,ts,now){const T=TR.think;if(!T||typeof W==='undefined'||!W)return;const age=now-T.at;if(age>4200){TR.think=null;return;}
  const a=age<200?age/200:age>3700?Math.max(0,1-(age-3700)/500):1,hx=(W.hx+.5)*ts-cx,hy=W.hy*ts-cy-ts*.55,fs=Math.max(12,ts*.22);
- ctx.save();ctx.globalAlpha=a;ctx.font=`italic 600 ${fs}px Fredoka, sans-serif`;const l1='Hmm… must be busy.',l2="I'll check back later.",w=Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+fs*1.6,h=fs*3,bx=hx+ts*.95,by=hy-ts*.05-h/2; /* to the right of the hero's head, clear of the train clock */
+ ctx.save();ctx.globalAlpha=a;ctx.font=`italic 600 ${fs}px Fredoka, sans-serif`;const l1=T.l1||'Hmm… must be busy.',l2=T.l2||"I'll check back later.",w=Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+fs*1.6,h=fs*3,bx=hx+ts*.95,by=hy-ts*.05-h/2; /* to the right of the hero's head, clear of the train clock */
  ctx.fillStyle='#fff';ctx.strokeStyle='#2b2250';ctx.lineWidth=Math.max(1.5,ts*.03);
  [[hx+ts*.38,hy+ts*.12,ts*.05],[hx+ts*.6,hy+ts*.02,ts*.08]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.stroke();});
  ctx.beginPath();ctx.ellipse(bx+w/2,by+h/2,w/2+fs*.3,h/2+fs*.2,0,0,7);ctx.fill();ctx.stroke();
