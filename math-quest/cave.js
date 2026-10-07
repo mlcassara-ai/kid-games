@@ -748,7 +748,7 @@ function guess(k,id){const p=S.pack.find(x=>x.k===k);if(!p)return;const m=CD.MIN
 function openGear(){const t=TIER();
  const rowH=(key,arr,label,desc)=>{const lv=S.gear[key],cur=arr[lv],nx=arr[lv+1];
   return `<div class="cv-gear"><div class="cv-gi">${cur.e||label.e}</div><div class="cv-gt"><b>${cur.n||label.n}</b><small>${desc(cur)}</small>${nx?`<div class="cv-next">Next: <b>${nx.e||''} ${nx.n||label.n+' '+(lv+2)}</b> — ${desc(nx)}${nx.why&&(t||nx.core)?`<br><i>${nx.why}</i>`:''}${nx.need&&!S.idd[nx.need]?'<br><b class="warn">Needs a real 💎 diamond — identify one in the Lab first!</b>':''}</div>`:'<div class="cv-next">⭐ Maxed out!</div>'}</div>
-   ${nx?`<button class="cv-buy" data-k="${key}" ${canBuy(nx)?'':'disabled'}>🪙 ${fmt(nx.c)}${nx.r?`<br>🔬 ${nx.r}`:''}</button>`:''}</div>`;};
+   ${nx?`<button class="cv-buy" data-k="${key}" ${canBuy(nx)?'':'disabled'}>🪙 ${fmt(nx.c)}${nx.r?`<br>🔬 ${nx.r}`:''}</button>`:''}</div>${nx&&!canBuy(nx)?`<div class="cv-need">You need ${H.coins()<nx.c?`🪙 ${fmt(nx.c-H.coins())} more coins`:''}${H.coins()<nx.c&&S.rp<(nx.r||0)?' and ':''}${S.rp<(nx.r||0)?`🔬 ${fmt((nx.r||0)-S.rp)} more research points`:''}${H.coins()<nx.c||S.rp<(nx.r||0)?' for the next one.':''}</div>`:''}`;}; /* say what is missing (owner: a kid could not tell why Battery was greyed out) */
  modal(`<h2>🛒 Gear Shop</h2><p class="cv-sub">You have 🪙 ${fmt(H.coins())} and 🔬 ${fmt(S.rp)} research points (earn 🔬 by identifying minerals, meeting critters and solving puzzles).</p>
   ${rowH('drill',CD.DRILLS,{},d=>`digs rock up to hardness ${d.h}`)}
   ${rowH('suit',CD.SUITS,{},s=>`safe up to ${fmt(s.t)} °C`)}
@@ -781,6 +781,9 @@ function dayMins(a,b){if(!(b>a))return 0;a=Math.max(a,b-60*864e5);let m=0;const 
  for(let t=d.getTime();t<b;){const day=new Date(t),on=new Date(day),off=new Date(day);on.setHours(DAY_ON,0,0,0);off.setHours(DAY_OFF,0,0,0);
   const s=Math.max(a,on.getTime()),e=Math.min(b,off.getTime());if(e>s)m+=(e-s)/60000;day.setDate(day.getDate()+1);t=day.getTime();}
  return m;}
+/* the Lab's Power Room (lab.js) shows this live, without opening the cave: panels, watts coming in now, Wh stored, battery level */
+function solarNow(st){try{st=st||{};const g=st.gear||{},lv=g.solar||0,sol=CD.SOLAR[lv]||CD.SOLAR[0],max=lv?(CD.BANK[g.bank||0]||CD.BANK[0]).wh:0;let wh=st.bankWh||0;
+ if(lv&&st.bankT)wh=Math.min(max,wh+sol.w*dayMins(st.bankT,Date.now())/60);return {lv,panels:sol.panels||0,w:sol.w||0,now:sunUp()?(sol.w||0):0,sun:sunUp(),wh,max,batLv:g.bat||0};}catch(e){return null;}}
 function bankTick(){try{if(!S||!S.gear||!S.gear.solar)return;const t=Date.now();if(!S.bankT){S.bankT=t;S.bankWh=S.bankWh||0;return;}
  const add=solarW()*dayMins(S.bankT,t)/60;S.bankT=t;if(add>0){S.bankWh=Math.min(bankMax(),(S.bankWh||0)+add);}}catch(e){}}
 setInterval(()=>{if(root&&S){const was=Math.floor(S.bankWh||0);bankTick();if(Math.floor(S.bankWh||0)!==was)save();}},5000);
@@ -1119,6 +1122,7 @@ const CSS=`.cv.cv-trip .cv-bat,.cv.cv-trip #cvCoins,.cv.cv-trip #cvExit{display:
 .cv button{font-family:inherit;cursor:pointer;border:none;color:inherit;touch-action:manipulation}
 .cv-top{position:absolute;left:0;right:0;top:0;padding:calc(6px + env(safe-area-inset-top)) 10px 0;display:flex;flex-direction:column;gap:5px;pointer-events:none}
 .cv-row1,.cv-row2{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.cv-row1{flex-wrap:nowrap;padding-right:48px}
+.cv-need{font-size:12.5px;color:#c92a2a;margin:-4px 0 8px 52px;font-weight:600}
 .cv-chip,.cv-res span,.cv-g span{background:rgba(20,12,30,.78);color:#fff;border-radius:12px;padding:5px 10px;font-weight:600;font-size:14px;white-space:nowrap}
 .cv-res{display:flex;gap:6px;margin-left:auto;flex-wrap:nowrap;justify-content:flex-end;min-width:0}
 .cv-g{display:flex;gap:5px;flex-wrap:wrap}.cv-g span{font-size:13px;font-weight:500}.cv-g .warn{background:#c92a2a}
@@ -1503,5 +1507,5 @@ let coreDbg=null;
 function summary(st){st=st||{};const L=[...CD.LAYERS].reverse().find(l=>(st.maxRow||0)>=l.r0);
  const r=st.maxRow||0;let km=0;if(L){km=L.km0+(L.km1-L.km0)*(r-L.r0)/Math.max(1,L.r1-L.r0);}
  return {maxRow:r,km,layer:L?L.n:'Surface',minerals:Object.keys(st.idd||{}).length,fossils:Object.keys(st.ex||{}).length,critters:Object.keys(st.crit||{}).length,probeRank:(st.probe||{}).rank||0};}
-window.Cave={mathQ,open,room,leave,summary,coreHint,deliverFossils:st=>deliverTo(st),_dbg:()=>({S,W,H,campB,ROWS,save,regrow,shiftLine,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
+window.Cave={solarNow,mathQ,open,room,leave,summary,coreHint,deliverFossils:st=>deliverTo(st),_dbg:()=>({S,W,H,campB,ROWS,save,regrow,shiftLine,coreFall,coreDue,core:()=>coreDbg,openPower,bankTick,plugIn,dayMins,bankMax,bankHTML,sunUp,CKP_ROW,CKP_SUIT,step,beamHome,openPuzzle,solved,guess,openLab,bench,identify,openGear,buy,openMuseum,exhibit,assemble,openGarden,openJournal,openElevator,openProbe,probeRun,closeModal,rowTemp,rowKm,tile,idx,GATES,uv:v=>{uvOn=v;hud();},fast:()=>{STEP_MS=0;},isUV:()=>uvOn,genWorld,layerOf,rockOf,suit,drill,packMax,batMax,lampR,modalOpen,get TS(){return TS;},get camX(){return camX;},get camY(){return camY;},campTap,sfx})};
 })();
