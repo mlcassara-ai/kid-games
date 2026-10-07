@@ -82,7 +82,7 @@ const petSpd=(R,m)=>R.spd*TUNE.petSpd/(1+.5*(m-1));
    once he reaches the fight (50 at most), then stomps home. A big wait: 40 s before the first call, 100 s between calls. */
 /* 🦅 the other mega: Skyla the Giant Eagle (the eagle's own drawing, eagle.js). She walks, then rises into the air and DIVES down at an
    angle onto the critters ahead (flyers too), smacking them back; between dives she pecks. Only one mega per battle: the team builder picks. */
-const EAGLE={id:'eagle',n:'Skyla',e:'🦅',cost:16,first:40,cd:100,life:28,maxLife:50,hp:420,atk:24,rng:3,spd:1.6,fly:true,dive:3.4,rise:.55,fall:.38,reach:5,tip:'Mega eagle: rises up and dives onto critters'};
+const EAGLE={id:'eagle',n:'Skyla',e:'🦅',cost:16,first:40,cd:100,life:28,maxLife:50,hp:420,atk:24,rng:3,spd:1.6,glide:14,fly:true,dive:3.4,rise:.55,fall:.38,reach:5,tip:'Mega eagle: rises up and dives onto critters'};
 const TROLL={id:'troll',n:'Grumbleroot',e:'🧌',cost:16,first:40,cd:100,life:28,maxLife:50,hp:500,atk:30,rng:3.6,spd:1.3,area:true,armor:2,pound:3.6,wind:.45,reach:12,tip:'Mega troll: huge and slow; his ROAR blasts critters back'};
 function powerOf(p,pet){const pd=petData(p,pet.id),st=petStage(pd),si=Math.max(0,PET_STAGES.indexOf(st));const tm=((typeof PET_TIERS!=='undefined'&&PET_TIERS[pet.tier])||{mult:1}).mult||1;
  let ml=0;try{ml=petLv(pd)||0;}catch(e){}return Math.min(2.6,tm*(1+.2*si+.04*ml));}
@@ -184,6 +184,10 @@ function coreArt(w){return `<svg viewBox="0 0 120 124" width="${w}" style="displ
 const MEGA_RUN=1; /* a mega's charge speed (× walking) until he first meets a critter: none since Oct 2026 (owner: megas on both sides are really slow walkers) */
 const MEGA={troll:TROLL,eagle:EAGLE,core:CORE},megaOf=()=>G&&G.megaId===null?null:(MEGA[G&&G.megaId]||TROLL); /* null: no mega met yet */
 function eagleStep(u,foes,dt){const E=EAGLE;
+ /* she flies in fast over everyone's heads until she reaches the front (owner, Oct 2026: "Skyla swoops in" and nothing happened, because
+    she was walking slowly far behind the camera) */
+ if(u.ph==='glide'){const P2=G.pets.filter(v=>!v.gone&&!v.mega),front=P2.length?Math.min(...P2.map(v=>v.x)):DEN_X+20;
+  if(foes.some(f=>!f.gone&&u.x-f.x>=-1&&u.x-f.x<=16)||u.x<=front+1)u.ph='walk';else{u.x-=E.glide*dt;u.mv=true;return;}}
  if(u.ph==='rise'){if(G.t>=u.phT){u.ph='dive';u.phT=G.t+E.fall;u.x0=u.x;fx('swoop');}return;}
  if(u.ph==='dive'){const k=Math.min(1,1-(u.phT-G.t)/E.fall);u.x=u.x0+(u.tx-u.x0)*k;
   if(G.t>=u.phT){u.x=u.tx;u.ph='walk';u.diveAt=G.t+E.dive;G.dives=(G.dives||0)+1;foes.forEach(f=>{if(f.gone||Math.abs(f.x-u.x)>E.reach)return;f.hp-=u.atk*(f.boss?.8:2);knock(f,-(f.boss?2:7));f.stun=G.t+.8;f.pawT=G.t;});G.diveX=u.x;fx('dive');}return;}
@@ -199,7 +203,7 @@ function callTroll(){const M=megaOf();if(!M||!G||G.over||G.t<G.trollAt||G.treats
  /* he comes out of the Pet House like everyone else (owner, Oct 2026: no leap across the board) and charges at 3× speed until he meets a
     critter; his time out is counted from when he would reach the front */
  const m=1+.35*G.c;const lead=G.pets.filter(u=>!u.gone&&!u.mega),front=lead.length?Math.min(...lead.map(u=>u.x)):HOUSE_X-2,to=HOUSE_X-2,travel=Math.max(0,(to-front)/(M.spd*.8*MEGA_RUN));
- G.pets.push({side:'p',mega:true,leapT:G.t,stun:G.t+.95,pet:{id:M.id,e:M.e,name:M.n},R:M,x:to,hp:M.hp*m,max:M.hp*m,atk:M.atk*m,rng:M.rng,spd:M.spd,kb:0,leave:G.t+M.maxLife+travel,stompAt:0,poundAt:0,ph:'walk',diveAt:0,id:Math.random()});fx(M.id==='eagle'?'eagle':M.id==='core'?'core':'troll');return true;}
+ G.pets.push({side:'p',mega:true,leapT:G.t,stun:G.t+.95,pet:{id:M.id,e:M.e,name:M.n},R:M,x:to,hp:M.hp*m,max:M.hp*m,atk:M.atk*m,rng:M.rng,spd:M.spd,kb:0,leave:G.t+M.maxLife+travel,stompAt:0,poundAt:0,ph:M.id==='eagle'?'glide':'walk',diveAt:0,id:Math.random()});if(M.id!=='eagle')G.camAt={x:HOUSE_X,until:G.t+2}; /* a slow walker: glance at the Pet House so kids see him come out */fx(M.id==='eagle'?'eagle':M.id==='core'?'core':'troll');return true;}
 /* the giant pounce paw */
 const PAW='<svg class="paw" viewBox="0 0 200 200" aria-hidden="true"><g fill="#ffb627" stroke="#fff" stroke-width="7"><ellipse cx="100" cy="128" rx="54" ry="46"/><ellipse cx="42" cy="78" rx="20" ry="27" transform="rotate(-24 42 78)"/>'+
  '<ellipse cx="80" cy="48" rx="21" ry="28" transform="rotate(-8 80 48)"/><ellipse cx="122" cy="48" rx="21" ry="28" transform="rotate(8 122 48)"/><ellipse cx="160" cy="78" rx="20" ry="27" transform="rotate(24 160 78)"/></g>'+
@@ -649,7 +653,7 @@ function draw(){if(!G)return;const f=document.getElementById('bpField');if(!f)re
   if(u.kbUntil&&now>u.kbUntil){u.kbUntil=0;u.el.classList.remove('kb');if(!airborne(u))puff(u.x,'dust');}
   if(u.lastHp!==undefined&&u.hp<u.lastHp){u.hurtAcc=(u.hurtAcc||0)+u.lastHp-u.hp;if(u.hurtAcc>u.max*.07){u.hurtAcc=0;u.hurtUntil=now+120;}}u.lastHp=u.hp;u.el.classList.toggle('hurt',(u.hurtUntil||0)>now);
   if(u.mega&&u.leapT!==undefined&&!u.leapSeen){u.leapSeen=1;u.el.style.left=HOUSE_X+'%';void u.el.offsetWidth;u.el.classList.add('leap');setTimeout(()=>{try{u.el.classList.remove('leap');puffAny(u.x,'ring');puffAny(u.x-1,'dust');puffAny(u.x+1,'dust');shake();tone(55,.35,'sine',.14);}catch(e){}},900);}
-  if(u.mega&&u.R.id==='eagle'){u.el.classList.toggle('air',u.ph==='rise');u.el.classList.toggle('diving',u.ph==='dive');}
+  if(u.mega&&u.R.id==='eagle'){u.el.classList.toggle('air',u.ph==='rise'||u.ph==='glide');u.el.classList.toggle('diving',u.ph==='dive');}
   if(u.mega&&u.windT!==u.windSeen){u.windSeen=u.windT;u.el.classList.remove('roar');void u.el.offsetWidth;u.el.classList.add('roar');}
   u.el.style.left=u.x+'%';u.el.classList.toggle('walk',!!u.mv&&!u.fight);if(u.mv&&!airborne(u)&&window.BPScene&&Math.random()<.025)BPScene.scuff(u.x);u.el.classList.toggle('fight',!!u.fight);if(u.flyer)u.el.classList.toggle('fly',!(u.fight&&!u.tgFly));if(u.side==='c'){u.el.classList.toggle('fly',!!u.fly);u.el.classList.toggle('downed',!!(u.downUntil&&u.downUntil>G.t));}u.el.classList.toggle('stun',!!(u.stun>G.t&&!u.mega&&!(u.leapT!==undefined&&G.t-u.leapT<1)));
   u.el.classList.toggle('back',!!u.back);u.el.classList.toggle('eat',!!u.eating);if(u.alertT&&u.alertT!==u.alertSeen){u.alertSeen=u.alertT;puffAny(u.x,'alert',Math.round((u.el.offsetHeight||60)+30));if(Math.random()<.5)tone(880+Math.random()*200,.06,'triangle',.02);}

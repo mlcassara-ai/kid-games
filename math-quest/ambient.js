@@ -104,5 +104,5 @@ function seaLife(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||!W
    ctx.restore();
    ctx.save();ctx.translate(sx,sy);ctx.scale(c.dir,1);ctx.strokeStyle=`rgba(255,255,255,${.9*up})`;ctx.lineWidth=Math.max(1.2,2*s);ctx.beginPath();ctx.moveTo(-14*s,4.5*s);ctx.lineTo(16*s,4.5*s);ctx.stroke();ctx.restore();}});});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);window.MQ_MAPDRAW.push(seaLife);window.MQ_MAPDRAW.push(puffs);window.MQ_MAPDRAW.push(fountainSay);
-window.MQ_AMBIENT={SHARK,jump:()=>JUMP&&JUMP.t,jumpNow:()=>{JUMPAT=0;return typeof W!=='undefined'&&startJump(W,performance.now(),W.hx,W.hy);},sea:()=>SEA.length,KIND,count:()=>P.length,puffs:()=>PUFF.length,say:()=>SAY&&SAY.t,sayNow:()=>{SAYAT=1;},SAYS};
+window.MQ_AMBIENT={SHARK,jump:()=>JUMP&&JUMP.t,jumpNow:()=>{JUMPAT=0;return typeof W!=='undefined'&&startJump(W,performance.now(),W.hx,W.hy);},sea:()=>SEA.length,KIND,count:()=>P.length,puffs:()=>PUFF.length,say:()=>SAY&&SAY.t,sayNow:()=>{const now=performance.now();SAYI=(SAYI+1+Math.floor(Math.random()*(SAYS.length-1)))%SAYS.length;SAY={t:SAYS[SAYI],at:now};SAYAT=nextSay(now);},SAYS}; /* sayNow starts a thought straight away (it used to wait for the next map frame, which made the smoke test flaky) */
 })();

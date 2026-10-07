@@ -354,7 +354,7 @@ const tests=[
    T.ok(!ok||W.mt!==mt0,'the hero did not take the test step');await T.wait(200);T.ok(!ok||MQ_AMBIENT.puffs()>0,'no little puffs behind the hero after a step');}
   T.ok(W.T[1][10].water&&W.T[10][1].water&&W.T[WROWS-2][10].water&&W.T[10][WCOLS-2].water,'the sea round the map is not two tiles wide');
   {const hx=W.hx,hy=W.hy;W.hx=3;W.hy=17;for(let k=0;k<32&&!MQ_AMBIENT.sea();k++)await T.wait(250);T.ok(MQ_AMBIENT.sea()>0,'no shark fins in the sea near the hero');T.ok(MQ_AMBIENT.jumpNow()&&MQ_AMBIENT.SHARK.includes(MQ_AMBIENT.jump())&&MQ_AMBIENT.SHARK.length>=5,'no shark leapt out of the sea next to the hero');W.hx=hx;W.hy=hy;}
-  {for(let i=0;i<10&&!MQ_AMBIENT.SAYS.includes(MQ_AMBIENT.say());i++){MQ_AMBIENT.sayNow();await T.wait(150);}T.ok(MQ_AMBIENT.SAYS.includes(MQ_AMBIENT.say()),'the Wishing Fountain did not think out loud');}
+  {for(let i=0;i<20&&!MQ_AMBIENT.SAYS.includes(MQ_AMBIENT.say());i++){MQ_AMBIENT.sayNow();await T.wait(150);}T.ok(MQ_AMBIENT.SAYS.includes(MQ_AMBIENT.say()),'the Wishing Fountain did not think out loud');}
   T.ok(window.MQ_AMBIENT&&MQ_AMBIENT.count()>0&&MQ_AMBIENT.count()<=18,'no ambient life near the hero, or too much ('+(window.MQ_AMBIENT?MQ_AMBIENT.count():'none')+')');
  }],
 ['map scenery: every drawn forest tree, bush and plant loads, at least 3 of each kind, on the same tiles as before',async function(){
@@ -687,6 +687,9 @@ d.S.bat=5;d.save(true);d.campTap(6.5,.2);await T.wait(300);
   T.ok(!!G.lureD,'the Goblin never threw his treats');G.treats=99;G.trollAt=0;T.ok(D.callTroll(),'Grumbleroot could not be called after the throw');const tr=G.pets.find(u=>u.mega&&!u.gone);D.step(.1);
   T.ok(tr&&tr.lr,'Grumbleroot, sent out after the throw, did not go for a treat');const before=G.denHP;k=0;while(!G.boss&&k<200){D.step(.1);k++;}
   T.ok(G.boss&&G.stole!=null&&G.denHP>before+G.denMax*.2,'the Goblin did not grow his den back when he came out');D.sim(false);
+  {const G2=D.newBattle(p,S,1,team,0);G2.megaId='eagle';G2.treats=99;G2.trollAt=0;const lead={side:'p',pet:team[0],R:D.roleOf(team[0]),x:40,hp:99,max:99,atk:1,rng:2,spd:3,kb:0,stun:0,id:1};G2.pets.push(lead);
+   T.ok(D.callTroll(),'Skyla could not be called');const eg=G2.pets.find(u=>u.mega);const x0=eg.x;D.step(1);T.ok(eg.ph==='glide'&&x0-eg.x>=8,'Skyla does not fly in fast (owner: "Skyla swoops in" and nothing happened)');
+   let k=0;while(eg.ph==='glide'&&k<100){D.step(.1);k++;}T.ok(eg.ph!=='glide'&&eg.x<=lead.x+2,'Skyla did not reach the front of our pets');}
   BattlePets.openStage(S.id);await T.wait(40);const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('');T.ok(/bp2-ent\.fly\{bottom:calc\(23% \+ 14px\)\}/.test(css),'flyers still fly as high as before');BattlePets._back();
  }],
  ['what\'s new: a card once after an update with notes, never for a brand-new hero, and every note in the Parent Corner',async function(){
