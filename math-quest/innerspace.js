@@ -96,12 +96,12 @@ function meet(){if(busy)return;const p=P();if(!p)return;const s=S(p);busy=true;W
  if(!t){busy=false;return;}const sb=sub(t.id);
  const lines=(first?[`Beep beep! 🚗 Hi, I'm <b>${NAME}</b>! I drive the <b>Atom-Mobile</b> on the <b>INNER SPACE</b> ride.`,
    `Dr. Quartz told me you earned a <b>🎟️ Shrink Ticket</b>! My ride shrinks you smaller than an ant… smaller than a germ… all the way down to the size of an <b>ATOM</b>! ⚛️`,
-   `Today we're riding into <b>${sb.e} ${esc(sb.n)}</b>. Hop in, ${esc(p.name)}!`]
-  :resumeAt(t)?[`${hiAgain(p,s)} 🎢 Last time we rode into <b>${sb.e} ${esc(sb.n)}</b> and got as far as <b>${STAGE[SCENES[t.at]]}</b>, but we didn't finish.`,
-   `Do you want to <b>pick up where we left off</b>${alt(p,t)?`, or try a <b>brand-new ride</b> to <b>${sub(alt(p,t)).e} ${esc(sub(alt(p,t)).n)}</b>`:''}? Your choice!`]
-  :again&&alt(p,t)?[`${hiAgain(p,s)} 🎢 Your ticket is for <b>${sb.e} ${esc(sb.n)}</b>, but we haven't ridden it yet.`,
+   `Today you're riding into <b>${sb.e} ${esc(sb.n)}</b>. Hop in, ${esc(p.name)}!`]
+  :resumeAt(t)?[`${hiAgain(p,s)} 🎢 Last time you rode into <b>${sb.e} ${esc(sb.n)}</b> and got as far as <b>${STAGE[SCENES[t.at]]}</b>, but you didn't finish.`,
+   `Do you want to <b>pick up where you left off</b>${alt(p,t)?`, or try a <b>brand-new ride</b> to <b>${sub(alt(p,t)).e} ${esc(sub(alt(p,t)).n)}</b>`:''}? Your choice!`]
+  :again&&alt(p,t)?[`${hiAgain(p,s)} 🎢 Your ticket is for <b>${sb.e} ${esc(sb.n)}</b>, but you haven't ridden it yet.`,
    `Want to ride into <b>${sb.e} ${esc(sb.n)}</b> today, or try something new: <b>${sub(alt(p,t)).e} ${esc(sub(alt(p,t)).n)}</b>? Your choice!`]
-  :[`${hiAgain(p,s)} 🎟️ Today we're shrinking into <b>${sb.e} ${esc(sb.n)}</b>!${s.tix.length>1?` (You have ${s.tix.length} tickets.)`:''} Hop in!`]);
+  :[`${hiAgain(p,s)} 🎟️ Today you're shrinking into <b>${sb.e} ${esc(sb.n)}</b>!${s.tix.length>1?` (You have ${s.tix.length} tickets.)`:''} Hop in!`]);
  const two=!DEMO&&!first&&(resumeAt(t)||again)&&alt(p,t);if(!DEMO){t.seen=(t.seen||0)+1;if(first)s.hi=1;save();}
  if(DEMO)lines.unshift('This is a preview ride — nothing will be changed.');
  let i=0;
@@ -215,8 +215,8 @@ function board(){const s=R.s,t=tier();const rk=R.t.rock&&window.CAVE_DATA&&CAVE_
  ${[0,1,2].map(i=>`<path d="M${572+i*26} 458 l14 12 l-14 12" stroke="#ffd43b" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".85"><animate attributeName="opacity" values=".3;1;.3" dur="3s" begin="${i*.5}s" repeatCount="indefinite"/></path>`).join('')}
  <g transform="translate(330 452) scale(.9)">${OZ_BODY}<path d="M-24 -18 L-22 30 L22 30 L24 -18Z" fill="#ae3ec9"/><path d="M-10 30 V52 M10 30 V52" stroke="#343a40" stroke-width="8" stroke-linecap="round"/><path d="M22 -12 Q40 -30 46 -46" stroke="#ae3ec9" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="46" cy="-48" r="6" fill="#f1c8a0"/></g>
  <g id="isCarGo" class="is-cargo"><g transform="translate(470 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/><path d="M-78 -2 h-28 M-80 12 h-40 M-76 26 h-24" stroke="#b197fc" stroke-width="4" stroke-linecap="round" opacity=".6"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-48" cy="2" r="7" fill="#ffd43b"/><circle cx="48" cy="2" r="7" fill="#ffd43b"/></g></g></svg><div class="is-black" id="isBlack"></div>
- ${nar(`Welcome aboard, <b>${NM()}</b>! Keep your hands inside the Atom-Mobile. ${rk?`Dr. Quartz says your mystery rock was <b>${esc(rk.n.toLowerCase())}</b> — let's see what it's made of! `:''}${esc(s.intro[t])}`,'🎢 Start the ride!',{cls:'gold'})}`);
- onNext(()=>{const b=root.querySelector('#isNext');if(b){b.disabled=true;b.textContent='Here we go… 🎢';}whoosh();
+ ${nar(`Welcome aboard, <b>${NM()}</b>! Keep your hands inside the Atom-Mobile. ${rk?`Dr. Quartz says your mystery rock was <b>${esc(rk.n.toLowerCase())}</b> — time to see what it's made of! `:''}${esc(s.intro[t])}`,'🎢 Start the ride!',{cls:'gold'})}`);
+ onNext(()=>{const b=root.querySelector('#isNext');if(b){b.disabled=true;b.textContent='Here you go… 🎢';}whoosh();
   const car=root.querySelector('#isCarGo');if(car)car.classList.add('go');
   setTimeout(()=>{const k=root&&root.querySelector('#isBlack');if(k)k.classList.add('on');},3500);setTimeout(()=>{if(root)next();},4500);});}
 
@@ -224,9 +224,9 @@ function board(){const s=R.s,t=tier();const rk=R.t.rock&&window.CAVE_DATA&&CAVE_
 const SIZES=[{e:'🧒',n:'Your normal size',sz:'about 1.5 m'},{e:'🐜',n:'As small as an ant',sz:'3 mm'},{e:'〰️',n:'Smaller than a hair is wide',sz:'0.08 mm'},{e:'CELL',n:'As small as one cell',sz:'0.01 mm'},{e:'🦠',n:'As small as a germ',sz:'0.002 mm'},{e:'VIRUS',n:'As small as a virus',sz:'0.0001 mm'},
  {e:'🫧',n:'Among the molecules',sz:'0.000 01 mm'},{e:'MOL',n:'As small as one molecule',sz:'0.000 000 3 mm'},{e:'⚛️',n:'As small as one atom',sz:'0.000 000 1 mm'},{e:'✨',n:'Inside an atom!',sz:'0.000 000 000 001 mm'}];
 const STOPS=[null,
- ['We\'re as small as an <b>ANT</b>! 🐜 Hi there, ant! Now you\'re just our size!','Ant-sized: about <b>3 millimeters</b>. A single grain of sand would look like a boulder!','About <b>3 mm</b>: we\'ve shrunk roughly 500 times. Sand grains are boulders now.'],
- ['Whoa! That brown log is ONE <b>HAIR</b>! From down here it looks as thick as a tree trunk. 🌳','A human hair is only about <b>0.08 mm</b> wide. We\'re smaller than that now, so it looks like a giant log!','A hair is about <b>80 micrometers</b> wide. See the overlapping scales on it? They\'re called the cuticle.'],
- ['Now we\'re as small as one <b>CELL</b>! Your whole body is built from tiny cells like this one.','One cell is about <b>0.01 mm</b>. You are made of about <b>30 trillion</b> of them!','A typical cell is about <b>10 micrometers</b>. The dark blob in the middle is the <b>nucleus</b>, the cell\'s control center.'],
+ ['You\'re as small as an <b>ANT</b>! 🐜 Hi there, ant! Now you\'re the same size!','Ant-sized: about <b>3 millimeters</b>. A single grain of sand would look like a boulder!','About <b>3 mm</b>: you\'ve shrunk roughly 500 times. Sand grains are boulders now.'],
+ ['Whoa! That brown log is ONE <b>HAIR</b>! From down here it looks as thick as a tree trunk. 🌳','A human hair is only about <b>0.08 mm</b> wide. You\'re smaller than that now, so it looks like a giant log!','A hair is about <b>80 micrometers</b> wide. See the overlapping scales on it? They\'re called the cuticle.'],
+ ['Now you\'re as small as one <b>CELL</b>! Your whole body is built from tiny cells like this one.','One cell is about <b>0.01 mm</b>. You are made of about <b>30 trillion</b> of them!','A typical cell is about <b>10 micrometers</b>. The dark blob in the middle is the <b>nucleus</b>, the cell\'s control center.'],
  ['Wiggly <b>GERMS</b>! These are bacteria. 🦠 Most are harmless, and some even help your tummy digest food.','Bacteria are about <b>0.002 mm</b> long, about 5 times smaller than a cell. See their little tails? They swim with them!','Bacteria are about <b>2 micrometers</b> long. Those whip-like tails are called <b>flagella</b>.'],
  ['Even smaller: a <b>VIRUS</b>! It\'s so tiny that a normal microscope can\'t even see it.','Viruses are about <b>0.0001 mm</b> across. Scientists need an <b>electron microscope</b> to see one!','About <b>100 nanometers</b>: too small for light microscopes. Light waves are bigger than the virus!']];
 const MOL_ICO=`<svg viewBox="-12 -12 24 24" class="is-vico"><path d="M0 -1 L-7 5 M0 -1 L7 5" stroke="#adb5bd" stroke-width="2"/><circle cx="0" cy="-2" r="6" fill="#fa5252" stroke="#c92a2a" stroke-width="1"/><circle cx="-7.5" cy="5.5" r="3.8" fill="#f1f3f5" stroke="#868e96" stroke-width="1"/><circle cx="7.5" cy="5.5" r="3.8" fill="#f1f3f5" stroke="#868e96" stroke-width="1"/></svg>`;
@@ -260,12 +260,12 @@ function drawStopLive(c,k,x,y,S,sec,a){if(k<1||a<=0.01)return;c.save();c.globalA
 /* after a kid's first ride the shrink-down is an ⏩ express: it zooms past the ant, hair, cell, germ and virus without stopping (the size
    meter still ticks down), then dives into the molecules. 🐢 Slow tour brings back every stop and chat. The first ride is always the full tour. */
 function shrink(){const t=tier();R.sz=0;let k=0,go=performance.now()+600;let ex=false;try{const s0=S(PL||P());ex=!DEMO&&!R.slow&&((s0.rides||0)>=1||Object.keys(s0.album||{}).length>0);}catch(e){}const TRAVEL=ex?1.4:4.6;
- const say=()=>k===0?'':(k===1?['We\'ve already started shrinking… and now we\'re as small as an <b>ANT</b>! 🐜 Hi there, ant! To us it looks as big as a <b>house</b>! Watch the size meter at the top to see how small we get.','The shrink ray is already on! We\'re ant-sized: about <b>3 millimeters</b>. A grain of sand would look like a boulder! The <b>size meter</b> at the top shows how small we are.','Shrinking is underway: about <b>3 mm</b> now, roughly 500 times smaller. Sand grains are boulders. The <b>size meter</b> tracks us; each stop is many times smaller than the last.'][t]:STOPS[k][t]);
- const btnTxt=()=>k<5?'Let\'s keep going ➜':'Dive into the molecules ➜';
- frame(nar(ex?'⏩ <b>Express shrink!</b> You\'ve done this before, so we\'ll zoom straight past the ant, the hair, a cell, a germ and a virus. Watch the size meter!':say(),'Shrinking… ⏳',{dis:1}));{const nb=root.querySelector('.is-nar');if(nb&&!ex){nb.style.opacity='0';nb.style.transition='opacity .8s';}}
+ const say=()=>k===0?'':(k===1?['You\'ve already started shrinking… and now you\'re as small as an <b>ANT</b>! 🐜 Hi there, ant! To you it looks as big as a <b>house</b>! Watch the size meter at the top to see how small you get.','The shrink ray is already on! You\'re ant-sized: about <b>3 millimeters</b>. A grain of sand would look like a boulder! The <b>size meter</b> at the top shows how small you are.','Shrinking is underway: about <b>3 mm</b> now, roughly 500 times smaller. Sand grains are boulders. The <b>size meter</b> tracks you; each stop is many times smaller than the last.'][t]:STOPS[k][t]);
+ const btnTxt=()=>k<5?'Keep going ➜':'Dive into the molecules ➜';
+ frame(nar(ex?'⏩ <b>Express shrink!</b> You\'ve done this before, so you\'ll zoom straight past the ant, the hair, a cell, a germ and a virus. Watch the size meter!':say(),'Shrinking… ⏳',{dis:1}));{const nb=root.querySelector('.is-nar');if(nb&&!ex){nb.style.opacity='0';nb.style.transition='opacity .8s';}}
  if(ex){const nb=root.querySelector('.is-nar');if(nb){const sb=document.createElement('button');sb.className='is-btn';sb.id='isSlow';sb.textContent='🐢 Slow tour';sb.onclick=()=>{R.slow=true;scene();};nb.appendChild(sb);}}
  const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');
- const hook=()=>onNext(()=>{if(go)return;if(k>=5){next();return;}go=performance.now();const b=root.querySelector('#isNext');if(b){b.disabled=true;b.textContent='Shrinking… ⏳';}snd(520-k*40,.5,'sine',.04);});
+ const hook=()=>onNext(()=>{if(go)return;if(k>=5){if(R.exAuto)return;next();return;}go=performance.now();const b=root.querySelector('#isNext');if(b){b.disabled=true;b.textContent='Shrinking… ⏳';}snd(520-k*40,.5,'sine',.04);});
  hook();
  loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;
   const gp=go?Math.max(0,Math.min(1,(performance.now()-go)/1000/TRAVEL)):0;const depth=(k+gp)/5;
@@ -277,7 +277,9 @@ function shrink(){const t=tier();R.sz=0;let k=0,go=performance.now()+600;let ex=
    // first the thing we're passing grows past us and fades away… then (after a moment of just rings) the next one appears as a dot
    if(p<.42)drawStop(c,k,cx,cy,S*(1+a*2),sec,1-a);if(p>.55)drawStop(c,k+1,cx,cy,S*(.02+b*.98),sec,Math.min(1,b*1.6));
    if(p>=1&&ex&&k<4){k++;setSize(k);snd(660+k*60,.12,'triangle',.04);go=performance.now();return;} /* express: no stop, keep zooming */
-   if(p>=1&&ex){go=0;k=5;setSize(k);snd(980,.18,'triangle',.05);const n=root.querySelector('.is-nar .txt');if(n)n.innerHTML=`<small>Ride Operator ${NAME}</small>We\'re smaller than a virus now. Next stop: the molecules!`;const b=root.querySelector('#isNext');if(b){b.disabled=false;b.textContent=btnTxt();}const sl=root.querySelector('#isSlow');if(sl)sl.remove();return;}
+   if(p>=1&&ex){go=0;k=5;setSize(k);snd(980,.18,'triangle',.05);const n=root.querySelector('.is-nar .txt');if(n)n.innerHTML=`<small>Ride Operator ${NAME}</small>Smaller than a virus… and down into the molecules you go!`;const sl=root.querySelector('#isSlow');if(sl)sl.remove();
+    /* express drives itself all the way and stops AT the molecules (owner, Oct 2026), not at the step before */
+    const r0=R;R.exAuto=setTimeout(()=>{try{if(R!==r0||!root)return;R.exAuto=null;next();}catch(e){}},700);return;}
    if(p>=1){go=0;k++;setSize(k);snd(660+k*60,.18,'triangle',.05);const n=root.querySelector('.is-nar .txt');if(n)n.innerHTML=`<small>Ride Operator ${NAME}</small>${say()}`;const nb=root.querySelector('.is-nar');if(nb)nb.style.opacity='1';const b=root.querySelector('#isNext');if(b){b.disabled=false;b.textContent=btnTxt();}}}
   else drawStop(c,k,cx,cy,S,sec,1);
   car(c,cx+Math.sin(sec*.7)*8,cy+S*.34+Math.cos(sec*.9)*5,Math.min(w,h)*.14,sec);});}
@@ -319,7 +321,7 @@ function atom(){const s=R.s,t=tier();const e=s.star,E=EL[e];const an=/^[AEIOU]/.
  <div class="is-cnt"><span class="is-ball" style="background:#1c7ed6;color:#fff">n</span>${E.nu} neutron${E.nu===1?'':'s'}</div>
  <div class="is-cnt"><span class="is-ball" style="background:#ffe066">−</span>${E.p} electron${E.p>1?'s':''}</div>
  ${t>0?`<div style="margin-top:6px;color:#495057">Atomic number: <b>${E.p}</b>${t>1?` · shells ${E.sh.join(', ')}`:''}</div>`:''}</div>
- ${nar(`${[`We're INSIDE ${an} ${E.n.toLowerCase()} atom! The middle is packed with <b>protons</b> and <b>neutrons</b>. Tiny <b>electrons</b> zoom around the outside.`,`The center is the <b>nucleus</b>: protons (+) and neutrons. Electrons (−) whizz around in shells. The number of protons decides what element it is — ${E.p} means ${E.n.toLowerCase()}!`,`Nucleus: ${E.p} p⁺ and ${E.nu} n⁰. Electron shells: ${E.sh.join(', ')}. The atom is ~100,000× wider than its nucleus — it's mostly empty space.`][t]} ${esc(E.fact[t])}`,'Continue ➜')}`);onNext();
+ ${nar(`${[`You're INSIDE ${an} ${E.n.toLowerCase()} atom! The middle is packed with <b>protons</b> and <b>neutrons</b>. Tiny <b>electrons</b> zoom around the outside.`,`The center is the <b>nucleus</b>: protons (+) and neutrons. Electrons (−) whizz around in shells. The number of protons decides what element it is — ${E.p} means ${E.n.toLowerCase()}!`,`Nucleus: ${E.p} p⁺ and ${E.nu} n⁰. Electron shells: ${E.sh.join(', ')}. The atom is ~100,000× wider than its nucleus — it's mostly empty space.`][t]} ${esc(E.fact[t])}`,'Continue ➜')}`);onNext();
  const cv=canvas();stage().prepend(cv);const c=cv.getContext('2d');const nucl=[];const big=E.p+E.nu>40;
  if(!big){const N=E.p+E.nu;for(let i=0;i<N;i++){const a=i*2.4,r=Math.sqrt(i)*1;nucl.push([Math.cos(a)*r,Math.sin(a)*r,i<E.p]);}}
  loop(sec=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;c.fillStyle='#140a2e';c.fillRect(0,0,w,h);const top=110,bot=h-(w<600?230:170),cy=(top+bot)/2;let cx=w*.5;const pan=root.querySelector('#isAtomPanel');const pw=pan&&w>=600?pan.offsetWidth:0;const R0=Math.max(40,Math.min(w<600?w*.38:(w-pw-60)/2-20,(bot-top)/2-14));const n=E.sh.length;if(pw){const gap=40,x0=Math.max(14,(w-(pw+gap+R0*2))/2);cx=x0+pw+gap+R0;const L2=Math.round(x0)+'px',T2=Math.round(cy-pan.offsetHeight/2)+'px';if(pan.style.left!==L2)pan.style.left=L2;if(pan.style.top!==T2)pan.style.top=T2;}
@@ -338,7 +340,7 @@ function build(){const s=R.s,t=tier();const need=Object.assign({},s.atoms);const
    <div class="is-area ${done?'done':''}" id="isArea"><svg viewBox="${vb}" width="100%" height="100%" id="isSvg"></svg></div>
    <div class="is-recipe"><h4>RECIPE</h4><div class="f">${s.f}</div><ul>${Object.entries(need).map(([e,n])=>`<li>${(have[e]||0)>=n?'✅':'◻️'} ${n} ${EL[e].n.toLowerCase()} <b>(${have[e]||0}/${n})</b></li>`).join('')}</ul></div></div>
    <div class="is-buzz" style="color:${ok?'#2b8a3e':'#c92a2a'}">${msg||'&nbsp;'}</div></div>
-   ${nar(done?(s.id==='salt'&&t>0?'Watch the electron jump from sodium to chlorine! Now they have opposite charges, so they stick together.':s.metal?'Clink! The gold atoms packed together, sharing a sea of free electrons (the blue dots). That\'s a metal!':s.id==='diamond'?'SNAP! One carbon holding on to four others — repeat that forever and you get a diamond!':'SNAP! The atoms bonded together. You built it!'):`Tap atoms in the tray to add them. ${total>6?`You need ${total} atoms — keep going!`:''}`,done?'🔁 Replicate!':null,{cls:done?'gold':'green'})}`);
+   ${nar(done?(s.id==='salt'&&t>0?'Watch the electron jump from sodium to chlorine! Now they have opposite charges, so they stick together.':s.metal?'Clink! The gold atoms packed together, sharing a sea of free electrons (the blue dots). That\'s a metal!':s.id==='diamond'?'SNAP! One carbon holding on to four others — repeat that forever and you get a diamond!':'SNAP! The atoms bonded together. You built it!')+' Now reboot the computer, and the Molecule Builder can copy it!':`Tap atoms in the tray to add them. ${total>6?`You need ${total} atoms — keep going!`:''}`,done?'🔄 Reboot the computer!':null,{cls:done?'gold':'green'})}`);
   const svg=root.querySelector('#isSvg');
   if(done){const lay=L;let h='';lay.b.forEach(([i,j,o])=>{const a=lay.a[i],b=lay.a[j];h+=`<line x1="${a[1]}" y1="${a[2]}" x2="${b[1]}" y2="${b[2]}" stroke="#adb5bd" stroke-width="${o===2?.16:.1}" ${o===0?'stroke-dasharray=".12 .12"':''}><animate attributeName="stroke-opacity" from="0" to="1" dur=".8s"/></line>`;});
    const sc=1;lay.a.forEach(([e,x,y],k)=>{const r=EL[e].r*.42*sc;h+=`<g><circle cx="${x}" cy="${y}" r="${r}" fill="${EL[e].col}" stroke="rgba(0,0,0,.25)" stroke-width=".04"><animate attributeName="r" values="0;${r*1.25};${r}" dur=".5s" begin="${k*.03}s" fill="freeze"/></circle><text x="${x}" y="${y+r*.35}" font-size="${r*.95}" text-anchor="middle" font-weight="800" fill="${EL[e].txt}">${e}</text></g>`;});
@@ -355,11 +357,12 @@ function build(){const s=R.s,t=tier();const need=Object.assign({},s.atoms);const
 
 /* 6a. uh-oh: the shrink ray is stuck and the Molecule Builder is broken */
 function alarm(){const s=R.s,t=tier();
- const L=[`Uh-oh… 😬 Do you feel that? We're <b>STILL shrinking</b>! The shrink ray is stuck ON!`,
-  `If we don't stop it, we'll keep shrinking forever and disappear into <b>INNER SPACE</b>! 😱 To reverse the shrink ray, the Atom-Mobile needs <b>${esc(s.n.toLowerCase())}</b> (${s.f}). The Atom-Mobile\'s <b>Molecule Builder</b> usually makes it for us…`,
-  `…but look at the dashboard: <b>COMPUTER ERROR!</b> The Molecule Builder is broken! We'll have to build it by hand: first the <b>atoms</b>, then the <b>molecule</b>. Once we build one, the Molecule Builder can copy it billions of times. You can do this!`];
+ const L=[`Uh-oh… 😬 Do you feel that? You're <b>STILL shrinking</b>! The shrink ray is stuck ON!`,
+  `If you don't stop it, you'll keep shrinking forever and disappear into <b>INNER SPACE</b>! 😱 To reverse the shrink ray, the Atom-Mobile needs <b>${esc(s.n.toLowerCase())}</b> (${s.f}). The Atom-Mobile\'s <b>Molecule Builder</b> usually makes it for you…`,
+  `…but look at the dashboard: <b>COMPUTER ERROR!</b> The Molecule Builder is broken! You'll have to build it by hand: first the <b>atoms</b>, then the <b>molecule</b>. Once you build one, the Molecule Builder can copy it billions of times. You can do this!`];
  let i=0;const show=()=>{const last=i>=L.length-1;
   frame(`<div class="is-dash"><svg viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet" class="is-svg"><rect x="-600" y="-600" width="2160" height="1800" fill="#0b0716"/>
+   ${[0,1,2,3,4].map(i=>`<ellipse cx="480" cy="230" rx="10" ry="7" fill="none" stroke="#b197fc" stroke-width="3" opacity="0"><animate attributeName="rx" values="10;760" dur="6s" begin="${i*1.2}s" repeatCount="indefinite"/><animate attributeName="ry" values="7;500" dur="6s" begin="${i*1.2}s" repeatCount="indefinite"/><animate attributeName="opacity" values=".45;0" dur="6s" begin="${i*1.2}s" repeatCount="indefinite"/></ellipse>`).join('')} <!-- still shrinking: the rings keep coming (owner) -->
    <path d="M60 600 L140 250 Q480 170 820 250 L900 600Z" fill="#1c1535" stroke="#3b2d6b" stroke-width="6"/>
    <rect x="300" y="210" width="360" height="170" rx="14" fill="#0a1f14" stroke="#495057" stroke-width="8"/>
    <text x="480" y="262" font-size="30" font-weight="800" fill="#ff6b6b" text-anchor="middle" font-family="monospace" class="is-blinkslow">⚠ COMPUTER ERROR</text>
@@ -369,7 +372,7 @@ function alarm(){const s=R.s,t=tier();
     <path d="M-10 18 L-2 -30" stroke="#adb5bd" stroke-width="10" stroke-linecap="round"/><path d="M4 -8 L26 -40" stroke="#adb5bd" stroke-width="10" stroke-linecap="round" transform="rotate(25 4 -8)"/>
     <g class="is-spark"><path d="M0 -14 l10 -8 l-4 10 l12 -2 l-12 8" stroke="#ffe066" stroke-width="3" fill="none"/></g></g>
    <circle cx="130" cy="300" r="14" fill="#fa5252" class="is-blinkslow"/><circle cx="830" cy="300" r="14" fill="#fa5252" class="is-blinkslow"/></svg></div>
-   ${nar(L[i],last?'🔧 Let\'s build the atoms!':'Next ➜',{cls:last?'gold':''})}`);
+   ${nar(L[i],last?'🔧 Build the atoms!':'Next ➜',{cls:last?'gold':''})}`);
   onNext(()=>{if(last){next();return;}i++;snd(160,.5,'sawtooth',.03);show();});};
  snd(220,.4,'square',.04);snd(180,.5,'square',.04,.45);show();}
 
@@ -399,14 +402,17 @@ function atoms(){const s=R.s,t=tier();const els=Object.keys(s.atoms).sort((a,b)=
 
 /* 6c. after the molecule is built: the replicator copies it billions of times and the shrinking stops */
 function replicate(){const s=R.s;const box=root.querySelector('.is-build');if(!box)return;R.replDone=false;
- const ov=document.createElement('div');ov.className='is-repl';ov.innerHTML=`<canvas></canvas><div class="is-rtxt"><div>🔁 REPLICATING…</div><b id="isRN">1</b><small>${esc(s.n.toLowerCase())} molecules</small></div>`;box.appendChild(ov);
- const cv=ov.querySelector('canvas'),c=cv.getContext('2d');const nb=root.querySelector('#isNext');if(nb){nb.disabled=true;nb.textContent='Replicating… ⏳';}
+ const ov=document.createElement('div');ov.className='is-repl';ov.innerHTML=`<canvas></canvas><div class="is-rtxt"><div id="isRT">🔄 REBOOTING…</div><b id="isRN">1</b><small>${esc(s.n.toLowerCase())} molecules</small></div>`;box.appendChild(ov);
+ const cv=ov.querySelector('canvas'),c=cv.getContext('2d');const nb=root.querySelector('#isNext');if(nb){nb.disabled=true;nb.textContent='Rebooting… ⏳';}
  const N=[1,2,4,16,100,1000,1000000,1000000000];const t0=performance.now();snd(300,1.5,'sine',.05);
  loop(()=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w)return;if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}const f=Math.min(1,(performance.now()-t0)/5200);c.clearRect(0,0,w,h);
-  const cnt=Math.floor(1+f*f*220);const R0=Math.min(w,h)/(6+f*26);for(let i=0;i<cnt;i++){const a=i*2.39996,r=Math.sqrt(i)*R0*1.25;const x=w/2+Math.cos(a)*r,y=h/2+Math.sin(a)*r*.8;if(x<-R0||x>w+R0||y<-R0||y>h+R0)continue;drawMol(c,s.lay,x,y,R0*.55,i*.7,false);}
+  const rt=root.querySelector('#isRT');if(rt)rt.textContent=f<.18?'🔄 REBOOTING…':'✅ ONLINE · COPYING…';
+  /* the copies spread out from the middle until they fill the whole screen (owner) */
+  const g=Math.max(26,Math.min(w,h)/(3+f*f*14)),cols=Math.ceil(w/g)+1,rows=Math.ceil(h/g)+1,cells=[];for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const px=x*g+(y%2?g/2:0),py=y*g*.9;cells.push([px,py,Math.hypot(px-w/2,(py-h/2)*1.3)]);}
+  cells.sort((a,b)=>a[2]-b[2]);const cnt=f<.18?1:Math.max(1,Math.ceil(cells.length*Math.min(1,((f-.18)/.7)**1.6)));for(let i=0;i<cnt;i++){const [x,y]=cells[i];drawMol(c,s.lay,x+Math.sin(i*12.9)*g*.12,y+Math.cos(i*7.3)*g*.12,g*.32,i*.7,false);}
   const n=root.querySelector('#isRN');if(n){const k=Math.min(N.length-1,Math.floor(f*N.length));n.textContent=N[k].toLocaleString();}
   if(f>=1&&!R.replDone){R.replDone=true;snd(660,.3,'triangle',.07);snd(990,.4,'triangle',.07,.2);const nb2=root.querySelector('#isNext');const tx=root.querySelector('.is-nar .txt');
-   if(tx)tx.innerHTML=`<small>Ride Operator ${NAME}</small>BILLIONS of molecules! The shrink ray has <b>STOPPED</b>! 🎉 Phew… wait. Why did everything just go quiet…?`;if(nb2){nb2.disabled=false;nb2.textContent='Next ➜';onNext();}}});}
+   if(tx)tx.innerHTML=`<small>Ride Operator ${NAME}</small>The computer is back! The Molecule Builder made BILLIONS of molecules, and the shrink ray has <b>STOPPED</b>! 🎉 Phew… wait. Why did everything just go quiet…?`;if(nb2){nb2.disabled=false;nb2.textContent='Next ➜';onNext();}}});}
 
 /* 7. the giant eye */
 function eye(){const s=R.s,t=tier();const EYE_SVG=`<div class="is-eyewrap" id="isEye"><svg class="is-svg" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid slice"><rect width="960" height="600" fill="#0c0c14"/>
@@ -416,10 +422,10 @@ function eye(){const s=R.s,t=tier();const EYE_SVG=`<div class="is-eyewrap" id="i
  <path d="M240 270 Q480 40 720 270" fill="none" stroke="#343a40" stroke-width="4"/><path d="M200 120 Q480 -30 760 120" stroke="#f1f3f5" stroke-width="46" fill="none" stroke-linecap="round"/><path d="M220 112 Q480 -18 740 112" stroke="#dee2e6" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="6 16"/>${Array.from({length:14},(_,i)=>`<path d="M${480+(i-6.5)*30} ${140+Math.abs(i-6.5)*8} q${(i-6.5)*2} -30 ${(i-6.5)*4} -44" stroke="#343a40" stroke-width="5" fill="none" stroke-linecap="round"/>`).join('')}
  <rect x="330" y="505" width="300" height="24" rx="4" fill="rgba(200,235,255,.5)" stroke="#d0ebff" stroke-width="2"/><g transform="translate(480 492) scale(.16)"><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8"/><path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.7)"/></g></svg></div>`;const QZ=window.Quartz&&Quartz.SVG?`<div style="width:54px;height:54px">${Quartz.SVG}</div>`:'🧑‍🔬';
  // 1) lights out: a little spooky, told by Ozzy in the dark
- const DARK=[['Huh? The lights just went OUT. 😨 Stay in your seat…',2600],['Did you feel that? <b>*rumble*</b> I think we\'re… moving!',2800],['Something just picked us up… and set us down on something flat and glassy. 😬',3000],['Wait… is this a <b>MICROSCOPE SLIDE</b>?! What in the world is happening?!',3000]];
+ const DARK=[['Huh? The lights just went OUT. 😨 Stay in your seat…',2600],['Did you feel that? <b>*rumble*</b> I think you\'re… moving!',2800],['Something just picked you up… and set you down on something flat and glassy. 😬',3000],['Wait… is this a <b>MICROSCOPE SLIDE</b>?! What in the world is happening?!',3000]];
  const LIT=[`Ha ha! Don't be scared, ${NM()}! It's ME, <b>Dr. Quartz</b>! 👋 I'm looking at you through my microscope. You look SO tiny!`,
   `I watched the whole thing. You built <b>${esc(s.n.toLowerCase())}</b> (${s.f}) all by yourself, one atom at a time. ${['Very well done, little scientist!','Outstanding work! That is real chemistry!','Excellent. Real chemists would be proud of that!'][t]} 🎉`,
-  `Your mission is complete! Now it's time to return to your normal size. Hold on tight… here we GROW!`];
+  `Your mission is complete! Now it's time to return to your normal size. Hold on tight… here you GROW!`];
  let step=0,lit=false,timer=null;const tok=R;
  frame(`${EYE_SVG.replace('id="isEye"','id="isEye" style="opacity:0"')}<div class="is-dark" id="isDark"></div>
   <div id="isNarBox">${nar(DARK[0][0],'Next ➜')}</div>`);
@@ -489,7 +495,7 @@ function quiz(){const s=R.s,t=tier();const Q=s.quiz[t];R.qMax=Q.reduce((a,_,i)=>
    else{tries++;snd(200,.3,'sine',.07);if(tries>=2){answered=true;draw(`The answer is <b>${esc(q[1][q[2]])}</b>. ${esc(q[3])}`,q[2],(bad||[]).concat(k));}else draw(null,null,(bad||[]).concat(k));}});
   const n=root.querySelector('#isQN');if(n)n.onclick=()=>{if(qi<Q.length-1){qi++;tries=0;answered=false;draw();}else home(score);};};
  const rings=Array.from({length:6},(_,i)=>`<i class="is-rring" style="animation-delay:-${i}s"></i>`).join('');
- frame(`<div class="is-quiz is-rise">${rings}${riseShip()}<div class="is-risetxt">⬆️ Growing back to normal size…</div></div>${nar(`Here we go, ${NM()}, we're <b>growing back</b>! 🚀 It's a long way up to normal size, so now is the perfect time to <b>test your knowledge</b>. Ready for the ride quiz?`,'🧪 Start the quiz ➜')}`);
+ frame(`<div class="is-quiz is-rise">${rings}${riseShip()}<div class="is-risetxt">⬆️ Growing back to normal size…</div></div>${nar(`Here you go, ${NM()}, you're <b>growing back</b>! 🚀 It's a long way up to normal size, so now is the perfect time to <b>test your knowledge</b>. Ready for the ride quiz?`,'🧪 Start the quiz ➜')}`);
  onNext(()=>draw());}
 
 /* Ozzy's words match how the quiz really went */
@@ -504,7 +510,7 @@ function home(score){R.score=score;const k=document.createElement('div');k.class
    <g transform="translate(480 150)"><rect x="-190" y="-44" width="380" height="84" rx="16" fill="#fff4e6" stroke="#8d5a2b" stroke-width="6"/><text x="0" y="12" font-size="40" font-weight="800" fill="#5f3dc4" text-anchor="middle">🎉 WELCOME BACK!</text></g>
    <g transform="translate(330 452) scale(.9)">${OZ_BODY}<path d="M-24 -18 L-22 30 L22 30 L24 -18Z" fill="#ae3ec9"/><path d="M-10 30 V52 M10 30 V52" stroke="#343a40" stroke-width="8" stroke-linecap="round"/><path d="M22 -12 Q40 -30 46 -46" stroke="#ae3ec9" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="46" cy="-48" r="6" fill="#f1c8a0"/></g>
    <g transform="translate(520 440)"><ellipse cx="0" cy="38" rx="70" ry="10" fill="rgba(0,0,0,.25)"/>${heroTag(-24,-76,48)}<path d="M-50 -24 Q-44 -70 0 -74 Q44 -70 50 -24Z" fill="rgba(180,230,255,.38)" stroke="#9fd8ff" stroke-width="3"/><path d="M-66 10 Q-70 -20 -40 -26 L40 -26 Q70 -20 66 10 Q60 34 0 34 Q-60 34 -66 10Z" fill="#7048e8" stroke="#3b1f9e" stroke-width="4"/><circle cx="-48" cy="2" r="7" fill="#ffd43b"/><circle cx="48" cy="2" r="7" fill="#ffd43b"/></g></svg>
-   ${nar(`We made it! You're back to <b>normal size</b>, ${NM()}! You fixed the Molecule Builder, stopped the shrink ray, ${quizLine(score)}`,'🃏 See my card ➜',{cls:'gold'})}`);
+   ${nar(`You made it! You're back to <b>normal size</b>, ${NM()}! You fixed the Molecule Builder, stopped the shrink ray, ${quizLine(score)}`,'🃏 See my card ➜',{cls:'gold'})}`);
   onNext(()=>card(score));},1300);}
 /* the ride counts as soon as the quiz is done — even if the app is closed before the card screen — so the ticket is used up and Ozzy doesn't repeat the same ride */
 function commit(score){if(R.committed)return R.committed;const s=R.s,p=PL||P();const st=S(p);const first=st.album[s.id]==null;const best=Math.max(st.album[s.id]||0,score);st.album[s.id]=best;

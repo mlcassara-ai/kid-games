@@ -253,30 +253,33 @@ const tests=[
   go('world');await T.wait(150);T.ok(W.gates.harvest&&W.gates.harvest[0]===17&&W.T[15][17].gate==='harvest'&&window.MQ_GATE_ART&&MQ_GATE_ART.harvest,'the Harvest Hollow entrance is not left of Number Town');
   p.look.hat='pilgrim';T.ok(/fcc419/.test(heroSVG(p.look)),'the Pilgrim Hat does not draw');
  }],
-['crystal garden: jars open from cave finds, one tend a day with a ruler question, back-to-back days grow bigger, the shelf, Ozzy tickets and zoom',async function(){
-  T.reset();const p=T.hero('Crystal',3);state.cur=p.id;p.sci={met:true,lab:{ok:{}}};p.cave={garden:{stage:3,last:''}};const yd=()=>{const d=new Date();d.setDate(d.getDate()-1);return dayKey(d);};
-  go('lab');await T.wait(100);T.ok(CG._st(P()).j.drip&&CG._st(P()).j.drip.d===3,'the old Drip Garden days were not carried into the Cave Drip jar');
-  Lab.tap('garden');let m=()=>document.querySelector('#modal').innerText;T.ok(/Crystal Garden/.test(m())&&document.querySelectorAll('#modal .cg-jar').length===6,'the Crystal Garden did not open with six jars');
-  T.ok(/halite \(rock salt\) in 🪨 Rock Layers/.test(m())&&/Field Lab bench/.test(m())&&/Limestone Caves/.test(m())&&/Underground River/.test(m()),'locked jars do not say what opens them and where');
-  P().cave.pack=[{t:'m',id:'azurite'}];CG.back();T.ok(/carrying a rock that might be it/.test(m())&&/Identify my rocks/.test(m()),'no nudge to the Field Lab bench for a rock that might open a jar');P().cave.pack=[];
-  CG.start('salt');T.ok(!CG._view()||CG._view().k!=='start','a locked jar could be started');
-  CG.start('sugar');CG._guess('cube');T.ok(/colou?r/i.test(m()),'rock candy did not ask for a colour');CG._col('pink');
-  let j=()=>CG._st(P()).j.sugar;T.ok(j()&&j().d===1&&j().mm===8&&j().col==='pink'&&j().guess==='cube','starting a jar did not grow day 1');
-  {const v=CG._view(),c0=P().coins;T.ok(v.k==='tend'&&/How much did it grow/.test(m())&&v.opts.includes(v.right)&&v.right===v.t-v.y,'no ruler question after tending');CG._ans(v.right);T.ok(P().coins===c0+5&&/Yes!/.test(m()),'a right ruler answer did not pay 5 coins');}
-  CG.back();CG.tend('sugar');T.ok(j().d===1,'a jar could be tended twice in one day');
-  const typs=[];for(let i=0;i<4;i++){j().last=yd();CG.tend('sugar');typs.push(CG._view().typ);}T.ok(typs.includes('left')&&typs.includes('next'),'the ruler question never changes: '+typs.join());T.ok(j().d===5&&j().mm===40&&!j().gaps,'tending on days in a row did not grow the biggest crystal');
-  {const c0=P().coins;CG.collect('sugar');const s=CG._st(P());T.ok(!s.j.sugar&&s.shelf.length===1&&s.shelf[0].mm===40&&s.n.sugar===1&&P().coins>c0,'collecting did not put the crystal on the shelf with coins');
-   T.ok(/You guessed/.test(m())&&/Shrink Ticket/.test(m())&&P().inner.tix.some(t=>t.id==='glucose'),'no guess reveal or no Ozzy ticket for sugar');}
-  P().cave.idd={halite:1};CG.back();T.ok(!/halite \(rock salt\)/.test(m()),'identifying halite did not open the salt jar');CG.start('salt');CG._guess('cube');
-  {const s=j=>CG._st(P()).j.salt;s().last='2000-01-01';P().daily=P().daily||{};const dd=Object.assign({},P().daily);P().daily={};CG.tend('salt');T.ok(s().d===2&&!s().gaps,'days the kid did not play counted as missed');P().daily={'2001-01-01':{r:3,w:0}};s().last='2000-01-01';s().d=1;s().mm=5;CG.tend('salt');T.ok(!s().gaps,'one skipped play day was not let off');
-   P().daily={'2001-01-01':{r:3,w:0},'2001-01-02':{r:1,w:1}};s().last='2000-01-01';s().d=1;s().mm=5;CG.tend('salt');T.ok(s().d===2&&s().gaps===1&&/played a day without tending/.test(m()),'a missed play day was not noticed');P().daily=dd;
-   s().last=yd();CG.tend('salt');T.ok(s().d===3&&s().mm<15,'a jar with a missed day still grew to full size');
-   P().inner.album=Object.assign({},P().inner.album||{},{salt:1});const t0=P().inner.tix.length;CG.collect('salt');T.ok(CG._st(P()).zoom.salt&&P().inner.tix.length===t0&&/Zoom in/.test(m()),'a crystal whose ride is already done gave a repeat ticket instead of Zoom in');}
-  CG.back();CG.start('sugar');T.ok(CG._view().step==='col'&&!/Make a guess/.test(m()),'growing a jar again asked for a guess');CG._col('');{const sg=()=>CG._st(P()).j.sugar;T.ok(sg().tgt>=34&&sg().tgt<=46,'a regrown crystal does not vary in size');
-   sg().tgt=46;for(let i=0;i<4;i++){sg().last=yd();CG.tend('sugar');}T.ok(sg().mm===46,'a regrown crystal did not reach its own size');CG.collect('sugar');T.ok(/New record/.test(m())&&CG._st(P()).best.sugar===46,'beating the record was not celebrated');}
-  CG.back();CG.start('epsom');T.ok(!CG._view()||CG._view().k!=='start','Sparkle Snow opened before Limestone Caves');P().cave.maxRow=40;CG.back();CG.start('epsom');T.ok(CG._view()&&CG._view().k==='start','Sparkle Snow is not open at Limestone Caves');CG.back();
-  P().inner.album={glucose:3};CG.back();T.ok(/Zoom in/.test(m()),'no Zoom in after the sugar ride');CG.zoom('sugar');T.ok(document.querySelector('#modal svg.cg-zoom')&&/carbon/.test(m()),'Zoom in did not show the atoms');closeModal();
-  go('lab');await T.wait(50);T.ok(document.querySelector('.lbh-svg')&&/💧/.test(document.querySelector('.lbh-svg').innerHTML),'the crystal dome does not show a jar is ready to tend');
+['crystal garden: goal, materials (what you have and what is missing), a saved prediction, a daily scientist choice, a daily ruler measurement into a journal and graph, reading the graph, results, the shelf and Ozzy',async function(){
+  T.reset();const p=T.hero('Crystal',3);state.cur=p.id;p.coins=200;p.sci={met:true,lab:{ok:{}}};p.cave={garden:{stage:3,last:''}};const m=()=>document.querySelector('#modal').innerText;
+  go('lab');await T.wait(100);T.ok(CG._st(P()).j.drip&&CG._st(P()).j.drip.d===3,'the old Drip Garden days were not carried into the Cave Drip jar');T.ok(CG._st(P()).inv.jars&&CG._st(P()).inv.wool,'a jar already growing did not come with its equipment');P().cg.j={};P().cg.inv={};
+  Lab.tap('garden');T.ok(/Goal/.test(m())&&/0 of 6/.test(m())&&/Crystal Scientist/.test(m())&&document.querySelectorAll('#modal .cg-jar').length===6&&/Start here/.test(m()),'the garden does not show the goal, six jars and where to start');
+  CG.need('sugar');T.ok(/What you need/.test(m())&&document.querySelectorAll('#modal .cg-mat.no').length===3&&document.querySelector('#modal .cg-row .btn.green').disabled,'the materials list does not show 3 missing things with Start locked');CG.start('sugar');T.ok(!CG._st(P()).j.sugar,'an experiment started without its materials');
+  CG.need('salt');T.ok(/Halite \(rock salt\)/.test(m())&&/Rock Layers/.test(m())&&/Go dig/.test(m())&&/Coffee filters/.test(m()),'a cave material does not say where to find it, with a way to go there');
+  P().cave.pack=[{t:'m',id:'halite'}];CG.need('salt');T.ok(/carrying one/.test(m())&&/Identify it/.test(m()),'no nudge to identify a carried rock');P().cave.pack=[];
+  CG.need('copper');T.ok(/once you've identified azurite/.test(m()),'copper sulfate can be bought before azurite');
+  {const c0=P().coins;CG.need('sugar');CG.buy('eq','jars');CG.buy('eq','string');CG.buy('in','sugar');T.ok(P().coins===c0-55&&/You have everything/.test(m())&&!document.querySelector('#modal .cg-row .btn.green').disabled,'buying the materials did not unlock Start');CG.buy('eq','jars');T.ok(P().coins===c0-55,'equipment was charged twice');}
+  CG.start('sugar');T.ok(CG._st(P()).inv.sugar===0&&CG._view().k==='guess'&&/make a prediction/.test(m()),'starting did not use the sugar and ask for a prediction');
+  {const opts=CG._view().opts;T.ok(opts.includes('chunk')&&!opts.includes('box'),'two look-alike shapes were offered together');}
+  CG._guess('cube');T.ok(CG._view().k==='saved'&&/Prediction saved/.test(m())&&!/Not this time/.test(m()),'the prediction was graded instead of saved');CG._go();T.ok(CG._view().k==='col','rock candy did not ask for a colour');CG._col('pink');
+  let j=()=>CG._st(P()).j.sugar;T.ok(CG._view().k==='tend'&&document.querySelectorAll('#modal .cg-opts .btn').length===2&&/sugar goes into 1 cup/.test(m()),'no scientist choice on day 1');
+  CG._choose(0);T.ok(j().d===1&&j().mm>=3&&j().mm<16&&/Good thinking/.test(m())&&/Measure it/.test(m())&&!/\+8 mm/.test(m()),'a good choice did not grow a full step, or gave away the measurement');
+  CG.meas('sugar');{const v=CG._view();T.ok(v.k==='meas'&&v.opts.includes(j().mm)&&v.off===0&&document.querySelector('#modal svg.cg-rulerpic'),'no ruler on day 1 for grade 3');const c0=P().coins;CG._meas(j().mm);T.ok(P().coins===c0+3&&j().log[0]===j().mm&&/Yes!/.test(m()),'a right measurement was not logged and paid');}
+  CG.journal('sugar');T.ok(/journal/.test(m())&&document.querySelector('#modal .cg-tab')&&document.querySelector('#modal svg.cg-graph')&&/Come back tomorrow/.test(m()),'no journal table and graph');
+  CG.back();CG.tend('sugar');T.ok(!CG._view(),'a jar could be checked twice in one day');
+  j().last='2000-01-01';CG.tend('sugar');CG._choose(1);T.ok(j().d===2&&j().mm<j().log[0]+9&&/Not the best choice/.test(m())&&/The better choice was/.test(m()),'a poor choice did not grow less and explain why');
+  CG.back();T.ok(/Measure today/.test(m()),'the garden does not ask for the missed measurement');CG.meas('sugar');CG._meas(CG._view().opts.find(o=>o!==j().mm));T.ok(j().log[1]===j().mm&&/Not quite/.test(m()),'a wrong measurement was not corrected and logged');
+  for(let i=0;i<3;i++){j().last='2000-01-01';CG.tend('sugar');CG._choose(0);CG.meas('sugar');CG._meas(j().mm);}T.ok(j().d===5&&j().log.length===5,'the jar did not reach day 5 with five measurements');
+  CG.journal('sugar');T.ok(/Read the graph/.test(m()),'no graph question on the last day');CG._most();{const v=CG._view();const c0=P().coins;CG._mostPick(v.opts.findIndex(o=>o.v===v.right));T.ok(P().coins===c0+10&&/Yes!/.test(m()),'reading the graph right was not rewarded');}
+  {const mm=j().mm;CG._finish();const s=CG._st(P());T.ok(!s.j.sugar&&s.shelf.length===1&&s.shelf[0].mm===mm&&/You predicted/.test(m())&&/Final length/.test(m())&&/4 of 5/.test(m())&&/1 of 6/.test(m()),'the results do not check the prediction or summarise the experiment');T.ok(/Shrink Ticket/.test(m())&&P().inner.tix.some(t=>t.id==='glucose'),'no Ozzy ticket for sugar');}
+  /* grade 4 measures a crystal that does not start at 0 */
+  P().grade=4;P().cave.idd={halite:1};CG.back();CG.need('salt');CG.buy('eq','filter');CG.start('salt');CG._guess('cube');CG._go();CG._choose(0);CG.meas('salt');{const v=CG._view();T.ok(v.off>0&&v.opts.includes(CG._st(P()).j.salt.mm)&&/does <b>not<\/b> start at 0|does not start at 0/.test(document.querySelector('#modal').innerHTML+m()),'grade 4 does not measure from a part-way start');CG._meas(CG._st(P()).j.salt.mm);}
+  /* all six = Crystal Scientist */
+  {const s=CG._st(P());['drip','salt','alum','epsom','copper'].forEach(k=>s.n[k]=s.n[k]||1);delete s.n.salt;const sj=s.j.salt;sj.d=3;sj.log=[5,10,15];sj.mm=15;const c0=P().coins;CG.journal('salt');CG._most();CG._mostPick(0);CG._finish();T.ok(s.prize&&/Crystal Scientist/.test(m())&&P().coins>=c0+300,'growing all six did not make a Crystal Scientist');}
+  closeModal();go('lab');await T.wait(50);T.ok(document.querySelector('.lbh-svg'),'the Lab did not draw with crystal jars');
   T.ok(Quartz.room('museum')&&/Crystal Shelf/.test(document.querySelector('#cvMod').innerText),'the Museum has no Crystal Shelf');Cave._dbg().closeModal();await T.wait(600);
  }],
 ['map life: tiny themed critters (butterflies, bubbles, embers, snow…) appear near the hero and never block',async function(){

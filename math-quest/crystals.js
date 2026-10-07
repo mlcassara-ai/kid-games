@@ -1,28 +1,23 @@
-/* ================= 💎 the Crystal Garden (Oct 2026) =================
-   The Lab's greenhouse (lab.js, the dollhouse roof) is a glass dome of crystal jars. Owner's loop: the cave gives the ingredient
-   (FIND), the jar grows it over a few days (GROW), and Ozzy's shrinking ride shows why it has that shape (SHRINK).
-   • Six jars (JARS). Rock Candy and Cave Drip are open from the start; Salt needs halite identified in the cave, Alum and Sparkle
-     Snow need Limestone Caves reached (Sparkle Snow moved there from the River after the second simulation), Blue Copper needs azurite (a real copper mineral) identified.
-   • Starting a jar asks the kid to guess the crystal's shape (checked when it is grown). Rock candy lets them pick a colour.
-   • Tend each jar once a day: it grows one day. Missing 2+ PLAY days (days the kid played Math Quest but didn't tend it;
-     days they didn't play never count, and one skipped play day is let off, after the Oct 2026 simulation) grows only GAP_STEP of a step, so the crystal ends up a bit smaller,
-     never ruined. Each tend shows the crystal by a ruler and asks a ruler question (+RULER_COINS if right), rotating
-     how much it grew / how much is left to full size / how big tomorrow; plus one real science fact (a second set, f2, for repeats).
-   • Growing the same jar again: no guess (the kid knows the shape); each regrown crystal ends a little different (`tgt`, 85-115% of
-     full size) and the jar shows the record; beating it is a 🏆 New record (+RECORD_COINS). (The size guess was dropped after the
-     second simulation: with crystals nearly always full-size, "as big as it gets" was almost always right.)
-   • A grown crystal goes onto the Crystal Shelf (shown here and in the cave Museum) for coins and 🔬 research points; 1 in
-     PERFECT_IN is a ✨ perfect crystal (double coins). Salt, Rock Candy and Cave Drip also earn Ozzy's Shrink Ticket for that
-     substance (Inner.awardRide) only if that ride is still new in the Molecule Album; otherwise 🔍 Zoom in (the atoms inside) opens on
-     the jar straight away (s.zoom). Locked jars say where the mineral is found and nudge to the Field Lab bench when the kid is carrying
-     an unidentified rock that might be it.
-   • The old Drip Garden (p.cave.garden) becomes the Cave Drip jar; its days are carried over once.
-   State: p.cg = {j:{id:{d,mm,last,guess,tgt,col,gaps}}, shelf:[{id,mm,col,pf,at}], best:{id:mm}, n:{id:count}, zoom:{id:1}, mig}.
-   Safety (owner): salt, sugar, alum and Epsom salt are real home experiments with a grown-up; the copper jar says plainly that Dr. Quartz
-   grows it himself with gloves on and that kids must never try it at home. */
+/* ================= 💎 the Crystal Garden (Oct 2026, third version: tested with simulated grade 3-5 kids and a science teacher) =================
+   The Lab's roof dome (lab.js). It works like a classroom crystal unit:
+   • GOAL on top: grow all 6 crystals; all 6 = 🥼 Crystal Scientist (+PRIZE coins, once).
+   • WHAT YOU NEED: each jar has a materials list (✓ have / ✗ missing, with Buy buttons, or 🛗 Go dig / 🔬 Identify it for the two cave
+     minerals: halite = rock salt, azurite). Equipment (`EQUIP`) is bought once and kept; ingredients (`INGR`) are used up when you start.
+     Start stays locked until everything is there. A brand-new kid sees ⭐ Start here on Rock Candy.
+   • PREDICT (first time only): the kid picks a shape; it is saved, not graded, and checked on the last day (`j.pred`).
+   • EACH DAY YOU PLAY: one scientist's choice where both answers sound reasonable (`jar.q`, real classroom steps: seeding the string,
+     filtering cave salt, slow drying, wicking, safety). Good choice = a full day's growth, otherwise `WRONG_STEP` of it, and Dr. Quartz
+     says why. Then the kid MEASURES the crystal on a ruler (grade 3 from 0; grade 4 the crystal starts part-way along, so subtract;
+     grade 5+ also in centimetres on even days; +3 coins if right) and it goes into the JOURNAL: a table and a line graph (`j.log`).
+   • LAST DAY: read the graph ("on which day did it grow the most?", +10), then the results: the prediction checked, final length,
+     good choices, the Crystal Shelf (also in the cave Museum), coins, 🔬 research points (they buy cave gear), 1 in PERFECT_IN ✨ perfect,
+     a 🏆 record when regrown (regrown crystals vary 85-115%), and Ozzy's Shrink Ticket (salt, sugar, water) if that ride is new, else 🔍 Zoom in.
+   State p.cg = {j:{id:{d,mm,tgt,col,good,last,log[],pred}}, inv, shelf, best, n, zoom, seen, prize, mig}.
+   Science checked by the teacher review: salt grows by slow evaporation (not heat), cave salt is filtered, the cave drip is the two-jar
+   wool-string experiment and real stalactites take hundreds of years, copper sulfate is made from copper ores and is for scientists only. */
 (function(){
 'use strict';
-const O='#3b2a1e',RECORD_COINS=20,GAP_STEP=.7,RULER_COINS=5,PERFECT_IN=10;
+const O='#3b2a1e',RECORD_COINS=20,PRIZE=300,PERFECT_IN=10,WRONG_STEP=.35;
 const SHAPES={cube:{n:'Little cubes',svg:'<path d="M8 16 l12 -6 l12 6 l-12 6Z" fill="#fff"/><path d="M8 16 v14 l12 6 v-14Z" fill="#dee2e6"/><path d="M32 16 v14 l-12 6 v-14Z" fill="#f1f3f5"/><path d="M8 16 l12 -6 l12 6 v14 l-12 6 l-12 -6Z" fill="none" stroke="#3b2a1e" stroke-width="2" stroke-linejoin="round"/>'},
  chunk:{n:'Chunky slanted blocks',svg:'<path d="M6 30 L14 10 L30 8 L34 26 L20 36Z" fill="#ffdeeb" stroke="#3b2a1e" stroke-width="2" stroke-linejoin="round"/><path d="M14 10 L20 36 M30 8 L20 36" stroke="#3b2a1e" stroke-width="1.2" opacity=".5"/>'},
  octa:{n:'Two pyramids, base to base',svg:'<path d="M20 4 L34 20 L20 36 L6 20Z" fill="#f8f9fa"/><path d="M20 4 L20 36 L6 20Z" fill="#dee2e6"/><path d="M6 20 H34" stroke="#3b2a1e" stroke-width="1.2" opacity=".5"/><path d="M20 4 L34 20 L20 36 L6 20Z" fill="none" stroke="#3b2a1e" stroke-width="2" stroke-linejoin="round"/>'},
@@ -30,53 +25,98 @@ const SHAPES={cube:{n:'Little cubes',svg:'<path d="M8 16 l12 -6 l12 6 l-12 6Z" f
  box:{n:'A squashed, slanted box',svg:'<path d="M6 26 L14 8 L34 12 L26 32Z" fill="#339af0" stroke="#3b2a1e" stroke-width="2" stroke-linejoin="round"/><path d="M14 8 L26 32" stroke="#1971c2" stroke-width="2"/>'},
  column:{n:'A tall column',svg:'<rect x="14" y="4" width="12" height="32" fill="#e8dfc8" stroke="#3b2a1e" stroke-width="2"/><path d="M10 4 H30 M10 36 H30" stroke="#3b2a1e" stroke-width="3"/>'}};
 /* need: what opens the jar. ride: Ozzy's Inner Space ride for the same substance. days: tends to grow. mm: full size. */
+/* the Supply Cupboard. Equipment: buy once, keep forever. Ingredients: used up each time you grow one. */
+const EQUIP={jars:{e:'🫙',n:'Glass jars',c:30,say:'For every experiment.'},string:{e:'🧵',n:'String & pencil',c:10,say:'To hang things in the jar.'},thermo:{e:'🌡️',n:'Thermometer',c:40,say:'To check how warm the water is.'},
+ wool:{e:'🧶',n:'Wool string',c:10,say:'Wool soaks up water and carries it along.'},filter:{e:'☕',n:'Coffee filters',c:10,say:'To strain dirt out of water.'},gloves:{e:'🧤',n:'Gloves & goggles',c:50,say:'So you can watch Dr. Quartz safely.'}};
+const INGR={sugar:{e:'🍬',n:'Bag of sugar',c:15},soda:{e:'🧺',n:'Washing soda',c:15},alum:{e:'🧪',n:'Alum powder',c:20,say:'A kind of salt that pickle makers use.'},epsom:{e:'🛁',n:'Epsom salt',c:15,say:'The salt people put in a bath.'},copper:{e:'🔷',n:'Copper sulfate',c:30,need:'azurite',say:'Made from copper ores like azurite.'}};
+/* need: [kind,id]: 'eq' equipment, 'in' ingredient (used up), 'min' a mineral identified in the cave (not used up).
+   q: one scientist's choice per day; both answers sound reasonable to a 9-year-old (teacher review); a[0] is right (shown shuffled). */
 const JARS=[
- {id:'sugar',n:'Rock Candy',e:'🍬',days:5,mm:40,shape:'chunk',tend:'🧵 Dip the string',ride:'glucose',coins:50,need:null,liquid:'#fff0f6',
-  how:'Sugar dissolves in hot water, then grows into crystals on a string.',
-  f:['Hot water can hold far more sugar than cold water. That is why we start hot!','As the water cools, sugar molecules grab onto the rough string.','Each day more sugar joins the crystals already there.','Look at the flat, slanted faces. Every sugar crystal has them.','Done! Rock candy is just sugar crystals. (Ask a grown-up before you make your own.)'],
-  f2:['Rock candy is one of the oldest sweets: people made it over 1,000 years ago!','A rough string works better than a smooth one: crystals need a place to start.','If you stir the jar, tiny crystals form everywhere instead of on the string.','Sugar is made by plants. Sugar cane and sugar beets are full of it.','Done again! A bigger, slower-grown crystal is usually a clearer one.']},
- {id:'drip',n:'Cave Drip',e:'💧',days:5,mm:30,shape:'column',tend:'💧 Drip water',ride:'water',coins:60,need:null,liquid:'#8fd3ff',
-  how:'Drip water on the cave ceiling and watch a stalactite and a stalagmite grow.',
-  f:['Every drop of water carries a tiny bit of dissolved rock.','The stalactite hangs from the top. (It holds on "tight"!)','The stalagmite grows up from the ground. (It "might" reach the top!)','Almost touching!','They joined into a column! Real ones take thousands of years.'],
-  f2:['The dissolved rock is calcite, the same mineral as in limestone.','A soda straw is a thin, hollow baby stalactite. Water runs down the middle!','Some caves have stalagmites taller than a house.','Cave scientists never touch the formations: oil from your skin stops them growing.','A column again! In a real cave this would be about 10,000 years old.']},
- {id:'salt',n:'Salt Cubes',e:'🧂',days:3,mm:15,shape:'cube',tend:'🥄 Stir in salt',ride:'salt',coins:40,need:{min:'halite'},liquid:'#d0ebff',
-  how:'Rock salt from the cave, dissolved in warm water. As the water dries up, the salt comes back as crystals.',
-  f:['The rock salt you found in the cave is called halite. It dissolves in warm water.','As the water slowly dries up, the salt has to come out again: as crystals!','Done! Every piece is a little cube. Salt always stacks in a cube pattern.'],
-  f2:['Some salt comes from the sea, and some is dug out of old dried-up seas underground.','Big salt crystals sometimes grow as hollow "hopper" cubes, like little stairs.','Done again! Same cubes every time: that is how scientists tell halite apart.']},
- {id:'alum',n:'Alum Diamonds',e:'💠',days:5,mm:25,shape:'octa',tend:'🌡️ Warm the jar',ride:null,coins:60,need:{layer:'cave'},liquid:'#f1f3f5',
-  how:'Alum is a salt that pickle makers use. A tiny seed crystal on a thread grows bigger every day.',
-  f:['A tiny "seed" crystal hangs on a thread in the alum water.','The seed grows bigger, but it keeps exactly the same shape.','Crystals grow by adding layer after layer to their faces.','The shape is called an octahedron: 8 flat faces!','Done! A clear alum crystal shaped like a diamond (but it is not one).'],
-  f2:['A seed crystal gives the alum one place to grow, so you get one big crystal instead of lots of small ones.','Alum crystals can grow as big as your fist with enough patience.','The water must stay still: a bump knocks new tiny crystals loose.','8 faces, 6 corners, 12 edges. Count them on your crystal!','Done again! Bigger seeds grow bigger crystals.']},
- {id:'epsom',n:'Sparkle Snow',e:'❄️',days:2,mm:20,shape:'needle',tend:'🧊 Chill the jar',ride:null,coins:30,need:{layer:'cave'},liquid:'#e7f5ff',
-  how:'Epsom salt, the kind people put in a bath. It grows on real limestone cave walls too, as fuzzy white epsomite! Chill it and it grows needles fast.',
-  f:['Epsom salt dissolves easily in warm water. Cooling it makes the crystals grow quickly.','Done! Long, thin needles, like frost on a window.'],
-  f2:['Fast-grown crystals are thin needles; slow-grown ones are thicker.','Done again! Epsom salt is named after a spring in Epsom, England.']},
- {id:'copper',n:'Blue Copper',e:'🔷',days:5,mm:30,shape:'box',tend:'🧤 Ask Dr. Quartz',ride:null,coins:90,need:{min:'azurite'},liquid:'#228be6',lab:1,
-  how:'Copper sulfate grows bright blue crystals. Dr. Quartz grows this one himself, with gloves on. Never try it at home!',
-  f:['Dr. Quartz puts his gloves on: copper sulfate is not safe to touch or taste.','The water turns a deep, bright blue. Copper makes that colour.','Little blue crystals form on the bottom, and the biggest keeps growing.','Its faces are flat and slanted, like a squashed box.','Done! A brilliant blue crystal. Dr. Quartz says: this one is for scientists only.'],
-  f2:['The azurite you found is blue for the same reason: it has copper in it.','Old copper roofs turn green. That is copper reacting with the air and rain.','Heat a blue copper crystal and it turns white as its water leaves it.','No two sides of this crystal are quite the same length.','Done again! Still for scientists only. Gloves off, crystal on the shelf.']}];
+ {id:'sugar',n:'Rock Candy',e:'🍬',days:5,mm:40,shape:'chunk',ride:'glucose',coins:50,need:[['eq','jars'],['eq','string'],['in','sugar']],
+  how:'Mix lots of sugar into hot water (a grown-up does the hot part), roll a string in sugar, and hang it in the jar. Sugar crystals grow on the string.',
+  shapeWhy:'Sugar packs together in a slanted pattern, so rock candy grows as chunky, slanted blocks.',
+  q:[{q:'How much sugar goes into 1 cup of hot water?',a:['3 cups (it looks like way too much!)','Half a cup'],why:'The water must be <b>stuffed with sugar</b>, so the extra comes out as crystals.'},
+   {q:'Only a few tiny crystals so far. What should you do?',a:['Wait: crystals take days','Stir in more sugar'],why:'<b>Crystals grow slowly.</b> Stirring would knock them loose.'},
+   {q:'Where should the jar sit?',a:['On a quiet shelf at room temperature','On a warm, sunny windowsill'],why:'<b>Slow and still</b> grows the biggest crystals. Sun can melt the sugar back.'},
+   {q:'A hard crust covered the top, so the water can\'t dry up. What should you do?',a:['Gently break the crust','Leave the crust alone'],why:'The water needs to <b>keep drying up</b> for crystals to grow.'},
+   {q:'How should you cover the jar?',a:['With a loose paper towel','With a tight lid'],why:'A paper towel keeps dust out but <b>lets water escape</b>.'}],
+  q2:[{q:'Why must the water be so full of sugar?',a:['So the extra sugar comes out as crystals','So it tastes sweeter'],why:'Crystals only grow when there is <b>more sugar than the water can hold</b>.'},
+   {q:'Why did we roll the string in sugar?',a:['The grains are seeds for new crystals','To make the string heavier'],why:'New crystals <b>grow on the seed grains</b>.'},
+   {q:'Why do crystals grow bigger on a still shelf?',a:['Bumps knock new tiny crystals loose','Shelves are colder than tables'],why:'<b>No bumps</b> means the crystals already there keep growing.'},
+   {q:'It grew less today than yesterday. Why?',a:['There is less extra sugar left in the water','The water got too cold to work'],why:'As crystals grow, they <b>use up the extra sugar</b>.'},
+   {q:'What is rock candy made of?',a:['Sugar crystals','Frozen sugar water'],why:'Rock candy is just <b>sugar crystals</b>. It never froze.'}]},
+ {id:'drip',n:'Cave Drip',e:'💧',days:5,mm:30,shape:'column',ride:'water',coins:60,need:[['eq','jars'],['eq','wool'],['in','soda']],
+  how:'A model of a cave: fill two jars with washing-soda water and hang a wool string between them. The water creeps along the string and drips in the middle.',
+  shapeWhy:'Each drip leaves a little solid behind: a stalactite hangs down and a stalagmite grows up underneath.',
+  q:[{q:'Why does the string have to be wool?',a:['Water creeps along it','It is strong enough to hold the jars'],why:'Wool <b>soaks up water and carries it</b>, like a straw.'},
+   {q:'Where should the drips land?',a:['On a plate between the jars','Back into one of the jars'],why:'The stalagmite needs a <b>dry place to build up</b>.'},
+   {q:'The string sagged and now touches the plate. What should you do?',a:['Lift it a little so drips can form','Let it touch so the water reaches the plate faster'],why:'Drips need <b>a gap to fall through</b>.'},
+   {q:'In a real cave, how long does a stalactite take to grow as long as your finger?',a:['Hundreds to thousands of years','About a week'],why:'Real ones are <b>very slow</b>. Our washing-soda model dries fast.'},
+   {q:'In a real cave, what happens if a stalactite and stalagmite keep growing?',a:['They meet and make a column','They stay apart forever'],why:'They <b>join into a column</b>. (In our model the stalactite often drops off first!)'}],
+  q2:[{q:'What carries the water along the wool?',a:['Wicking, like a straw','Gravity pulls it uphill'],why:'Water <b>creeps through the tiny gaps</b> in the wool.'},
+   {q:'What is left behind when a drip dries?',a:['Solid washing soda','Nothing, it all disappears'],why:'The water leaves, <b>the solid stays</b>.'},
+   {q:'Which one grows from the floor up?',a:['The stalagmite','The stalactite'],why:'Stalag<b>m</b>ites grow up from the ground (they <b>m</b>ight reach the top!).'},
+   {q:'Why is our model faster than a real cave?',a:['Washing soda dries much faster than cave rock builds up','Our room is warmer than a cave'],why:'In caves, <b>limestone builds up a tiny bit</b> with every drop.'},
+   {q:'What is a column?',a:['A stalactite and a stalagmite joined','A very long stalactite'],why:'A column goes <b>all the way from top to bottom</b>.'}]},
+ {id:'salt',n:'Salt Cubes',e:'🧂',days:3,mm:15,shape:'cube',ride:'salt',coins:40,need:[['eq','jars'],['eq','filter'],['min','halite']],
+  how:'Rock salt from the cave is dirty. Mix it into water, strain out the dirt, then let the clean salt water dry up very slowly.',
+  shapeWhy:'Salt is made of two kinds of atoms that take turns in neat square rows, so its crystals are little cubes.',
+  q:[{q:'The salt water is cloudy and brown from cave dirt. What now?',a:['Pour it through a coffee filter','Boil it to clean it'],why:'Boiling doesn\'t remove dirt. <b>A filter catches it.</b>'},
+   {q:'Does hot water hold a lot more salt than cold water?',a:['No, only a little more','Yes, much more'],why:'Surprise! <b>Salt is not like sugar</b>: it grows as the water dries up.'},
+   {q:'Where should the shallow dish go?',a:['A quiet spot at room temperature','A hot, sunny windowsill'],why:'<b>Slow drying</b> grows bigger, neater cubes.'}],
+  q2:[{q:'Why filter the cave salt water?',a:['Dirt gets in the way of the crystals','It makes the water saltier'],why:'<b>Clean water</b> grows clean cubes.'},
+   {q:'Why do crystals appear as the water dries up?',a:['Less water can\'t hold all the salt','The sun makes new salt'],why:'The salt was there all along: <b>less water, so it comes out</b>.'},
+   {q:'Why are slow-dried cubes bigger?',a:['The salt has time to stack neatly','Slow water is heavier'],why:'<b>Time to stack</b> means big, neat cubes.'}]},
+ {id:'alum',n:'Alum Diamonds',e:'💠',days:5,mm:25,shape:'octa',ride:null,coins:60,need:[['eq','jars'],['eq','string'],['eq','thermo'],['in','alum']],
+  how:'Mix alum into warm water. Tiny crystals form overnight: pick the best one as a "seed", hang it on a string, and it grows bigger every day.',
+  shapeWhy:'Alum packs into a shape with 8 flat triangle faces, like two pyramids stuck base to base. It is called an octahedron.',
+  q:[{q:'Tiny crystals formed overnight. Which one should be your seed?',a:['The clearest one with flat faces','The biggest lumpy one'],why:'A <b>clear seed</b> grows a clear crystal.'},
+   {q:'How should the seed hang?',a:['In the middle, not touching anything','Touching the side of the jar'],why:'Hanging free, it <b>grows evenly</b> on every side.'},
+   {q:'The thermometer shows the water slowly cooling. Is that good?',a:['Yes, it helps the seed grow','No, keep it warm'],why:'<b>Cool water holds less alum</b>, so the extra joins your seed.'},
+   {q:'New tiny crystals are growing on the bottom. What should you do?',a:['Move the seed to fresh alum water','Leave them, it is fine'],why:'The little ones <b>steal alum</b> from your seed.'},
+   {q:'How many faces does a perfect alum crystal have?',a:['8','6'],why:'<b>8 faces</b>: an octahedron. (A cube has 6.)'}],
+  q2:[{q:'Why pick a clear seed?',a:['Clear seeds grow clear crystals','Clear seeds grow faster'],why:'The crystal <b>copies its seed</b>.'},
+   {q:'Why hang the seed in the middle?',a:['So it grows evenly on every side','So it stays warm'],why:'<b>Room on every side</b> means an even shape.'},
+   {q:'Why does cooling help the seed grow?',a:['Cool water holds less alum','Cold makes crystals sticky'],why:'The <b>extra alum</b> has to go somewhere: onto your seed.'},
+   {q:'Why move the seed to fresh alum water?',a:['The small crystals were using up the alum','Old alum water goes bad'],why:'<b>Fresh water</b> has alum for your seed.'},
+   {q:'What is an 8-faced shape called?',a:['An octahedron','A hexagon'],why:'Octa means <b>8</b>, like an octopus.'}]},
+ {id:'epsom',n:'Sparkle Snow',e:'❄️',days:2,mm:20,shape:'needle',ride:null,coins:30,need:[['eq','jars'],['in','epsom']],
+  how:'Mix Epsom salt (bath salt) into hot water (a grown-up does the hot part), then cool it quickly.',
+  shapeWhy:'Epsom salt always grows as long needles. The faster it grows, the thinner the needles.',
+  q:[{q:'To get lots of thin needles by tomorrow, where should the jar cool?',a:['In the fridge','On the counter'],why:'<b>Fast cooling</b> makes lots of thin needles.'},
+   {q:'Why did crystals appear when the water cooled?',a:['Cold water holds less Epsom salt','Cold makes the salt freeze'],why:'It isn\'t ice! <b>Cold water holds less salt</b>, so the extra comes out.'}],
+  q2:[{q:'Why are the needles so thin?',a:['They grew very fast','Epsom salt is very soft'],why:'<b>Fast growing</b> makes thin needles.'},
+   {q:'What would cooling it slowly on the counter give?',a:['Fewer, thicker needles','No crystals at all'],why:'<b>Slow cooling</b> grows fewer, bigger crystals.'}]},
+ {id:'copper',n:'Blue Copper',e:'🔷',days:5,mm:30,shape:'box',ride:null,coins:90,need:[['eq','jars'],['eq','gloves'],['min','azurite'],['in','copper']],
+  how:'Copper sulfate is made from copper ores like the azurite you found. It is not safe to touch, so Dr. Quartz grows this one while you watch. Never try it at home!',
+  shapeWhy:'Copper sulfate packs in a lopsided pattern, so its crystals are slanted blue boxes where no two sides match.',
+  q:[{q:'Dr. Quartz pours the hot blue liquid. What should you wear?',a:['Gloves and goggles too','Just goggles, since you are not touching it'],why:'<b>Everyone near</b> wears full safety gear.'},
+   {q:'Where should the jar sit?',a:['High up, labeled, away from food','In the fridge to keep it cool'],why:'It is <b>poisonous if swallowed</b>, so never near food.'},
+   {q:'Why is the water so blue?',a:['Copper makes it blue','Dr. Quartz added blue food colouring'],why:'<b>Copper is blue</b>, just like your azurite.'},
+   {q:'Lots of small crystals grew. How do you get one big one?',a:['Put the best one in fresh blue liquid','Leave them all together'],why:'<b>Alone</b>, one crystal gets all the copper.'},
+   {q:'Where does the leftover blue liquid go?',a:['Back to the lab to be thrown away safely','Down the sink with lots of water'],why:'It <b>harms fish and plants</b>, so never down the drain.'}],
+  q2:[{q:'Where does copper sulfate come from?',a:['Copper ores like azurite','Blue sea water'],why:'It is <b>made from copper</b> dug out of the ground.'},
+   {q:'Why does everyone near wear goggles?',a:['Splashes can hurt eyes','To see the blue better'],why:'<b>Eyes first!</b> Splashes happen.'},
+   {q:'Why keep it away from food?',a:['It is poisonous if swallowed','It turns food blue'],why:'<b>Never near food</b>: it makes people sick.'},
+   {q:'Why grow one crystal alone?',a:['It gets all the copper sulfate','It stays cooler that way'],why:'<b>No sharing</b> means one big crystal.'},
+   {q:'Why never pour it down the sink?',a:['It harms fish and plants','It blocks the pipes'],why:'Drains lead to rivers: <b>keep it out</b>.'}]}];
 const J=id=>JARS.find(x=>x.id===id);
 const COLORS=[{id:'',n:'Clear',c:'#ffdeeb',c2:'#ffc9de'},{id:'pink',n:'Pink',c:'#fcc2d7',c2:'#f783ac'},{id:'blue',n:'Blue',c:'#a5d8ff',c2:'#74c0fc'}];
 const esc2=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const yday=()=>{const d=new Date();d.setDate(d.getDate()-1);return dayKey(d);};
+const has=(p,kind,id)=>{const s=st(p);if(kind==='eq')return !!s.inv[id];if(kind==='in')return (s.inv[id]||0)>0;if(kind==='min')return !!(p.cave&&p.cave.idd&&p.cave.idd[id]);return false;};
+const item=(kind,id)=>kind==='eq'?EQUIP[id]:kind==='in'?INGR[id]:null;
+function missing(p,jar){return jar.need.filter(([k,id])=>!has(p,k,id));}
 
 /* ---------- state ---------- */
-function st(p){p.cg=p.cg||{};const s=p.cg;s.j=s.j||{};s.zoom=s.zoom||{};s.shelf=s.shelf||[];s.best=s.best||{};s.n=s.n||{};
- if(!s.mig){s.mig=1;try{const g=p.cave&&p.cave.garden;if(g&&g.stage>0&&!s.j.drip)s.j.drip={d:Math.min(4,g.stage),mm:Math.round(Math.min(4,g.stage)*30/5),last:g.last||'',guess:'column',gaps:0};}catch(e){}}
+function st(p){p.cg=p.cg||{};const s=p.cg;s.j=s.j||{};s.zoom=s.zoom||{};s.shelf=s.shelf||[];s.best=s.best||{};s.n=s.n||{};s.inv=s.inv||{};s.seen=s.seen||{};
+ if(!s.mig){s.mig=1;try{const g=p.cave&&p.cave.garden;if(g&&g.stage>0&&!s.j.drip)s.j.drip={d:Math.min(4,g.stage),mm:Math.round(Math.min(4,g.stage)*30/5),last:g.last||'',good:Math.min(4,g.stage)};}catch(e){}}
+ if(s.mig<2){s.mig=2;/* version 2: jars already growing keep going; anyone who started a jar already has its equipment */Object.keys(s.j).forEach(id=>{const jar=J(id);if(jar)jar.need.forEach(([k,x])=>{if(k==='eq')s.inv[x]=1;});});Object.keys(s.n).forEach(id=>{const jar=J(id);if(jar)jar.need.forEach(([k,x])=>{if(k==='eq')s.inv[x]=1;});s.seen[id]=1;});}
  return s;}
-function layerOK(p,id){try{const L=window.CAVE_DATA.LAYERS.find(x=>x.id===id);return !!(p.cave&&L&&(p.cave.maxRow||0)>=L.r0);}catch(e){return false;}}
-function open_(p,jar){const n=jar.need;if(!n)return true;if(n.min)return !!(p.cave&&p.cave.idd&&p.cave.idd[n.min]);if(n.layer)return layerOK(p,n.layer);return true;}
-/* where to look, and a nudge when the kid is carrying an unidentified rock that might be the one */
-function where(id){try{const m=window.CAVE_DATA.MIN[id];const L=window.CAVE_DATA.LAYERS.find(x=>x.id===m.L[0]);return `${L.e} ${esc2(L.n)}`;}catch(e){return 'the cave';}}
-function maybeHas(p,id){try{return ((p.cave&&p.cave.pack)||[]).some(x=>x&&x.t==='m'&&x.id===id);}catch(e){return false;}}
-function needText(jar,p){const n=jar.need;if(!n)return '';try{if(n.min){const m=window.CAVE_DATA.MIN[n.min];return `Find ${esc2(m.n.toLowerCase())}${n.min==='halite'?' (rock salt)':''} in ${where(n.min)}, then identify it at the 🔬 Field Lab bench`;}if(n.layer){const L=window.CAVE_DATA.LAYERS.find(x=>x.id===n.layer);return `Dig down to ${L.e} ${esc2(L.n)}`;}}catch(e){}return '';}
-const tendable=(j)=>j&&j.d<J(j.id||'sugar').days&&j.last!==dayKey();
 function due(p){const s=st(p);return JARS.filter(jar=>{const j=s.j[jar.id];return j&&j.d<jar.days&&j.last!==dayKey();}).length;}
 function rideDone(p,jar){try{if(st(p).zoom[jar.id])return true;return !!(jar.ride&&p.inner&&p.inner.album&&p.inner.album[jar.ride]!=null);}catch(e){return false;}}
 const ZOOMS=['salt','sugar','drip'];
-/* missed PLAY days between the last tend and today: days the kid played Math Quest (p.daily) but didn't tend. One is let off (kids skip the Lab
-   now and then); two or more count (Oct 2026 simulation: with one counted, 50-80% of crystals came out smaller) */
-function missed(p,last){if(!last)return false;const t=dayKey();try{return Object.keys(p.daily||{}).filter(d=>d>last&&d<t&&((p.daily[d].r||0)+(p.daily[d].w||0))>0).length>=2;}catch(e){return false;}}
+function where(id){try{const m=window.CAVE_DATA.MIN[id];const L=window.CAVE_DATA.LAYERS.find(x=>x.id===m.L[0]);return `${L.e} ${esc2(L.n)}`;}catch(e){return 'the cave';}}
+function carrying(p,id){try{return ((p.cave&&p.cave.pack)||[]).some(x=>x&&x.t==='m'&&x.id===id);}catch(e){return false;}}
 
 /* ---------- pictures ---------- */
 function glass(inner,liquid,lv){return `<path d="M30 30 h60 v8 q8 4 8 14 v52 q0 10 -10 10 h-56 q-10 0 -10 -10 v-52 q0 -10 8 -14 z" fill="#eef8ff" fill-opacity=".55"/><path d="M24 ${118-lv} H96 V104 q0 10 -10 10 h-52 q-10 0 -10 -10 Z" fill="${liquid}" opacity=".55"/>${inner}<path d="M30 30 h60 v8 q8 4 8 14 v52 q0 10 -10 10 h-56 q-10 0 -10 -10 v-52 q0 -10 8 -14 z" fill="none" stroke="${O}" stroke-width="3"/><rect x="26" y="22" width="68" height="10" rx="4" fill="#ced4da" stroke="${O}" stroke-width="3"/><path d="M40 52 q-6 20 0 44" stroke="#fff" stroke-width="4" fill="none" opacity=".7" stroke-linecap="round"/>`;}
@@ -103,7 +143,10 @@ const ZOOM={salt:'Inside your salt cube: sodium (Na) and chlorine (Cl) atoms tak
  drip:'Inside a drop of cave water: water molecules, 2 hydrogen (H) and 1 oxygen (O) each. The water carries dissolved rock and leaves a little behind with every drop.'};
 
 /* ---------- screens ---------- */
-let VIEW=null; /* {k:'tend',id,y,t,opts,ans} | {k:'start',id,step} | {k:'done',id,...} | {k:'zoom',id} */
+
+
+/* ---------- screens ---------- */
+let VIEW=null; /* null = the garden | need | guess | saved | col | tend | meas | journal | most | done | zoom */
 function css(){if(document.getElementById('cgCSS'))return;const s=document.createElement('style');s.id='cgCSS';s.textContent=`
 .cg-card{max-width:760px!important;text-align:left}.cg-card h2{margin:0 0 4px}.cg-sub{color:#6a5fa0;font-size:15px;margin:0 0 12px}
 .cg-shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}@media(max-width:600px){.cg-shelf{grid-template-columns:repeat(2,1fr)}}
@@ -118,73 +161,144 @@ function css(){if(document.getElementById('cgCSS'))return;const s=document.creat
 .cg-shape{display:flex;flex-direction:column;align-items:center;gap:2px;background:#f6f3ff;border:3px solid transparent;border-radius:14px;padding:8px;cursor:pointer;flex:1;min-width:90px;font:600 13px Fredoka,sans-serif;color:#2b2250}
 .cg-shape svg{width:46px;height:46px}.cg-shape:hover{border-color:#b197fc}
 .cg-sh{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.cg-it{background:#f6f3ff;border-radius:12px;padding:6px;text-align:center;width:92px;font-size:12px;color:#6a5fa0}.cg-it svg{width:70px;height:auto}.cg-it b{display:block;color:#2b2250;font-size:12.5px}
-.cg-zoom{width:100%;max-width:220px;height:auto;display:block;margin:6px auto}`;document.head.appendChild(s);}
+.cg-zoom{width:100%;max-width:220px;height:auto;display:block;margin:6px auto}
+.cg-goal{background:#e5dbff;border-radius:12px;padding:8px 12px;margin:4px 0 8px;font-size:15px;color:#2b2250}.cg-n{float:right;font-weight:700;color:#5f3dc4}
+.cg-mat{display:flex;align-items:center;gap:10px;background:#f6f3ff;border-radius:12px;padding:8px 10px;margin:6px 0}.cg-mat.ok{background:#ebfbee}.cg-mat.no{background:#fff5f5}
+.cg-tick{font-size:18px}.cg-mi{font-size:26px}.cg-mt{flex:1}.cg-mt b{display:block;color:#2b2250}.cg-mt small{color:#6a5fa0;font-size:13px}
+.cg-q{font-size:18px;font-weight:700;margin:4px 0 10px;color:#2b2250}.cg-shapebig{width:110px;height:110px}.cg-rulerpic{width:100%;max-width:560px;height:auto;display:block;margin:4px auto}
+.cg-row .btn:disabled{opacity:.45}.cg-jar{position:relative}.cg-first{box-shadow:0 0 0 4px #ffd43b}.cg-star{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#ffd43b;color:#5a3b00;font-weight:700;font-size:12px;border-radius:999px;padding:2px 10px;white-space:nowrap}
+.cg-jr{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}.cg-tab{border-collapse:collapse;font-size:15px;color:#2b2250}.cg-tab td,.cg-tab th{padding:4px 10px;border-bottom:1px solid #e6e0ff;text-align:left}.cg-graph{width:100%;max-width:320px;height:auto;border:2px solid #e6e0ff;border-radius:10px}.cg-prize{background:#ffe8cc}`;document.head.appendChild(s);}
 function card(inner){css();modal(`<div class="mcard cg-card">${inner}</div>`);}
 function open(){VIEW=null;draw();}
-function draw(){const p=P();if(!p)return;const s=st(p);
- if(VIEW&&VIEW.k==='tend')return drawTend(p,s);if(VIEW&&VIEW.k==='start')return drawStart(p,s);if(VIEW&&VIEW.k==='done')return drawDone(p,s);if(VIEW&&VIEW.k==='zoom')return drawZoom(p,s);
- const cells=JARS.map(jar=>{const j=s.j[jar.id],ok=open_(p,jar),k=j?Math.min(1,j.mm/jar.mm):0,done=j&&j.d>=jar.days;
-  let btn,line;
-  if(!ok){const nudge=jar.need&&jar.need.min&&maybeHas(p,jar.need.min);btn=nudge?`<button class="btn gold small" onclick="CG.bench()">🔬 Identify my rocks</button>`:`<button class="btn ghost dark small" disabled>🔒 Locked</button>`;line=needText(jar,p)+(nudge?'. <b>You are carrying a rock that might be it!</b>':'');}
-  else if(!j){btn=`<button class="btn gold small" onclick="CG.start('${jar.id}')">✨ Start a jar</button>`;line=s.n[jar.id]?`Grown ${s.n[jar.id]}× · best ${s.best[jar.id]} mm`:'Empty jar';}
-  else if(done){btn=`<button class="btn gold small" onclick="CG.collect('${jar.id}')">🎉 Put it on the shelf</button>`;line='Fully grown!';}
-  else if(j.last===dayKey()){btn=`<button class="btn ghost dark small" disabled>✅ Tended today</button>`;line=`Day ${j.d} of ${jar.days} · ${j.mm} mm`;}
-  else{btn=`<button class="btn green small" onclick="CG.tend('${jar.id}')">${jar.tend}</button>`;line=`Day ${j.d} of ${jar.days} · 💧 ready today`;}
-  const z=ZOOMS.includes(jar.id)&&rideDone(p,jar)&&(j||s.n[jar.id])?`<button class="btn ghost dark small" style="margin-top:4px" onclick="CG.zoom('${jar.id}')">🔍 Zoom in</button>`:'';
-  return `<div class="cg-jar">${ok?svg(jar.id,j?k:(s.n[jar.id]?1:0),j&&j.col):`<div class="cg-lock">${svg(jar.id,.6)}</div>`}<b>${jar.e} ${esc2(jar.n)}</b><small>${line}</small><div class="cg-bar"><i style="width:${j?Math.round(j.d/jar.days*100):0}%"></i></div>${btn}${z}</div>`;}).join('');
- card(`<h2>💎 Crystal Garden</h2><p class="cg-sub">Tend each jar once a day you play. Tending every time you play grows the biggest crystals. Grown crystals go on your Crystal Shelf.</p><div class="cg-shelf">${cells}</div>${shelfHTML(p)}<div class="cg-row"><button class="btn ghost dark" onclick="closeModal()">Close</button></div>`);}
+function draw(){const p=P();if(!p)return;const s=st(p);const k=VIEW&&VIEW.k;
+ const F={need:drawNeed,guess:drawGuess,saved:drawGuess,col:drawCol,tend:drawTend,meas:drawMeas,journal:drawJournal,most:drawMost,done:drawDone,zoom:drawZoom}[k];if(F)return F(p,s);
+ const kinds=JARS.filter(j=>s.n[j.id]).length,fresh=!kinds&&!Object.keys(s.j).length;
+ const cells=JARS.map(jar=>{const j=s.j[jar.id],kk=j?Math.min(1,j.mm/jar.mm):(s.n[jar.id]?1:0),miss=missing(p,jar);let btn,line;
+  if(j&&(j.log||[]).length<j.d){btn=`<button class="btn gold small" onclick="CG.meas('${jar.id}')">📏 Measure ${j.d>=jar.days?'and finish':'today'}</button>`;line=`Day ${j.d} of ${jar.days}: time to measure`;}
+  else if(j&&j.d>=jar.days){btn=`<button class="btn gold small" onclick="CG.journal('${jar.id}')">📓 Finish the journal</button>`;line='Fully grown!';}
+  else if(j&&j.last===dayKey()){btn=`<button class="btn ghost dark small" onclick="CG.journal('${jar.id}')">📓 Journal</button>`;line=`Day ${j.d} of ${jar.days} done · come back tomorrow`;}
+  else if(j){btn=`<button class="btn green small" onclick="CG.tend('${jar.id}')">🔬 Day ${j.d+1}: check on it</button>`;line=`Day ${j.d} of ${jar.days} · ${j.mm} mm`;}
+  else if(!miss.length){btn=`<button class="btn gold small" onclick="CG.need('${jar.id}')">✨ Start the experiment</button>`;line=s.n[jar.id]?`Grown ${s.n[jar.id]}× · record ${s.best[jar.id]} mm`:'Ready to start!';}
+  else{btn=`<button class="btn ghost dark small" onclick="CG.need('${jar.id}')">📋 What do I need?</button>`;line=`Need ${miss.length}`+(miss.length<=2?': '+miss.map(([kk,id])=>kk==='min'?window.CAVE_DATA.MIN[id].n:item(kk,id).n).join(', '):' things');}
+  const star=fresh&&jar.id==='sugar'?'<span class="cg-star">⭐ Start here</span>':'';
+  return `<div class="cg-jar${star?' cg-first':''}">${star}${svg(jar.id,kk,j&&j.col)}<b>${jar.e} ${esc2(jar.n)}</b><small>${line}</small><div class="cg-bar"><i style="width:${j?Math.round(j.d/jar.days*100):s.n[jar.id]?100:0}%"></i></div>${btn}${ZOOMS.includes(jar.id)&&rideDone(p,jar)&&s.n[jar.id]?`<button class="btn ghost dark small" style="margin-top:4px" onclick="CG.zoom('${jar.id}')">🔍 Zoom in</button>`:''}</div>`;}).join('');
+ card(`<h2>💎 Crystal Garden</h2><div class="cg-goal">${s.prize?'🥼 <b>Crystal Scientist!</b> You grew all 6. Keep beating your records!':`<b>Goal:</b> grow all 6 crystals. 🥼 Grow them all to become a Crystal Scientist (+300 🪙)!`}<span class="cg-n">${kinds} of 6</span></div>
+  <p class="cg-sub">${fresh?'Each crystal is a real experiment. Start with ⭐ Rock Candy!':'Check on each jar once a day you play: make the scientist\'s choice, then measure it. <b>Tip:</b> you can grow several jars at the same time!'}</p>
+  <div class="cg-shelf">${cells}</div>${shelfHTML(p)}<div class="cg-row"><button class="btn ghost dark" onclick="closeModal()">Close</button></div>`);}
 function shelfHTML(p){p=p||P();if(!p)return '';const s=st(p);if(!s.shelf.length)return '';
  return `<h3 style="margin:14px 0 4px">🏆 Crystal Shelf</h3><div class="cg-sh">${s.shelf.slice(-12).reverse().map(c=>{const jar=J(c.id);return jar?`<div class="cg-it">${svg(c.id,1,c.col)}<b>${c.pf?'✨ ':''}${esc2(jar.n)}</b>${c.mm} mm</div>`:'';}).join('')}</div>`;}
-/* starting a jar: guess the shape first (science thinking), rock candy also picks a colour */
-function start(id){const p=P(),jar=J(id);if(!p||!jar||!open_(p,jar))return;const s=st(p);if(s.j[id])return;try{SFX.tap();}catch(e){}
- if(s.n[id]){VIEW={k:'start',id,guess:jar.shape,step:'col'};if(id==='sugar')draw();else begin(p,id,jar.shape,'');return;} /* growing it again: straight in (rock candy still picks a colour) */
- VIEW={k:'start',id,step:'guess'};draw();}
-function drawStart(p,s){const jar=J(VIEW.id);
- if(VIEW.step==='col'){card(`<h2>${jar.e} ${esc2(jar.n)}</h2><p class="cg-sub">What colour should your rock candy be? (A drop of food colouring!)</p><div class="cg-opts">${COLORS.map(c=>`<button class="cg-shape" onclick="CG._col('${c.id}')">${svg('sugar',1,c.id,'')}<span>${c.n}</span></button>`).join('')}</div>`);return;}
- const wrong=Object.keys(SHAPES).filter(k=>k!==jar.shape);const opts=[jar.shape,...wrong.sort(()=>Math.random()-.5).slice(0,2)].sort(()=>Math.random()-.5);
- card(`<h2>${jar.e} ${esc2(jar.n)}</h2><div class="cg-fact">🔬 <b>Dr. Quartz:</b> ${esc2(jar.how)}</div><p style="margin:6px 0"><b>Make a guess!</b> What shape do you think the crystals will be? We'll find out when it's grown.</p><div class="cg-opts">${opts.map(k=>`<button class="cg-shape" onclick="CG._guess('${k}')"><svg viewBox="0 0 40 40">${SHAPES[k].svg}</svg><span>${SHAPES[k].n}</span></button>`).join('')}</div><div class="cg-row"><button class="btn ghost dark small" onclick="CG.back()">← Back</button></div>`);}
-function guess(k){const p=P();if(!p||!VIEW||VIEW.k!=='start')return;VIEW.guess=k;if(VIEW.id==='sugar'){VIEW.step='col';draw();return;}begin(p,VIEW.id,k,'');}
-function pickCol(c){const p=P();if(!p||!VIEW)return;begin(p,VIEW.id,VIEW.guess,c);}
-function begin(p,id,g,col){const s=st(p);const jar=J(id);s.j[id]={d:0,mm:0,last:'',guess:g||'',tgt:s.n[id]?Math.round(jar.mm*(.85+Math.random()*.3)):jar.mm,col:col||'',gaps:0};save();try{SFX.coin();}catch(e){}VIEW=null;tend(id);}
-/* tending: one day of growth, a ruler question and a fact */
-function tend(id){const p=P(),jar=J(id);if(!p||!jar)return;const s=st(p),j=s.j[id];if(!j||j.d>=jar.days||j.last===dayKey())return;
- const y=j.mm,gap=missed(p,j.last);if(gap)j.gaps=(j.gaps||0)+1;
- const T=j.tgt||jar.mm;j.d++;const step=T/jar.days;j.mm=Math.max(y+1,Math.round(j.mm+(gap?step*GAP_STEP:step)));if(j.d>=jar.days&&!j.gaps)j.mm=T;j.mm=Math.min(j.mm,T);j.last=dayKey();save();try{SFX.correct();}catch(e){}
- /* the ruler question rotates so it never gets samey: how much it grew → how much is left → how big tomorrow */
- const best=s.best[id]||0,rec=!!s.n[id],goal=rec?best:jar.mm;let typ=j.d>=jar.days?'grow':['grow','left','next'][(j.d-1)%3];if(typ==='left'&&goal<=j.mm)typ='grow'; /* regrown: how far to your record */
- const diff=j.mm-y,right=typ==='grow'?diff:typ==='left'?goal-j.mm:j.mm+diff;
- const opts=[...new Set([right,right+2,Math.max(0,right-1),right+1])].slice(0,3).sort(()=>Math.random()-.5);
- VIEW={k:'tend',id,y,t:j.mm,typ,right,opts,ans:null,gap,goal,rec,max:Math.max(jar.mm,best,T)};draw();}
-function rulerSVG(y,t,max){const W=200,px=mm=>10+mm/Math.max(max,t)*180;let s=`<rect x="6" y="28" width="${W-2}" height="22" rx="3" fill="#ffe8a3" stroke="${O}" stroke-width="2"/>`;
- const top=Math.max(max,t),stp=top<=20?1:5,lab=top<=20?5:10;for(let m=0;m<=top;m+=stp){const x=px(m);s+=`<path d="M${x} 28 v${m%lab?(m%5?4:6):10}" stroke="${O}" stroke-width="${m%lab?1:1.5}"/>`;if(m%lab===0)s+=`<text x="${x}" y="47" text-anchor="middle" font-size="8" font-family="Fredoka,sans-serif" fill="${O}">${m}</text>`;}
- s+=`<rect x="10" y="8" width="${px(y)-10}" height="7" rx="3" fill="#ced4da"/><rect x="10" y="17" width="${px(t)-10}" height="7" rx="3" fill="#b197fc"/>`;return `<svg viewBox="0 0 ${W+10} 54">${s}</svg>`;}
-function drawTend(p,s){const v=VIEW,jar=J(v.id),j=s.j[v.id];const k=j?Math.min(1,j.mm/jar.mm):1;const fs=s.n[v.id]&&jar.f2?jar.f2:jar.f;const fact=fs[Math.min(fs.length-1,(j?j.d:jar.days)-1)];
- const ask=v.typ==='left'?`Today it is ${v.t} mm. ${v.rec?`Your record is ${v.goal} mm`:`A full-size one is ${v.goal} mm`}. <b>How many more mm to ${v.rec?'reach your record':'full size'}?</b>`:v.typ==='next'?`Yesterday ${v.y} mm, today ${v.t} mm. <b>If it grows the same again, how big will it be tomorrow?</b>`:`<b>Yesterday: ${v.y} mm. Today: ${v.t} mm.</b> How much did it grow?`;
- const how=v.typ==='left'?`${v.goal} − ${v.t} = ${v.right} mm`:v.typ==='next'?`${v.t} + ${v.t-v.y} = ${v.right} mm`:`${v.t} − ${v.y} = ${v.right} mm`;
- const q=v.ans==null?`<p style="margin:6px 0">${ask}</p><div class="cg-opts">${v.opts.map(o=>`<button class="btn gold" onclick="CG._ans(${o})">${o} mm</button>`).join('')}</div>`
-  :v.ans===v.right?`<p style="margin:6px 0"><b>✅ Yes! ${how}.</b> +${RULER_COINS} 🪙</p>`:`<p style="margin:6px 0"><b>Not quite:</b> ${how}.</p>`;
- card(`<h2>${jar.e} ${esc2(jar.n)} · Day ${j?j.d:jar.days} of ${jar.days}</h2><div class="cg-big">${svg(jar.id,k,j&&j.col)}<div style="flex:1;min-width:200px"><div class="cg-ruler">${rulerSVG(v.y,v.t,v.max||jar.mm)}<div class="cg-key"><i style="background:#ced4da;margin-left:0"></i>yesterday <i style="background:#b197fc"></i>today · in mm</div></div>${q}</div></div>
-  ${v.gap?'<p class="cg-sub" style="margin:4px 0">💭 It grew a little less: you played a day without tending it. Tend it every day you play for the biggest crystal.</p>':''}
-  <div class="cg-fact">🔬 <b>Dr. Quartz:</b> ${esc2(fact)}</div><div class="cg-row">${j&&j.d>=jar.days?`<button class="btn gold" onclick="CG.collect('${jar.id}')">🎉 See your crystal!</button>`:''}<button class="btn ghost dark" onclick="CG.back()">← Crystal Garden</button></div>`);}
-function ans(o){const p=P();if(!p||!VIEW||VIEW.k!=='tend'||VIEW.ans!=null)return;VIEW.ans=o;if(o===VIEW.right){p.coins=(p.coins||0)+RULER_COINS;try{SFX.coin();}catch(e){}save();}else{try{SFX.wrong();}catch(e){}}draw();}
-/* a grown crystal: reveal the guess, coins and research points, the shelf, and Ozzy's ticket for that substance */
-function collect(id){const p=P(),jar=J(id);if(!p||!jar)return;const s=st(p),j=s.j[id];if(!j||j.d<jar.days)return;
- const pf=Math.random()<1/PERFECT_IN,first=!s.n[id],right=first&&j.guess===jar.shape,prev=s.best[id]||0,rec=!first&&j.mm>prev;
- const coins=Math.round((jar.coins+j.mm)*(pf?2:1))+(first?25:0)+(rec?RECORD_COINS:0);p.coins=(p.coins||0)+coins;try{p.cave=p.cave||{};p.cave.rp=(p.cave.rp||0)+5+(right?5:0);}catch(e){}
- s.shelf.push({id,mm:j.mm,col:j.col||'',pf:pf?1:0,at:dayKey()});if(s.shelf.length>60)s.shelf.splice(0,s.shelf.length-60);s.n[id]=(s.n[id]||0)+1;s.best[id]=Math.max(s.best[id]||0,j.mm);delete s.j[id];
+/* the materials list: what you need, what you have, what is missing and how to get it */
+function need(id){const p=P(),jar=J(id);if(!p||!jar)return;try{SFX.tap();}catch(e){}VIEW={k:'need',id};draw();}
+function drawNeed(p,s){const jar=J(VIEW.id),miss=missing(p,jar);
+ const rows=jar.need.map(([k,id])=>{const ok=has(p,k,id);
+  if(k==='min'){const m=window.CAVE_DATA.MIN[id];const car=carrying(p,id);return `<div class="cg-mat ${ok?'ok':'no'}"><span class="cg-tick">${ok?'✅':'❌'}</span><span class="cg-mi">🪨</span><div class="cg-mt"><b>${esc2(m.n)}${id==='halite'?' (rock salt)':''}</b><small>${ok?'You found it in the cave and identified it.':car?'<b>You are carrying one!</b> Test it at the Field Lab bench to find out what it is.':`Find it in the cave (${where(id)}), then test it at the 🔬 Field Lab bench to identify it.`}</small></div>${ok?'':car?`<button class="btn gold small" onclick="CG.bench()">🔬 Identify it</button>`:`<button class="btn ghost dark small" onclick="CG.dig()">🛗 Go dig</button>`}</div>`;}
+  const it=item(k,id),cnt=k==='in'?(s.inv[id]||0):0,lockd=it.need&&!has(p,'min',it.need);
+  return `<div class="cg-mat ${ok?'ok':'no'}"><span class="cg-tick">${ok?'✅':'❌'}</span><span class="cg-mi">${it.e}</span><div class="cg-mt"><b>${esc2(it.n)}</b><small>${it.say&&it.say!=='(old)'?esc2(it.say)+' ':''}${k==='eq'?(ok?'Yours to keep.':'Buy once, keep forever.'):(ok?`You have ${cnt}. Starting uses 1.`:'Used up each time you grow one.')}${lockd?` Dr. Quartz only has it once you've identified ${esc2(window.CAVE_DATA.MIN[it.need].n.toLowerCase())}.`:''}</small></div>${!ok&&!lockd?`<button class="btn gold small" onclick="CG.buy('${k}','${id}')" ${(p.coins||0)<it.c?'disabled':''}>Buy 🪙 ${it.c}</button>`:''}</div>`;}).join('');
+ card(`<h2>${jar.e} ${esc2(jar.n)}</h2><div class="cg-fact">🔬 <b>Dr. Quartz:</b> ${esc2(jar.how)}</div><h3 style="margin:10px 0 6px">📋 What you need</h3>${rows}
+  <p class="cg-sub" style="margin:10px 0 0">${miss.length?`You still need <b>${miss.length}</b> thing${miss.length>1?'s':''}. You have 🪙 ${(p.coins||0).toLocaleString()}.`:'<b>✅ You have everything!</b>'}</p>
+  <div class="cg-row"><button class="btn ghost dark" onclick="CG.back()">← Crystal Garden</button><button class="btn green" onclick="CG.start('${jar.id}')" ${miss.length?'disabled':''}>✨ Start the experiment</button></div>`);}
+function buy(k,id){const p=P(),it=item(k,id);if(!p||!it)return;if(it.need&&!has(p,'min',it.need))return;if((p.coins||0)<it.c){toast(`🪙 You need ${it.c-(p.coins||0)} more coins.`);return;}
+ const s=st(p);if(k==='eq'){if(s.inv[id])return;s.inv[id]=1;}else s.inv[id]=(s.inv[id]||0)+1;p.coins-=it.c;save();try{SFX.coin();}catch(e){}toast(`${it.e} ${it.n}: bought!`);draw();}
+function dig(){try{closeModal();}catch(e){}try{if(window.Lab&&Lab.tap)Lab.tap('elev');}catch(e){}}
+/* starting: everything must be there; ingredients are used up; the first time, a prediction (checked on the last day) */
+/* each day's share of the growth: real crystals grow fastest at first, then slow down; a little natural variety; no two days equal */
+function weights(n){let w=[];for(let i=0;i<n;i++)w.push(Math.sin(Math.PI*(i+.7)/(n+.4))*(.8+Math.random()*.4));const t=w.reduce((a,b)=>a+b,0);w=w.map(x=>x/t);
+ for(let i=1;i<n;i++)if(Math.abs(w[i]-w[i-1])<.04/n){w[i]*=.9;}const t2=w.reduce((a,b)=>a+b,0);return w.map(x=>Math.round(x/t2*1000)/1000);}
+function start(id){const p=P(),jar=J(id);if(!p||!jar)return;const s=st(p);if(s.j[id]||missing(p,jar).length)return;
+ jar.need.forEach(([k,x])=>{if(k==='in')s.inv[x]=Math.max(0,(s.inv[x]||0)-1);});
+ s.j[id]={d:0,mm:0,tgt:s.n[id]?Math.round(jar.mm*(.85+Math.random()*.3)):jar.mm,col:'',good:0,last:'',log:[],pred:'',w:weights(jar.days)};save();try{SFX.coin();}catch(e){}
+ VIEW=s.seen[id]?(id==='sugar'?{k:'col',id}:null):{k:'guess',id};if(!VIEW){tend(id);return;}draw();}
+const PAIRS={chunk:'box',box:'chunk'};
+function drawGuess(p,s){const jar=J(VIEW.id);
+ if(VIEW.k==='saved'){card(`<h2>📝 Prediction saved!</h2><div class="cg-big"><svg viewBox="0 0 40 40" class="cg-shapebig">${SHAPES[VIEW.pick].svg}</svg><div style="flex:1;min-width:200px"><p style="margin:0 0 6px;font-size:18px">You predicted: <b>${esc2(SHAPES[VIEW.pick].n.toLowerCase())}</b>.</p><p class="cg-sub" style="margin:0">On the last day you'll see if you were right. Scientists don't know the answer before they start: that's why they experiment!</p></div></div><div class="cg-row"><button class="btn green" onclick="CG._go()">Let's grow it! ➜</button></div>`);return;}
+ const wrong=Object.keys(SHAPES).filter(k=>k!==jar.shape&&k!==PAIRS[jar.shape]);const opts=VIEW.opts||(VIEW.opts=[jar.shape,...wrong.sort(()=>Math.random()-.5).slice(0,2)].sort(()=>Math.random()-.5));
+ card(`<h2>${jar.e} ${esc2(jar.n)}: make a prediction</h2><p style="margin:4px 0 10px">Scientists guess first, then test. <b>What shape do you think these crystals will grow into?</b> You'll find out on the last day.</p><div class="cg-opts">${opts.map(k=>`<button class="cg-shape" onclick="CG._guess('${k}')"><svg viewBox="0 0 40 40">${SHAPES[k].svg}</svg><span>${SHAPES[k].n}</span></button>`).join('')}</div>`);}
+function guess(k){const p=P();if(!p||!VIEW||VIEW.k!=='guess')return;const s=st(p),j=s.j[VIEW.id];if(j)j.pred=k;s.seen[VIEW.id]=1;save();try{SFX.tap();}catch(e){}VIEW={k:'saved',id:VIEW.id,pick:k};draw();}
+function go(){const id=VIEW&&VIEW.id;if(!id)return;if(id==='sugar'){VIEW={k:'col',id};draw();return;}tend(id);}
+function drawCol(p,s){card(`<h2>🍬 Rock Candy</h2><p class="cg-sub">One drop of food colouring: what colour should yours be?</p><div class="cg-opts">${COLORS.map(c=>`<button class="cg-shape" onclick="CG._col('${c.id}')">${svg('sugar',1,c.id,'')}<span>${c.n}</span></button>`).join('')}</div>`);}
+function pickCol(c){const p=P();if(!p||!VIEW)return;const j=st(p).j[VIEW.id];if(j){j.col=c;save();}tend(VIEW.id);}
+/* each day: one scientist's choice */
+function tend(id){const p=P(),jar=J(id);if(!p||!jar)return;const s=st(p),j=s.j[id];if(!j||j.d>=jar.days||j.last===dayKey()){VIEW=null;draw();return;}
+ if((j.log||[]).length<j.d){meas(id);return;} /* yesterday's measuring first */
+ const set=(s.n[id]%2===1&&jar.q2)?'q2':'q';VIEW={k:'tend',id,set,qi:j.d%jar[set].length,order:[0,1].sort(()=>Math.random()-.5),pick:null};try{SFX.tap();}catch(e){}draw();}
+function choose(i){const p=P();if(!p||!VIEW||VIEW.k!=='tend'||VIEW.pick!=null)return;const jar=J(VIEW.id),s=st(p),j=s.j[VIEW.id];if(!j||j.last===dayKey())return;
+ const good=i===0,T=j.tgt||jar.mm,step=j.w&&j.w[j.d]!=null?T*j.w[j.d]:T/jar.days,y=j.mm;j.d++;if(good)j.good=(j.good||0)+1;j.mm=Math.min(T,Math.max(y+1,Math.round(y+(good?step:step*WRONG_STEP))));if(j.d>=jar.days&&j.good>=jar.days)j.mm=T;if(j.d<jar.days&&j.mm>=T)j.mm=T-(jar.days-j.d);j.last=dayKey();
+ j.log=j.log||[];while(j.log.length<j.d-1)j.log.push(null);save();try{good?SFX.correct():SFX.wrong();}catch(e){}VIEW.pick=i;draw();}
+function drawTend(p,s){const v=VIEW,jar=J(v.id),j=s.j[v.id],Q=jar[v.set||'q'][v.qi];const k=j?Math.min(1,j.mm/jar.mm):0;
+ const body=v.pick==null?`<p class="cg-q">${esc2(Q.q)}</p><div class="cg-opts">${v.order.map(i=>`<button class="btn gold" onclick="CG._choose(${i})">${esc2(Q.a[i])}</button>`).join('')}</div>`
+  :`<p class="cg-q">${v.pick===0?'✅ Good thinking!':'🤔 Not the best choice.'}</p><div class="cg-fact">🔬 <b>Dr. Quartz:</b> ${v.pick===0?'':`The better choice was “${esc2(Q.a[0])}”. `}${Q.why}</div><p style="margin:6px 0">${v.pick===0?'It grew well today!':'It only grew a little today.'} How much? Measure it and see!</p>
+   <div class="cg-row"><button class="btn gold" onclick="CG.meas('${jar.id}')">📏 Measure it</button></div>`;
+ card(`<h2>${jar.e} ${esc2(jar.n)} · Day ${v.pick==null?(j?j.d+1:1):j.d} of ${jar.days}</h2><div class="cg-big">${svg(jar.id,k,j&&j.col)}<div style="flex:1;min-width:220px">${body}</div></div>`);}
+/* measuring every day: read the ruler. Grade 3: from 0; grade 4: the crystal starts part-way along; grade 5+: also in centimetres */
+function lvl(p){const g=+p.grade||3;return g<=3?0:g===4?1:2;}
+function meas(id){const p=P(),jar=J(id);if(!p||!jar)return;const j=st(p).j[id];if(!j||(j.log||[]).length>=j.d)return;const L=lvl(p),v=j.mm,off=L?5+Math.floor(Math.random()*11):0,cm=L>=2&&j.d%2===0;
+ const pool=L===0?[v-5,v-3,v+3,v+5]:cm?[v*10,off+v,v+2]:[v-2,v-1,v+1,v+2,off+v]; /* grade 5 cm traps: the mm number read as cm, and the end mark */let wrong=[...new Set(pool.filter(x=>x>0&&x!==v&&x!==off+v))].sort(()=>Math.random()-.5);if(L)wrong.unshift(off+v); /* reading the end instead of subtracting */if(cm&&!wrong.includes(v*10))wrong.splice(1,0,v*10);
+ const opts=[v,...wrong.slice(0,2)].sort((a,b)=>a-b);VIEW={k:'meas',id,off,cm,opts,pick:null};try{SFX.tap();}catch(e){}draw();}
+function rulerPic(id,off,mm,col,cmL){const span=Math.max(20,Math.ceil((off+mm+4)/10)*10),px=v=>20+v/span*420,lab=cmL?10:span<=20?5:10;let r='';
+ for(let v=0;v<=span;v++){const x=px(v),big=v%lab===0,mid=v%5===0;r+=`<path d="M${x} 110 v${big?-22:mid?-15:-9}" stroke="${O}" stroke-width="${big?2:1}"/>`;if(big)r+=`<text x="${x}" y="128" text-anchor="middle" font-size="12" font-family="Fredoka,sans-serif" fill="${O}">${cmL?v/10:v}</text>`;}
+ const c=COLORS.find(x=>x.id===(col||''))||COLORS[0],cc={sugar:c.c,salt:'#f1f3f5',alum:'#f8f9fa',epsom:'#e7f5ff',copper:'#339af0',drip:'#e8dfc8'}[id]||'#dee2e6',a=px(off),b=px(off+mm),e=Math.min(8,(b-a)/3);
+ return `<svg viewBox="0 0 460 136" class="cg-rulerpic"><rect x="10" y="84" width="440" height="50" rx="4" fill="#ffe8a3" stroke="${O}" stroke-width="2"/>${r}<text x="446" y="100" text-anchor="end" font-size="11" font-family="Fredoka,sans-serif" fill="${O}">${cmL?'cm':'mm'}</text>
+  <path d="M${a} 60 L${a+e} 40 L${b-e} 38 L${b} 58 L${b-e*.8} 76 L${a+e*.8} 78 Z" fill="${cc}" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/><path d="M${a} 30 V86 M${b} 30 V86" stroke="#e03131" stroke-width="1.5" stroke-dasharray="4 3"/></svg>`;}
+const fmtL=(v,cm)=>cm?`${+(v/10).toFixed(1)} cm`:`${v} mm`;
+function drawMeas(p,s){const v=VIEW,jar=J(v.id),j=s.j[v.id];if(!j){VIEW=null;draw();return;}
+ const ask=v.off?`The crystal does <b>not</b> start at 0! Find where it starts and where it ends. <b>How long is it${v.cm?' in centimetres':''}?</b>${v.cm?' (10 mm = 1 cm)':''}`:'<b>How long is the crystal?</b> It starts at 0. Find where its end lines up.';
+ const body=v.pick==null?`<div class="cg-opts" style="margin-top:8px">${v.opts.map(o=>`<button class="btn gold" onclick="CG._meas(${o})">${fmtL(o,v.cm)}</button>`).join('')}</div>`
+  :`<p class="cg-q" style="margin-top:8px">${v.pick===j.mm?`✅ Yes! It is ${fmtL(j.mm,v.cm)} long. +3 🪙`:`🤔 Not quite. ${v.off?`It starts at ${v.off} and ends at ${v.off+j.mm}, so it is ${v.off+j.mm} − ${v.off} = `:'Its end lines up with '}<b>${j.mm} mm</b>${v.cm?` = ${(j.mm/10).toFixed(1)} cm`:''}.`}</p><div class="cg-row"><button class="btn green" onclick="CG.journal('${jar.id}')">📓 Write it in the journal ➜</button></div>`;
+ card(`<h2>📏 Day ${j.d}: measure your ${esc2(jar.n)}</h2><p style="margin:4px 0 8px">${ask}</p>${rulerPic(jar.id,v.off,j.mm,j.col,lvl(p)>=1)}${body}`);}
+function measured(o){const p=P();if(!p||!VIEW||VIEW.k!=='meas'||VIEW.pick!=null)return;const s=st(p),j=s.j[VIEW.id];if(!j)return;
+ j.log=j.log||[];while(j.log.length<j.d-1)j.log.push(null);j.log[j.d-1]=j.mm;if(o===j.mm){p.coins=(p.coins||0)+3;try{SFX.coin();}catch(e){}}else{try{SFX.wrong();}catch(e){}}VIEW.pick=o;save();draw();}
+/* the journal: a table and a line graph of the measurements */
+function journal(id){VIEW={k:'journal',id};try{SFX.tap();}catch(e){}draw();}
+function graph(jar,log,T,prev){const n=jar.days,W=300,H=150,x=d=>34+(d-1)/(Math.max(1,n-1))*(W-50),max=Math.max(10,Math.ceil(Math.max(T,...log.filter(v=>v!=null))/10)*10),y=v=>H-24-v/max*(H-40);let s=`<rect x="0" y="0" width="${W}" height="${H}" rx="8" fill="#fff"/>`;
+ for(let v=0;v<=max;v+=max/2)s+=`<path d="M30 ${y(v)} H${W-10}" stroke="#e9ecef"/><text x="26" y="${y(v)+4}" text-anchor="end" font-size="10" fill="#868e96" font-family="Fredoka,sans-serif">${v}</text>`;
+ for(let d=1;d<=n;d++)s+=`<text x="${x(d)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#868e96" font-family="Fredoka,sans-serif">Day ${d}</text>`;
+ if(prev&&prev.length>1){const pp=prev.map((v,i)=>v==null?null:[x(i+1),y(v)]).filter(Boolean);s+=`<polyline points="${pp.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#adb5bd" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${W-12}" y="22" text-anchor="end" font-size="10" fill="#868e96" font-family="Fredoka,sans-serif">- - last time</text>`;}
+ const pts=log.map((v,i)=>v==null?null:[x(i+1),y(v)]).filter(Boolean);if(pts.length>1)s+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#7048e8" stroke-width="3"/>`;pts.forEach(([a,b])=>{s+=`<circle cx="${a}" cy="${b}" r="5" fill="#7048e8"/>`;});
+ return `<svg viewBox="0 0 ${W} ${H}" class="cg-graph">${s}<text x="8" y="14" font-size="10" fill="#868e96" font-family="Fredoka,sans-serif">mm</text></svg>`;}
+function drawJournal(p,s){const jar=J(VIEW.id),j=s.j[VIEW.id];if(!j){VIEW=null;draw();return;}const log=j.log||[];
+ const rows=log.map((v,i)=>{const prev=i?log[i-1]:0;return `<tr><td>Day ${i+1}</td><td>${v==null?'—':v+' mm'}</td><td>${v==null||prev==null?'—':'+'+(v-prev)+' mm'}</td></tr>`;}).join('');
+ const end=j.d>=jar.days&&log.length>=jar.days;
+ card(`<h2>📓 ${esc2(jar.n)} journal</h2><div class="cg-jr"><table class="cg-tab"><tr><th>Day</th><th>Length</th><th>Grew</th></tr>${rows}</table>${graph(jar,log,j.tgt||jar.mm,s.n[jar.id]&&s.prev&&s.prev[jar.id])}</div>
+  <div class="cg-row">${end?`<button class="btn gold" onclick="CG._most()">📈 Read the graph ➜</button>`:`<span class="cg-sub">Come back tomorrow for day ${j.d+1} of ${jar.days}.</span><button class="btn ghost dark" onclick="CG.back()">← Crystal Garden</button>`}</div>`);}
+/* the last day: read the graph, then the results */
+/* reading the graph on the last day: the question rotates (grew the most / grew the least / how much between two days) */
+function most(){const p=P();if(!p||!VIEW)return;const s=st(p),id=VIEW.id,j=s.j[id];if(!j)return;const log=(j.log||[]).map(v=>v||0),n=log.length,g=grew(log),L=lvl(p),prev=s.n[id]&&s.prev&&s.prev[id];
+ const kinds=prev&&prev.length===n&&s.n[id]%2===1?['compare']:L>=2?['avg','span','next']:L===1?['span','most','least']:['most','least','span'];let t=kinds[(s.shelf.length+n)%kinds.length];if(t==='span'&&n<3)t='most';
+ let q,opts,right,ans,tip;const mmO=x=>({v:x,l:x+' mm'});const mix=a=>{const u=[];a.forEach(o=>{if(!u.some(x=>x.v===o.v))u.push(o);});return u.slice(0,3).sort(()=>Math.random()-.5);};
+ if(t==='span'){const a=Math.floor(Math.random()*(n-2)),b=a+2+Math.floor(Math.random()*(n-a-2));right=log[b]-log[a];q=`How much did it grow from <b>day ${a+1}</b> to <b>day ${b+1}</b>?`;opts=mix([mmO(right),mmO(log[b]),mmO(right+3),mmO(Math.max(1,right-2))]);ans=right+' mm';tip='Find both days on the graph and subtract the smaller length from the bigger one.';}
+ else if(t==='avg'){const r1=x=>Math.round(x*10)/10;right=r1(log[n-1]/n);q=`It grew <b>${log[n-1]} mm</b> in <b>${n} days</b>. About how much is that <b>each day</b> on average?`;opts=mix([{v:right,l:right+' mm'},{v:r1(log[n-1]/(n-1)),l:r1(log[n-1]/(n-1))+' mm'},{v:log[n-1]-n,l:(log[n-1]-n)+' mm'}]);ans=`${log[n-1]} ÷ ${n} = ${right} mm a day`;tip='Share the total equally between the days: divide.';}
+ else if(t==='next'){right=log[n-1]+g[n-1];q=`On its last day it grew <b>+${g[n-1]} mm</b>. If it kept growing like that, how long would it be on <b>day ${n+1}</b>?`;opts=mix([mmO(right),mmO(log[n-1]),mmO(log[n-1]+g[0])]);ans=`${log[n-1]} + ${g[n-1]} = ${right} mm`;tip='Add the last day\'s growth to the last length.';}
+ else if(t==='compare'){right=Math.sign(log[n-1]-prev[n-1]);q=`Look at both lines. On the last day, was this crystal <b>longer or shorter</b> than last time?`;opts=[{v:1,l:'Longer'},{v:-1,l:'Shorter'},{v:0,l:'The same'}];ans=right>0?`longer (${log[n-1]} mm vs ${prev[n-1]} mm)`:right<0?`shorter (${log[n-1]} mm vs ${prev[n-1]} mm)`:`the same (${log[n-1]} mm)`;tip='The purple line is this time and the grey dashed line is last time: compare them at the last day.';}
+ else{right=t==='least'?Math.min(...g):Math.max(...g);q=`On which day did your crystal grow the <b>${t==='least'?'least':'most'}</b>?`;opts=g.map((x,i)=>({v:x,l:'Day '+(i+1)}));ans=`day ${g.indexOf(right)+1} (+${right} mm)`;tip=t==='least'?'Look for the flattest part of the line.':'Look for the steepest part of the line.';}
+ if(!opts.some(o=>o.v===right))opts[0]=t==='avg'?{v:right,l:right+' mm'}:mmO(right);
+ VIEW={k:'most',id,t,q,opts,right,ans,tip,pick:null};try{SFX.tap();}catch(e){}draw();}
+const grew=log=>log.map((v,i)=>(v||0)-(i?(log[i-1]||0):0));
+function drawMost(p,s){const v=VIEW,jar=J(v.id),j=s.j[v.id];if(!j){VIEW=null;draw();return;}
+ const body=v.pick==null?`<div class="cg-opts">${v.opts.map((o,i)=>`<button class="btn gold" onclick="CG._mostPick(${i})">${o.l}</button>`).join('')}</div>`
+  :`<p class="cg-q">${v.opts[v.pick].v===v.right?`✅ Yes! ${v.ans}. +10 🪙`:`🤔 ${v.tip} The answer is ${v.ans}.`}</p><div class="cg-row"><button class="btn green" onclick="CG._finish()">🎉 See the results ➜</button></div>`;
+ card(`<h2>📈 Read your graph</h2>${graph(jar,j.log||[],j.tgt||jar.mm,s.n[jar.id]&&s.prev&&s.prev[jar.id])}<p style="margin:8px 0">${v.q}</p>${body}`);}
+function mostPick(i){const p=P();if(!p||!VIEW||VIEW.k!=='most'||VIEW.pick!=null)return;if(VIEW.opts[i].v===VIEW.right){p.coins=(p.coins||0)+10;save();try{SFX.correct();}catch(e){}}else{try{SFX.wrong();}catch(e){}}VIEW.pick=i;draw();}
+/* the results: prediction checked, the shelf, rewards, Ozzy's ticket or Zoom in, the all-6 prize */
+function finish(){const p=P();if(!p||!VIEW)return;const id=VIEW.id,jar=J(id),s=st(p),j=s.j[id];if(!j||j.d<jar.days)return;
+ const pf=Math.random()<1/PERFECT_IN,first=!s.n[id],prev=s.best[id]||0,rec=!first&&j.mm>prev,predOK=!!j.pred&&j.pred===jar.shape;
+ const coins=Math.round((jar.coins+j.mm)*(pf?2:1))+(first?25:0)+(rec?RECORD_COINS:0);p.coins=(p.coins||0)+coins;try{p.cave=p.cave||{};p.cave.rp=(p.cave.rp||0)+5+(predOK?5:0);}catch(e){}
+ s.prev=s.prev||{};s.prev[id]=(j.log||[]).slice();s.shelf.push({id,mm:j.mm,col:j.col||'',pf:pf?1:0,at:dayKey()});if(s.shelf.length>60)s.shelf.splice(0,s.shelf.length-60);s.n[id]=(s.n[id]||0)+1;s.best[id]=Math.max(prev,j.mm);delete s.j[id];
  let tix=null,zoomNow=false,full=false;try{if(jar.ride){const al=p.inner&&p.inner.album;if(al&&al[jar.ride]!=null){if(!s.zoom[id]){s.zoom[id]=1;zoomNow=true;}}else if(window.Inner&&Inner.awardRide){tix=Inner.awardRide(p,jar.ride);if(!tix){full=!!(Inner.isFull&&Inner.isFull(p));if(!full&&!s.zoom[id]){s.zoom[id]=1;zoomNow=true;}}}}}catch(e){}
+ const kinds=JARS.filter(x=>s.n[x.id]).length;let prize=false;if(kinds>=6&&!s.prize){s.prize=1;p.coins+=PRIZE;prize=true;}
  save();try{SFX.win();}catch(e){}
- VIEW={k:'done',id,mm:j.mm,col:j.col,pf,coins,right,guess:j.guess,again:!first,rec,prev,tix:!!tix,zoomNow,pocket:full,full:j.tgt||jar.mm,gaps:j.gaps};draw();}
+ VIEW={k:'done',id,mm:j.mm,col:j.col,pf,coins,first,rec,prev,good:j.good||0,days:jar.days,pred:j.pred,predOK,tix:!!tix,zoomNow,pocket:full,kinds,prize,cm:lvl(p)>=1};draw();}
 function drawDone(p,s){const v=VIEW,jar=J(v.id);
- card(`<h2>🎉 ${esc2(jar.n)}: fully grown!</h2><div class="cg-big">${svg(jar.id,1,v.col)}<div style="flex:1;min-width:200px">
-  <p style="margin:0 0 6px">${v.pf?'<b>✨ A PERFECT crystal!</b> Not a single crack. Double coins! ':''}It is <b>${v.mm} mm</b>.${v.gaps?' Tending it every time you play grows it bigger.':''}</p>
-  <p style="margin:0 0 6px">${v.again?(v.rec?`<b>🏆 New record!</b> Your best was ${v.prev} mm. +${RECORD_COINS} 🪙`:v.mm===v.prev?`You matched your record of ${v.prev} mm!`:`Your record is still <b>${v.prev} mm</b>. Every crystal grows a little different: try again to beat it!`):`You guessed <b>${esc2((SHAPES[v.guess]||{n:'?'}).n.toLowerCase())}</b>. ${v.right?'<b>✅ You were right!</b> +5 🔬':`It's <b>${esc2(SHAPES[jar.shape].n.toLowerCase())}</b>. Good try!`}`}</p>
-  <p style="margin:0"><b>+${v.coins} 🪙 · +${5+(v.right?5:0)} 🔬</b> It's on your Crystal Shelf (in the Museum too).</p></div></div>
-  ${v.tix?`<div class="cg-fact">🎟️ <b>Ozzy's Shrink Ticket!</b> Ozzy wants to shrink you down <b>inside</b> your ${esc2(jar.n.toLowerCase())} to see why it grows this shape. He'll pick you up after a few battles.</div>`:''}${v.pocket?`<div class="cg-fact">🎟️ Ozzy had a Shrink Ticket for you, but your ticket pocket is full! Take a ride with Ozzy to make room.</div>`:''}${v.zoomNow?`<div class="cg-fact">🔍 You've already been inside ${esc2(jar.id==='drip'?'water':jar.n.toLowerCase())} with Ozzy, so <b>Zoom in</b> is open on this jar: see the atoms inside your crystal!</div>`:''}
+ card(`<h2>🎉 ${esc2(jar.n)}: on your Crystal Shelf!</h2><div class="cg-big">${svg(jar.id,1,v.col)}<div style="flex:1;min-width:220px">
+  ${v.pred?`<p style="margin:0 0 6px">📝 You predicted <b>${esc2(SHAPES[v.pred].n.toLowerCase())}</b>. It grew as <b>${esc2(SHAPES[jar.shape].n.toLowerCase())}</b>. ${v.predOK?'<b>✅ Your prediction was right!</b> +5 🔬':'Your prediction was different: that\'s exactly why scientists test their ideas!'}</p><p class="cg-sub" style="margin:0 0 6px">${esc2(jar.shapeWhy)}</p>`:''}
+  <p style="margin:0 0 6px">Final length: <b>${v.mm} mm</b>${v.cm?` (${(v.mm/10).toFixed(1)} cm)`:''}. You made <b>${v.good} of ${v.days}</b> good choices.${v.good<v.days?' Every good choice grows it bigger.':' Perfect care!'}${v.pf?' <b>✨ It came out PERFECT: double coins!</b>':''}${v.rec?` <b>🏆 New record!</b> (Your best was ${v.prev} mm.) +${RECORD_COINS} 🪙`:''}</p>
+  <p style="margin:0"><b>+${v.coins} 🪙 · +5 🔬</b> <small class="cg-sub">(🔬 research points buy cave gear)</small> · Crystals grown: <b>${v.kinds} of 6</b></p></div></div>
+  ${v.prize?`<div class="cg-fact cg-prize">🥼 <b>You grew all 6 crystals! You are a Crystal Scientist!</b> +${PRIZE} 🪙</div>`:''}
+  ${v.tix?`<div class="cg-fact">🎟️ <b>Ozzy's Shrink Ticket!</b> Ozzy will shrink you down <b>inside</b> your ${esc2(jar.id==='drip'?'water drop':jar.n.toLowerCase())} to see why it grows this way. He comes to find you on the map after 3 more battles.</div>`:''}${v.pocket?`<div class="cg-fact">🎟️ Ozzy had a Shrink Ticket for you, but your ticket pocket is full! Ride with Ozzy to make room.</div>`:''}${v.zoomNow?`<div class="cg-fact">🔍 You've already been inside ${esc2(jar.id==='drip'?'water':jar.n.toLowerCase())} with Ozzy, so <b>Zoom in</b> is open on this jar: see the atoms inside your crystal!</div>`:''}
   <div class="cg-row"><button class="btn gold" onclick="CG.back()">💎 Back to the garden</button></div>`);}
 function zoom(id){VIEW={k:'zoom',id};try{SFX.tap();}catch(e){}draw();}
 function drawZoom(p,s){const jar=J(VIEW.id);card(`<h2>🔍 Inside your ${esc2(jar.n)}</h2>${zoomSVG(jar.id)}<div class="cg-fact">⚛️ ${esc2(ZOOM[jar.id]||'')}</div><div class="cg-row"><button class="btn ghost dark" onclick="CG.back()">← Crystal Garden</button></div>`);}
 function back(){VIEW=null;try{SFX.tap();}catch(e){}draw();}
 function bench(){try{closeModal();}catch(e){}try{if(window.Quartz&&Quartz.room)Quartz.room('bench');}catch(e){}}
-window.CG={open,bench,start,tend,collect,zoom,back,due,shelfHTML,art,JARS,SHAPES,_guess:guess,_col:pickCol,_ans:ans,_st:st,_view:()=>VIEW};
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:sc=>{if(sc!=='world')return;setTimeout(()=>{try{const p=P();if(!p||typeof curScreen==='undefined'||curScreen!=='world'||!p.cg||!due(p))return;const s=st(p);if(s.remind===dayKey())return;s.remind=dayKey();save();toast('💧 A crystal jar in Dr. Quartz\'s Lab is ready for today\'s check!');}catch(e){}},2500);}});
+window.CG={open,bench,dig,need,buy,start,tend,meas,journal,zoom,back,due,shelfHTML,art,JARS,EQUIP,INGR,SHAPES,missing,_guess:guess,_go:go,_col:pickCol,_choose:choose,_meas:measured,_most:most,_mostPick:mostPick,_finish:finish,_st:st,_view:()=>VIEW};
 })();
