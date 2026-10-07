@@ -27,6 +27,13 @@ function lay(T){const ok=t=>t&&!t.water&&!t.gate&&!t.chest&&!(t.npc&&t.npc!=='st
  const b=T[BOARD[1]][BOARD[0]];if(ok(b)){b.o=null;b.npc='station';b.block=true;}}
 window.MQ_WORLD=window.MQ_WORLD||[];window.MQ_WORLD.push(lay);
 /* ---------- the schedule ---------- */
+/* 🟨 the waiting spot (owner, Oct 2026): a painted "Wait here" box on the platform (squares 24-25). Standing in it when the train
+   stops gets you on, however long you have been waiting. (New heroes start above the platform and the ride home drops you on 23.) */
+const ZONE=[24,25];
+function inZone(){try{return !!W&&!TR.riding&&typeof curScreen!=='undefined'&&curScreen==='world'&&!document.querySelector('#modal.show')&&!(W.path&&W.path.length)&&W.hy===ROW-1&&W.hx>=ZONE[0]&&W.hx<=ZONE[1];}catch(e){return false;}}
+function drawZone(ctx,cx,cy,ts,now){const x=ZONE[0]*ts-cx+ts*.08,w=(ZONE[1]-ZONE[0]+1)*ts-ts*.16,y=(ROW-1)*ts-cy+ts*.22,h=ts*.66,on=inZone()&&W.hx>=ZONE[0];
+ ctx.save();ctx.fillStyle=on?'rgba(105,219,124,.45)':'rgba(255,212,59,.35)';rr(ctx,x,y,w,h,ts*.1);ctx.fill();ctx.setLineDash([ts*.12,ts*.08]);ctx.lineWidth=Math.max(2,ts*.05);ctx.strokeStyle=on?'#2f9e44':'#f08c00';ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=on?'#1b5e20':'#7a4a00';ctx.font=`800 ${Math.round(ts*.19)}px Fredoka, system-ui, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(on&&TR.ph!=='stop'?'WAITING…':'🚂 WAIT HERE',x+w/2,y+h/2+1);ctx.restore();}
 function touching(){try{return !!W&&!TR.riding&&typeof curScreen!=='undefined'&&curScreen==='world'&&!document.querySelector('#modal.show')&&!(W.path&&W.path.length)&&W.hy===ROW-1&&W.hx>=Math.ceil(STOP-LEN)&&W.hx<=Math.floor(STOP)&&(TR.rang||(W.mt||0)>=(TR.arr||0));}catch(e){return false;}} /* only if you walked up while it was coming, or rang for it: a hero who just starts the game on the platform is not whisked away */
 function near(){return !!W&&Math.abs(W.hx-22)<=10&&Math.abs(W.hy-ROW)<=8;}
 function tick(dt){TR.t+=dt;
@@ -35,7 +42,7 @@ function tick(dt){TR.t+=dt;
  else if(TR.ph==='stop'){const left=T_STOP-TR.t;
   if(left<5&&TR.said<1){TR.said=1;TR.bubble='All aboard!';if(near()){try{if(voiceOn())say('All aboard!',.9);}catch(e){}}}
   if(left<1.6&&TR.said<2){TR.said=2;if(near())whistle();}
-  if(TR.t>1.2&&left>.3&&touching()){board();return;} /* standing next to the train gets you on, no asking (owner, Oct 2026) */
+  if(TR.t>1.2&&left>.3&&(touching()||inZone())){board();return;} /* standing next to the train gets you on, no asking (owner, Oct 2026) */
   if(left<=0){TR.ph='out';TR.t=0;TR.bubble='';doors(false);}}
  else if(TR.ph==='home'){ /* back from the Lab (owner, Oct 2026): the hero has just stepped off; the train waits a moment, then backs into the Depot */
   if(TR.t>=HOME_WAIT&&TR.said<1){TR.said=1;TR.bubble='';if(near())whistle();}
@@ -193,6 +200,7 @@ function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)retu
    ctx.fillStyle=pr?'#ced4da':'#f1f3f5';ctx.beginPath();ctx.arc(mid,by+bh2*.64+(pr?1:0),ts*(pr?.058:.066),0,7);ctx.fill();ctx.strokeStyle='#868e96';ctx.lineWidth=1;ctx.stroke();
    ctx.font=`${Math.round(ts*.075)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔔',mid,by+bh2*.65+(pr?1:0));}
   try{wLabel(ctx,TR.ph==='stop'?'In station':'Next train',sx+ts/2,sy-ts*.66,'#fff','rgba(43,35,64,.85)');}catch(e){}}});
+ items.push({y:ROW-1.6,draw:()=>drawZone(ctx,cx,cy,ts,now)}); /* painted on the platform, under the hero */
  TR.walkers.forEach(v=>items.push({y:v.y+.01,draw:()=>drawWalker(ctx,v,cx,cy,ts,now)}));
  if(TR.think)items.push({y:1e6-3,draw:()=>think(ctx,cx,cy,ts,now)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
@@ -251,5 +259,5 @@ window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s!=='wor
 /* a tap on (or near) the bell button or the post counts as a tap on the sign: the hero walks over and presses it (owner: bigger hotspot) */
 window.MQ_TAP=window.MQ_TAP||[];window.MQ_TAP.push((x,y,ts)=>{const mid=(BOARD[0]+.5)*ts,top=BOARD[1]*ts+ts*.15,bot=(ROW+.86)*ts;return Math.abs(x-mid)<ts*.5&&y>top&&y<bot+ts*.1?[BOARD[0],BOARD[1]]:null;});
 window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=board; /* bumping the train gets you on straight away (owner: no confirm) */
-window.Train={arrive,_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,boardText,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
+window.Train={arrive,_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,boardText,inZone,ZONE,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();

@@ -783,7 +783,7 @@ function dayMins(a,b){if(!(b>a))return 0;a=Math.max(a,b-60*864e5);let m=0;const 
  return m;}
 /* the Lab's Power Room (lab.js) shows this live, without opening the cave: panels, watts coming in now, Wh stored, battery level */
 function solarNow(st){try{st=st||{};const g=st.gear||{},lv=g.solar||0,sol=CD.SOLAR[lv]||CD.SOLAR[0],max=lv?(CD.BANK[g.bank||0]||CD.BANK[0]).wh:0;let wh=st.bankWh||0;
- if(lv&&st.bankT)wh=Math.min(max,wh+sol.w*dayMins(st.bankT,Date.now())/60);return {lv,panels:sol.panels||0,w:sol.w||0,now:sunUp()?(sol.w||0):0,sun:sunUp(),wh,max,batLv:g.bat||0};}catch(e){return null;}}
+ if(lv&&st.bankT)wh=Math.min(max,wh+sol.w*dayMins(st.bankT,Date.now())/60);const bm=(CD.BATT[g.bat||0]||CD.BATT[0]).v;return {lv,panels:sol.panels||0,w:sol.w||0,now:sunUp()?(sol.w||0):0,sun:sunUp(),wh,max,batLv:g.bat||0,bat:Math.max(0,Math.min(bm,st.bat==null?bm:st.bat)),batMax:bm};}catch(e){return null;}}
 function bankTick(){try{if(!S||!S.gear||!S.gear.solar)return;const t=Date.now();if(!S.bankT){S.bankT=t;S.bankWh=S.bankWh||0;return;}
  const add=solarW()*dayMins(S.bankT,t)/60;S.bankT=t;if(add>0){S.bankWh=Math.min(bankMax(),(S.bankWh||0)+add);}}catch(e){}}
 setInterval(()=>{if(root&&S){const was=Math.floor(S.bankWh||0);bankTick();if(Math.floor(S.bankWh||0)!==was)save();}},5000);

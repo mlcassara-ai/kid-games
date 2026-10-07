@@ -224,9 +224,8 @@ function houseSVG(p){const O=HO;
  /* roof: 4 panel spots (the 4 solar upgrades: each one swaps in bigger panels); spots not bought yet are faded outlines */
  const PW=[0,96,110,122,130][sol.lv]||110,PC=['#1c4f8a','#1c4f8a','#1864ab','#1971c2','#0b3d91'][sol.lv];
  let roof=`<path d="M40 226 L110 160 L630 160 L650 226 Z" fill="#8a5a3b" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>`;
- for(let i=0;i<4;i++){const x=128+i*124,own=i<sol.panels;roof+=own?`<g transform="translate(${x} 170) skewX(-14)"><rect width="${PW}" height="44" rx="4" fill="${PC}" stroke="${sol.lv>=4?'#ffd43b':O}" stroke-width="3"/><path d="M${PW/3} 0 v44 M${PW*2/3} 0 v44 M0 22 h${PW}" stroke="#4dabf7" stroke-width="2"/></g><path d="M${x+PW/2-6} 214 V232" stroke="#e03131" stroke-width="3"/>`
+ for(let i=0;i<4;i++){const x=128+i*124,own=i<sol.panels;roof+=own?`<g transform="translate(${x} 170) skewX(-14)"><rect width="${PW}" height="44" rx="4" fill="${PC}" stroke="${sol.lv>=4?'#ffd43b':O}" stroke-width="3"/><path d="M${PW/3} 0 v44 M${PW*2/3} 0 v44 M0 22 h${PW}" stroke="#4dabf7" stroke-width="2"/></g>`
   :`<g transform="translate(${x} 170) skewX(-14)" opacity=".5"><rect width="110" height="44" rx="4" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/></g>`;}
- if(sol.panels)roof+=`<path d="M${128+44} 232 H${128+(sol.panels-1)*124+44}" stroke="#e03131" stroke-width="3"/>`;
  s+=hs('power',40,156,610,74,roof,6);
  /* the crystal dome */
  s+=hs('garden',700,60,480,170,`<rect x="690" y="206" width="500" height="20" fill="#8a5a3b" stroke="${O}" stroke-width="5"/><path d="M712 208 A228 146 0 0 1 1168 208 Z" fill="url(#lbfGlass)" stroke="${O}" stroke-width="5"/><path d="M940 62 V208 M820 86 Q850 150 838 208 M1060 86 Q1030 150 1042 208" stroke="${O}" stroke-width="2" opacity=".35" fill="none"/>${domeJars(p,940,226)}`);
@@ -234,12 +233,13 @@ function houseSVG(p){const O=HO;
  /* ⚡ Power Room: the camp bank (fed by the panels, with the live meter) wired to the 4 helmet-battery slots (the 4 battery upgrades) */
  {let r=`<rect x="60" y="262" width="380" height="178" fill="#e9ecef"/>`;
   const fill=sol.max?Math.max(0,Math.min(1,sol.wh/sol.max)):0;
-  r+=`<path d="M100 232 V276" stroke="#e03131" stroke-width="4"/><rect x="72" y="276" width="62" height="150" rx="8" fill="#495057" stroke="${O}" stroke-width="3"/><rect x="80" y="296" width="46" height="120" rx="4" fill="#212529"/><rect id="lbBankFill" x="80" y="${296+120*(1-fill)}" width="46" height="${120*fill}" rx="4" fill="#40c057"/>${txt(103,290,'BANK',11,'#fff')}`;
-  r+=`<rect x="148" y="270" width="282" height="46" rx="8" fill="#212529" stroke="${O}" stroke-width="3"/><text id="lbSolW" x="160" y="290" font-family="ui-monospace, Menlo, monospace" font-weight="700" font-size="15" fill="#ffd43b">${sol.lv?(sol.now?`☀️ ${sol.now} W in`:'🌙 0 W (night)'):'☀️ no panels yet'}</text><text id="lbSolWh" x="160" y="309" font-family="ui-monospace, Menlo, monospace" font-weight="700" font-size="15" fill="#69db7c">${sol.lv?`🔋 ${Math.floor(sol.wh)} / ${sol.max} Wh`:'🔋 bank: buy panels'}</text>`;
+  r+=`<rect x="72" y="276" width="62" height="150" rx="8" fill="#495057" stroke="${O}" stroke-width="3"/><rect x="80" y="296" width="46" height="120" rx="4" fill="#212529"/><rect id="lbBankFill" x="80" y="${296+120*(1-fill)}" width="46" height="${120*fill}" rx="4" fill="#40c057"/>${txt(103,290,'BANK',11,'#fff')}`;
+  const mono='font-family="ui-monospace, Menlo, monospace" font-weight="700" font-size="13"',bk=sol.batMax?sol.bat/sol.batMax:1;
+  r+=`<rect x="148" y="268" width="282" height="64" rx="8" fill="#212529" stroke="${O}" stroke-width="3"/><text id="lbSolW" x="158" y="285" ${mono} fill="#ffd43b">${sol.lv?(sol.now?`☀️ Panels: ${sol.now} W now`:'🌙 Panels: 0 W (night)'):'☀️ Panels: none yet'}</text><text id="lbSolWh" x="158" y="303" ${mono} fill="#69db7c">${sol.lv?`🏦 Bank: ${Math.floor(sol.wh)} / ${sol.max} Wh`:'🏦 Bank: needs panels'}</text><text id="lbDigB" x="158" y="321" ${mono} fill="#74c0fc">⛏️ Dig battery: ${Math.floor(sol.bat)} / ${sol.batMax}</text>`;
   r+=`<path d="M134 352 H${150+3*68+26}" stroke="#e03131" stroke-width="3"/>`;
-  for(let i=0;i<4;i++){const x=150+i*68,own=i<sol.batLv;r+=own?`<path d="M${x+26} 352 V366" stroke="#e03131" stroke-width="3"/><g transform="translate(${x} 366)"><rect width="52" height="64" rx="8" fill="#ffd43b" stroke="${O}" stroke-width="3"/><rect x="16" y="-6" width="20" height="8" rx="3" fill="${O}"/><path d="M29 12 L19 34 L28 34 L22 54 L36 28 L27 28 L33 12Z" fill="${O}"/></g>`
+  for(let i=0;i<4;i++){const x=150+i*68,own=i<sol.batLv;r+=own?`<path d="M${x+26} 352 V366" stroke="#e03131" stroke-width="3"/><g transform="translate(${x} 366)"><rect width="52" height="64" rx="8" fill="#fff3bf" stroke="${O}" stroke-width="3"/><rect class="lbBatFill" x="3" y="${3+58*(1-bk)}" width="46" height="${58*bk}" rx="6" fill="#ffd43b"/><rect width="52" height="64" rx="8" fill="none" stroke="${O}" stroke-width="3"/><rect x="16" y="-6" width="20" height="8" rx="3" fill="${O}"/><path d="M29 12 L19 34 L28 34 L22 54 L36 28 L27 28 L33 12Z" fill="${O}"/></g>`
    :`<g transform="translate(${x} 366)" opacity=".55"><rect width="52" height="64" rx="8" fill="#f8f9fa" stroke="${O}" stroke-width="2.5" stroke-dasharray="7 5"/>${txt(26,30,'＋',24,'#868e96')}${txt(26,52,'🪙'+(CD().BATT[i+1]||{}).c,11,'#495057',600)}</g>`;}
-  r+=txt(258,340,`${sol.batLv} of 4 batteries`,12,'#495057',600);
+  r+=txt(258,347,`${sol.batLv} of 4 batteries bought`,11,'#495057',600);
   s+=hs('power',60,262,380,178,r);
   if(sol.batLv<4)s+=hs('buybat',150+sol.batLv*68-4,360,(4-sol.batLv)*68,76,'',8);}
  /* 📓 Study */
@@ -307,7 +307,8 @@ function house(){css();const p=P();if(!p){go('world');return;}const app=document
  const w=app.querySelector('.lbh-full');let sx=null;w.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});w.addEventListener('touchend',e=>{if(sx==null||!tall())return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>60)part(dx<0?1:-1);},{passive:true});
  /* the live solar meter */
  clearInterval(SOLT);SOLT=setInterval(()=>{const a=document.getElementById('lbSolW'),b=document.getElementById('lbSolWh'),f=document.getElementById('lbBankFill');if(!a){clearInterval(SOLT);return;}
-  try{const q=P(),n=Cave.solarNow(q.cave||{});if(!n||!n.lv)return;a.textContent=n.now?`☀️ ${n.now} W in`:'🌙 0 W (night)';b.textContent=`🔋 ${Math.floor(n.wh)} / ${n.max} Wh`;const k=n.max?Math.max(0,Math.min(1,n.wh/n.max)):0;f.setAttribute('y',296+120*(1-k));f.setAttribute('height',120*k);}catch(e){}},3000);
+  try{const q=P(),n=Cave.solarNow(q.cave||{});if(!n)return;const d=document.getElementById('lbDigB');if(d)d.textContent=`⛏️ Dig battery: ${Math.floor(n.bat)} / ${n.batMax}`;const bk=n.batMax?n.bat/n.batMax:1;document.querySelectorAll('.lbBatFill').forEach(r=>{r.setAttribute('y',3+58*(1-bk));r.setAttribute('height',58*bk);});
+   if(!n.lv)return;a.textContent=n.now?`☀️ Panels: ${n.now} W now`:'🌙 Panels: 0 W (night)';b.textContent=`🏦 Bank: ${Math.floor(n.wh)} / ${n.max} Wh`;const k=n.max?Math.max(0,Math.min(1,n.wh/n.max)):0;f.setAttribute('y',296+120*(1-k));f.setAttribute('height',120*k);}catch(e){}},3000);
  if(!RSZ){RSZ=()=>{clearTimeout(RSZ.t);RSZ.t=setTimeout(()=>{try{if(typeof curScreen!=='undefined'&&curScreen==='lab'&&VIEW==='house'&&document.querySelector('.lbh-full')&&!document.querySelector('#modal.show'))house();}catch(e){}},250);};window.addEventListener('resize',RSZ);}}
 function part(d){PART=Math.max(0,Math.min(2,PART+d));try{SFX.tap();}catch(e){}house();}
 
