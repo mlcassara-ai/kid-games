@@ -19,6 +19,7 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; margin: 0; }
+html { font-size: 112.5%; }   /* bigger text everywhere on the phone (18px base) */
 body { background: radial-gradient(130% 80% at 50% 0%, var(--ground-2), var(--ground) 70%) fixed, var(--ground); color: var(--ink); font-family: var(--body);
   padding: env(safe-area-inset-top, 0px) 16px env(safe-area-inset-bottom, 0px); }
 .app { max-width: 520px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; padding-block: 16px 20px; gap: 16px; }
@@ -65,18 +66,18 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 .me { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px; }
 .me .av { font-size: 2.2rem; }
 .me .nm { font-weight: 700; font-size: 1.05rem; line-height: 1.15; min-width: 0; }
-.me .nm small { display: block; color: var(--ink-soft); font-weight: 400; font-size: .85rem; }
+.me .nm small { display: block; color: var(--ink-soft); font-weight: 400; font-size: .9rem; }
 .me .sc { font-family: var(--display); font-weight: 800; font-size: 1.6rem; color: var(--gold); font-variant-numeric: tabular-nums; }
 .bar { height: 8px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden; }
 .bar i { display: block; height: 100%; background: var(--gold); transform-origin: left; }
 .panel { flex: 1; display: flex; flex-direction: column; gap: 14px; }
 .kick { font-family: var(--display); font-weight: 800; color: var(--gold); letter-spacing: .06em; text-transform: uppercase; font-size: 1rem; }
-.fact-e { font-size: 4rem; line-height: 1; }
-.fact-t { font-size: 1.3rem; line-height: 1.4; font-weight: 700; margin: 0; }
-.soft { color: var(--ink-soft); font-size: 1rem; margin: 0; }
-.q { font-family: var(--display); font-weight: 800; font-size: 1.6rem; line-height: 1.12; margin: 0; text-wrap: balance; }
+.fact-e { font-size: 4.4rem; line-height: 1; }
+.fact-t { font-size: 1.5rem; line-height: 1.35; font-weight: 700; margin: 0; }
+.soft { color: var(--ink-soft); font-size: 1.05rem; margin: 0; }
+.q { font-family: var(--display); font-weight: 800; font-size: 1.75rem; line-height: 1.12; margin: 0; text-wrap: balance; }
 .answers { display: grid; gap: 12px; }
-.ans { display: flex; align-items: center; gap: 12px; text-align: left; border-radius: 16px; padding: 16px 14px; min-height: 72px; font-size: 1.2rem; font-weight: 700;
+.ans { display: flex; align-items: center; gap: 12px; text-align: left; border-radius: 16px; padding: 16px 14px; min-height: 72px; font-size: 1.3rem; font-weight: 700;
   box-shadow: 0 5px 0 rgba(0,0,0,.3); transition: opacity .3s, transform .15s; }
 .ans .shp { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: rgba(0,0,0,.18); font-size: 1.3rem; }
 .ans.o0 { background: var(--a0); } .ans.o1 { background: var(--a1); } .ans.o2 { background: var(--a2); color: #2a1a00; } .ans.o3 { background: var(--a3); }
