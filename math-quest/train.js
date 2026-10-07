@@ -17,7 +17,7 @@
 /* the line sits inside the town square: a hill with a tunnel at each end (tiles 15–17 and 27–29), the visible track between the
    tunnel faces (x 18 to 27) and the departure board near the middle */
 const ROW=21,HL0=15,HL1=17,HR0=27,HR1=29,FL=18,FR=27,X0=HL1,X1=HR0,PL0=18,PL1=26,BOARD=[20,20],CALL_COST=10,BELL_WAIT=60,EVERY=[900,900],FIRST=[60,900]; /* a train every 15 minutes on the map (owner, Oct 2026); the first one 1–15 minutes after arriving */
-const LEN=6.1,STOP=26.4,START=FL,END=FR+LEN+.2,T_IN=7,T_STOP=16,T_OUT=7;
+const HOME_WAIT=2.4,T_BACK=6,LEN=6.1,STOP=26.4,START=FL,END=FR+LEN+.2,T_IN=7,T_STOP=16,T_OUT=7;
 const TR={ph:'away',wait:FIRST[0]+Math.random()*(FIRST[1]-FIRST[0]),t:0,front:START,last:0,smoke:[],walkers:[],aboard:[],said:0,called:''};
 const rnd=(a,b)=>a+Math.random()*(b-a);
 /* ---------- tiles ---------- */
@@ -37,12 +37,15 @@ function tick(dt){TR.t+=dt;
   if(left<1.6&&TR.said<2){TR.said=2;if(near())whistle();}
   if(TR.t>1.2&&left>.3&&touching()){board();return;} /* standing next to the train gets you on, no asking (owner, Oct 2026) */
   if(left<=0){TR.ph='out';TR.t=0;TR.bubble='';doors(false);}}
+ else if(TR.ph==='home'){ /* back from the Lab (owner, Oct 2026): the hero has just stepped off; the train waits a moment, then backs into the Depot */
+  if(TR.t>=HOME_WAIT&&TR.said<1){TR.said=1;TR.bubble='';if(near())whistle();}
+  if(TR.t>=HOME_WAIT){const k=Math.min(1,(TR.t-HOME_WAIT)/T_BACK);TR.front=STOP-(STOP-FL)*k*k;if(k>=1){TR.ph='away';TR.t=0;TR.front=START;TR.wait=rnd(EVERY[0],EVERY[1]);}}}
  else if(TR.ph==='out'){const k=Math.min(1,TR.t*(TR.riding?2:1)/T_OUT);TR.front=STOP+(END-STOP)*k*k;if(k>=1){TR.ph='away';TR.t=0;TR.wait=rnd(EVERY[0],EVERY[1]);TR.aboard=[];if(TR.riding)rideNow();}}
  /* steam: puffs from the chimney, more when pulling away */
  const chim=TR.front-.55; /* no smoke while the chimney is inside the Depot or the tunnel */
  if(TR.ph!=='away'&&chim>FL+.1&&chim<FR-.1&&Math.random()<(TR.ph==='stop'?1.2:4)*dt*3)TR.smoke.push({x:TR.front-.55,y:ROW-.85,r:.18,a:.7,vx:TR.ph==='stop'?0:-.4,vy:-.6});
  TR.smoke.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.r+=.35*dt;s.a-=.45*dt;});TR.smoke=TR.smoke.filter(s=>s.a>0);
- if(TR.ph!=='away'&&TR.ph!=='stop'&&near()){TR.chug=(TR.chug||0)+dt*(TR.ph==='in'?3.5-2.6*Math.min(1,TR.t/T_IN):1+3*Math.min(1,TR.t/T_OUT));if(TR.chug>=1){TR.chug=0;chug();}}
+ if(TR.ph!=='away'&&TR.ph!=='stop'&&!(TR.ph==='home'&&TR.t<HOME_WAIT)&&near()){TR.chug=(TR.chug||0)+dt*(TR.ph==='in'?3.5-2.6*Math.min(1,TR.t/T_IN):1+3*Math.min(1,TR.t/T_OUT));if(TR.chug>=1){TR.chug=0;chug();}}
  walkTick(dt);}
 /* while the train stands in the station, its track tiles are the train: bumping them asks to get on */
 function doors(open){if(!W)return;for(let x=Math.floor(STOP-LEN);x<=Math.floor(STOP);x++){const t=W.T[ROW][x];if(!t||!t.rail)continue;if(open){t.npc='tride';t.block=true;}else{if(t.npc==='tride')t.npc=null;t.block=false;}}}
@@ -175,7 +178,7 @@ function frame(ctx,items,cx,cy,ts,now){if(!W||!W.T[ROW]||!W.T[ROW][FL].rail)retu
   ctx.fillStyle='#5f666d';ctx.fillRect(l,Y(ROW+.8),r-l,ts*.06);ctx.fillStyle='#ced4da';ctx.fillRect(l,Y(ROW+.8),r-l,ts*.018);}});
  /* the train, clipped to between the tunnel faces so it slides out of one hill and into the other */
  if(TR.ph!=='away')items.push({y:ROW+.3,draw:()=>{ctx.save();ctx.beginPath();ctx.rect(FL*ts-cx,-1e4,(FR-FL)*ts,2e4);ctx.clip();drawTrain(ctx,cx,cy,ts,now);ctx.restore();drawSmoke(ctx,cx,cy,ts);
-  if(TR.bubble&&TR.ph==='stop')bubble(ctx,'🔔 '+TR.bubble,(TR.front-1.8)*ts-cx,(ROW-1.75)*ts-cy,ts);}});
+  if(TR.bubble&&(TR.ph==='stop'||TR.ph==='home'))bubble(ctx,(TR.ph==='home'?'🚂 ':'🔔 ')+TR.bubble,(TR.front-1.8)*ts-cx,(ROW-1.75)*ts-cy,ts);}});
  /* the hills, seen from the side, in front of the train: a grassy mound with the tunnel's stone portal edge facing the station */
  items.push({y:ROW+.65,draw:()=>{depot(ctx,cx,cy,ts,HL0-.15,FL);hill(ctx,cx,cy,ts,HR1+1.15,FR,-1,'Discovery Zone');}});
  /* departure board */
@@ -224,6 +227,8 @@ function companion(){const ws=TR.aboard.slice();TR.walkers.forEach(v=>{if((v.end
 function board(){if(TR.ph==='stop')window.__rideWith=companion();try{closeModal();}catch(e){}try{const p=P();if(p&&W)p.wpos={x:W.hx,y:W.hy};}catch(e){}
  if(TR.ph==='stop'&&W){TR.ph='out';TR.t=0;TR.bubble='';doors(false);TR.riding=true;window.__hideHero=true;window.__petAboard=true;W.path=[];whistle();return;}
  rideNow();}
+/* the ride home ends here: the train stands in the station with the hero beside it on the platform, then goes back to the Depot */
+function arrive(){TR.ph='home';TR.t=0;TR.front=STOP;TR.said=0;TR.called='';TR.rang=false;TR.think=null;TR.riding=false;TR.bubble='Thanks for riding!';TR.walkers=TR.walkers.filter(v=>v.end==='town');TR.aboard=[];doors(false);window.__hideHero=false;window.__petAboard=false;}
 function rideNow(){TR.riding=false;window.__hideHero=false;window.__petAboard=false;const arrive=()=>{go(window.Lab?'lab':'world');};if(!(window.Ride&&Ride.go('lab',arrive)))arrive();}
 /* the bell button (owner, Oct 2026): pressing it brings the train within a minute and the clock switches to the countdown, no popup.
    About 1 press in 5 nothing happens and the hero thinks "Hmm… must be busy"; the next press always works. Once the train is coming
@@ -245,5 +250,5 @@ window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s!=='wor
 /* a tap on (or near) the bell button or the post counts as a tap on the sign: the hero walks over and presses it (owner: bigger hotspot) */
 window.MQ_TAP=window.MQ_TAP||[];window.MQ_TAP.push((x,y,ts)=>{const mid=(BOARD[0]+.5)*ts,top=BOARD[1]*ts+ts*.15,bot=(ROW+.86)*ts;return Math.abs(x-mid)<ts*.5&&y>top&&y<bot+ts*.1?[BOARD[0],BOARD[1]]:null;});
 window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=board; /* bumping the train gets you on straight away (owner: no confirm) */
-window.Train={_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
+window.Train={arrive,_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();

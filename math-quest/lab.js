@@ -352,7 +352,7 @@ setInterval(syncTile,500);
 function keyCatchUp(){try{const p=P();if(!p||DEMO||!keyDue(p)||curScreen!=='world'||document.querySelector('#modal.show'))return;if(window.MQ_VISIT&&MQ_VISIT.busy('labkey'))return;giveKey(p,()=>{});}catch(e){}}
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s==='world'){setTimeout(syncTile,0);setTimeout(keyCatchUp,2500);}}});
 /* back to Number Town by train (ride.js), landing on the station platform */
-function home(){const go2=()=>{try{const p=P();const x=23,y=20;if(typeof W!=='undefined'&&W&&W.T&&W.T[y]&&W.T[y][x]&&!W.T[y][x].block){W.hx=x;W.hy=y;W.drawX=x;W.drawY=y;W.path=[];}if(p)p.wpos={x,y};}catch(e){}try{if(window.Quartz&&Quartz.endPaused&&Quartz.endPaused(P()))return;}catch(e){}go('world');}; /* a paused dig ends when you leave by train */
+function home(){const go2=()=>{try{if(window.Train&&Train.arrive)Train.arrive();}catch(e){}try{const p=P();const x=23,y=20;if(typeof W!=='undefined'&&W&&W.T&&W.T[y]&&W.T[y][x]&&!W.T[y][x].block){W.hx=x;W.hy=y;W.drawX=x;W.drawY=y;W.path=[];}if(p)p.wpos={x,y};}catch(e){}try{if(window.Quartz&&Quartz.endPaused&&Quartz.endPaused(P()))return;}catch(e){}go('world');}; /* a paused dig ends when you leave by train */
  if(window.Ride&&Ride.go('home',go2))return;go2();}
 window.Lab={home,open,back:()=>{VIEW='house';go('lab');},tap,petLine,houseSVG,draw:()=>draw(),tab:t=>{TAB=t;try{SFX.tap();}catch(e){}draw();},card,test,guess,buy,down,ans,_pass:()=>{PASS=true;},SCIQ,keyDue,giveKey,hasKey,KEY_TRIPS,ROCK_PRICE,_mm:mmState,_sync:syncTile};
 })();
