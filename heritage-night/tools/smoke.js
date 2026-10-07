@@ -127,7 +127,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(/Remember the last fact/.test(await scr.textContent('#body')) && /Remember the last fact/.test(await phones[0].textContent('.panel')), 'question screens say it is about the last fact');
     const cq = await clk(); ok(/ q/.test(cq.c) && cq.n >= 1 && cq.n <= 6, 'countdown clock on the question, in red (' + cq.n + ' s)');
     ok(await phones[0].textContent('#sc') === before, 'score hidden until the reveal');
-    await scr.waitForTimeout(3000);
+    for (let i = 0; i < 16 && !/2/.test(await scr.textContent('#status')); i++) await scr.waitForTimeout(500);   // the screen polls every 4 s
     ok(/2/.test(await scr.textContent('#status')), 'screen counts 2 answered');
     await waitPhase(scr, 'reveal'); await scr.waitForTimeout(1600);
     await shot(scr, 'screen-reveal'); await shot(phones[0], 'phone-correct'); await shot(phones[1], 'phone-wrong'); await shot(phones[2], 'phone-missed');
@@ -222,6 +222,8 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await host.click('[data-call="' + pidA + '"]');
     await host.waitForTimeout(800);
     ok(await host.evaluate(async id => !!((await HN.readDoc('ctrl')).calls || {})[id], pidA), 'host can call a winner');
+    for (let i = 0; i < 10 && !(await host.textContent('.round').catch(() => '')).includes('✓ Called'); i++) await host.waitForTimeout(700);
+    ok((await host.textContent('.round').catch(() => '')).includes('✓ Called') && (await host.$$('.got')).length > 0, 'host marks the called spot ✓ and the kid 🎁');
     await phones[0].waitForSelector('#prize.on', { timeout: 35000 }).catch(() => {});
     const pz = await phones[0].textContent('#prize').catch(() => '');
     ok(/You’re a winner/.test(pz) && pz.includes(pidA.slice(0, 4).toUpperCase()), 'the called phone shows the prize card with its code');

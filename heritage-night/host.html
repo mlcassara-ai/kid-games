@@ -31,6 +31,8 @@ button { font: inherit; font-weight: 700; cursor: pointer; border: 0; border-rad
 button:disabled { opacity: .45; cursor: default; }
 button.go { background: var(--gold); color: #3a2600; }
 button.call { background: var(--cedar); color: #062014; }
+.got { font-size: .9em; margin-left: 4px; }
+.who.has { opacity: .6; }
 button.called { background: transparent; border: 1px solid var(--cedar); color: var(--cedar); }
 button.danger { background: var(--red); color: #fff; }
 .round { border-top: 1px solid var(--line); padding: 10px 0; } .round:first-of-type { border-top: 0; }
@@ -56,7 +58,7 @@ tr.hid td { opacity: .45; }
 </head>
 <body>
 <div class="wrap" id="app"><div class="lock">Loading…</div></div>
-<script src="hn-core.js?v=22"></script>
+<script src="hn-core.js?v=23"></script>
 <script>
 (function () {
   'use strict';
@@ -67,10 +69,15 @@ tr.hid td { opacity: .45; }
 
   function activeNow(p) { return p.q >= HN.phase().cycle - 5; }
   function line(p, medal, pts, why) {
-    var called = ctrl.calls && ctrl.calls[p.id];
-    return '<div class="who"><span>' + (medal || '') + '</span><span class="av">' + esc(p.a) + '</span><span class="nm">' + esc(p.n) +
+    var c = ctrl.calls && ctrl.calls[p.id], here = c && (c.whys || [c.why]).indexOf(why) >= 0;
+    return '<div class="who' + (c && !here ? ' has' : '') + '"><span>' + (medal || '') + '</span><span class="av">' + esc(p.a) + '</span><span class="nm">' + esc(p.n) + got(p.id) +
       '<small>' + esc(HN.gradeLabel(p.g) || '') + ' · ' + (pts || 0).toLocaleString() + ' pts</small></span><span class="code">' + esc(HN.prizeCode(p.id)) + '</span>' +
-      '<button class="' + (called ? 'called' : 'call') + '" data-call="' + esc(p.id) + '" data-why="' + esc(why) + '">' + (called ? '✓ Called' : '📣 Call') + '</button></div>';
+      '<button class="' + (here ? 'called' : 'call') + '" data-call="' + esc(p.id) + '" data-why="' + esc(why) + '">' + (here ? '✓ Called' : c ? '📣 Again' : '📣 Call') + '</button></div>';
+  }
+  /* 🎁×n next to a name once that kid has been called for a prize (any round, the final or the list) */
+  function got(id) {
+    var c = ctrl.calls && ctrl.calls[id], n = c ? c.n || 1 : 0;
+    return n ? ' <span class="got" title="Already called for ' + n + (n === 1 ? ' prize' : ' prizes') + '">🎁' + (n > 1 ? '×' + n : '') + '</span>' : '';
   }
   /* the final winners as they stand right now: top 3 kids and the top grown-up by all-night points; the tug-of-war side
      that is ahead on the big screen's rope */
@@ -95,7 +102,7 @@ tr.hid td { opacity: .45; }
 
     // round champions log
     var rs = champs && champs.z === HN.game() && champs.r ? Object.keys(champs.r).map(Number).sort(function (a, b) { return b - a; }) : [];
-    html += '<div class="card"><h2>🏆 Round champions</h2>' + (rs.length ? rs.map(function (r) {
+    html += '<div class="card"><h2>🏆 Round champions</h2><div class="note">🎁 = already got a prize tonight. To spread the chocolate around, call the next kid in that round instead.</div>' + (rs.length ? rs.map(function (r) {
       var x = champs.r[r], t = new Date(x.at);
       return '<div class="round"><div class="hd"><span>Round ' + esc(x.label || '') + '</span><span>' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span></div>' +
         x.top.map(function (p, i) { return line(p, ['🥇', '🥈', '🥉'][i], p.rs, (['1st', '2nd', '3rd'][i]) + ' place in Round ' + (x.label || '') + '!'); }).join('') + '</div>';
@@ -119,7 +126,7 @@ tr.hid td { opacity: .45; }
       (list.length ? '<table><thead><tr><th></th><th>Name</th><th>Grade</th><th class="num">Points</th><th class="num">Right</th><th>Code</th><th></th></tr></thead><tbody>' +
       list.map(function (p) {
         var called = ctrl.calls && ctrl.calls[p.id];
-        return '<tr class="' + (hid[p.id] ? 'hid' : '') + '"><td><span class="dot' + (activeNow(p) ? '' : ' off') + '" title="' + (activeNow(p) ? 'playing now' : 'away') + '"></span> ' + esc(p.a) + '</td><td>' + esc(p.n) + '</td><td>' + esc(HN.gradeLabel(p.g)) + '</td><td class="num">' + p.s.toLocaleString() + '</td><td class="num">' + p.c + '</td>' +
+        return '<tr class="' + (hid[p.id] ? 'hid' : '') + '"><td><span class="dot' + (activeNow(p) ? '' : ' off') + '" title="' + (activeNow(p) ? 'playing now' : 'away') + '"></span> ' + esc(p.a) + '</td><td>' + esc(p.n) + got(p.id) + '</td><td>' + esc(HN.gradeLabel(p.g)) + '</td><td class="num">' + p.s.toLocaleString() + '</td><td class="num">' + p.c + '</td>' +
           '<td class="code">' + esc(HN.prizeCode(p.id)) + '</td><td><div class="row"><button class="' + (called ? 'called' : 'call') + '" data-call="' + esc(p.id) + '" data-why="You won a prize!">' + (called ? '✓' : '📣') + '</button>' +
           '<button data-hide="' + esc(p.id) + '">' + (hid[p.id] ? 'Unhide' : 'Hide') + '</button></div></td></tr>';
       }).join('') + '</tbody></table>' : '<div class="empty">Nobody here yet.</div>') +
@@ -135,7 +142,9 @@ tr.hid td { opacity: .45; }
 
   function wire() {
     Array.prototype.forEach.call(app.querySelectorAll('[data-call]'), function (b) {
-      b.onclick = function () { act(function (d) { d.calls = d.calls || {}; d.calls[b.getAttribute('data-call')] = { at: Date.now(), why: b.getAttribute('data-why') }; return d; }); };
+      b.onclick = function () { act(function (d) { d.calls = d.calls || {}; var id = b.getAttribute('data-call'), why = b.getAttribute('data-why'), o = d.calls[id] || {};
+          var whys = (o.whys || (o.why ? [o.why] : [])).concat(why).slice(-20);
+          d.calls[id] = { at: Date.now(), why: why, n: (o.n || (o.why ? 1 : 0)) + 1, whys: whys }; return d; }); };
     });
     Array.prototype.forEach.call(app.querySelectorAll('[data-hide]'), function (b) {
       b.onclick = function () { var id = b.getAttribute('data-hide'); act(function (d) { d.hidden = d.hidden || {}; if (d.hidden[id]) delete d.hidden[id]; else d.hidden[id] = 1; return d; }); };
