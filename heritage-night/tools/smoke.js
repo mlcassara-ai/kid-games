@@ -137,7 +137,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     const top = await scr.textContent('.row:first-child .nm');
     ok(top.replace('🔥', '').startsWith(nameA), 'fastest right answer tops the leaderboard (' + top + ')');
     ok(/#1/.test(await phones[0].textContent('#rank')), 'phone A told it is #1');
-    const sc = +(await phones[0].textContent('#sc')).replace(/,/g, '');
+    const sc = await phones[0].evaluate(() => { const m = JSON.parse(localStorage.getItem('heritagenight.me.test')); return m.wz ? m.ws : m.s; });   // a round winner drops to 0 right after
     const gain = +(await phones[0].textContent('.pts')).replace(/[^0-9]/g, '');
     ok(gain >= 120 && gain <= 220 && gain % 2 === 0, 'double points with the streak bonus (' + gain + ')');
     ok(/On fire! 3 in a row/.test(await phones[0].textContent('.panel')), 'phone shows the streak bonus');
@@ -172,7 +172,7 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     ok(rules.every, 'prize rounds every N rounds count down correctly');
     ok(/3rd/.test(await scr.textContent('.row:first-child .nm')), 'leaderboard shows the grade');
     ok(await scr.locator('.row').count() === 2 && /2 playing/.test(await scr.textContent('#count')), 'Playing Now lists the 2 kids who answered (the grown-up is not on it)');
-    ok(/All-night stars/.test(await scr.textContent('#stars')) && (await scr.textContent('#stars')).includes(nameA), 'All-night stars shows the top kid');
+    ok(!(await scr.textContent('#stars')).includes(nameA), 'the round winner leaves the top stars (points back to 0)');
     ok(/2 kids \+ 🤖 3/.test(await scr.textContent('#tkidn')) && /1 grown-up \+ 🤖 4/.test(await scr.textContent('#tgrn')), 'tug-of-war tops both sides up with robot helpers');
     ok(/🌲/.test(await scr.textContent('#knot')) && /🧒/.test(await scr.textContent('#plk')), 'cedar on the rope, pullers at the ends');
     ok(/pull/.test(await scr.textContent('#say')), 'screen says who won the pull (' + await scr.textContent('#say') + ')');
@@ -255,15 +255,9 @@ const waitPhase = (p, name) => p.waitForFunction(n => HN.phase().name === n, nam
     await host.click('[data-hide="' + pidB + '"]'); await host.waitForTimeout(800);
     for (let i = 0; i < 35; i++) { if (await host.evaluate(async id => { const b = await HN.readDoc('board'); return !!(b && b.ranks && !b.ranks[id] && b.at > Date.now() - 20000); }, pidB)) break; await host.waitForTimeout(1000); }
     ok(await host.evaluate(async id => !((await HN.readDoc('board')).ranks || {})[id], pidB), 'a hidden player leaves the big screen board');
-    await host.click('#finon');
-    await scr.waitForSelector('#final.on', { timeout: 10000 }).catch(() => {});
-    ok(/Grand Champions/.test(await scr.textContent('#final')) && (await scr.textContent('#final')).includes(nameA), 'final winners fill the big screen');
-    await shot(scr, 'screen-final');
-    await phones[0].waitForSelector('#prize.on', { timeout: 35000 }).catch(() => {});
-    ok(/whole night/.test(await phones[0].textContent('#prize').catch(() => '')), 'the night’s winner gets the final prize card');
-    await host.click('#finoff');
-    await scr.waitForFunction(() => !document.querySelector('#final.on'), null, { timeout: 10000 }).catch(() => {});
-    ok(await scr.locator('#final.on').count() === 0, 'hiding the final winners goes back to the game');
+    ok(await host.locator('#finon').count() === 0 && await scr.locator('#final').count() === 0, 'no grand final: prizes only along the way');
+    const zA = await phones[0].evaluate(() => { const m = JSON.parse(localStorage.getItem('heritagenight.me.test')); return { s: m.s, wz: m.wz }; });
+    ok(zA.s === 0 && zA.wz >= 1, 'a winner’s points start again from 0 (' + JSON.stringify(zA) + ')');
     // 🔄 Reset from the host page: scores gone, phones sent back to join
     host.once('dialog', d => d.accept());
     await host.click('#reset');

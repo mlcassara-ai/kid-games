@@ -189,19 +189,6 @@ body.mouse { cursor: auto; }
 .reset:hover, .reset:focus-visible { opacity: 1; }
 .reset.inst { opacity: .9; background: var(--gold); color: #3a2600; border-color: transparent; }
 .reset[hidden] { display: none; }
-.final { position: fixed; inset: 0; z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; gap: calc(2.6 * var(--u));
-  background: radial-gradient(80% 70% at 50% 35%, rgba(246,185,59,.35), transparent 70%), #0a2a1f; text-align: center; padding: calc(3 * var(--u)); }
-.final.on { display: flex; animation: champIn .8s ease-out; }
-.final h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: calc(9 * var(--u)); line-height: 1; color: var(--gold); }
-.final .sub { font-size: calc(2.8 * var(--u)); color: var(--ink-soft); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-.final .podium { display: flex; align-items: flex-end; gap: calc(3 * var(--w)); }
-.final .pl { display: grid; justify-items: center; gap: calc(.6 * var(--u)); }
-.final .pl .av { font-size: calc(12 * var(--u)); line-height: 1; } .final .pl.p1 .av { font-size: calc(17 * var(--u)); }
-.final .pl .md { font-size: calc(5 * var(--u)); line-height: 1; }
-.final .pl .nm { font-family: var(--display); font-weight: 800; font-size: calc(4 * var(--u)); line-height: 1; } .final .pl.p1 .nm { font-size: calc(5.4 * var(--u)); }
-.final .pl .pt { font-size: calc(2.6 * var(--u)); color: var(--gold); font-weight: 700; }
-.final .extra { display: flex; gap: calc(4 * var(--w)); font-size: calc(3.2 * var(--u)); font-weight: 700; }
-.final .extra b { color: var(--gold); font-family: var(--display); }
 .toast { position: fixed; left: calc(3.6 * var(--w)); bottom: calc(19.5 * var(--u)); max-width: calc(40 * var(--w)); background: var(--gold); color: #3a2600; border-radius: calc(1.4 * var(--u));
   padding: calc(1.2 * var(--u)) calc(1 * var(--w)); font-weight: 700; font-size: calc(2.3 * var(--u)); box-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) rgba(0,0,0,.35); transform: translateY(160%); opacity: 0; transition: transform .45s, opacity .45s; z-index: 5; }
 .toast.on { opacity: 1; }
@@ -237,11 +224,10 @@ body.mouse { cursor: auto; }
   </aside>
 </div>
 <div class="toast" id="toast"></div>
-<div class="final" id="final" aria-live="polite"></div>
 <div class="net" id="net"></div>
 <div class="tools">
   <button class="reset inst" id="install" hidden title="Put this on your desktop as an app">💻 Install app</button></div>
-<script src="hn-core.js?v=24"></script>
+<script src="hn-core.js?v=25"></script>
 <script>
 (function () {
   'use strict';
@@ -321,7 +307,7 @@ body.mouse { cursor: auto; }
     $('count').textContent = group.length ? list.length + ' playing' : '';
     var st = $('stars'), best = group.filter(function (p) { return p.s > 0; }).slice(0, 3);
     st.hidden = !best.length;
-    st.innerHTML = '<h3>⭐ All-night stars</h3>' + best.map(function (p, i) {
+    st.innerHTML = '<h3>⭐ Top stars</h3>' + best.map(function (p, i) {
       return '<div><span>' + ['🥇', '🥈', '🥉'][i] + '</span><span>' + HN.esc(p.a) + '</span><span class="nm">' + HN.esc(p.n) + '</span><span class="sc">' + p.s.toLocaleString() + '</span></div>';
     }).join('');
     if (switched) { [b, st].forEach(function (el) { el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap'); }); }
@@ -345,7 +331,7 @@ body.mouse { cursor: auto; }
     if (!st || r < st.r0 || r - st.r0 > 200 || roundReset) { roundReset = false; st = { r0: r }; HN.lsSet(k, st); }   // fresh start after ~12 hours away
     return r - st.r0 + 1;
   }
-  /* One small summary per question for the phones (their rank, the pull, host calls and the final), so 100 phones read
+  /* One small summary per question for the phones (their rank, the pull, host calls and the round winners), so 100 phones read
      one doc instead of all eight shards. Written once the answers are in. */
   function prizeLine(cycle, left) {
     var np = HN.questionsToPrize(cycle, roundLabel(cycle), HN.prizeRules(ctrl).every);
@@ -362,7 +348,7 @@ body.mouse { cursor: auto; }
     });
     var pl = HN.pull(players, cycle);
     HN.putDoc('board', { c: cycle, z: HN.game(), ranks: ranks, pull: { winner: pl.winner, robotOnly: pl.robotOnly }, rope: rope.pos,
-      calls: ctrl.calls || {}, fin: ctrl.final || null, win: lastWin, np: np == null ? null : np - 1, every: rules.every, max: rules.max, at: Date.now() }, 'any').catch(function () {});
+      calls: ctrl.calls || {}, wins: HN.winCounts(champsCache && champsCache.z === HN.game() ? champsCache : {}, ctrl), win: lastWin, np: np == null ? null : np - 1, every: rules.every, max: rules.max, at: Date.now() }, 'any').catch(function () {});
   }
   /* 🏆 End of a round: on a prize round the top 3 kids who haven't reached the win limit win chocolate lira (HN.pickWinners);
      the pick is saved in the champs doc (the host page's log and the win counts), then this screen celebrates and tells the
@@ -384,6 +370,7 @@ body.mouse { cursor: auto; }
     }
     function done(d) {
       champsCache = d; var rec = d.r[rnd];
+      players = HN.afterWins(players, d, ctrl);   // the new winners drop to 0 straight away
       if (rec.win && rec.win.length) lastWin = { r: rnd, c: cycle, label: rec.label, at: rec.at, list: rec.win, max: rec.max };
       if (HN.phase().cycle === cycle) drawChamp(rec, cycle, rules);
       champPending = -1; publishBoard(cycle);
@@ -405,7 +392,7 @@ body.mouse { cursor: auto; }
     var nextTxt = nextQ == null ? '' : 'Next chocolate lira winners in ' + nextQ + ' questions!';
     var max = rec.max || rules.max, maxed = rec.maxed || [];
     var foot = won
-      ? '<b>📱 Winners: show your phone at the prize table!</b><span>Every kid can win ' + (max === 1 ? 'once' : max + ' times') + ' tonight · ' + nextTxt + '</span>'
+      ? '<b>📱 Winners: show your phone at the prize table!</b><span>Winners start again from 0 points · every kid can win ' + (max === 1 ? 'once' : max + ' times') + ' tonight · ' + nextTxt + '</span>'
       : nextTxt ? '<b>🍫 ' + nextTxt + '</b>' : '<b>Great playing, everyone! 🎉</b>';
     if (won && maxed.length) foot += '<span>🌟 Top score: ' + maxed.map(function (p) { return HN.esc(p.a + ' ' + p.n); }).join(', ') + ' (already a winner tonight!)</span>';
     var fx = '', cols = ['#e23b2e', '#ffffff', '#1f9e5c', '#f6b93b', '#7fb8ff'];
@@ -414,21 +401,6 @@ body.mouse { cursor: auto; }
     c.innerHTML = '<div class="rays"></div><div class="fx">' + fx + '</div><div class="sub">Round ' + (rec.label || '') + ' complete</div>' +
       '<h2>' + (won ? '🏆 Round ' + (rec.label || '') + ' Winners!' : '🏆 Round Champion!') + '</h2><div class="podium">' + pod + '</div><div class="foot">' + foot + '</div>';
     c.className = 'champ on';
-  }
-
-  /* 🏁 Final winners: the host page decides who and when; this screen just shows it until the host turns it off */
-  var finalKey = '';
-  function renderFinal() {
-    var f = ctrl.final, el = $('final');
-    if (!f || !f.on) { el.className = 'final'; finalKey = ''; return; }
-    var key = JSON.stringify(f); if (key === finalKey) return; finalKey = key;
-    var k = f.kids || [], order = [k[1], k[0], k[2]], cls = ['p2', 'p1', 'p3'], md = ['🥈', '🥇', '🥉'];
-    el.innerHTML = '<div class="sub">Family Heritage Night</div><h2>🏁 Grand Champions!</h2><div class="podium">' +
-      order.map(function (p, i) { return p ? '<div class="pl ' + cls[i] + '"><div class="md">' + md[i] + '</div><div class="av">' + HN.esc(p.a) + '</div><div class="nm">' + HN.esc(p.n) + '</div><div class="pt">' + HN.esc(HN.gradeLabel(p.g)) + ' · ' + (p.s || 0).toLocaleString() + ' points</div></div>' : ''; }).join('') +
-      '</div><div class="extra">' + (f.grown && f.grown[0] ? '<span>🧑 Top grown-up: <b>' + HN.esc(f.grown[0].a + ' ' + f.grown[0].n) + '</b></span>' : '') +
-      (f.team ? '<span>🪢 Tug-of-war: <b>' + (f.team === 'kids' ? '🧒 Kids win!' : '🧑 Grown-ups win!') + '</b></span>' : '<span>🪢 Tug-of-war: <b>a tie!</b></span>') + '</div>' +
-      '<div class="sub">Winners: show your phone at the prize table</div>';
-    el.className = 'final on';
   }
 
   /* the tug-of-war: the rope's position (-8 grown-ups .. +8 kids) is kept on this screen; each question adds one pull (HN.pull) */
@@ -470,7 +442,7 @@ body.mouse { cursor: auto; }
       lastGame = HN.game();
       var hid = ctrl.hidden || {}; players = {};
       for (var id in all) if (!hid[id]) players[id] = all[id];   // the host can take a player off the board
-      renderFinal();
+      players = HN.afterWins(players, champsCache && champsCache.z === HN.game() ? champsCache : {}, ctrl);   // winners start again from 0
       var any = document.querySelector('.join .any'); if (any) any.textContent = HN.prizeRules(ctrl).every ? '🍫 Win chocolate lira!' : 'Join anytime';
       if (seen) { var fresh = Object.keys(players).filter(function (k) { return !seen[k]; }); fresh.slice(0, 6).forEach(function (k) { toast(players[k].a + ' ' + players[k].n + ' joined!'); }); }
       seen = {}; for (var k in players) seen[k] = 1;

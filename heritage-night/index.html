@@ -142,7 +142,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 <div class="app" id="app"></div>
 <div class="wins" id="wins" aria-live="assertive"></div>
 <div class="prize" id="prize" aria-live="assertive"></div>
-<script src="hn-core.js?v=24"></script>
+<script src="hn-core.js?v=25"></script>
 <script>
 (function () {
   'use strict';
@@ -154,7 +154,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 
   function save() { HN.lsSet(KEY, me); }
   function rid(n) { var a = new Uint8Array(n), s = ''; crypto.getRandomValues(a); for (var i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz0123456789'[a[i] % 36]; return s; }
-  function entry() { return { z: me.z, n: me.n, a: me.a, g: me.g, na: me.na || 0, r: me.r == null ? -1 : me.r, rs: me.rs || 0, st: me.st || 0, s: me.s, c: me.c, j: me.j, q: me.q == null ? -1 : me.q, k: !!me.k, t: me.t || 0 }; }
+  function entry() { return { z: me.z, n: me.n, a: me.a, g: me.g, na: me.na || 0, r: me.r == null ? -1 : me.r, rs: me.rs || 0, st: me.st || 0, s: me.s, c: me.c, j: me.j, q: me.q == null ? -1 : me.q, k: !!me.k, t: me.t || 0, wz: me.wz || 0 }; }
   async function push() {
     if (saving) { dirty = true; return; }
     saving = true; dirty = false;
@@ -245,8 +245,8 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
     return (t.winner === 'kids' ? 'The kids' : 'The grown-ups') + ' won that pull. 😬 Pull harder next time!';
   }
   function rankHtml() { return 'You’re <b>#' + rankInfo.r + '</b> of ' + rankInfo.n + (rankInfo.w || ''); }
-  /* After each answer, the big screen writes one small summary ('board': every player's rank, the pull, host calls and the
-     final). Phones read just that. If no big screen is running (testing at home) they work it out from the shards. */
+  /* After each answer, the big screen writes one small summary ('board': every player's rank, the pull, host calls, win counts and the
+     round winners). Phones read just that. If no big screen is running (testing at home) they work it out from the shards. */
   async function fetchRank(cycle, tries) {
     rankFor = cycle; tries = tries || 0;
     try {
@@ -262,6 +262,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
       if (rk) { rankInfo = { r: rk[0], n: rk[1], w: grown ? ' grown-ups' : ' kids' }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = rankHtml(); }
       liraLine = me.g !== 'a' && b.np > 0 ? '🍫 Next chocolate lira winners in ' + b.np + (b.np === 1 ? ' question!' : ' questions!') : '';
       var lb = document.getElementById('lira'); if (lb) lb.textContent = liraLine;
+      var need = (b.wins || {})[me.pid] || 0; if (need > (me.wz || 0)) zeroForWin(need);
       prizeCheck(b); winsCheck(b, cycle);
     } catch (e) {}
   }
@@ -276,16 +277,11 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
       if (idx >= 0) { rankInfo = { r: idx + 1, n: list.length, w: grown ? ' grown-ups' : ' kids' }; var rb = document.getElementById('rank'); if (rb) rb.innerHTML = rankHtml(); }
     } catch (e) {}
   }
-  /* 🏆 The host page can call a winner to the prize table, and shows the final winners; the winner's phone lights up
+  /* 🏆 The host page can call a player to the prize table for an extra prize; the winner's phone lights up
      with their character, name and prize code until they tap "Got it". */
   function prizeCheck(b) {
-    var call = b.calls && b.calls[me.pid], fin = b.fin, msg = null, key = '';
-    if (fin && fin.on) {
-      var place = -1; (fin.kids || []).forEach(function (p, i) { if (p.id === me.pid) place = i; });
-      var topG = fin.grown && fin.grown[0] && fin.grown[0].id === me.pid;
-      if (place >= 0 || topG) { key = 'fin' + fin.at; msg = topG ? 'Top grown-up of the night!' : ['🥇 1st place', '🥈 2nd place', '🥉 3rd place'][place] + ' for the whole night!'; }
-    }
-    if (!msg && call) { key = 'call' + call.at; msg = call.why || 'You won a prize!'; }
+    var call = b.calls && b.calls[me.pid], msg = null, key = '';
+    if (call) { key = 'call' + call.at; msg = call.why || 'You won a prize!'; }
     if (!msg || HN.lsGet('heritagenight.ack.' + key)) return;
     var el = document.getElementById('prize');
     el.innerHTML = '<div class="pz-card"><div class="pz-t">🏆 You’re a winner!</div><div class="pz-why">' + HN.esc(msg) + '</div>' +
@@ -306,6 +302,12 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
     if (withCoins) for (var j = 0; j < 8; j++) h += '<i class="coin" style="left:' + (Math.random() * 92).toFixed(1) + '%;animation-duration:' + (3.5 + Math.random() * 2.5).toFixed(2) + 's;animation-delay:-' + (Math.random() * 6).toFixed(2) + 's">🌲</i>';
     return '<div class="rays"></div><div class="fx">' + h + '</div>';
   }
+  /* a win (round prize or host call): this player's points start again from 0. The board carries every player's win count;
+     wz is how many this phone has already zeroed for, so a phone that missed the moment catches up on its next read. */
+  function zeroForWin(n) {
+    me.ws = me.s; me.s = 0; me.shown = 0; me.rs = 0; me.st = 0; me.wz = n; save(); push();   // ws: points at the win
+    var sc = document.getElementById('sc'); if (sc) sc.textContent = '0';   // the result on screen stays; only the score changes
+  }
   var MD = ['🥇', '🥈', '🥉'], PLACE = ['🥇 1st place', '🥈 2nd place', '🥉 3rd place'], winsT = 0;
   function winsCheck(b, cycle) {
     var w = b.win, el = document.getElementById('wins'); if (!w || !w.list || !me) return;
@@ -313,23 +315,22 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
     var key = 'heritagenight.win.' + (me.z || '') + '.' + w.r + '.' + w.at;
     if (mine) {
       if (HN.lsGet(key) || el.className === 'wins on') return;
-      if (!HN.lsGet(key + '.n')) { HN.lsSet(key + '.n', 1); me.wins = (me.wins || 0) + 1; save(); }
       el.innerHTML = fx(true) + '<div class="wn-card"><div class="wn-kick">Round ' + HN.esc(w.label || '') + ' winner</div><div class="wn-t">🎉 You won!</div>' +
         '<div class="wn-av">' + HN.esc(me.a) + '</div><div class="wn-nm">' + HN.esc(me.n) + '</div><div class="wn-place p' + mine.place + '">' + PLACE[mine.place] + '</div>' +
         '<div class="wn-coins">' + coins(mine.lira) + '</div><div class="wn-what">' + HN.esc(HN.liraText(mine.lira)) + '!</div>' +
         '<div class="pz-code">Prize code <b>' + HN.esc(HN.prizeCode(me.pid)) + '</b></div><p style="margin:0">Show this screen at the prize table!</p>' +
-        '<button class="btn go" id="wnok">Got my prize ✓</button></div>';
+        '<p class="soft" style="margin:0">Your points start again from 0 so everyone gets a turn. Keep playing!</p><button class="btn go" id="wnok">Got my prize ✓</button></div>';
       el.className = 'wins on'; clearTimeout(winsT);
       document.getElementById('wnok').onclick = function () { HN.lsSet(key, 1); el.className = 'wins'; };
       return;
     }
     if (w.c !== cycle || seenWin[w.at]) return;
     seenWin[w.at] = 1;
-    var next = b.np > 0 ? b.np : (b.every || 1) * HN.ROUND, maxed = (me.wins || 0) >= (w.max || 1);
+    var next = b.np > 0 ? b.np : (b.every || 1) * HN.ROUND, maxed = (me.wz || 0) >= (w.max || 1);
     el.innerHTML = fx(false) + '<div class="wn-card"><div class="wn-kick">Round ' + HN.esc(w.label || '') + ' complete</div><div class="wn-t sm">🏆 Round winners!</div><div class="wn-list">' +
       w.list.map(function (p) { return '<div class="wn-row"><span class="md">' + MD[p.place] + '</span><span class="av">' + HN.esc(p.a) + '</span><span class="nm">' + HN.esc(p.n) +
         '<small>wins ' + HN.esc(HN.liraText(p.lira)) + '</small></span><span class="cs">' + coins(p.lira) + '</span></div>'; }).join('') + '</div>' +
-      '<p class="soft" style="margin:0">' + (me.g === 'a' ? 'Prizes are for the kids. Cheer them on! 📣' : maxed ? 'You already won tonight. Great job! Keep playing for the Grand Champion! 🏁'
+      '<p class="soft" style="margin:0">' + (me.g === 'a' ? 'Prizes are for the kids. Cheer them on! 📣' : maxed ? 'You already won tonight. Great job! Keep playing for fun and help your team pull! 🪢'
         : '🍫 Next chance in ' + next + ' questions. Keep playing!') + '</p><button class="btn alt" id="wnok">OK</button></div>';
     el.className = 'wins on';
     var close = function () { el.className = 'wins'; };

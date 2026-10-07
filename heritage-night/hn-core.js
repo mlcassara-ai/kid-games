@@ -409,6 +409,14 @@ function winCounts(champs, ctrl) {
   for (var id in calls) w[id] = (w[id] || 0) + (calls[id].n || 1);
   return w;
 }
+/* A winner's points go back to 0 (so the board stays open for newer players, and a winner who plays on starts again).
+   Each phone owns its own score, so the phone zeroes itself when it learns of the win and counts it in `wz`; until then
+   the screen and host page already show it as 0: a player with more wins than zeroings counts as 0 points. */
+function afterWins(players, champs, ctrl) {
+  var w = winCounts(champs, ctrl), out = {};
+  for (var id in players) { var p = players[id]; out[id] = (w[id] || 0) > (p.wz || 0) ? Object.assign({}, p, { s: 0, rs: 0, st: 0 }) : p; }
+  return out;
+}
 /* the round's winners: top kids by round points, skipping anyone already at the limit */
 function pickWinners(top, wins, max) {
   var out = [], maxed = [];
@@ -555,5 +563,5 @@ function watchVersion() {
 if (typeof document !== 'undefined') watchVersion();
 
 window.HN = { Q: Q, T: T, EVENT: EVENT, FAST: FAST, PLAY_URL: PLAY_URL, questionFor: questionFor, factFor: factFor, phase: phase, now: now, points: points, ROUND: ROUND, STREAK_AT: STREAK_AT, roundOf: roundOf, qInRound: qInRound, isDouble: isDouble, award: award, roundTop: roundTop, onFire: onFire,
-  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, readDoc: readDoc, putDoc: putDoc, updateDoc: updateDoc, hostKeyOk: hostKeyOk, prizeCode: prizeCode, PRIZES: PRIZES, liraText: liraText, prizeRules: prizeRules, winCounts: winCounts, pickWinners: pickWinners, isPrizeRound: isPrizeRound, questionsToPrize: questionsToPrize, game: function () { return game; }, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
+  isSynced: function () { return synced; }, newName: newName, AVATARS: AVATARS, GRADES: GRADES, gradeLabel: gradeLabel, isGrown: isGrown, pull: pull, movePos: movePos, kidsOnly: kidsOnly, allPlayers: allPlayers, saveEntry: saveEntry, resetAll: resetAll, readDoc: readDoc, putDoc: putDoc, updateDoc: updateDoc, hostKeyOk: hostKeyOk, prizeCode: prizeCode, PRIZES: PRIZES, liraText: liraText, prizeRules: prizeRules, winCounts: winCounts, afterWins: afterWins, pickWinners: pickWinners, isPrizeRound: isPrizeRound, questionsToPrize: questionsToPrize, game: function () { return game; }, syncClock: syncClock, rank: rank, esc: esc, lsGet: lsGet, lsSet: lsSet };
 })();

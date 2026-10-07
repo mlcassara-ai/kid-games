@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
-/* Host page: for the organiser only (secret link). Round champions log with "call to the prize table", final winners,
+/* Host page: for the organiser only (secret link). Prize settings, the rounds log with "call to the prize table",
    the live player list (call / hide) and Reset. Works on a phone or a laptop. */
 :root {
   --ground: #0c3326; --panel: rgba(255,255,255,.06); --line: rgba(255,255,255,.14);
@@ -48,7 +48,6 @@ td.num { font-variant-numeric: tabular-nums; text-align: right; }
 tr.hid td { opacity: .45; }
 .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--cedar); }
 .dot.off { background: rgba(255,255,255,.25); }
-.fin-prev { display: grid; gap: 4px; margin: 8px 0 12px; }
 .empty { color: var(--ink-soft); }
 .lock { text-align: center; padding: 60px 20px; font-size: 1.2rem; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -61,7 +60,7 @@ select { font: inherit; font-weight: 700; color: var(--ink); background: #164a37
 </head>
 <body>
 <div class="wrap" id="app"><div class="lock">Loading…</div></div>
-<script src="hn-core.js?v=24"></script>
+<script src="hn-core.js?v=25"></script>
 <script>
 (function () {
   'use strict';
@@ -77,20 +76,10 @@ select { font: inherit; font-weight: 700; color: var(--ink); background: #164a37
       '<small>' + esc(HN.gradeLabel(p.g) || '') + ' · ' + (pts || 0).toLocaleString() + ' pts</small></span><span class="code">' + esc(HN.prizeCode(p.id)) + '</span>' +
       (auto ? '<span class="auto">' + esc(auto) + '</span>' : '<button class="' + (here ? 'called' : 'call') + '" data-call="' + esc(p.id) + '" data-why="' + esc(why) + '">' + (here ? '✓ Called' : c ? '📣 Again' : '📣 Call') + '</button>') + '</div>';
   }
-  /* 🎁×n next to a name once that kid has been called for a prize (any round, the final or the list) */
+  /* 🎁×n next to a name once that kid has been called for a prize (any round or the list) */
   function got(id) {
     var n = winsNow()[id] || 0;
     return n ? ' <span class="got" title="Already called for ' + n + (n === 1 ? ' prize' : ' prizes') + '">🎁' + (n > 1 ? '×' + n : '') + '</span>' : '';
-  }
-  /* the final winners as they stand right now: top 3 kids and the top grown-up by all-night points; the tug-of-war side
-     that is ahead on the big screen's rope */
-  function finalNow() {
-    var all = HN.rank(visible());
-    var kids = all.filter(function (p) { return p.g !== 'a' && p.s > 0; }).slice(0, 3);
-    var grown = all.filter(function (p) { return p.g === 'a' && p.s > 0; }).slice(0, 1);
-    var pick = function (p) { return { id: p.id, n: p.n, a: p.a, g: p.g, s: p.s }; };
-    var rope = board && typeof board.rope === 'number' ? board.rope : 0;
-    return { kids: kids.map(pick), grown: grown.map(pick), team: rope > 0 && kids.length ? 'kids' : rope < 0 && grown.length ? 'grown' : '' };
   }
   function winsNow() { return HN.winCounts(champs && champs.z === HN.game() ? champs : {}, ctrl); }
   function visible() { var out = {}, hid = ctrl.hidden || {}; for (var id in players) if (!hid[id]) out[id] = players[id]; return out; }
@@ -124,16 +113,6 @@ select { font: inherit; font-weight: 700; color: var(--ink); background: #164a37
       return '<div class="round"><div class="hd"><span>Round ' + esc(x.label || '') + (w.length ? ' · 🍫 prize round' : '') + '</span><span>' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span></div>' + rows + '</div>';
     }).join('') : '<div class="empty">No rounds finished yet. Each round is 10 questions (about 5 minutes).</div>') +
       '<div class="note">📣 Call puts a “You’re a winner! Show this at the prize table” card on that player’s phone, with their prize code. It appears after the next answer (within about 30 seconds).</div></div>';
-
-    // final winners
-    var f = finalNow(), on = ctrl.final && ctrl.final.on;
-    html += '<div class="card"><h2>🏁 Final winners</h2><div class="fin-prev">' +
-      (f.kids.length ? f.kids.map(function (p, i) { return line(p, ['🥇', '🥈', '🥉'][i], p.s, ['1st', '2nd', '3rd'][i] + ' place for the whole night!'); }).join('') : '<div class="empty">No kid has scored yet.</div>') +
-      (f.grown[0] ? line(f.grown[0], '🧑', f.grown[0].s, 'Top grown-up of the night!') : '') +
-      '<div class="sub">Tug-of-war: ' + (f.team === 'kids' ? '🧒 Kids are winning' : f.team === 'grown' ? '🧑 Grown-ups are winning' : 'tied') + '</div></div>' +
-      '<div class="row">' + (on ? '<button class="go" id="finoff">Hide final winners</button><span class="sub">Showing on the big screen now</span>'
-        : '<button class="go" id="finon"' + (f.kids.length ? '' : ' disabled') + '>🏁 Show final winners on the big screen</button>') + '</div>' +
-      '<div class="note">This freezes the winners as they are when you tap it, fills the big screen, and lights up the winners’ phones. Tap Hide to go back to the game.</div></div>';
 
     // players
     var list = all.filter(function (p) { return filter === 'all' ? true : filter === 'grown' ? p.g === 'a' : p.g !== 'a'; });
@@ -169,9 +148,7 @@ select { font: inherit; font-weight: 700; color: var(--ink); background: #164a37
     var ev = document.getElementById('every'), mx = document.getElementById('max');
     if (ev) ev.onchange = function () { var v = +ev.value; act(function (d) { d.every = v; return d; }); };
     if (mx) mx.onchange = function () { var v = +mx.value; act(function (d) { d.max = v; return d; }); };
-    var on = document.getElementById('finon'), off = document.getElementById('finoff'), rs = document.getElementById('reset');
-    if (on) on.onclick = function () { var f = finalNow(); f.on = true; f.at = Date.now(); act(function (d) { d.final = f; return d; }); };
-    if (off) off.onclick = function () { act(function (d) { if (d.final) d.final.on = false; return d; }); };
+    var rs = document.getElementById('reset');
     if (rs) rs.onclick = async function () {
       if (!confirm('Reset the whole game?\n\nThis clears EVERY score, the round champions and the tug-of-war. Everyone joins again on their phone.')) return;
       rs.disabled = true;
@@ -191,7 +168,8 @@ select { font: inherit; font-weight: 700; color: var(--ink); background: #164a37
   async function refresh() {
     try {
       var r = await Promise.all([HN.allPlayers(), HN.readDoc('ctrl'), HN.readDoc('champs'), HN.readDoc('board')]);
-      players = r[0]; ctrl = r[1] || {}; champs = r[2] || {}; board = r[3] || {};
+      ctrl = r[1] || {}; champs = r[2] || {}; board = r[3] || {};
+      players = HN.afterWins(r[0], champs.z === HN.game() ? champs : {}, ctrl);   // winners start again from 0
       if (!busy && !(document.activeElement && document.activeElement.tagName === 'SELECT')) render();
     } catch (e) { var n = document.getElementById('net'); if (n) n.textContent = 'Reconnecting…'; }
   }
