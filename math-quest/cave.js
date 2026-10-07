@@ -863,7 +863,7 @@ function openMuseum(){deliverFossils();
  const shown=CD.FOSSILS.filter(f=>S.ex[f.id]).sort((a,b)=>a.ageY-b.ageY);
  const tl=shown.length?`<div class="cv-tl"><h4>🕰️ Time Wall — deeper rock is older rock</h4>${shown.map(f=>`<div class="cv-tli" data-look="${f.id}" style="cursor:pointer"><span>${femo(f)}</span><b>${esc(f.n)}</b><small>${esc(f.age)} · found in ${esc(CD.LAYERS.find(L=>L.id===f.L).n)}</small></div>`).join('<div class="cv-tla">⬇️ older</div>')}</div>`:'';
  const today=[...new Set([...W.items.values()].filter(it=>it.t==='f').map(it=>CD.FOSSILS.find(f=>f.id===it.id).L))].filter(l=>S.seen[l]).map(l=>CD.LAYERS.find(L=>L.id===l).n);
- modal(`<h2>🏛️ Museum</h2><p class="cv-sub">Find all the pieces of a fossil, then put the skeleton together! Tap 🔍 Look on a finished one to read about it.</p>${fossilDoor()}${today.length?`<div class="cv-hint">🦴 Today, fossil pieces are hidden in: <b>${today.map(esc).join(', ')}</b>. Look for the 🦴 on the depth bar!</div>`:''}${ex}${tl}`,{wide:1});
+ modal(`<h2>🏛️ Museum</h2><p class="cv-sub">Find all the pieces of a fossil, then put the skeleton together! Tap 🔍 Look on a finished one to read about it.</p>${fossilDoor()}${MQ()&&window.CG&&CG.shelfHTML?CG.shelfHTML():''}${today.length?`<div class="cv-hint">🦴 Today, fossil pieces are hidden in: <b>${today.map(esc).join(', ')}</b>. Look for the 🦴 on the depth bar!</div>`:''}${ex}${tl}`,{wide:1});
  root.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>assemble(b.dataset.as));
  root.querySelectorAll('[data-look]').forEach(b=>b.onclick=()=>exhibit(b.dataset.look));
  {const fb=root.querySelector('[data-fb]');if(fb)fb.onclick=()=>{leave();setTimeout(()=>{try{BattlePets.openStage('fossil');}catch(e){}},60);};}}

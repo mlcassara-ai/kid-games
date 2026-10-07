@@ -28,6 +28,8 @@ function pickRide(p,rock){const s=S(p);const held=s.tix.map(t=>t.id);const free=
  const low=ORDER.filter(id=>!held.includes(id)).sort((a,b)=>(s.album[a]||0)-(s.album[b]||0))[0];return {id:low||ORDER[0]};}
 /* called by Dr. Quartz at the end of a cave trip → returns the ticket (or null if your pocket is full) */
 function award(p,o){const s=S(p);if(s.tix.length>=TIX_MAX)return null;const t=Object.assign(pickRide(p,o&&o.rock),{seen:0});s.tix.push(t);s.after=(p.battles||0)+WAIT_BATTLES;s.got=(s.got||0)+1;save();return Object.assign({s:sub(t.id)},t);}
+/* the Crystal Garden (crystals.js) gives the ride for the crystal you just grew: salt, sugar (glucose) or cave water */
+function awardRide(p,id){const s=S(p);if(!D.SUB.some(x=>x.id===id)||s.tix.length>=TIX_MAX||s.tix.some(t=>t.id===id))return null;const t={id,seen:0};s.tix.push(t);s.after=(p.battles||0)+WAIT_BATTLES;s.got=(s.got||0)+1;save();return Object.assign({s:sub(id)},t);}
 function ticketLine(p,t,first){const sb=t.s,rk=t.rock&&window.CAVE_DATA&&CAVE_DATA.MIN[t.rock];const st=S(p);
  /* the long "who is Ozzy" intro is told once — after that Dr. Quartz just hands over the ticket */
  if(first&&(st.qIntro||st.met||st.hi))first=false;if(first&&!DEMO){st.qIntro=1;save();}
@@ -673,5 +675,5 @@ document.head.appendChild(st);
 /* Parent Corner 'Send a visitor': Ozzy stops waiting for more battles and comes on the hero's next visit to the World map (a ticket is still needed) */
 function bring(p){const s=S(p);if(!s.tix.length)return false;s.after=0;s.snooze=0;s.decl=0;return true;}
 function coming(p){const s=(p&&p.inner)?S(p):null;return !!s&&s.tix.length>0&&(p.battles||0)>=(s.after||0)&&Date.now()>(s.snooze||0);}
-window.Inner={_bring:bring,_coming:coming,open,award,ticketLine,fullLine,isFull,bagHTML,album:albumModal,meet,draw:drawMob,S,pickRide,ORDER,TIX_MAX,WAIT_BATTLES,_demo:()=>{DEMO=true;},_state:()=>({R,DEMO,busy,root:!!root}),_next:next,_spawn:spawn,_fit:fitMol};
+window.Inner={_bring:bring,_coming:coming,open,award,awardRide,ticketLine,fullLine,isFull,bagHTML,album:albumModal,meet,draw:drawMob,S,pickRide,ORDER,TIX_MAX,WAIT_BATTLES,_demo:()=>{DEMO=true;},_state:()=>({R,DEMO,busy,root:!!root}),_next:next,_spawn:spawn,_fit:fitMol};
 })();
