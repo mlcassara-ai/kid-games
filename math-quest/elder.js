@@ -107,6 +107,7 @@ function seekTick(W,now){
  const F=field(W);let best=null,bd=1e9;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=E.x+dx,ny=E.y+dy,t=W.T[ny]&&W.T[ny][nx];if(!t||!free(t,W,nx,ny)||blocked(W,E.x,E.y,nx,ny))continue;const dd=F.dist[nx+ny*F.Wd];if(dd>=0&&dd<bd){bd=dd;best=[nx,ny];}}
  if(!best)return;setTile(W,false);E.fx=E.x;E.fy=E.y;if(best[0]!==E.x)E.dir=best[0]>E.x?1:-1;E.x=best[0];E.y=best[1];E.mt=now;setTile(W,true);}
 function tick(W,now){if(EW!==W){EW=W;REACH=null;E=null;}if(!E){start(W,now);if(!E)return;}
+ if(window.MQ_INTRO&&MQ_INTRO.busy()){if(!E.hidden){setTile(W,false);E.hidden=true;E.moved=true;E.outT=now-1000;E.poof=null;E.path=[];E.goIn=null;E.leaving=false;}E.backAt=Math.max(E.backAt||0,now+60e3);return;} /* intro.js: he stays away while the Kind Teacher welcomes a new hero */
  if(SEEK&&typeof curScreen!=='undefined'&&curScreen==='world'){E.a=Math.min(1,E.a+.05);seekTick(W,now);if(E.say&&now-E.say.at>5500)E.say=null;return;}
  if(E.hidden){if(E.poof&&now>E.poof.at+6000)E.poof=null;if(now>=E.backAt){if(E.moved){E.moved=false;relocate(W);}E.visitEnd=now+rnd(VISIT);E.poof=null;E.hidden=false;E.a=0;E.wait=now+2500;setTile(W,true);}return;}
  E.a=Math.min(1,E.a+.05);

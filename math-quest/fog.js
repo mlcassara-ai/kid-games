@@ -15,6 +15,7 @@ function enc(W){const Wd=W.T[0].length,H=W.T.length,b=new Uint8Array(Math.ceil(W
 function dec(W,str){const out=new Set();if(!str)return out;let s='';try{s=atob(str);}catch(e){return out;}const Wd=W.T[0].length;for(let i=0;i<s.length;i++){const v=s.charCodeAt(i);if(!v)continue;for(let j=0;j<8;j++)if(v&(1<<j)){const n=i*8+j,x=n%Wd,y=(n-x)/Wd;out.add(y*1000+x);}}return out;}
 function persist(force){if(!ON||!DIRTY||typeof W==='undefined'||!W||!W.T)return;const now=Date.now();if(!force&&now-SAVED_AT<4000)return;try{const p=P();if(!p||p.id!==FPID||!p.fog||p.fog.last!==dayKey())return;p.fog.s=enc(W);DIRTY=0;SAVED_AT=now;save();}catch(e){}}
 function begin(force){try{const p=P();if(!p||!p.setup||typeof W==='undefined'||!W||!W.T)return false;
+  if(window.MQ_XFOG&&MQ_XFOG.has(p))return false; /* a new hero still exploring under the explore-fog (xfog.js) gets no fog days until it's gone */
   if(!force&&!due(p)){return false;}
   p.fog={last:dayKey(),on:1,s:''};save();ON=true;SEEN=new Set();FPID=p.id;DIRTY=0;
   const n=NPCS.find(q=>q.id==='fountain'),fx=n?n.x:22,fy=n?n.y+1:18,t=W.T[fy]&&W.T[fy][fx];if(t&&!t.block){W.hx=fx;W.hy=fy;W.drawX=fx;W.drawY=fy;W.path=[];p.wpos={x:fx,y:fy};}

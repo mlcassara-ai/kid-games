@@ -66,6 +66,7 @@ def browser_checks():
         return None, ["Chrome not found; browser checks were skipped"]
     handler = functools.partial(Quiet, directory=ROOT)
     socketserver.TCPServer.allow_reuse_address = True
+    socketserver.TCPServer.request_queue_size = 128  # the game loads ~50 add-on files at once; the default backlog of 5 drops some
     srv = socketserver.ThreadingTCPServer(("127.0.0.1", 0), handler)
     port = srv.server_address[1]
     threading.Thread(target=srv.serve_forever, daemon=True).start()

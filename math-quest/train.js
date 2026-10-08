@@ -39,7 +39,7 @@ function near(){return !!W&&Math.abs(W.hx-22)<=10&&Math.abs(W.hy-ROW)<=8;}
 function tick(dt){TR.t+=dt;
  if(TR.ph==='away'){TR.wait-=dt;if(TR.wait<=0){TR.ph='in';TR.t=0;TR.front=START;TR.rang=!!TR.called;TR.arr=performance.now();TR.called='';spawnBoarder();if(near())bell();}}
  else if(TR.ph==='in'){const k=Math.min(1,TR.t/T_IN);TR.front=START+(STOP-START)*(1-(1-k)*(1-k));if(k>=1){TR.ph='stop';TR.t=0;TR.front=STOP;doors(true);TR.said=0;spawnRider();}}
- else if(TR.ph==='stop'){const left=T_STOP-TR.t;
+ else if(TR.ph==='stop'){if(TR.hold)TR.t=Math.min(TR.t,1.5); /* intro.js: waits while the Kind Teacher talks */const left=T_STOP-TR.t;
   if(left<5&&TR.said<1){TR.said=1;TR.bubble='All aboard!';if(near()){try{if(voiceOn())say('All aboard!',.9);}catch(e){}}}
   if(left<1.6&&TR.said<2){TR.said=2;if(near())whistle();}
   if(TR.t>1.2&&left>.3&&(touching()||inZone())){board();return;} /* standing next to the train gets you on, no asking (owner, Oct 2026) */
@@ -96,9 +96,9 @@ const WHO=[
   on:['Time to feed the pets!','The goldfish are waiting for me!','See you soon! Pat your pet for me!']}];
 const pickWho=skip=>{const busy=id=>!!W&&W.mobs.some(m=>id==='principal'&&m.principal||id==='quartz'&&m.quartz)||TR.walkers.some(v=>v.w.id===id);const c=WHO.filter(w=>w.id!==skip&&!busy(w.id));if(!c.length)return null;return c[Math.floor(Math.random()*c.length)];};
 const DOOR=[22,15.35]; /* Number Town's front door */
-function spawnRider(){if(Math.random()<.45)return;const w=pickWho(TR.aboard[0]&&TR.aboard[0].id);if(!w)return;const cx=STOP-LEN+1.4+Math.random()*2.5;
+function spawnRider(){if(TR.quiet||Math.random()<.45)return;const w=pickWho(TR.aboard[0]&&TR.aboard[0].id);if(!w)return;const cx=STOP-LEN+1.4+Math.random()*2.5;
  TR.walkers.push({w,x:cx,y:ROW-1,path:[[23,ROW-1],[23,16],[DOOR[0],16],DOOR],sp:1.4,a:1,fade:'',say:w.off[Math.floor(Math.random()*w.off.length)],sayT:4.5,end:'town'});}
-function spawnBoarder(){if(Math.random()<.45)return;const w=pickWho();if(!w)return;const px=STOP-LEN+1.2+Math.random()*3;
+function spawnBoarder(){if(TR.quiet||Math.random()<.45)return;const w=pickWho();if(!w)return;const px=STOP-LEN+1.2+Math.random()*3;
  TR.walkers.push({w,x:DOOR[0],y:DOOR[1],path:[[DOOR[0],16],[23,16],[23,ROW-1],[px,ROW-1]],sp:1.5,a:0,fade:'in',say:w.on[Math.floor(Math.random()*w.on.length)],sayT:4.5,end:'board'});}
 function walkTick(dt){TR.walkers.forEach(v=>{
  if(v.fade==='in'){v.a=Math.min(1,v.a+dt*2.5);if(v.a>=1)v.fade='';}if(v.fade==='out'){v.a-=dt*2.5;if(v.a<=0)v.gone=true;}
@@ -259,5 +259,10 @@ window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{if(s!=='wor
 /* a tap on (or near) the bell button or the post counts as a tap on the sign: the hero walks over and presses it (owner: bigger hotspot) */
 window.MQ_TAP=window.MQ_TAP||[];window.MQ_TAP.push((x,y,ts)=>{const mid=(BOARD[0]+.5)*ts,top=BOARD[1]*ts+ts*.15,bot=(ROW+.86)*ts;return Math.abs(x-mid)<ts*.5&&y>top&&y<bot+ts*.1?[BOARD[0],BOARD[1]]:null;});
 window.MQ_NPC=window.MQ_NPC||{};window.MQ_NPC.station=press;window.MQ_NPC.tride=board; /* bumping the train gets you on straight away (owner: no confirm) */
-window.Train={arrive,_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,boardText,inZone,ZONE,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
+/* the Kind Teacher's first-visit intro (intro.js): a train comes in right away with nobody else on it and waits in the station
+   (hold) until she has said everything; introGo lets it leave a few seconds later. introCome is false when the track isn't there. */
+function introCome(){if(!W||!W.T[ROW]||!W.T[ROW][FL]||!W.T[ROW][FL].rail)return false;TR.hold=true;TR.quiet=true;TR.walkers=[];TR.aboard=[];TR.think=null;TR.called='';TR.rang=false;TR.arr=performance.now()+1e9;TR.riding=false;
+ if(TR.ph!=='stop'){TR.ph='in';TR.t=0;TR.front=START;TR.bubble='';doors(false);if(near())bell();}return true;}
+function introGo(){if(!TR.hold&&!TR.quiet)return;TR.hold=false;TR.quiet=false;if(TR.ph==='stop')TR.t=Math.max(TR.t,T_STOP-3);}
+window.Train={arrive,introCome,introGo,introStopped:()=>TR.ph==='stop',introSpot:()=>[STOP-LEN+2.9,ROW-1],_press:press,_bell:ring,_call:call,_open:open,_board:board,_dbg:{TR,tick,boardText,inZone,ZONE,ROW,X0,X1,STOP,BOARD,CALL_COST,BELL_WAIT,spawnRider,spawnBoarder,WHO}};
 })();

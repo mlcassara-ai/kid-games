@@ -28,7 +28,7 @@ W.eval(`window.T={
  until:async(f,ms,what)=>{const t=Date.now();while(!f()){if(Date.now()-t>(ms||8000))throw new Error('timed out waiting for '+(what||f));await new Promise(r=>setTimeout(r,40));}},
  ok:(c,m)=>{if(!c)throw new Error(m||'check failed');},
  clone:x=>JSON.parse(JSON.stringify(x)),
- hero:(name,grade,o)=>{const p=newPlayer(name||'Smoke',grade||3);p.id='p'+(name||'Smoke')+Math.random().toString(36).slice(2,6);p.setup=true;p.welcomed=true;p.skillChecked=true;p.tbOn=false;p.xplace=1;p.xp2=1;p.battles=20;p.level=8;p.coins=500;p.pets=PETS.slice(0,6).map(x=>x.id);p.pet=p.pets[0];Object.assign(p,o||{});state.players.push(p);migrate();const q=state.players.find(x=>x.id===p.id);q.care=q.care||{};q.care.intro=1;return q;},
+ hero:(name,grade,o)=>{const p=newPlayer(name||'Smoke',grade||3);p.id='p'+(name||'Smoke')+Math.random().toString(36).slice(2,6);p.setup=true;p.welcomed=true;p.skillChecked=true;p.tbOn=false;p.xplace=1;p.xp2=1;p.battles=20;p.level=8;p.coins=500;p.pets=PETS.slice(0,6).map(x=>x.id);p.pet=p.pets[0];delete p.nh; /* test heroes are existing heroes unless a test passes {nh:1} */Object.assign(p,o||{});state.players.push(p);migrate();const q=state.players.find(x=>x.id===p.id);q.care=q.care||{};q.care.intro=1;return q;},
  reset:()=>{try{closeModal();}catch(e){}const ov=document.getElementById('dqOv');if(ov)ov.remove();state.players=[];state.cur=null;state.deleted={};state.ownGroups={};state.gifts={};BASE={};try{MQ_VISIT.reset();}catch(e){}try{Discovery._leave();}catch(e){}curScreen='profiles';},
  answerAsk:(right)=>{const q=Daily._dbg.cur();if(!q)throw new Error('no question card open');String(right===false?q.answer+1:q.answer).split('').forEach(c=>Daily._k(c));Daily._k('go');Daily._next();}
 };`);
@@ -885,8 +885,65 @@ d.S.bat=5;d.save(true);d.campTap(6.5,.2);await T.wait(300);
   go('pethome');try{closeModal();}catch(e){}const t=document.querySelector('#app');T.ok(!t.querySelector('.pacc')&&!/Outfits/.test(t.innerText)&&!t.querySelector('.pc-dress'),'outfits still show in Pet Home');
   for(let i=0;i<60;i++){const g=eggGoodie(p);T.ok(!/outfit/i.test(g.t||''),'an egg still gave an outfit');}}],
 
+['Kind Teacher intro: a new hero waits in the town square, she comes by train and talks, then the hero is free; only once, only new heroes',async function(){
+  T.ok(newPlayer('Zed',3).nh===1,'newPlayer does not mark new heroes');
+  T.reset();const p=T.hero('Newbie',1,{nh:1,battles:0,level:1,coins:0});state.cur=p.id;go('world');
+  await T.until(()=>MQ_INTRO.state(),3000,'the intro to start');const D=Train._dbg;
+  T.ok(window.__heroLock&&W.hx===22&&W.hy===18,'the hero is not waiting in the town square: '+W.hx+','+W.hy);
+  wStep(0,1);await T.wait(200);T.ok(W.hx===22&&W.hy===18,'the hero could walk during the intro');
+  T.ok(MQ_VISIT.busy('coach')&&MQ_VISIT.busy('gizmo')&&MQ_INTRO.busy(),'other visitors could still come during the intro');
+  T.ok(MQ_INTRO.state().mode==='train'&&['in','stop'].includes(D.TR.ph),'the train was not called for her: '+D.TR.ph);
+  for(let i=0;i<300&&D.TR.ph==='in';i++)D.tick(.05);T.ok(D.TR.ph==='stop','the train did not stop');
+  await T.until(()=>MQ_INTRO.state()&&MQ_INTRO.state().ph!=='come',3000,'the Kind Teacher to step off the train');
+  T.ok(!D.TR.walkers.length,'someone else came on her train');
+  MQ_INTRO._arrive();const mt=()=>document.querySelector('#modal').innerText;
+  T.ok(MQ_INTRO.state().ph==='talk'&&document.querySelector('#modal.show .mqi-card .kind-svg'),'her card did not open with her drawing');
+  T.ok(/Hello, Newbie! Welcome to Math Quest\. I'm the Kind Teacher, and I came on the train to meet you\./.test(mt()),'her first line is wrong: '+mt());
+  T.ok(!/skip/i.test(mt())&&/Next ➜/.test(mt()),'no Next button, or a skip button');
+  for(let i=0;i<5;i++){T.ok(window.__heroLock,'the hero was free before her last line');D.tick(1);T.ok(D.TR.ph==='stop','the train left while she was talking');
+   if(i===4)T.ok(/The whole world is waiting\. Go explore!/.test(mt()),'her last line is wrong');await T.wait(400);document.getElementById('mqiNext').click();}
+  T.ok(!window.__heroLock&&P().intro===1,'the hero is not free, or the intro was not saved, after her last line');
+  T.ok(!document.querySelector('#modal.show .mqi-card')&&MQ_VISIT.who()!=='intro','her card or her visitor slot is still there');
+  wStep(0,1);T.ok(W.hy===19,'the hero cannot walk after the intro');await T.wait(250);
+  for(let i=0;i<200&&MQ_INTRO.state();i++){D.tick(.05);await T.wait(20);}T.ok(!MQ_INTRO.state(),'she never left');
+  for(let i=0;i<200&&D.TR.ph==='stop';i++)D.tick(.05);T.ok(D.TR.ph!=='stop'&&!D.TR.hold,'the train did not leave after the intro');
+  go('world');await T.wait(200);T.ok(!MQ_INTRO.state()&&!window.__heroLock,'the intro came twice');
+  /* never for existing heroes (no marker, or already battled) */
+  const o=T.hero('Oldie',3,{battles:0,level:1,coins:0});state.cur=o.id;go('world');await T.wait(200);T.ok(!MQ_INTRO.due(o)&&!MQ_INTRO.state()&&!window.__heroLock,'an existing hero got the intro');
+  T.ok(!MQ_INTRO.due(Object.assign(T.clone(p),{intro:0,battles:2})),'a new hero who has battled would get the intro');
+  /* leaving the map before the end: it plays again next time */
+  const q=T.hero('Again',2,{nh:1,battles:0});state.cur=q.id;go('world');await T.until(()=>MQ_INTRO.state(),3000,'the intro to start');
+  go('me');T.ok(!MQ_INTRO.state()&&!window.__heroLock&&!q.intro,'leaving the map mid-intro left it running or marked it done');
+  go('world');await T.until(()=>MQ_INTRO.state(),3000,'the intro to play again');
+  /* no train: she walks out of the Town door instead */
+  MQ_INTRO._door();await T.until(()=>MQ_INTRO.state()&&MQ_INTRO.state().ph!=='come',4000,'her to come out of Town');T.ok(MQ_INTRO.state().mode==='door'&&!D.TR.hold,'the door fallback kept the train waiting');
+  MQ_INTRO._arrive();for(let i=0;i<5;i++){await T.wait(400);document.getElementById('mqiNext').click();}T.ok(!window.__heroLock&&P().intro===1,'the door fallback did not finish');
+ }],
+['explore-fog: new heroes uncover the map as they walk; existing heroes never have it; it ends when nearly all is explored',async function(){
+  T.reset();const p=T.hero('Scout',3,{nh:1,intro:1});state.cur=p.id;go('world');await T.wait(300);
+  T.ok(MQ_XFOG.on(),'a new hero has no explore-fog');
+  let plaza=0,hidden=0;for(let y=0;y<WROWS;y++)for(let x=0;x<WCOLS;x++){if(W.T[y][x].plaza){plaza++;if(MQ_HID(x,y))hidden++;}}T.ok(plaza>50&&!hidden,'the town square is hidden: '+hidden+' of '+plaza);
+  const g=W.gates.forest;T.ok(MQ_HID(g[0],g[1]),'the Forest entrance is not hidden');const n0=MQ_XFOG.seen();
+  let spot=null;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1],[2,0],[0,2]]){const t=W.T[g[1]+dy]&&W.T[g[1]+dy][g[0]+dx];if(t&&!t.block){spot=[g[0]+dx,g[1]+dy];break;}}
+  W.hx=spot[0];W.hy=spot[1];await T.wait(250);T.ok(!MQ_HID(g[0],g[1])&&MQ_XFOG.seen()>n0,'walking does not uncover the map');
+  T.ok(MQ_HID(58-1,1)||MQ_HID(1,32),'far corners are uncovered already');
+  MQ_XFOG._save();const xs=P().xfog;T.ok(typeof xs==='string'&&xs.length<=400,'the explored map is not saved compactly: '+(xs||'').length);
+  {const s=atob(xs),i=g[1]*WCOLS+g[0];T.ok(s.charCodeAt(i>>3)&(1<<(i&7)),'the explored square is not in the save');}
+  T.ok(!MQ_FOG.start()&&!MQ_FOG.on(),'a fog day started for a hero who still has the explore-fog');
+  T.ok(/Reveal the whole map/.test(MQ_XFOG.parentRow(P()))&&/% explored/.test(MQ_XFOG.parentRow(P())),'no Parent Corner row for the explore-fog');
+  /* existing heroes: never */
+  const o=T.hero('Veteran',3);state.cur=o.id;go('world');await T.wait(200);T.ok(!MQ_XFOG.on()&&!MQ_HID(g[0],g[1])&&o.xfog===undefined&&MQ_XFOG.parentRow(o)==='','an existing hero has the explore-fog');
+  /* nearly everything explored: the fog is gone for good */
+  state.cur=p.id;go('world');await T.wait(150);T.ok(MQ_XFOG.on(),'the fog did not come back for the new hero');const L=MQ_XFOG._reachList();T.ok(L.length>800,'too few reachable squares: '+L.length);
+  MQ_XFOG._open(L.slice(0,Math.ceil(L.length*.98)));await T.wait(300);T.ok(!MQ_XFOG.on()&&P().xfogOff===1&&P().xfog===undefined&&!MQ_HID(1,1),'exploring nearly everything did not end the fog');
+  /* the Parent Corner's Reveal the whole map */
+  const r=T.hero('Kid2',2,{nh:1,intro:1});MQ_XFOG.revealFor(r.id);T.ok(r.xfogOff===1&&!MQ_XFOG.has(r),'Reveal the whole map did not work');
+  /* a reset hero is not a new hero */
+  {const x=T.hero('Resetme',3);doReset(x.id);const y=state.players.find(z=>z.id===x.id);T.ok(!y.nh,'a reset hero became a new hero');try{closeModal();}catch(e){}}
+ }],
+
 ['save size stays small',async function(){
-  T.reset();for(let i=0;i<7;i++){const p=T.hero('Size'+i,3);for(let k=0;k<200;k++)p.missed['q'+k+' + 1']={n:1,a:1,op:'add',last:'2026-10-01',fixed:0,q:{op:'add',L:1,a:k,b:1,answer:k+1,text:'q'+k+' + 1'}};}
+  T.reset();{const f=T.hero('SizeFog',3,{nh:1,intro:1,xfog:MQ_XFOG._enc(new Uint8Array(WCOLS*WROWS).fill(1))});T.ok(f.xfog.length<=400,'a fogged hero\'s map is '+f.xfog.length+' characters');}for(let i=0;i<7;i++){const p=T.hero('Size'+i,3);for(let k=0;k<200;k++)p.missed['q'+k+' + 1']={n:1,a:1,op:'add',last:'2026-10-01',fixed:0,q:{op:'add',L:1,a:k,b:1,answer:k+1,text:'q'+k+' + 1'}};}
   migrate();stampChanges(true);const n=JSON.stringify(cloudPayload()).length;T.ok(n<700000,'family save is '+n+' bytes; the cloud limit is about 1,000,000');}]
 ];
 
