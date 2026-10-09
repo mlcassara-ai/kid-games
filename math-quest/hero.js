@@ -382,7 +382,7 @@ function dizzy(c,x,y,mt){for(let i=0;i<3;i++){const a=mt*5+i*2.09;star(c,x+Math.
 const M={view:'down',mode:'idle',phase:0,t:0,mt:0,idle:0,still:0,blinkT:0,blinkAt:2,parts:[],last:0,lastStep:0,dozed:false,next:6};
 const IDLE_PICK=['wave','wave','wave','sneeze','fly','snack'];
 function setMode(m){if(M.mode!==m){M.mode=m;M.mt=0;}}
-function emote(m){if(M.mode==='walk'||EMO[m]===undefined&&m!=='wave')return false;M.view='down';setMode(m);M.idle=0;return true;}
+function emote(m){if(M.mode==='walk'||EMO[m]===undefined&&m!=='wave')return false;M.view='down';setMode(m);M.idle=0;try{if(window.PetPuppet)PetPuppet.react(m);}catch(e){}return true;} /* the pet reacts to the big moments */
 function dust(W,dx,dy){const x=W.drawX+.5-dx*.25,y=W.drawY+.9-dy*.15;
  for(let i=0;i<6;i++)M.parts.push({x:x+(Math.random()-.5)*.3,y:y+(Math.random()-.5)*.08,vx:-dx*.3+(Math.random()-.5)*.3,vy:-dy*.17-.12-Math.random()*.12,life:.45+Math.random()*.25,t:0,r:.042+Math.random()*.046});}
 function update(dt,now,W){M.t+=dt;M.mt+=dt;

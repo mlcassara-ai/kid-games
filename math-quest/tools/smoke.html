@@ -166,6 +166,26 @@ const tests=[
   p.cave.core={v:1,keep:[]};go('bp');BattlePets._pick('forest',1);T.ok(D.curMega(p)==='core'&&document.querySelectorAll('.bp2-megas button.unk').length===2&&/Core Keeper/.test(document.querySelector('.bp2-megas').innerText),'meeting the Core Keeper did not make him a mega');
   BattlePets._back();window.medal=m0;
  }],
+['hair: natural colours only; old purple, blue and pink hair moves to the closest natural colour',async function(){
+  T.reset();const p=T.hero('Hair',3);state.cur=p.id;
+  T.ok(HAIRS.length===12&&!HAIRS.includes('#7c5cff')&&!HAIRS.includes('#1c7ed6')&&!HAIRS.includes('#ff6fb5'),'the hair list still has unnatural colours');
+  p.look.hair='#7c5cff';migrate();T.ok(P().look.hair==='#2b1d0e','purple hair did not become dark brown ('+P().look.hair+')');
+  P().look.hair='#ff6fb5';migrate();T.ok(P().look.hair==='#7f3417','pink hair did not become auburn');
+  P().look.hair='#123456';migrate();T.ok(HAIRS.includes(P().look.hair),'an unknown hair colour was kept');
+  P().look.hair=HAIRS[6];migrate();T.ok(P().look.hair===HAIRS[6],'a natural hair colour was changed');
+  for(let i=0;i<10;i++)T.ok(HAIRS.includes(freshLook('girl').hair),'a new hero got a hair colour not on the list');
+}],
+['floating pets: every pet is drawn, it follows the hero and reacts to a sneeze',async function(){
+  T.reset();const p=T.hero('Petty',3);p.pet='fox';state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
+  T.ok(window.PetPuppet&&PetPuppet.ok,'pets.js did not load');const c=document.createElement('canvas').getContext('2d');const bad=[];
+  PETS.forEach(x=>{if(!PetPuppet.has(x.id)){bad.push('no drawing: '+x.id);return;}for(const v of ['front','side'])try{PetPuppet.draw(c,x.id,{view:v,t:1,blink:true});}catch(e){bad.push(x.id+': '+e.message);}});
+  T.ok(!bad.length,'pet drawing problems: '+bad.slice(0,4).join('; '));
+  await T.wait(600);const S=PetPuppet.state();T.ok(!W.petOff&&Math.hypot(S.x-W.drawX,S.y-W.drawY)<2,'the pet is not floating beside the hero');
+  PetPuppet.react('sneeze');await T.wait(1100);T.ok(S.mode==='puff','the pet did not jump at a sneeze ('+S.mode+')');
+  let dir=0;for(const d of [1,-1]){const t=W.T[W.hy][W.hx+d];if(t&&!t.block&&!t.npc&&!t.gate&&!t.chest&&!wWall(W.hx,W.hy,W.hx+d,W.hy)){dir=d;break;}}
+  if(dir){for(let i=0;i<3;i++){const t=W.T[W.hy][W.hx+dir];if(!t||t.block||t.npc||t.gate||t.chest)break;wStep(dir,0);await T.wait(200);}await T.wait(900);T.ok(Math.hypot(S.x-W.drawX,S.y-W.drawY)<1.5,'the pet fell behind when the hero walked');}
+  T.ok(!W.petOff,'the floating pet threw on the map');
+}],
 ['hero puppet: walks, turns and draws every hat in every direction',async function(){
   T.reset();const p=T.hero('Wiz',3);state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
   T.ok(window.HeroPuppet&&HeroPuppet.ok,'hero.js did not load');await T.wait(200);T.ok(!W.puppetOff,'the map fell back to the old hero picture');

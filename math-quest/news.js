@@ -6,6 +6,10 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.08c',d:'October 2026',items:[
+  '🐾 Your pet floats along beside you on the map now, all 43 of them!',
+  '💕 Pets do happy loops, jump when you sneeze and nap when you doze off.',
+  '🎨 New natural hair colours for your hero.']},
  {v:'2026.10.08b',d:'October 2026',items:[
   '⛲ The Wishing Fountain in the town square now splashes, spills and bubbles!']},
  {v:'2026.10.08a',d:'October 2026',items:[
