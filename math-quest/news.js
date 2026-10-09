@@ -6,6 +6,8 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.08b',d:'October 2026',items:[
+  '⛲ The Wishing Fountain in the town square now splashes, spills and bubbles!']},
  {v:'2026.10.08a',d:'October 2026',items:[
   '🧙 Your wizard comes alive on the map! Watch them walk, turn, blink and wave.',
   '👀 Stand still and your wizard turns to face you, and sometimes sneezes, snacks or spots a butterfly.',

@@ -180,6 +180,7 @@ const tests=[
   if(dir){wStep(dir,0);await T.wait(90);T.ok(HeroPuppet.state().mode==='walk'&&HeroPuppet.state().view===(dir<0?'left':'right'),'the hero does not walk and face the way he goes ('+HeroPuppet.state().mode+' '+HeroPuppet.state().view+')');
    await T.wait(3400);T.ok(HeroPuppet.state().mode!=='walk'&&HeroPuppet.state().view==='down','the hero does not turn to face you after standing still');}
   T.ok(!W.puppetOff,'the hero puppet threw while walking');
+  T.ok(window.MQ_FOUNTAIN_ART&&MQ_FOUNTAIN_ART.draw&&!W.ftnOff,'the animated fountain is missing or threw on the map');
 }],
 ['elder wiz: walks the map with a full body, talks when bumped, thinks out loud',async function(){
   T.reset();const p=T.hero('Wiz',3);state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}

@@ -51,6 +51,41 @@ FT.anim=(ctx,x0,y0,s,now)=>{const k=s/120,X=u=>x0+u*k,Y=v=>y0+v*k,q=(a,c,b,t)=>(
  ctx.save();ctx.beginPath();ctx.ellipse(X(60),Y(92),44*k,10*k,0,0,7);ctx.clip();for(let j=0;j<2;j++){const ph=((now/1700)+j/2)%1;ctx.strokeStyle=`rgba(255,255,255,${(1-ph)*.75})`;ctx.lineWidth=1.6*k;ctx.beginPath();ctx.ellipse(X(60),Y(93),(12+30*ph)*k,(2.6+6*ph)*k,0,0,7);ctx.stroke();}ctx.restore();
  ctx.save();ctx.beginPath();ctx.ellipse(X(60),Y(58),24*k,5.5*k,0,0,7);ctx.clip();const p2=(now/1200)%1;ctx.strokeStyle=`rgba(255,255,255,${(1-p2)*.7})`;ctx.lineWidth=1.3*k;ctx.beginPath();ctx.ellipse(X(60),Y(58.5),(6+16*p2)*k,(1.4+3.6*p2)*k,0,0,7);ctx.stroke();ctx.restore();
  ctx.restore();};
+/* the animated fountain from the owner's mockup (Oct 2026): a stone tub with rippling water, a pillar and top bowl, four streams
+   spilling over and a bubbling jet. Drawn live each frame (it moves). (cx, by) = the middle of its base on screen; the picture
+   is about 1.8 squares wide. The popup still uses FT.svg. */
+FT.draw=(ctx,cx,by,ts,now)=>{const k=ts/48;ctx.save();ctx.translate(cx,by);ctx.scale(k,k);try{ftnDraw(ctx,now/1000);}finally{ctx.restore();}};
+const INK='#2b2140';
+function star(c,x,y,r,col){c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;c.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr);}c.closePath();c.fillStyle=col;c.fill();c.lineWidth=1;c.strokeStyle=INK;c.stroke();}
+function ftnDraw(c,t){const cx=0,by=0,stone='#d6cfc3',stone2='#bdb4a6',water='#5ab4f0',light='#bfe7ff';
+ c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(cx,by+2,48,11,0,0,7);c.fill();
+ /* basin: a short stone tub */
+ c.lineWidth=2.5;c.strokeStyle=INK;c.lineJoin='round';
+ c.fillStyle=stone2;c.beginPath();c.ellipse(cx,by-3,44,13,0,0,Math.PI);c.lineTo(cx-44,by-14);c.ellipse(cx,by-14,44,14,0,Math.PI,0,true);c.closePath();c.fill();c.stroke();
+ c.fillStyle=stone;c.beginPath();c.ellipse(cx,by-14,44,14,0,0,7);c.fill();c.stroke();
+ c.fillStyle=water;c.beginPath();c.ellipse(cx,by-15,37,10,0,0,7);c.fill();
+ c.save();c.beginPath();c.ellipse(cx,by-15,37,10,0,0,7);c.clip();
+ /* ripples spreading from where the streams land */
+ [[-27,-14],[27,-14],[-14,-9],[14,-9]].forEach(([dx,dy],i)=>{for(let j=0;j<2;j++){const r=((t*.9+i*.27+j*.5)%1);c.globalAlpha=(1-r)*.7;c.strokeStyle=light;c.lineWidth=1.5;c.beginPath();c.ellipse(cx+dx,by+dy,3+r*12,1+r*3.6,0,0,7);c.stroke();}});
+ c.globalAlpha=.55;c.fillStyle='#fff';c.beginPath();c.ellipse(cx-14+Math.sin(t*.8)*4,by-19,9,1.6,0,0,7);c.fill();c.globalAlpha=1;c.restore();
+ /* pillar and the top bowl */
+ c.fillStyle=stone;c.strokeStyle=INK;c.lineWidth=2.5;c.beginPath();c.roundRect(cx-6,by-54,12,40,4);c.fill();c.stroke();
+ c.fillStyle=stone2;c.beginPath();c.ellipse(cx,by-50,19,7,0,0,Math.PI);c.lineTo(cx-19,by-55);c.ellipse(cx,by-55,19,6,0,Math.PI,0,true);c.closePath();c.fill();c.stroke();
+ c.fillStyle=stone;c.beginPath();c.ellipse(cx,by-55,19,6,0,0,7);c.fill();c.stroke();
+ c.fillStyle=water;c.beginPath();c.ellipse(cx,by-55.5,15,3.8,0,0,7);c.fill();
+ /* streams spilling over the bowl's rim into the basin, flowing */
+ const flow=(x0,y0,qx,qy,x1,y1,w)=>{c.lineCap='round';c.strokeStyle='#8fd0f7';c.lineWidth=w;c.beginPath();c.moveTo(x0,y0);c.quadraticCurveTo(qx,qy,x1,y1);c.stroke();
+  c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=w*.45;c.setLineDash([3,5]);c.lineDashOffset=-t*38;c.stroke();c.setLineDash([]);};
+ flow(cx-14,by-56,cx-24,by-56,cx-27,by-14,3.2);flow(cx+14,by-56,cx+24,by-56,cx+27,by-14,3.2);
+ flow(cx-8,by-52,cx-13,by-46,cx-14,by-9,2.6);flow(cx+8,by-52,cx+13,by-46,cx+14,by-9,2.6);
+ /* the jet bubbling up from the top */
+ const h=13+Math.sin(t*6)*2.5;c.fillStyle='#8fd0f7';c.strokeStyle='rgba(255,255,255,.9)';c.lineWidth=1.4;
+ c.beginPath();c.moveTo(cx-2.4,by-56);c.quadraticCurveTo(cx-3.5,by-56-h*.6,cx,by-56-h);c.quadraticCurveTo(cx+3.5,by-56-h*.6,cx+2.4,by-56);c.closePath();c.fill();
+ c.beginPath();c.moveTo(cx,by-56-h+2);c.lineTo(cx,by-58);c.stroke();
+ for(let i=0;i<6;i++){const k=((t*1.6+i/6)%1),a=(i%2?1:-1)*(.4+(i%3)*.25);c.fillStyle='#bfe7ff';c.beginPath();c.arc(cx+Math.sin(a)*k*12,by-56-h-2+(-1+k*2.2)*k*10,1.4,0,7);c.fill();}
+ /* droplets hopping where the streams land, and a few sparkles */
+ [[-27,-14],[27,-14],[-14,-9],[14,-9]].forEach(([dx,dy],i)=>{for(let j=0;j<2;j++){const k=((t*2.2+i*.31+j*.5)%1),sx=(j?1:-1)*(3+i%2*2);c.fillStyle='#d8f1ff';c.beginPath();c.arc(cx+dx+sx*k,by+dy-Math.sin(k*Math.PI)*6,1.2,0,7);c.fill();}});
+ for(let i=0;i<3;i++){const k=(t*.7+i/3)%1;if(k<.25){c.globalAlpha=1-k*4;star(c,cx-22+i*20,by-20+(i%2)*6,2.4+k*4,'#ffffff');c.globalAlpha=1;}}}
 window.MQ_FOUNTAIN_ART=FT;
 /* the padlock on a locked entrance (owner, Oct 2026: the emoji lock looked silly), drawn in the map's own style */
 const LK={svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 112"><defs><linearGradient id="lb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".55" stop-color="#f2b73a"/><stop offset="1" stop-color="#c98a1a"/></linearGradient><linearGradient id="ls" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9dee3"/><stop offset=".5" stop-color="#aab3bb"/><stop offset="1" stop-color="#8a939b"/></linearGradient></defs><ellipse cx="50" cy="106" rx="34" ry="5" fill="rgba(0,0,0,.22)"/><path d="M27 52 V36 A23 23 0 0 1 73 36 V52" fill="none" stroke="#3b2a1e" stroke-width="17" stroke-linecap="round"/><path d="M27 52 V36 A23 23 0 0 1 73 36 V52" fill="none" stroke="url(#ls)" stroke-width="10" stroke-linecap="round"/><path d="M31 44 V36 A19 19 0 0 1 44 18" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/><rect x="12" y="46" width="76" height="56" rx="13" fill="url(#lb)" stroke="#3b2a1e" stroke-width="5"/><path d="M20 56 Q22 50 30 50 H52" stroke="#fff" stroke-opacity=".6" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M14 90 H86" stroke="#c98a1a" stroke-width="3" opacity=".6"/><circle cx="50" cy="69" r="8" fill="#3b2a1e"/><path d="M46 72 L44 88 H56 L54 72 Z" fill="#3b2a1e"/></svg>`};let lim=null;LK.img=()=>{if(!lim){lim=new Image();lim.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(LK.svg);}return lim;};
