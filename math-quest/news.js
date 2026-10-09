@@ -6,6 +6,10 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.08a',d:'October 2026',items:[
+  '🧙 Your wizard comes alive on the map! Watch them walk, turn, blink and wave.',
+  '👀 Stand still and your wizard turns to face you, and sometimes sneezes, snacks or spots a butterfly.',
+  '😴 Leave them alone long enough and they might doze off!']},
  {v:'2026.10.07c',d:'October 2026',items:[
   '🎓 Math that grows with you! Every world follows your school year, and you can earn your way up to harder grades.',
   '📖 Funny story problems with Dr. Quartz, Coach Flex, Grumbleroot and friends.',
