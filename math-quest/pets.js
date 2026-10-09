@@ -422,56 +422,301 @@ function drawCritter(c,o){const fn=CRITTERS[o.kind];if(!fn)return;c.save();if(o.
 /* the game's pet ids that the mockup named differently */
 const KIND={bigwhale:'whale',whale:'bubbles'};
 const SIZE={bigwhale:1.2,dolphin:1.05,shark:1.1,peacock:1.05,dragon:1.1,skydragon:1.05,gobble:1.05};
-const EMO_LEN={spin:1.2,puff:1.0,nap:5};
-const PT={x:0,y:0,vx:0,vy:0,alt:.55,mode:'follow',mt:0,t:0,face:'front',blinkAt:1.5,blinkT:0,pend:null,fx:[],last:0,init:false,nextLoop:25};
-function petDo(m){PT.mode=m;PT.mt=0;if(m==='spin'){PT.spinDir=Math.random()<.35?-1:1; /* now and then the loop goes the other way */
+/* what each pet says after the bush (owner's list, Oct 2026), by drawing kind */
+const BUSH_LINES={fox:'My tail is NOT okay.',cat:'Nine lives... eight now.',nova:'Stars hate bushes.',unicorn:'Ugh. My mane!',titan:'Extinct-ly terrifying.',whale:"Whales don't DO bushes.",
+ chick:'Peep... PEEP!!',turtle:'Shell-shocked.',pup:'Bad bush! BAD!',penguin:"I'll stick to ice.",bunny:'Not one carrot.',hamster:'Cheeks full of leaves.',frog:'Toad-ally scary.',pig:'No truffles. Only fear.',
+ koala:'Need. A. Hug.',duck:'What the quack?!',mouse:'SQUEAK!!',snail:'Zoomed outta there!',owl:'Most unscholarly.',panda:'That was NOT bamboo.',octo:'Eight arms. Zero chance.',rex:"Even I'm scared.",
+ hedgehog:'It poked ME?!',raccoon:'Robbed by a bush.',otter:'Too dry. WAY too dry.',sloth:'Took... me... ages.',parrot:'SQUAWK! Bad bush!',dolphin:'Echo... echo... NOPE.',monkey:'No bananas in there.',
+ bee:'Buzz off, bush!',lion:'I let it win.',tiger:'Lost a stripe.',shark:"I'm the scary one!",wolf:'Awoo-NO.',flamingo:'Pink with fright.',peacock:'My feathers!!',bubbles:'Need water. NOW.',
+ eagle:"Should've flown over.",dragon:'Can I burn it?',skydragon:"Wind won't help.",butterfly:'Wings? Still there.',boo:"Even I'm spooked!",gobble:'Gobble... GOBBLE!',
+ sorty:'Does not compute!',chameleon:"Couldn't blend in!"};
+/* scenery the pet can visit, by decor.js picture name; flowers give [petal, centre] colours to pick from so it brings one that grows there */
+const FLOWERS={daisy:[['#ffffff','#ffd43b']],bell:[['#7950f2','#fff3bf']],flower:[['#ffd8a8','#f76707']],garden_tulips:[['#ff6b6b','#fcc419'],['#f783ac','#fcc419'],['#fcc419','#ff922b']],
+ garden_daisies:[['#ffffff','#fcc419']],garden_buds:[['#f783ac','#fff3bf'],['#748ffc','#fff3bf'],['#ffffff','#fcc419']],fair_flowers:[['#f783ac','#ffd43b'],['#748ffc','#ffd43b'],['#ffffff','#ffd43b']],
+ farm_flowers:[['#ffffff','#ffd43b'],['#f783ac','#ffd43b']],volcano_fireflower:[['#ff6b1a','#ffe066']],garden_sunflower:[['#fcc419','#8b5a2b']],farm_sunflower:[['#ffd43b','#7a4a1e']]};
+const BUSHES={bush:1,berry:1,fbush:1},APPLE_TREES={farm_appletree:1};
+const EMO_LEN={spin:1.2,puff:1.0,nap:5,flowers:3.2,pond:6.1,fountain:4.1,tree:4.4,bush:3.3,sea:7};
+/* the bush: peek (0-.5), dive in (.5-.8), a terrible rustle with leaves flying (.8-2.4), "!!!" (2.4-3), bursts out (3) */
+const BUSHT={dive:.5,in:.8,bang:2.4,out:3};
+/* the dives: how high to hover first and how deep to go; at a pond it first watches a fish jump (pre seconds) */
+const DIVE={pond:{hover:.35,under:-.2,pre:2.9},fountain:{hover:.65,under:.05,pre:.9}};
+const HMM=.9; /* the last HMM seconds before a dive: it peers down at the water with a question mark */
+const GIFT={flowers:'flower',tree:'apple',pond:'fish',fountain:'coin'};
+const PT={x:0,y:0,vx:0,vy:0,alt:.55,mode:'follow',mt:0,t:0,face:'front',blinkAt:1.5,blinkT:0,pend:null,fx:[],last:0,init:false,nextLoop:25,nextWander:15,nextSea:40,act:null,carry:null,under:false,id:'fox'};
+const WFX=[]; /* things happening in the world, in map squares: splashes, bubbles, smoke, drips, leaves, presents */
+const diveT=()=>PT.mt-((PT.act&&DIVE[PT.act.k]&&DIVE[PT.act.k].pre)||0);
+const isDive=()=>PT.mode==='act'&&PT.act&&!!DIVE[PT.act.k];
+const away=()=>['wander','act','bring','grabbed','warn'].includes(PT.mode);
+const hero=()=>window.HeroPuppet&&HeroPuppet.state?HeroPuppet.state():{view:'down',mode:'idle',idle:0};
+const kindOf=id=>KIND[id]||id;
+function petName(){try{const x=PETS.find(q=>q.id===PT.id);return x?String(x.name).split(' the ')[0]:'';}catch(e){return '';}}
+function petDo(m){if(PT.mode==='grabbed'||PT.under)return;PT.mode=m;PT.mt=0;if(m==='spin'){PT.spinDir=Math.random()<.35?-1:1; /* now and then the loop goes the other way */
  for(let i=0;i<5;i++)PT.fx.push({k:'heart',x:(Math.random()-.5)*30,y:-10,vy:-30-Math.random()*20,t:0,life:1.2});}}
 /* the hero's big moments (hero.js calls this when an emote starts) */
-function react(m){if(m==='cheer'||m==='level')PT.pend={m:'spin',at:PT.t+.25};
+function react(m){if(PT.mode==='grabbed'||isDive()||PT.under||PT.mode==='bring')return;
+ if(m==='cheer'||m==='level')PT.pend={m:'spin',at:PT.t+.25};
  else if(m==='zap')PT.pend={m:'puff',at:PT.t+.1};
  else if(m==='sneeze')PT.pend={m:'puff',at:PT.t+.9};
  else if(m==='doze')PT.pend={m:'nap',at:PT.t+1.2};}
-function update(dt,W,now){PT.t+=dt;PT.mt+=dt;
- const HS=window.HeroPuppet&&HeroPuppet.state?HeroPuppet.state():{view:'down',mode:'idle'},hx=W.drawX,hy=W.drawY;
+/* ----- what is near the hero ----- */
+const tileAt=(W,x,y)=>W.T[y]&&W.T[y][x];
+const seaTile=(x,y)=>x<2||y<2||x>=WCOLS-2||y>=WROWS-2;
+const hidden=(x,y)=>!!(window.MQ_HID&&MQ_HID(x,y));
+const landBeside=(W,x,y)=>[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const t=tileAt(W,x+dx,y+dy);return t&&!t.water;});
+function spots(W){const hx=Math.round(W.drawX),hy=Math.round(W.drawY),R=5,o={flowers:[],bush:[],tree:[],pond:[],fountain:[],sea:[]};
+ for(let y=hy-R;y<=hy+R;y++)for(let x=hx-R;x<=hx+R;x++){const t=tileAt(W,x,y);if(!t||hidden(x,y))continue;const d=Math.hypot(x-hx,y-hy);if(d>R||d<1)continue;
+  if(t.npc==='fountain'){o.fountain.push({x,y,d});continue;}
+  if(t.water){if(landBeside(W,x,y))o[seaTile(x,y)?'sea':'pond'].push({x,y,d});continue;}
+  const k=window.MQ_DECOR&&MQ_DECOR.key?MQ_DECOR.key(t,x,y):null;if(!k)continue;
+  if(FLOWERS[k])o.flowers.push({x,y,d,k});else if(BUSHES[k])o.bush.push({x,y,d,k});else if(APPLE_TREES[k])o.tree.push({x,y,d,k});}
+ for(const k in o)o[k].sort((a,b)=>a.d-b.d);return o;}
+function wander(W){const S=spots(W),opts=[];
+ if(S.sea.length&&PT.t>PT.nextSea){PT.nextSea=PT.t+60+Math.random()*40;const s=S.sea[0];PT.act={k:'sea',x:s.x,y:s.y-.35,alt:.3,wx:s.x+.5,wy:s.y+.55};PT.mode='wander';PT.mt=0;sharkComes(PT.act);return;}
+ if(S.flowers.length){const f=S.flowers[0],cs=FLOWERS[f.k],c=cs[Math.floor(Math.random()*cs.length)];opts.push({k:'flowers',x:f.x,y:f.y-.3,alt:.32,col:c});}
+ if(S.tree.length){const q=S.tree[0];opts.push({k:'tree',x:q.x,y:q.y,alt:1.05,tx:q.x,ty:q.y});}
+ if(S.pond.length){const q=S.pond[0];opts.push({k:'pond',x:q.x,y:q.y-.3,alt:DIVE.pond.hover,wx:q.x+.5,wy:q.y+.5});}
+ if(S.bush.length&&Math.random()<.6){const q=S.bush[0];opts.push({k:'bush',x:q.x,y:q.y-.25,alt:.45,tx:q.x,ty:q.y});}
+ if(S.fountain.length){const q=S.fountain[0];opts.push({k:'fountain',x:q.x+.42,y:q.y+.1,alt:DIVE.fountain.hover,wx:q.x+.92,wy:q.y+.64});}
+ if(!opts.length){PT.nextWander=PT.t+6;return;}
+ PT.act=opts[Math.floor(Math.random()*opts.length)];PT.mode='wander';PT.mt=0;}
+/* ----- the sharks in the sea round the map: fins only, until one takes the pet ----- */
+const LP={x0:1.2,y0:1.2};const lpW=()=>WCOLS-2.4,lpH=()=>WROWS-2.4,lpL=()=>2*(lpW()+lpH());
+function loopPos(u){const w=lpW(),h=lpH(),L=lpL();u=((u%L)+L)%L;
+ if(u<w)return {x:LP.x0+u,y:LP.y0,dx:1,dy:0};u-=w;if(u<h)return {x:LP.x0+w,y:LP.y0+u,dx:0,dy:1};u-=h;if(u<w)return {x:LP.x0+w-u,y:LP.y0+h,dx:-1,dy:0};u-=w;return {x:LP.x0,y:LP.y0+h-u,dx:0,dy:-1};}
+function loopNearest(x,y){let best=0,bd=1e9;for(let u=0;u<lpL();u+=.25){const q=loopPos(u),d=Math.hypot(q.x-x,q.y-y);if(d<bd){bd=d;best=u;}}return best;}
+const SH={list:[{u:10,v:1.3,dir:1,mode:'swim',t:0,fade:1},{u:70,v:1.05,dir:-1,mode:'swim',t:0,fade:1}],grab:null,sorry:null,rescue:null};
+/* sharks keep somewhere near the hero so the sea looks lived in wherever they walk along it */
+function sharkNear(k,W,force){const hx=W.drawX+.5,hy=W.drawY+.5,q=loopPos(k.u);if(!force&&Math.hypot(q.x-hx,q.y-hy)<18)return;
+ const u0=loopNearest(hx,hy);k.u=u0+(Math.random()<.5?-1:1)*(11+Math.random()*5);k.dir=Math.random()<.5?-1:1;k.fade=0;}
+function sharkComes(a){const k=SH.list.find(s=>s.mode==='swim');if(!k||Math.random()<.35)return; /* sometimes nothing comes */
+ const u=loopNearest(a.wx,a.wy),side=Math.random()<.5?-1:1;k.u=u+side*5.5;k.dir=-side;k.fade=0;k.target=true;}
+function sharkUpdate(dt,W){SH.list.forEach(k=>{k.t+=dt;if(k.fade<1)k.fade=Math.min(1,k.fade+dt);
+ if(k.mode==='swim'){k.u+=k.dir*k.v*dt;if(!k.target)sharkNear(k,W);
+  const a=PT.act;if(!SH.grab&&k.target&&PT.mode==='act'&&a&&a.k==='sea'&&PT.mt>.6){const q=loopPos(k.u),gx=PT.x+.5,gy=PT.y+.9;
+   if(Math.hypot(q.x-gx,q.y-gy)<.9){k.mode='lunge';k.t=0;k.target=false;grab(k,gx,gy);}}}
+ else if(k.mode==='lunge'){if(k.t>GRAB_T.under){k.mode='under';k.t=0;}}
+ else if(k.mode==='gone'){if(k.t>16){k.mode='swim';k.t=0;sharkNear(k,W,true);}}});
+ if((PT.mode!=='act'&&PT.mode!=='wander')||!PT.act||PT.act.k!=='sea')SH.list.forEach(k=>{if(k.target&&k.mode==='swim')k.target=false;});}
+/* the grab: the shark leaps up jaws open, clamps onto the pet, it yells HELP!!!, and down it goes */
+const GRAB_T={bite:.25,hold:.45,pull:1.55,under:1.85};
+function grab(k,gx,gy){SH.grab={x:gx,y:gy,shark:k,t:0};PT.mode='grabbed';PT.mt=0;PT.carry=null;
+ WFX.push({k:'splash',x:gx,y:gy,t:0,life:.9},{k:'splash',x:gx,y:gy,t:-GRAB_T.pull-.08,life:.9});}
+/* the hero runs to the closest square beside the water, faces it and zaps it */
+function startRescue(W){const g=SH.grab;let best=null,bd=1e9;
+ for(let y=Math.floor(g.y)-4;y<=Math.floor(g.y)+4;y++)for(let x=Math.floor(g.x)-4;x<=Math.floor(g.x)+4;x++){const t=tileAt(W,x,y);if(!t||t.water||t.block||t.npc||t.gate||t.chest)continue;const d=Math.hypot(x+.5-g.x,y+.5-g.y);if(d<bd){bd=d;best=[x,y];}}
+ SH.rescue={phase:'run',t:0,dest:best};
+ if(best&&!(best[0]===W.hx&&best[1]===W.hy)&&typeof wPathTo==='function'){const p=wPathTo(best[0],best[1]);if(p.length){W.path=p;if(!W.moving){const [nx,ny]=W.path.shift();wStep(nx-W.hx,ny-W.hy);}}}}
+function rescueTick(dt,W){const R=SH.rescue,g=SH.grab;if(!R||!g)return;R.t+=dt;const H=hero();
+ if(R.phase==='run'){const there=!R.dest||(W.hx===R.dest[0]&&W.hy===R.dest[1]);if((there&&!W.moving&&H.mode!=='walk')||R.t>6){W.path=[];
+   const dx=g.x-(W.drawX+.5),dy=g.y-(W.drawY+.9);const v=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
+   if(window.HeroPuppet&&HeroPuppet.force)HeroPuppet.force('rescue',v);R.phase='zap';R.t=0;}}
+ else if(R.phase==='zap'){const m=R.t;
+  if(m>=.7&&g.shark.mode==='under'){g.shark.mode='gone';g.shark.t=0;SH.sorry={x:g.x,y:g.y,t0:PT.t+3.5};
+   WFX.push({k:'splash',x:g.x,y:g.y,t:0,life:.9});for(let i=0;i<7;i++)WFX.push({k:'smoke',x:g.x+(i-3)*.1,y:g.y-.04,t:-i*.12,life:1.7,dx:(i-3)*.06});
+   for(let i=0;i<12;i++)WFX.push({k:'bub',x:g.x+(Math.random()-.5)*.55,y:g.y+(Math.random()-.5)*.12,t:-Math.random()*1.2,life:.9});}
+  if(m>=1.55&&PT.mode==='grabbed'){PT.under=false;PT.alt=.35;WFX.push({k:'splash',x:g.x,y:g.y,t:0,life:.9});
+   for(let i=0;i<6;i++)WFX.push({k:'drip',x:g.x,y:g.y-.6,vx:(i%2?-1:1)*(.6+i*.17),vy:-.6-i*.08,t:0,life:.6});
+   PT.mode='follow';PT.mt=0;PT.pend={m:'spin',at:PT.t+1.3};PT.nextWander=PT.t+15;}
+  if(m>4.3){SH.rescue=null;SH.grab=null;}}}
+function cancelGrab(){if(SH.grab&&SH.grab.shark){SH.grab.shark.mode='gone';SH.grab.shark.t=0;}SH.grab=null;SH.rescue=null;PT.under=false;if(PT.mode==='grabbed'){PT.mode='follow';PT.mt=0;}}
+/* ----- the pet's day ----- */
+function update(dt,W,now){PT.t+=dt;PT.mt+=dt;const H=hero(),hx=W.drawX,hy=W.drawY;
  if(!PT.init){PT.init=true;PT.x=hx-.7;PT.y=hy-.3;PT.hpx=hx;PT.hpy=hy;}
- if(Math.hypot(hx-PT.x,hy-PT.y)>6){PT.x=hx-.7;PT.y=hy-.3;PT.vx=PT.vy=0;PT.hpx=hx;PT.hpy=hy;} /* the hero jumped somewhere (train, door): the pet comes along */
+ if(Math.hypot(hx-PT.x,hy-PT.y)>8){cancelGrab();PT.mode='follow';PT.act=null;PT.carry=null;PT.under=false;PT.x=hx-.7;PT.y=hy-.3;PT.vx=PT.vy=0;PT.hpx=hx;PT.hpy=hy;} /* the hero jumped somewhere (train, door): the pet comes along */
  PT.blinkT-=dt;if(PT.blinkT<=0&&PT.t>PT.blinkAt){PT.blinkT=.12;PT.blinkAt=PT.t+2+Math.random()*3;}
  if(PT.pend&&PT.t>=PT.pend.at){const m=PT.pend.m;PT.pend=null;petDo(m);}
+ const heroBusy=H.mode==='walk'&&!SH.rescue,a=PT.act;
+ if((PT.mode==='wander'||PT.mode==='act')&&heroBusy&&!PT.under&&!(isDive()&&diveT()>.5)){PT.mode='follow';PT.mt=0;PT.nextWander=PT.t+12+Math.random()*8;}
+ if(PT.mode==='act'&&a.k==='sea'&&PT.mt>EMO_LEN.sea){PT.mode='follow';PT.mt=0;PT.nextWander=PT.t+14;}
+ if(PT.mode==='act'&&a.k==='bush'&&PT.mt>EMO_LEN.bush){PT.mode='warn';PT.mt=0;PT.under=false;PT.warnAt=0;PT.nextWander=PT.t+18+Math.random()*8;}
+ if(PT.mode==='act'&&EMO_LEN[a.k]&&PT.mt>EMO_LEN[a.k]&&a.k!=='bush'&&a.k!=='sea'){PT.mt=0;PT.nextWander=PT.t+14+Math.random()*10;const always=!!DIVE[a.k]||a.k==='tree';PT.under=false;
+  if(always||Math.random()<.75){PT.mode='bring';PT.carry=GIFT[a.k];PT.flowerCol=a.col||null;}else PT.mode='follow';}
  if((PT.mode==='spin'||PT.mode==='puff')&&PT.mt>EMO_LEN[PT.mode]){PT.mode='follow';PT.mt=0;}
- if(PT.mode==='nap'&&PT.mt>1.5&&HS.mode!=='doze'){PT.mode='follow';PT.mt=0;}
- /* now and then, while the hero stands about, a happy loop of its own */
- if(PT.mode==='follow'&&HS.mode==='idle'&&PT.t>PT.nextLoop){PT.nextLoop=PT.t+25+Math.random()*25;petDo('spin');}
- if(HS.mode==='walk')PT.nextLoop=Math.max(PT.nextLoop,PT.t+8);
- /* where it wants to be: beside and a little behind the hero */
- const bh={left:[.75,-.12],right:[-.75,-.12],down:[-.7,-.3],up:[.65,.3]}[HS.view]||[-.7,-.25];
- /* the hero's speed, so the pet keeps pace instead of lagging behind */
+ if(PT.mode==='nap'&&PT.mt>1.5&&H.mode!=='doze'){PT.mode='follow';PT.mt=0;}
+ const standing=H.mode!=='walk'&&(H.idle||0)>1.5&&!SH.grab;
+ if(PT.mode==='follow'&&standing&&PT.t>PT.nextWander&&!window.__heroLock)wander(W);
+ else if(PT.mode==='follow'&&H.mode==='idle'&&PT.t>PT.nextLoop){PT.nextLoop=PT.t+25+Math.random()*25;petDo('spin');} /* a happy loop of its own now and then */
+ if(H.mode==='walk')PT.nextLoop=Math.max(PT.nextLoop,PT.t+8);
+ /* taken under: wait for the zap, then pop out unharmed */
+ if(PT.mode==='grabbed'){if(PT.mt>=GRAB_T.under&&!PT.under){PT.under=true;}
+  if(PT.mt>=.3&&!SH.startled){SH.startled=true;if(window.HeroPuppet&&HeroPuppet.force)HeroPuppet.force('startled','down');}
+  if(PT.mt>=1.9&&!SH.rescue)startRescue(W);
+  if(PT.under&&SH.grab&&Math.floor((PT.mt-dt)*3.5)!==Math.floor(PT.mt*3.5))WFX.push({k:'bub',x:SH.grab.x+(Math.random()-.5)*.2,y:SH.grab.y,t:0,life:.8});}
+ else SH.startled=false;
+ rescueTick(dt,W);
+ /* where it wants to be: beside and a little behind the hero, or at the thing it is visiting */
+ const bh={left:[.75,-.12],right:[-.75,-.12],down:[-.7,-.3],up:[.65,.3]}[H.view]||[-.7,-.25];
  const hvx=(hx-PT.hpx)/Math.max(dt,1e-3),hvy=(hy-PT.hpy)/Math.max(dt,1e-3);PT.hpx=hx;PT.hpy=hy;const vcap=v=>Math.max(-9,Math.min(9,v));
- const tx=hx+bh[0],ty=hy+bh[1],talt=PT.mode==='nap'?.28:.55,k=16,fvx=vcap(hvx),fvy=vcap(hvy),c2=2*Math.sqrt(k);
- PT.vx+=((tx-PT.x)*k+(fvx-PT.vx)*c2)*dt;PT.vy+=((ty-PT.y)*k+(fvy-PT.vy)*c2)*dt;PT.x+=PT.vx*dt;PT.y+=PT.vy*dt;
- PT.alt+=(talt-PT.alt)*Math.min(1,dt*4);
- if(Math.abs(PT.vx)>.6)PT.face=PT.vx<0?'left':'right';else if(Math.abs(PT.vx)<.25&&Math.abs(PT.vy)<.6)PT.face='front';
+ let tx=hx+bh[0],ty=hy+bh[1],talt=PT.mode==='nap'?.28:.55,k=16,fvx=vcap(hvx),fvy=vcap(hvy),altSet;
+ window.MQ_SHAKE=null;
+ if(PT.mode==='wander'||PT.mode==='act'){tx=a.x;ty=a.y;talt=a.alt;k=PT.mode==='wander'?4:9;fvx=0;fvy=0;
+  if(a.k==='bush'&&PT.mode==='act'){const m=PT.mt,bx=a.tx+.5,byy=a.ty+.7;
+   if(m>=BUSHT.dive&&m<BUSHT.in){talt=.05;ty=a.ty-.05;}
+   else if(m>=BUSHT.in&&m<BUSHT.out){talt=.05;ty=a.ty-.05;PT.under=true;window.MQ_SHAKE=m<BUSHT.bang?{x:a.tx,y:a.ty}:null;
+    if(m<BUSHT.bang&&Math.floor((m-dt)*12)!==Math.floor(m*12))for(let i=0;i<2;i++)WFX.push({k:'leaf',x:bx+(Math.random()-.5)*.6,y:byy,vx:(Math.random()-.5)*2.5,vy:-1.2-Math.random()*1.5,t:0,life:1.1,ph:Math.random()*6,col:LEAFC[Math.floor(Math.random()*LEAFC.length)]});}
+   else if(m>=BUSHT.out){if(PT.under){PT.under=false;PT.alt=.5;for(let i=0;i<10;i++)WFX.push({k:'leaf',x:bx,y:byy-.05,vx:(Math.random()-.5)*3.3,vy:-1.6-Math.random()*1.2,t:0,life:1.2,ph:Math.random()*6,col:LEAFC[i%LEAFC.length]});}
+    talt=.9;ty=a.ty+.2;}}
+  if(a.k==='tree'&&PT.mode==='act'){const m=PT.mt;
+   if(m<1.6){const ang=m*2.2;tx=a.tx+Math.cos(ang)*.75;ty=a.ty+Math.sin(ang)*.3;}
+   else if(m<1.95){tx=a.tx;ty=a.ty-.05;talt=1.15;}                       /* slips into the leaves */
+   else if(m<3){tx=a.tx;ty=a.ty-.05;talt=1.15;if(!PT.under){PT.under=true;for(let i=0;i<3;i++)WFX.push({k:'fall',x:a.tx+.5+(i-1)*.25,y:a.ty-.3,t:-i*.25,life:2.2});}}
+   else{if(PT.under){PT.under=false;PT.carry='apple';for(let i=0;i<2;i++)WFX.push({k:'fall',x:a.tx+.5+(i?.2:-.2),y:a.ty-.1,t:0,life:1.8});}
+    tx=a.tx+.15;ty=a.ty+.35;talt=1;}}                                      /* pops back out, apple in mouth */
+  if(a.k==='flowers'&&PT.mode==='act')talt=.3-Math.max(0,Math.sin(PT.mt*6))*.08;
+  if(isDive()){const D=DIVE[a.k],m=diveT();
+   if(m<.5)altSet=D.hover;
+   else if(m<.8){const q=(m-.5)/.3;altSet=lerp(D.hover,D.under,q*q)+Math.sin(clamp01(q*2.2)*Math.PI)*.12;}
+   else if(m<2){altSet=D.under;if(!PT.under){PT.under=true;WFX.push({k:'splash',x:a.wx,y:a.wy,t:0,life:.9});}
+    if(Math.floor((m-dt)*5)!==Math.floor(m*5))WFX.push({k:'bub',x:a.wx+(Math.random()-.5)*.2,y:a.wy,t:0,life:.8});}
+   else{if(PT.under){PT.under=false;PT.carry=GIFT[a.k];WFX.push({k:'splash',x:a.wx,y:a.wy,t:0,life:.9});}
+    const q=clamp01((m-2)/.4);altSet=lerp(D.under,D.hover+.25,1-(1-q)*(1-q));
+    if(m>2.4&&Math.floor((m-dt)*8)!==Math.floor(m*8))WFX.push({k:'drip',x:PT.x+.5,y:PT.y+.9-PT.alt-.25,vx:(Math.random()<.5?-1:1)*(.6+Math.random()*.6),vy:-.6-Math.random()*.4,t:0,life:.6});}}
+  if(PT.mode==='wander'&&Math.hypot(tx-PT.x,ty-PT.y)<.2){PT.mode='act';PT.mt=0;if(a.k==='tree')WFX.push({k:'fall',x:a.tx+.5,y:a.ty-.3,t:0,life:2.2});}}
+ if(PT.mode==='warn'){const sd=H.view==='left'?-.6:.6;tx=hx+sd;ty=hy+.05;talt=.5;k=8;fvx=0;fvy=0;if(!PT.warnAt&&Math.hypot(tx-PT.x,ty-PT.y)<.25)PT.warnAt=PT.t;if(PT.warnAt&&PT.t-PT.warnAt>2.4){PT.mode='follow';PT.mt=0;PT.warnAt=0;}}
+ if(PT.mode==='bring'){const sd=H.view==='left'?-.55:.55;tx=hx+sd;ty=hy+.08;talt=.42;k=7;
+  if(Math.hypot(tx-PT.x,ty-PT.y)<.18){WFX.push({k:'give',item:PT.carry,fc:PT.flowerCol,x0:PT.x+.5,y0:PT.y+.9-PT.alt-.25+.2,t:0,life:1.7});PT.carry=null;
+   if(window.HeroPuppet&&H.mode==='idle'){const n=petName();HeroPuppet.emote('thanks',n?'Thanks, '+n+'!':'Thanks!');}PT.mode='follow';petDo('spin');}}
+ if(PT.mode==='grabbed'){tx=PT.x;ty=PT.y;fvx=0;fvy=0;PT.vx=PT.vy=0;}
+ const c2=2*Math.sqrt(k);PT.vx+=((tx-PT.x)*k+(fvx-PT.vx)*c2)*dt;PT.vy+=((ty-PT.y)*k+(fvy-PT.vy)*c2)*dt;PT.x+=PT.vx*dt;PT.y+=PT.vy*dt;
+ if(PT.mode==='grabbed'){}else if(altSet!==undefined)PT.alt=altSet;else PT.alt+=(talt-PT.alt)*Math.min(1,dt*4);
+ if(PT.mode==='grabbed'||(PT.mode==='act'&&a.k==='sea'))PT.face='front';
+ else if(isDive()){const m=diveT();PT.face=(m>=.42&&m<2.35)?'left':'front';}
+ else if(PT.mode==='act'&&(a.k==='flowers'||a.k==='bush'))PT.face='front';
+ else if(PT.mode==='warn'&&PT.warnAt)PT.face='front';
+ else if(Math.abs(PT.vx)>.6)PT.face=PT.vx<0?'left':'right';else if(Math.abs(PT.vx)<.25&&Math.abs(PT.vy)<.6)PT.face='front';
+ if(PT.mode==='act'&&a.k==='flowers'&&Math.floor((PT.mt-dt)*2.5)!==Math.floor(PT.mt*2.5)&&PT.mt>.6)PT.fx.push({k:'heart',x:(Math.random()-.5)*16,y:-14,vy:-28,t:0,life:1.1});
  PT.fx=PT.fx.filter(q=>(q.t+=dt)<q.life);}
+const LEAFC=['#b08a5a','#c99a6b','#8fbf5a','#6fae3c','#a3c46b'];
+/* ----- drawing ----- */
+/* a present the pet brings, about a fifth of a square across */
+function drawItem(c,k,x,y,fc,ts){const r=ts/10;c.save();c.translate(x,y);c.scale(r/5,r/5);
+ if(k==='flower'){const pc=fc?fc[0]:'#ff8fc0',cc=fc?fc[1]:'#ffd43b';for(let i=0;i<5;i++){const a=i*Math.PI*2/5;fs(c,ell(Math.cos(a)*3.6,Math.sin(a)*3.6,2.6,2.6),pc,1.1);}fs(c,ell(0,0,2.2,2.2),cc,1.1);}
+ else if(k==='apple'){fs(c,ell(0,1,5,4.6),'#ef4444',1.4);c.strokeStyle='#6b4226';c.lineWidth=1.3;c.beginPath();c.moveTo(0,-3);c.lineTo(.6,-6);c.stroke();fs(c,ell(2.6,-5.2,2,1),'#51cf66',1);}
+ else if(k==='fish'){fs(c,P('M4 0 L9 -4 L9 4Z'),'#ffa94d',1.2);fs(c,ell(-1,0,6,3.6),'#ffa94d',1.3);fs(c,P('M-2 -3 Q0 -6 2 -3Z'),'#ff922b',1);fs(c,ell(-4,-.8,.9,.9),INK,0);}
+ else{fs(c,ell(0,0,5,5),'#ffd43b',1.4);c.strokeStyle='#e8a600';c.lineWidth=1.2;c.beginPath();c.arc(0,0,3.3,0,Math.PI*2);c.stroke();fs(c,ell(-1.6,-1.8,1.1,.8),'#fff8db',0);}
+ c.restore();}
+function qmark(c,x,y,ts,col,txt){c.save();c.font='800 '+Math.round(ts*.32)+'px Fredoka, Trebuchet MS, sans-serif';c.textAlign='center';c.lineWidth=3;c.strokeStyle='#fff';c.strokeText(txt||'?',x,y);c.fillStyle=col||'#7048e8';c.fillText(txt||'?',x,y);c.restore();}
+function bubble(c,text,x,y,fz,tc){c.save();c.font='700 '+fz+'px Fredoka, Trebuchet MS, sans-serif';const w=c.measureText(text).width+fz*1.3,h=Math.round(fz*1.8),bx=x-w/2,by=y-h-8;
+ const b=new Path2D();b.roundRect(bx,by,w,h,Math.min(10,h/2));b.moveTo(x-6,by+h);b.lineTo(x,by+h+8);b.lineTo(x+6,by+h);
+ c.fillStyle='#fff';c.fill(b);c.strokeStyle=INK;c.lineWidth=2;c.stroke(b);c.fillStyle='#fff';c.fillRect(x-5,by+h-2,10,3);
+ c.fillStyle=tc||INK;c.textAlign='center';c.textBaseline='middle';c.fillText(text,x,by+h/2+1);c.restore();}
 /* draws the pet at its own spot; (ox,oy) = the screen position of map square (0,0), ts = square size */
-function drawAt(c,id,ox,oy,ts){const kind=KIND[id]||id,gx=ox+(PT.x+.5)*ts,gy=oy+(PT.y+.9)*ts,bob=Math.sin(PT.t*2.6)*(PT.mode==='nap'?1.5:3.5)*ts/48;
+function drawAt(c,id,ox,oy,ts){if(PT.under||PT.mode==='grabbed')return;const kind=kindOf(id),u=ts/48,gx=ox+(PT.x+.5)*ts,gy=oy+(PT.y+.9)*ts,bob=Math.sin(PT.t*2.6)*(PT.mode==='nap'?1.5:3.5)*u;
  /* the shadow stays on the ground and gets smaller the higher it floats */
- c.globalAlpha=.2;c.fillStyle='#000';c.beginPath();c.ellipse(gx,gy,(13-PT.alt*4)*ts/48,(3.6-PT.alt)*ts/48,0,0,7);c.fill();c.globalAlpha=1;
+ c.globalAlpha=.2;c.fillStyle='#000';c.beginPath();c.ellipse(gx,gy,Math.max(1,(13-PT.alt*4)*u),Math.max(.5,(3.6-PT.alt)*u),0,0,7);c.fill();c.globalAlpha=1;
  const sc=ts/92*(SIZE[id]||1),cy=gy-PT.alt*ts+bob-ts*.25;c.save();c.translate(gx,cy);c.scale(sc,sc);
  c.rotate(Math.max(-.25,Math.min(.25,PT.vx*.08)));
  if(PT.mode==='spin'){const k=clamp01(PT.mt/.9);c.translate(0,-Math.sin(k*Math.PI)*16);c.rotate(smooth(k)*Math.PI*2*(PT.spinDir||1));}
  if(PT.mode==='puff'&&PT.mt<.5)c.translate(Math.sin(PT.mt*90)*1.5,0);
+ if(isDive()){const m=diveT(); /* side-on and facing left: turning by -90deg points the nose straight down */
+  if(m>=.42&&m<.8){const q=clamp01((m-.45)/.3);c.rotate(-lerp(0,Math.PI/2+.15,q*q));}
+  else if(m>=2&&m<2.35)c.rotate(lerp(Math.PI/2,0,clamp01((m-2)/.35)));
+  if(m>2.4)c.rotate(Math.sin(PT.mt*42)*.22);} /* shaking off the water */
  if(PT.face==='right')c.scale(-1,1);
- drawPet(c,{kind,view:PT.face==='front'?'front':'side',t:PT.t,mode:PT.mode,blink:PT.blinkT>0,happy:PT.mode==='spin',puff:PT.mode==='puff'&&PT.mt<.8,lx:0,ly:0});
+ const a=PT.act;let lx=0,ly=0;if(PT.mode==='act'&&a.k==='sea')ly=1.6;
+ if(isDive()&&diveT()<.8){ly=1.6;if(diveT()<0&&a.k==='pond'&&PT.mt<2){const k=(PT.mt-.6)/.9;if(k>0&&k<1){lx=lerp(-1.4,1.4,k);ly=lerp(1.6,-.6,Math.sin(k*Math.PI));}}}
+ if(PT.mode==='act'&&a.k==='flowers')ly=1.5;
+ drawPet(c,{kind,view:PT.face==='front'?'front':'side',t:PT.t,mode:PT.mode,blink:PT.blinkT>0,happy:PT.mode==='spin'||(PT.mode==='act'&&a.k==='flowers'&&PT.mt>.6),puff:(PT.mode==='warn'&&!PT.warnAt)||(PT.mode==='puff'&&PT.mt<.8),lx,ly});
  c.restore();
- /* little extras: hearts, Zzz, the startled "!" */
- const hx=gx,hy=cy-ts*.35,fz=ts/48;
- PT.fx.forEach(q=>{if(q.k==='heart'){c.globalAlpha=Math.max(0,1-q.t/q.life);heart(c,hx+q.x*sc,hy+(q.y+q.vy*q.t)*sc,5*fz,'#ff6f91');c.globalAlpha=1;}});
- if(PT.mode==='nap'&&PT.mt>.8){c.save();c.textAlign='center';for(let i=0;i<2;i++){const q=((PT.mt-.8)*.5+i/2)%1;c.globalAlpha=Math.min(1,(1-q)*1.5);c.font='800 '+((7+q*5)*fz).toFixed(1)+'px Fredoka, Trebuchet MS, sans-serif';c.lineWidth=2.5;c.strokeStyle='#fff';c.strokeText('z',hx+(8+q*12)*fz,hy-q*16*fz);c.fillStyle='#5c7cfa';c.fillText('z',hx+(8+q*12)*fz,hy-q*16*fz);}c.restore();}
- if(PT.mode==='puff'&&PT.mt<.9){c.save();c.font='800 '+Math.round(15*fz)+'px Fredoka, Trebuchet MS, sans-serif';c.textAlign='center';c.lineWidth=3;c.strokeStyle='#fff';c.strokeText('!',hx+10*fz,hy-6*fz);c.fillStyle='#f03e3e';c.fillText('!',hx+10*fz,hy-6*fz);c.restore();}}
+ if((PT.mode==='bring'||PT.mode==='act')&&PT.carry)drawItem(c,PT.carry,gx,cy+ts*.16,PT.flowerCol,ts);
+ const hx=gx,hy=cy-ts*.35;
+ if(PT.mode==='warn'&&PT.warnAt&&PT.t-PT.warnAt<2.2)bubble(c,BUSH_LINES[kind]||'That was scary!',hx,hy-ts*.07,Math.max(9,Math.round(ts*.21)));
+ if(PT.mode==='act'&&a.k==='bush'&&PT.mt<BUSHT.dive)qmark(c,gx+12*u,hy+ts*.05,ts);
+ PT.fx.forEach(q=>{if(q.k==='heart'){c.globalAlpha=Math.max(0,1-q.t/q.life);heart(c,hx+q.x*sc,hy+(q.y+q.vy*q.t)*sc,5*u,'#ff6f91');c.globalAlpha=1;}});
+ if(PT.mode==='nap'&&PT.mt>.8){c.save();c.textAlign='center';for(let i=0;i<2;i++){const q=((PT.mt-.8)*.5+i/2)%1;c.globalAlpha=Math.min(1,(1-q)*1.5);c.font='800 '+((7+q*5)*u).toFixed(1)+'px Fredoka, Trebuchet MS, sans-serif';c.lineWidth=2.5;c.strokeStyle='#fff';c.strokeText('z',hx+(8+q*12)*u,hy-q*16*u);c.fillStyle='#5c7cfa';c.fillText('z',hx+(8+q*12)*u,hy-q*16*u);}c.restore();}
+ if((PT.mode==='act'&&a.k==='sea')||(isDive()&&diveT()>=-HMM&&diveT()<.3)){const k=a.k==='sea'?Math.min(PT.mt,.5):diveT()+HMM;c.save();c.globalAlpha=Math.max(0,Math.min(1,k*5,(HMM+.3-k)*5,a.k==='sea'?1:9));qmark(c,hx+12*u,hy-4*u+Math.sin(PT.t*5)*2*u,ts);c.restore();}
+ if(PT.mode==='puff'&&PT.mt<.9)qmark(c,hx+10*u,hy-6*u,ts*.95,'#f03e3e','!');}
+/* the world around the pet: splashes, bubbles, leaves, presents, sharks (drawn over the map) */
+function drawWorld(c,ox,oy,ts,now){const u=ts/48,X=x=>ox+x*ts,Y=y=>oy+y*ts,H=hero();
+ /* a present flying to the hero, then what they got */
+ WFX.forEach(q=>{if(q.k!=='give')return;const hx=X(W0.drawX+.5),hy=Y(W0.drawY+.95)-ts*.75;
+  if(q.t<.45){const k=q.t/.45;drawItem(c,q.item,lerp(X(q.x0),hx,k),lerp(Y(q.y0),hy,k)-Math.sin(k*Math.PI)*14*u,q.fc,ts);}
+  else{const k=(q.t-.45)/(q.life-.45);const y=hy-ts*.35-k*ts*.5,lx=hx+ts*.75;drawItem(c,q.item,lx,y,q.fc,ts*1.5);
+   for(let i=0;i<4;i++){const a=q.t*5+i*1.57;star(c,lx+Math.cos(a)*ts*.4*(1+k),y+Math.sin(a)*ts*.2,3*u,'#ffe066');}}});
+ /* the pond: a fish jumps while the pet watches */
+ const a=PT.act;if(PT.mode==='act'&&a&&a.k==='pond'){const px=X(a.wx),py=Y(a.wy),k=(PT.mt-.6)/.9;
+  if(k>0&&k<1){c.save();c.translate(px-14*u+28*u*k,py+4*u-Math.sin(k*Math.PI)*30*u);c.rotate(-1+2*k);c.scale(u,u);fs(c,ell(0,0,6,3.4),'#ffa94d',1.4);fs(c,P('M-5 0 L-10 -4 L-10 4Z'),'#ffa94d',1.4);fs(c,ell(3,-1,.9,.9),INK,0);c.restore();}
+  [[0,-14],[1,14]].forEach(([kk,dx])=>{const r=(PT.mt-.6-kk*.9)/.7;if(r>0&&r<1){c.save();c.globalAlpha=1-r;c.strokeStyle='#e7f5ff';c.lineWidth=2;c.beginPath();c.ellipse(px+dx*u,py+5*u,(4+r*12)*u,(1.5+r*4)*u,0,0,7);c.stroke();c.restore();}});}
+ WFX.forEach(q=>{if(q.t<0)return;const k=q.t/q.life,x=X(q.x),y=Y(q.y);
+  if(q.k==='splash'){c.save();c.globalAlpha=1-k;c.strokeStyle='#e7f5ff';c.lineWidth=2;c.beginPath();c.ellipse(x,y,(5+k*20)*u,(2+k*6)*u,0,0,7);c.stroke();
+   for(let i=0;i<9;i++){const an=-Math.PI/2+(i/8-.5)*2.4,sp=(26+(i%3)*10)*u;fs(c,ell(x+Math.cos(an)*sp*q.t*1.6,y+Math.sin(an)*sp*q.t*1.6+60*u*q.t*q.t,2*u,2.4*u),'#bfe7ff',0);}c.restore();}
+  else if(q.k==='smoke'){c.save();c.globalAlpha=(1-k)*.55;c.fillStyle='#ced4da';c.beginPath();c.arc(x+q.dx*ts*k*3+Math.sin(q.t*3)*3*u,y-k*34*u,(4+k*10)*u,0,7);c.fill();c.restore();}
+  else if(q.k==='bub'){c.save();c.globalAlpha=1-k;c.strokeStyle='#e7f5ff';c.lineWidth=1.4;c.beginPath();c.arc(x+Math.sin(q.t*12)*2*u,y-k*10*u,(1.6+k*1.6)*u,0,7);c.stroke();c.restore();}
+  else if(q.k==='drip'){c.save();c.globalAlpha=1-k;fs(c,ell(x+q.vx*q.t*ts,y+(q.vy*q.t+1.9*q.t*q.t)*ts,1.6*u,2*u),'#8fd0f7',0);c.restore();}
+  else if(q.k==='leaf'){c.save();c.globalAlpha=Math.min(1,(1-k)*2.5);c.translate(x+q.vx*q.t*ts+Math.sin(q.t*5+q.ph)*4*u,y+(q.vy*q.t+2.2*q.t*q.t)*ts);c.rotate(q.t*6+q.ph);c.scale(u,u);fs(c,P('M0 -3.6 Q2.8 -.4 0 3.6 Q-2.8 -.4 0 -3.6Z'),q.col,.9);c.restore();}
+  else if(q.k==='fall'){c.save();c.translate(x+Math.sin(q.t*4)*10*u,y+k*1.1*ts);c.rotate(Math.sin(q.t*4)*.8);c.globalAlpha=Math.min(1,(1-k)*3);c.scale(u,u);fs(c,P('M0 -5 Q5 0 0 5 Q-5 0 0 -5Z'),'#51cf66',1.2);c.restore();}});
+ /* a shaking "!!!" bubble over the bush while the pet is in there */
+ if(PT.mode==='act'&&a&&a.k==='bush'&&PT.mt>=BUSHT.in+.2&&PT.mt<BUSHT.out){const m=PT.mt;c.save();c.translate(X(a.tx+.5)+Math.sin(m*55)*2.2*u,Y(a.ty+.92)-20*u+Math.cos(m*47)*1.6*u);c.rotate(Math.sin(m*38)*.12);bubble(c,'!!!',0,0,Math.max(10,Math.round(14*u)),'#f03e3e');c.restore();}
+ drawLunge(c,X,Y,ts);drawSorry(c,X,Y,ts);
+ /* the zap: a bolt from the staff to the water while the hero rescues the pet */
+ const g=SH.grab,R=SH.rescue;if(g&&R&&R.phase==='zap'){const m=R.t,o=H.orbT;
+  if(m>=.6&&m<1.1&&o)boltTo(c,X(o[0]),Y(o[1]),X(g.x),Y(g.y),Math.floor(m*24),u);
+  if(m>=.7&&m<1.4)for(let i=0;i<7;i++){const an=m*9+i*.9,r=(8+((m*40+i*7)%14))*u;star(c,X(g.x)+Math.cos(an)*r,Y(g.y)+Math.sin(an)*r*.5,2.6*u,i%2?'#bfe9ff':'#fffbe6');}}}
+function boltTo(c,x0,y0,x1,y1,seed,u){let r=seed*9301+49297;const rnd=()=>((r=(r*9301+49297)%233280)/233280);const n=8,pts=[[x0,y0]];
+ for(let i=1;i<n;i++){const k=i/n;pts.push([lerp(x0,x1,k)+(rnd()-.5)*14*u,lerp(y0,y1,k)+(rnd()-.5)*14*u]);}pts.push([x1,y1]);
+ const line=(w,col)=>{c.beginPath();pts.forEach(([px,py],i)=>i?c.lineTo(px,py):c.moveTo(px,py));c.strokeStyle=col;c.lineWidth=w;c.lineJoin='round';c.lineCap='round';c.stroke();};
+ c.save();c.shadowColor='#7fd3ff';c.shadowBlur=14;line(6*u,'rgba(127,211,255,.7)');c.shadowBlur=0;line(2.6*u,'#fffbe6');c.restore();}
+/* a fin cutting through the water with a little wake */
+function drawFin(c,k,X,Y,ts,t){const q=loopPos(k.u),u=ts/48,x=X(q.x),y=Y(q.y)+2*u,hx=q.dx*k.dir,hy=q.dy*k.dir;
+ c.save();c.globalAlpha=k.fade;c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=1.5;const bx=x-hx*6*u,by=y-hy*3*u;
+ c.beginPath();c.moveTo(bx+hy*2*u,by-hx*2*u);c.lineTo(bx+(-hx*14+hy*6)*u,by+(-hy*8-hx*6)*u);c.moveTo(bx-hy*2*u,by+hx*2*u);c.lineTo(bx+(-hx*14-hy*6)*u,by+(-hy*8+hx*6)*u);c.stroke();
+ const s=hx<0?-1:1,bob=Math.sin(t*3+k.u)*u;c.translate(x,y-2*u+bob);c.scale(s*u,u);
+ fs(c,P('M-7 3 Q-2 -6 3 -14 Q5 -6 8 3Z'),'#7d8da1',1.6);fs(c,P('M-7 3 Q0 1 8 3 Q0 5 -7 3Z'),'#e7f5ff',0);c.restore();}
+/* the cartoon shark leaping out with open jaws, snapping shut on the pet and sinking */
+function drawLunge(c,X,Y,ts){const g=SH.grab;if(!g)return;const k=g.shark;if(k.mode!=='lunge')return;const x=X(g.x),y=Y(g.y),m=k.t,sc=ts/48,G=GRAB_T;
+ let yo;if(m<G.bite)yo=lerp(46,-20,Math.sin(m/G.bite*Math.PI/2));else if(m<G.hold)yo=lerp(-20,8,smooth((m-G.bite)/(G.hold-G.bite)));
+ else if(m<G.pull)yo=8+Math.sin(m*9)*1.5;else yo=lerp(8,80,smooth(clamp01((m-G.pull)/(G.under-G.pull))));
+ const open=m<G.bite,shake=m>=G.hold&&m<G.pull?Math.sin(m*16)*.06:0;
+ c.save();c.beginPath();c.rect(x-80*sc,y-260*sc,160*sc,(260+3)*sc);c.clip(); /* nothing shows below the water line */
+ c.translate(x,y+yo*sc);c.rotate(shake);c.scale(sc,sc);
+ fs(c,P('M-15 22 Q-17 -14 0 -28 Q17 -14 15 22Z'),'#8ea3b8',2.2);fs(c,P('M-19 2 L-27 -4 L-16 -6Z'),'#7d8da1',1.6);fs(c,P('M19 2 L27 -4 L16 -6Z'),'#7d8da1',1.6);
+ fs(c,P('M-10 22 Q-11 -4 0 -10 Q11 -4 10 22Z'),'#f1f3f5',0);
+ fs(c,ell(-7,-17,2.4,2.8),INK,0);fs(c,ell(7,-17,2.4,2.8),INK,0);fs(c,ell(-6.2,-18,.8,.8),'#fff',0);fs(c,ell(7.8,-18,.8,.8),'#fff',0);
+ c.strokeStyle=INK;c.lineWidth=1.8;c.beginPath();c.moveTo(-10,-21);c.lineTo(-4,-19.5);c.moveTo(10,-21);c.lineTo(4,-19.5);c.stroke();
+ const teeth=(y0,dir)=>{c.fillStyle='#fff';c.strokeStyle=INK;c.lineWidth=.8;for(let i=0;i<5;i++){c.beginPath();c.moveTo(-8+i*4,y0);c.lineTo(-6+i*4,y0+dir*4.5);c.lineTo(-4+i*4,y0);c.closePath();c.fill();c.stroke();}};
+ if(open){fs(c,ell(0,-6,10,9),'#7a1f2b',2);teeth(-14,1);teeth(2,-1);}
+ else{fs(c,ell(0,-6,11,4),'#7a1f2b',1.6);
+  c.save();c.translate(0,-10);c.rotate(m>=G.hold&&m<G.pull?Math.sin(m*22)*.25:0);const ps=(ts/92*(SIZE[PT.id]||1))/sc;c.scale(ps,ps);
+  drawPet(c,{kind:kindOf(PT.id),view:'front',t:PT.t,puff:true,mode:'grabbed'});c.restore();
+  fs(c,P('M-12 -6 Q0 6 12 -6 Q12 2 0 4 Q-12 2 -12 -6Z'),'#8ea3b8',1.8);teeth(-6,-1);}
+ c.restore();
+ if(m>=G.hold+.05&&m<G.pull)bubble(c,'HELP!!!',x,y+(yo-38)*sc-ts*.4,Math.max(9,Math.round(10*sc)));}
+/* the shark's apology: a little sign on a post rises out of the water, bobs, and sinks again */
+function drawSorry(c,X,Y,ts){const S=SH.sorry;if(!S)return;const k=PT.t-S.t0;if(k<0)return;if(k>3){SH.sorry=null;return;}
+ const x=X(S.x),y=Y(S.y),up=k<.5?smooth(k/.5):k<2.5?1:1-smooth((k-2.5)/.5),sc=ts/48;
+ c.save();c.beginPath();c.rect(x-60*sc,y-120*sc,120*sc,(120+2)*sc);c.clip();c.translate(x,y+(1-up)*48*sc+Math.sin(k*4)*1.2);c.rotate(Math.sin(k*3)*.06);c.scale(sc,sc);
+ fs(c,P('M-2 0 L-2 -24 L2 -24 L2 0Z'),'#8a5a32',1.6);
+ const b=new Path2D();b.roundRect(-21,-42,42,19,3);fs(c,b,'#e9c98f',2);c.strokeStyle='rgba(138,90,50,.45)';c.lineWidth=1;c.beginPath();c.moveTo(-19,-36);c.lineTo(19,-36);c.moveTo(-19,-29);c.lineTo(19,-29);c.stroke();
+ c.font='800 11px Fredoka, Trebuchet MS, sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillStyle=INK;c.fillText('Sorry!',0,-32);c.restore();
+ if(k<.6||k>2.4){const r=k<.6?k/.6:(k-2.4)/.6;c.save();c.globalAlpha=1-r;c.strokeStyle='#e7f5ff';c.lineWidth=2;c.beginPath();c.ellipse(x,y+sc,(6+r*14)*sc,(2+r*4)*sc,0,0,7);c.stroke();c.restore();}}
+/* bushes on screen drop a leaf now and then */
+let leafAt=0;
+function bushLeaves(W,now){if(now<leafAt||!window.MQ_DECOR||!MQ_DECOR.key)return;leafAt=now+1800+Math.random()*2600;
+ const x0=Math.floor(W.drawX)-9,x1=Math.floor(W.drawX)+9,y0=Math.floor(W.drawY)-6,y1=Math.floor(W.drawY)+6,b=[];
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const t=tileAt(W,x,y);if(t&&t.o&&!hidden(x,y)&&BUSHES[MQ_DECOR.key(t,x,y)])b.push([x,y]);}
+ if(!b.length)return;const [x,y]=b[Math.floor(Math.random()*b.length)];const n=1+Math.floor(Math.random()*2);
+ for(let i=0;i<n;i++)WFX.push({k:'leaf',x:x+.3+Math.random()*.4,y:y+.4,vx:(Math.random()-.5)*.5,vy:-.15,t:-i*.4,life:1.6,ph:Math.random()*6,col:LEAFC[Math.floor(Math.random()*LEAFC.length)]});}
+let W0=null;
+function worldTick(dt,W,now){W0=W;sharkUpdate(dt,W);bushLeaves(W,now);WFX.forEach(q=>q.t+=dt);for(let i=WFX.length-1;i>=0;i--)if(WFX[i].t>=WFX[i].life)WFX.splice(i,1);}
+/* ----- hooked into the map ----- */
+let lastWorld=0;
 /* called from the map each frame: moves the pet and returns {y, draw} for the map's depth sort, or null */
-function mapItem(c,id,W,cx,cy,ts,now){const dt=Math.min(.1,PT.last?(now-PT.last)/1000:0);PT.last=now;update(dt,W,now);
+function mapItem(c,id,W,cx,cy,ts,now){const gap=PT.last?(now-PT.last)/1000:0,dt=Math.min(.1,gap);PT.last=now;
+ if(gap>1.5){cancelGrab();if(PT.mode!=='follow'){PT.mode='follow';PT.mt=0;PT.act=null;PT.carry=null;}PT.init=false;} /* back on the map after a while: start fresh beside the hero */
+ if(PT.id!==id){PT.id=id;PT.init=false;}update(dt,W,now);
  return {y:PT.y-.02,draw:()=>drawAt(c,id,-cx,-cy,ts)};}
+/* sharks, splashes and presents: drawn through the map's add-on hook so they show with or without a pet */
+window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];
+window.MQ_MAPDRAW.push((ctx,items,cx,cy,ts,now)=>{if(typeof W==='undefined'||!W||!W.T)return;const gap=lastWorld?(now-lastWorld)/1000:0,dt=Math.min(.1,gap);lastWorld=now;worldTick(dt,W,now);
+ const ox=-cx,oy=-cy,X=x=>ox+x*ts,Y=y=>oy+y*ts,t=now/1000;
+ SH.list.forEach(k=>{if(k.mode!=='swim')return;const q=loopPos(k.u),tt=tileAt(W,Math.floor(q.x),Math.floor(q.y));if(!tt||!tt.water||hidden(Math.floor(q.x),Math.floor(q.y)))return;
+  if(SH.grab&&Math.hypot(q.x-SH.grab.x,q.y-SH.grab.y)<2.2)return;items.push({y:q.y-.5,draw:()=>drawFin(ctx,k,X,Y,ts,t)});});
+ items.push({y:1e6,draw:()=>{ctx.save();try{drawWorld(ctx,ox,oy,ts,now);}catch(e){}ctx.restore();}});});
 /* the picture at any size, for tests and the gallery: draw(ctx, petId, {view:'front'|'side', t, mode}) centred on (0,0) */
-function draw(c,id,o){return drawPet(c,Object.assign({kind:KIND[id]||id,view:'front',t:0,mode:'follow'},o||{}));}
-const has=id=>{const k=KIND[id]||id;return !!(CRITTERS[k]||['fox','cat','nova','unicorn','titan','whale'].includes(k));};
-window.PetPuppet={ok:true,mapItem,draw,react,has,state:()=>PT};
+function draw(c,id,o){return drawPet(c,Object.assign({kind:kindOf(id),view:'front',t:0,mode:'follow'},o||{}));}
+const has=id=>{const k=kindOf(id);return !!(CRITTERS[k]||['fox','cat','nova','unicorn','titan','whale'].includes(k));};
+/* for tests: send the pet off to a kind of place now (if one is near), or let a shark take it at the sea */
+function go(k,W){if(typeof W==='undefined')return false;PT.nextWander=0;if(k==='sea')PT.nextSea=0;const S=spots(W);if(!S[k]||!S[k].length)return false;
+ for(let i=0;i<30;i++){PT.mode='follow';wander(W);if(PT.act&&PT.act.k===k)return true;}return false;}
+window.PetPuppet={ok:true,mapItem,draw,react,has,away,go,spots:W=>spots(W),state:()=>PT,sharks:()=>SH,lines:BUSH_LINES};
 })();

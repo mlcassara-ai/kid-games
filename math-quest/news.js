@@ -6,6 +6,11 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.08e',d:'October 2026',items:[
+  '🌼 Stand still and your pet goes exploring: sniffing flowers, diving in ponds, hiding in apple trees, and bringing you presents!',
+  '🌳 Trees, bushes and flowers sway in the breeze.',
+  '🦈 Watch out for sharks in the sea… your wizard will zap to the rescue!',
+  '🍂 Don\'t let your pet go in the bushes. Trust us.']},
  {v:'2026.10.08c',d:'October 2026',items:[
   '🐾 Your pet floats along beside you on the map now, all 43 of them!',
   '💕 Pets do happy loops, jump when you sneeze and nap when you doze off.',

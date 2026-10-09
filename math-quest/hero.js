@@ -222,7 +222,7 @@ function drawHero(c,st){FACE=st.view;const v=st.view,mode=st.mode,p=st.phase||0,
   if(mt>2&&mt<4.1)say='Phew! That was a close one!';}
  if(!say&&st.say)say=st.say;
  if(em==='startled'){face='wow';ly=-.4;jumpY=mt<.35?-Math.sin(mt/.35*Math.PI)*10:0;const r=env(0,1.5,.12,.35);fAo=geomArm(38,66,lerp(-.45,-2.2,r),lerp(-.15,-2.7,r),15,13);sAo=geomArm(62,66,lerp(.75,1.6,r),lerp(.35,1.1,r),15,13);tiltOv=.25*r;}
- if(em==='thanks'){face='happy';if(mt<1.35)say='Thanks!';}
+ if(em==='thanks'){face='happy';if(mt<1.35)say=st.say||'Thanks!';}
  /* a fall where the pet fetches the helmet: no staff magic, he waits for it and says thanks */
  if(falling&&st.fetch){const F=st.fetch;hatLoose=hasHat()&&mt>=FALL.land&&!F.back;magic=0;
   if(mt>=FALL.up){face=F.back?'happy':'open';lx=0;ly=F.back?0:-1.3;tilt=0;}if(F.back&&mt-F.backAt<1.3)say='Thanks!';}
@@ -337,7 +337,7 @@ function drawHero(c,st){FACE=st.view;const v=st.view,mode=st.mode,p=st.phase||0,
  /* the speech bubble, never mirrored */
  if(zapping&&mt>=ZAP.say0&&mt<ZAP.say1)bubble(c,'What was that?',50,4);
  if(say)bubble(c,say,sayX,(sayX===50?4:30)+jumpY);
- return orb;}
+ return orb?[mirror?100-orb[0]:orb[0],orb[1]+bob]:null;}
 /* what each emote adds around him: confetti, a question mark, a gold burst, the butterfly, the apple and crumbs, Zzz */
 const CONF=['#ff6b6b','#ffd43b','#51cf66','#4dabf7','#cc5de8','#ff922b'];
 function emoteFx(c,em,mt,t,fA,orb,fly){
@@ -383,7 +383,9 @@ function dizzy(c,x,y,mt){for(let i=0;i<3;i++){const a=mt*5+i*2.09;star(c,x+Math.
 const M={view:'down',mode:'idle',phase:0,t:0,mt:0,idle:0,still:0,blinkT:0,blinkAt:2,parts:[],last:0,lastStep:0,dozed:false,next:6};
 const IDLE_PICK=['wave','wave','wave','sneeze','fly','snack'];
 function setMode(m){if(M.mode!==m){M.mode=m;M.mt=0;}}
-function emote(m){if(M.mode==='walk'||EMO[m]===undefined&&m!=='wave')return false;M.view='down';setMode(m);M.idle=0;try{if(window.PetPuppet)PetPuppet.react(m);}catch(e){}return true;} /* the pet reacts to the big moments */
+function emote(m,say){if(M.mode==='walk'||EMO[m]===undefined&&m!=='wave')return false;M.view='down';setMode(m);M.idle=0;M.say=say||null;try{if(window.PetPuppet)PetPuppet.react(m);}catch(e){}return true;} /* the pet reacts to the big moments */
+/* pets.js: startled when a shark takes the pet, then the rescue zap facing the water (works even mid-step) */
+function force(m,view){M.view=view||'down';M.mode=m;M.mt=0;M.idle=0;M.say=null;}
 function dust(W,dx,dy){const x=W.drawX+.5-dx*.25,y=W.drawY+.9-dy*.15;
  for(let i=0;i<6;i++)M.parts.push({x:x+(Math.random()-.5)*.3,y:y+(Math.random()-.5)*.08,vx:-dx*.3+(Math.random()-.5)*.3,vy:-dy*.17-.12-Math.random()*.12,life:.45+Math.random()*.25,t:0,r:.042+Math.random()*.046});}
 function update(dt,now,W){M.t+=dt;M.mt+=dt;
@@ -397,7 +399,7 @@ function update(dt,now,W){M.t+=dt;M.mt+=dt;
  else if(M.mode==='walk'){setMode('idle');M.idle=0;}
  else if(M.mode==='wave'||EMO[M.mode]){const len=M.mode==='wave'?2.4:EMO[M.mode].len;if(M.mt>len){setMode('idle');M.idle=0;}}
  else{M.idle+=dt;M.still+=dt;if(M.idle>2.5&&M.view!=='down')M.view='down'; /* stood still a while: turn and face you */
-  const busy=window.__heroLock||window.trollBusy||(typeof curScreen!=='undefined'&&curScreen!=='world')||document.querySelector('#modal.show');
+  const busy=(window.PetPuppet&&PetPuppet.away&&PetPuppet.away())||window.__heroLock||window.trollBusy||(typeof curScreen!=='undefined'&&curScreen!=='world')||document.querySelector('#modal.show');
   if(busy){M.idle=Math.min(M.idle,3);}
   else if(M.still>30&&!M.dozed){M.dozed=true;emote('doze');} /* left alone a long time: he nods off */
   else if(M.idle>M.next&&M.view==='down'){M.next=7+Math.random()*7;emote(IDLE_PICK[Math.floor(Math.random()*IDLE_PICK.length)]);}}
@@ -409,9 +411,10 @@ function mapDraw(ctx,sx,sy,ts,now,p,W){const dt=Math.min(.1,M.last?(now-M.last)/
  M.parts.forEach(q=>{const a=1-q.t/q.life;ctx.fillStyle='rgba(222,205,170,'+(.55*a).toFixed(3)+')';ctx.beginPath();ctx.arc(ox+q.x*ts,oy+q.y*ts,q.r*ts*(1+q.t/q.life*.8),0,7);ctx.fill();});
  const h=ts*1.35,k=h/130;BUBK=Math.max(1,12/(13*k));SHADOWS=ts>=30;
  ctx.save();ctx.translate(sx+ts/2-50*k,sy+ts*.95-h);ctx.scale(k,k);
- drawHero(ctx,{view:M.view,mode:M.mode,phase:M.phase,t:M.t,mt:M.mt,blink:M.blinkT>0,noShadow:true});
+ const o=drawHero(ctx,{view:M.view,mode:M.mode,phase:M.phase,t:M.t,mt:M.mt,blink:M.blinkT>0,noShadow:true,say:M.mode==='thanks'?M.say:null});
+ M.orbT=o?[W.drawX+.5+(o[0]-50)*k/ts,W.drawY+.95-1.35+o[1]*k/ts]:null; /* the staff's orb in map squares (the rescue bolt starts there) */
  ctx.restore();}
 /* the picture at any size, for tests and other screens: draw(ctx, look, spell, {view, mode, t, mt, phase}) in the 100 x 130 frame */
 function draw(ctx,lk,spell,st){setLook(lk,spell);BUBK=1;SHADOWS=true;return drawHero(ctx,Object.assign({view:'down',mode:'idle',t:0,mt:0,phase:0},st||{}));}
-window.HeroPuppet={ok:true,mapDraw,draw,emote,state:()=>M,HATS_VIEWS:['down','left','right','up']};
+window.HeroPuppet={ok:true,mapDraw,draw,emote,force,state:()=>M,HATS_VIEWS:['down','left','right','up']};
 })();

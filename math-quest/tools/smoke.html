@@ -186,6 +186,26 @@ const tests=[
   if(dir){for(let i=0;i<3;i++){const t=W.T[W.hy][W.hx+dir];if(!t||t.block||t.npc||t.gate||t.chest)break;wStep(dir,0);await T.wait(200);}await T.wait(900);T.ok(Math.hypot(S.x-W.drawX,S.y-W.drawY)<1.5,'the pet fell behind when the hero walked');}
   T.ok(!W.petOff,'the floating pet threw on the map');
 }],
+['map life: the pet dives in the fountain and brings a present; a shark takes it at the sea and the hero zaps it back',async function(){
+  T.reset();const p=T.hero('Life',3);p.pet='fox';state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
+  const H0=window.MQ_HID;window.MQ_HID=null;const tp=(x,y)=>{W.hx=W.px=W.fx=x;W.hy=W.py=W.fy=y;W.path=[];P().wpos={x,y};};
+  try{
+  T.ok(MQ_DECOR.key&&['oak','pine','bush','daisy'].some(k=>MQ_DECOR.SET.village.block.concat(MQ_DECOR.SET.forest.block,MQ_DECOR.SET.forest.deco).includes(k)),'decor.js cannot say what stands on a square');
+  const fx=W.T.findIndex(r=>r.some(t=>t.npc==='fountain'));const fy=fx>=0?fx:-1;let fxx=fy>=0?W.T[fy].findIndex(t=>t.npc==='fountain'):-1;
+  /* stand two squares below the fountain */
+  tp(fxx,fy+2);await T.wait(700);T.ok(PetPuppet.go('fountain',W),'the pet would not go to the fountain');
+  let got=false,thanks=false;for(let i=0;i<40&&!got;i++){await T.wait(250);const s=PetPuppet.state();if(s.carry==='coin')got=true;}
+  for(let i=0;i<30&&!thanks;i++){await T.wait(200);if(HeroPuppet.state().mode==='thanks')thanks=true;}
+  T.ok(got,'the pet did not come back from the fountain with a coin');T.ok(thanks,'the hero did not say thanks for the present');
+  /* the sea: find a square beside it */
+  let spot=null;for(let y=3;y<WROWS-3&&!spot;y++)for(let x=3;x<WCOLS-3&&!spot;x++){if(!wWalk(x,y)||W.T[y][x].npc||W.T[y][x].gate||W.T[y][x].chest)continue;W.drawX=x;W.drawY=y;const S=PetPuppet.spots(W);if(S.sea.length&&S.sea[0].d<=2)spot=[x,y];}
+  T.ok(spot,'no square beside the sea');
+  if(spot){tp(spot[0],spot[1]);await T.wait(900);const r0=Math.random;Math.random=()=>.9;const ok=PetPuppet.go('sea',W);Math.random=r0;T.ok(ok,'the pet would not go to look at the sea');
+   let grabbed=false,zapped=false,back=false;for(let i=0;i<70&&!back;i++){await T.wait(200);const S=PetPuppet.sharks(),s=PetPuppet.state();if(S.grab)grabbed=true;if(HeroPuppet.state().mode==='rescue')zapped=true;if(grabbed&&!S.grab&&s.mode!=='grabbed')back=true;}
+   T.ok(grabbed,'no shark took the pet at the sea');T.ok(zapped,'the hero did not zap the water');T.ok(back&&!PetPuppet.state().under,'the pet did not come back after the zap');}
+  T.ok(!W.petOff&&!W.puppetOff,'the pet or hero drawing threw during map life');
+  }finally{window.MQ_HID=H0;}
+}],
 ['hero puppet: walks, turns and draws every hat in every direction',async function(){
   T.reset();const p=T.hero('Wiz',3);state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
   T.ok(window.HeroPuppet&&HeroPuppet.ok,'hero.js did not load');await T.wait(200);T.ok(!W.puppetOff,'the map fell back to the old hero picture');

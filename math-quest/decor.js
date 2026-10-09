@@ -33,11 +33,21 @@ window.MQ_WORLD.push(T=>{for(let y=0;y<T.length;y++)for(let x=0;x<T[y].length;x+
  if(!th||!t.o||t.deco||t.gate||t.npc||t.chest)continue;const c=(window.BIOMES&&BIOMES[t.b]&&BIOMES[t.b].c)||[-99,-99];
  if(Math.hypot(x-c[0],y-c[1])<=th.clear||hash(x*7+5,y*11+3)>=th.block){t.o=null;t.block=false;}}});
 function choose(list,x,y,s){return list[Math.floor(hash(x+s,y-s)*list.length)%list.length];}
-function paint(ctx,k,sx,sy,ts,dx){const i=img(k);if(!i.complete||!i.naturalWidth)return false;const [w,h]=SZ[k];ctx.drawImage(i,sx+ts/2-w*ts/2+(dx||0)*ts,sy+ts*.98-h*ts,w*ts,h*ts);return true;}
+/* plants sway a little in the breeze (owner's mockup, Oct 2026): a slow lean about the foot, each tile in its own rhythm. Trees barely,
+   bushes a bit, flowers and grass more. A bush the pet is rummaging in shakes hard (window.MQ_SHAKE = {x,y}, set by pets.js). */
+const SWAY={};['oak','birch','pine','pine2','summit_pine','haunt_tree','farm_appletree','temple_palm','island_palm','volcano_tree'].forEach(k=>SWAY[k]=.022);['bush','berry','fbush'].forEach(k=>SWAY[k]=.03);['daisy','bell','flower','tuft','fern','weed','garden_tulips','garden_daisies','garden_sunflower','garden_clover','garden_buds','garden_tuft','farm_sunflower','farm_wheat','farm_flowers','farm_tuft','fair_flowers','fair_tuft','mesa_tuft','volcano_fireflower','reef_kelp'].forEach(k=>SWAY[k]=.07);
+function paint(ctx,k,sx,sy,ts,dx,x,y){const i=img(k);if(!i.complete||!i.naturalWidth)return false;const [w,h]=SZ[k];
+ const s=SWAY[k],sh=window.MQ_SHAKE,shk=!!(sh&&sh.x===x&&sh.y===y);
+ if(s||shk){const t=performance.now()/1000,ph=(x||0)*1.7+(y||0)*2.3;let sk=s?Math.sin(t*1.6+ph)*s+Math.sin(t*2.9+ph*1.3)*s*.35:0,jx=0;
+  if(shk){jx=Math.sin(t*60)*ts*.04;sk+=Math.sin(t*47)*.07;}const by=sy+ts*.98;ctx.save();ctx.transform(1,0,sk,1,-sk*by+jx,0);
+  ctx.drawImage(i,sx+ts/2-w*ts/2+(dx||0)*ts,sy+ts*.98-h*ts,w*ts,h*ts);ctx.restore();return true;}
+ ctx.drawImage(i,sx+ts/2-w*ts/2+(dx||0)*ts,sy+ts*.98-h*ts,w*ts,h*ts);return true;}
 function get(t,x,y){const S=SET[t.b];if(!S||!t.o)return null;const k=choose(t.deco?S.deco:S.block,x,y,t.deco?7:3);return img(k).complete&&img(k).naturalWidth?k:null;}
 window.MQ_DECOR={
- draw(t,x,y){const k=get(t,x,y);return k?(ctx,sx,sy,ts)=>paint(ctx,k,sx,sy,ts,t.deco?(hash(x,y)-.5)*.3:0):null;},
+ draw(t,x,y){const k=get(t,x,y);return k?(ctx,sx,sy,ts)=>paint(ctx,k,sx,sy,ts,t.deco?(hash(x,y)-.5)*.3:0,x,y):null;},
+ /* which picture stands on a square (an object or an open-ground extra), for the pet's adventures (pets.js) */
+ key(t,x,y){if(t.o){const S=SET[t.b];return S?choose(t.deco?S.deco:S.block,x,y,t.deco?7:3):null;}const S=SET[t.b];if(!S||t.block||t.path||t.plaza||t.water||t.gate||t.npc||t.chest)return null;if(hash(x*3+1,y*7+2)>((thinOf(t.b)||{}).extra||.16))return null;return choose(S.extra,x,y,11);},
  extra(t,x,y){const S=SET[t.b];if(!S||t.o||t.block||t.path||t.plaza||t.water||t.gate||t.npc||t.chest)return null;if(hash(x*3+1,y*7+2)>((thinOf(t.b)||{}).extra||.16))return null;const k=choose(S.extra,x,y,11);
-  return (ctx,sx,sy,ts)=>paint(ctx,k,sx,sy-ts*(hash(x,y)*.3),ts,(hash(y,x)-.5)*.5);},
+  return (ctx,sx,sy,ts)=>paint(ctx,k,sx,sy-ts*(hash(x,y)*.3),ts,(hash(y,x)-.5)*.5,x,y);},
  ART,SZ,SET,THIN};
 })();
