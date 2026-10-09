@@ -193,7 +193,12 @@ const tests=[
   T.ok(MQ_DECOR.key&&['oak','pine','bush','daisy'].some(k=>MQ_DECOR.SET.village.block.concat(MQ_DECOR.SET.forest.block,MQ_DECOR.SET.forest.deco).includes(k)),'decor.js cannot say what stands on a square');
   const fx=W.T.findIndex(r=>r.some(t=>t.npc==='fountain'));const fy=fx>=0?fx:-1;let fxx=fy>=0?W.T[fy].findIndex(t=>t.npc==='fountain'):-1;
   /* stand two squares below the fountain */
-  tp(fxx,fy+2);await T.wait(700);const c0=P().coins;T.ok(PetPuppet.go('fountain',W),'the pet would not go to the fountain');
+  tp(fxx,fy+2);await T.wait(700);
+  /* the pet sets off by itself (not through the test helper) and the map keeps drawing it */
+  PetPuppet.state().nextWander=0;for(let i=0;i<30&&!['wander','act'].includes(PetPuppet.state().mode);i++)await T.wait(200);
+  await T.wait(1500);T.ok(['wander','act','bring','spin'].includes(PetPuppet.state().mode)&&!W.petOff,'the pet broke when it set off on an adventure by itself ('+PetPuppet.state().mode+', fallback '+W.petOff+')');
+  for(let i=0;i<60&&PetPuppet.away();i++)await T.wait(200);await T.wait(1500);
+  P().petCoin=null;const c0=P().coins;T.ok(PetPuppet.go('fountain',W),'the pet would not go to the fountain');
   let got=false,thanks=false;for(let i=0;i<40&&!got;i++){await T.wait(250);const s=PetPuppet.state();if(s.carry==='coin')got=true;}
   for(let i=0;i<30&&!thanks;i++){await T.wait(200);if(HeroPuppet.state().mode==='thanks')thanks=true;}
   T.ok(got,'the pet did not come back from the fountain with a coin');T.ok(thanks,'the hero did not say thanks for the present');T.ok(P().coins===c0+1&&P().petCoin&&P().petCoin.n===1,'the fountain coin did not add one real coin ('+c0+' → '+P().coins+')');

@@ -525,7 +525,7 @@ function update(dt,W,now){PT.t+=dt;PT.mt+=dt;const H=hero(),hx=W.drawX,hy=W.draw
  if(Math.hypot(hx-PT.x,hy-PT.y)>8){cancelGrab();PT.mode='follow';PT.act=null;PT.carry=null;PT.under=false;PT.x=hx-.7;PT.y=hy-.3;PT.vx=PT.vy=0;PT.hpx=hx;PT.hpy=hy;} /* the hero jumped somewhere (train, door): the pet comes along */
  PT.blinkT-=dt;if(PT.blinkT<=0&&PT.t>PT.blinkAt){PT.blinkT=.12;PT.blinkAt=PT.t+2+Math.random()*3;}
  if(PT.pend&&PT.t>=PT.pend.at){const m=PT.pend.m;PT.pend=null;petDo(m);}
- const heroBusy=H.mode==='walk'&&!SH.rescue,a=PT.act;
+ const heroBusy=H.mode==='walk'&&!SH.rescue;let a=PT.act;
  if((PT.mode==='wander'||PT.mode==='act')&&heroBusy&&!PT.under&&!(isDive()&&diveT()>.5)){PT.mode='follow';PT.mt=0;PT.nextWander=PT.t+12+Math.random()*8;}
  if(PT.mode==='act'&&a.k==='sea'&&PT.mt>EMO_LEN.sea){PT.mode='follow';PT.mt=0;PT.nextWander=PT.t+14;}
  if(PT.mode==='act'&&a.k==='bush'&&PT.mt>EMO_LEN.bush){PT.mode='warn';PT.mt=0;PT.under=false;PT.warnAt=0;PT.nextWander=PT.t+18+Math.random()*8;}
@@ -537,6 +537,7 @@ function update(dt,W,now){PT.t+=dt;PT.mt+=dt;const H=hero(),hx=W.drawX,hy=W.draw
  if(PT.mode==='follow'&&standing&&PT.t>PT.nextWander&&!window.__heroLock)wander(W);
  else if(PT.mode==='follow'&&H.mode==='idle'&&PT.t>PT.nextLoop){PT.nextLoop=PT.t+25+Math.random()*25;petDo('spin');} /* a happy loop of its own now and then */
  if(H.mode==='walk')PT.nextLoop=Math.max(PT.nextLoop,PT.t+8);
+ a=PT.act; /* wander() may have just picked a new place to visit */
  /* taken under: wait for the zap, then pop out unharmed */
  if(PT.mode==='grabbed'){if(PT.mt>=GRAB_T.under&&!PT.under){PT.under=true;}
   if(PT.mt>=.3&&!SH.startled){SH.startled=true;if(window.HeroPuppet&&HeroPuppet.force)HeroPuppet.force('startled','down');}
