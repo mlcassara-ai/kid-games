@@ -56,7 +56,9 @@ function reach(W){if(EW===W&&REACH)return REACH;const T=W.T;let st=null;for(let 
  REACH=[...seen].map(k=>k.split(',').map(Number));return REACH;}
 function pathTo(W,sx,sy,tx,ty){const key=(x,y)=>x+','+y,prev={},q=[[sx,sy]];prev[key(sx,sy)]=null;
  while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty)break;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=key(nx,ny);if(k in prev)continue;const t=W.T[ny]&&W.T[ny][nx];
-   if(!t||t.block||t.water||t.gate||t.rail||blocked(W,x,y,nx,ny))continue;prev[k]=[x,y];q.push([nx,ny]);}if(q.length>4000)break;}
+   if(!t||t.block||t.water||t.gate||t.rail||blocked(W,x,y,nx,ny))continue;
+   if(!(nx===tx&&ny===ty)&&(t.chest||(t.npc&&t.npc!=='elder')))continue; /* walk round presents and other visitors: stepping onto one ends the walk (and a leaving walk early) */
+   prev[k]=[x,y];q.push([nx,ny]);}if(q.length>4000)break;}
  if(!(key(tx,ty) in prev))return null;const p=[];let c=[tx,ty];while(c&&!(c[0]===sx&&c[1]===sy)){p.unshift(c);c=prev[key(c[0],c[1])];}return p;}
 /* the places he can step into: open worlds' entrances, the Number Town door, the train station board */
 function places(W){const out=[],p=(()=>{try{return P();}catch(e){return null;}})();
@@ -145,5 +147,5 @@ function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T)retur
   if(done&&!E.hidden){const r=ts*.16,bx=sx+ts/2,by=sy+ts*.97-h-r*1.3+Math.sin(now/300)*2;ctx.save();ctx.fillStyle='#ffd43b';ctx.strokeStyle=O;ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,r,0,7);ctx.fill();ctx.stroke();ctx.fillStyle=O;ctx.font=`900 ${Math.round(r*1.5)}px Fredoka, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',bx,by+1);ctx.restore();}}});
  if(E.say&&(!E.hidden||pf))items.push({y:1e6-2,draw:()=>bubble(ctx,sx+ts*.75,sy-ts*.25,ts,E.say.t,now-E.say.at,E.say.m)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
-window.MQ_ELDER={GREET,BYE,LEAVE,talked,seek:w=>{SEEK=w||'intro';},seeking:()=>SEEK,TIMES:{VISIT,GAP,FIRST},tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){t=t||sayLine();E.say={t,at:performance.now(),m:MUMBLE.includes(t)};}},LINES:{QUEST,DONE,OTHER,MUMBLE},places:w=>places(w||W)};
+window.MQ_ELDER={GREET,BYE,LEAVE,talked,pathTo,seek:w=>{SEEK=w||'intro';},seeking:()=>SEEK,TIMES:{VISIT,GAP,FIRST},tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){t=t||sayLine();E.say={t,at:performance.now(),m:MUMBLE.includes(t)};}},LINES:{QUEST,DONE,OTHER,MUMBLE},places:w=>places(w||W)};
 })();

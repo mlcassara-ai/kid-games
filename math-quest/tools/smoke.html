@@ -268,6 +268,8 @@ const tests=[
    {const t1=performance.now();Object.assign(E2,{hidden:false,poof:null,moved:false,leaving:false,talked:null,path:[],mt:0,wait:0});W.hx=E2.x+sd;W.hy=E2.y;MQ_ELDER.tick(t1);
     MQ_ELDER.talked('walk');T.ok(W.T[E2.y][E2.x].npc!=='elder','the Elder Wiz can be talked to again right after his card');closeModal();MQ_ELDER.tick(t1+10);
     T.ok(E2.leaving&&E2.path.length>=12&&MQ_ELDER.LEAVE.includes(E2.say.t),'the Elder Wiz did not walk far away after talking');
+    {const ok=MQ_ELDER.pathTo&&(()=>{const p=E2.path,m=p[Math.min(3,p.length-2)],t=W.T[m[1]][m[0]],had=t.chest;t.chest='smoke';const q=MQ_ELDER.pathTo(W,E2.x,E2.y,p[p.length-1][0],p[p.length-1][1]);if(had===undefined)delete t.chest;else t.chest=had;return q&&!q.some(c=>c[0]===m[0]&&c[1]===m[1]);})();
+     T.ok(ok,'the Elder Wiz plans his walk over a present (stepping on it ends his walk)');}
     for(let i=0;i<5;i++){E2.mt=0;MQ_ELDER.tick(t1+20+i*600);}T.ok(W.T[E2.y][E2.x].npc!=='elder'&&!E2.greeted===false,'the Elder Wiz can be stopped while he walks away');
     Object.assign(E2,{leaving:false,path:[],mt:0,wait:0,talked:null});MQ_ELDER.talked('poof');MQ_ELDER.tick(t1+4000);T.ok(E2.poof&&E2.poof.vanish-(t1+4000)<=2000,'the Elder Wiz did not vanish within 2 seconds after talking');
     MQ_ELDER.tick(t1+5400);T.ok(E2.hidden,'the Elder Wiz did not vanish after talking');T.ok(E2.backAt-(t1+5400)>=MQ_ELDER.TIMES.GAP[0]*1000-50,'the Elder Wiz comes back sooner than 10 minutes');E2.backAt=0;MQ_ELDER.tick(t1+5500);}
