@@ -116,7 +116,7 @@ function tick(W,now){if(EW!==W){EW=W;REACH=null;E=null;}if(!E){start(W,now);if(!
  if(E.poof){if(now>=E.poof.vanish)away(W,now,rnd(GAP));return;}
  if(E.mt&&now-E.mt<STEP)return;E.mt=0;
  if(now>=E.nextSay&&!E.say){const t=sayLine();E.say={t,at:now,m:MUMBLE.includes(t)};E.nextSay=now+(45+Math.random()*105)*1000;}
- if(E.say&&now-E.say.at>5500)E.say=null;
+ if(E.say&&!E.say.hold&&now-E.say.at>5500)E.say=null; /* a held bubble (someone else talking) waits its turn */
  if(E.talked){if(document.querySelector('#modal.show'))return;const m=E.talked;E.talked=null;E.visitEnd=Math.min(E.visitEnd||0,now+60e3);if(m==='walk'&&leaveWalk(W,now))return;poof(now);if(E.poof)E.poof.vanish=now+1300;return;} /* his card just closed: off he goes */
  if(E.leaving&&!E.path.length){E.leaving=false;setTile(W,true);} /* got there: he can be met again */
  if(!E.hidden&&!E.leaving&&greet(W,now)){E.wait=Math.max(E.wait,now+400);return;} /* he waits while the hero is close */
@@ -145,7 +145,12 @@ function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T)retur
  items.push({y:dy+.02,draw:()=>{const h=ts*1.4,w=h*64/96,bob=E.mt&&k<1?Math.abs(Math.sin(now/90))*2.5:Math.sin(now/600)*1.2;if(out>0){const fy=sy+ts*.97,sc=pf&&E.hidden?out:1,rot=pf&&!E.hidden?Math.sin(now/90)*.09:0;ctx.save();ctx.globalAlpha=out;ctx.translate(sx+ts/2,fy);ctx.rotate(rot);ctx.scale((E.dir<0?-1:1)*sc,sc);ctx.drawImage(IMG,-w/2,-h-bob,w,h);ctx.restore();}
   if(pf)sparkles(ctx,sx+ts/2,sy+ts*.97-h*.55,ts,h,now,pf);
   if(done&&!E.hidden){const r=ts*.16,bx=sx+ts/2,by=sy+ts*.97-h-r*1.3+Math.sin(now/300)*2;ctx.save();ctx.fillStyle='#ffd43b';ctx.strokeStyle=O;ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,r,0,7);ctx.fill();ctx.stroke();ctx.fillStyle=O;ctx.font=`900 ${Math.round(r*1.5)}px Fredoka, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',bx,by+1);ctx.restore();}}});
- if(E.say&&(!E.hidden||pf))items.push({y:1e6-2,draw:()=>bubble(ctx,sx+ts*.75,sy-ts*.25,ts,E.say.t,now-E.say.at,E.say.m)});}
+ /* the hero or their pet is talking close by: hold his bubble (and its clock) until they finish, so the bubbles never overlap */
+ if(E.say){const near=typeof W!=='undefined'&&W&&Math.hypot((W.drawX!=null?W.drawX:W.hx)-E.x,(W.drawY!=null?W.drawY:W.hy)-E.y)<4.5,
+   busy=near&&((window.HeroPuppet&&HeroPuppet.talking&&HeroPuppet.talking())||(window.PetPuppet&&PetPuppet.talking&&PetPuppet.talking()));
+  if(busy){if(!E.say.hold)E.say.hold=now;}else if(E.say.hold){E.say.at+=now-E.say.hold;E.say.hold=0;}
+  E.sayHeld=!!busy;}
+ if(E.say&&!E.sayHeld&&(!E.hidden||pf))items.push({y:1e6-2,draw:()=>bubble(ctx,sx+ts*.75,sy-ts*.25,ts,E.say.t,now-E.say.at,E.say.m)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
 window.MQ_ELDER={GREET,BYE,LEAVE,talked,pathTo,seek:w=>{SEEK=w||'intro';},seeking:()=>SEEK,TIMES:{VISIT,GAP,FIRST},tick:t=>tick(W,t),greet:(w,t)=>E&&greet(w||W,t||performance.now()),state:()=>E,svg:SVG,say:t=>{if(E){t=t||sayLine();E.say={t,at:performance.now(),m:MUMBLE.includes(t)};}},LINES:{QUEST,DONE,OTHER,MUMBLE},places:w=>places(w||W)};
 })();

@@ -431,5 +431,7 @@ function mapDraw(ctx,sx,sy,ts,now,p,W){const gap=M.last?(now-M.last)/1000:0,dt=M
  ctx.restore();}
 /* the picture at any size, for tests and other screens: draw(ctx, look, spell, {view, mode, t, mt, phase}) in the 100 x 130 frame */
 function draw(ctx,lk,spell,st){setLook(lk,spell);BUBK=1;SHADOWS=true;return drawHero(ctx,Object.assign({view:'down',mode:'idle',t:0,mt:0,phase:0},st||{}));}
-window.HeroPuppet={ok:true,mapDraw,draw,emote,force,zapNext:()=>{M.zapNext=true;},state:()=>M,HATS_VIEWS:['down','left','right','up']};
+/* is a speech bubble up over the hero (elder.js holds his own thought while it is) */
+const TALK=['cheer','level','sneeze','snack','thanks','rescue','zap'];
+window.HeroPuppet={ok:true,talking:()=>TALK.includes(M.mode),mapDraw,draw,emote,force,zapNext:()=>{M.zapNext=true;},state:()=>M,HATS_VIEWS:['down','left','right','up']};
 })();

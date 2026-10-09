@@ -246,6 +246,16 @@ const tests=[
   T.ok(!W.puppetOff,'the hero puppet threw while walking');
   T.ok(window.MQ_FOUNTAIN_ART&&MQ_FOUNTAIN_ART.draw&&!W.ftnOff,'the animated fountain is missing or threw on the map');
 }],
+['big screens: the fog clears a bigger circle on a big iPad; the Elder Wiz holds his bubble while the hero talks',async function(){
+  T.reset();const p=T.hero('Bubbles',3);p.pet=null;state.cur=p.id;go('world');await T.wait(400);try{closeModal();}catch(e){}
+  const v=[W.vw,W.vh,W.ts];W.vw=1032;W.vh=1100;W.ts=58;const big=MQ_XFOG.radius();W.vw=375;W.vh=600;W.ts=41;const small=MQ_XFOG.radius();[W.vw,W.vh,W.ts]=v;
+  T.ok(big>4&&big<=5&&small===3.2,'the fog circle does not grow with the screen ('+small+' / '+big+')');
+  const E=MQ_ELDER.state();T.ok(E&&!E.hidden,'the Elder Wiz is not out');
+  if(E&&!E.hidden){W.hx=E.x+(E.x+2<W.T[0].length?2:-2);W.hy=E.y;await T.wait(300);MQ_ELDER.say('Hmm, numbers…');await T.wait(100);const t0=E.say.at;
+   HeroPuppet.force('cheer','down');await T.wait(300);T.ok(E.sayHeld&&E.say,'the Elder Wiz talked over the hero');
+   for(let i=0;i<40&&HeroPuppet.state().mode==='cheer';i++)await T.wait(100);await T.wait(200);
+   T.ok(!E.sayHeld&&E.say&&E.say.at>t0,'the Elder Wiz did not get his turn after the hero finished');}
+}],
 ['elder wiz: walks the map with a full body, talks when bumped, thinks out loud',async function(){
   T.reset();const p=T.hero('Wiz',3);state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
   const E=MQ_ELDER.state();T.ok(E&&!E.hidden&&W.T[E.y][E.x].npc==='elder'&&!W.T[E.y][E.x].block,'the Elder Wiz is not out on the map'+(E?' ('+[E.x,E.y,E.hidden?'hidden':'shown',E.poof?'poof':'',E.leaving?'leaving':'',JSON.stringify(W.T[E.y][E.x]),'hero '+W.hx+','+W.hy,'seek '+MQ_ELDER.seeking()].join(' ')+')':' (none)'));

@@ -5,7 +5,11 @@
    Just for fun: walking, battles and everything else work as usual. Saved: p.fog = {last: the day of the last fog day, on: 1 while that day's
    fog is up, s: the cleared squares as a base64 bitmap (row by row)}. Drawn through MQ_MAPDRAW on top of everything except the hero's own bubbles. */
 (function(){
-const R=3.2,SOFT=1.6,WEEK=7,MAX=14;
+const R0=3.2,SOFT=1.6,WEEK=7,MAX=14;let R=R0;
+/* the clear circle grows with the screen (owner, Oct 2026: on a big iPad 3.2 squares looked tiny): a quarter of the squares that fit across the
+   narrower side, never under R0 (phones and laptops keep 3.2) and never over 5 */
+const radius=()=>{try{return W&&W.ts&&W.vw&&W.vh?Math.max(R0,Math.min(5,Math.min(W.vw,W.vh)/W.ts*.25)):R0;}catch(e){return R0;}};
+
 let ON=false,SEEN=null,FPID=null,CHECKED=null,DIRTY=0,SAVED_AT=0;
 const days=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/864e5);
 /* is today a fog day? never two days running; from day 7 a coin flip each day, sure by day 14 */
@@ -22,7 +26,7 @@ function begin(force){try{const p=P();if(!p||!p.setup||typeof W==='undefined'||!
   setTimeout(()=>{try{toast('🌫️ A thick fog rolled in overnight! Walk around to clear it.');}catch(e){}},600);return true;}catch(e){return false;}}
 /* coming back on the same fog day: the same fog, with the squares already cleared */
 function resume(p){if(!p||!p.fog||!p.fog.on||p.fog.last!==dayKey()||typeof W==='undefined'||!W||!W.T)return false;ON=true;FPID=p.id;SEEN=dec(W,p.fog.s);DIRTY=0;return true;}
-function reveal(){const hx=Math.round(W.drawX!=null?W.drawX:W.hx),hy=Math.round(W.drawY!=null?W.drawY:W.hy),r=Math.ceil(R+SOFT);
+function reveal(){R=radius();const hx=Math.round(W.drawX!=null?W.drawX:W.hx),hy=Math.round(W.drawY!=null?W.drawY:W.hy),r=Math.ceil(R+SOFT);
  for(let y=hy-r;y<=hy+r;y++)for(let x=hx-r;x<=hx+r;x++){if(x<0||y<0)continue;const d=Math.hypot(x-W.hx,y-W.hy),k=y*1000+x;if(d<=R&&!SEEN.has(k)){SEEN.add(k);DIRTY=1;}}}
 function frame(ctx,items,cx,cy,ts,now){if(!ON||typeof W==='undefined'||!W||!W.T)return;{const p=P();if(!p||p.id!==FPID||!p.fog||p.fog.last!==dayKey()){ON=false;return;}}reveal();persist(false);
  items.push({y:1e6-5,draw:()=>{const x0=Math.max(0,Math.floor(cx/ts)),y0=Math.max(0,Math.floor(cy/ts)),x1=Math.min(W.T[0].length-1,Math.floor((cx+W.vw)/ts)),y1=Math.min(W.T.length-1,Math.floor((cy+W.vh)/ts));

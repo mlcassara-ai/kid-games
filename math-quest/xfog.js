@@ -10,7 +10,11 @@
    Separate from fog days (fog.js), which skip a hero who still has this fog. Drawing: one pixel per square on a small canvas
    (opaque = hidden), drawn scaled up over the map with smoothing (that's the soft edge); it is only repainted when squares open. */
 (function(){
-const R=3.2,DONE=.97,SAVE_MS=4000;
+const R0=3.2,DONE=.97,SAVE_MS=4000;let R=R0;
+/* the clear circle grows with the screen (owner, Oct 2026: on a big iPad 3.2 squares looked tiny): a quarter of the squares that fit across the
+   narrower side, never under R0 (phones and laptops keep 3.2) and never over 5 */
+const radius=()=>{try{return W&&W.ts&&W.vw&&W.vh?Math.max(R0,Math.min(5,Math.min(W.vw,W.vh)/W.ts*.25)):R0;}catch(e){return R0;}};
+
 let PID=null,SEEN=null,WREF=null,DIRTY=0,SAVED_AT=0,MASK=null,MDIRTY=1,REACH=null,RW=null,CHK=0,NEWN=0;
 const ok=()=>typeof W!=='undefined'&&!!W&&!!W.T;
 function has(p){return !!(p&&p.nh===1&&!p.xfogOff);}
@@ -23,7 +27,7 @@ function cur(){let p=null;try{p=state.cur?P():null;}catch(e){}
  if(!has(p)||!ok()){PID=null;SEEN=null;DIRTY=0;return null;}
  if(PID!==p.id||!SEEN||WREF!==W){PID=p.id;WREF=W;SEEN=new Uint8Array(WCOLS*WROWS);decInto(SEEN,p.xfog);plaza(SEEN);MDIRTY=1;DIRTY=0;NEWN=1;}
  return SEEN;}
-function reveal(b){const hx=W.hx,hy=W.hy,r=Math.ceil(R);let n=0;
+function reveal(b){R=radius();const hx=W.hx,hy=W.hy,r=Math.ceil(R);let n=0;
  for(let y=hy-r;y<=hy+r;y++)for(let x=hx-r;x<=hx+r;x++){if(x<0||y<0||x>=WCOLS||y>=WROWS||Math.hypot(x-hx,y-hy)>R)continue;const i=y*WCOLS+x;if(!b[i]){b[i]=1;n++;}}
  if(n){DIRTY=1;MDIRTY=1;NEWN=1;}}
 function persist(force){if(!DIRTY||!SEEN||!PID)return;const now=Date.now();if(!force&&now-SAVED_AT<SAVE_MS)return;
@@ -58,5 +62,5 @@ function askReveal(id){const p=state.players.find(x=>x.id===id);if(!p)return;mod
 function revealFor(id){const p=state.players.find(x=>x.id===id);if(!p)return;p.xfogOff=1;delete p.xfog;save();if(PID===id){PID=null;SEEN=null;DIRTY=0;}try{closeModal();}catch(e){}
  try{if(typeof curScreen!=='undefined'&&curScreen==='parent')refreshParent(`pp-${id}`,true);}catch(e){}try{toast(`🗺️ The whole map is uncovered for ${p.name}.`);}catch(e){}}
 window.MQ_XFOG={has,on:()=>!!cur(),hid:(x,y)=>window.MQ_HID(x,y),seen:()=>{const b=cur();let n=0;if(b)for(const v of b)n+=v;return n;},share:()=>{const b=cur();return b?share(b):1;},reach:()=>ok()?reach().length:0,
- parentRow,askReveal,revealFor,DONE,R,_save:()=>{if(cur()){DIRTY=1;persist(true);}},_open:list=>{const b=cur();if(!b)return;list.forEach(i=>{b[i]=1;});DIRTY=1;MDIRTY=1;NEWN=1;CHK=0;},_reachList:()=>ok()?reach().slice():[],_enc:enc};
+ parentRow,askReveal,revealFor,DONE,R:R0,radius,_save:()=>{if(cur()){DIRTY=1;persist(true);}},_open:list=>{const b=cur();if(!b)return;list.forEach(i=>{b[i]=1;});DIRTY=1;MDIRTY=1;NEWN=1;CHK=0;},_reachList:()=>ok()?reach().slice():[],_enc:enc};
 })();

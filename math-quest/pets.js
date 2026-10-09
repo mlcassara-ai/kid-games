@@ -729,5 +729,7 @@ const has=id=>{const k=kindOf(id);return !!(CRITTERS[k]||['fox','cat','nova','un
 /* for tests: send the pet off to a kind of place now (if one is near), or let a shark take it at the sea */
 function go(k,W){if(typeof W==='undefined')return false;PT.nextWander=0;if(k==='sea')PT.nextSea=0;const S=spots(W);if(!S[k]||!S[k].length)return false;
  for(let i=0;i<30;i++){PT.mode='follow';wander(W);if(PT.act&&PT.act.k===k)return true;}return false;}
-window.PetPuppet={ok:true,mapItem,draw,react,has,away,go,spots:W=>spots(W),state:()=>PT,sharks:()=>SH,lines:BUSH_LINES};
+/* is the pet saying something (its bush line, or HELP!!! in the shark's jaws) */
+const talking=()=>(PT.mode==='warn'&&!!PT.warnAt&&PT.t-PT.warnAt<2.2)||!!SH.grab;
+window.PetPuppet={ok:true,talking,mapItem,draw,react,has,away,go,spots:W=>spots(W),state:()=>PT,sharks:()=>SH,lines:BUSH_LINES};
 })();
