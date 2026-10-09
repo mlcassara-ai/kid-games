@@ -4,7 +4,9 @@
 <!-- Run with: /usr/bin/python3 math-quest/tools/smoke.py   (starts a local server and a throwaway headless Chrome)
      The page loads the real game in a frame and drives it. It only runs on localhost with ?run=1, so opening it on the
      live site (where a family's real save lives) does nothing. -->
-<style>body{font:15px system-ui;margin:20px}iframe{width:900px;height:650px;border:1px solid #999}.ok{color:#18794e}.bad{color:#c22}</style>
+<!-- The game frame is pinned to the top so it stays on screen: Safari pauses animation in a frame scrolled out of view, which made the
+     animation tests fail when the page was run in iPad Safari (the iOS Simulator: open http://localhost:PORT/math-quest/tools/smoke.html?run=1). -->
+<style>body{font:15px system-ui;margin:20px}iframe{position:fixed;top:0;left:0;width:900px;height:650px;border:1px solid #999;z-index:9}#log{margin-top:670px}.ok{color:#18794e}.bad{color:#c22}</style>
 <h1 id="h">Math Quest smoke test</h1>
 <pre id="log"></pre>
 <pre id="result" hidden></pre>
