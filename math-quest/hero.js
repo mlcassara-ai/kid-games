@@ -388,25 +388,40 @@ function emote(m,say){if(M.mode==='walk'||EMO[m]===undefined&&m!=='wave')return 
 function force(m,view){M.view=view||'down';M.mode=m;M.mt=0;M.idle=0;M.say=null;}
 function dust(W,dx,dy){const x=W.drawX+.5-dx*.25,y=W.drawY+.9-dy*.15;
  for(let i=0;i<6;i++)M.parts.push({x:x+(Math.random()-.5)*.3,y:y+(Math.random()-.5)*.08,vx:-dx*.3+(Math.random()-.5)*.3,vy:-dy*.17-.12-Math.random()*.12,life:.45+Math.random()*.25,t:0,r:.042+Math.random()*.046});}
-function update(dt,now,W){M.t+=dt;M.mt+=dt;
+const busyNow=()=>!!((window.PetPuppet&&PetPuppet.away&&PetPuppet.away())||window.__heroLock||window.trollBusy||(typeof curScreen!=='undefined'&&curScreen!=='world')||document.querySelector('#modal.show'));
+/* the walking zap: about 1 in ZAP_CHANCE of his steps towards you, and never again for ZAP_GAP seconds (owner: rare, a walking thing) */
+const ZAP_CHANCE=1/40,ZAP_GAP=[240,480];M.zapAt=90;
+/* what happened in the last battle (MQ_HOOKS 'battle'), shown when the hero is back standing on the map within 10 minutes;
+   a level gained since the map last saw this hero beats a plain win */
+const EV={pend:null,lvl:{}};
+window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:()=>{window.__heroPause=false;if(M.mode==='zap')setMode('idle');},battle:(p,info)=>{try{EV.pend={k:info&&info.win?'cheer':'oops',at:Date.now(),id:p&&p.id};}catch(e){}}});
+function battleNews(p){if(!p)return false;const L=EV.lvl[p.id];
+ if(L===undefined)EV.lvl[p.id]=p.level||1;else if((p.level||1)>L){EV.lvl[p.id]=p.level;EV.pend={k:'level',at:Date.now(),id:p.id};}
+ const e=EV.pend;if(!e)return false;EV.pend=null;if(e.id!==p.id||Date.now()-e.at>600000)return false;return emote(e.k);}
+function update(dt,now,W,p){M.t+=dt;M.mt+=dt;if(window.__heroPause&&M.mode!=='zap')window.__heroPause=false; /* never leave the hero stuck */
  M.blinkT-=dt;if(M.blinkT<=0&&M.t>M.blinkAt){M.blinkT=.13;M.blinkAt=M.t+2.2+Math.random()*2.5;}
- const walking=!!W.mt&&now-W.mt<210;
+ const walking=!!W.mt&&now-W.mt<210&&M.mode!=='zap';
  if(walking){const dx=W.hx-(W.fx==null?W.hx:W.fx),dy=W.hy-(W.fy==null?W.hy:W.fy);
   if(dx||dy)M.view=dx<0?'left':dx>0?'right':dy<0?'up':'down';
   if(M.mode!=='walk')setMode('walk');M.idle=0;M.still=0;M.dozed=false;
   M.phase+=dt*Math.PI/.15; /* one footfall per square */
-  const step=Math.floor(M.phase/Math.PI);if(step!==M.lastStep){M.lastStep=step;const D={down:[0,1],up:[0,-1],left:[-1,0],right:[1,0]}[M.view];dust(W,D[0],D[1]);}}
+  const step=Math.floor(M.phase/Math.PI);if(step!==M.lastStep){M.lastStep=step;const D={down:[0,1],up:[0,-1],left:[-1,0],right:[1,0]}[M.view];dust(W,D[0],D[1]);
+   /* now and then, rarely, his staff zaps him mid-walk (only walking towards you): he stops, jolts, "What was that?", then walks on */
+   if(M.view==='down'&&(M.zapNext||(M.t>M.zapAt&&Math.random()<ZAP_CHANCE))&&!busyNow()){M.zapNext=false;M.zapAt=M.t+ZAP_GAP[0]+Math.random()*(ZAP_GAP[1]-ZAP_GAP[0]);
+    window.__heroPause=true;force('zap','down');try{if(window.PetPuppet)PetPuppet.react('zap');}catch(e){}}}}
  else if(M.mode==='walk'){setMode('idle');M.idle=0;}
- else if(M.mode==='wave'||EMO[M.mode]){const len=M.mode==='wave'?2.4:EMO[M.mode].len;if(M.mt>len){setMode('idle');M.idle=0;}}
+ else if(M.mode==='wave'||EMO[M.mode]){const len=M.mode==='wave'?2.4:EMO[M.mode].len;if(M.mt>len){const was=M.mode;setMode('idle');M.idle=0;
+  if(was==='zap'&&window.__heroPause){window.__heroPause=false;if(W.path&&W.path.length&&!W.moving&&typeof wStep==='function'){const [nx,ny]=W.path.shift();wStep(nx-W.hx,ny-W.hy);}}}} /* walks on where he was going */
  else{M.idle+=dt;M.still+=dt;if(M.idle>2.5&&M.view!=='down')M.view='down'; /* stood still a while: turn and face you */
-  const busy=(window.PetPuppet&&PetPuppet.away&&PetPuppet.away())||window.__heroLock||window.trollBusy||(typeof curScreen!=='undefined'&&curScreen!=='world')||document.querySelector('#modal.show');
+  const busy=busyNow();
+  if(!busy&&M.idle>.8&&battleNews(p))return; /* back on the map after a battle: a cheer, a level-up jump, or "hmm, not quite" */
   if(busy){M.idle=Math.min(M.idle,3);}
   else if(M.still>30&&!M.dozed){M.dozed=true;emote('doze');} /* left alone a long time: he nods off */
   else if(M.idle>M.next&&M.view==='down'){M.next=7+Math.random()*7;emote(IDLE_PICK[Math.floor(Math.random()*IDLE_PICK.length)]);}}
  M.parts=M.parts.filter(q=>(q.t+=dt)<q.life);M.parts.forEach(q=>{q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=.25*dt;q.vx*=1-2*dt;});}
 /* draws him standing on the square whose top-left corner is (sx,sy) on screen, ts pixels wide, the same size and spot as the old picture */
-function mapDraw(ctx,sx,sy,ts,now,p,W){const dt=Math.min(.1,M.last?(now-M.last)/1000:0);M.last=now;
- setLook(p&&p.look,p&&p.spell);update(dt,now,W);
+function mapDraw(ctx,sx,sy,ts,now,p,W){const gap=M.last?(now-M.last)/1000:0,dt=Math.min(.1,gap);M.last=now;if(gap>1&&M.mode==='zap'){setMode('idle');window.__heroPause=false;}
+ setLook(p&&p.look,p&&p.spell);update(dt,now,W,p);
  const ox=sx-W.drawX*ts,oy=sy-W.drawY*ts; /* the camera, so dust stays where it was kicked up */
  M.parts.forEach(q=>{const a=1-q.t/q.life;ctx.fillStyle='rgba(222,205,170,'+(.55*a).toFixed(3)+')';ctx.beginPath();ctx.arc(ox+q.x*ts,oy+q.y*ts,q.r*ts*(1+q.t/q.life*.8),0,7);ctx.fill();});
  const h=ts*1.35,k=h/130;BUBK=Math.max(1,12/(13*k));SHADOWS=ts>=30;
@@ -416,5 +431,5 @@ function mapDraw(ctx,sx,sy,ts,now,p,W){const dt=Math.min(.1,M.last?(now-M.last)/
  ctx.restore();}
 /* the picture at any size, for tests and other screens: draw(ctx, look, spell, {view, mode, t, mt, phase}) in the 100 x 130 frame */
 function draw(ctx,lk,spell,st){setLook(lk,spell);BUBK=1;SHADOWS=true;return drawHero(ctx,Object.assign({view:'down',mode:'idle',t:0,mt:0,phase:0},st||{}));}
-window.HeroPuppet={ok:true,mapDraw,draw,emote,force,state:()=>M,HATS_VIEWS:['down','left','right','up']};
+window.HeroPuppet={ok:true,mapDraw,draw,emote,force,zapNext:()=>{M.zapNext=true;},state:()=>M,HATS_VIEWS:['down','left','right','up']};
 })();

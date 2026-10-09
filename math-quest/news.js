@@ -6,6 +6,9 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.09e',d:'October 2026',items:[
+  '🎉 Win a battle and your wizard cheers on the map. Level up and watch them jump for joy!',
+  '⚡ Sometimes a wizard\'s staff has a mind of its own… keep walking and you might see it!']},
  {v:'2026.10.09d',d:'October 2026',items:[
   '🌊 The sea around the map has a new look, with a stone edge and rippling water. Keep an eye out for fins!']},
  {v:'2026.10.09a',d:'October 2026',items:[

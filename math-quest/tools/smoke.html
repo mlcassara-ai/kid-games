@@ -212,6 +212,22 @@ const tests=[
   T.ok(!W.petOff&&!W.puppetOff,'the pet or hero drawing threw during map life');
   }finally{window.MQ_HID=H0;}
 }],
+['wizard moments: cheers after a win, jumps for a level up, "hmm" after a loss, and a rare zap while walking towards you',async function(){
+  T.reset();const p=T.hero('Moments',3);p.pet=null;state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
+  const waitMode=async(m,ms)=>{for(let i=0;i<ms/100;i++){if(HeroPuppet.state().mode===m)return true;await T.wait(100);}return false;};
+  await T.wait(1200);
+  hook('battle',P(),{win:true});T.ok(await waitMode('cheer',3000),'the hero did not cheer on the map after a win');await T.wait(2200);
+  P().level+=1;hook('battle',P(),{win:true});T.ok(await waitMode('level',3000),'the hero did not jump for a level up');await T.wait(2800);
+  hook('battle',P(),{win:false});T.ok(await waitMode('oops',3000),'the hero did not say "hmm, not quite" after a loss');await T.wait(2600);
+  /* the zap: the next step towards the viewer; he stops, then walks on to where he was going */
+  const ok=(x,y)=>{const t=W.T[y]&&W.T[y][x];return t&&!t.block&&!t.npc&&!t.gate&&!t.chest&&!t.water;};let col=null;
+  for(let dx=-4;dx<=4&&!col;dx++){const x=W.hx+dx;if(ok(x,W.hy)&&ok(x,W.hy+1)&&ok(x,W.hy+2)&&!wWall(x,W.hy,x,W.hy+1)&&!wWall(x,W.hy+1,x,W.hy+2))col=x;}
+  T.ok(col!==null,'no room to walk down for the zap test');
+  if(col!==null){W.hx=W.px=W.fx=col;await T.wait(400);const y0=W.hy;HeroPuppet.zapNext();W.path=wPathTo(col,y0+2);const [nx,ny]=W.path.shift();wStep(nx-W.hx,ny-W.hy);
+   T.ok(await waitMode('zap',1500),'the hero was not zapped walking towards the viewer');T.ok(window.__heroPause,'the hero kept walking while being zapped');
+   for(let i=0;i<50&&(HeroPuppet.state().mode==='zap'||W.moving);i++)await T.wait(100);await T.wait(500);
+   T.ok(!window.__heroPause&&W.hy===y0+2,'the hero did not walk on after the zap ('+W.hy+' vs '+(y0+2)+')');}
+}],
 ['hero puppet: walks, turns and draws every hat in every direction',async function(){
   T.reset();const p=T.hero('Wiz',3);state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
   T.ok(window.HeroPuppet&&HeroPuppet.ok,'hero.js did not load');await T.wait(200);T.ok(!W.puppetOff,'the map fell back to the old hero picture');
@@ -230,7 +246,7 @@ const tests=[
 }],
 ['elder wiz: walks the map with a full body, talks when bumped, thinks out loud',async function(){
   T.reset();const p=T.hero('Wiz',3);state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
-  const E=MQ_ELDER.state();T.ok(E&&!E.hidden&&W.T[E.y][E.x].npc==='elder'&&!W.T[E.y][E.x].block,'the Elder Wiz is not out on the map');
+  const E=MQ_ELDER.state();T.ok(E&&!E.hidden&&W.T[E.y][E.x].npc==='elder'&&!W.T[E.y][E.x].block,'the Elder Wiz is not out on the map'+(E?' ('+[E.x,E.y,E.hidden?'hidden':'shown',E.poof?'poof':'',E.leaving?'leaving':'',JSON.stringify(W.T[E.y][E.x]),'hero '+W.hx+','+W.hy,'seek '+MQ_ELDER.seeking()].join(' ')+')':' (none)'));
   T.ok(MQ_ELDER.places().length>=3,'the Elder Wiz has nowhere to walk into');MQ_ELDER.say('Hi!');T.ok(MQ_ELDER.state().say&&MQ_ELDER.state().say.t==='Hi!','the Elder Wiz cannot think out loud');
   wNpc('elder');T.ok(/Elder Wiz/.test(document.querySelector('#modal').innerText),'talking to the Elder Wiz did not open his card');closeModal();
   T.ok(/npc-art/.test(qFace('elder',1))&&/qface/.test(qFace('elder')),'the Elder Wiz card does not use his drawing');
