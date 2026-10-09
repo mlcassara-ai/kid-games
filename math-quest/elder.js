@@ -138,11 +138,14 @@ function sparkles(ctx,x,y,ts,h,now,pf){ctx.save();
    ctx.globalAlpha=Math.max(0,1-t)*(.7+.3*Math.sin(now/60+i));star(ctx,x+Math.cos(a)*d,y+Math.sin(a)*d*.8-ts*.3*t,r,SPK[i%SPK.length]);}
   ctx.globalAlpha=Math.max(0,.6-t);const g=ctx.createRadialGradient(x,y,0,x,y,ts*.9);g.addColorStop(0,'rgba(255,250,210,.9)');g.addColorStop(1,'rgba(255,250,210,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,ts*.9,0,7);ctx.fill();}
  ctx.restore();}
+let PUP_OFF=0;const puppet=()=>!!window.People&&!PUP_OFF; /* people.js draws the moving puppet; the old picture if it ever fails */
+const faceHero=(x,y)=>Math.abs(W.hx-x)+Math.abs(W.hy-y)<=3?(W.hx<Math.round(x)?'left':W.hx>Math.round(x)?'right':W.hy<Math.round(y)?'up':'down'):undefined;
 function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T)return;tick(W,now);if(!E||!IMG.complete||!IMG.naturalWidth)return;
  const pf=E.poof,out=E.hidden?Math.max(0,1-(now-E.outT)/(pf?300:500)):E.a;if(out<=0&&!pf)return;const k=E.mt?Math.min(1,(now-E.mt)/STEP):1,dx=E.fx+(E.x-E.fx)*k,dy=E.fy+(E.y-E.fy)*k,sx=dx*ts-cx,sy=dy*ts-cy;
  if(sx<-ts*2||sy<-ts*3||sx>W.vw+ts||sy>W.vh+ts)return;
  let done=false;try{done=!!(window.Daily&&Daily.hasReward(P()));}catch(e){}
- items.push({y:dy+.02,draw:()=>{const h=ts*1.4,w=h*64/96,bob=E.mt&&k<1?Math.abs(Math.sin(now/90))*2.5:Math.sin(now/600)*1.2;if(out>0){const fy=sy+ts*.97,sc=pf&&E.hidden?out:1,rot=pf&&!E.hidden?Math.sin(now/90)*.09:0;ctx.save();ctx.globalAlpha=out;ctx.translate(sx+ts/2,fy);ctx.rotate(rot);ctx.scale((E.dir<0?-1:1)*sc,sc);ctx.drawImage(IMG,-w/2,-h-bob,w,h);ctx.restore();}
+ items.push({y:dy+.02,draw:()=>{const h=ts*1.4,w=h*64/96,bob=E.mt&&k<1?Math.abs(Math.sin(now/90))*2.5:Math.sin(now/600)*1.2;if(out>0){const fy=sy+ts*.97,sc=pf&&E.hidden?out:1,rot=pf&&!E.hidden?Math.sin(now/90)*.09:0;ctx.save();ctx.globalAlpha=out;ctx.translate(sx+ts/2,fy);ctx.rotate(rot);let ok=false;if(puppet()){ctx.save();ctx.scale(sc,sc);try{People.put(ctx,'elder','elder',0,0,ts,now,{x:dx,y:dy,talk:!!(E.say&&!E.sayHeld),wave:!!pf,face:E.mt&&k<1?undefined:faceHero(dx,dy),h:1.5});ok=true;}catch(e){PUP_OFF=1;}ctx.restore();}
+   if(!ok){ctx.scale((E.dir<0?-1:1)*sc,sc);ctx.drawImage(IMG,-w/2,-h-bob,w,h);}ctx.restore();}
   if(pf)sparkles(ctx,sx+ts/2,sy+ts*.97-h*.55,ts,h,now,pf);
   if(done&&!E.hidden){const r=ts*.16,bx=sx+ts/2,by=sy+ts*.97-h-r*1.3+Math.sin(now/300)*2;ctx.save();ctx.fillStyle='#ffd43b';ctx.strokeStyle=O;ctx.lineWidth=2;ctx.beginPath();ctx.arc(bx,by,r,0,7);ctx.fill();ctx.stroke();ctx.fillStyle=O;ctx.font=`900 ${Math.round(r*1.5)}px Fredoka, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',bx,by+1);ctx.restore();}}});
  /* the hero or their pet is talking close by: hold his bubble (and its clock) until they finish, so the bubbles never overlap */

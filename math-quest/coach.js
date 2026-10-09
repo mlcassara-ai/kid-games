@@ -82,10 +82,12 @@ function maybe(W,now){if(C||/[?&]smoke=/.test(location.search))return;const p=P(
 function bubble(ctx,ax,ay,ts,text,age){if(age>3200)return;const fs=Math.max(12,ts*.22);ctx.save();ctx.font=`800 ${fs}px Fredoka, sans-serif`;const pop=Math.max(0,Math.min(1,age/200)),fade=age>2700?Math.max(0,1-(age-2700)/500):1,tw=ctx.measureText(text).width,w=(tw+fs*1.2)*pop,h=fs*1.9*pop,x0=Math.max(4,Math.min(W.vw-w-4,ax-w/2)),y0=ay-h,r=h/2;
  ctx.globalAlpha=fade;ctx.fillStyle='#fff3bf';ctx.strokeStyle=O;ctx.lineWidth=Math.max(1.5,ts*.03);ctx.beginPath();ctx.moveTo(x0+r,y0);ctx.lineTo(x0+w-r,y0);ctx.arc(x0+w-r,y0+r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x0+r,y0+h);ctx.arc(x0+r,y0+r,r,Math.PI/2,Math.PI*1.5);ctx.closePath();ctx.fill();ctx.stroke();
  if(pop>=1){ctx.fillStyle='#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x0+w/2,y0+h/2+fs*.05);}ctx.restore();}
+let PUP_OFF=0;const puppet=()=>!!window.People&&!PUP_OFF; /* people.js draws the moving puppet; the old picture if it ever fails */
 function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||curScreen!=='world')return;maybe(W,now);tick(W,now);if(!C||!IMG.complete)return;
  const k=C.mt?Math.min(1,(now-C.mt)/STEP):1,dx=C.fx+(C.x-C.fx)*k,dy=C.fy+(C.y-C.fy)*k,sx=dx*ts-cx,sy=dy*ts-cy,fade=C.st==='go'?Math.max(0,1-(now-C.t0-1800)/800):Math.min(1,(now-C.t0)/400+.2);
  if(sx<-ts*2||sy<-ts*3||sx>W.vw+ts||sy>W.vh+ts)return;
- items.push({y:dy+.03,draw:()=>{const h=ts*1.45,w=h*64/96,bob=C.mt&&k<1?Math.abs(Math.sin(now/70))*3:C.st==='stop'||C.st==='card'?Math.abs(Math.sin(now/260))*1.5:0;ctx.save();ctx.globalAlpha=fade;ctx.translate(sx+ts/2,0);ctx.scale(C.dir<0?-1:1,1);ctx.drawImage(IMG,-w/2,sy+ts*.97-h-bob,w,h);ctx.restore();}});
+ items.push({y:dy+.03,draw:()=>{const h=ts*1.45,w=h*64/96,bob=C.mt&&k<1?Math.abs(Math.sin(now/70))*3:C.st==='stop'||C.st==='card'?Math.abs(Math.sin(now/260))*1.5:0;ctx.save();ctx.globalAlpha=fade;let ok=false;if(puppet()){try{const st=C.st==='stop'||C.st==='card';People.put(ctx,'coach','coach',sx+ts/2,sy+ts*.97,ts,now,{x:dx,y:dy,talk:!!C.say,face:st?(W.hx<C.x?'left':W.hx>C.x?'right':undefined):undefined,still:C.st==='card',h:1.5});ok=true;}catch(e){PUP_OFF=1;}}
+  if(!ok){ctx.translate(sx+ts/2,0);ctx.scale(C.dir<0?-1:1,1);ctx.drawImage(IMG,-w/2,sy+ts*.97-h-bob,w,h);}ctx.restore();}});
  if(C.say)items.push({y:1e6-2,draw:()=>bubble(ctx,sx+ts/2,sy-ts*.55,ts,C.say.t,now-C.say.at)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
 /* any visit to the Fact Gym counts as a workout */

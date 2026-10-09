@@ -71,10 +71,12 @@ function maybe(W,now){if(G||/[?&]smoke=/.test(location.search))return;const p=P(
 function bub(ctx,ax,ay,ts,text,age){if(age>3000)return;const fs=Math.max(12,ts*.22);ctx.save();ctx.font=`800 ${fs}px Fredoka, sans-serif`;const pop=Math.max(0,Math.min(1,age/200)),fade=age>2500?Math.max(0,1-(age-2500)/500):1,tw=ctx.measureText(text).width,w=(tw+fs*1.2)*pop,h=fs*1.9*pop,x0=Math.max(4,Math.min(W.vw-w-4,ax-w/2)),y0=ay-h,r=h/2;
  ctx.globalAlpha=fade;ctx.fillStyle='#f1f3f5';ctx.strokeStyle=O;ctx.lineWidth=Math.max(1.5,ts*.03);ctx.beginPath();ctx.moveTo(x0+r,y0);ctx.lineTo(x0+w-r,y0);ctx.arc(x0+w-r,y0+r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x0+r,y0+h);ctx.arc(x0+r,y0+r,r,Math.PI/2,Math.PI*1.5);ctx.closePath();ctx.fill();ctx.stroke();
  if(pop>=1){ctx.fillStyle='#2b2250';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x0+w/2,y0+h/2+fs*.05);}ctx.restore();}
+let PUP_OFF=0;const puppet=()=>!!window.People&&!PUP_OFF; /* people.js draws the moving puppet; the old picture if it ever fails */
 function frame(ctx,items,cx,cy,ts,now){if(typeof W==='undefined'||!W||!W.T||curScreen!=='world')return;maybe(W,now);tick(W,now);if(!G||!GIMG.complete)return;
  const k=G.mt?Math.min(1,(now-G.mt)/STEP):1,dx=G.fx+(G.x-G.fx)*k,dy=G.fy+(G.y-G.fy)*k,sx=dx*ts-cx,sy=dy*ts-cy,fade=G.st==='go'?Math.max(0,1-(now-G.t0-1800)/800):Math.min(1,(now-G.t0)/400+.2);
  if(sx<-ts*2||sy<-ts*3||sx>W.vw+ts||sy>W.vh+ts)return;
- items.push({y:dy+.03,draw:()=>{const h=ts*1.15,w=h*120/150,bob=G.mt&&k<1?Math.abs(Math.sin(now/70))*3:Math.abs(Math.sin(now/260))*1.5;ctx.save();ctx.globalAlpha=fade;ctx.translate(sx+ts/2,0);ctx.scale(G.dir<0?-1:1,1);ctx.drawImage(GIMG,-w/2,sy+ts*.97-h-bob,w,h);ctx.restore();}});
+ items.push({y:dy+.03,draw:()=>{const h=ts*1.15,w=h*120/150,bob=G.mt&&k<1?Math.abs(Math.sin(now/70))*3:Math.abs(Math.sin(now/260))*1.5;ctx.save();ctx.globalAlpha=fade;let ok=false;if(puppet()){try{People.put(ctx,'gizmo','gizmo',sx+ts/2,sy+ts*.97,ts,now,{x:dx,y:dy,talk:!!G.say,face:G.mt&&k<1?undefined:(W.hx<G.x?'left':W.hx>G.x?'right':undefined),h:1.45});ok=true;}catch(e){PUP_OFF=1;}}
+  if(!ok){ctx.translate(sx+ts/2,0);ctx.scale(G.dir<0?-1:1,1);ctx.drawImage(GIMG,-w/2,sy+ts*.97-h-bob,w,h);}ctx.restore();}});
  if(G.say)items.push({y:1e6-2,draw:()=>bub(ctx,sx+ts/2,sy-ts*.3,ts,G.say.t,now-G.say.at)});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
 /* ---------- the match ---------- */

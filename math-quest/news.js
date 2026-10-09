@@ -6,6 +6,8 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.09g',d:'October 2026',items:[
+  '🧙 The Elder Wiz, Principal Wise, Dr. Quartz, Coach Flex, Gizmo and the Kind Teacher have come alive too! Watch them walk, wave, talk and show off their own moves.']},
  {v:'2026.10.09e',d:'October 2026',items:[
   '🎉 Win a battle and your wizard cheers on the map. Level up and watch them jump for joy!',
   '⚡ Sometimes a wizard\'s staff has a mind of its own… keep walking and you might see it!']},

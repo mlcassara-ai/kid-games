@@ -74,8 +74,11 @@ function walk(now){const m=W.mobs.find(o=>o.quartz);if(!m)return;
  if(Math.abs(m.x-W.hx)+Math.abs(m.y-W.hy)<=1){if(!W.moving&&!document.querySelector('#modal.show'))meet();return;}
  const path=pathTo(m.x,m.y,W.hx,W.hy);if(!path||!path.length){W.mobs=W.mobs.filter(o=>o!==m);rel();return;}
  const [nx,ny]=path[0];if(nx===W.hx&&ny===W.hy)return;if(W.mobs.some(o=>o!==m&&o.x===nx&&o.y===ny))return;m.fx=m.x;m.fy=m.y;m.x=nx;m.y=ny;m.mt=now;}
+let PUP_OFF=0;const puppet=()=>!!window.People&&!PUP_OFF; /* people.js draws the moving puppet; the old picture if it ever fails */
 function draw(ctx,sx,sy,ts,now){const im=img();ctx.fillStyle='rgba(116,192,252,.35)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.9,ts*.5,ts*.16,0,0,7);ctx.fill();
- const hh=ts*1.4,ww=hh*100/120;if(im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*.97-hh+Math.abs(Math.sin(now/120))*2,ww,hh);
+ const hh=ts*1.4,ww=hh*100/120;let ok=false;if(puppet()){try{const m=W.mobs.find(o=>o.quartz)||{x:0,y:0};const kk=m.mt&&now-m.mt<300?(now-m.mt)/300:1,mx=m.mt&&kk<1?m.fx+(m.x-m.fx)*kk:m.x,my=m.mt&&kk<1?m.fy+(m.y-m.fy)*kk:m.y;
+   People.put(ctx,'quartz','quartz',sx+ts/2,sy+ts*.97,ts,now,{x:mx,y:my,face:kk<1?undefined:(Math.abs(W.hx-m.x)+Math.abs(W.hy-m.y)<=2?(W.hx<m.x?'left':W.hx>m.x?'right':W.hy<m.y?'up':'down'):undefined),h:1.45,noShadow:true});ok=true;}catch(e){PUP_OFF=1;}}
+ if(!ok&&im.complete&&im.naturalWidth)ctx.drawImage(im,sx+ts/2-ww/2,sy+ts*.97-hh+Math.abs(Math.sin(now/120))*2,ww,hh);
  try{wLabel(ctx,'🔬 '+NAME,sx+ts/2,sy-ts*.5,'#fff','rgba(25,113,194,.92)');}catch(e){}}
 
 /* ---------- meeting ---------- */

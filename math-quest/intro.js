@@ -81,7 +81,8 @@ function frame(ctx,items,cx,cy,ts,now){if(!I||typeof W==='undefined'||!W)return;
  const im=img();if(!im||!im.complete||!im.naturalWidth)return;
  const sx=I.x*ts-cx,sy=I.y*ts-cy,a=Math.max(0,Math.min(1,I.a)),hh=ts*1.5,ww=hh*240/330,bob=I.moving?Math.abs(Math.sin(now/110))*2:Math.sin(now/500)*1.5;
  items.push({y:I.y+.03,draw:()=>{ctx.save();ctx.globalAlpha=a;ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(sx+ts/2,sy+ts*.9,ts*.3,ts*.09,0,0,7);ctx.fill();
-  ctx.translate(sx+ts/2,0);ctx.scale(I.dir<0?-1:1,1);ctx.drawImage(im,-ww/2,sy+ts*.95-hh-bob,ww,hh);ctx.restore();}});}
+  let ok=false;if(window.People&&!I.pupOff){try{People.put(ctx,'teacher','teacher',sx+ts/2,sy+ts*.95,ts,now,{x:I.x,y:I.y,talk:I.ph==='talk',face:I.ph==='talk'?(I.dir<0?'left':'right'):undefined,still:I.ph==='talk',h:1.5,noShadow:true});ok=true;}catch(e){I.pupOff=1;}} /* people.js: the floating puppet; her picture if it fails */
+  if(!ok){ctx.translate(sx+ts/2,0);ctx.scale(I.dir<0?-1:1,1);ctx.drawImage(im,-ww/2,sy+ts*.95-hh-bob,ww,hh);}ctx.restore();}});}
 window.MQ_MAPDRAW=window.MQ_MAPDRAW||[];window.MQ_MAPDRAW.push(frame);
 window.MQ_HOOKS=window.MQ_HOOKS||[];window.MQ_HOOKS.push({screen:s=>{wrap();
  if(s!=='world'){if(I)abort();return;}
