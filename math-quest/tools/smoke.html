@@ -193,10 +193,11 @@ const tests=[
   T.ok(MQ_DECOR.key&&['oak','pine','bush','daisy'].some(k=>MQ_DECOR.SET.village.block.concat(MQ_DECOR.SET.forest.block,MQ_DECOR.SET.forest.deco).includes(k)),'decor.js cannot say what stands on a square');
   const fx=W.T.findIndex(r=>r.some(t=>t.npc==='fountain'));const fy=fx>=0?fx:-1;let fxx=fy>=0?W.T[fy].findIndex(t=>t.npc==='fountain'):-1;
   /* stand two squares below the fountain */
-  tp(fxx,fy+2);await T.wait(700);T.ok(PetPuppet.go('fountain',W),'the pet would not go to the fountain');
+  tp(fxx,fy+2);await T.wait(700);const c0=P().coins;T.ok(PetPuppet.go('fountain',W),'the pet would not go to the fountain');
   let got=false,thanks=false;for(let i=0;i<40&&!got;i++){await T.wait(250);const s=PetPuppet.state();if(s.carry==='coin')got=true;}
   for(let i=0;i<30&&!thanks;i++){await T.wait(200);if(HeroPuppet.state().mode==='thanks')thanks=true;}
-  T.ok(got,'the pet did not come back from the fountain with a coin');T.ok(thanks,'the hero did not say thanks for the present');
+  T.ok(got,'the pet did not come back from the fountain with a coin');T.ok(thanks,'the hero did not say thanks for the present');T.ok(P().coins===c0+1&&P().petCoin&&P().petCoin.n===1,'the fountain coin did not add one real coin ('+c0+' → '+P().coins+')');
+  P().petCoin={d:dayKey(),n:10};const c1=P().coins;PetPuppet.go('fountain',W);for(let i=0;i<60&&PetPuppet.state().mode!=='spin';i++)await T.wait(200);T.ok(P().coins===c1,'the pet paid more than 10 coins in a day');
   /* the sea: find a square beside it */
   let spot=null;for(let y=3;y<WROWS-3&&!spot;y++)for(let x=3;x<WCOLS-3&&!spot;x++){if(!wWalk(x,y)||W.T[y][x].npc||W.T[y][x].gate||W.T[y][x].chest)continue;W.drawX=x;W.drawY=y;const S=PetPuppet.spots(W);if(S.sea.length&&S.sea[0].d<=2)spot=[x,y];}
   T.ok(spot,'no square beside the sea');
@@ -409,7 +410,7 @@ const tests=[
   {try{closeModal();}catch(e){}await T.wait(80);const mt0=W.mt;let ok=false;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=W.hx+dx,ny=W.hy+dy,t=W.T[ny]&&W.T[ny][nx];if(t&&!t.block&&!t.npc&&!t.gate&&!t.chest&&!wWall(W.hx,W.hy,nx,ny)){W.moving=false;W.path=[];wStep(dx,dy);ok=true;break;}}
    T.ok(!ok||W.mt!==mt0,'the hero did not take the test step');await T.wait(200);T.ok(!ok||MQ_AMBIENT.puffs()>0,'no little puffs behind the hero after a step');}
   T.ok(W.T[1][10].water&&W.T[10][1].water&&W.T[WROWS-2][10].water&&W.T[10][WCOLS-2].water,'the sea round the map is not two tiles wide');
-  {const hx=W.hx,hy=W.hy;W.hx=3;W.hy=17;for(let k=0;k<32&&!MQ_AMBIENT.sea();k++)await T.wait(250);T.ok(MQ_AMBIENT.sea()>0,'no shark fins in the sea near the hero');T.ok(MQ_AMBIENT.jumpNow()&&MQ_AMBIENT.SHARK.includes(MQ_AMBIENT.jump())&&MQ_AMBIENT.SHARK.length>=5,'no shark leapt out of the sea next to the hero');W.hx=hx;W.hy=hy;}
+  T.ok(!MQ_AMBIENT.jumpNow&&!MQ_AMBIENT.SHARK,'the old talking jumping shark is back');
   {for(let i=0;i<20&&!MQ_AMBIENT.SAYS.includes(MQ_AMBIENT.say());i++){MQ_AMBIENT.sayNow();await T.wait(150);}T.ok(MQ_AMBIENT.SAYS.includes(MQ_AMBIENT.say()),'the Wishing Fountain did not think out loud');}
   T.ok(window.MQ_AMBIENT&&MQ_AMBIENT.count()>0&&MQ_AMBIENT.count()<=18,'no ambient life near the hero, or too much ('+(window.MQ_AMBIENT?MQ_AMBIENT.count():'none')+')');
  }],

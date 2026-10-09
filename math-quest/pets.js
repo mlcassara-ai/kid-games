@@ -574,7 +574,7 @@ function update(dt,W,now){PT.t+=dt;PT.mt+=dt;const H=hero(),hx=W.drawX,hy=W.draw
   if(PT.mode==='wander'&&Math.hypot(tx-PT.x,ty-PT.y)<.2){PT.mode='act';PT.mt=0;if(a.k==='tree')WFX.push({k:'fall',x:a.tx+.5,y:a.ty-.3,t:0,life:2.2});}}
  if(PT.mode==='warn'){const sd=H.view==='left'?-.6:.6;tx=hx+sd;ty=hy+.05;talt=.5;k=8;fvx=0;fvy=0;if(!PT.warnAt&&Math.hypot(tx-PT.x,ty-PT.y)<.25)PT.warnAt=PT.t;if(PT.warnAt&&PT.t-PT.warnAt>2.4){PT.mode='follow';PT.mt=0;PT.warnAt=0;}}
  if(PT.mode==='bring'){const sd=H.view==='left'?-.55:.55;tx=hx+sd;ty=hy+.08;talt=.42;k=7;
-  if(Math.hypot(tx-PT.x,ty-PT.y)<.18){WFX.push({k:'give',item:PT.carry,fc:PT.flowerCol,x0:PT.x+.5,y0:PT.y+.9-PT.alt-.25+.2,t:0,life:1.7});PT.carry=null;
+  if(Math.hypot(tx-PT.x,ty-PT.y)<.18){const paid=PT.carry==='coin'&&payCoin();WFX.push({k:'give',item:PT.carry,fc:PT.flowerCol,paid,x0:PT.x+.5,y0:PT.y+.9-PT.alt-.25+.2,t:0,life:1.7});PT.carry=null;
    if(window.HeroPuppet&&H.mode==='idle'){const n=petName();HeroPuppet.emote('thanks',n?'Thanks, '+n+'!':'Thanks!');}PT.mode='follow';petDo('spin');}}
  if(PT.mode==='grabbed'){tx=PT.x;ty=PT.y;fvx=0;fvy=0;PT.vx=PT.vy=0;}
  const c2=2*Math.sqrt(k);PT.vx+=((tx-PT.x)*k+(fvx-PT.vx)*c2)*dt;PT.vy+=((ty-PT.y)*k+(fvy-PT.vy)*c2)*dt;PT.x+=PT.vx*dt;PT.y+=PT.vy*dt;
@@ -586,6 +586,10 @@ function update(dt,W,now){PT.t+=dt;PT.mt+=dt;const H=hero(),hx=W.drawX,hy=W.draw
  else if(Math.abs(PT.vx)>.6)PT.face=PT.vx<0?'left':'right';else if(Math.abs(PT.vx)<.25&&Math.abs(PT.vy)<.6)PT.face='front';
  if(PT.mode==='act'&&a.k==='flowers'&&Math.floor((PT.mt-dt)*2.5)!==Math.floor(PT.mt*2.5)&&PT.mt>.6)PT.fx.push({k:'heart',x:(Math.random()-.5)*16,y:-14,vy:-28,t:0,life:1.1});
  PT.fx=PT.fx.filter(q=>(q.t+=dt)<q.life);}
+/* the coin from the fountain is a real coin (owner, Oct 2026), at most PET_COINS a day per hero (p.petCoin = {d, n}) */
+const PET_COINS=10;
+function payCoin(){try{const pl=state.players.find(x=>x.id===state.cur); /* (P here is the drawing cache, so the hero is looked up directly) */if(!pl)return false;const d=dayKey();
+ if(!pl.petCoin||pl.petCoin.d!==d)pl.petCoin={d,n:0};if(pl.petCoin.n>=PET_COINS)return false;pl.petCoin.n++;pl.coins=(pl.coins||0)+1;save();return true;}catch(e){return false;}}
 const LEAFC=['#b08a5a','#c99a6b','#8fbf5a','#6fae3c','#a3c46b'];
 /* ----- drawing ----- */
 /* a present the pet brings, about a fifth of a square across */
@@ -632,6 +636,7 @@ function drawWorld(c,ox,oy,ts,now){const u=ts/48,X=x=>ox+x*ts,Y=y=>oy+y*ts,H=her
  WFX.forEach(q=>{if(q.k!=='give')return;const hx=X(W0.drawX+.5),hy=Y(W0.drawY+.95)-ts*.75;
   if(q.t<.45){const k=q.t/.45;drawItem(c,q.item,lerp(X(q.x0),hx,k),lerp(Y(q.y0),hy,k)-Math.sin(k*Math.PI)*14*u,q.fc,ts);}
   else{const k=(q.t-.45)/(q.life-.45);const y=hy-ts*.35-k*ts*.5,lx=hx+ts*.75;drawItem(c,q.item,lx,y,q.fc,ts*1.5);
+   if(q.paid){c.save();c.globalAlpha=Math.min(1,(1-k)*2);c.font='800 '+Math.round(ts*.3)+'px Fredoka, Trebuchet MS, sans-serif';c.textAlign='right';c.textBaseline='middle';c.lineWidth=3;c.strokeStyle='#fff';c.strokeText('+1',lx-ts*.22,y);c.fillStyle='#e8a600';c.fillText('+1',lx-ts*.22,y);c.restore();}
    for(let i=0;i<4;i++){const a=q.t*5+i*1.57;star(c,lx+Math.cos(a)*ts*.4*(1+k),y+Math.sin(a)*ts*.2,3*u,'#ffe066');}}});
  /* the pond: a fish jumps while the pet watches */
  const a=PT.act;if(PT.mode==='act'&&a&&a.k==='pond'){const px=X(a.wx),py=Y(a.wy),k=(PT.mt-.6)/.9;
@@ -658,6 +663,11 @@ function boltTo(c,x0,y0,x1,y1,seed,u){let r=seed*9301+49297;const rnd=()=>((r=(r
  c.save();c.shadowColor='#7fd3ff';c.shadowBlur=14;line(6*u,'rgba(127,211,255,.7)');c.shadowBlur=0;line(2.6*u,'#fffbe6');c.restore();}
 /* a fin cutting through the water with a little wake */
 function drawFin(c,k,X,Y,ts,t){const q=loopPos(k.u),u=ts/48,x=X(q.x),y=Y(q.y)+2*u,hx=q.dx*k.dir,hy=q.dy*k.dir;
+ if(hy){ /* swimming north or south (the left and right edges): the fin is seen edge-on, a thin blade, with the wake trailing behind it */
+  const bob=Math.sin(t*3+k.u)*u;c.save();c.globalAlpha=k.fade;c.translate(x,y-2*u+bob);c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=1.5;
+  c.strokeStyle='rgba(255,255,255,.5)';c.beginPath();c.moveTo(-3*u,(3-hy*4)*u);c.quadraticCurveTo(-4*u,(3-hy*9)*u,-7.5*u,(3-hy*14)*u);c.moveTo(3*u,(3-hy*4)*u);c.quadraticCurveTo(4*u,(3-hy*9)*u,7.5*u,(3-hy*14)*u);c.stroke();c.strokeStyle='rgba(255,255,255,.7)';
+  c.beginPath();c.ellipse(0,3.2*u,5.5*u,1.8*u,0,0,7);c.stroke();
+  c.scale(u,u);fs(c,P('M-2.8 3 Q-1.6 -6 0 -14 Q1.6 -6 2.8 3Z'),'#7d8da1',1.6);fs(c,P(hy>0?'M-1.6 2.6 Q-.9 -5 0 -11 Q-.2 -4 .2 2.6Z':'M1.6 2.6 Q.9 -5 0 -11 Q.2 -4 -.2 2.6Z'),'rgba(255,255,255,.45)',0);c.restore();return;}
  c.save();c.globalAlpha=k.fade;c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=1.5;const bx=x-hx*6*u,by=y-hy*3*u;
  c.beginPath();c.moveTo(bx+hy*2*u,by-hx*2*u);c.lineTo(bx+(-hx*14+hy*6)*u,by+(-hy*8-hx*6)*u);c.moveTo(bx-hy*2*u,by+hx*2*u);c.lineTo(bx+(-hx*14-hy*6)*u,by+(-hy*8+hx*6)*u);c.stroke();
  const s=hx<0?-1:1,bob=Math.sin(t*3+k.u)*u;c.translate(x,y-2*u+bob);c.scale(s*u,u);

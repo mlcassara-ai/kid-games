@@ -6,6 +6,8 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.09a',d:'October 2026',items:[
+  '🪙 When your pet dives in the Wishing Fountain, the coin it brings back is yours to keep (up to 10 a day)!']},
  {v:'2026.10.08e',d:'October 2026',items:[
   '🌼 Stand still and your pet goes exploring: sniffing flowers, diving in ponds, hiding in apple trees, and bringing you presents!',
   '🌳 Trees, bushes and flowers sway in the breeze.',
