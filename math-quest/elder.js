@@ -71,7 +71,7 @@ function plan(W,now){const R=reach(W);if(!R.length)return;let tgt=null,go=null;
  if(now>=(E.visitEnd||0)){const L=places(W);if(L.length){const s=L[Math.floor(Math.random()*L.length)];tgt=[s.x,s.y];go=s;}}
  if(!tgt){for(let i=0;i<30&&!tgt;i++){const c=R[Math.floor(Math.random()*R.length)];if(Math.abs(c[0]-E.x)+Math.abs(c[1]-E.y)<14&&free(W.T[c[1]][c[0]],W,c[0],c[1]))tgt=c;}}
  if(!tgt){E.wait=now+3000;return;}const p=pathTo(W,E.x,E.y,tgt[0],tgt[1]);if(!p){if(go){poof(now);return;}E.wait=now+2000;return;}E.path=p;E.goIn=go;}
-function start(W,now){const R=reach(W);let s=null;try{s=[TOWN_X+2,TOWN_Y+4];}catch(e){}if(!s||!free(W.T[s[1]]&&W.T[s[1]][s[0]],W,s[0],s[1]))s=R[Math.floor(Math.random()*R.length)];if(!s)return;
+function start(W,now){const R=reach(W);let s=null;try{s=[TOWN_X+2,TOWN_Y+4];}catch(e){}if(!s||!free(W.T[s[1]]&&W.T[s[1]][s[0]],W,s[0],s[1])){const F=R.filter(c=>free(W.T[c[1]][c[0]],W,c[0],c[1])&&!W.T[c[1]][c[0]].npc);s=F[Math.floor(Math.random()*F.length)];}if(!s)return; /* never start on a present, an entrance or someone else's square */
  E={x:s[0],y:s[1],fx:s[0],fy:s[1],mt:0,path:[],dir:1,wait:now+4000,hidden:false,a:0,say:null,nextSay:now+(40+Math.random()*80)*1000,visitEnd:now+rnd(VISIT)};
  if(SMOKE){setTile(W,true);return;} /* the smoke test meets him straight away */
  const left=nextAt()-Date.now();E.hidden=true;E.moved=true;E.outT=now-1000;E.backAt=now+Math.max(left,rnd(FIRST));}

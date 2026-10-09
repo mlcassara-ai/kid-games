@@ -6,6 +6,8 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.09d',d:'October 2026',items:[
+  '🌊 The sea around the map has a new look, with a stone edge and rippling water. Keep an eye out for fins!']},
  {v:'2026.10.09a',d:'October 2026',items:[
   '🪙 When your pet dives in the Wishing Fountain, the coin it brings back is yours to keep (up to 10 a day)!']},
  {v:'2026.10.08e',d:'October 2026',items:[

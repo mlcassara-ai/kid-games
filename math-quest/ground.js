@@ -99,7 +99,23 @@ function draw(ctx,W,x0,x1,y0,y1,cx,cy,ts,now){const T=W.T,h2=ts/2,q=ts/N;
 /* ponds and the sea (owner, Oct 2026: square ponds looked blocky): each water tile is a slightly wobbly round blob joined to its water
    neighbours, first a pale foam ring, then the water, so shorelines are rounded with land showing around them. Water still blocks the
    whole tile for walking, as before. */
-function drawWater(ctx,T,x0,x1,y0,y1,cx,cy,ts,now){const Wt=(x,y)=>!!(T[y]&&T[y][x]&&T[y][x].water),X0=Math.max(0,x0-1),X1=Math.min(T[0].length-1,x1+1),Y0=Math.max(0,y0-1),Y1=Math.min(T.length-1,y1+1),h2=ts/2;
+/* the sea round the map is drawn like the owner's mockup moat (Oct 2026): deeper blue squares, a stone rim on the land side and small
+   white ripples drifting across; the sharks swim in it (pets.js). Ponds keep the soft round look. */
+const seaAt=(T,x,y)=>x<=1||y<=1||x>=T[0].length-2||y>=T.length-2;
+function drawSea(ctx,T,x0,x1,y0,y1,cx,cy,ts,now){const u=ts/48,t=now/1000,isW=(x,y)=>x<0||y<0||y>=T.length||x>=T[0].length||!!(T[y][x]&&T[y][x].water),rim=6*u;
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const tt=T[y]&&T[y][x];if(!tt||!tt.water||!seaAt(T,x,y))continue;const sx=x*ts-cx,sy=y*ts-cy;
+  ctx.fillStyle='#3d8fd1';ctx.fillRect(sx,sy,ts+1,ts+1);ctx.fillStyle='rgba(255,255,255,.07)';ctx.fillRect(sx,sy+ts*.55,ts+1,ts*.12);}
+ ctx.fillStyle='#cfc8bd';ctx.strokeStyle='#857f77';ctx.lineWidth=Math.max(1,1.5*u);
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const tt=T[y]&&T[y][x];if(!tt||!tt.water||!seaAt(T,x,y))continue;const sx=x*ts-cx,sy=y*ts-cy;
+  if(!isW(x,y+1)){ctx.fillRect(sx,sy+ts-rim,ts+1,rim);ctx.beginPath();ctx.moveTo(sx,sy+ts-rim);ctx.lineTo(sx+ts,sy+ts-rim);ctx.stroke();}
+  if(!isW(x,y-1)){ctx.fillRect(sx,sy,ts+1,rim);ctx.beginPath();ctx.moveTo(sx,sy+rim);ctx.lineTo(sx+ts,sy+rim);ctx.stroke();}
+  if(!isW(x+1,y)){ctx.fillRect(sx+ts-rim,sy,rim,ts+1);ctx.beginPath();ctx.moveTo(sx+ts-rim,sy);ctx.lineTo(sx+ts-rim,sy+ts);ctx.stroke();}
+  if(!isW(x-1,y)){ctx.fillRect(sx,sy,rim,ts+1);ctx.beginPath();ctx.moveTo(sx+rim,sy);ctx.lineTo(sx+rim,sy+ts);ctx.stroke();}}
+ ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=Math.max(1,1.5*u);ctx.beginPath();
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const tt=T[y]&&T[y][x];if(!tt||!tt.water||!seaAt(T,x,y))continue;const sx=x*ts-cx,sy=y*ts-cy,o=Math.sin(t*1.5+x*1.3+y*2.1)*5*u;
+  ctx.moveTo(sx+10*u+o,sy+18*u);ctx.quadraticCurveTo(sx+16*u+o,sy+14*u,sx+22*u+o,sy+18*u);ctx.moveTo(sx+26*u-o,sy+32*u);ctx.quadraticCurveTo(sx+32*u-o,sy+28*u,sx+38*u-o,sy+32*u);}
+ ctx.stroke();}
+function drawWater(ctx,T,x0,x1,y0,y1,cx,cy,ts,now){drawSea(ctx,T,x0,x1,y0,y1,cx,cy,ts,now);const Wt=(x,y)=>!!(T[y]&&T[y][x]&&T[y][x].water)&&!seaAt(T,x,y),X0=Math.max(0,x0-1),X1=Math.min(T[0].length-1,x1+1),Y0=Math.max(0,y0-1),Y1=Math.min(T.length-1,y1+1),h2=ts/2;
  for(const [k,col] of [[.64,'#d6f0ff'],[.53,'#4aa3df']]){ctx.fillStyle=col;
   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){if(!Wt(x,y))continue;const r=ts*(k+(hash(x*3+1,y*5+2)-.5)*.1),mx=x*ts-cx+h2,my=y*ts-cy+h2;
    ctx.beginPath();ctx.arc(mx,my,r,0,7);ctx.fill();if(Wt(x+1,y))ctx.fillRect(mx,my-r,ts,2*r);if(Wt(x,y+1))ctx.fillRect(mx-r,my,2*r,ts);if(Wt(x+1,y)&&Wt(x,y+1)&&Wt(x+1,y+1))ctx.fillRect(mx,my,ts,ts);
