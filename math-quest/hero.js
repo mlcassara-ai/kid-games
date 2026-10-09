@@ -6,7 +6,7 @@
 (function(){
 'use strict';
 const INK='#2b2140',BOOT='#5b3d2a',BOOT2='#3f2a1c',WOOD='#a0673a';
-let look={hat:'wizard',robe:'purple',skin:'#ffe0c7',hair:'#2b1d0e',boy:true},ORB='#ffe066',BUBK=1,SHADOWS=true;
+let look={hat:'wizard',robe:'purple',skin:'#ffe0c7',hair:'#2b1d0e',boy:true},ORB='#ffe066',BUBK=1,SHADOWS=true,FACE='down';
 const hasHat=()=>!!look.hat&&look.hat!=='none';
 function setLook(lk,spell){lk=lk||{};look={hat:lk.hat||'none',robe:lk.robe,skin:lk.skin||'#ffe0c7',hair:lk.hair||'#2b1d0e',boy:lk.kind==='boy'};
  const S=typeof SPELLS!=='undefined'?SPELLS:[],sp=S.find(s=>s.id===spell)||S[0];ORB=(sp&&sp.color)||'#ffe066';}
@@ -59,7 +59,8 @@ function drawHat(c,view){const h=look.hat,O=2.5,front=view==='front',side=view==
   fs(c,P('M35 36 Q20 32 21 14 Q27 27 38 29Z M65 36 Q80 32 79 14 Q73 27 62 29Z'),'#f4ead0',2.2);fs(c,P('M32 40 Q32 23 50 23 Q68 23 68 40 Z'),'#9aa4b1',O);
   rr(31,36,38,5,2,'#c68642',1.5);if(front)rr(48,26,4,10,0,'#b9c1cb',0);return;}
  case 'crown':{
-  if(side){fs(c,P('M37 34 L36 19 L43 25 L50 14 L57 25 L64 19 L63 34 Z'),'#ffc83d',O);fs(c,ell(43,29,2.2,2.2),'#ef4444',0);return;}
+  if(side){fs(c,P('M37 34 L36 19 L43 25 L50 14 L57 25 L64 19 L63 34 Z'),'#ffc83d',O); /* from the side: the red front gem at the front edge, turned away, and the gem on the side we see (his left side is green, his right blue) */
+   fs(c,ell(38.6,28.6,1.1,2.4),'#ef4444',0);fs(c,ell(51,29.5,2.3,2.3),FACE==='right'?'#2f8cff':'#22b35e',0);return;}
   fs(c,P('M35 34 L34 18 L42 25 L50 13 L58 25 L66 18 L65 34 Z'),'#ffc83d',O);if(front){fs(c,ell(50,28,2.6,2.6),'#ef4444',0);fs(c,ell(41,30,2,2),'#2f8cff',0);fs(c,ell(59,30,2,2),'#22b35e',0);}return;}
  case 'astro':{c.strokeStyle=INK;c.lineWidth=2;c.beginPath();c.moveTo(side?52:50,24);c.lineTo(side?54:50,12);c.stroke();fs(c,ell(side?54:50,11,3,3),'#ff5a5f',1.5);
   c.save();c.globalAlpha=.25;fs(c,ell(50,45,22,22),'#aae1ff',0);c.restore();c.strokeStyle='#dfe9f5';c.lineWidth=3.5;c.beginPath();c.arc(50,45,22,0,7);c.stroke();
@@ -164,7 +165,7 @@ const fallLift=mt=>mt<FALL.drop?Math.sin(mt/FALL.drop*Math.PI)*14:0;
 const fallBend=mt=>mt<FALL.stumble?.32*(1-(1-mt/FALL.stumble)**2):mt<FALL.drop?.32*(1-(mt-FALL.stumble)/(FALL.drop-FALL.stumble)):0;
 const TRIPS_ON=false; /* tripping is off for now; the fall code below is kept so it can come back */
 const lerp=(a,b,k)=>a+(b-a)*k,clamp01=k=>Math.max(0,Math.min(1,k)),smooth=k=>k*k*(3-2*k);
-function drawHero(c,st){const v=st.view,mode=st.mode,p=st.phase||0,t=st.t||0,mt=st.mt||0;HF={t,walk:mode==='walk',p};
+function drawHero(c,st){FACE=st.view;const v=st.view,mode=st.mode,p=st.phase||0,t=st.t||0,mt=st.mt||0;HF={t,walk:mode==='walk',p};
  const back=v==='up',side=v==='left'||v==='right',mirror=v==='up'||v==='right';
  const walking=mode==='walk',waving=mode==='wave',falling=mode==='fall',zapping=mode==='zap';
  const s=Math.sin(p);let bob=0,hem=0,tilt=0,liftA=0,liftB=0,stride=0,breath=Math.sin(t*2.4);
