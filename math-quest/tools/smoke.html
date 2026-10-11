@@ -58,7 +58,7 @@ const tests=[
 
 ['screens: every screen draws for a hero',async function(){
   T.reset();const p=T.hero('Screens',3);state.cur=p.id;p.sci=p.sci||{};p.sci.key=1;const bad=[];
-  const skip=['rest','skillcheck','inner','cave','office','fade','truck','market','district','map']; /* these need their own setup; truck and district have their own tests */
+  const skip=['rest','skillcheck','inner','cave','office','fade','truck','market','district','map','pond']; /* pond: only for a kid with school content, own test */ /* these need their own setup; truck and district have their own tests */
   for(const s of Object.keys(SCREENS)){if(skip.includes(s))continue;try{go(s,s==='zone'?'forest':undefined);T.ok(curScreen===s,'ended on '+curScreen);T.ok(document.body.innerText.length>10,'empty');}catch(e){bad.push(s+': '+e.message);}try{closeModal();}catch(e){}}
   T.ok(!bad.length,bad.join(' | '));}],
 
@@ -187,6 +187,45 @@ const tests=[
   let dir=0;for(const d of [1,-1]){const t=W.T[W.hy][W.hx+d];if(t&&!t.block&&!t.npc&&!t.gate&&!t.chest&&!wWall(W.hx,W.hy,W.hx+d,W.hy)){dir=d;break;}}
   if(dir){for(let i=0;i<3;i++){const t=W.T[W.hy][W.hx+dir];if(!t||t.block||t.npc||t.gate||t.chest)break;wStep(dir,0);await T.wait(200);}await T.wait(900);T.ok(Math.hypot(S.x-W.drawX,S.y-W.drawY)<1.5,'the pet fell behind when the hero walked');}
   T.ok(!W.petOff,'the floating pet threw on the map');
+}],
+['living map: every area has its surprises, a tap fires one, hidden ones wake after a win, the egg cracks, Calm keeps taps working',async function(){
+  T.reset();const p=T.hero('Lively',3);p.pet='fox';state.cur=p.id;go('world');await T.wait(500);try{closeModal();}catch(e){}
+  T.ok(window.LiveMap&&LiveMap.SURP.length>=20,'livemap.js did not build its surprises ('+(window.LiveMap?LiveMap.SURP.length:'none')+')');
+  const by={};LiveMap.SURP.forEach(s=>{(by[s.b]=by[s.b]||new Set()).add(s.group||s.id);});
+  ['village','forest','caves','castle','garden'].forEach(b=>T.ok(by[b]&&by[b].size>=3,b+' has fewer than 3 surprises'));
+  T.ok(['clock','beds','mole','duel','rabbits'].every(id=>LiveMap.LIVE.some(l=>l.id===id)),'a living thing is missing: '+['clock','beds','mole','duel','rabbits'].filter(id=>!LiveMap.LIVE.some(l=>l.id===id)));
+  const tp=(x,y)=>{W.hx=W.px=W.fx=x;W.hy=W.py=W.fy=y;W.drawX=x;W.drawY=y;W.path=[];P().wpos={x,y};};
+  const tapAt=s=>{for(const f of MQ_TAP){const r=f((s.x+(s.hit[0]+s.hit[2])/2)*W.ts,(s.y+(s.hit[1]+s.hit[3])/2)*W.ts,W.ts);if(r)return r;}return null;};
+  const nearSpot=s=>{for(let d=1;d<=3;d++)for(const [dx,dy] of [[0,d],[d,0],[-d,0],[0,-d],[d,d],[-d,d]]){const t=W.T[s.y+dy]&&W.T[s.y+dy][s.x+dx];if(t&&!t.block)return [s.x+dx,s.y+dy];}return null;};
+  const easy=LiveMap.SURP.find(s=>s.id==='c_cart')||LiveMap.SURP.find(s=>!s.hidden);const sp=nearSpot(easy);tp(sp[0],sp[1]);await T.wait(100);
+  const r1=tapAt(easy);T.ok(r1&&r1[0]===W.hx&&r1[1]===W.hy,'a tap on a surprise next to the hero did not fire it');T.ok(LiveMap.ANIM[easy.id],'the surprise did not start its animation');
+  T.ok(P().lm&&P().lm.found[easy.id],'finding a surprise was not saved in the hero');
+  const hid=LiveMap.SURP.find(s=>s.hidden&&s.b==='caves');const hp=nearSpot(hid);tp(hp[0],hp[1]);await T.wait(100);
+  const before=tapAt(hid);T.ok(!(before&&before[0]===W.hx&&before[1]===W.hy&&LiveMap.ANIM[hid.id]),'a hidden surprise fired before any win in its world');
+  hook('battle',P(),{win:true,zone:BIOMES.caves.zone});T.ok(P().lm.won.caves,'a battle win did not wake the world\'s hidden surprise');
+  const r2=tapAt(hid);T.ok(LiveMap.ANIM[hid.id],'the hidden surprise did not fire after a win');
+  const w0=P().lm.wins;hook('battle',P(),{win:true,zone:BIOMES.volcano.zone});T.ok(P().lm.wins===w0+1,'a Multiplication Volcano win did not crack the egg');
+  hook('battle',P(),{win:false,zone:BIOMES.volcano.zone});T.ok(P().lm.wins===w0+1,'a loss cracked the egg');
+  LiveMap.set('calm',true);const other=LiveMap.SURP.find(s=>!s.hidden&&s.id!==easy.id&&s.b===easy.b);if(other){const op=nearSpot(other);tp(op[0],op[1]);await T.wait(100);tapAt(other);T.ok(LiveMap.ANIM[other.id],'in Calm motion a tap did nothing');}
+  LiveMap.set('calm',false);await T.wait(400);T.ok(!W.puppetOff&&!W.petOff,'the map threw while the living map drew');
+  go('me','tro');T.ok(document.body.innerText.includes('Secrets of the map'),'the Secrets panel is missing from the trophies tab');
+}],
+['Dottie\'s Pond: only for a kid with school content; Spelling Splash earns Dottie and a fossil; 8 fossils make an egg that hatches a named Spinosaurus',async function(){
+  T.reset();const q=T.hero('Nobody',3);state.cur=q.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
+  T.ok(Pond.dock(),'no dock was laid beside Dottie\'s pond');go('pond');T.ok(curScreen!=='pond','a hero with no school content got into the pond');
+  const p=T.hero('Fisher',3);p.ckey='mika';state.cur=p.id;window.speechSynthesis&&(window.speechSynthesis.speak=()=>{});go('pond');await T.wait(200);
+  T.ok(curScreen==='pond','the pond screen did not open for a kid with school content');T.ok(window.MQ_PONDPETS&&MQ_PONDPETS.dottie,'pondpets.js did not load');
+  Pond.play('splash');Pond._a().items.length=2;for(let n=0;n<14;n++){const A=Pond._a();if(!A)break;const i=document.getElementById('pondIn');if(!i)break;i.value=A.items[A.i].w;Pond.check();await T.wait(1150);}
+  T.ok(P().pets.includes('dottie'),'finishing Spelling Splash did not give Dottie');T.ok(Pond.st().bones.filter(Boolean).length===1,'no fossil after a passing score');
+  const s=Pond.st();s.bones=[1,1,1,1,1,1,1,0].map(Boolean);s.day='old';go('pond');await T.wait(100);
+  Pond.play('fix');Pond._a().items.length=1;for(let n=0;n<10;n++){const A=Pond._a();if(!A)break;const it=A.items[A.i];Pond.fish(it.opts.indexOf(it.w));await T.wait(1350);}
+  T.ok(Pond.st().egg,'the eighth fossil did not bring the egg');
+  go('pond');await T.wait(100);Pond.play('map');Pond._a().items.length=1;for(let n=0;n<12;n++){const A=Pond._a();if(!A)break;const it=A.items[A.i];Pond.ans(it.c.indexOf(it.ans));await T.wait(it.why?2650:1650);}
+  for(let i=0;i<40&&!document.getElementById('spName');i++)await T.wait(250);const nm=document.getElementById('spName');T.ok(nm,'the egg did not hatch after the next activity ('+JSON.stringify({egg:Pond.st().egg,h:Pond.st().hatched,b:Pond.st().bones.filter(Boolean).length,scr:curScreen,a:!!Pond._a()})+' '+((document.getElementById('pondPlay')||{}).innerText||'').slice(0,160).replace(/\n/g,' ')+')');
+  if(nm){nm.value='Rex';Pond.name();}T.ok(P().pets.includes('spino')&&Pond.st().spino==='Rex','the Spinosaurus was not named and added to the pets');
+  T.ok(PETS.find(x=>x.id==='spino').name==='Rex','the Spinosaurus does not go by the kid\'s name');
+  T.ok(!REG_PETS.some(x=>x.tier==='homework'),'a homework pet could come out of an egg');
+  T.ok(parentSchool(P()).includes("Dottie's Pond"),'the Parent Corner does not show the pond');
 }],
 ['map life: the pet dives in the fountain and brings a present; a shark takes it at the sea and the hero zaps it back',async function(){
   T.reset();const p=T.hero('Life',3);p.pet='fox';state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}

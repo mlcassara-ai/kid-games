@@ -16,7 +16,7 @@ const lerp=(a,b,k)=>a+(b-a)*k,clamp01=k=>Math.max(0,Math.min(1,k)),smooth=k=>k*k
 const FOX='#ff8a3d',FOX2='#e5642a',CREAM='#fff3e0';
 function heart(c,x,y,r,col){c.save();c.translate(x,y);c.scale(r/10,r/10);const p=new Path2D('M0 8 C-10 0 -9 -8 -4 -8 C-1 -8 0 -5 0 -4 C0 -5 1 -8 4 -8 C9 -8 10 0 0 8Z');fs(c,p,col,1.6);c.restore();}
 /* the fox in its own units: body centre (0,0), about 44 wide and 64 tall. view 'front' or 'side' (facing left). */
-function drawPet(c,o){if(CRITTERS[o.kind])return drawCritter(c,o);if(o.kind==='cat')return drawCat(c,o);if(o.kind==='nova')return drawNova(c,o);if(o.kind==='unicorn')return drawUnicorn(c,o);if(o.kind==='titan')return drawTitan(c,o);if(o.kind==='whale')return drawWhale(c,o);const t=o.t,sw=Math.sin(t*3)*3.2,nap=o.mode==='nap',lx=o.lx||0,ly=o.ly||0;
+function drawPet(c,o){if(window.MQ_PONDPETS&&MQ_PONDPETS[o.kind]&&o.kind!=='egg'&&o.kind!=='bone'&&o.kind!=='skeleton')return MQ_PONDPETS[o.kind](c,o); /* Dottie and the Spinosaurus (pondpets.js) */if(CRITTERS[o.kind])return drawCritter(c,o);if(o.kind==='cat')return drawCat(c,o);if(o.kind==='nova')return drawNova(c,o);if(o.kind==='unicorn')return drawUnicorn(c,o);if(o.kind==='titan')return drawTitan(c,o);if(o.kind==='whale')return drawWhale(c,o);const t=o.t,sw=Math.sin(t*3)*3.2,nap=o.mode==='nap',lx=o.lx||0,ly=o.ly||0;
  c.save();if(o.puff){c.scale(1.18,1.18);}
  if(o.view==='front'){
   /* tail: a wisp curling down and round to one side, white tip */
@@ -435,9 +435,10 @@ const FLOWERS={daisy:[['#ffffff','#ffd43b']],bell:[['#7950f2','#fff3bf']],flower
  garden_daisies:[['#ffffff','#fcc419']],garden_buds:[['#f783ac','#fff3bf'],['#748ffc','#fff3bf'],['#ffffff','#fcc419']],fair_flowers:[['#f783ac','#ffd43b'],['#748ffc','#ffd43b'],['#ffffff','#ffd43b']],
  farm_flowers:[['#ffffff','#ffd43b'],['#f783ac','#ffd43b']],volcano_fireflower:[['#ff6b1a','#ffe066']],garden_sunflower:[['#fcc419','#8b5a2b']],farm_sunflower:[['#ffd43b','#7a4a1e']]};
 const BUSHES={bush:1,berry:1,fbush:1},APPLE_TREES={farm_appletree:1};
-const EMO_LEN={spin:1.2,puff:1.0,nap:5,flowers:3.2,pond:6.1,fountain:4.1,tree:4.4,bush:3.3,sea:7};
-/* the bush: peek (0-.5), dive in (.5-.8), a terrible rustle with leaves flying (.8-2.4), "!!!" (2.4-3), bursts out (3) */
-const BUSHT={dive:.5,in:.8,bang:2.4,out:3};
+const EMO_LEN={spin:1.2,puff:1.0,nap:5,flowers:3.2,pond:6.1,fountain:4.1,tree:4.4,bush:3.6,sea:7};
+/* the bush: peek (0-.5), a black furry paw reaches out of the bush and grabs the pet (.5-.95, owner Oct 2026), pulls it in (.95-1.25),
+   a terrible rustle with leaves flying (1.25-2.7), "!!!" (2.7-3.3), bursts out (3.3) */
+const BUSHT={grab:.5,dive:.95,in:1.25,bang:2.7,out:3.3};
 /* the dives: how high to hover first and how deep to go; at a pond it first watches a fish jump (pre seconds) */
 const DIVE={pond:{hover:.35,under:-.2,pre:2.9},fountain:{hover:.65,under:.05,pre:.9}};
 const HMM=.9; /* the last HMM seconds before a dive: it peers down at the water with a question mark */
@@ -446,7 +447,7 @@ const PT={x:0,y:0,vx:0,vy:0,alt:.55,mode:'follow',mt:0,t:0,face:'front',blinkAt:
 const WFX=[]; /* things happening in the world, in map squares: splashes, bubbles, smoke, drips, leaves, presents */
 const diveT=()=>PT.mt-((PT.act&&DIVE[PT.act.k]&&DIVE[PT.act.k].pre)||0);
 const isDive=()=>PT.mode==='act'&&PT.act&&!!DIVE[PT.act.k];
-const away=()=>['wander','act','bring','grabbed','warn'].includes(PT.mode);
+const away=()=>['wander','act','bring','grabbed','warn','hold','return'].includes(PT.mode); /* (a 'trick' stays beside the hero, so it doesn't count) */
 const hero=()=>window.HeroPuppet&&HeroPuppet.state?HeroPuppet.state():{view:'down',mode:'idle',idle:0};
 const kindOf=id=>KIND[id]||id;
 function petName(){try{const x=PETS.find(q=>q.id===PT.id);return x?String(x.name).split(' the ')[0]:'';}catch(e){return '';}}
@@ -530,7 +531,7 @@ function update(dt,W,now){PT.t+=dt;PT.mt+=dt;const H=hero(),hx=W.drawX,hy=W.draw
  if(PT.mode==='act'&&a.k==='sea'&&PT.mt>EMO_LEN.sea){PT.mode='follow';PT.mt=0;PT.nextWander=PT.t+14;}
  if(PT.mode==='act'&&a.k==='bush'&&PT.mt>EMO_LEN.bush){PT.mode='warn';PT.mt=0;PT.under=false;PT.warnAt=0;PT.nextWander=PT.t+18+Math.random()*8;}
  if(PT.mode==='act'&&EMO_LEN[a.k]&&PT.mt>EMO_LEN[a.k]&&a.k!=='bush'&&a.k!=='sea'){PT.mt=0;PT.nextWander=PT.t+14+Math.random()*10;const always=!!DIVE[a.k]||a.k==='tree';PT.under=false;
-  if(always||Math.random()<.75){PT.mode='bring';PT.carry=GIFT[a.k];PT.flowerCol=a.col||null;}else PT.mode='follow';}
+  if(always||Math.random()<.75){PT.mode='bring';PT.carry=GIFT[a.k];PT.flowerCol=a.col||null;if(a.k==='pond')PT.pond={x:a.wx,y:a.wy};}else PT.mode='follow';}
  if((PT.mode==='spin'||PT.mode==='puff')&&PT.mt>EMO_LEN[PT.mode]){PT.mode='follow';PT.mt=0;}
  if(PT.mode==='nap'&&PT.mt>1.5&&H.mode!=='doze'){PT.mode='follow';PT.mt=0;}
  const standing=H.mode!=='walk'&&(H.idle||0)>1.5&&!SH.grab;
@@ -552,7 +553,7 @@ function update(dt,W,now){PT.t+=dt;PT.mt+=dt;const H=hero(),hx=W.drawX,hy=W.draw
  window.MQ_SHAKE=null;
  if(PT.mode==='wander'||PT.mode==='act'){tx=a.x;ty=a.y;talt=a.alt;k=PT.mode==='wander'?4:9;fvx=0;fvy=0;
   if(a.k==='bush'&&PT.mode==='act'){const m=PT.mt,bx=a.tx+.5,byy=a.ty+.7;
-   if(m>=BUSHT.dive&&m<BUSHT.in){talt=.05;ty=a.ty-.05;}
+   if(m>=BUSHT.dive&&m<BUSHT.in){talt=.05;ty=a.ty-.05;k=40;} /* yanked down */
    else if(m>=BUSHT.in&&m<BUSHT.out){talt=.05;ty=a.ty-.05;PT.under=true;window.MQ_SHAKE=m<BUSHT.bang?{x:a.tx,y:a.ty}:null;
     if(m<BUSHT.bang&&Math.floor((m-dt)*12)!==Math.floor(m*12))for(let i=0;i<2;i++)WFX.push({k:'leaf',x:bx+(Math.random()-.5)*.6,y:byy,vx:(Math.random()-.5)*2.5,vy:-1.2-Math.random()*1.5,t:0,life:1.1,ph:Math.random()*6,col:LEAFC[Math.floor(Math.random()*LEAFC.length)]});}
    else if(m>=BUSHT.out){if(PT.under){PT.under=false;PT.alt=.5;for(let i=0;i<10;i++)WFX.push({k:'leaf',x:bx,y:byy-.05,vx:(Math.random()-.5)*3.3,vy:-1.6-Math.random()*1.2,t:0,life:1.2,ph:Math.random()*6,col:LEAFC[i%LEAFC.length]});}
@@ -575,8 +576,15 @@ function update(dt,W,now){PT.t+=dt;PT.mt+=dt;const H=hero(),hx=W.drawX,hy=W.draw
   if(PT.mode==='wander'&&Math.hypot(tx-PT.x,ty-PT.y)<.2){PT.mode='act';PT.mt=0;if(a.k==='tree')WFX.push({k:'fall',x:a.tx+.5,y:a.ty-.3,t:0,life:2.2});}}
  if(PT.mode==='warn'){const sd=H.view==='left'?-.6:.6;tx=hx+sd;ty=hy+.05;talt=.5;k=8;fvx=0;fvy=0;if(!PT.warnAt&&Math.hypot(tx-PT.x,ty-PT.y)<.25)PT.warnAt=PT.t;if(PT.warnAt&&PT.t-PT.warnAt>2.4){PT.mode='follow';PT.mt=0;PT.warnAt=0;}}
  if(PT.mode==='bring'){const sd=H.view==='left'?-.55:.55;tx=hx+sd;ty=hy+.08;talt=.42;k=7;
-  if(Math.hypot(tx-PT.x,ty-PT.y)<.18){const paid=PT.carry==='coin'&&payCoin();WFX.push({k:'give',item:PT.carry,fc:PT.flowerCol,paid,x0:PT.x+.5,y0:PT.y+.9-PT.alt-.25+.2,t:0,life:1.7});PT.carry=null;
+  /* a fish from the pond (owner, Oct 2026): the wizard says to put it back, the pet sighs "Well... ok, alright..." and drops it back in */
+  if(Math.hypot(tx-PT.x,ty-PT.y)<.18&&PT.carry==='fish'&&PT.pond){PT.mode='hold';PT.mt=0;if(window.HeroPuppet&&H.mode==='idle')HeroPuppet.emote('putback','I think you should put that back.');}
+  else if(Math.hypot(tx-PT.x,ty-PT.y)<.18){const paid=PT.carry==='coin'&&payCoin();WFX.push({k:'give',item:PT.carry,fc:PT.flowerCol,paid,x0:PT.x+.5,y0:PT.y+.9-PT.alt-.25+.2,t:0,life:1.7});PT.carry=null;
    if(window.HeroPuppet&&H.mode==='idle'){const n=petName();HeroPuppet.emote('thanks',n?'Thanks, '+n+'!':'Thanks!');}PT.mode='follow';petDo('spin');}}
+ /* an area trick (living map, owner Oct 2026): beside the hero, low to the ground; 'roll' = rolls in the leaves */
+ if(PT.mode==='trick'){const sd=H.view==='left'?.7:-.7;tx=hx+sd;ty=hy+.15;talt=.08;k=10;fvx=0;fvy=0;if(PT.trick==='roll'&&Math.floor((PT.mt-dt)*10)!==Math.floor(PT.mt*10)&&PT.mt>.3)WFX.push({k:'leaf',x:PT.x+.5,y:PT.y+.85,vx:(Math.random()-.5)*2,vy:-1-Math.random(),t:0,life:1,ph:Math.random()*6,col:LEAFC[Math.floor(Math.random()*LEAFC.length)]});if(PT.mt>2.4){PT.mode='follow';PT.mt=0;PT.trick=null;}}
+ if(PT.mode==='hold'){const sd=H.view==='left'?-.55:.55;tx=hx+sd;ty=hy+.08;talt=.42;k=7;if(PT.mt>4.4){PT.mode='return';PT.mt=0;}}
+ if(PT.mode==='return'){const P=PT.pond||{x:hx,y:hy};tx=P.x-.5;ty=P.y-.75;talt=.6;k=6;fvx=0;fvy=0;
+  if((Math.hypot(tx-PT.x,ty-PT.y)<.2&&PT.mt>.6)||PT.mt>6){WFX.push({k:'drop',x:P.x,y:P.y,t:0,life:.55});WFX.push({k:'splash',x:P.x,y:P.y,t:-.5,life:.9});PT.carry=null;PT.pond=null;PT.mode='follow';PT.mt=0;PT.nextWander=PT.t+14;}}
  if(PT.mode==='grabbed'){tx=PT.x;ty=PT.y;fvx=0;fvy=0;PT.vx=PT.vy=0;}
  const c2=2*Math.sqrt(k);PT.vx+=((tx-PT.x)*k+(fvx-PT.vx)*c2)*dt;PT.vy+=((ty-PT.y)*k+(fvy-PT.vy)*c2)*dt;PT.x+=PT.vx*dt;PT.y+=PT.vy*dt;
  if(PT.mode==='grabbed'){}else if(altSet!==undefined)PT.alt=altSet;else PT.alt+=(talt-PT.alt)*Math.min(1,dt*4);
@@ -609,7 +617,7 @@ function bubble(c,text,x,y,fz,tc){c.save();c.font='700 '+fz+'px Fredoka, Trebuch
 function drawAt(c,id,ox,oy,ts){if(PT.under||PT.mode==='grabbed')return;const kind=kindOf(id),u=ts/48,gx=ox+(PT.x+.5)*ts,gy=oy+(PT.y+.9)*ts,bob=Math.sin(PT.t*2.6)*(PT.mode==='nap'?1.5:3.5)*u;
  /* the shadow stays on the ground and gets smaller the higher it floats */
  c.globalAlpha=.2;c.fillStyle='#000';c.beginPath();c.ellipse(gx,gy,Math.max(1,(13-PT.alt*4)*u),Math.max(.5,(3.6-PT.alt)*u),0,0,7);c.fill();c.globalAlpha=1;
- const sc=ts/92*(SIZE[id]||1),cy=gy-PT.alt*ts+bob-ts*.25;c.save();c.translate(gx,cy);c.scale(sc,sc);
+ const sc=ts/92*(SIZE[id]||1),cy=gy-PT.alt*ts+bob-ts*.25;c.save();c.translate(gx,cy);if(PT.mode==='trick'&&PT.trick==='roll'&&PT.mt>.3&&PT.mt<2.1){const q=(PT.mt-.3)/1.8;c.translate(0,ts*.12);c.rotate((q<.5?1:-1)*Math.sin(q*Math.PI)*0+q*Math.PI*4*(PT.face==='right'?1:-1));c.translate(0,-ts*.12);}c.scale(sc,sc);
  c.rotate(Math.max(-.25,Math.min(.25,PT.vx*.08)));
  if(PT.mode==='spin'){const k=clamp01(PT.mt/.9);c.translate(0,-Math.sin(k*Math.PI)*16);c.rotate(smooth(k)*Math.PI*2*(PT.spinDir||1));}
  if(PT.mode==='puff'&&PT.mt<.5)c.translate(Math.sin(PT.mt*90)*1.5,0);
@@ -621,12 +629,13 @@ function drawAt(c,id,ox,oy,ts){if(PT.under||PT.mode==='grabbed')return;const kin
  const a=PT.act;let lx=0,ly=0;if(PT.mode==='act'&&a.k==='sea')ly=1.6;
  if(isDive()&&diveT()<.8){ly=1.6;if(diveT()<0&&a.k==='pond'&&PT.mt<2){const k=(PT.mt-.6)/.9;if(k>0&&k<1){lx=lerp(-1.4,1.4,k);ly=lerp(1.6,-.6,Math.sin(k*Math.PI));}}}
  if(PT.mode==='act'&&a.k==='flowers')ly=1.5;
- drawPet(c,{kind,view:PT.face==='front'?'front':'side',t:PT.t,mode:PT.mode,blink:PT.blinkT>0,happy:PT.mode==='spin'||(PT.mode==='act'&&a.k==='flowers'&&PT.mt>.6),puff:(PT.mode==='warn'&&!PT.warnAt)||(PT.mode==='puff'&&PT.mt<.8),lx,ly});
+ drawPet(c,{kind,view:PT.face==='front'?'front':'side',t:PT.t,mode:PT.mode,blink:PT.blinkT>0,happy:PT.mode==='spin'||(PT.mode==='act'&&a.k==='flowers'&&PT.mt>.6),puff:(PT.mode==='warn'&&!PT.warnAt)||(PT.mode==='puff'&&PT.mt<.8)||(PT.mode==='act'&&a&&a.k==='bush'&&PT.mt>BUSHT.grab+.3),lx,ly});
  c.restore();
- if((PT.mode==='bring'||PT.mode==='act')&&PT.carry)drawItem(c,PT.carry,gx,cy+ts*.16,PT.flowerCol,ts);
+ if((PT.mode==='bring'||PT.mode==='act'||PT.mode==='hold'||PT.mode==='return')&&PT.carry)drawItem(c,PT.carry,gx,cy+ts*.16,PT.flowerCol,ts);
  const hx=gx,hy=cy-ts*.35;
+ if(PT.mode==='hold'&&PT.mt>2.6)bubble(c,'Well... ok, alright...',hx,hy-ts*.07,Math.max(9,Math.round(ts*.21)));
  if(PT.mode==='warn'&&PT.warnAt&&PT.t-PT.warnAt<2.2)bubble(c,BUSH_LINES[kind]||'That was scary!',hx,hy-ts*.07,Math.max(9,Math.round(ts*.21)));
- if(PT.mode==='act'&&a.k==='bush'&&PT.mt<BUSHT.dive)qmark(c,gx+12*u,hy+ts*.05,ts);
+ if(PT.mode==='act'&&a.k==='bush'&&PT.mt<BUSHT.grab)qmark(c,gx+12*u,hy+ts*.05,ts);else if(PT.mode==='act'&&a.k==='bush'&&PT.mt<BUSHT.in)qmark(c,gx+12*u,hy+ts*.05,ts*.95,'#f03e3e','!');
  PT.fx.forEach(q=>{if(q.k==='heart'){c.globalAlpha=Math.max(0,1-q.t/q.life);heart(c,hx+q.x*sc,hy+(q.y+q.vy*q.t)*sc,5*u,'#ff6f91');c.globalAlpha=1;}});
  if(PT.mode==='nap'&&PT.mt>.8){c.save();c.textAlign='center';for(let i=0;i<2;i++){const q=((PT.mt-.8)*.5+i/2)%1;c.globalAlpha=Math.min(1,(1-q)*1.5);c.font='800 '+((7+q*5)*u).toFixed(1)+'px Fredoka, Trebuchet MS, sans-serif';c.lineWidth=2.5;c.strokeStyle='#fff';c.strokeText('z',hx+(8+q*12)*u,hy-q*16*u);c.fillStyle='#5c7cfa';c.fillText('z',hx+(8+q*12)*u,hy-q*16*u);}c.restore();}
  if((PT.mode==='act'&&a.k==='sea')||(isDive()&&diveT()>=-HMM&&diveT()<.3)){const k=a.k==='sea'?Math.min(PT.mt,.5):diveT()+HMM;c.save();c.globalAlpha=Math.max(0,Math.min(1,k*5,(HMM+.3-k)*5,a.k==='sea'?1:9));qmark(c,hx+12*u,hy-4*u+Math.sin(PT.t*5)*2*u,ts);c.restore();}
@@ -647,10 +656,20 @@ function drawWorld(c,ox,oy,ts,now){const u=ts/48,X=x=>ox+x*ts,Y=y=>oy+y*ts,H=her
   if(q.k==='splash'){c.save();c.globalAlpha=1-k;c.strokeStyle='#e7f5ff';c.lineWidth=2;c.beginPath();c.ellipse(x,y,(5+k*20)*u,(2+k*6)*u,0,0,7);c.stroke();
    for(let i=0;i<9;i++){const an=-Math.PI/2+(i/8-.5)*2.4,sp=(26+(i%3)*10)*u;fs(c,ell(x+Math.cos(an)*sp*q.t*1.6,y+Math.sin(an)*sp*q.t*1.6+60*u*q.t*q.t,2*u,2.4*u),'#bfe7ff',0);}c.restore();}
   else if(q.k==='smoke'){c.save();c.globalAlpha=(1-k)*.55;c.fillStyle='#ced4da';c.beginPath();c.arc(x+q.dx*ts*k*3+Math.sin(q.t*3)*3*u,y-k*34*u,(4+k*10)*u,0,7);c.fill();c.restore();}
+  else if(q.k==='drop'){c.save();c.translate(x,y-(1-k*k)*ts*.75);c.rotate(1.2+k*.6);c.scale(u,u);fs(c,ell(0,0,6,3.4),'#ffa94d',1.4);fs(c,P('M-5 0 L-10 -4 L-10 4Z'),'#ffa94d',1.4);fs(c,ell(3,-1,.9,.9),INK,0);c.restore();}
   else if(q.k==='bub'){c.save();c.globalAlpha=1-k;c.strokeStyle='#e7f5ff';c.lineWidth=1.4;c.beginPath();c.arc(x+Math.sin(q.t*12)*2*u,y-k*10*u,(1.6+k*1.6)*u,0,7);c.stroke();c.restore();}
   else if(q.k==='drip'){c.save();c.globalAlpha=1-k;fs(c,ell(x+q.vx*q.t*ts,y+(q.vy*q.t+1.9*q.t*q.t)*ts,1.6*u,2*u),'#8fd0f7',0);c.restore();}
   else if(q.k==='leaf'){c.save();c.globalAlpha=Math.min(1,(1-k)*2.5);c.translate(x+q.vx*q.t*ts+Math.sin(q.t*5+q.ph)*4*u,y+(q.vy*q.t+2.2*q.t*q.t)*ts);c.rotate(q.t*6+q.ph);c.scale(u,u);fs(c,P('M0 -3.6 Q2.8 -.4 0 3.6 Q-2.8 -.4 0 -3.6Z'),q.col,.9);c.restore();}
   else if(q.k==='fall'){c.save();c.translate(x+Math.sin(q.t*4)*10*u,y+k*1.1*ts);c.rotate(Math.sin(q.t*4)*.8);c.globalAlpha=Math.min(1,(1-k)*3);c.scale(u,u);fs(c,P('M0 -5 Q5 0 0 5 Q-5 0 0 -5Z'),'#51cf66',1.2);c.restore();}});
+ /* the paw (owner, Oct 2026): a straight black furry arm shoots up out of the middle of the bush, grabs the pet and yanks it down */
+ if(PT.mode==='act'&&a&&a.k==='bush'&&PT.mt>=BUSHT.grab&&PT.mt<BUSHT.in+.05){const m=PT.mt,px=X(PT.x+.5),by=Y(a.ty+.62),py=Y(PT.y+.9)-PT.alt*ts-ts*.1;
+  const ext=m<BUSHT.dive-.15?Math.min(1,(m-BUSHT.grab)/.18):1,ty=by+(py-by)*ext,sh=Math.sin(m*40)*1*u;
+  c.save();c.lineCap='butt';c.fillStyle='#1a1a1a';c.strokeStyle=INK;c.lineWidth=1.4*u;const aw=6*u;
+  c.beginPath();c.rect(px-aw/2+sh,ty,aw,by-ty);c.fill();c.stroke();
+  for(let yy=ty+6*u;yy<by-3*u;yy+=5*u){c.strokeStyle='#1a1a1a';c.lineWidth=1.5*u;c.beginPath();c.moveTo(px-aw/2+sh,yy);c.lineTo(px-aw/2-2.5*u+sh,yy-2.5*u);c.moveTo(px+aw/2+sh,yy+2*u);c.lineTo(px+aw/2+2.5*u+sh,yy-.5*u);c.stroke();} /* fur */
+  const grip=m>=BUSHT.dive-.15;c.translate(px+sh,ty);c.fillStyle='#1a1a1a';c.strokeStyle=INK;c.lineWidth=1.4*u;c.beginPath();c.ellipse(0,-1*u,6*u,5*u,0,0,7);c.fill();c.stroke();
+  [-1,0,1].forEach(j=>{c.save();c.rotate(-Math.PI/2+j*.6);c.fillStyle='#1a1a1a';c.beginPath();c.ellipse(5*u,0,2.6*u,2*u,0,0,7);c.fill();c.strokeStyle='#e9ecef';c.lineWidth=1.2*u;c.beginPath();c.moveTo(7*u,0);c.lineTo(7*u+(grip?3*u:6*u),grip?(j<0?-2.5:2.5)*u:0);c.stroke();c.restore();});
+  c.restore();}
  /* a shaking "!!!" bubble over the bush while the pet is in there */
  if(PT.mode==='act'&&a&&a.k==='bush'&&PT.mt>=BUSHT.in+.2&&PT.mt<BUSHT.out){const m=PT.mt;c.save();c.translate(X(a.tx+.5)+Math.sin(m*55)*2.2*u,Y(a.ty+.92)-20*u+Math.cos(m*47)*1.6*u);c.rotate(Math.sin(m*38)*.12);bubble(c,'!!!',0,0,Math.max(10,Math.round(14*u)),'#f03e3e');c.restore();}
  drawLunge(c,X,Y,ts);drawSorry(c,X,Y,ts);
@@ -725,11 +744,13 @@ window.MQ_MAPDRAW.push((ctx,items,cx,cy,ts,now)=>{if(typeof W==='undefined'||!W|
  items.push({y:1e6,draw:()=>{ctx.save();try{drawWorld(ctx,ox,oy,ts,now);}catch(e){}ctx.restore();}});});
 /* the picture at any size, for tests and the gallery: draw(ctx, petId, {view:'front'|'side', t, mode}) centred on (0,0) */
 function draw(c,id,o){return drawPet(c,Object.assign({kind:kindOf(id),view:'front',t:0,mode:'follow'},o||{}));}
-const has=id=>{const k=kindOf(id);return !!(CRITTERS[k]||['fox','cat','nova','unicorn','titan','whale'].includes(k));};
+const has=id=>{const k=kindOf(id);return !!((window.MQ_PONDPETS&&(k==='dottie'||k==='spino')&&MQ_PONDPETS[k])||CRITTERS[k]||['fox','cat','nova','unicorn','titan','whale'].includes(k));};
 /* for tests: send the pet off to a kind of place now (if one is near), or let a shark take it at the sea */
+/* an area trick, once, when the hero arrives (livemap.js): only if the pet is free */
+function trick(k){if(away()||PT.under||PT.mode==='grabbed'||PT.mode==='trick')return false;PT.mode='trick';PT.trick=k;PT.mt=0;return true;}
 function go(k,W){if(typeof W==='undefined')return false;PT.nextWander=0;if(k==='sea')PT.nextSea=0;const S=spots(W);if(!S[k]||!S[k].length)return false;
  for(let i=0;i<30;i++){PT.mode='follow';wander(W);if(PT.act&&PT.act.k===k)return true;}return false;}
 /* is the pet saying something (its bush line, or HELP!!! in the shark's jaws) */
-const talking=()=>(PT.mode==='warn'&&!!PT.warnAt&&PT.t-PT.warnAt<2.2)||!!SH.grab;
-window.PetPuppet={ok:true,talking,mapItem,draw,react,has,away,go,spots:W=>spots(W),state:()=>PT,sharks:()=>SH,lines:BUSH_LINES};
+const talking=()=>(PT.mode==='warn'&&!!PT.warnAt&&PT.t-PT.warnAt<2.2)||!!SH.grab||PT.mode==='hold'||PT.mode==='return'; /* the whole put-the-fish-back scene counts, so the Elder Wiz holds his bubble */
+window.PetPuppet={ok:true,talking,mapItem,draw,react,has,away,go,trick,spots:W=>spots(W),state:()=>PT,sharks:()=>SH,lines:BUSH_LINES};
 })();

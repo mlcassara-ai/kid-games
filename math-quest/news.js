@@ -6,6 +6,12 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.11a',d:'October 2026',items:[
+  '🌿 The map is alive! Rabbits hop in Addition Forest, a mole pops up in the Caves, and two tiny soldiers in Division Castle have been lobbing bombs at each other for years (they always miss).',
+  '👆 Tap things on the map! Crystals sing, mushrooms boing, the catapult shares cannonballs equally, an owl lives in the treehouse… and some surprises stay hidden until you win a battle in that world.',
+  '📖 Everything you find goes in Secrets, on the 🏆 tab of your Me page.',
+  '🥚 There is a dragon egg by the volcano. Win battles in Multiplication Volcano and watch it crack…',
+  '🐾 Your pet rolls in the leaves in the forest, puts back fish it shouldn\'t have taken, and still should NOT go in the bushes.']},
  {v:'2026.10.09g',d:'October 2026',items:[
   '🧙 The Elder Wiz, Principal Wise, Dr. Quartz, Coach Flex, Gizmo and the Kind Teacher have come alive too! Watch them walk, wave, talk and show off their own moves.']},
  {v:'2026.10.09e',d:'October 2026',items:[

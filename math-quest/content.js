@@ -80,6 +80,30 @@ const JIBREEL_WORDS = [
 
 
 // Mika: his Week 4 (long o) and Week 5 (u sounds) spelling lists, plus the bonus words
+// Mika, Week 7 (double letters), plus three words from Week 6 to keep practising (Oct 2026)
+const MIKA_WK7 = [
+  { w: 'missed', s: 'I missed the bus this morning.' },
+  { w: 'willing', s: 'Are you willing to help me carry the cooler?' },
+  { w: 'balloon', s: 'The red balloon floated up into the sky.' },
+  { w: 'spelling', s: 'We have a spelling test on Friday.' },
+  { w: 'pretty', s: 'The sunset over the lake was pretty.' },
+  { w: 'still', s: 'Sit still while I take your picture.' },
+  { w: 'off', s: 'Please turn off the light.' },
+  { w: 'added', s: 'Mom added cheese to my sandwich.' },
+  { w: 'letter', s: 'I wrote a letter to Grandma.' },
+  { w: 'different', s: 'Every fish in the lake looks a little different.' },
+  { w: 'pattern', s: 'My shirt has a striped pattern.' },
+  { w: 'middle', s: 'Our boat is in the middle of the lake.' },
+  { w: 'Mississippi', s: 'The Mississippi River is very long.' },
+  { w: 'zipper', s: 'The zipper on my jacket is stuck.' },
+  { w: 'carry', s: 'Can you carry the tackle box?' },
+  { w: 'animal', s: 'A bass is my favorite animal to catch.' },
+  { w: 'adaptation', s: "A duck's webbed feet are an adaptation for swimming." },
+  { w: 'blue', s: 'The sky is blue today.' },
+  { w: 'have', s: 'I have two fishing rods.' },
+  { w: 'move', s: 'Move your bike out of the street.' }
+];
+
 const MIKA_WORDS = [
   { w: 'rocket', s: 'The rocket zoomed up into space.' },
   { w: 'pocket', s: 'I keep my lucky rock in my pocket.' },
@@ -963,7 +987,8 @@ window.MQ_CONTENT = {
 
   kids: {
     mika: {
-      spelling: { title: "Mika's words from school (Week 4 & 5)", words: MIKA_WORDS },
+      spelling: { title: "Mika's words from school (Week 7)", words: MIKA_WK7 },
+      pond: { quizzes: ['m-geo'] },  // Dottie's Pond (pond.js): the Explorer Quiz uses these
       homework: [
         { id: 'm-wk5-review', title: 'Groups, Arrays & Graphs Review', problems: [
           { q: 'Jason has 6 bookshelves. There are 6 books on each shelf. How many books?', a: '36' },
@@ -986,7 +1011,7 @@ window.MQ_CONTENT = {
           { q: 'A picture graph key says each star = 2 votes. Pizza has 4 stars. How many votes?', a: '8', hint: 'Count by 2s for each star.' }
         ] }
       ],
-      quizzes: ['m-reading', 'm-math', 'ca-missions']
+      quizzes: ['m-geo', 'm-reading', 'm-math', 'ca-missions']
     },
     jibreel: {
       spelling: { title: "Jibreel's words from school (Week 2 & 4)", words: JIBREEL_WORDS },
@@ -1046,6 +1071,32 @@ window.MQ_CONTENT = {
   },
 
   quizzes: {
+    // ---------- Mika: Social Studies Unit 1 (maps, hemispheres, continents), our own questions, Oct 2026 ----------
+    'm-geo': {
+      title: 'Maps & Hemispheres',
+      emoji: '🌎',
+      note: 'Social Studies Unit 1',
+      questions: [
+        { q: 'Which line cuts the Earth into the Northern and Southern Hemispheres?', c: ['The equator', 'The prime meridian', 'The Mississippi River', 'The coast'], a: 0, why: 'The equator goes around the middle of the Earth. North of it is the Northern Hemisphere, south of it is the Southern Hemisphere.' },
+        { q: 'Which line cuts the Earth into the Eastern and Western Hemispheres?', c: ['The equator', 'The prime meridian', 'The Pacific Ocean', 'The North Pole'], a: 1, why: 'The prime meridian runs from the North Pole to the South Pole. East of it is the Eastern Hemisphere, west of it is the Western.' },
+        { q: 'Northern, Southern, Eastern and... what is the fourth hemisphere?', c: ['Middle', 'Western', 'Upper', 'Ocean'], a: 1, why: 'The four hemispheres are Northern, Southern, Eastern and Western. The equator and prime meridian are the LINES between them.' },
+        { q: 'Are the equator and the prime meridian hemispheres?', c: ['Yes, they are hemispheres', 'No, they are lines that divide the hemispheres'], a: 1, why: 'They are imaginary lines. A hemisphere is HALF of the Earth.' },
+        { q: 'A hemisphere is...', c: ['Half of the Earth', 'A kind of ocean', 'A city', 'A mountain'], a: 0, why: '"Hemi" means half. A hemisphere is half of a sphere, like half of a ball.' },
+        { q: 'The equator is...', c: ['A painted line on the ground', 'An imaginary line', 'A river', 'A fence'], a: 1, why: 'You cannot see the equator on the ground. It is an imaginary line we draw on maps and globes.' },
+        { q: 'Which two hemispheres is the United States in?', c: ['Northern and Western', 'Southern and Eastern', 'Northern and Eastern', 'Southern and Western'], a: 0, why: 'The USA is north of the equator and west of the prime meridian.' },
+        { q: 'In social studies, what is a capital?', c: ['The city where the government works', 'The biggest ocean', 'A kind of map', 'A tall mountain'], a: 0, why: 'A capital is the city where a state or country has its government. Sacramento is the capital of California.' },
+        { q: 'Which states border California?', c: ['Oregon, Nevada and Arizona', 'Texas, Utah and Ohio', 'Florida, Oregon and Maine', 'Nevada, Utah and Idaho'], a: 0, why: 'Oregon is north, Nevada is east and Arizona is southeast of California.' },
+        { q: 'How many continents are there?', c: ['5', '7', '9', '3'], a: 1, why: 'The 7 continents are North America, South America, Europe, Asia, Africa, Australia and Antarctica.' },
+        { q: 'How many oceans are there?', c: ['5', '3', '7', '10'], a: 0, why: 'The 5 oceans are the Pacific, Atlantic, Indian, Arctic and Southern Oceans.' },
+        { q: 'Which ocean is between North America and Europe?', c: ['Pacific', 'Atlantic', 'Indian', 'Arctic'], a: 1, why: 'The Atlantic Ocean is east of North America and west of Europe and Africa.' },
+        { q: 'Which is the biggest ocean?', c: ['Atlantic', 'Indian', 'Pacific', 'Arctic'], a: 2, why: 'The Pacific Ocean is the biggest. California is on the Pacific coast.' },
+        { q: 'Which continent is icy cold and at the very bottom of the map?', c: ['Australia', 'Africa', 'Antarctica', 'Asia'], a: 2, why: 'Antarctica is around the South Pole. Spell it A-n-t-a-r-c-t-i-c-a (there is a c after the r!).' },
+        { q: 'Which continent is also a whole country?', c: ['Australia', 'Europe', 'Africa', 'Asia'], a: 0, why: 'Australia is a country and a continent.' },
+        { q: 'What is geography?', c: ['The study of numbers', 'The study of Earth: its land, water, air and people', 'The study of animals only', 'The study of stars'], a: 1, why: 'Geography is the study of the Earth and the people who live on it.' },
+        { q: 'A state is...', c: ['One of the 50 parts of the United States, each with its own government', 'A big ocean', 'A continent', 'A small river'], a: 0, why: 'There are 50 states. California is one of them.' },
+        { q: 'A country is...', c: ['An area of land with its own government', 'A kind of fish', 'A line on a map', 'A cloud'], a: 0, why: 'A country has its own land and its own government, like the United States or Mexico.' }
+      ]
+    },
     // ---------- Grade-band knowledge quizzes (added Sep 30 2026) ----------
     // Grades 1-2: very short questions, simple words.
     'g12-animals': {

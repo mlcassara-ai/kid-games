@@ -157,9 +157,9 @@ function fallRot(mt){const ease=k=>k*k,out=k=>1-(1-k)*(1-k);
  if(mt<FALL.land){const k=(mt-FALL.drop)/(FALL.land-FALL.drop);return 1.52-Math.sin(k*Math.PI)*.12;}
  if(mt<FALL.lie)return 1.52;
  if(mt<FALL.up)return 1.52*(1-out((mt-FALL.lie)/(FALL.up-FALL.lie)));return 0;}
-const EMO={wave:{len:2.4,label:'Waving 👋'},zap:{len:ZAP.end,label:'Zap! ⚡'},thanks:{len:1.5,label:'Thanks! 😊'},startled:{len:1.9,label:'Startled! 😱'},rescue:{len:4.2,label:'Zap the shark! ⚡🦈'},cheer:{len:1.9,label:'Right answer! ✅'},oops:{len:2.3,label:'Hmm, not quite 🤔'},
+const EMO={wave:{len:2.4,label:'Waving 👋'},zap:{len:ZAP.end,label:'Zap! ⚡'},thanks:{len:1.5,label:'Thanks! 😊'},putback:{len:3,label:'Put that back 🐟'},startled:{len:1.9,label:'Startled! 😱'},rescue:{len:4.2,label:'Zap the shark! ⚡🦈'},cheer:{len:1.9,label:'Right answer! ✅'},oops:{len:2.3,label:'Hmm, not quite 🤔'},
  level:{len:2.5,label:'Level up! ⭐'},sneeze:{len:3.1,label:'Ah… ACHOO! 🤧'},fly:{len:5.2,label:'A butterfly! 🦋'},snack:{len:3.6,label:'Snack time 🍎'},doze:{len:5.6,label:'Dozing off 😴'}};
-const EMO_FRONT=['startled','thanks','zap','cheer','oops','level','sneeze','fly','snack','doze'];
+const EMO_FRONT=['startled','thanks','putback','zap','cheer','oops','level','sneeze','fly','snack','doze'];
 /* tripping over a cord: he lifts a little into the air while his top half pitches forward (bent at the waist) and the caught foot stays back */
 const fallLift=mt=>mt<FALL.drop?Math.sin(mt/FALL.drop*Math.PI)*14:0;
 const fallBend=mt=>mt<FALL.stumble?.32*(1-(1-mt/FALL.stumble)**2):mt<FALL.drop?.32*(1-(mt-FALL.stumble)/(FALL.drop-FALL.stumble)):0;
@@ -223,6 +223,7 @@ function drawHero(c,st){FACE=st.view;const v=st.view,mode=st.mode,p=st.phase||0,
  if(!say&&st.say)say=st.say;
  if(em==='startled'){face='wow';ly=-.4;jumpY=mt<.35?-Math.sin(mt/.35*Math.PI)*10:0;const r=env(0,1.5,.12,.35);fAo=geomArm(38,66,lerp(-.45,-2.2,r),lerp(-.15,-2.7,r),15,13);sAo=geomArm(62,66,lerp(.75,1.6,r),lerp(.35,1.1,r),15,13);tiltOv=.25*r;}
  if(em==='thanks'){face='happy';if(mt<1.35)say=st.say||'Thanks!';}
+ if(em==='putback'){if(mt<2.8)say=st.say||'I think you should put that back.';} /* the pet brought a fish from the pond (owner, Oct 2026) */
  /* a fall where the pet fetches the helmet: no staff magic, he waits for it and says thanks */
  if(falling&&st.fetch){const F=st.fetch;hatLoose=hasHat()&&mt>=FALL.land&&!F.back;magic=0;
   if(mt>=FALL.up){face=F.back?'happy':'open';lx=0;ly=F.back?0:-1.3;tilt=0;}if(F.back&&mt-F.backAt<1.3)say='Thanks!';}
@@ -432,6 +433,6 @@ function mapDraw(ctx,sx,sy,ts,now,p,W){const gap=M.last?(now-M.last)/1000:0,dt=M
 /* the picture at any size, for tests and other screens: draw(ctx, look, spell, {view, mode, t, mt, phase}) in the 100 x 130 frame */
 function draw(ctx,lk,spell,st){setLook(lk,spell);BUBK=1;SHADOWS=true;return drawHero(ctx,Object.assign({view:'down',mode:'idle',t:0,mt:0,phase:0},st||{}));}
 /* is a speech bubble up over the hero (elder.js holds his own thought while it is) */
-const TALK=['cheer','level','sneeze','snack','thanks','rescue','zap'];
+const TALK=['cheer','level','sneeze','snack','thanks','putback','rescue','zap'];
 window.HeroPuppet={ok:true,talking:()=>TALK.includes(M.mode),mapDraw,draw,emote,force,zapNext:()=>{M.zapNext=true;},state:()=>M,HATS_VIEWS:['down','left','right','up']};
 })();
