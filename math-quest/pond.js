@@ -9,22 +9,61 @@
    brings up a Spinosaurus fossil bone (2 a day at most, 8 in all) for the skeleton on the shore. With all 8 an egg appears; the
    next finished activity hatches a baby Spinosaurus that the kid names, and it becomes a pet. Dottie herself joins as a pet
    (🎒 Homework Hero tier) the first time an activity is finished.
-   Saved per hero in p.pond = {intro, bones:[8 bools], day, dayBones, egg, hatched, spino (its name), st:{splash,fix,quiz:{best,tries,last}},
+   A whole dinosaur a day (owner, Oct 2026): every pass is a dive until today's skeleton (DINOS[cur]) has its 8 bones; the egg hatches on the
+   next pass, the kid names the baby (a pet), and the next dinosaur waits for a new day (rest). Order: Spinosaurus, T. rex, Triceratops,
+   Stegosaurus, Brachiosaurus, Ankylosaurus, Parasaurolophus, Velociraptor; after all 8 a pass gives 10 coins.
+   Saved per hero in p.pond = {v:2, intro, cur, bones:[8 bools], egg, rest (day of the last hatch), names:{dino:name}, spino (old name copy), st:{splash,fix,quiz:{best,tries,last}},
    miss:{word:n}}. Pictures for Dottie, the Spinosaurus, the egg, bones and skeleton come from pondpets.js (window.MQ_PONDPETS);
    simple fallbacks if it is missing.
    Map hooks: MQ_WORLD (lays the dock beside the inland pond nearest the town square), MQ_MAPDRAW (dock, sign, Dottie jumping), MQ_TAP. */
 (function(){
-const BONES=8,PER_DAY=2,PASS=.7;
-const BONE_FACTS=['The skull! Spinosaurus had a long, thin snout like a crocodile, perfect for grabbing fish.','A neck bone. Spinosaurus could dip its long neck down to the water.',
+const BONES=8,PASS=.7;
+/* a whole dinosaur a day (owner, Oct 2026): no limit on dives until today's skeleton is done; it hatches, and the next dinosaur waits for tomorrow */
+const DINOS=['spino','trex','trike','stego','brachio','ankylo','para','raptor'];
+const DNAME={spino:'Spinosaurus',trex:'T. rex',trike:'Triceratops',stego:'Stegosaurus',brachio:'Brachiosaurus',ankylo:'Ankylosaurus',para:'Parasaurolophus',raptor:'Velociraptor'};
+const FACTS={};FACTS.spino=['The skull! Spinosaurus had a long, thin snout like a crocodile, perfect for grabbing fish.','A neck bone. Spinosaurus could dip its long neck down to the water.',
  'A sail spine! The big sail on its back was made of very long spines, some taller than a grown-up.','A back bone. Spinosaurus was longer than a school bus: about 45 feet!',
  'An arm with a big curved claw, great for hooking slippery fish.','A leg bone. Its legs were short, maybe to help it paddle in rivers.',
  'The hips. Spinosaurus lived about 95 million years ago in North Africa, near big rivers.','The tail! It was tall and flat like a paddle, so Spinosaurus could swim.'];
+FACTS.trex=['The skull! A T. rex skull was about 5 feet long, longer than you are tall!','A neck bone. T. rex had a short, strong, S-shaped neck to hold up its giant head.',
+ 'The lower jaw! T. rex teeth were as long as bananas, with jagged edges like a steak knife.','Back bones and ribs. T. rex was about 40 feet long and heavier than an elephant.',
+ 'The famous tiny arm! It was only about 3 feet long, but it was very strong.','A leg bone. T. rex walked on two powerful legs with three big toes on each foot.',
+ 'The hips. T. rex lived about 68 to 66 million years ago in North America.','The tail! Its long, heavy tail helped T. rex balance its huge head.'];
+FACTS.trike=['The skull! Triceratops had one of the biggest skulls of any land animal, up to 8 feet long.','A neck bone. Triceratops needed a strong neck to hold up its heavy head and frill.',
+ 'The frill and horns! Triceratops means "three-horned face". Its two brow horns were about 3 feet long.','Back bones and ribs. Triceratops was about 30 feet long and heavier than an elephant.',
+ 'A front leg. Triceratops walked on all four legs, a bit like a giant rhinoceros.','A back leg. Its sturdy legs carried a body as heavy as a truck.',
+ 'The hips. Triceratops lived at the same time as T. rex, about 68 to 66 million years ago.','The tail. Triceratops snipped tough plants with a sharp beak, like a parrot\'s.'];
+FACTS.stego=['The skull! Stegosaurus had a small head with a brain about the size of a lime.','A neck bone. Stegosaurus kept its head low to munch ferns and low plants.',
+ 'Back plates! Stegosaurus had 17 bony plates along its back. The biggest were about 2 feet tall.','Back bones and ribs. Stegosaurus was about 30 feet long, almost as long as a school bus.',
+ 'A front leg. Stegosaurus\' front legs were much shorter than its back legs.','A back leg. Long back legs made its hips the highest point of its body.',
+ 'The hips. Stegosaurus lived about 150 million years ago, long before T. rex.','The tail spikes! Scientists call them a "thagomizer". Stegosaurus swung them to protect itself.'];
+FACTS.brachio=['The skull! Brachiosaurus had its nose openings high up on top of its head.','A neck bone. Brachiosaurus\' neck was about 30 feet long!',
+ 'More neck! Its neck bones had air pockets inside, which made them lighter.','Back bones and ribs. Brachiosaurus was as tall as a 4-story building.',
+ 'A front leg. Its front legs were longer than its back legs, like a giraffe\'s.','A back leg. Brachiosaurus means "arm lizard" because of its long front legs.',
+ 'The hips. Brachiosaurus lived about 154 to 153 million years ago.','The tail. Brachiosaurus ate leaves from the tops of tall trees, hundreds of pounds a day.'];
+FACTS.ankylo=['The skull! Even Ankylosaurus\' eyelids had bony armor.','A neck bone. Bony half-rings protected its neck like a knight\'s armor.',
+ 'Armor plates! Ankylosaurus was covered in bony plates called osteoderms.','Back bones and ribs. Ankylosaurus was about 20 to 26 feet long, low and wide like a tank.',
+ 'A front leg. Ankylosaurus had short, sturdy legs and stayed low to the ground.','A back leg. It probably could not run fast, so it needed its armor.',
+ 'The hips. Ankylosaurus lived about 68 to 66 million years ago, at the same time as T. rex.','The tail club! It was made of fused bones and could swing hard enough to break bones.'];
+FACTS.para=['The skull! Parasaurolophus had a beak like a duck and hundreds of teeth for chewing plants.','A neck bone. Parasaurolophus could walk on two legs or on all four.',
+ 'The crest! Its long, hollow crest may have made loud honking sounds, like a trumpet.','Back bones and ribs. Parasaurolophus was about 30 feet long.',
+ 'A front leg. Its front legs were shorter, so it could stand up tall to reach leaves.','A back leg. Strong back legs helped it run from danger.',
+ 'The hips. Parasaurolophus lived about 76 to 73 million years ago in North America.','The tail. It lived in herds, and its honks may have helped the herd talk to each other.'];
+FACTS.raptor=['The skull! Velociraptor had a long, low snout full of sharp, curved teeth.','A neck bone. Velociraptor had an S-shaped neck, like a bird\'s.',
+ 'The sickle claw! Each foot had one big curved claw, almost 3 inches long.','Back bones and ribs. Real Velociraptors were only about the size of a turkey!',
+ 'An arm bone. Scientists found little bumps where feathers attached, so Velociraptor had feathers.','A leg bone. Velociraptor was fast and light, a little like a roadrunner.',
+ 'The hips. Velociraptor lived about 75 to 71 million years ago in Mongolia, in Asia.','The tail. Its stiff tail helped it balance and turn quickly.'];
 const PP=()=>window.MQ_PONDPETS||null;
 try{const q=new URLSearchParams(location.search).get('pondkid');if(q)localStorage.setItem('mq.pondkid',q);if(q==='0')localStorage.removeItem('mq.pondkid');}catch(e){}
 const FORCE=(()=>{try{return localStorage.getItem('mq.pondkid')||'';}catch(e){return '';}})(); /* testing only: ?pondkid=mika on a device */
 const K=p=>{try{const K0=(window.MQ_CONTENT||{}).kids||{};if(FORCE&&K0[FORCE])return K0[FORCE];const k=(p.ckey&&K0[p.ckey])?p.ckey:(p.name||'').toLowerCase().trim();return K0[k]||null;}catch(e){return null;}};
 const hasHW=p=>!!(p&&K(p));
-function st(p){p.pond=p.pond||{};const s=p.pond;s.bones=s.bones||new Array(BONES).fill(false);s.st=s.st||{};s.miss=s.miss||{};return s;}
+function st(p){p.pond=p.pond||{};const s=p.pond;s.bones=s.bones||new Array(BONES).fill(false);s.st=s.st||{};s.miss=s.miss||{};s.names=s.names||{};
+ if(!s.v){s.v=2;if(s.hatched){s.names.spino=s.spino||'Spino';s.cur=1;s.bones=new Array(BONES).fill(false);s.egg=0;s.rest=s.day||'';}else s.cur=0;delete s.hatched;delete s.dayBones;}
+ s.cur=s.cur||0;return s;}
+/* cur = which dinosaur is being dug up (DINOS index; DINOS.length = all found); rest = the day the last one hatched (the next one waits for a new day) */
+const curId=s=>DINOS[s.cur]||null;const resting=s=>s.rest===today();const art=id=>{const D=PP();return (D&&D.dinos&&D.dinos[id])||(D&&id==='spino'?{name:'Spinosaurus',baby:D.spino,bone:D.bone,skeleton:D.skeleton}:null);};
+const dname=(s,id)=>s.names[id]||DNAME[id];
 const nBones=s=>s.bones.filter(Boolean).length;
 const today=()=>{try{return dayKey();}catch(e){return new Date().toISOString().slice(0,10);}};
 const E=s=>{try{return esc(s);}catch(e){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}};
@@ -34,7 +73,8 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 /* ---------- the two pets (🎒 Homework Hero tier, never in eggs); everything that touches the core game waits until it has loaded ---------- */
 function init(){try{PET_TIERS.homework={n:'Homework Hero',c:'#1c7ed6',odds:0,mult:1.35};
  if(!PETS.some(x=>x.id==='dottie'))PETS.push({id:'dottie',e:'🐟',name:'Dottie',perk:'lucky',tier:'homework',rare:true});
- if(!PETS.some(x=>x.id==='spino')){const sp={id:'spino',e:'🦖',perk:'power',tier:'homework',rare:true};Object.defineProperty(sp,'name',{get(){try{const p=P();return (p&&p.pond&&p.pond.spino)||'Spino';}catch(e){return 'Spino';}},enumerable:true});PETS.push(sp);}
+ DINOS.forEach(id=>{if(PETS.some(x=>x.id===id))return;const sp={id,e:['spino','trex','raptor'].includes(id)?'🦖':'🦕',perk:['power','power','shield','shield','heal','shield','lucky','power'][DINOS.indexOf(id)],tier:'homework',rare:true};
+  Object.defineProperty(sp,'name',{get(){try{const p=P();const s=p&&p.pond;return (s&&s.names&&s.names[id])||(s&&id==='spino'&&s.spino)||DNAME[id];}catch(e){return DNAME[id];}},enumerable:true});PETS.push(sp);});
  for(let i=REG_PETS.length-1;i>=0;i--)if(REG_PETS[i].tier==='homework')REG_PETS.splice(i,1);}catch(e){console.warn('pond pets',e);}
  try{SCREENS.pond=screen;}catch(e){}
  try{const ps0=parentSchool;parentSchool=function(p){let h=ps0(p);try{h+=parentPond(p);}catch(e){}return h;};}catch(e){}}
@@ -112,11 +152,13 @@ function screen(){const p=P();if(!hasHW(p)){go('world');return;}css();const s=st
  <div id="pondPlay"></div></div>`;
  sceneStart();let line;
  if(!s.intro){line="Psst! Down here! It's me, Dottie, from Dixon Lake! I followed you all the way here. Want to do your homework together? Every time you finish one, I'll dive for dinosaur fossils!";s.intro=1;save();}
- else if(s.egg&&!s.hatched)line='Shh… listen! The egg is wiggling! Finish one more activity and it might hatch!';
- else if(s.hatched)line=`${s.spino||'Spino'} caught a fish all by himself today! Ready for some homework?`;
- else line=pick(["Ready to go fishing for words?","Hi again! Let's find another fossil!","I've got my eye on a bone down there. Let's earn a dive!"]);
+ else if(s.egg)line='Shh… listen! The egg is wiggling! Finish one more activity and it might hatch!';
+ else if(resting(s)){const id=DINOS[s.cur-1];line=`${dname(s,id)} is splashing around with the others. Tomorrow there's a new dinosaur at the bottom of the pond!`;}
+ else if(!curId(s))line="You found every dinosaur in my pond! I'll still dive for shiny fossils if you do your homework.";
+ else if(nBones(s)===0&&s.cur>0)line=`Guess what? I saw a new skeleton down there… I think it's a ${DNAME[curId(s)]}! Let's dig it up today!`;
+ else line=pick(["Ready to go fishing for words?","Hi again! Let's find another fossil!",`I've got my eye on a ${DNAME[curId(s)]} bone down there. Let's earn a dive!`]);
  sayD(line);};
-function bar(s){const left=Math.max(0,PER_DAY-(s.day===today()?s.dayBones||0:0));return `<span class="pond-pill">🦴 Fossils ${nBones(s)} / ${BONES}</span>${s.hatched?`<span class="pond-pill">🦖 ${E(s.spino||'Spino')} hatched!</span>`:s.egg?'<span class="pond-pill">🥚 The egg is waiting to hatch!</span>':''}${nBones(s)<BONES?`<span class="pond-pill">Today: ${left} dive${left===1?'':'s'} left</span>`:''}`;}
+function bar(s){const id=curId(s),found=DINOS.filter(d=>s.names[d]).length;return (resting(s)?'<span class="pond-pill">😴 New dinosaur tomorrow!</span>':id?`<span class="pond-pill">🦴 Today's dinosaur: ${DNAME[id]} · ${nBones(s)} / ${BONES}</span>`:'<span class="pond-pill">🏆 Every dinosaur found!</span>')+(s.egg?'<span class="pond-pill">🥚 The egg is waiting to hatch!</span>':'')+`<span class="pond-pill">🦖 Dinosaurs hatched: ${found} / ${DINOS.length}</span>`;}
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
 function sayD(t){const el=document.getElementById('pondSay');if(el){el.textContent='🐟 '+t;}speak(t,.95);}
 function sceneStart(){cancelAnimationFrame(RAF);SC={t0:performance.now(),dive:null,splash:[]};const loop=now=>{const cv=document.getElementById('pondCv');if(!cv||curScreen!=='pond')return;RAF=requestAnimationFrame(loop);drawScene(cv,now);};RAF=requestAnimationFrame(loop);}
@@ -136,9 +178,11 @@ function drawScene(cv,now){const r=cv.getBoundingClientRect(),dpr=window.deviceP
  c.save();c.translate(dx,dy-up);const sc=Math.min(Wd,H*2)/560;c.scale(sc*(side>0?-1:1),sc);if(up<-1){c.globalAlpha=.25;}if(D)D.dottie(c,{kind:'dottie',view:'side',t,mode:'follow',blink:(t%4)<.15,happy:!!SC.dive,puff:false,lx:0,ly:0});else{c.font='60px sans-serif';c.textAlign='center';c.fillText('🐟',0,0);}c.restore();
  SC.splash=SC.splash.filter(q=>now-q.t<900);SC.splash.forEach(q=>{const k=(now-q.t)/900;c.strokeStyle=`rgba(255,255,255,${1-k})`;c.lineWidth=3;c.beginPath();c.ellipse(q.x,q.y,20+k*60,8+k*20,0,0,7);c.stroke();});
  /* the fossil display on the shore, and the egg or the baby */
- const bx=Wd*.12,by=H*.93;if(D)D.skeleton(c,bx,by,Wd*.2,s.bones,t);else{c.font='30px sans-serif';c.fillText('🦴 '+nBones(s),bx,by-20);}
- if(s.egg&&!s.hatched){const ex=Wd*.9,ey=H*.9;c.fillStyle='#c9a46b';c.beginPath();c.ellipse(ex,ey+8,34,10,0,0,7);c.fill();if(D)D.egg(c,ex,ey-14,56,.6,t);else{c.font='40px sans-serif';c.fillText('🥚',ex-20,ey);}}
- if(s.hatched){const ex=Wd*.84,ey=py-ph*.42+Math.sin(t*2)*3;c.save();c.translate(ex,ey);c.scale(sc*.8,sc*.8);if(D)D.spino(c,{kind:'spino',view:'side',t,mode:'follow',blink:(t%3.5)<.15,happy:true,puff:false,lx:0,ly:0});else{c.font='50px sans-serif';c.fillText('🦖',-25,0);}c.restore();
+ const bx=Wd*.12,by=H*.93,id=curId(s)||DINOS[DINOS.length-1],AR=art(resting(s)?DINOS[s.cur-1]:id);if(AR)AR.skeleton(c,bx,by,Wd*.2,resting(s)||!curId(s)?new Array(BONES).fill(true):s.bones,t);else{c.font='30px sans-serif';c.fillText('🦴 '+nBones(s),bx,by-20);}
+ if(s.egg){const ex=Wd*.9,ey=H*.9,A2=art(id);c.fillStyle='#c9a46b';c.beginPath();c.ellipse(ex,ey+8,34,10,0,0,7);c.fill();if(D)D.egg(c,ex,ey-14,56,.6,t,A2&&A2.egg,id);else{c.font='40px sans-serif';c.fillText('🥚',ex-20,ey);}}
+ const babies=DINOS.filter(d=>s.names[d]),SEATS=[[.84,-.42],[.3,.9],[.62,.95],[.78,.92],[.2,.62],[.92,.55],[.45,.98],[.7,.62]];
+ babies.forEach((d,i)=>{if(i===0)return;const [fx,fy]=SEATS[i%SEATS.length],x=Wd*fx,y=fy<0?py+ph*fy:H*fy,A3=art(d);c.save();c.translate(x,y+Math.sin(t*2+i)*2);c.scale(sc*.6*(i%2?-1:1),sc*.6);if(A3)A3.baby(c,{kind:d,view:'side',t:t+i,mode:(t+i*3)%14<3?'nap':'follow',blink:((t+i)%3.7)<.15,happy:false,puff:false,lx:0,ly:0});c.restore();});
+ if(babies.length){const d0=babies[0],A0=art(d0),ex=Wd*.84,ey=py-ph*.42+Math.sin(t*2)*3;c.save();c.translate(ex,ey);c.scale(sc*.8,sc*.8);if(A0)A0.baby(c,{kind:d0,view:'side',t,mode:'follow',blink:(t%3.5)<.15,happy:true,puff:false,lx:0,ly:0});else{c.font='50px sans-serif';c.fillText('🦖',-25,0);}c.restore();
   /* a little fishing rod in the baby's mouth */c.strokeStyle='#5c3a1c';c.lineWidth=2;c.beginPath();c.moveTo(ex-20*sc,ey);c.lineTo(ex-60*sc,ey-50*sc);c.stroke();c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=1;c.beginPath();c.moveTo(ex-60*sc,ey-50*sc);c.lineTo(ex-80*sc,py+Math.sin(t*2)*4);c.stroke();}}
 
 /* ---------- Map Dive: a cartoon world map ---------- */
@@ -206,30 +250,31 @@ function finish(){const run=++RUN,p=P(),s=st(p),total=A.items.filter(x=>!x.again
  const r=s.st[id]=s.st[id]||{best:0,tries:0};r.tries++;r.best=Math.max(r.best,pct);r.last=today();p.coins=(p.coins||0)+5;
  const lines=[`<div class="big">${pct>=PASS*100?'🎉':'💪'} ${pct}%</div>`];let dive=-1,hatch=false,newDottie=false;
  if(pct>=PASS*100){if(givePet(p,'dottie')){newDottie=true;lines.push('<p>🐟 <b>Dottie is now your Homework Hero pet!</b> She can float along with you on the map. Pick her in your Pets.</p>');}
-  if(s.day!==today()){s.day=today();s.dayBones=0;}
-  if(s.egg&&!s.hatched){hatch=true;}
-  else if(nBones(s)<BONES&&s.dayBones<PER_DAY){dive=s.bones.findIndex(b=>!b);s.bones[dive]=true;s.dayBones++;if(nBones(s)>=BONES)s.egg=1;}
-  else if(nBones(s)<BONES)lines.push(`<p>Dottie is tired from diving today (${PER_DAY} dives a day). Come back tomorrow for the next fossil!</p>`);}
+  s.day=today();
+  if(!curId(s)){p.coins+=10;lines.push('<p>✨ Dottie dived and found a shiny fossil: +10 🪙! You have found every dinosaur in the pond.</p>');}
+  else if(resting(s)){lines.push(`<p>🦖 You already hatched a dinosaur today! Tomorrow a new one will be waiting at the bottom of the pond.</p>`);}
+  else if(s.egg){hatch=true;}
+  else{dive=s.bones.findIndex(b=>!b);s.bones[dive]=true;if(nBones(s)>=BONES)s.egg=1;}}
  else lines.push(`<p>Get ${Math.round(PASS*100)}% to send Dottie diving for a fossil. You can do it! Try again.</p>`);
  lines.push('<p class="muted">+5 🪙</p>');save();try{const pb=document.getElementById('pondBar');if(pb)pb.innerHTML=bar(s);}catch(e){}
  const el=document.getElementById('pondPlay');if(el)el.innerHTML=`<div class="pq">${lines.join('')}<div id="pondReward"></div><button class="btn" onclick="go('pond')">OK</button></div>`;
- if(dive>=0){SC&&(SC.dive={t:performance.now(),bone:dive});sayD('Hold my rod… I\'m going in!');setTimeout(()=>{const rw=document.getElementById('pondReward');if(rw&&run===RUN){rw.innerHTML=`<canvas id="boneCv" width="200" height="120"></canvas><p><b>🦴 Fossil ${nBones(s)} of ${BONES}!</b> ${E(BONE_FACTS[dive])}</p>${s.egg?'<p>🥚 <b>That was the last bone… and look, an EGG was buried right under it!</b></p>':''}`;const bc=document.getElementById('boneCv');if(bc&&PP())PP().bone(bc.getContext('2d'),100,60,90,dive,0);}sayD(BONE_FACTS[dive]);},3000);}
+ if(dive>=0){SC&&(SC.dive={t:performance.now(),bone:dive});sayD('Hold my rod… I\'m going in!');setTimeout(()=>{const rw=document.getElementById('pondReward');if(rw&&run===RUN){rw.innerHTML=`<canvas id="boneCv" width="200" height="120"></canvas><p><b>🦴 ${DNAME[curId(s)]} fossil ${nBones(s)} of ${BONES}!</b> ${E(FACTS[curId(s)][dive])}</p>${s.egg?'<p>🥚 <b>That was the last bone… and look, an EGG was buried right under it!</b></p>':''}`;const bc=document.getElementById('boneCv'),A4=art(curId(s));if(bc&&A4)A4.bone(bc.getContext('2d'),100,60,90,dive,0);}sayD(FACTS[curId(s)][dive]);},3000);}
  if(hatch)setTimeout(()=>{if(run===RUN)hatchNow();},600);
  if(newDottie)try{toast('🐟 Dottie joined your pets!');}catch(e){}}
-function hatchNow(){const p=P(),s=st(p);const el=document.getElementById('pondReward');if(!el)return;
+function hatchNow(){const p=P(),s=st(p),id=curId(s),AH=art(id);const el=document.getElementById('pondReward');if(!el)return;
  el.innerHTML=`<canvas id="eggCv" width="220" height="200"></canvas><p><b>The egg is hatching!</b></p>`;const cv=document.getElementById('eggCv'),c=cv.getContext('2d');const t0=performance.now();
  const loop=now=>{const k=(now-t0)/3500;if(!document.getElementById('eggCv'))return;c.clearRect(0,0,220,200);const D=PP();
-  if(k<1){if(D)D.egg(c,110,110,120,Math.min(1,k*1.3),now/1000);else{c.font='90px sans-serif';c.fillText('🥚',60,140);}requestAnimationFrame(loop);}
-  else{c.save();c.translate(110,110);c.scale(1.4,1.4);if(D)D.spino(c,{kind:'spino',view:'front',t:now/1000,mode:'follow',blink:false,happy:true,puff:false,lx:0,ly:0});else{c.font='70px sans-serif';c.fillText('🦖',-35,25);}c.restore();
+  if(k<1){if(D)D.egg(c,110,110,120,Math.min(1,k*1.3),now/1000,AH&&AH.egg,id);else{c.font='90px sans-serif';c.fillText('🥚',60,140);}requestAnimationFrame(loop);}
+  else{c.save();c.translate(110,110);c.scale(1.4,1.4);if(AH)AH.baby(c,{kind:id,view:'front',t:now/1000,mode:'follow',blink:false,happy:true,puff:false,lx:0,ly:0});else{c.font='70px sans-serif';c.fillText('🦖',-35,25);}c.restore();
    requestAnimationFrame(loop);}};requestAnimationFrame(loop);
  /* the name prompt comes on a timer, not from the animation (which a hidden page can pause) */
- setTimeout(()=>{if(!document.getElementById('eggCv')||document.getElementById('spName'))return;el.insertAdjacentHTML('beforeend',`<p>🦖 <b>A baby Spinosaurus!</b> He's a fishing dinosaur, just like you. What will you name him?</p><input id="spName" maxlength="12" placeholder="Name" style="font:inherit;font-size:22px;text-align:center;border:3px solid #2b2340;border-radius:12px;padding:6px"> <button class="btn" onclick="Pond.name()">That's his name!</button>`);speak("A baby Spinosaurus! What will you name him?",.9);},3600);}
-function name(){const p=P(),s=st(p),i=document.getElementById('spName');let n=(i&&i.value||'').replace(/[^A-Za-z ]/g,'').trim().slice(0,12);if(!n)n='Spino';n=n.charAt(0).toUpperCase()+n.slice(1);
- s.spino=n;s.hatched=1;givePet(p,'spino');save();try{toast(`🦖 ${n} joined your pets!`);}catch(e){}go('pond');}
+ setTimeout(()=>{if(!document.getElementById('eggCv')||document.getElementById('spName'))return;el.insertAdjacentHTML('beforeend',`<p>🦖 <b>A baby ${DNAME[id]}!</b> ${id==='spino'?"He's a fishing dinosaur, just like you. ":''}What will you name him?</p><input id="spName" maxlength="12" placeholder="Name" style="font:inherit;font-size:22px;text-align:center;border:3px solid #2b2340;border-radius:12px;padding:6px"> <button class="btn" onclick="Pond.name()">That's his name!</button>`);speak(`A baby ${DNAME[id]}! What will you name him?`,.9);},3600);}
+function name(){const p=P(),s=st(p),id=curId(s),i=document.getElementById('spName');if(!id)return;let n=(i&&i.value||'').replace(/[^A-Za-z ]/g,'').trim().slice(0,12);if(!n)n=DNAME[id].replace('. ','');n=n.charAt(0).toUpperCase()+n.slice(1);
+ s.names[id]=n;if(id==='spino')s.spino=n;s.egg=0;s.rest=today();s.cur++;s.bones=new Array(BONES).fill(false);givePet(p,id);save();try{toast(`🦖 ${n} joined your pets!`);}catch(e){}go('pond');}
 
 /* ---------- Parent Corner: what the kid did at the pond ---------- */
 function parentPond(p){let h='';if(hasHW(p)){const s=st(p),miss=Object.entries(s.miss).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([w,n])=>`${E(w)} (${n})`).join(', ');
- h+=`<h4>🎣 Dottie's Pond</h4><div>🦴 Fossils: ${nBones(s)} / ${BONES}${s.hatched?` · 🦖 ${E(s.spino||'Spino')} hatched`:s.egg?' · 🥚 egg waiting':''}</div><ul>${ACTS.map(a=>{const r=s.st[a.id];return `<li>${a.ic} ${a.t}: ${r?`best ${r.best}% (${r.tries} time${r.tries>1?'s':''}, last ${r.last})`:'not tried yet'}</li>`;}).join('')}</ul>${miss?`<div>Words to practise: ${miss}</div>`:''}`;}return h;}
+ h+=`<h4>🎣 Dottie's Pond</h4><div>🦖 Hatched: ${DINOS.filter(d=>s.names[d]).map(d=>`${E(s.names[d])} the ${DNAME[d]}`).join(', ')||'none yet'}</div><div>${curId(s)?`🦴 Digging up a ${DNAME[curId(s)]}: ${nBones(s)} / ${BONES}${s.egg?' · 🥚 egg waiting':''}${resting(s)?' (next one tomorrow)':''}`:'Every dinosaur found'}</div><ul>${ACTS.map(a=>{const r=s.st[a.id];return `<li>${a.ic} ${a.t}: ${r?`best ${r.best}% (${r.tries} time${r.tries>1?'s':''}, last ${r.last})`:'not tried yet'}</li>`;}).join('')}</ul>${miss?`<div>Words to practise: ${miss}</div>`:''}`;}return h;}
 
-window.Pond={play,hear,check,fish,ans,quit,name,dock:()=>DOCK,st:p=>st(p||P()),_a:()=>A};
+window.Pond={play,hear,check,fish,ans,quit,name,dock:()=>DOCK,st:p=>st(p||P()),_a:()=>A,DINOS};
 })();

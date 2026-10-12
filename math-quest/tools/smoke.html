@@ -224,6 +224,11 @@ const tests=[
   for(let i=0;i<40&&!document.getElementById('spName');i++)await T.wait(250);const nm=document.getElementById('spName');T.ok(nm,'the egg did not hatch after the next activity ('+JSON.stringify({egg:Pond.st().egg,h:Pond.st().hatched,b:Pond.st().bones.filter(Boolean).length,scr:curScreen,a:!!Pond._a()})+' '+((document.getElementById('pondPlay')||{}).innerText||'').slice(0,160).replace(/\n/g,' ')+')');
   if(nm){nm.value='Rex';Pond.name();}T.ok(P().pets.includes('spino')&&Pond.st().spino==='Rex','the Spinosaurus was not named and added to the pets');
   T.ok(PETS.find(x=>x.id==='spino').name==='Rex','the Spinosaurus does not go by the kid\'s name');
+  T.ok(Pond.st().cur===1&&Pond.st().rest===dayKey(),'after hatching, the next dinosaur is not waiting for tomorrow');
+  go('pond');await T.wait(100);Pond.play('fix');Pond._a().items.length=1;{const it=Pond._a().items[0];Pond.fish(it.opts.indexOf(it.w));}await T.wait(1500);
+  T.ok(Pond.st().bones.filter(Boolean).length===0,'a second dinosaur was dug up on the day one hatched');
+  Pond.st().rest='old';go('pond');await T.wait(100);Pond.play('fix');Pond._a().items.length=1;{const it=Pond._a().items[0];Pond.fish(it.opts.indexOf(it.w));}await T.wait(1500);
+  T.ok(Pond.st().bones.filter(Boolean).length===1,'the next day did not start the T. rex');T.ok(PETS.some(x=>x.id==='trex'&&x.tier==='homework'),'no T. rex pet');
   T.ok(!REG_PETS.some(x=>x.tier==='homework'),'a homework pet could come out of an egg');
   T.ok(parentSchool(P()).includes("Dottie's Pond"),'the Parent Corner does not show the pond');
 }],

@@ -16,7 +16,8 @@ const lerp=(a,b,k)=>a+(b-a)*k,clamp01=k=>Math.max(0,Math.min(1,k)),smooth=k=>k*k
 const FOX='#ff8a3d',FOX2='#e5642a',CREAM='#fff3e0';
 function heart(c,x,y,r,col){c.save();c.translate(x,y);c.scale(r/10,r/10);const p=new Path2D('M0 8 C-10 0 -9 -8 -4 -8 C-1 -8 0 -5 0 -4 C0 -5 1 -8 4 -8 C9 -8 10 0 0 8Z');fs(c,p,col,1.6);c.restore();}
 /* the fox in its own units: body centre (0,0), about 44 wide and 64 tall. view 'front' or 'side' (facing left). */
-function drawPet(c,o){if(window.MQ_PONDPETS&&MQ_PONDPETS[o.kind]&&o.kind!=='egg'&&o.kind!=='bone'&&o.kind!=='skeleton')return MQ_PONDPETS[o.kind](c,o); /* Dottie and the Spinosaurus (pondpets.js) */if(CRITTERS[o.kind])return drawCritter(c,o);if(o.kind==='cat')return drawCat(c,o);if(o.kind==='nova')return drawNova(c,o);if(o.kind==='unicorn')return drawUnicorn(c,o);if(o.kind==='titan')return drawTitan(c,o);if(o.kind==='whale')return drawWhale(c,o);const t=o.t,sw=Math.sin(t*3)*3.2,nap=o.mode==='nap',lx=o.lx||0,ly=o.ly||0;
+const PONDX=['egg','bone','skeleton','dinos'];const pondPet=k=>!!(window.MQ_PONDPETS&&typeof MQ_PONDPETS[k]==='function'&&!PONDX.includes(k));
+function drawPet(c,o){if(pondPet(o.kind))return MQ_PONDPETS[o.kind](c,o); /* Dottie and the Spinosaurus (pondpets.js) */if(CRITTERS[o.kind])return drawCritter(c,o);if(o.kind==='cat')return drawCat(c,o);if(o.kind==='nova')return drawNova(c,o);if(o.kind==='unicorn')return drawUnicorn(c,o);if(o.kind==='titan')return drawTitan(c,o);if(o.kind==='whale')return drawWhale(c,o);const t=o.t,sw=Math.sin(t*3)*3.2,nap=o.mode==='nap',lx=o.lx||0,ly=o.ly||0;
  c.save();if(o.puff){c.scale(1.18,1.18);}
  if(o.view==='front'){
   /* tail: a wisp curling down and round to one side, white tip */
@@ -744,7 +745,7 @@ window.MQ_MAPDRAW.push((ctx,items,cx,cy,ts,now)=>{if(typeof W==='undefined'||!W|
  items.push({y:1e6,draw:()=>{ctx.save();try{drawWorld(ctx,ox,oy,ts,now);}catch(e){}ctx.restore();}});});
 /* the picture at any size, for tests and the gallery: draw(ctx, petId, {view:'front'|'side', t, mode}) centred on (0,0) */
 function draw(c,id,o){return drawPet(c,Object.assign({kind:kindOf(id),view:'front',t:0,mode:'follow'},o||{}));}
-const has=id=>{const k=kindOf(id);return !!((window.MQ_PONDPETS&&(k==='dottie'||k==='spino')&&MQ_PONDPETS[k])||CRITTERS[k]||['fox','cat','nova','unicorn','titan','whale'].includes(k));};
+const has=id=>{const k=kindOf(id);return !!(pondPet(k)||CRITTERS[k]||['fox','cat','nova','unicorn','titan','whale'].includes(k));};
 /* for tests: send the pet off to a kind of place now (if one is near), or let a shark take it at the sea */
 /* an area trick, once, when the hero arrives (livemap.js): only if the pet is free */
 function trick(k){if(away()||PT.under||PT.mode==='grabbed'||PT.mode==='trick')return false;PT.mode='trick';PT.trick=k;PT.mt=0;return true;}
