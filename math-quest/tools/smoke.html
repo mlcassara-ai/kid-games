@@ -212,7 +212,8 @@ const tests=[
 }],
 ['Dottie\'s Pond: only for a kid with school content; Spelling Splash earns Dottie and a fossil; 8 fossils make an egg that hatches a named Spinosaurus',async function(){
   T.reset();const q=T.hero('Nobody',3);state.cur=q.id;go('world');await T.wait(300);try{closeModal();}catch(e){}
-  T.ok(Pond.dock(),'no dock was laid beside Dottie\'s pond');go('pond');T.ok(curScreen!=='pond','a hero with no school content got into the pond');
+  const pf=T.hero('Paused',3);pf.ckey='mika';state.cur=pf.id;go('pond');T.ok(curScreen!=='pond','the pond opened while it is switched off');Pond.on(true);
+  state.cur=q.id;T.ok(Pond.dock(),'no dock was laid beside Dottie\'s pond');go('pond');T.ok(curScreen!=='pond','a hero with no school content got into the pond');
   const p=T.hero('Fisher',3);p.ckey='mika';state.cur=p.id;window.speechSynthesis&&(window.speechSynthesis.speak=()=>{});go('pond');await T.wait(200);
   T.ok(curScreen==='pond','the pond screen did not open for a kid with school content');T.ok(window.MQ_PONDPETS&&MQ_PONDPETS.dottie,'pondpets.js did not load');
   Pond.play('splash');Pond._a().items.length=2;for(let n=0;n<14;n++){const A=Pond._a();if(!A)break;const i=document.getElementById('pondIn');if(!i)break;i.value=A.items[A.i].w;Pond.check();await T.wait(1150);}
@@ -230,7 +231,7 @@ const tests=[
   Pond.st().rest='old';go('pond');await T.wait(100);Pond.play('fix');Pond._a().items.length=1;{const it=Pond._a().items[0];Pond.fish(it.opts.indexOf(it.w));}await T.wait(1500);
   T.ok(Pond.st().bones.filter(Boolean).length===1,'the next day did not start the T. rex');T.ok(PETS.some(x=>x.id==='trex'&&x.tier==='homework'),'no T. rex pet');
   T.ok(!REG_PETS.some(x=>x.tier==='homework'),'a homework pet could come out of an egg');
-  T.ok(parentSchool(P()).includes("Dottie's Pond"),'the Parent Corner does not show the pond');
+  T.ok(parentSchool(P()).includes("Dottie's Pond"),'the Parent Corner does not show the pond');Pond.on(false);
 }],
 ['map life: the pet dives in the fountain and brings a present; a shark takes it at the sea and the hero zaps it back',async function(){
   T.reset();const p=T.hero('Life',3);p.pet='fox';state.cur=p.id;go('world');await T.wait(300);try{closeModal();}catch(e){}

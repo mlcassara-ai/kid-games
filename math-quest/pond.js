@@ -57,7 +57,10 @@ const PP=()=>window.MQ_PONDPETS||null;
 try{const q=new URLSearchParams(location.search).get('pondkid');if(q)localStorage.setItem('mq.pondkid',q);if(q==='0')localStorage.removeItem('mq.pondkid');}catch(e){}
 const FORCE=(()=>{try{return localStorage.getItem('mq.pondkid')||'';}catch(e){return '';}})(); /* testing only: ?pondkid=mika on a device */
 const K=p=>{try{const K0=(window.MQ_CONTENT||{}).kids||{};if(FORCE&&K0[FORCE])return K0[FORCE];const k=(p.ckey&&K0[p.ckey])?p.ckey:(p.name||'').toLowerCase().trim();return K0[k]||null;}catch(e){return null;}};
-const hasHW=p=>!!(p&&K(p));
+/* switched off for now (owner, 2026-10-13): no dock, sign, Dottie or pond screen. The pond's water stays on the map, and pets and dinosaurs
+   already earned are kept. ?pond=1 turns it back on for one device (testing); set ON=true to bring it back for everyone. */
+let ON=false;try{const v=new URLSearchParams(location.search).get('pond');if(v==='1')localStorage.setItem('mq.pond','1');if(v==='0')localStorage.removeItem('mq.pond');if(localStorage.getItem('mq.pond')==='1')ON=true;}catch(e){}
+const hasHW=p=>!!(ON&&p&&K(p));
 function st(p){p.pond=p.pond||{};const s=p.pond;s.bones=s.bones||new Array(BONES).fill(false);s.st=s.st||{};s.miss=s.miss||{};s.names=s.names||{};
  if(!s.v){s.v=2;if(s.hatched){s.names.spino=s.spino||'Spino';s.cur=1;s.bones=new Array(BONES).fill(false);s.egg=0;s.rest=s.day||'';}else s.cur=0;delete s.hatched;delete s.dayBones;}
  s.cur=s.cur||0;return s;}
@@ -276,5 +279,5 @@ function name(){const p=P(),s=st(p),id=curId(s),i=document.getElementById('spNam
 function parentPond(p){let h='';if(hasHW(p)){const s=st(p),miss=Object.entries(s.miss).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([w,n])=>`${E(w)} (${n})`).join(', ');
  h+=`<h4>🎣 Dottie's Pond</h4><div>🦖 Hatched: ${DINOS.filter(d=>s.names[d]).map(d=>`${E(s.names[d])} the ${DNAME[d]}`).join(', ')||'none yet'}</div><div>${curId(s)?`🦴 Digging up a ${DNAME[curId(s)]}: ${nBones(s)} / ${BONES}${s.egg?' · 🥚 egg waiting':''}${resting(s)?' (next one tomorrow)':''}`:'Every dinosaur found'}</div><ul>${ACTS.map(a=>{const r=s.st[a.id];return `<li>${a.ic} ${a.t}: ${r?`best ${r.best}% (${r.tries} time${r.tries>1?'s':''}, last ${r.last})`:'not tried yet'}</li>`;}).join('')}</ul>${miss?`<div>Words to practise: ${miss}</div>`:''}`;}return h;}
 
-window.Pond={play,hear,check,fish,ans,quit,name,dock:()=>DOCK,st:p=>st(p||P()),_a:()=>A,DINOS};
+window.Pond={on:v=>{ON=!!v;},play,hear,check,fish,ans,quit,name,dock:()=>DOCK,st:p=>st(p||P()),_a:()=>A,DINOS};
 })();
