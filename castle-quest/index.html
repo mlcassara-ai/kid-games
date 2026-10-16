@@ -189,7 +189,7 @@ input{font-family:inherit}
 .helpbox p,.helpbox li{font-size:16px;line-height:1.4}
 .helpbox table{border-collapse:collapse;width:100%;font-size:15px}
 .helpbox td,.helpbox th{border-bottom:2px dashed #e2ddf2;padding:5px;text-align:center}
-.codebox{font-size:22px;font-weight:700;text-align:center;letter-spacing:1px;background:#fff;border:3px dashed var(--line);border-radius:14px;padding:10px;margin:10px 0;word-break:break-all}
+.codebox{font-size:36px;font-weight:700;text-align:center;letter-spacing:4px;background:#fff;border:3px dashed var(--line);border-radius:14px;padding:10px;margin:10px 0;word-break:break-all}
 .menu-list{display:flex;flex-direction:column;gap:10px}
 
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:14px;font-weight:600;z-index:60;transition:transform .25s;max-width:90vw;text-align:center}
@@ -250,7 +250,7 @@ input{font-family:inherit}
       </div>
       <h2 class="sub" id="myGamesH">My Games</h2>
       <div id="myGames" class="games-list"></div>
-      <p class="ver">Castle Quest v3.0 · Sep 25, 2026, 8:43 PM</p>
+      <p class="ver">Castle Quest v3.1 · Oct 16, 2026, 1:34 PM</p>
     </div>
   </section>
 
@@ -284,7 +284,7 @@ input{font-family:inherit}
       <div class="page-head"><button class="btn small white" data-go="home">← Back</button><h2>Join a Game</h2></div>
       <div class="card" id="joinCodeCard">
         <h3>Type the game code</h3>
-        <input id="joinCode" class="inp code" placeholder="DRAGON-PICKLE-TOWER-42" autocapitalize="characters" autocomplete="off" spellcheck="false">
+        <input id="joinCode" class="inp code" placeholder="PENGUIN" autocapitalize="characters" autocomplete="off" spellcheck="false">
         <p class="err" id="joinErr"></p>
         <button class="btn blue wide" id="btnFind">Find Game</button>
       </div>
@@ -1352,7 +1352,7 @@ var NET = (function () {
     return tokP;
   }
 
-  function docId(code) { return 'cq_' + code; }
+  function docId(code) { return code.indexOf('-') >= 0 ? 'cq_' + code : 'cq_castlequest_' + code; }
 
   // returns {data, updateTime} or null if missing
   async function get(code) {
@@ -1383,10 +1383,12 @@ var NET = (function () {
     throw new Error('put ' + r.status);
   }
 
-  var WORDS = ['DRAGON', 'PICKLE', 'TOWER', 'MUFFIN', 'ROCKET', 'WAFFLE', 'CASTLE', 'KNIGHT', 'PONY', 'TIGER', 'CANDY', 'BANANA', 'COMET', 'PIRATE', 'WIZARD', 'TACO', 'PANDA', 'LEMON', 'MAGIC', 'OTTER', 'PENGUIN', 'COOKIE', 'GIANT', 'FROG', 'SHIELD', 'CROWN', 'BUBBLE', 'NINJA', 'ROBOT', 'SUNNY', 'CLOUD', 'JELLY', 'TURTLE', 'PUMPKIN', 'VIOLIN', 'MARBLE', 'ACORN', 'BADGER', 'NOODLE', 'GRAPE'];
-  function newCode() {
-    var a = new Uint32Array(5); (window.crypto || window.msCrypto).getRandomValues(a);
-    return WORDS[a[0] % WORDS.length] + '-' + WORDS[a[1] % WORDS.length] + '-' + WORDS[a[2] % WORDS.length] + '-' + WORDS[a[3] % WORDS.length] + '-' + (10 + a[4] % 90);
+  // one easy 7-letter word per game (a number is added only if every word we try is taken)
+  var WORDS = ["ACROBAT", "APRICOT", "AVOCADO", "BADGERS", "BALLOON", "BANNERS", "BISCUIT", "BRIDGES", "BUBBLES", "BUFFALO", "CANYONS", "CAPTAIN", "CASTLES", "CHEETAH", "CHICKEN", "COCONUT", "COMPASS", "COOKIES", "CRUMPET", "CRYSTAL", "CUPCAKE", "DESERTS", "DIAMOND", "DOLPHIN", "DONKEYS", "DRAGONS", "DRUMMER", "EMERALD", "EXPLORE", "FALCONS", "FIDDLER", "FORESTS", "GARDENS", "GIGGLES", "GIRAFFE", "GLACIER", "GLITTER", "GOBLINS", "GORILLA", "GUITARS", "HAMSTER", "HARBORS", "HELMETS", "ISLANDS", "JESTERS", "JOURNEY", "JUGGLER", "JUNGLES", "KITTENS", "KNIGHTS", "LANTERN", "LEOPARD", "LOBSTER", "MARBLES", "MEADOWS", "MONKEYS", "MONSTER", "MOONLIT", "MUFFINS", "MUSTANG", "MYSTERY", "NOODLES", "OCTOPUS", "ORCHARD", "OSTRICH", "PANCAKE", "PANTHER", "PARROTS", "PEACOCK", "PELICAN", "PENGUIN", "PEPPERS", "PICKLES", "PIRATES", "PLANETS", "POPCORN", "PRETZEL", "PRINCES", "PUDDING", "PUMPKIN", "PUPPIES", "PUZZLES", "RACCOON", "RAINBOW", "ROCKETS", "SHERBET", "SHIELDS", "SKATING", "SNOWMAN", "SPARKLE", "STARLIT", "SUNBEAM", "THUNDER", "TICKLES", "TORNADO", "TRUMPET", "TUNNELS", "TURTLES", "UNICORN", "VIOLINS", "VOLCANO", "VOYAGER", "WAFFLES", "WIGGLES", "WIZARDS"];
+  function newCode(attempt) {
+    var a = new Uint32Array(2); (window.crypto || window.msCrypto).getRandomValues(a);
+    var w = WORDS[a[0] % WORDS.length];
+    return attempt >= 6 ? w + (2 + a[1] % 98) : w;
   }
   function cleanCode(s) {
     s = String(s || '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -1690,8 +1692,8 @@ var NET = (function () {
         save(); await openGame(id, true);
       } else {
         var code, res, g2;
-        for (var t = 0; t < 4; t++) {
-          code = NET.newCode(); opts.code = code; opts.id = 'cq_' + code;
+        for (var t = 0; t < 10; t++) {
+          code = NET.newCode(t); opts.code = code; opts.id = 'cq_' + code;
           g2 = CQ.newGame(opts);
           sl.forEach(function (s, i) { if (s.kind === 'human' && s.where === 'here') g2.claims[i] = { token: S.store.device, name: s.name.trim(), avatar: s.avatar, hero: g2.heroes[i].name }; });
           // computer may move first
@@ -1716,7 +1718,7 @@ var NET = (function () {
   async function findGame(code) {
     code = NET.cleanCode(code);
     $('#joinErr').textContent = ''; $('#joinSlots').innerHTML = '';
-    if (!code || code.length < 8) { $('#joinErr').textContent = 'That code looks too short.'; return; }
+    if (!code || code.length < 4) { $('#joinErr').textContent = 'That code looks too short.'; return; }
     if (S.store.games['cq_' + code] && mySlots(S.store.games['cq_' + code]).length) { openGame('cq_' + code); return; }
     $('#btnFind').disabled = true;
     try {
@@ -2628,7 +2630,7 @@ var NET = (function () {
       '<button class="btn white" data-close="help">📖 How to Play</button>' +
       '<button class="btn white" data-close="sound">' + (S.store.muted ? '🔇 Sound is off' : '🔊 Sound is on') + '</button>' +
       (e && !e.g.over && giveUpSlot(e) != null ? '<button class="btn white" data-close="giveup">🏳️ Give up</button>' : '') +
-      '<button class="btn white" data-close="x">Close</button></div><p class="ver" style="margin-top:14px">Castle Quest v3.0 · Sep 25, 2026, 8:43 PM</p>';
+      '<button class="btn white" data-close="x">Close</button></div><p class="ver" style="margin-top:14px">Castle Quest v3.1 · Oct 16, 2026, 1:34 PM</p>';
     modal(h).then(function (v) {
       if (v === 'home') show('home');
       else if (v === 'invite') showInvite();
