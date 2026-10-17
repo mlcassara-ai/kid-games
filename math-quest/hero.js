@@ -8,7 +8,7 @@
 const INK='#2b2140',BOOT='#5b3d2a',BOOT2='#3f2a1c',WOOD='#a0673a';
 let look={hat:'wizard',robe:'purple',skin:'#ffe0c7',hair:'#2b1d0e',boy:true},ORB='#ffe066',BUBK=1,SHADOWS=true,FACE='down';
 const hasHat=()=>!!look.hat&&look.hat!=='none';
-function setLook(lk,spell){lk=lk||{};look={hat:lk.hat||'none',robe:lk.robe,skin:lk.skin||'#ffe0c7',hair:lk.hair||'#2b1d0e',boy:lk.kind==='boy'};
+function setLook(lk,spell){lk=lk||{};look={hat:lk.hat||'none',robe:lk.robe,skin:lk.skin||'#ffe0c7',hair:lk.hair||'#2b1d0e',boy:lk.kind==='boy',tool:lk.tool,swing:lk.swing||0,pickCol:lk.pickCol};
  const S=typeof SPELLS!=='undefined'?SPELLS:[],sp=S.find(s=>s.id===spell)||S[0];ORB=(sp&&sp.color)||'#ffe066';}
 const cache={};const P=s=>cache[s]||(cache[s]=new Path2D(s));
 function ell(cx,cy,rx,ry){const p=new Path2D();p.ellipse(cx,cy,Math.max(.01,rx),Math.max(.01,ry),0,0,Math.PI*2);return p;}
@@ -17,7 +17,10 @@ function robeFill(c,x0,y0,x1,y1){const R=typeof ROBES!=='undefined'?ROBES:[{id:'
 function geomArm(sx,sy,a1,a2,l1,l2){const ex=sx+Math.sin(a1)*l1,ey=sy+Math.cos(a1)*l1;return {sx,sy,ex,ey,hx:ex+Math.sin(a2)*l2,hy:ey+Math.cos(a2)*l2};}
 function drawArm(c,g,fill,dim){c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(g.sx,g.sy);c.lineTo(g.ex,g.ey);c.lineTo(g.hx,g.hy);c.strokeStyle=INK;c.lineWidth=11;c.stroke();c.strokeStyle=fill;c.lineWidth=7;c.stroke();
  if(dim){c.strokeStyle='rgba(0,0,0,.22)';c.stroke();}fs(c,ell(g.hx,g.hy,5,5),look.skin,2);if(dim)fs(c,ell(g.hx,g.hy,5,5),'rgba(0,0,0,.18)',0);}
-function drawStaff(c,hx,hy,tilt,glow){c.save();c.translate(hx,hy);c.rotate(tilt);c.lineCap='round';c.beginPath();c.moveTo(0,-38);c.lineTo(0,36);c.strokeStyle=INK;c.lineWidth=6;c.stroke();c.strokeStyle=WOOD;c.lineWidth=3.5;c.stroke();
+function drawPick(c,hx,hy,tilt){/* a small miner's pickaxe held in the hand (Dig mockup) */c.save();c.translate(hx,hy);c.rotate(tilt-(look.swing||0)*.9+.25);c.lineCap='round';c.lineJoin='round';
+ c.beginPath();c.moveTo(0,9);c.lineTo(0,-24);c.strokeStyle=INK;c.lineWidth=5.5;c.stroke();c.strokeStyle=WOOD;c.lineWidth=3;c.stroke();
+ fs(c,P('M-15 -19 Q-8 -29 0 -29 Q8 -29 15 -19 Q7 -24 0 -24 Q-7 -24 -15 -19Z'),look.pickCol||'#adb5bd',2);fs(c,P('M-3 -30 h6 v7 h-6z'),'#868e96',1.5);c.restore();return [hx,hy-24];}
+function drawStaff(c,hx,hy,tilt,glow){if(look.tool==='pick')return drawPick(c,hx,hy,tilt);c.save();c.translate(hx,hy);c.rotate(tilt);c.lineCap='round';c.beginPath();c.moveTo(0,-38);c.lineTo(0,36);c.strokeStyle=INK;c.lineWidth=6;c.stroke();c.strokeStyle=WOOD;c.lineWidth=3.5;c.stroke();
  c.save();c.shadowColor=ORB;c.shadowBlur=SHADOWS?4+glow*10:0;fs(c,ell(0,-43,7.5,7.5),ORB,2);c.restore();c.globalAlpha=.85;fs(c,ell(-2.5,-45.5,2.2,2.2),'#fff',0);c.globalAlpha=1;c.restore();return [hx+Math.sin(tilt)*43,hy-Math.cos(tilt)*43];}
 /* a robe or cloak outline whose sides sway and whose hem ripples */
 function flowPath(xl,xr,hl,hr,top,bot,t,amp,spd,sway,wk){wk=wk*.45; /* soft, long ripples drawn as smooth curves through the wave points */
@@ -40,6 +43,10 @@ function drawHat(c,view){const h=look.hat,O=2.5,front=view==='front',side=view==
   if(side){fs(c,P('M35 35 Q50 39 65 35 Q62 23 61 13 Q61 5 67 2 Q57 0 54 8 Q45 22 35 35Z'),M,O);fs(c,ell(50,35,20,3.8),M,O);fs(c,P('M50 15 a5 5 0 1 0 4 8 a4 4 0 1 1 -4 -8z'),'#ffe066',0);fs(c,ell(44,27,1.2,1.2),'#fff',0);return;}
   fs(c,P('M33 35 Q50 40 67 35 L58 6 Q55 0 51 6 Z'),M,O);fs(c,ell(50,35,22,4.8),M,O);
   if(front)fs(c,P('M54 14 a6 6 0 1 0 5 9 a5 5 0 1 1 -5 -9z'),'#ffe066',0);[[44,24,1.3],[58,30,1.1],[48,12,1]].forEach(([x,y,r])=>fs(c,ell(x,y,r,r),'#fff',0));return;}
+ case 'miner':{const Y='#fcc419',lamp=(x,y,r)=>{fs(c,ell(x,y,r+1.5,r+1.5),'#495057',2);fs(c,ell(x,y,r,r),'#fff9db',1);fs(c,ell(x-1,y-1,r*.4,r*.4),'#fff',0);};
+  if(side){fs(c,P('M33 40 Q32 22 50 22 Q68 22 67 40 Z'),Y,O);fs(c,P('M29 40 Q50 36 71 40 Q50 44 29 40Z'),'#f59f00',2);lamp(33,31,3.6);return;}
+  fs(c,P('M33 40 Q32 22 50 22 Q68 22 67 40 Z'),Y,O);c.strokeStyle='rgba(0,0,0,.18)';c.lineWidth=2;c.beginPath();c.moveTo(50,23);c.lineTo(50,38);c.stroke();fs(c,ell(50,40,19.5,3.4),'#f59f00',2);
+  if(front)lamp(50,31,4.4);return;}
  case 'cap':{
   if(side){fs(c,P('M34 39 Q33 24 50 24 Q67 24 66 39 Z'),'#ef4444',O);fs(c,P('M38 37 Q22 36 18 41 Q30 44 40 41Z'),'#c92a2a',2);fs(c,ell(52,24,2.5,2.5),'#fff',1);return;}
   fs(c,P('M34 39 Q33 24 50 24 Q67 24 66 39 Z'),'#ef4444',O);
@@ -294,13 +301,14 @@ function drawHero(c,st){FACE=st.view;const v=st.view,mode=st.mode,p=st.phase||0,
  }else{
   /* ----- side, facing left ----- */
   /* the staff is in his left hand: facing left that hand is nearest us (staff in front), facing right it is the far hand (staff behind) */
-  const staffNear=v==='left',sx0=staffNear?47:53,fx0=staffNear?53:47,sg=staffNear?1:-1;
+  const staffNear=v==='left'||look.tool==='pick',sx0=staffNear?47:53,fx0=staffNear?53:47,sg=staffNear?1:-1;
   let sArm=geomArm(sx0,66,-.15,-.75,15,13),fArm=geomArm(fx0,66,.12,0,15,13); /* staff arm: elbow bent forward */
   if(walking){sArm=geomArm(sx0,66,-.15+sg*s*.22,-.75+sg*s*.18,15,13);fArm=geomArm(fx0,66,-sg*s*.55,-sg*s*.55-.3,15,13);}
   if(waving){const w=Math.sin(mt*14)*.45;fArm=geomArm(fx0,66,-2.75,-3.05+w,15,13);}
   if(falling&&mt<FALL.lie){fArm=geomArm(fx0,66,-2.4+Math.sin(mt*30)*.3,-2.9,15,13);sArm=geomArm(sx0,66,-2.0,-2.6,15,13);}
   if(magic)sArm=geomArm(sx0,66,-2.35-swirl*.35,-2.7-Math.sin(t*9+.7)*.4,15,13);
   if(rsc>0)sArm=geomArm(sx0,66,lerp(-.55,-2.1,rsc),lerp(-.15,-2.5,rsc),15,13); /* staff pointed at the water */
+  if(look.tool==='pick'&&look.swing)sArm=geomArm(sx0,66,-.15-2.2*look.swing,-.75-1.4*look.swing,15,13); /* raising the pickaxe to chop */
   const far=staffNear?fArm:sArm,near=staffNear?sArm:fArm;
   const staffNow=()=>drawStaff(c,sArm.hx-1,sArm.hy,rsc>0?-.6*rsc:magic?-swirl*.35:zapping?0:walking?-.12-sg*s*.1:(falling&&mt<FALL.up?-.5:-.06),magic||zapping?1:(Math.sin(t*3)+1)/2);
   c.translate(0,bob);

@@ -138,8 +138,8 @@ function onTrip(p,res,tr){const c=C(p),len=tr.len in LIT?tr.len:'mid';
  const n=LIT[len]();const out=[];const pref=PLACE[tr.dest]||[];
  for(let k=0,tries=0;k<n&&tries<40;tries++){const id=pref.length&&Math.random()<.4?pk(pref):pk(LITTER).id;if(out.includes(id)&&tries<30)continue;out.push(id);k++;}
  c.pend=c.pend.concat(out).slice(-PEND_MAX);c.trips++;res.litter=out;
- /* very rare Science Cave finds */
- const sci=p.sci;if(sci&&sci.met){
+ /* very rare Science Cave finds (none while the dig site is the science area: no cave to take them to) */
+ const sci=p.sci;if(sci&&sci.met&&!window.MQ_DIG_ON){
   const miss=campFossils().filter(f=>!((p.cave&&p.cave.fos&&p.cave.fos[f.id])||[])[f.camp]&&!(p.cave&&p.cave.ex&&p.cave.ex[f.id]));
   if(miss.length){c.dry++;
    if(Math.random()<(BONE[len]||BONE.mid)||c.dry>=BONE_PITY){c.dry=0;

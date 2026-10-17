@@ -61,7 +61,7 @@ function labSVG(){let gl='';[90,380,670].forEach(x=>{gl+=`<rect x="${x}" y="150"
  return doc(960,540,`<rect x="-200" y="250" width="1360" height="290" fill="#9ccc7a"/><rect x="40" y="110" width="880" height="200" fill="#c96f4a" stroke="${O}" stroke-width="4"/>${bricks(40,118,920,310,'#a65537')}${gl}
  <rect x="20" y="92" width="920" height="28" rx="8" fill="#4c6ef5" stroke="${O}" stroke-width="4"/>
  <g transform="translate(235 98) scale(.42)"><path d="M0 -70 L34 -30 L22 40 L-22 40 L-34 -30 Z" fill="#b197fc" stroke="${O}" stroke-width="4" stroke-linejoin="round"/><path d="M0 -70 L10 -30 L0 40 L-22 40 L-34 -30 Z" fill="#9775fa"/><path d="M0 -70 L34 -30 L22 40 L-22 40 L-34 -30 Z" fill="none" stroke="${O}" stroke-width="4" stroke-linejoin="round"/><path d="M-8 -48 L-16 -20" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".8"/></g>
- <rect x="90" y="120" width="290" height="58" rx="14" fill="#fff" stroke="#1971c2" stroke-width="5"/><text x="235" y="158" text-anchor="middle" font-family="Fredoka, Arial Rounded MT Bold, Helvetica, sans-serif" font-weight="700" font-size="30" fill="#1971c2">Dr. Quartz's Lab</text>
+ <rect x="60" y="120" width="350" height="58" rx="14" fill="#fff" stroke="#1971c2" stroke-width="5"/><text x="235" y="158" text-anchor="middle" font-family="Fredoka, Arial Rounded MT Bold, Helvetica, sans-serif" font-weight="700" font-size="27" fill="#1971c2">Dr. Quartz's Dig Site</text>
  <rect x="-200" y="300" width="1360" height="140" fill="#cfc6b6"/><rect x="-200" y="300" width="1360" height="12" fill="#ffd43b" stroke="${O}" stroke-width="2"/>${im(A('station_lantern'),60,190,60,120)}${im(A('station_bench'),780,240,130,70)}${im(A('station_luggage'),880,262,60,50)}
  ${q?`<image href="${uri(q)}" x="640" y="150" width="130" height="156"/>`:''}<g transform="translate(34 0)"><path d="M612 150 h-70 a16 16 0 0 1 -16 -16 v-10 a16 16 0 0 1 16 -16 h96 a16 16 0 0 1 16 16 v10 a16 16 0 0 1 -16 16 h-6 l10 16 l-22 -16 Z" fill="#fff" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><text x="590" y="137" text-anchor="middle" font-family="Fredoka, Arial Rounded MT Bold, Helvetica, sans-serif" font-weight="700" font-size="20" fill="#1971c2">Welcome! 👋</text></g>`);}
 function homeSVG(){const f=(window.MQ_FOUNTAIN_ART&&MQ_FOUNTAIN_ART.svg)||'';
@@ -110,7 +110,7 @@ function go(to,done){if(R)return false;const p=typeof P==='function'?P():null;co
  if(hero)img.hero=pic(hero);if(out)img.lab=pic(labSVG());else img.home=pic(homeSVG());
  let pe='';try{const pt=p&&typeof petOf==='function'&&petOf(p);if(pt)pe=pt.e;}catch(e){}
  const mate=out?window.__rideWith:null;window.__rideWith=null;if(mate&&mate.img&&!mate.img.src)mate.img=null;
- R={pet:pe,mate,to,out,done,el,ctx,img,T:times(),t0:0,made:performance.now(),last:0,off:{},platX:null,name:out?"Dr. Quartz's Lab":'Number Town',dinged:0};
+ R={pet:pe,mate,to,out,done,el,ctx,img,T:times(),t0:0,made:performance.now(),last:0,off:{},platX:null,name:out?"Dr. Quartz's Dig Site":'Number Town',dinged:0};
  step();return true;}
 let CSSON=false;function css(){if(CSSON)return;CSSON=true;const s=document.createElement('style');s.textContent=`
 .rd-ov{position:fixed;inset:0;z-index:200;background:#000;display:grid;place-items:center}

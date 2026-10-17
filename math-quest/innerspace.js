@@ -38,7 +38,7 @@ function ticketLine(p,t,first){const sb=t.s,rk=t.rock&&window.CAVE_DATA&&CAVE_DA
 /* ticket pocket full → Dr. Quartz says so instead of silently giving nothing */
 function fullLine(p){const n=S(p).tix.length;return `Your 🎟️ ticket pocket is <b>full</b> (${n} of ${TIX_MAX}), so I can't give you a new Shrink Ticket this time. Ride with <b>${NAME}</b> to use one — he'll come and pick you up after a few battles!`;}
 function isFull(p){return S(p).tix.length>=TIX_MAX;}
-function wants(p,ignoreQuiet){if(!p||!p.setup)return false;if(DEMO)return true;if(!ignoreQuiet&&Date.now()<(window.visitorQuiet||0))return false;const s=S(p);return s.tix.length>0&&(p.battles||0)>=(s.after||0)&&Date.now()>(s.snooze||0);}
+function wants(p,ignoreQuiet){if(!p||!p.setup||window.MQ_INNER_OFF)return false; /* Inner Space is switched off while the dig site is the science area (owner, Oct 2026) */if(DEMO)return true;if(!ignoreQuiet&&Date.now()<(window.visitorQuiet||0))return false;const s=S(p);return s.tix.length>0&&(p.battles||0)>=(s.after||0)&&Date.now()>(s.snooze||0);}
 
 /* ---------- sound (uses the game's sound switch) ---------- */
 function snd(f,d,type,v,delay){try{tone(f,d,type,(v||.05)*1.6,delay);}catch(e){}}

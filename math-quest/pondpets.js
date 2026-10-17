@@ -647,7 +647,7 @@ const PIECES=(function(){const A=[];
 const BONE_NAMES=['skull','neck','sail','back','arm','leg','hip','tail'];
 function drawPiece(c,b,found,lw,t){c.lineJoin='round';c.lineCap='round';
  if(found){c.save();c.setLineDash([]);c.lineWidth=lw*2;c.strokeStyle=INK;c.stroke(b.p);c.fillStyle=BONE;c.fill(b.p);b.det.forEach(f=>f(c,lw));c.restore();}
- else{c.save();c.fillStyle='rgba(120,120,140,.13)';c.fill(b.p);c.setLineDash([lw*1.6,lw*1.3]);c.lineWidth=lw*.75;c.strokeStyle='rgba(110,110,130,.75)';c.stroke(b.p);c.restore();}}
+ else{const ga=window.PP_GHOST; /* the dig's museum draws missing bones fainter (PP_GHOST); the pond keeps its look */c.save();c.fillStyle=ga==null?'rgba(120,120,140,.13)':`rgba(120,120,140,${ga*.15})`;c.fill(b.p);c.setLineDash(ga==null?[lw*1.6,lw*1.3]:[lw*1.6,lw*1.6]);c.lineWidth=ga==null?lw*.75:lw*.6;c.strokeStyle=ga==null?'rgba(110,110,130,.75)':`rgba(110,110,130,${ga})`;c.stroke(b.p);c.restore();}}
 /* one bone for a 'you found a fossil!' card, centred on (x,y) and fitting an s-by-s box */
 function boneDrawer(PS){return function(c,x,y,s,kind,t){const b=PS[((kind|0)%8+8)%8];if(!b)return;t=t||0;const bw=b.bb[2]-b.bb[0],bh=b.bb[3]-b.bb[1],sc=s/Math.max(bw,bh)*.86;
  c.save();c.translate(x,y);c.rotate(Math.sin(t*1.8)*.04);c.scale(sc,sc);c.translate(-(b.bb[0]+b.bb[2])/2,-(b.bb[1]+b.bb[3])/2);
@@ -738,7 +738,8 @@ const P_STEGO=(function(){const A=[];
  /* 2 the plates: two staggered rows of tall rounded plates */
  const pl=Bld(),PL=[[-36,13],[-23.5,20],[-11,26],[1.5,29],[14,25],[26.5,19],[39,12]];
  const plateAt=(x,h,w,lean)=>{const y=arch(Math.min(x,40))-1;pl.poly([[x-w,y],[x-w*1.15,y-h*.45],[x-w*.6+lean*.4,y-h*.85],[x+lean,y-h],[x+w*.7+lean*.6,y-h*.8],[x+w*1.15,y-h*.4],[x+w,y]]);return[x,y,h,lean];};
- const pp=PL.map(([x,h],i)=>plateAt(x,h,h*.16+1.4,1+h*.06));
+ const PL2=[[-29.5,15],[-17,21],[-4.5,26],[8,26],[20.5,21],[33,15]];const pp2=PL2.map(([x,h])=>plateAt(x,h,h*.15+1.2,1+h*.05)); /* the second row sits in the gaps, behind */
+ const pp=PL.map(([x,h],i)=>plateAt(x,h,h*.16+1.4,1+h*.06)).concat(pp2);
  A[2]=pl.detail((c,lw)=>{c.strokeStyle=BONE2;c.lineWidth=lw*.6;c.beginPath();pp.forEach(([x,y,h,l])=>{c.moveTo(x,y-1);c.lineTo(x+l*.8,y-h*.8);c.moveTo(x-h*.12,y-2);c.lineTo(x-h*.06+l*.4,y-h*.55);c.moveTo(x+h*.12,y-2);c.lineTo(x+h*.12+l*.4,y-h*.55);});c.stroke();});
  /* 1 neck: dipping down to the low head */
  A[1]=neckOf([[-42,-48,4.4,.2],[-48,-45,4.2,.1],[-54,-43,4,0]]);
@@ -884,7 +885,8 @@ const DINOS={
  brachio:dino('Brachiosaurus',drawBrachio,P_BRACHIO,'BRACHIOSAURUS',[7,5,3,6,1,2,0,4],[[-10,-80],[34,-68]],EGGS.brachio,['skull','neck','neck2','back','arm','leg','hip','tail']),
  ankylo:dino('Ankylosaurus',drawAnky,P_ANKY,'ANKYLOSAURUS',[7,5,3,6,1,0,4,2],[[-8,-38],[42,-40]],EGGS.ankylo,['skull','neck','armour','back','arm','leg','hip','tail']),
  para:dino('Parasaurolophus',drawPara,P_PARA,'PARASAUROLOPHUS',[7,5,3,6,1,0,2,4],[[-10,-64],[44,-60]],EGGS.para,['skull','neck','crest','back','arm','leg','hip','tail']),
- raptor:dino('Velociraptor',drawRaptor,P_RAPTOR,'VELOCIRAPTOR',[7,5,2,3,6,1,0,4],[[-10,-55],[34,-57]],EGGS.raptor,['skull','neck','claw','back','arm','leg','hip','tail'])};
+ raptor:dino('Velociraptor',drawRaptor,P_RAPTOR,'VELOCIRAPTOR',[7,5,2,3,6,1,0,4],[[-10,-55],[34,-57]],EGGS.raptor,['skull','neck','claw','back','arm','leg','hip','tail']),
+ dakota:dino('Dakotaraptor',drawRaptor,P_RAPTOR,'DAKOTARAPTOR',[7,5,2,3,6,1,0,4],[[-10,-55],[34,-57]],EGGS.raptor,['skull','neck','claw','back','arm','leg','hip','tail'])}; /* the dig site's North American raptor (same drawing, its own name) */
 
 window.MQ_PONDPETS={dottie:drawDottie,spino:drawSpino,egg:drawEgg,bone:drawBone,skeleton:drawSkeleton,
  trex:drawTrex,trike:drawTrike,stego:drawStego,brachio:drawBrachio,ankylo:drawAnky,para:drawPara,raptor:drawRaptor,dinos:DINOS};

@@ -6,6 +6,11 @@
 (function(){
 'use strict';
 const NEWS=[
+ {v:'2026.10.16a',d:'October 2026',items:[
+  '🦖 Dr. Quartz has a brand-new DINOSAUR DIG SITE! Take the 🚂 train there and dig down through real rock layers. Deeper means older!',
+  '🧑‍🔬 Find a fossil and take it out like a real scientist: map it, uncover it, glue it and wrap it in a plaster jacket.',
+  '🔬 Read the clues to find out which dinosaur it was, then build its skeleton in your 🏛️ Museum, bone by bone.',
+  '🪙 The dig pays real coins, and your old cave batteries make your Energy bar bigger. (The Crystal Garden and Ozzy\'s rides are resting for now.)']},
  {v:'2026.10.11a',d:'October 2026',items:[
   '🌿 The map is alive! Rabbits hop in Addition Forest, a mole pops up in the Caves, and two tiny soldiers in Division Castle have been lobbing bombs at each other for years (they always miss).',
   '👆 Tap things on the map! Crystals sing, mushrooms boing, the catapult shares cannonballs equally, an owl lives in the treehouse… and some surprises stay hidden until you win a battle in that world.',

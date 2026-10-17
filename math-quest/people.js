@@ -25,7 +25,7 @@ function mouthAt(c,x,y,w,o,col){c.strokeStyle=INK;c.lineWidth=1.8;c.lineCap='rou
    itemHand: 'R' (the hand on the viewer's right in the front view), pose(o) special arm poses, h: height scale } */
 function drawPerson(c,S,st){const v=st.view||'down',back=v==='up',side=v==='left'||v==='right',mirror=v==='up'||v==='right';
  const t=st.t||0,walk=!!st.walk,ph=st.phase||0,s=Math.sin(ph),mode=st.mode||'idle',mt=st.mt||0;
- const o={t,v,walk,s,mode,mt,blink:st.blink,talk:st.talk,side,back,lx:0,ly:0,sleep:false};
+ const o={t,v,walk,s,mode,mt,blink:st.blink,talk:st.talk,noItem:st.noItem,side,back,lx:0,ly:0,sleep:false};
  let bob=walk?-Math.abs(s)*2.2:Math.sin(t*2.2)*.6;if(S.float){bob=Math.sin(t*2)*3-6;}
  c.save();
  if(!st.noShadow){c.globalAlpha=.2;c.fillStyle='#000';c.beginPath();c.ellipse(50,125,S.float?18:24,3.6,0,0,7);c.fill();c.globalAlpha=1;}
@@ -42,22 +42,22 @@ function drawPerson(c,S,st){const v=st.view||'down',back=v==='up',side=v==='left
   if(S.float&&S.wings&&!back)S.wings(c,v,o);
   if(!S.float)legsFront(c,S,o);
   if(S.cape)S.cape(c,v,o);
-  if(back){S.torso(c,v,o);S.head(c,v,o);drawArm(c,S,aL,o);drawArm(c,S,aR,o);if(S.item){c.save();c.translate(aR.hx,aR.hy);S.item(c,o,false);c.restore();}}
-  else{S.torso(c,v,o);drawArm(c,S,aL,o);if(S.item&&S.itemBehindArm){c.save();c.translate(aR.hx,aR.hy);S.item(c,o,true);c.restore();}drawArm(c,S,aR,o);S.head(c,v,o);
-   if(S.item&&!S.itemBehindArm){c.save();c.translate(aR.hx,aR.hy);S.item(c,o,true);c.restore();}}
+  if(back){S.torso(c,v,o);S.head(c,v,o);drawArm(c,S,aL,o);drawArm(c,S,aR,o);if(S.item&&!o.noItem){c.save();c.translate(aR.hx,aR.hy);S.item(c,o,false);c.restore();}}
+  else{S.torso(c,v,o);drawArm(c,S,aL,o);if(S.item&&!o.noItem&&S.itemBehindArm){c.save();c.translate(aR.hx,aR.hy);S.item(c,o,true);c.restore();}drawArm(c,S,aR,o);S.head(c,v,o);
+   if(S.item&&!o.noItem&&!S.itemBehindArm){c.save();c.translate(aR.hx,aR.hy);S.item(c,o,true);c.restore();}}
  }else{
   /* side, facing left: far arm and leg first, then the body, then the near ones */
   const sx=walk?s*.55:0;const far=arm(50+2,shY,itemNear?-sx*.9:-.15+sx*.9,itemNear?-sx-.2:-.75+sx*.7,L,L2),near=arm(50-2,shY,itemNear?(S.sidePose?S.sidePose(o):-.15+sx*.5):sx*.9,itemNear?(S.sidePose2?S.sidePose2(o):-.75+sx*.4):sx-.2,L,L2);
   if(S.poseSide)S.poseSide(o,near,far,arm,L,L2,shY,itemNear);
   if(S.float&&S.wings)S.wings(c,v,o);
   if(!S.float)legsSide(c,S,o,'far');
-  if(!itemNear&&S.item){c.save();c.translate(o.far2?o.far2.hx:far.hx,o.far2?o.far2.hy:far.hy);S.item(c,o,false);c.restore();}
+  if(!itemNear&&S.item&&!o.noItem){c.save();c.translate(o.far2?o.far2.hx:far.hx,o.far2?o.far2.hy:far.hy);S.item(c,o,false);c.restore();}
   drawArm(c,S,o.far2||far,o,true);
   if(!S.float)legsSide(c,S,o,'near');
   if(S.cape)S.cape(c,v,o);
   S.torso(c,v,o);S.head(c,v,o);
   drawArm(c,S,o.near2||near,o);
-  if(itemNear&&S.item){c.save();c.translate((o.near2||near).hx,(o.near2||near).hy);S.item(c,o,true);c.restore();}
+  if(itemNear&&S.item&&!o.noItem){c.save();c.translate((o.near2||near).hx,(o.near2||near).hy);S.item(c,o,true);c.restore();}
  }
  if(S.float&&S.wings&&back)S.wings(c,v,o);
  if(S.fx)S.fx(c,o,aL,aR);
