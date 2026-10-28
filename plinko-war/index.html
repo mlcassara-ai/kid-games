@@ -512,26 +512,35 @@ function drawSoldier(c,u){
 function drawUnitLive(c,u){const d=statOf(u);if((u.src||u.team)==='g'&&!d.vehicle&&!d.mech)drawMonster(c,u);else if(d.vehicle)drawTank(c,u);else if(d.mech)drawMech(c,u);else drawSoldier(c,u);}
 // Puppets are posed live, then each distinct pose is kept as a small picture and reused, so a crowded field stays smooth.
 // Walk cycles use 16 frames and attacks 8, which is finer than the eye can pick out at these speeds.
-const spriteCache=new Map();
+let spriteBudget=10;const spriteCache=new Map(),WALK_F=64,ATK_F=12,SPRITE_CAP=2400;
 function drawUnit(c,u){
   const d=statOf(u);
   if(d.vehicle||d.mech||u.champ||u.cast>0||u.raising>0){
     if(u.dead){c.save();c.translate(SX(u.x),GROUND+u.lane+(u.sink||0));c.rotate(u.rot||0);const f={...u,dead:false,x:camX-W/2,lane:-GROUND,grey:0};f.flash=0;
       const keep=u.grey;f.dead=true;f.grey=keep;f.sink=0;f.rot=0;drawUnitLive(c,f);c.restore();return;}
     drawUnitLive(c,u);return;}
-  const wf=u.moving?Math.floor(((u.phase%(Math.PI*2))+Math.PI*2)%(Math.PI*2)/(Math.PI*2)*16):'i';
-  const af=u.atk>0?Math.min(7,Math.floor((1-u.atk/.3)*8)):-1;
+  const wf=u.moving?Math.floor(((u.phase%(Math.PI*2))+Math.PI*2)%(Math.PI*2)/(Math.PI*2)*WALK_F):'i';
+  const af=u.atk>0?Math.min(ATK_F-1,Math.floor((1-u.atk/.3)*ATK_F)):-1;
   const gq=u.dead?Math.round(u.grey*4):0,fl=u.flash>0&&!u.dead?1:0;
   const bk=!u.dead&&((clock+u.id*.73)%3.7)<.13?1:0;
   const key=(u.src||u.team)+u.team+u.w+(u.wight?'w':'')+u.size.toFixed(2)+'|'+wf+'|'+af+'|'+gq+fl+bk+(u.dead?'d':'');
   let sp=spriteCache.get(key);
-  if(!sp){
+  if(!sp&&spriteBudget<=0){drawUnitLive(c,u);return;}
+  if(!sp){spriteBudget--;
     const s=u.size*1.2,wpx=Math.ceil(150*s),hpx=Math.ceil(180*s),cx=wpx/2,by=hpx-12*s;
     const cv2=document.createElement('canvas');cv2.width=wpx;cv2.height=hpx;const c2=cv2.getContext('2d');
     const f=Object.assign({},u,{x:camX-W/2+cx,lane:by-GROUND,dead:!!u.dead,grey:gq/4,rot:0,sink:0,flash:fl?1:0,
-      atk:af<0?0:.3*(1-(af+.5)/8),phase:u.moving?(wf+.5)/16*Math.PI*2:u.phase,id:bk?0:1e5});
+      atk:af<0?0:.3*(1-(af+.5)/ATK_F),phase:u.moving?(wf+.5)/WALK_F*Math.PI*2:u.phase,id:bk?0:1e5});
     const saveClock=clock;if(bk)clock=0.05;drawUnitLive(c2,f);clock=saveClock;
-    sp={cv:cv2,cx,by};if(spriteCache.size>900)spriteCache.clear();spriteCache.set(key,sp);
+    // trim the empty space around the figure so each saved pose stays small
+    const im=c2.getImageData(0,0,wpx,hpx).data;let x0=wpx,y0=hpx,x1=-1,y1=-1;
+    for(let y=0;y<hpx;y++)for(let x=0;x<wpx;x++)if(im[(y*wpx+x)*4+3]>2){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+    if(x1<0){x0=y0=0;x1=y1=1;}
+    const tw=x1-x0+1,th=y1-y0+1,tc=document.createElement('canvas');tc.width=tw;tc.height=th;tc.getContext('2d').drawImage(cv2,-x0,-y0);
+    sp={cv:tc,cx:cx-x0,by:by-y0};
+    if(spriteCache.size>=SPRITE_CAP)spriteCache.delete(spriteCache.keys().next().value);
+    spriteCache.set(key,sp);
+  }else{spriteCache.delete(key);spriteCache.set(key,sp);
   }
   if(u.dead){c.save();c.translate(SX(u.x),GROUND+u.lane+(u.sink||0));c.rotate(u.rot||0);c.drawImage(sp.cv,-sp.cx,-sp.by);c.restore();}
   else c.drawImage(sp.cv,SX(u.x)-sp.cx,GROUND+u.lane-sp.by);
@@ -812,7 +821,7 @@ function drawHud(c){
     c.fillStyle='#e7ece9';c.font=`600 14px ${FB}`;c.fillText(b.sub,0,20);c.restore();
   }
 }
-function render(time){
+function render(time){spriteBudget=10;
   const c=ctx;c.setTransform(1,0,0,1,0,0);
   const sky=c.createLinearGradient(0,336,0,GROUND);sky.addColorStop(0,'#05080c');sky.addColorStop(1,'#132022');c.fillStyle=sky;c.fillRect(0,0,W,H);
   for(const s of stars){c.fillStyle=`rgba(220,235,230,${s.a})`;c.fillRect((s.x-(camX*.05))%W<0?(s.x-camX*.05)%W+W:(s.x-camX*.05)%W,s.y,s.s,s.s);}
