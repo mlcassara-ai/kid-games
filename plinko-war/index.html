@@ -83,7 +83,7 @@ h1 .m{color:var(--moss)} h1 .e{color:var(--ember)}
     <ul>
       <li><b>Fate machine</b> (bottom row): every 10 seconds a ball rides the lift, rings the chimes, spins in the funnel and gets flung onto the pegs. Split breaks the ball in two for an extra drop and adds a fighter to each wave, Supply speeds up waves, Giant makes fighters bigger.</li>
       <li><b>Weapon</b> sends the ball back up the lift into the <b>Armory</b>, which stocks a specific weapon. The more of a weapon you stock, the more often it shows up.</li>
-      <li><b>Math</b> sends the ball to the <b>Math Engine</b> in the middle: it drops through a number, an operation and another number. Work out the answer before it shows: that many recruits join your army.</li>
+      <li><b>Math</b> sends the ball to the <b>Math Engine</b> in the middle. It drops on a number, then an operation, then another number, and keeps going round until it lands on <b>=</b>. Work out the answer before it shows: that many recruits join your army (up to 30). Beat the “Bigger than…” target for a free armory ball too.</li>
       <li><b>Champion</b> is locked. Kills earn souls; the number on the lock counts down. Once it opens, a ball landing there summons your champion.</li>
       <li>Players can only <b>nudge</b> their team's falling balls. Three nudges, one back every 5 seconds.</li>
     </ul>
@@ -127,7 +127,7 @@ const TEAMS={
     champ:{n:'Iron Walker',hp:4400,dmg:30,range:320,cd:2.6,spd:12,proj:'missile',pspd:560,splash:52,multi:4,mech:true,size:1}}
 };
 // balance pass from headless sims (about even with nobody nudging)
-for(const t of [...TEAMS.g.weapons,TEAMS.g.champ])t.hp=Math.round(t.hp*1.15);
+for(const t of [...TEAMS.g.weapons,TEAMS.g.champ])t.hp=Math.round(t.hp*1.07);
 for(const t of [...TEAMS.o.weapons,TEAMS.o.champ])t.dmg*=.7;
 // ---------- the marble machine ----------
 // Left side is laid out here; the right side mirrors it with mx(). Each side: a chain lift on the outer edge,
@@ -143,13 +143,13 @@ function makeMachine(team,kind){
   d.rows.forEach((ry,r)=>{const off=r%2?sx/2:0;for(let c=0;c<d.cols-(r%2);c++){const px=x+25+off+c*sx;if(px>x+30&&px<x+d.w-30)pegs.push({x:px,y:ry,hit:0});}});
   return {team,kind,x,y:d.y,w:d.w,h:d.h,pegs,binTop:d.y+d.h-d.binH,last:-1,flash:0,bins:kind==='armory'?TEAMS[team].armory:TEAMS[team].fate};
 }
-const TROWS=[{key:'a',y:50,bins:[1,2,3,4,5]},{key:'op',y:118,bins:['+','−','×']},{key:'b',y:186,bins:[1,2,3,4,5]}];
+const TROWS=[{key:'a',y:50,bins:[1,2,3,4,5]},{key:'op',y:118,bins:['+','=','×','=','−']},{key:'b',y:186,bins:[1,2,3,4,5]}];
 function makeTower(){
   const rows=TROWS.map(r=>{const x=668,w=264,pegs=[];
     for(let c=0;c<7;c++){const px=x+22+c*(w-44)/6;pegs.push({x:px,y:r.y+16,hit:0});}
     for(let c=0;c<6;c++){const px=x+22+(c+.5)*(w-44)/6;pegs.push({x:px,y:r.y+32,hit:0});}
     return {team:'t',kind:'row',key:r.key,x,y:r.y,w,h:62,pegs,binTop:r.y+40,bins:r.bins,last:-1,flash:0};});
-  return {rows,busy:null,a:null,op:null,b:null,res:null,reveal:0,hold:0};
+  return {rows,busy:null,a:null,op:null,b:null,res:null,reveal:0,hold:0,expr:'',val:0,ops:0,target:0,addSub:false,wait:false};
 }
 function teamState(){return {hp:BASE_HP,squad:2,giant:0,interval:6.5,hpMul:1,spawnT:2,kills:0,souls:0,cost:260,champs:0,
   counts:[1,0,0,0,0],dropT:2.5+rand(0,.6),log:[],hit:0,flip:false,rallies:0};}
@@ -195,23 +195,41 @@ function settle(S,b,bin){
   }
   return true;
 }
-function settleRow(S,b,m,bin){
-  const tw=S.tower,v=m.bins[bin],i=tw.rows.indexOf(m);tw[m.key]=v;
-  if(i<2){const nm=tw.rows[i+1];dropInto(b,nm,m.x+(bin+.5)*(m.w/m.bins.length),nm.y+4,rand(-30,30));return false;}
-  const a=tw.a,op=tw.op,bb=tw.b;
-  tw.res=op==='+'?a+bb:op==='×'?a*bb:Math.abs(a-bb);tw.reveal=1.6;tw.hold=4.2;return true;
+const MAX_RALLY=30,MAX_OPS=3;
+function exprPush(tw,op,n){
+  if(op==='×'&&tw.addSub){tw.expr='('+tw.expr+')';tw.addSub=false;}
+  tw.expr+=' '+op+' '+n;if(op!=='×')tw.addSub=true;
 }
-function rally(S,k,n){
-  const st=S.teams[k];st.rallies++;
-  for(let i=0;i<n;i++)if(st.queue&&st.queue.length<40)st.queue.push('r');else if(!st.queue)st.queue=['r'];
-  banner(S,k,n?'RALLY! +'+n:'NO RALLY',n?n+' recruits join the march':'The answer was 0',UPS.MATH.col);
+function settleRow(S,b,m,bin){
+  const tw=S.tower,v=m.bins[bin],k=b.team;tw[m.key+'i']=bin;
+  if(m.key==='a'){tw.a=v;tw.val=v;tw.expr=String(v);tw.ops=0;tw.retry=0;tw.addSub=false;tw.target=6+Math.floor(Math.random()*10);
+    const nm=tw.rows[1];dropInto(b,nm,nm.x+rand(20,nm.w-20),nm.y+4,rand(-40,40));return false;}
+  if(m.key==='op'){let v2=false;tw.op=v;
+    if(v==='='&&tw.ops===0&&(tw.retry=(tw.retry||0)+1)<4){const lx=mx(b.team,TOWER_LIFT);b.st='rail';b.mach=null;b.pts=[{x:lx,y:m.y+48},{x:lx,y:110},{x:668+rand(20,244),y:114}];b.pi=0;b.after='op';b.spd=190;return false;}
+    if(v==='='&&tw.ops===0){tw.op='+';v2=true;}
+    if((v==='='&&tw.ops>0)||tw.ops>=MAX_OPS){finishSum(tw);return true;}
+    tw.wait=true;const nm=tw.rows[2];dropInto(b,nm,nm.x+rand(20,nm.w-20),nm.y+4,rand(-40,40));return false;}
+  // second number: apply it, then the ball goes back up for another operation
+  tw.b=v;tw.wait=false;const op=tw.op;
+  tw.val=op==='+'?tw.val+v:op==='×'?tw.val*v:tw.val-v;exprPush(tw,op,v);tw.ops++;
+  if(tw.ops>=MAX_OPS){tw.op='=';finishSum(tw);return true;}
+  const lx=mx(k,TOWER_LIFT);b.st='rail';b.mach=null;b.pts=[{x:lx,y:m.y+48},{x:lx,y:110},{x:668+rand(20,244),y:114}];b.pi=0;b.after='op';b.spd=190;
+  return false;
+}
+function finishSum(tw){tw.res=tw.val;tw.reveal=1.8;tw.hold=5;}
+function rally(S,k,n,bigger,target){
+  const st=S.teams[k];st.rallies++;n=clamp(n,0,MAX_RALLY);
+  if(!st.queue)st.queue=[];for(let i=0;i<n;i++)if(st.queue.length<40)st.queue.push('r');
+  if(bigger){const am=S.m[k].armory,dx=am.x+am.w*rand(.25,.75);
+    S.balls.push(newBall(k,mx(k,TOWER_LIFT),GUT,[{x:mx(k,LIFT),y:GUT},{x:mx(k,LIFT),y:28},{x:dx,y:28}],'armory',190));}
+  banner(S,k,n?'RALLY! +'+n:'NO RALLY',bigger?'Bigger than '+target+'! Free armory ball too':n?n+' recruits join the march':'The answer was '+S.tower.res,UPS.MATH.col);
 }
 const TRAIL=42;
 function stepTower(S,dt){
   const tw=S.tower;for(const r of tw.rows){r.flash=Math.max(0,r.flash-dt);for(const p of r.pegs)p.hit=Math.max(0,p.hit-dt);}
-  if(tw.busy&&tw.hold>0){
-    if(tw.reveal>0){tw.reveal-=dt;if(tw.reveal<=0)rally(S,tw.busy,tw.res);}
-    tw.hold-=dt;if(tw.hold<=0){tw.busy=null;tw.a=tw.op=tw.b=tw.res=null;}
+  if(tw.busy&&tw.res!==null&&tw.hold>0){
+    if(tw.reveal>0){tw.reveal-=dt;if(tw.reveal<=0)rally(S,tw.busy,tw.res,tw.res>tw.target,tw.target);}
+    tw.hold-=dt;if(tw.hold<=0){tw.busy=null;tw.a=tw.op=tw.b=tw.res=null;tw.expr='';}
   }
 }
 function stepBalls(S,dt){
@@ -219,7 +237,7 @@ function stepBalls(S,dt){
   for(const b of S.balls){
     b.age+=dt;
     if(b.st==='rail'||b.st==='wait'){
-      if(b.st==='wait'){if(!S.tower.busy){S.tower.busy=b.team;b.st='rail';b.pts=[{x:mx(b.team,TOWER_LIFT),y:40},{x:800+rand(-40,40),y:44}];b.pi=0;b.after='row';}keep.push(b);continue;}
+      if(b.st==='wait'){if(!S.tower.busy){S.tower.busy=b.team;b.st='rail';b.pts=[{x:mx(b.team,TOWER_LIFT),y:40},{x:668+rand(20,244),y:44}];b.pi=0;b.after='row';}keep.push(b);continue;}
       const q=b.pts[b.pi];
       if(!q){finishRail(S,b);if(b.st!=='gone')keep.push(b);continue;}
       const dx=q.x-b.x,dy=q.y-b.y,d=Math.hypot(dx,dy),step=b.spd*dt;
@@ -259,6 +277,7 @@ function finishRail(S,b){
   else if(b.after==='armory'){const m=S.m[b.team].armory;dropInto(b,m,b.x,m.y+16,rand(-20,20));}
   else if(b.after==='tower'){b.st='wait';}
   else if(b.after==='row'){dropInto(b,S.tower.rows[0],b.x,S.tower.rows[0].y+4,rand(-30,30));}
+  else if(b.after==='op'){dropInto(b,S.tower.rows[1],b.x,S.tower.rows[1].y+4,rand(-30,30));}
   else b.st='gone';
 }
 function mkUnit(S,k,w,champ,i){
@@ -757,6 +776,11 @@ function drawBins(c,m,time){
   for(const p of m.pegs)drawPeg(c,p,T);
   c.restore();
 }
+function sumText(tw){
+  if(!tw.expr)return '? …';
+  if(tw.res===null)return tw.expr+(tw.wait?' '+tw.op+' ?':' …');
+  return tw.expr+' = '+(tw.reveal>0?'?':tw.res);
+}
 function drawTower(c,time){
   const tw=S.tower,x0=638,w=324,busyT=tw.busy?TEAMS[tw.busy]:null;
   const g=c.createLinearGradient(0,14,0,336);g.addColorStop(0,busyT?shade(busyT.deep,1.1):'#15181a');g.addColorStop(1,'#060708');framedRect(c,x0,12,w,324,14,g);
@@ -773,18 +797,19 @@ function drawTower(c,time){
   for(const row of tw.rows){
     c.fillStyle='rgba(0,0,0,.35)';rr(c,row.x-4,row.y-4,row.w+8,row.h+4,8);c.fill();
     c.font=`700 10px ${FB}`;c.fillStyle='rgba(235,238,233,.5)';c.textAlign='left';c.fillText(names[row.key],row.x+2,row.y+3);c.textAlign='center';
-    const nb=row.bins.length,bw2=row.w/nb,picked=tw.busy?tw[row.key]:null,col=busyT?busyT.color:'#7be07b';
-    for(let i=0;i<nb;i++){const xx=row.x+i*bw2,lab=row.bins[i],on=picked!==null&&picked===lab;
+    const nb=row.bins.length,bw2=row.w/nb,picked=tw.busy&&tw[row.key]!==null?tw[row.key+'i']:null,col=busyT?busyT.color:'#7be07b';
+    for(let i=0;i<nb;i++){const xx=row.x+i*bw2,lab=row.bins[i],on=picked!==null&&picked===i;
       if(on){c.fillStyle=col+'44';c.fillRect(xx+2,row.binTop,bw2-4,row.h-40);}
       if(i>0){c.fillStyle='#8d9397';c.fillRect(xx-1.5,row.binTop-2,3,row.h-38);}
       c.font=`800 ${row.key==='op'?24:20}px ${FD}`;c.fillStyle=on?'#ffffff':'#b7bdc0';c.fillText(String(lab),xx+bw2/2,row.binTop+11);}
     for(const p of row.pegs)drawPeg(c,p,busyT||{glow:'#bff5c8'});
   }
   // the sum being built
-  const parts=[tw.a??'?',tw.op??'?',tw.b??'?'];let eq=parts.join(' ')+' = ';
-  const ans=!tw.busy?'':tw.res===null?'?':tw.reveal>0?'?':String(tw.res);
-  c.font=`800 30px ${FD}`;c.fillStyle=busyT?busyT.glow:'rgba(235,238,233,.35)';c.fillText(tw.busy?eq+ans:'waiting for a ball',800,270);
-  if(tw.busy&&tw.reveal>0&&tw.res!==null){c.globalAlpha=.6+.4*Math.sin(time*10);c.font=`700 13px ${FB}`;c.fillStyle='#ffffff';c.fillText('Work it out!',800,290);c.globalAlpha=1;}
+  c.font=`800 26px ${FD}`;c.fillStyle=busyT?busyT.glow:'rgba(235,238,233,.35)';
+  c.fillText(tw.busy?sumText(tw):'waiting for a ball',800,266,288);
+  if(tw.busy&&tw.expr){c.font=`700 12px ${FB}`;
+    const big=tw.res!==null&&tw.reveal<=0?(tw.res>tw.target?'  YES!':'  no'):'';c.fillStyle=big==='  YES!'?'#7be07b':'#d0d4d6';
+    c.fillText('Bigger than '+tw.target+'?'+big+'   ·   max '+MAX_RALLY,800,287);}
   // minimap
   const mX=666,mY=296,mW=268,mH=32;
   c.fillStyle='#030304';rr(c,mX,mY,mW,mH,5);c.fill();c.strokeStyle='#6d7377';c.lineWidth=1.5;rr(c,mX,mY,mW,mH,5);c.stroke();
@@ -855,6 +880,7 @@ function drawHud(c){
     c.shadowColor='rgba(0,0,0,.8)';c.shadowBlur=6;c.fillText(Math.ceil(st.hp),x,432);c.shadowBlur=0;
     c.font=`600 14px ${FB}`;c.fillStyle='#c9d1cd';
     c.fillText(`${st.squad} per wave · giant ${st.giant} · wave every ${st.interval.toFixed(1)}s · ${st.kills} kills`,x,456);
+    if(S.tower.busy===k&&S.tower.expr){c.font=`800 34px ${FD}`;c.fillStyle=T.color;c.fillText(sumText(S.tower),x,498);}
     c.restore();
   }
   for(const b of S.banners){
