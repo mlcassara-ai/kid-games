@@ -100,7 +100,7 @@ h1 .m{color:var(--moss)} h1 .e{color:var(--ember)}
 
 <script>
 // SIM-START
-const W=1600,H=900,WORLD=2600,GROUND=850,BASE_HP=5000,DROP_EVERY=10,OVERTIME=1200;var UNIT_CAP=50,BASE_DMG=.16,TURRET_R=420,TURRET_CD=1.15,TURRET_DMG=30;
+const W=1600,H=900,WORLD=2600,GROUND=850,BASE_HP=5000,DROP_EVERY=10,OVERTIME=1200;var UNIT_CAP=50,BASE_DMG=.1,TURRET_R=420,TURRET_CD=1.15,TURRET_DMG=30;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const UPS={SPLIT:{col:'#4fd3ff',desc:'+1 fighter per wave'},SUPPLY:{col:'#ffd84a',desc:'Waves arrive faster'},
@@ -126,7 +126,7 @@ const TEAMS={
     champ:{n:'Iron Walker',hp:4400,dmg:30,range:320,cd:2.6,spd:12,proj:'missile',pspd:560,splash:52,multi:4,mech:true,size:1}}
 };
 // balance pass from headless sims (about even with nobody nudging)
-for(const t of [...TEAMS.g.weapons,TEAMS.g.champ])t.hp=Math.round(t.hp*1.38);
+for(const t of [...TEAMS.g.weapons,TEAMS.g.champ])t.hp=Math.round(t.hp*1.25);
 for(const t of [...TEAMS.o.weapons,TEAMS.o.champ])t.dmg*=.7;
 // top-frame geometry: a central spire; wings angle in to follow its edges. Right side mirrors left.
 const spX=y=>800-(y-14)*.7595, mx=(k,x)=>k==='g'?x:W-x;
@@ -209,12 +209,23 @@ function stepBalls(S,dt){
 function mkUnit(S,k,w,champ,i){
   const st=S.teams[k],T=TEAMS[k],d=champ?T.champ:T.weapons[w],g=champ?0:st.giant;
   const size=(d.size||1)*(d.vehicle?1+.06*g:1+.13*g),hp=d.hp*(champ?1:st.hpMul*(1+.32*g));
-  return {id:S.nid++,team:k,w,champ,x:T.baseX+T.dir*(90+i*20+rand(0,10)),lane:champ?6:rand(-18,18),hp,max:hp,cd:rand(.3,1),atk:0,flash:0,phase:rand(0,6),size,spd:d.spd*(1-.04*g)*rand(.9,1.1),moving:false};
+  return {id:S.nid++,team:k,w,champ,x:T.baseX+T.dir*(champ?70:SPAWN_OFF+rand(-4,4)),lane:champ?6:rand(-18,18),hp,max:hp,cd:rand(.3,1),atk:0,flash:0,phase:rand(0,6),size,spd:d.spd*(1-.04*g)*rand(.9,1.1),moving:false};
 }
+const SPAWN_OFF=62;
+// A wave is queued, then fighters walk out of the base one by one.
 function spawnWave(S,k){
-  const st=S.teams[k];if(S.units.reduce((n,u)=>n+(u.team===k),0)>UNIT_CAP)return;
+  const st=S.teams[k];st.queue=st.queue||[];
   const tot=st.counts.reduce((a,b)=>a+b,0);
-  for(let i=0;i<st.squad;i++){let r=Math.random()*tot,w=0;while(r>=st.counts[w]){r-=st.counts[w];w++;}S.units.push(mkUnit(S,k,w,false,i));}
+  for(let i=0;i<st.squad;i++){if(st.queue.length>=14)break;let r=Math.random()*tot,w=0;while(r>=st.counts[w]){r-=st.counts[w];w++;}st.queue.push(w);}
+}
+function trickle(S,k,dt){
+  const st=S.teams[k];if(!st.queue||!st.queue.length)return;
+  st.trickleT=(st.trickleT||0)-dt;if(st.trickleT>0)return;
+  if(S.units.reduce((n,u)=>n+(u.team===k),0)>UNIT_CAP){st.trickleT=.5;return;}
+  const T=TEAMS[k],door=T.baseX+T.dir*SPAWN_OFF;
+  if(S.units.some(u=>u.team===k&&Math.abs(u.x-door)<42)){st.trickleT=.12;return;}
+  S.units.push(mkUnit(S,k,st.queue.shift(),false,0));
+  st.trickleT=clamp(st.interval/Math.max(1,st.squad)*.85,.8,1.6)*rand(.9,1.1);
 }
 function spawnChamp(S,k){S.units.push(mkUnit(S,k,-1,true,0));}
 function statOf(u){return u.champ?TEAMS[u.team].champ:TEAMS[u.src||u.team].weapons[u.w];}
@@ -307,6 +318,7 @@ function stepSim(S,dt){
     const st=S.teams[k];st.hit=Math.max(0,st.hit-dt);
     if(!S.balls.some(b=>b.team===k&&b.kind==='fate')){st.dropT-=dt;if(st.dropT<=0){launchBall(S,k,'fate',APEX,fateRail(k));S.apex=1;st.dropT=DROP_EVERY*rand(.92,1.08);}}
     st.spawnT-=dt;if(st.spawnT<=0){spawnWave(S,k);st.spawnT=st.interval*rand(.85,1.15);}
+    trickle(S,k,dt);
     // base defense: each base fires at the nearest attacker in range, which slows early blowouts
     st.turretCd=(st.turretCd||1)-dt;
     if(st.turretCd<=0){let best=null,bd=TURRET_R;for(const e of S.units)if(e.team!==k&&e.hp>0){const dd=Math.abs(e.x-TEAMS[k].baseX);if(dd<bd){bd=dd;best=e;}}
