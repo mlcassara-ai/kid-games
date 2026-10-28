@@ -127,7 +127,7 @@ const TEAMS={
     champ:{n:'Iron Walker',hp:4400,dmg:30,range:320,cd:2.6,spd:12,proj:'missile',pspd:560,splash:52,multi:4,mech:true,size:1}}
 };
 // balance pass from headless sims (about even with nobody nudging)
-for(const t of [...TEAMS.g.weapons,TEAMS.g.champ])t.hp=Math.round(t.hp*1.07);
+for(const t of [...TEAMS.g.weapons,TEAMS.g.champ])t.hp=Math.round(t.hp*0.97);
 for(const t of [...TEAMS.o.weapons,TEAMS.o.champ])t.dmg*=.7;
 // ---------- the marble machine ----------
 // Left side is laid out here; the right side mirrors it with mx(). Each side: a chain lift on the outer edge,
@@ -316,7 +316,7 @@ function trickle(S,k,dt){
   if(S.units.reduce((n,u)=>n+(u.team===k),0)>UNIT_CAP){st.trickleT=.5;return;}
   const T=TEAMS[k],door=T.baseX+T.dir*SPAWN_OFF;
   if(S.units.some(u=>u.team===k&&Math.abs(u.x-door)<42)){st.trickleT=.12;return;}
-  const qw=st.queue.shift();const nu=mkUnit(S,k,qw==='r'?0:qw,false,0);if(qw==='r'){nu.hp*=k==='g'?.45:.68;nu.max=nu.hp;nu.size*=.88;nu.recruit=true;}S.units.push(nu);
+  const qw=st.queue.shift();const nu=mkUnit(S,k,qw==='r'?0:qw,false,0);if(qw==='r'){nu.hp*=k==='g'?.4:.7;nu.max=nu.hp;nu.size*=.88;nu.recruit=true;}S.units.push(nu);
   st.trickleT=clamp(st.interval/Math.max(1,st.squad)*.85,.8,1.6)*rand(.9,1.1);
 }
 function spawnChamp(S,k){S.units.push(mkUnit(S,k,-1,true,0));}
