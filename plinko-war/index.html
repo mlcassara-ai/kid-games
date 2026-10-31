@@ -368,8 +368,8 @@ function stepUnits(S,dt){
     if(u.pend){u.pend.t-=dt;if(u.pend.t<=0){const q=u.pend,tg=q.target;u.pend=null;const tx=tg.base?TEAMS[tg.base].baseX:tg.x;
       if(tg.base||tg.hp>0)hit(S,u.team,tg,q.dmg,q.crit,q.splash,tx);else if(q.splash)hit(S,u.team,{x:tx,hp:0},q.dmg,q.crit,q.splash,tx);}}
     // archers and gunners hang back behind their own front line while friendly fighters are ahead of them
-    if(!target&&d.proj&&!u.champ){let front=-1e9;for(const f of S.units){if(f.team!==u.team||f===u||f.hp<=0||statOf(f).proj)continue;const fx=(f.x-u.x)*dir;if(fx>front)front=fx;}
-      if(front>-1e8&&front<Math.min(reach*.55,150))u.hold=true;else u.hold=false;}else u.hold=false;
+    if(!target&&d.proj&&!u.champ){let front=-1e9;for(const f of S.units){if(f.team!==u.team||f===u||f.hp<=0||statOf(f).proj)continue;const fx=(f.x-u.x)*dir;if(fx>0&&fx>front)front=fx;}
+      u.hold=front>0&&front<Math.min(reach*.55,150);}else u.hold=false;   // only wait while a friendly fighter is in front
     u.cd-=dt;u.atk=Math.max(0,u.atk-dt);u.flash=Math.max(0,u.flash-dt);u.moving=!target&&!u.hold&&!u.pend;u.cast=Math.max(0,(u.cast||0)-dt);
     if(d.raises){u.raiseT=(u.raiseT===undefined?4:u.raiseT)-dt;
       if(u.raiseT<=0){u.raiseT=rand(7,10);
