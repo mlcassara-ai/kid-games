@@ -81,7 +81,7 @@ h1 .m{color:var(--moss)} h1 .e{color:var(--ember)}
     <h1><span class="m">Gloom Horde</span> vs <span class="e">Ember Brigade</span></h1>
     <p>The armies fight on their own. Each side has two linked machines in the top frame, and luck decides how they grow.</p>
     <ul>
-      <li><b>Fate machine</b> (bottom row): a ball drops every 10 seconds. Split breaks the ball in two for an extra drop and adds a fighter to each wave, Supply speeds up waves, Giant makes fighters bigger.</li>
+      <li><b>Fate machine</b> (bottom row): a ball drops every 10 seconds. Split makes the cannon fire two more balls and adds a fighter to each wave, Supply speeds up waves, Giant makes fighters bigger.</li>
       <li><b>Weapon</b> fires the ball up into the <b>Armory</b>, which stocks a specific weapon. The more of a weapon you stock, the more often it shows up in your waves.</li>
       <li><b>Champion</b> is locked. Kills earn souls; the number on the lock counts down. Once it opens, a ball landing there summons your champion.</li>
       <li>Players can only <b>nudge</b> their team's falling balls. Three nudges, one back every 5 seconds.</li>
@@ -167,10 +167,11 @@ function settle(S,b,bin){
   const up=m.bins[bin];st.log.push(up);
   if(up==='SPLIT'){if(st.squad<7)st.squad++;else st.hpMul=Math.min(1.5,st.hpMul*1.02);
     // the ball itself splits in two and both halves bounce back up for another drop (capped so it can't snowball)
-    const live=S.balls.filter(x=>x.team===b.team&&x.kind==='fate'&&x!==b).length,n=Math.max(0,Math.min(2,4-live));
-    for(let i=0;i<n;i++)S.balls.push({team:b.team,kind:'fate',st:'fall',t:0,x:b.x+(i?6:-6),y:m.binTop-14,vx:(i?1:-1)*rand(45,80),vy:rand(-215,-185),bin:-1,age:0,trail:[],nudged:0,pts:[],pi:0});
+    // Split: the cannon fires two new balls onto the board, one after the other (those two don't split again)
+    const live=S.balls.filter(x=>x.team===b.team&&x.kind==='fate'&&x!==b).length,n=b.child?0:Math.max(0,Math.min(2,4-live));
+    for(let i=0;i<n;i++){launchBall(S,b.team,'fate',launcher(m));const nb=S.balls[S.balls.length-1];nb.st='hold';nb.t=.5+i*.7;nb.child=true;}
     burst(S,b.x,m.binTop-10,UPS.SPLIT.col,14,120,4);
-    banner(S,b.team,'SPLIT',n?'Ball splits in two · '+st.squad+' per wave':st.squad+' fighters per wave',UPS.SPLIT.col);}
+    banner(S,b.team,'SPLIT',n?'2 more balls from the cannon · '+st.squad+' per wave':st.squad+' fighters per wave',UPS.SPLIT.col);}
   if(up==='SUPPLY'){st.interval=Math.max(2.6,st.interval*.86);banner(S,b.team,'SUPPLY','A wave every '+st.interval.toFixed(1)+'s',UPS.SUPPLY.col);}
   if(up==='GIANT'){if(st.giant<5)st.giant++;else st.hpMul=Math.min(1.5,st.hpMul*1.03);banner(S,b.team,'GIANT','Giant level '+st.giant,UPS.GIANT.col);}
   if(up==='WEAPON'){launchBall(S,b.team,'armory',{x:b.x,y:b.y},railPts(S,b.team,b.x));banner(S,b.team,'WEAPON',UPS.WEAPON.desc,UPS.WEAPON.col);}
@@ -184,6 +185,7 @@ function stepBalls(S,dt){
   const keep=[];
   for(const b of S.balls){
     const m=S.m[b.team][b.kind];b.age+=dt;
+    if(b.st==='hold'){b.t-=dt;if(b.t<=0){b.st='fly';b.t=0;m.aim=Math.atan2(b.ty-70-b.fy,b.tx-b.fx);m.kick=.35;}keep.push(b);continue;}
     if(b.st==='rail'){const q=b.pts[b.pi],dx=q.x-b.x,dy=q.y-b.y,d=Math.hypot(dx,dy),st=170*dt;
       if(d<=st){b.x=q.x;b.y=q.y;b.pi++;if(b.pi>=b.pts.length){b.st='fly';b.t=0;b.fx=b.x;b.fy=b.y;m.aim=Math.atan2(b.ty-70-b.fy,b.tx-b.fx);m.kick=.35;}}
       else{b.x+=dx/d*st;b.y+=dy/d*st;}b.trail.push({x:b.x,y:b.y});if(b.trail.length>TRAIL)b.trail.shift();keep.push(b);continue;}
@@ -785,7 +787,7 @@ function drawDeco(c){
     c.fillStyle=g;c.beginPath();c.arc(b.x,b.y,6,0,7);c.fill();c.restore();}
 }
 function drawBalls(c){
-  for(const b of S.balls){const T=TEAMS[b.team];
+  for(const b of S.balls){if(b.st==='hold')continue;const T=TEAMS[b.team];
     const tr=b.trail;c.save();c.lineCap='round';c.shadowColor=T.color;c.shadowBlur=10;
     for(let i=1;i<tr.length;i++){const t=i/tr.length;c.globalAlpha=t*t*.7;c.strokeStyle=T.color;c.lineWidth=2+t*11;L(c,[tr[i-1].x,tr[i-1].y,tr[i].x,tr[i].y]);}
     c.shadowBlur=0;for(let i=1;i<tr.length;i++){const t=i/tr.length;c.globalAlpha=t*t*.8;c.strokeStyle=T.glow;c.lineWidth=1+t*4;L(c,[tr[i-1].x,tr[i-1].y,tr[i].x,tr[i].y]);}

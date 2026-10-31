@@ -81,7 +81,7 @@ h1 .m{color:var(--moss)} h1 .e{color:var(--ember)}
     <h1><span class="m">Gloom Horde</span> vs <span class="e">Ember Brigade</span></h1>
     <p>The armies fight on their own. Each castle has two magic boards in its wall, and luck decides how its army grows.</p>
     <ul>
-      <li><b>Fate board</b> (lower): every 10 seconds the tower cannon fires an orb onto the spinning pegs. <b>Split</b> breaks the orb in two for an extra drop and adds a fighter to each wave, <b>Supply</b> speeds up waves, <b>Giant</b> makes fighters bigger.</li>
+      <li><b>Fate board</b> (lower): every 10 seconds the tower cannon fires an orb onto the spinning pegs. <b>Split</b> makes the cannon fire two more orbs and adds a fighter to each wave, <b>Supply</b> speeds up waves, <b>Giant</b> makes fighters bigger.</li>
       <li><b>Weapon</b> sends the orb back to the cannon, which fires it into the <b>Armory</b> (upper board) to stock a weapon. The more of a weapon you stock, the more often it shows up.</li>
       <li><b>Math</b> sends the orb to the <b>Math Engine</b> in the middle. It drops on a number, then an operation, then another number, and keeps going round until it lands on <b>=</b>. Work out the answer before it shows: that many recruits join your army (up to 30). Beat the “Bigger than…” target for a free armory shot too.</li>
       <li><b>Champion</b> is locked. Kills earn souls; the number on the crown counts down. Once it’s ready, an orb landing there summons your champion.</li>
@@ -182,9 +182,10 @@ function settle(S,b,bin){
   const up=m.bins[bin];st.log.push(up);
   if(up==='SPLIT'){if(st.squad<7)st.squad++;else st.hpMul=Math.min(1.5,st.hpMul*1.02);
     const live=S.balls.filter(x=>x.team===k&&x.mach===m&&x!==b).length,n=b.child?0:Math.max(0,Math.min(2,4-live));
-    for(let i=0;i<n;i++){const nb=newBall(k,b.x+(i?6:-6),m.binTop-14,[],null);dropInto(nb,m,nb.x,nb.y,(i?1:-1)*rand(60,95));nb.vy=rand(-260,-220);nb.child=true;S.balls.push(nb);}
+    // Split: the cannon fires two new orbs onto the board, one after the other
+    for(let i=0;i<n;i++){const mo=cannonMouth(k),nb=newBall(k,mo.x,mo.y,[],null);nb.st='hold';nb.t=.5+i*.7;nb.child=true;S.balls.push(nb);}
     burst(S,b.x,m.binTop-10,UPS.SPLIT.col,14,120,4);
-    banner(S,k,'SPLIT',n?'Ball splits in two · '+st.squad+' per wave':st.squad+' fighters per wave',UPS.SPLIT.col);}
+    banner(S,k,'SPLIT',n?'2 more orbs from the cannon · '+st.squad+' per wave':st.squad+' fighters per wave',UPS.SPLIT.col);}
   if(up==='SUPPLY'){st.interval=Math.max(2.6,st.interval*.86);banner(S,k,'SUPPLY','A wave every '+st.interval.toFixed(1)+'s',UPS.SUPPLY.col);}
   if(up==='GIANT'){if(st.giant<5)st.giant++;else st.hpMul=Math.min(1.5,st.hpMul*1.03);banner(S,k,'GIANT','Giant level '+st.giant,UPS.GIANT.col);}
   if(up==='WEAPON'){
@@ -262,6 +263,7 @@ function stepBalls(S,dt){
   const keep=[];
   for(const b of S.balls){
     b.age+=dt;
+    if(b.st==='hold'){b.t-=dt;if(b.t<=0)fireCannon(S,b,'fate');keep.push(b);continue;}
     if(b.st==='rail'||b.st==='wait'){
       if(b.st==='wait'){if(!S.tower.busy){S.tower.busy=b.team;b.st='rail';b.pts=[{x:mx(b.team,IN_T),y:40},{x:668+rand(20,244),y:64}];b.pi=0;b.after='row';}keep.push(b);continue;}
       const q=b.pts[b.pi];
@@ -933,7 +935,7 @@ function drawConsole(c,time){
   const vx=mX+(camX-W/2)*sc;c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=1.2;c.strokeRect(vx,mY+3,W*sc,mH-6);
 }
 function drawBalls(c,time){
-  for(const b of S.balls){const T=TEAMS[b.team];
+  for(const b of S.balls){if(b.st==='hold')continue;const T=TEAMS[b.team];
     const tr=b.trail;c.save();c.lineCap='round';
     for(let i=1;i<tr.length;i++){const t=i/tr.length;c.globalAlpha=t*t*.55;c.strokeStyle=T.color;c.lineWidth=2+t*12;L(c,[tr[i-1].x,tr[i-1].y,tr[i].x,tr[i].y]);}
     for(let i=1;i<tr.length;i++){const t=i/tr.length;c.globalAlpha=t*t*.85;c.strokeStyle=T.glow;c.lineWidth=1+t*4;L(c,[tr[i-1].x,tr[i-1].y,tr[i].x,tr[i].y]);}
