@@ -348,15 +348,16 @@ function stepSim(S,dt){
   for(const b of S.blasts){b.t+=dt;}S.blasts=S.blasts.filter(b=>b.t<2.2);
   if(S.teams.g.hp<=0||S.teams.o.hp<=0)S.winner=S.teams.g.hp>S.teams.o.hp?'g':'o';
 }
-const LAST_STAND=500,BLAST_R=760;
+const LAST_STAND=1500,BLAST_R=1300;
 function lastStand(S,k){
   const st=S.teams[k],T=TEAMS[k],ek=k==='g'?'o':'g';st.bombed=true;
   S.blasts.push({x:T.baseX,team:k,t:0});S.shake=.9;
   banner(S,k,'LAST STAND','The base unleashes everything it has',T.glow);
-  for(const e of S.units){if(e.team!==ek||e.hp<=0)continue;const dist=Math.abs(e.x-T.baseX);if(dist>BLAST_R)continue;
-    const near=1-dist/BLAST_R;e.kb=T.dir*(260+420*near)*rand(.8,1.2);
-    const lethal=Math.random()<.55+.4*near;
-    damageUnit(S,k,e,lethal?e.hp+1:e.max*rand(.35,.6)*(e.champ?.35:1),true);}
+  // the blast wipes out 80% of the enemy army, closest to the base first; the rest are hurled back
+  const foes=S.units.filter(e=>e.team===ek&&e.hp>0).sort((a,b)=>Math.abs(a.x-T.baseX)-Math.abs(b.x-T.baseX));
+  const kills=Math.round(foes.length*.8);
+  foes.forEach((e,i)=>{const near=Math.max(0,1-Math.abs(e.x-T.baseX)/BLAST_R);e.kb=T.dir*(300+500*near)*rand(.8,1.2);
+    damageUnit(S,k,e,i<kills?e.hp+1:e.max*rand(.3,.5),true);});
   for(let i=0;i<60;i++){const a=rand(-Math.PI,0);S.parts.push({x:T.baseX,y:GROUND-60,vx:Math.cos(a)*rand(200,900),vy:Math.sin(a)*rand(200,700),life:rand(.6,1.4),max:1.4,col:i%3?'#ffcf6e':T.glow,size:rand(4,10)});}
 }
 function power(S,k){let p=S.teams[k].hp*.02;for(const u of S.units)if(u.team===k){const d=statOf(u);p+=u.hp*(d.dmg*(d.multi||1)/d.cd)*.02;}return p;}
