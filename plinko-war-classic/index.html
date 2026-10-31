@@ -360,10 +360,12 @@ function stepSim(S,dt){
   }
   if(S.t>OVERTIME){const r=Math.pow((S.t-OVERTIME)/60,1.5)*6*dt;for(const k of ['g','o']){S.teams[k].hp=Math.max(0,S.teams[k].hp-r);}
     if(!S.ot){S.ot=true;for(const k of ['g','o'])banner(S,k,'OVERTIME','Both bases are crumbling','#ffffff');}}
-  stepBalls(S,dt);stepUnits(S,dt);stepProjs(S,dt);
-  for(const p of S.parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=500*dt;p.life-=dt;}S.parts=S.parts.filter(p=>p.life>0&&p.y<GROUND+30);
+  // while a last-stand blast is rolling out, the battlefield runs in slow motion (the machines keep normal speed)
+  const sl=S.blasts.some(b=>b.t<BLAST_DUR+.8)?.3:1,wdt=dt*sl;
+  stepBalls(S,dt);stepUnits(S,wdt);stepProjs(S,wdt);
+  for(const p of S.parts){p.x+=p.vx*wdt;p.y+=p.vy*wdt;p.vy+=500*wdt;p.life-=wdt;}S.parts=S.parts.filter(p=>p.life>0&&p.y<GROUND+30);
   if(S.parts.length>700)S.parts.splice(0,S.parts.length-700);
-  for(const l of S.limbs){l.vy+=900*dt;l.x+=l.vx*dt;l.y+=l.vy*dt;l.ang+=l.va*dt;if(l.y>=l.floor){l.y=l.floor;l.vy*=-.3;l.vx*=.55;l.va*=.5;}l.life-=dt;}S.limbs=S.limbs.filter(l=>l.life>0);
+  for(const l of S.limbs){l.vy+=900*wdt;l.x+=l.vx*wdt;l.y+=l.vy*wdt;l.ang+=l.va*wdt;if(l.y>=l.floor){l.y=l.floor;l.vy*=-.3;l.vx*=.55;l.va*=.5;}l.life-=dt;}S.limbs=S.limbs.filter(l=>l.life>0);
   for(const c of S.corpses){
     if(c.raising>0){c.raising-=dt;if(c.raising<=0){c.done=true;
       const d=TEAMS[c.src||c.team].weapons[c.w],hp=c.max*.5;
@@ -376,20 +378,27 @@ function stepSim(S,dt){
   for(const p of S.pops){p.y-=40*dt;p.life-=dt;}S.pops=S.pops.filter(p=>p.life>0);
   for(const b of S.banners)b.life-=dt;S.banners=S.banners.filter(b=>b.life>0);
   for(const k of ['g','o']){const st=S.teams[k];if(!st.bombed&&st.hp>0&&st.hp<=LAST_STAND)lastStand(S,k);}
-  for(const b of S.blasts){b.t+=dt;}S.blasts=S.blasts.filter(b=>b.t<2.2);
+  for(const b of S.blasts){b.t+=dt;const T=TEAMS[b.team],r=blastR(b);if(b.t<BLAST_DUR)S.shake=Math.max(S.shake,.12);
+    b.pending=b.pending.filter(q=>{const e=q.e;if(e.hp<=0)return false;if(Math.abs(e.x-b.x)>r)return true;
+      const near=Math.max(0,1-Math.abs(e.x-b.x)/BLAST_R);e.kb=T.dir*(300+500*near)*rand(.8,1.2);
+      damageUnit(S,b.team,e,q.kill?e.hp+1:e.max*rand(.3,.5),true);burst(S,e.x,GROUND+e.lane-30,'#ffcf6e',8,160,5);return false;});
+    if(b.t<BLAST_DUR&&Math.random()<.6){const fx=b.x+T.dir*r;S.parts.push({x:fx+rand(-20,20),y:GROUND-rand(10,120),vx:T.dir*rand(20,80),vy:rand(-120,-30),life:rand(1,2.2),max:2.2,col:Math.random()<.5?'#ffcf6e':T.glow,size:rand(4,9)});}}
+  S.blasts=S.blasts.filter(b=>b.t<BLAST_DUR+1.8);
   if(S.teams.g.hp<=0||S.teams.o.hp<=0)S.winner=S.teams.g.hp>S.teams.o.hp?'g':'o';
 }
-const LAST_STAND=1500,BLAST_R=1300;
+const LAST_STAND=1500,BLAST_R=1300,BLAST_DUR=5;
+function blastR(b){const q=Math.min(1,b.t/(BLAST_DUR-.6));return (b.R||BLAST_R)*(1-Math.pow(1-q,2));}
 function lastStand(S,k){
   const st=S.teams[k],T=TEAMS[k],ek=k==='g'?'o':'g';st.bombed=true;
-  S.blasts.push({x:T.baseX,team:k,t:0});S.shake=.9;
+  const bl={x:T.baseX,team:k,t:0,pending:[]};S.blasts.push(bl);S.shake=.6;
   banner(S,k,'LAST STAND','The base unleashes everything it has',T.glow);
   // the blast wipes out 80% of the enemy army, closest to the base first; the rest are hurled back
   const foes=S.units.filter(e=>e.team===ek&&e.hp>0).sort((a,b)=>Math.abs(a.x-T.baseX)-Math.abs(b.x-T.baseX));
   const kills=Math.round(foes.length*.8);
-  foes.forEach((e,i)=>{const near=Math.max(0,1-Math.abs(e.x-T.baseX)/BLAST_R);e.kb=T.dir*(300+500*near)*rand(.8,1.2);
-    damageUnit(S,k,e,i<kills?e.hp+1:e.max*rand(.3,.5),true);});
-  for(let i=0;i<60;i++){const a=rand(-Math.PI,0);S.parts.push({x:T.baseX,y:GROUND-60,vx:Math.cos(a)*rand(200,900),vy:Math.sin(a)*rand(200,700),life:rand(.6,1.4),max:1.4,col:i%3?'#ffcf6e':T.glow,size:rand(4,10)});}
+  // nobody is hit yet: the shockwave rolls out in slow motion and catches each enemy as it reaches them
+  foes.forEach((e,i)=>bl.pending.push({e,kill:i<kills}));
+  bl.R=Math.max(BLAST_R,...foes.map(e=>Math.abs(e.x-T.baseX)+60));
+  for(let i=0;i<60;i++){const a=rand(-Math.PI,0);S.parts.push({x:T.baseX,y:GROUND-60,vx:Math.cos(a)*rand(80,360),vy:Math.sin(a)*rand(80,300),life:rand(2,4),max:4,col:i%3?'#ffcf6e':T.glow,size:rand(4,10)});}
 }
 function power(S,k){let p=S.teams[k].hp*.02;for(const u of S.units)if(u.team===k){const d=statOf(u);p+=u.hp*(d.dmg*(d.multi||1)/d.cd)*.02;}return p;}
 // SIM-END
@@ -899,11 +908,16 @@ function render(time){spriteBudget=10;
   c.globalAlpha=1;c.textAlign='center';
   for(const p of S.pops){c.font=`800 ${p.size||22}px ${FD}`;c.globalAlpha=Math.min(1,p.life*2);c.fillStyle='rgba(0,0,0,.6)';c.fillText(p.text,SX(p.x)+2,p.y+2);c.fillStyle=p.col;c.fillText(p.text,SX(p.x),p.y);}
   c.globalAlpha=1;
-  for(const b of S.blasts){const x=SX(TEAMS[b.team].baseX),p=Math.min(1,b.t/.9),r=BLAST_R*(1-Math.pow(1-p,3)),a=Math.max(0,1-b.t/2.2);
-    c.save();c.globalAlpha=a;c.strokeStyle='#fff6dc';c.shadowColor=TEAMS[b.team].color;c.shadowBlur=40;c.lineWidth=18*(1-p)+4;
-    c.beginPath();c.ellipse(x,GROUND-40,r,r*.32,0,Math.PI,0);c.stroke();
-    const g=c.createRadialGradient(x,GROUND-60,10,x,GROUND-60,240*(1-p*.5));g.addColorStop(0,'rgba(255,240,200,.9)');g.addColorStop(1,'rgba(255,160,60,0)');c.fillStyle=g;c.beginPath();c.arc(x,GROUND-60,240,0,7);c.fill();c.restore();
-    if(b.t<.3){c.fillStyle=`rgba(255,250,235,${(1-b.t/.3)*.6})`;c.fillRect(0,336,W,H-336);}}
+  for(const b of S.blasts){const x=SX(TEAMS[b.team].baseX),r=blastR(b),p=Math.min(1,b.t/BLAST_DUR),a=Math.max(0,1-Math.max(0,b.t-BLAST_DUR)/1.8);
+    // a slow-growing fireball over the base
+    const fr=60+200*Math.min(1,b.t/2.2),fa=a*Math.max(0,1-Math.max(0,b.t-2.5)/3);
+    c.save();c.globalCompositeOperation='lighter';const fg=c.createRadialGradient(x,GROUND-80,10,x,GROUND-80,fr);fg.addColorStop(0,`rgba(255,250,220,${.95*fa})`);fg.addColorStop(.4,`rgba(255,190,90,${.7*fa})`);fg.addColorStop(1,'rgba(255,90,30,0)');
+    c.fillStyle=fg;c.beginPath();c.arc(x,GROUND-80,fr,0,7);c.fill();
+    // the rolling shockwave
+    c.globalAlpha=a;c.strokeStyle='#fff6dc';c.shadowColor=TEAMS[b.team].color;c.shadowBlur=40;c.lineWidth=26*(1-p)+6;
+    c.beginPath();c.ellipse(x,GROUND-40,r,Math.max(20,r*.32),0,Math.PI,0);c.stroke();
+    c.lineWidth=10*(1-p)+3;c.strokeStyle=TEAMS[b.team].glow;c.globalAlpha=a*.6;c.beginPath();c.ellipse(x,GROUND-40,Math.max(0,r-50),Math.max(16,(r-50)*.32),0,Math.PI,0);c.stroke();c.restore();
+    if(b.t<1.2){c.fillStyle=`rgba(255,250,235,${(1-b.t/1.2)*.5})`;c.fillRect(0,336,W,H-336);}}
   c.restore();
   drawFrame(c,time);drawHud(c);
   if(paused&&started){c.fillStyle='rgba(0,0,0,.5)';c.fillRect(0,336,W,H-336);c.fillStyle='#fff';c.textAlign='center';c.font=`800 80px ${FD}`;c.fillText('PAUSED',W/2,640);}
