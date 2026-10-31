@@ -234,8 +234,14 @@ const SPAWN_OFF=62;
 function spawnWave(S,k){
   const st=S.teams[k];st.queue=st.queue||[];
   const tot=st.counts.reduce((a,b)=>a+b,0);
-  for(let i=0;i<st.squad;i++){if(st.queue.length>=14)break;let r=Math.random()*tot,w=0;while(r>=st.counts[w]){r-=st.counts[w];w++;}st.queue.push(w);}
+  let extra=0;
+  for(let i=0;i<st.squad;i++){if(st.queue.length>=14){extra++;continue;}let r=Math.random()*tot,w=0;while(r>=st.counts[w]){r-=st.counts[w];w++;}st.queue.push(w);}
+  if(extra&&S.units.reduce((n,u)=>n+(u.team===k&&u.hp>0),0)>=UNIT_CAP)overflowSouls(S,k,extra*SOUL_PER_EXTRA);
 }
+// when the castle is full, fighters that can't fit become souls toward the champion instead of being wasted
+const SOUL_PER_EXTRA=4;
+function overflowSouls(S,k,n){const st=S.teams[k];st.souls+=n;st.overflow=(st.overflow||0)+n;st.fullT=3;
+  if(S.pops.length<60)S.pops.push({x:TEAMS[k].baseX+TEAMS[k].dir*40,y:GROUND-260,text:'+'+n+' souls',col:TEAMS[k].glow,size:22,life:1.2});}
 function trickle(S,k,dt){
   const st=S.teams[k];if(!st.queue||!st.queue.length)return;
   st.trickleT=(st.trickleT||0)-dt;if(st.trickleT>0)return;
@@ -854,7 +860,9 @@ function drawHud(c){
     c.font=`800 86px ${FD}`;const g=c.createLinearGradient(0,350,0,430);g.addColorStop(0,T.glow);g.addColorStop(1,T.color);c.fillStyle=g;
     c.shadowColor='rgba(0,0,0,.8)';c.shadowBlur=6;c.fillText(Math.ceil(st.hp),x,432);c.shadowBlur=0;
     c.font=`600 14px ${FB}`;c.fillStyle='#c9d1cd';
+    const army=S.units.reduce((n,u)=>n+(u.team===k&&u.hp>0),0),full=army>=UNIT_CAP&&st.queue&&st.queue.length>=14;
     c.fillText(`${st.squad} per wave · giant ${st.giant} · wave every ${st.interval.toFixed(1)}s · ${st.kills} kills`,x,456);
+    c.font=`800 20px ${FD}`;c.fillStyle=full?T.glow:'#c9d1cd';c.fillText(`ARMY ${Math.min(army,UNIT_CAP)} / ${UNIT_CAP}`+(full?'  ·  CASTLE FULL: EXTRAS BECOME SOULS':''),x,478);
     c.restore();
   }
   for(const b of S.banners){
