@@ -149,11 +149,20 @@ function newGame(){
   S.teams.g.counts=[1,0,1,0,0];S.teams.o.counts=[1,1,0,0,0];
   return S;
 }
+// Each cannon barrel keeps sweeping its pitch across its board; an orb lands wherever the barrel points when it fires.
+const BARREL=34,LOB=70;
+// Back and forth across the board, left to right on screen for both sides, speeding up and slowing down but spending equal time over every bin.
+function sweepAim(S,m){const lt=launcher(m),u=(m.u||0)%2,f=u<1?u:2-u,x=m.x+m.w*(.2+.6*f);return Math.atan2(m.y+16-LOB-lt.y,x-lt.x);}
+function stepAim(S,m,dt){if(m.u===undefined){m.ph=(m.team==='g'?0:2.4)+(m.kind==='fate'?0:1.3);m.u=m.ph%2;}
+  m.u+=dt*(.24+.13*Math.sin(S.t*.8+m.ph));const g=sweepAim(S,m);if(m.a===undefined)m.a=g;const d=g-m.a,st=1.6*dt;m.a+=Math.abs(d)<=st?d:Math.sign(d)*st;}
+function fireFromBarrel(S,m,b){const lt=launcher(m),a=m.a===undefined?sweepAim(S,m):m.a,t=Math.tan(a);b.ty=m.y+16;
+  b.tx=clamp(Math.abs(t)<1e-3?m.x+m.w/2:lt.x+(b.ty-LOB-lt.y)/t,m.x+m.w*.12,m.x+m.w*.88);
+  b.fx=lt.x+Math.cos(a)*BARREL;b.fy=lt.y+Math.sin(a)*BARREL;b.x=b.fx;b.y=b.fy;const dist=Math.hypot(b.tx-b.fx,b.ty-LOB-b.fy);
+  b.c1x=b.fx+Math.cos(a)*dist*.6;b.c1y=b.fy+Math.sin(a)*dist*.6;b.st='fly';b.t=0;m.aim=a;m.kick=.35;}
 function launchBall(S,k,kind,from,rail){
   const m=S.m[k][kind],tx=m.x+m.w/2+rand(-m.w*.3,m.w*.3),ty=m.y+16,lt=launcher(m);
   const b={team:k,kind,st:rail?'rail':'fly',t:0,dur:1.5,fx:lt.x,fy:lt.y,tx,ty,x:from.x,y:from.y,vx:0,vy:0,bin:-1,age:0,trail:[],nudged:0,pts:rail||[],pi:0};
-  if(!rail){m.aim=Math.atan2(ty-70-lt.y,tx-lt.x);m.kick=.35;}
-  S.balls.push(b);
+  S.balls.push(b);if(!rail)fireFromBarrel(S,m,b);
 }
 function railPts(S,k,bx){return [{x:bx,y:314},{x:mx(k,540),y:314},launcher(S.m[k].fate),{x:mx(k,664),y:160},launcher(S.m[k].armory)];}
 function banner(S,k,text,sub,col){S.banners=S.banners.filter(b=>b.team!==k);S.banners.push({team:k,text,sub,col,life:2.6});}
@@ -161,6 +170,8 @@ function settle(S,b,bin){
   const st=S.teams[b.team],T=TEAMS[b.team],m=S.m[b.team][b.kind];m.last=bin;m.flash=1.8;
   if(b.kind==='armory'){
     const w=m.bins[bin];
+    if(!weaponUnlocked(st,b.team,w)){st.souls+=30;const need=UNLOCK_AT[UNLOCK[b.team].indexOf(w)];
+      banner(S,b.team,'LOCKED','Deal '+fmtK(need-(st.dealt||0))+' more damage to unlock · +30 souls','#9aa3a6');return;}
     if(st.counts[w]<9)st.counts[w]++;
     st.log.push('W'+w);
     banner(S,b.team,T.weapons[w].n.toUpperCase(),'Armory stock now '+st.counts[w],UPS.WEAPON.col);return;
@@ -203,11 +214,11 @@ function stepBalls(S,dt){
   const keep=[];
   for(const b of S.balls){
     const m=S.m[b.team][b.kind];b.age+=dt;
-    if(b.st==='hold'){b.t-=dt;if(b.t<=0){b.st='fly';b.t=0;m.aim=Math.atan2(b.ty-70-b.fy,b.tx-b.fx);m.kick=.35;}keep.push(b);continue;}
+    if(b.st==='hold'){b.t-=dt;if(b.t<=0)fireFromBarrel(S,m,b);keep.push(b);continue;}
     if(b.st==='rail'){const q=b.pts[b.pi],dx=q.x-b.x,dy=q.y-b.y,d=Math.hypot(dx,dy),st=170*dt;
-      if(d<=st){b.x=q.x;b.y=q.y;b.pi++;if(b.pi>=b.pts.length){b.st='fly';b.t=0;b.fx=b.x;b.fy=b.y;m.aim=Math.atan2(b.ty-70-b.fy,b.tx-b.fx);m.kick=.35;}}
+      if(d<=st){b.x=q.x;b.y=q.y;b.pi++;if(b.pi>=b.pts.length)fireFromBarrel(S,m,b);}
       else{b.x+=dx/d*st;b.y+=dy/d*st;}b.trail.push({x:b.x,y:b.y});if(b.trail.length>TRAIL)b.trail.shift();keep.push(b);continue;}
-    if(b.st==='fly'){b.trail.push({x:b.x,y:b.y});if(b.trail.length>TRAIL)b.trail.shift();b.t+=dt;const p=Math.min(1,b.t/b.dur);b.x=b.fx+(b.tx-b.fx)*p;b.y=b.fy+(b.ty-b.fy)*p-Math.sin(Math.PI*p)*60;
+    if(b.st==='fly'){b.trail.push({x:b.x,y:b.y});if(b.trail.length>TRAIL)b.trail.shift();b.t+=dt;const p=Math.min(1,b.t/b.dur),q=1-p;b.x=q*q*b.fx+2*q*p*b.c1x+p*p*b.tx;b.y=q*q*b.fy+2*q*p*b.c1y+p*p*b.ty;
       if(p>=1){b.st='fall';b.vx=rand(-9,9);b.vy=10;}keep.push(b);continue;}
     const sub=5,h=dt/sub,nb=m.bins.length,bw=m.w/nb;let done=false;
     for(let k=0;k<sub&&!done;k++){
@@ -222,7 +233,7 @@ function stepBalls(S,dt){
     if(!done){b.trail.push({x:b.x,y:b.y});if(b.trail.length>TRAIL)b.trail.shift();keep.push(b);}
   }
   S.balls=keep;
-  for(const k of ['g','o'])for(const kind of ['fate','armory']){const m=S.m[k][kind];m.flash=Math.max(0,m.flash-dt);m.kick=Math.max(0,m.kick-dt);for(const p of m.pegs)p.hit=Math.max(0,p.hit-dt);}
+  for(const k of ['g','o'])for(const kind of ['fate','armory']){const m=S.m[k][kind];m.flash=Math.max(0,m.flash-dt);m.kick=Math.max(0,m.kick-dt);stepAim(S,m,dt);for(const p of m.pegs)p.hit=Math.max(0,p.hit-dt);}
 }
 function mkUnit(S,k,w,champ,i){
   const st=S.teams[k],T=TEAMS[k],d=champ?T.champ:T.weapons[w],g=champ?0:st.giant;
@@ -263,8 +274,15 @@ function ragdoll(S,u){
   for(const [l,w] of parts)S.limbs.push({x:u.x+rand(-6,6)*s,y:fl-rand(15,50)*s,len:l*s,ang:rand(0,6),va:rand(-10,10),vx:push*rand(20,120)+rand(-50,50),vy:rand(-260,-100),w:w*s,col,life:3,floor:fl});
   if(S.limbs.length>420)S.limbs.splice(0,S.limbs.length-420);
 }
+// Weapons unlock in order as a side deals damage: the first two are ready at the start, the big ones take real fighting.
+const UNLOCK={g:[0,2,1,3,4],o:[0,1,3,2,4]},UNLOCK_AT=[0,0,30000,90000,170000];
+function weaponUnlocked(st,k,w){return (st.dealt||0)>=UNLOCK_AT[UNLOCK[k].indexOf(w)];}
+function fmtK(n){n=Math.max(0,n);return n>=1000?(n/1000).toFixed(n<10000?1:0)+'k':String(Math.ceil(n));}
+function checkUnlocks(S,k){const st=S.teams[k],T=TEAMS[k];st.tier=st.tier||2;
+  while(st.tier<5&&(st.dealt||0)>=UNLOCK_AT[st.tier]){const w=UNLOCK[k][st.tier];st.tier++;if(st.counts[w]<1)st.counts[w]=1;
+    banner(S,k,'NEW WEAPON!',T.weapons[w].n+' unlocked',T.glow);S.unlockFx=S.unlockFx||[];S.unlockFx.push({team:k,w,at:S.t});}}
 function damageUnit(S,team,e,dmg,crit){
-  if(e.hp<=0)return;e.hp-=dmg;e.flash=.12;
+  if(e.hp<=0)return;S.teams[team].dealt=(S.teams[team].dealt||0)+Math.min(dmg,e.hp);e.hp-=dmg;e.flash=.12;
   if(S.pops.length<60)S.pops.push({x:e.x+rand(-8,8),y:GROUND+e.lane-(statOf(e).vehicle?60:statOf(e).mech?230:95)*e.size*(e.champ?.75:1),text:(crit?'CRIT -':'-')+Math.round(dmg),col:crit?'#ffe066':'#ffffff',size:crit?30:19,life:crit?1.1:.8});
   if(e.hp<=0){const st=S.teams[team],d=statOf(e);st.kills++;st.souls+=Math.max(6,e.max/12);
     if(d.vehicle||d.mech)ragdoll(S,e);
@@ -272,7 +290,7 @@ function damageUnit(S,team,e,dmg,crit){
     burst(S,e.x,GROUND+e.lane-30*e.size,e.wight?'#9fdcf0':TEAMS[e.src||e.team].color,6,140,3);}
 }
 function damageBase(S,k,dmg,crit){
-  dmg*=BASE_DMG;const st=S.teams[k];st.hp=Math.max(0,st.hp-dmg);st.hit=.15;
+  dmg*=BASE_DMG;const st=S.teams[k];{const a=S.teams[k==='g'?'o':'g'];a.dealt=(a.dealt||0)+dmg;}st.hp=Math.max(0,st.hp-dmg);st.hit=.15;
   if(S.pops.length<140)S.pops.push({x:TEAMS[k].baseX+rand(-40,40),y:GROUND-240+rand(-20,20),text:'-'+Math.round(dmg),col:crit?'#ffe066':TEAMS[k].glow,size:crit?32:24,life:.9});
 }
 function hit(S,team,target,dmg,crit,splash,x){
@@ -391,6 +409,7 @@ function stepSim(S,dt){
       damageUnit(S,b.team,e,q.kill?e.hp+1:e.max*rand(.3,.5),true);burst(S,e.x,GROUND+e.lane-30,'#ffcf6e',8,160,5);return false;});
     if(b.t<BLAST_DUR&&Math.random()<.6){const fx=b.x+T.dir*r;S.parts.push({x:fx+rand(-20,20),y:GROUND-rand(10,120),vx:T.dir*rand(20,80),vy:rand(-120,-30),life:rand(1,2.2),max:2.2,col:Math.random()<.5?'#ffcf6e':T.glow,size:rand(4,9)});}}
   S.blasts=S.blasts.filter(b=>b.t<BLAST_DUR+1.8);
+  checkUnlocks(S,'g');checkUnlocks(S,'o');
   if(S.teams.g.hp<=0||S.teams.o.hp<=0)S.winner=S.teams.g.hp>S.teams.o.hp?'g':'o';
 }
 const LAST_STAND=1500,BLAST_R=1300,BLAST_DUR=5;
@@ -694,7 +713,7 @@ function drawPanel(c,k,kind){
 }
 function drawCannon(c,m,time){
   const p=launcher(m),T=TEAMS[m.team],idle=m.kind==='fate'?(m.team==='g'?-2.4:-.74):(m.team==='g'?-2.5:-.64);
-  const ang=m.kick>0||S.balls.some(b=>b.team===m.team&&b.kind===m.kind&&b.st==='fly')?m.aim:idle,rec=Math.sin(Math.min(1,m.kick/.35)*Math.PI)*5;
+  const ang=m.a!==undefined?m.a:idle,rec=Math.sin(Math.min(1,m.kick/.35)*Math.PI)*5;
   c.save();c.translate(p.x,p.y);
   c.save();c.rotate(ang);const bg=c.createLinearGradient(0,-8,0,8);bg.addColorStop(0,'#e8ebec');bg.addColorStop(.5,'#6d7377');bg.addColorStop(1,'#2c3033');
   c.fillStyle=bg;rr(c,4-rec,-8,30,16,3);c.fill();c.strokeStyle='#050506';c.lineWidth=1.5;c.stroke();c.fillStyle='#0b0c0d';rr(c,28-rec,-5.5,6,11,2);c.fill();c.restore();
@@ -741,9 +760,12 @@ function drawMachine(c,m,time){
     if(i>0){const pg=c.createLinearGradient(bx-3,0,bx+3,0);pg.addColorStop(0,'#3a3f42');pg.addColorStop(.5,'#d9dcde');pg.addColorStop(1,'#3a3f42');c.fillStyle=pg;c.fillRect(bx-2.5,by-8,5,bh+2);
       c.fillStyle='#e6e8e9';c.beginPath();c.moveTo(bx-4,by-8);c.lineTo(bx,by-15);c.lineTo(bx+4,by-8);c.fill();}
     if(armory){
-      const n=st.counts[lab],icol=n>0?T.color:'#4a4f52';
-      c.save();c.shadowColor='rgba(0,0,0,.9)';c.shadowOffsetX=2;c.shadowOffsetY=2;weaponIcon(c,m.team,lab,bx+bw*.4,by+18,1.2,n>0?shade(T.color,1.12):icol);c.restore();
-      c.font=`800 32px ${FD}`;c.fillStyle='rgba(0,0,0,.75)';c.fillText(n,bx+bw*.8+2,by+22,bw*.3);c.fillStyle=n>0?T.color:'#3a3f42';c.fillText(n,bx+bw*.8,by+20,bw*.3);
+      const n=st.counts[lab],icol=n>0?T.color:'#4a4f52',open=weaponUnlocked(st,m.team,lab),fx=(S.unlockFx||[]).find(f=>f.team===m.team&&f.w===lab&&S.t-f.at<3);
+      if(fx){c.save();c.globalAlpha=.5*(1-(S.t-fx.at)/3)*(.6+.4*Math.sin(time*12));c.fillStyle='#ffe08a';c.fillRect(bx+3,by-20,bw-6,bh+12);c.restore();}
+      c.save();c.shadowColor='rgba(0,0,0,.9)';c.shadowOffsetX=2;c.shadowOffsetY=2;if(!open)c.globalAlpha=.35;weaponIcon(c,m.team,lab,bx+bw*.4,by+18,1.2,n>0?shade(T.color,1.12):icol);c.restore();
+      if(open){c.font=`800 32px ${FD}`;c.fillStyle='rgba(0,0,0,.75)';c.fillText(n,bx+bw*.8+2,by+22,bw*.3);c.fillStyle=n>0?T.color:'#3a3f42';c.fillText(n,bx+bw*.8,by+20,bw*.3);}
+      else{c.save();c.translate(bx+bw*.64,by+18);c.scale(.5,.5);padlock(c,0,0,false,'#c9ced1');c.restore();
+        c.font=`800 18px ${FD}`;c.fillStyle='#ffe08a';c.fillText(fmtK(UNLOCK_AT[UNLOCK[m.team].indexOf(lab)]-(st.dealt||0)),bx+bw*.84,by+19,bw*.3);}
       binText(c,TEAMS[m.team].weapons[lab].n.toUpperCase(),bx+bw/2,by+bh-19,15,lit,bw-10);
     }else if(lab==='CHAMP'){
       const ready=st.souls>=st.cost,lc=ready?T.glow:'#9aa3a6';
