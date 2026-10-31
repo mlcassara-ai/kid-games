@@ -68,6 +68,7 @@ h1 .m{color:var(--moss)} h1 .e{color:var(--ember)}
     <div class="sys">
       <a class="btn" href="../" style="text-decoration:none">All games</a>
       <button class="btn" id="music">Music: on</button>
+      <button class="btn" id="track">♫ Gloom March</button>
       <button class="btn" id="follow">Camera: follow</button>
       <button class="btn" id="pause">Pause</button>
       <button class="btn" data-speed="1">1×</button>
@@ -1097,8 +1098,10 @@ function updateCam(dt){
 
 // ---------- music: original Eurodance-style loop, D# minor, 118 BPM ----------
 const Music=(()=>{
-  let ac=null,master,delayIn,noise,timer=null,step=0,next=0,on=false;
-  const BPM=118,S16=60/BPM/4,hz=n=>440*Math.pow(2,(n-69)/12);
+  let ac=null,master,delayIn,noise,timer=null,step=0,next=0,on=false,tr=0;
+  // three original tracks: Gloom March (D# minor electronica), Siege Drums (war drums and brass), Neon Crypt (synthwave)
+  const TRACKS=[{name:'Gloom March',bpm:118},{name:'Siege Drums',bpm:96},{name:'Neon Crypt',bpm:108}];
+  let S16=60/TRACKS[0].bpm/4;const hz=n=>440*Math.pow(2,(n-69)/12);
   const CH=[[63,66,70],[59,63,66],[56,59,63],[58,62,65]];   // D#m  B  G#m  A# (harmonic-minor V for a spooky pull)
   const BASS=[39,35,32,34];
   const HOOK=[[0,82,4],[6,80,2],[8,78,4],[12,75,4],[16,78,6],[24,80,8],[32,82,4],[38,85,2],[40,82,4],[44,80,4],[48,78,12],
@@ -1139,7 +1142,47 @@ const Music=(()=>{
     f.connect(g);g.connect(master);g.connect(delayIn);
     for(const [type,det] of [['triangle',0],['sawtooth',6]]){const o=ac.createOscillator();o.type=type;o.frequency.value=hz(n);o.detune.value=det;
       const og=ac.createGain();og.gain.value=type==='triangle'?1:.35;o.connect(og);og.connect(f);o.start(t);o.stop(t+len+.05);}}
-  function play(s,t){
+  function tom(t,f,vol,dec){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(f*1.6,t);o.frequency.exponentialRampToValueAtTime(f,t+.08);
+    env(g,t,.004,vol,dec);o.connect(g);g.connect(master);o.start(t);o.stop(t+dec+.05);hiss(t,'lowpass',900,1,vol*.35,.08);}
+  function brass(t,n,len,vol){const g=ac.createGain(),f=ac.createBiquadFilter();f.type='lowpass';f.Q.value=2;f.frequency.setValueAtTime(500,t);f.frequency.linearRampToValueAtTime(2200,t+.08);f.frequency.exponentialRampToValueAtTime(700,t+len);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.04);g.gain.setValueAtTime(vol*.8,t+len*.7);g.gain.linearRampToValueAtTime(0,t+len);f.connect(g);g.connect(master);
+    for(const det of [-7,0,7]){const o=ac.createOscillator();o.type='sawtooth';o.frequency.value=hz(n);o.detune.value=det;o.connect(f);o.start(t);o.stop(t+len+.05);}}
+  function choir(t,notes,dur){const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=900;f.Q.value=1.4;const g=ac.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.09,t+.8);g.gain.setValueAtTime(.09,t+dur-.6);g.gain.linearRampToValueAtTime(0,t+dur);f.connect(g);g.connect(master);g.connect(delayIn);
+    for(const n of notes)for(const det of [-10,0,10]){const o=ac.createOscillator();o.type='sawtooth';o.frequency.value=hz(n);o.detune.value=det;o.connect(f);o.start(t);o.stop(t+dur+.05);}}
+  // Siege Drums: D minor, 96 BPM - war drums, a brass ostinato and a slow choir
+  const SD_CH=[[62,65,69],[58,62,65],[60,64,67],[57,61,64]],SD_B=[38,34,36,33],SD_OST=[0,0,3,0,5,3,0,-2];
+  const SD_HORN=[[0,74,6],[8,77,4],[12,76,4],[16,74,8],[32,72,6],[40,74,4],[44,76,4],[48,69,12],[64,74,6],[72,77,4],[76,79,4],[80,81,8],[96,79,4],[100,77,4],[104,76,4],[108,74,16]];
+  function playSiege(s,t){
+    const bar=Math.floor(s/16),pos=s%16,phrase=Math.floor(bar/8),sec=phrase<1?0:[1,2,3,2,4][(phrase-1)%5],ci=Math.floor(bar/2)%4;
+    if(bar%2===0&&pos===0){choir(t,SD_CH[ci],S16*32);if(sec>=1)pad(t,SD_CH[ci],S16*32);}
+    if(sec!==4&&(pos===0||pos===6||pos===10))tom(t,52,.85,.55);
+    if(sec>=1&&sec!==4&&(pos===4||pos===12))tom(t,95,.5,.3);
+    if(sec>=2&&sec!==4&&pos%2===1&&(s*7)%3===0)tom(t,140,.18,.12);
+    if(sec>=2&&sec!==4&&pos===12&&bar%2===1)for(let i=0;i<4;i++)hiss(t+i*S16/2,'bandpass',2200,1,.12,.08);
+    if(sec>=1&&sec!==4&&pos%2===0)brass(t,SD_B[ci]+12+SD_OST[pos/2],S16*1.6,.05);
+    if(sec>=1&&pos===0)bass(t,SD_B[ci],S16*7);
+    if(sec===3){const hs=s%128;for(const [st,n,len] of SD_HORN)if(st===hs)brass(t,n,S16*len,.08);}
+    if(sec===4&&pos===0)tom(t,46,.9,1.4);
+    if(sec===0&&pos%4===0)pluck(t,SD_CH[ci][pos/4%3]+12,.03);
+  }
+  // Neon Crypt: A minor synthwave, 108 BPM - driving bass, gated arpeggio, big snare
+  const NC_CH=[[69,72,76],[65,69,72],[60,64,67],[67,71,74]],NC_B=[45,41,36,43];
+  const NC_LEAD=[[0,76,3],[4,79,3],[8,81,6],[16,79,2],[18,76,2],[20,74,4],[24,72,8],[32,76,3],[36,79,3],[40,84,6],[48,83,4],[52,81,4],[56,79,8],
+    [64,81,3],[68,79,3],[72,76,6],[80,74,2],[82,72,2],[84,74,4],[88,76,8],[96,72,4],[100,74,4],[104,76,4],[108,79,4],[112,81,14]];
+  function playNeon(s,t){
+    const bar=Math.floor(s/16),pos=s%16,phrase=Math.floor(bar/8),sec=phrase<1?0:[1,2,3,2,4][(phrase-1)%5],ci=bar%4,ch=NC_CH[ci];
+    if(pos===0)pad(t,ch,S16*16);
+    if(sec>=1&&pos%2===0){const pat=[0,1,2,1];pluck(t,ch[pat[(pos/2)%4]]+(pos>=8&&sec>=2?12:0),.04);}
+    if(sec===0&&pos%4===0)bell(t,ch[(pos/4)%3]+12,.04);
+    if(sec>=1&&sec!==4&&pos%4===0)kick(t);
+    if(sec>=1&&sec!==4&&(pos===4||pos===12)){hiss(t,'bandpass',1800,.8,.28,.22);hiss(t,'highpass',5000,.7,.08,.3);}
+    if(sec>=1&&pos%2===1)hiss(t,'highpass',8500,.7,.04,.03);
+    if(sec>=2&&sec!==4&&pos%2===0)bass(t,NC_B[ci],S16*1.4);
+    if(sec===4&&pos===0)bass(t,NC_B[ci],S16*14);
+    if(sec===3){const hs=s%128;for(const [st,n,len] of NC_LEAD)if(st===hs)lead(t,n,S16*len);}
+  }
+  function play(s,t){if(tr===1)return playSiege(s,t);if(tr===2)return playNeon(s,t);
     const bar=Math.floor(s/16),pos=s%16,phrase=Math.floor(bar/8),sec=phrase<1?0:[1,2,3,2,4][(phrase-1)%5],ci=Math.floor(bar/2)%4,chord=CH[ci];
     // sec: 0 intro, 1 groove, 2 full, 3 full + hook, 4 breakdown
     if(bar%2===0&&pos===0)pad(t,chord,S16*32);
@@ -1161,7 +1204,11 @@ const Music=(()=>{
     stop(){on=false;clearInterval(timer);timer=null;if(ac)ac.suspend();},
     pause(p){if(!ac||!on)return;p?ac.suspend():ac.resume();},
     chime(i){if(!ac||!on||ac.state!=='running')return;const sc=[63,66,68,70,73,75,78,80];bell(ac.currentTime+.01,sc[i%sc.length]+12,.07);},
-    get on(){return on;}
+    get on(){return on;},
+    get track(){return TRACKS[tr].name;},
+    setTrack(i){tr=((i%TRACKS.length)+TRACKS.length)%TRACKS.length;S16=60/TRACKS[tr].bpm/4;if(ac){delayIn.delayTime.setValueAtTime(S16*3,ac.currentTime);step=0;next=Math.max(next,ac.currentTime+.1);}},
+    next(){this.setTrack(tr+1);return TRACKS[tr].name;},
+    get index(){return tr;}
   };
 })();
 let musicPref=true;try{musicPref=localStorage.getItem('pw-music')!=='off';}catch(e){}
@@ -1170,6 +1217,11 @@ function setMusicLabel(){musicBtn.textContent='Music: '+(musicPref?'on':'off');}
 musicBtn.onclick=()=>{musicPref=!musicPref;try{localStorage.setItem('pw-music',musicPref?'on':'off');}catch(e){}setMusicLabel();
   if(musicPref&&started)Music.start();else Music.stop();};
 setMusicLabel();
+const trackBtn=document.getElementById('track');
+try{Music.setTrack(+(localStorage.getItem('pw-track')||0));}catch(e){}
+trackBtn.textContent='♫ '+Music.track;
+trackBtn.onclick=()=>{const n=Music.next();trackBtn.textContent='♫ '+n;try{localStorage.setItem('pw-track',Music.index);}catch(e){}
+  if(!musicPref){musicPref=true;try{localStorage.setItem('pw-music','on');}catch(e){}setMusicLabel();}if(started)Music.start();};
 // ---------- players ----------
 function nudge(p,dir){
   if(!started||paused||S.winner||!p.on||p.charges<1)return;
