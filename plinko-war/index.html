@@ -135,7 +135,7 @@ for(const t of [...TEAMS.o.weapons,TEAMS.o.champ])t.dmg*=.7;
 // The shared Math Engine tower sits in the middle.
 const mx=(k,x)=>k==='g'?x:W-x;
 const TOP_H=400,OUT_T=44,IN_T=600,LEDGE=397,CANNON={x:60,y:66};
-const MDEF={armory:{x:92,y:118,w:464,h:88,rows:[136,156],cols:9,binH:40},fate:{x:92,y:214,w:464,h:180,rows:[238,262,286,310],cols:9,binH:70}};
+const MDEF={armory:{x:92,y:118,w:464,h:88,rows:[130,148],cols:9,binH:48},fate:{x:92,y:214,w:464,h:180,rows:[238,262,286,310],cols:9,binH:70}};
 function makeMachine(team,kind){
   const d=MDEF[kind],x=team==='g'?d.x:W-d.x-d.w,pegs=[],sx=(d.w-50)/(d.cols-1);
   d.rows.forEach((ry,r)=>{const off=r%2?sx/2:0;for(let c=0;c<d.cols-(r%2);c++){const px=x+25+off+c*sx;if(px>x+30&&px<x+d.w-30)pegs.push({x:px,y:ry,hit:0,ph:c*.55+r*1.3+(team==='o'?2:0)});}});
@@ -894,8 +894,9 @@ function drawArmory(c,m,time){
     const wg=c.createLinearGradient(0,by,0,by+bh);wg.addColorStop(0,'#4a3220');wg.addColorStop(1,'#24170c');c.fillStyle=wg;rr(c,bx+4,by,bw-8,bh-4,4);c.fill();
     if(lit){c.fillStyle=T.color;c.globalAlpha=.25+.35*Math.sin(m.flash*9)**2;rr(c,bx+4,by-18,bw-8,bh+14,4);c.fill();c.globalAlpha=1;}
     c.fillStyle='#8d9397';for(const px of [bx+14,bx+bw-14]){c.beginPath();c.arc(px,by+6,2,0,7);c.fill();}
-    c.save();if(n>0){c.shadowColor=T.color;c.shadowBlur=10;}weaponIcon(c,m.team,w,bx+bw*.38,by+19,1.05,n>0?shade(T.color,1.15):'#5a5f62');c.restore();
-    c.font=`800 24px ${FD}`;c.fillStyle='rgba(0,0,0,.75)';c.fillText(n,bx+bw*.8+1.5,by+21,bw*.3);c.fillStyle=n>0?T.glow:'#4a4f52';c.fillText(n,bx+bw*.8,by+19,bw*.3);
+    c.save();if(n>0){c.shadowColor=T.color;c.shadowBlur=10;}weaponIcon(c,m.team,w,bx+bw*.38,by+16,.85,n>0?shade(T.color,1.15):'#5a5f62');c.restore();
+    c.font=`800 22px ${FD}`;c.fillStyle='rgba(0,0,0,.75)';c.fillText(n,bx+bw*.8+1.5,by+18,bw*.3);c.fillStyle=n>0?T.glow:'#4a4f52';c.fillText(n,bx+bw*.8,by+16,bw*.3);
+    binText(c,T.weapons[w].n.toUpperCase(),bx+bw/2,by+bh-16,12,lit,bw-12);
     c.save();c.shadowColor=T.color;c.shadowBlur=lit?14:5;c.fillStyle=T.color;c.fillRect(bx+8,by+bh-7,bw-16,3);c.restore();
   }
   for(const p of m.pegs)drawPeg(c,p,T);

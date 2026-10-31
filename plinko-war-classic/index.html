@@ -694,8 +694,9 @@ function drawMachine(c,m,time){
       c.fillStyle='#e6e8e9';c.beginPath();c.moveTo(bx-4,by-8);c.lineTo(bx,by-15);c.lineTo(bx+4,by-8);c.fill();}
     if(armory){
       const n=st.counts[lab],icol=n>0?T.color:'#4a4f52';
-      c.save();c.shadowColor='rgba(0,0,0,.9)';c.shadowOffsetX=2;c.shadowOffsetY=2;weaponIcon(c,m.team,lab,bx+bw*.4,by+24,1.55,n>0?shade(T.color,1.12):icol);c.restore();
-      c.font=`800 40px ${FD}`;c.fillStyle='rgba(0,0,0,.75)';c.fillText(n,bx+bw*.8+2,by+30,bw*.3);c.fillStyle=n>0?T.color:'#3a3f42';c.fillText(n,bx+bw*.8,by+28,bw*.3);
+      c.save();c.shadowColor='rgba(0,0,0,.9)';c.shadowOffsetX=2;c.shadowOffsetY=2;weaponIcon(c,m.team,lab,bx+bw*.4,by+18,1.2,n>0?shade(T.color,1.12):icol);c.restore();
+      c.font=`800 32px ${FD}`;c.fillStyle='rgba(0,0,0,.75)';c.fillText(n,bx+bw*.8+2,by+22,bw*.3);c.fillStyle=n>0?T.color:'#3a3f42';c.fillText(n,bx+bw*.8,by+20,bw*.3);
+      binText(c,TEAMS[m.team].weapons[lab].n.toUpperCase(),bx+bw/2,by+bh-19,15,lit,bw-10);
     }else if(lab==='CHAMP'){
       const ready=st.souls>=st.cost,lc=ready?T.glow:'#9aa3a6';
       c.font=`800 28px ${FD}`;c.fillStyle='rgba(0,0,0,.7)';c.fillText(ready?'READY':Math.ceil(st.cost-st.souls),bx+bw/2+1.5,by+6);
